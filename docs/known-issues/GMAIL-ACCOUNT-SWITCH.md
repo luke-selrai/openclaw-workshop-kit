@@ -8,7 +8,7 @@ status: unresolved
 
 ## What Happened
 
-After setting up Gmail through the local command window, it connected to **harvey@selrai.com.au** instead of the intended account (rodolfo@selrai.com.au).
+After setting up Gmail through the local command window, it connected to the wrong Google account instead of the intended one. This typically happens when multiple Google accounts are signed in to the browser.
 
 ## What We Tried
 

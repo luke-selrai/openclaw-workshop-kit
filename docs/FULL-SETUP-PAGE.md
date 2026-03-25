@@ -279,32 +279,77 @@ claude mcp add playwright npx @playwright/mcp@latest --scope user
 
 ---
 
-### Telegram — Phone Notifications
+### Telegram — Message Your Assistant from Your Phone
 
-This lets your assistant send you notifications on your phone when tasks are done.
+This lets you chat with your assistant directly from Telegram on your phone — ask questions, request tasks, send photos, and get replies wherever you are.
 
-**Install Telegram:**
+**Step 1 — Install Telegram and Create a Bot**
 
 1. Download Telegram on your phone:
    - **iPhone:** Open the App Store, search **Telegram**, tap **Get**
    - **Android:** Open Google Play, search **Telegram**, tap **Install**
 2. Open Telegram and sign up with your phone number
+3. Search for **@BotFather** (look for the blue checkmark) and tap **Start**
+4. Send: `/newbot`
+5. BotFather will ask for a **name** — type anything (e.g. "My Assistant")
+6. BotFather will ask for a **username** — must end in `bot` (e.g. `my_assistant_bot`)
+7. BotFather will reply with a **token** — copy the entire thing (numbers, colon, and all)
 
-**Create Your Notification Bot:**
+**Step 2 — Install the Telegram Plugin**
 
-3. In Telegram, tap the search icon and search for: **@BotFather**
-   - Look for the one with a **blue checkmark**
-4. Tap **Start**
-5. Type: `/newbot` and tap Send
-6. BotFather will ask for a name — type anything you like (e.g. "My Assistant Bot")
-7. BotFather will ask for a username — type a name that ends in `bot` (e.g. `myworkshopbot`)
-8. BotFather will send you a **token** — it looks like a long string of letters and numbers
-9. Copy that token
+In the Claude Code chat, type:
 
-**Connect It:**
+```
+/plugin install telegram@claude-plugins-official
+```
 
-10. Go back to VS Code and tell your assistant: *"My Telegram bot token is [paste token here]"*
-11. Your assistant will save it and use it to send you notifications
+Then save your bot token (replace with your actual token):
+
+```
+/telegram:configure 123456789:AAHfiqksKZ8...
+```
+
+**Step 3 — Install Bun (Required)**
+
+The Telegram plugin runs on Bun. Install it:
+
+**Mac/Linux:**
+```
+curl -fsSL https://bun.sh/install | bash
+```
+
+**Windows:**
+```
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+Close and reopen your terminal after installing.
+
+**Step 4 — Connect and Pair**
+
+Close Claude Code and restart it with the Telegram channel enabled:
+
+```sh
+claude --channels plugin:telegram@claude-plugins-official
+```
+
+Then on your phone, open Telegram, find your bot, tap **Start**, and send any message. The bot will reply with a **6-character code**. Back in Claude Code, type:
+
+```
+/telegram:access pair <code>
+```
+
+Your next message to the bot will reach your assistant.
+
+**Step 5 — Lock Down Access (Recommended)**
+
+Once you are paired, stop strangers from getting pairing codes:
+
+```
+/telegram:access policy allowlist
+```
+
+> For the full guide with troubleshooting, see [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
 
 ---
 
@@ -409,7 +454,7 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 | Mac popup about developer tools | Click "Install" (NOT "Get Xcode") and wait 3–5 minutes |
 | Gmail connected to wrong account | Ask your assistant: "Help me switch my Gmail to a different account" |
 | Node.js "command not found" | Restart VS Code completely, or reinstall from [nodejs.org](https://nodejs.org) |
-| Telegram bot not sending messages | Make sure you sent a message to your bot first — open Telegram, find your bot, tap Start |
+| Telegram bot not responding | Make sure Claude Code is running with `--channels plugin:telegram@claude-plugins-official`. See [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md) |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 Your assistant is designed to handle problems too — just describe what happened in plain English and it will figure it out.
