@@ -351,9 +351,83 @@ Say: "Your Telegram is connected. You can now message me from your phone anytime
 
 ---
 
+### TOOL STEP 4B — iMessage Phone Notifications (Optional — Mac Only)
+
+Ask: "Are you on a Mac? I can also connect to iMessage so you can text me directly from your iPhone, iPad, or Mac — no extra apps needed."
+
+If yes:
+
+**Step 1 — Grant Full Disk Access**
+
+Say: "I need permission to read your Messages database. macOS will ask you to allow this."
+
+Guide them:
+1. The first time Claude Code reads messages, macOS pops up a permission prompt — click **Allow**
+2. If the prompt doesn't appear, go to: **System Settings → Privacy & Security → Full Disk Access**
+3. Click the **+** button and add the terminal app they're using (Terminal, iTerm, VS Code, etc.)
+4. Toggle it **on**
+
+Say: "This lets me read and respond to your iMessages. Everything stays on your Mac — no cloud services involved."
+
+**Step 2 — Install the iMessage Plugin**
+
+In the Claude Code chat, type:
+```
+/plugin install imessage@claude-plugins-official
+```
+
+No tokens or passwords needed — iMessage works directly with the local Messages database.
+
+**Step 3 — Install Bun (Required)**
+
+Check: `bun --version`
+
+If not installed:
+- **Mac:** `curl -fsSL https://bun.sh/install | bash`
+
+Say: "Close and reopen your terminal after installing."
+
+**Step 4 — Connect and Test**
+
+Say: "I need to restart with iMessage enabled. Close Claude Code and start it again with this command:"
+
+```sh
+claude --channels plugin:imessage@claude-plugins-official
+```
+
+Then guide them:
+1. Open the **Messages** app on their Mac or iPhone
+2. Start a new message **to themselves** (their own phone number or Apple ID email)
+3. Send any message — it reaches the assistant immediately
+
+> The first reply triggers an Automation prompt: "Terminal wants to control Messages." Click **OK**.
+
+Say: "That's it — no bots, no pairing codes. You can now text me from your iPhone anywhere, anytime."
+
+**Step 5 — Allow Other Contacts (Optional)**
+
+If they want someone else (e.g. a team member) to message the assistant:
+```
+/imessage:access allow +15551234567
+```
+
+Or for Apple ID emails:
+```
+/imessage:access allow someone@icloud.com
+```
+
+Say: "By default only your own messages reach me. I just added [contact] so their texts come through too."
+
+**Note:** If they already set up Telegram, they can run both channels together:
+```sh
+claude --channels plugin:telegram@claude-plugins-official plugin:imessage@claude-plugins-official
+```
+
+---
+
 ### TOOL STEP 5 — Mark Tools Complete
 
-Save to memory which tools were connected (Playwright, Google Workspace, Telegram).
+Save to memory which tools were connected (Playwright, Google Workspace, Telegram, iMessage).
 
 Say:
 > "All connected! Now let me show you what I can actually do for your business."
