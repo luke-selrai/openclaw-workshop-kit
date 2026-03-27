@@ -353,70 +353,59 @@ Say: "Your Telegram is connected. You can now message me from your phone anytime
 
 ### TOOL STEP 4B — iMessage Phone Notifications (Optional — Mac Only)
 
-Ask: "Are you on a Mac? I can also connect to iMessage so you can text me directly from your iPhone, iPad, or Mac — no extra apps needed."
+Ask: "Are you on a Mac? I can also connect to iMessage so you can text me directly from your iPhone, iPad, or Mac — no extra apps, no bots, no tokens. It's the fastest channel to set up."
 
 If yes:
 
-**Step 1 — Grant Full Disk Access**
+> **Important:** Tell the user: "For iMessage setup, use the **Terminal** inside VS Code (open it with Ctrl+` or from the menu: Terminal → New Terminal). This keeps everything in one place and avoids permission issues with external apps."
 
-Say: "I need permission to read your Messages database. macOS will ask you to allow this."
+**Step 1 — Run these 3 commands in Terminal**
 
-Guide them:
-1. The first time Claude Code reads messages, macOS pops up a permission prompt — click **Allow**
-2. If the prompt doesn't appear, go to: **System Settings → Privacy & Security → Full Disk Access**
-3. Click the **+** button and add the terminal app they're using (Terminal, iTerm, VS Code, etc.)
-4. Toggle it **on**
+Say: "Open Terminal on your Mac and run these one at a time. I will tell you what each one does."
 
-Say: "This lets me read and respond to your iMessages. Everything stays on your Mac — no cloud services involved."
+First, install Bun (if not already installed):
+```sh
+curl -fsSL https://bun.sh/install | bash && source ~/.bashrc
+```
 
-**Step 2 — Install the iMessage Plugin**
+Then start Claude Code:
+```sh
+claude
+```
 
-In the Claude Code chat, type:
+Then install the iMessage plugin:
 ```
 /plugin install imessage@claude-plugins-official
 ```
 
-No tokens or passwords needed — iMessage works directly with the local Messages database.
+Say: "That's it for installing. Now we just need to restart with iMessage turned on."
 
-**Step 3 — Install Bun (Required)**
+**Step 2 — Restart with iMessage enabled**
 
-Check: `bun --version`
-
-If not installed:
-- **Mac:** `curl -fsSL https://bun.sh/install | bash`
-
-Say: "Close and reopen your terminal after installing."
-
-**Step 4 — Connect and Test**
-
-Say: "I need to restart with iMessage enabled. Close Claude Code and start it again with this command:"
+Say: "Close this Claude session (type /exit), then run this command:"
 
 ```sh
 claude --channels plugin:imessage@claude-plugins-official
 ```
 
-Then guide them:
-1. Open the **Messages** app on their Mac or iPhone
-2. Start a new message **to themselves** (their own phone number or Apple ID email)
-3. Send any message — it reaches the assistant immediately
+> macOS will pop up **two permission prompts** — click **Allow** or **OK** on both:
+> 1. "Terminal wants to access Messages" → click **Allow**
+> 2. "Terminal wants to control Messages" → click **OK**
+>
+> If the first prompt doesn't appear, go to: **System Settings → Privacy & Security → Full Disk Access** → add **Terminal** → toggle **on**.
 
-> The first reply triggers an Automation prompt: "Terminal wants to control Messages." Click **OK**.
+**Step 3 — Test it**
 
-Say: "That's it — no bots, no pairing codes. You can now text me from your iPhone anywhere, anytime."
+Say: "Now open Messages on your Mac or iPhone and text yourself. That's it — your message will reach me instantly."
 
-**Step 5 — Allow Other Contacts (Optional)**
+No pairing codes. No bot setup. Just text yourself and it works.
 
-If they want someone else (e.g. a team member) to message the assistant:
+Say: "You can now text me from your iPhone anywhere, anytime. No extra apps needed."
+
+**Optional — Allow other contacts:**
 ```
 /imessage:access allow +15551234567
 ```
-
-Or for Apple ID emails:
-```
-/imessage:access allow someone@icloud.com
-```
-
-Say: "By default only your own messages reach me. I just added [contact] so their texts come through too."
 
 **Note:** If they already set up Telegram, they can run both channels together:
 ```sh
