@@ -167,6 +167,7 @@ claude --channels plugin:imessage@claude-plugins-official
 | Messages from others are ignored | Add their handle: `/imessage:access allow +15551234567` |
 | Want to remove someone's access | Run `/imessage:access remove +15551234567` |
 | Photos not being read by assistant | Send the photo as a file attachment for full quality |
+| Messages stop being received after a reply | The server ignores your messages for ~15 seconds after sending a reply (to avoid echo). Wait 15 seconds, or restart Claude Code if it stays stuck |
 | Only works on Mac, not iPhone | The channel runs on your Mac — but you can text from any Apple device and it reaches the Mac |
 | Tapbacks/reactions don't work | This is an Apple limitation — AppleScript can send text but not tapbacks or reactions |
 
