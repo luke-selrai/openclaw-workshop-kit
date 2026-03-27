@@ -402,10 +402,28 @@ No pairing codes. No bot setup. Just text yourself and it works.
 
 Say: "You can now text me from your iPhone anywhere, anytime. No extra apps needed."
 
-**Optional — Allow other contacts:**
+**Step 4 — Allow other contacts**
+
+Ask: "Would you like anyone else to be able to message me through iMessage? For example, a business partner, team member, or family member? Just give me their phone number or Apple ID email."
+
+If they provide a number or email, run the command for each one:
 ```
-/imessage:access allow +15551234567
+/imessage:access allow +61412345678
 ```
+or:
+```
+/imessage:access allow someone@icloud.com
+```
+
+Rules for formatting:
+- Phone numbers must start with `+` and country code, no spaces or dashes (e.g. `+61412345678` for Australia, `+15551234567` for US)
+- Apple ID emails work too (e.g. `friend@icloud.com`)
+
+If they give a number without the country code, ask: "What country is that number from?" then add the correct prefix.
+
+After adding each contact, say: "Done — [name/number] can now text me and I will respond to them too."
+
+If they say no or not right now, say: "No worries. You can always add someone later — just tell me their number and I will allow them."
 
 **Note:** If they already set up Telegram, they can run both channels together:
 ```sh
