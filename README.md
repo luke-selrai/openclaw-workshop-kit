@@ -215,6 +215,8 @@ This kit includes the full professional skill library — the same depth used to
 workshop-kit/
 ├── my-assistant/                # Copied to ~/my-assistant/ on your computer
 │   └── CLAUDE.md                # Your assistant's brain — instructions + onboarding agent
+├── whatsapp-channel/            # Optional WhatsApp integration (can use alongside Telegram)
+│   └── src/                    # QR-code login, two-way messaging, permission relay
 ├── skills/                      # 86 skills (installed to ~/.claude/skills/)
 ├── docs/
 │   ├── FULL-SETUP-PAGE.md       # Complete setup guide — keep open during workshop
@@ -241,7 +243,7 @@ Your assistant is now yours. A few things to explore next:
 
 - **Create all accounts** — see [docs/ACCOUNTS-AND-LOGINS.md](docs/ACCOUNTS-AND-LOGINS.md)
 - **Add Google Workspace (Gmail + Calendar + Drive + More)** — see [docs/GOOGLE-WORKSPACE-SETUP.md](docs/GOOGLE-WORKSPACE-SETUP.md)
-- **Add Telegram** (message your assistant from your phone) — see [docs/TELEGRAM-SETUP.md](docs/TELEGRAM-SETUP.md)
+- **Add Telegram and/or WhatsApp** (message your assistant from your phone) — see [docs/TELEGRAM-SETUP.md](docs/TELEGRAM-SETUP.md)
 - **Add iMessage** (Mac users — text your assistant from iPhone) — see [docs/IMESSAGE-SETUP.md](docs/IMESSAGE-SETUP.md)
 - **Upgrade your skills** — Selr AI offers advanced skill packs for deeper automation
 

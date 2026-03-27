@@ -285,6 +285,8 @@ What this unlocks: Gmail + Google Calendar + Google Drive + Google Docs + Sheets
 
 Ask: "Would you like to message me from your phone? I can connect to Telegram so you can chat with me wherever you are."
 
+> **Note:** WhatsApp is also supported but takes longer to set up (~15 minutes). If they ask about WhatsApp, say: "We can set up WhatsApp after the workshop — it takes a bit longer. Let me show you Telegram first, it is quicker." See **Appendix: WhatsApp Setup** at the bottom of this file.
+
 If yes:
 
 **Step 1 — Install Telegram**
@@ -554,6 +556,193 @@ Common fixes:
 - Full setup guide: `~/workshop-kit/docs/FULL-SETUP-PAGE.md`
 - Telegram setup: `~/workshop-kit/docs/TELEGRAM-SETUP.md`
 - Google Workspace setup: `~/workshop-kit/docs/GOOGLE-WORKSPACE-SETUP.md`
+
+---
+
+## Appendix: WhatsApp Setup (Optional — Post-Workshop)
+
+This is an optional add-on that takes ~15 minutes. Only run this after the main setup (Phases 1–4) is complete. The user can trigger this anytime by saying "set up WhatsApp" or "connect WhatsApp".
+
+Say: "Great — I am going to connect WhatsApp to Claude so you can chat with your AI assistant from your phone. I will walk you through every step."
+
+**WHATSAPP STEP 1 — Check Requirements**
+
+Before starting, verify they have the right tools:
+
+Run these commands one at a time:
+```bash
+node --version
+npm --version
+git --version
+```
+
+- If Node.js is missing or below version 20 → go back to Setup Step 1
+- If npm is missing → it comes with Node.js, reinstall Node.js
+- If git is missing → go back to Setup Step 2
+
+Say: "Let me check your computer has everything we need..."
+Then after checking: "Everything looks good. Let us continue." (or guide them to install what is missing)
+
+**WHATSAPP STEP 2 — Copy the WhatsApp Channel to Your Home Folder**
+
+The WhatsApp channel code is already in your workshop kit. We need to copy it to your home folder.
+
+**Mac:**
+```bash
+cp -r ~/workshop-kit/whatsapp-channel ~/whatsapp-channel
+```
+
+**Windows (Command Prompt):**
+```cmd
+xcopy /E /I "%USERPROFILE%\workshop-kit\whatsapp-channel" "%USERPROFILE%\whatsapp-channel"
+```
+
+**Windows (PowerShell):**
+```powershell
+Copy-Item -Recurse -Path "$env:USERPROFILE\workshop-kit\whatsapp-channel" -Destination "$env:USERPROFILE\whatsapp-channel"
+```
+
+Say: "I am copying the WhatsApp channel files to your home folder. This only takes a second."
+
+**WHATSAPP STEP 3 — Install the Required Packages**
+
+Say: "Now I am going to download the packages this needs. This might take a minute or two — that is normal."
+
+**Mac:**
+```bash
+cd ~/whatsapp-channel && npm install
+```
+
+**Windows:**
+```cmd
+cd %USERPROFILE%\whatsapp-channel && npm install
+```
+
+If it fails:
+- Permission error on Mac → `sudo npm install`
+- Permission error on Windows → close the terminal, right-click on Terminal, click "Run as administrator", then try again
+- Network error → "Check your internet connection and try again"
+
+Say when done: "All the packages are installed. We are almost there."
+
+**WHATSAPP STEP 4 — Set Up the Configuration File**
+
+Say: "I am setting up the configuration file. This tells Claude how to start the WhatsApp channel."
+
+Create (or overwrite) the file `~/whatsapp-channel/.mcp.json` with this exact content:
+
+```json
+{
+  "mcpServers": {
+    "whatsapp": {
+      "command": "node",
+      "args": [
+        "--require", "./node_modules/tsx/dist/preflight.cjs",
+        "--import", "./node_modules/tsx/dist/loader.mjs",
+        "./src/index.ts"
+      ],
+      "env": {
+        "WA_ALLOW_FROM": "",
+        "WA_VERBOSE": "1"
+      }
+    }
+  }
+}
+```
+
+**WHATSAPP STEP 5 — Security Setup**
+
+Say:
+> "There is a security setting that controls who can message Claude through your WhatsApp. Right now it is open to everyone."
+
+Ask:
+> "Do you want to restrict who can message Claude through WhatsApp? If yes, tell me the phone number or numbers — include the country code at the start. For example: +1 for United States, +44 for United Kingdom, +63 for Philippines, +61 for Australia."
+
+- If they give numbers → update `WA_ALLOW_FROM` in the `.mcp.json` with the numbers separated by commas (e.g., `"+61412345678,+61498765432"`)
+- If they say no or skip → leave it empty (anyone can message)
+
+**WHATSAPP STEP 6 — Connect WhatsApp (Scan the QR Code)**
+
+Say:
+> "Everything is installed! Now we need to link your WhatsApp to Claude."
+
+**Open the Terminal in VS Code:**
+- **Mac:** Press `Ctrl` + the backtick key `` ` `` or menu: Terminal → New Terminal
+- **Windows:** Press `Ctrl` + the backtick key `` ` `` or menu: Terminal → New Terminal
+
+**Type this command and press Enter:**
+
+**Mac:**
+```bash
+cd ~/whatsapp-channel && claude --dangerously-load-development-channels server:whatsapp
+```
+
+**Windows:**
+```cmd
+cd %USERPROFILE%\whatsapp-channel && claude --dangerously-load-development-channels server:whatsapp
+```
+
+Say:
+> "The flag in that command sounds scary but it is completely normal — it just means this channel is not in the official store yet. It is safe because it runs entirely on your computer."
+
+A webpage should automatically open showing a QR code. If not, tell them to open `http://127.0.0.1:8787` in their browser.
+
+Guide them through scanning:
+1. Open WhatsApp on your phone
+2. Tap the three dots (Android) or the gear icon (iPhone) → Settings
+3. Tap "Linked Devices"
+4. Tap "Link a Device"
+5. Point your phone camera at the QR code on your computer screen
+6. Wait a moment — it will connect automatically
+
+Say when connected: "WhatsApp is now connected to Claude! Well done."
+
+**WHATSAPP STEP 7 — What to Know Going Forward**
+
+Say:
+> "TO START WHATSAPP (every time you want to use it):"
+> 1. Open VS Code
+> 2. Open the terminal
+> 3. Type the same command from Step 6 and press Enter
+
+> "You only need to scan the QR code once. Next time it connects automatically."
+
+> "TRY IT NOW: Send a message from another phone to your WhatsApp number and see if Claude responds!"
+
+**WHATSAPP STEP 8 — Allow WhatsApp to Run Without Permission Popups**
+
+First, check the `.mcp.json` file and read the `WA_ALLOW_FROM` value. If empty, go back to Step 5 first.
+
+Once `WA_ALLOW_FROM` has at least one number, ask:
+
+> "Right now, every time someone sends a WhatsApp message, a popup asks permission before I can read or reply. I can turn that off so I respond automatically — only the phone numbers you already approved can get through. Would you like to turn on automatic replies?"
+
+**If they say yes:**
+
+Create `~/whatsapp-channel/.claude/settings.json` with:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "mcp__whatsapp__*"
+    ]
+  }
+}
+```
+
+Say:
+> "Done! Claude will now reply automatically to your approved contacts. You will need to close Claude Code and reopen it for this to take effect."
+
+**If they say no:**
+
+> "No problem! Just tell me 'let WhatsApp run automatically' anytime if you change your mind."
+
+**Troubleshooting WhatsApp:**
+
+- QR code does not appear → make sure no other WhatsApp Web session is active. Delete the auth folder and restart.
+- Messages not arriving → check `WA_ALLOW_FROM` has the sender's number
+- Session expired → delete the auth folder and scan a new QR code
 
 ---
 

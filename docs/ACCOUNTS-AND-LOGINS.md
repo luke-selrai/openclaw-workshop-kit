@@ -56,9 +56,11 @@ GitHub is where the workshop kit is stored. You need an account to download it a
 
 These get connected during the setup wizard. Just have the accounts ready.
 
-### 4. Telegram Account
+### 4. Telegram and/or WhatsApp Account
 
-Telegram is a messaging app. Your AI assistant will send you phone notifications through it when it finishes tasks or needs a decision.
+Your AI assistant can send you phone notifications when it finishes tasks or needs a decision. You can set up Telegram, WhatsApp, or both.
+
+#### Telegram
 
 1. Download Telegram on your phone: [telegram.org](https://telegram.org)
    - iPhone: App Store → search "Telegram"
@@ -70,6 +72,15 @@ Telegram is a messaging app. Your AI assistant will send you phone notifications
 > **What you will do at the workshop:** Search for `@BotFather` inside Telegram, create a bot, and give your assistant the bot token. Your assistant guides you through this step by step.
 
 ✅ Done when: Telegram is installed on your phone and you can open it
+
+#### WhatsApp
+
+1. Make sure WhatsApp is up to date on your phone
+2. That's it — your assistant will show you a QR code to scan at the workshop
+
+> **What you will do at the workshop:** Your assistant shows a QR code. You scan it with WhatsApp (Settings > Linked Devices > Link a Device). Done.
+
+✅ Done when: WhatsApp is installed and up to date on your phone
 
 ---
 
@@ -157,6 +168,7 @@ If you want your assistant to manage your sales pipeline and contacts:
 | Claude Max | $100 USD/mo | Before workshop | [claude.ai](https://claude.ai) |
 | GitHub | Free | Before workshop | [github.com/signup](https://github.com/signup) |
 | Telegram | Free | Before workshop (phone) | [telegram.org](https://telegram.org) |
+| WhatsApp | Free | Before workshop (phone) | [whatsapp.com](https://www.whatsapp.com) |
 | Notion | Free | After workshop | [notion.so](https://www.notion.so) |
 | GoHighLevel | $97-297 USD/mo | After workshop | [gohighlevel.com](https://www.gohighlevel.com) |
 
@@ -172,7 +184,7 @@ Before the workshop, make sure you have saved:
 - ✅ Google email address + password
 - ✅ Claude Max login (same as Google if you used "Continue with Google")
 - ✅ GitHub username + password
-- ✅ Telegram installed on your phone
+- ✅ Telegram or WhatsApp installed on your phone
 
 A password manager (like 1Password or the built-in Apple/Google one) is the best place to save these.
 

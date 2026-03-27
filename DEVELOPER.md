@@ -45,7 +45,7 @@ openclaw-workshop-kit/
 └── visuals/                         # Printable 4-page reference set
     ├── PAGE-1-AI-MODELS.md          # What AI is, Claude vs GPT vs Gemini, pricing
     ├── PAGE-2-YOUR-SETUP.md         # VS Code + Terminal + Claude Code diagram
-    ├── PAGE-3-SKILLS-AND-AGENTS.md  # Skills, agents, Telegram explained
+    ├── PAGE-3-SKILLS-AND-AGENTS.md  # Skills, agents, Telegram/WhatsApp explained
     ├── PAGE-4-FULL-ECOSYSTEM.md     # Full ecosystem diagram
     └── page-1 to page-4 .png        # Generated image versions
 ```

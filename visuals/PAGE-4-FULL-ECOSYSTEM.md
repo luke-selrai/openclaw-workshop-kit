@@ -38,7 +38,7 @@
 │                                  │                                            │
 │                                  ▼                                            │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                         TELEGRAM                                     │    │
+│  │                    TELEGRAM / WHATSAPP                               │    │
 │  │              Results · Alerts · Reports → Your Phone                 │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                               │
@@ -122,6 +122,7 @@ Any service   → If it has an API, Claude can connect to it
 | Gmail MCP | Claude reads and drafts your emails |
 | Google Calendar MCP | Claude sees your schedule, finds free time |
 | Telegram | Phone notifications from your AI |
+| WhatsApp | Phone notifications from your AI |
 | CRM (GHL or HubSpot) | Claude manages your pipeline and contacts |
 | n8n | Triggers automated workflows |
 | Notion | Claude reads and writes your workspace |

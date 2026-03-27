@@ -66,9 +66,11 @@ Your assistant can help you set this up — just ask in the Claude chat:
 
 ---
 
-### Set Up Telegram — Message Your Assistant from Your Phone
+### Set Up Phone Notifications (Telegram and/or WhatsApp)
 
-This lets you chat with your assistant from Telegram on your phone — ask questions, request tasks, and get replies wherever you are.
+This lets you chat with your assistant from your phone — ask questions, request tasks, and get replies wherever you are. You can set up one or both.
+
+#### Telegram
 
 **Step 1:** Download Telegram on your phone (free) and sign up
 **Step 2:** Search for `@BotFather` in Telegram, send `/newbot`, and follow the prompts to create a bot
@@ -80,6 +82,15 @@ This lets you chat with your assistant from Telegram on your phone — ask quest
 **Step 8:** Message your bot on Telegram, get a pairing code, then type: `/telegram:access pair [code]`
 
 > For the full guide with troubleshooting, see [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
+
+#### WhatsApp
+
+Your assistant connects to WhatsApp via QR code — no Business API needed.
+
+**Step 1:** Make sure WhatsApp is installed on your phone
+**Step 2:** Tell your assistant: "I want to set up WhatsApp notifications"
+**Step 3:** Your assistant will show a QR code — scan it with WhatsApp (Settings > Linked Devices > Link a Device)
+**Step 4:** Once linked, your assistant can send you messages and you can reply directly from WhatsApp
 
 ### Set Up iMessage — Text Your Assistant from Your iPhone (Mac Only)
 

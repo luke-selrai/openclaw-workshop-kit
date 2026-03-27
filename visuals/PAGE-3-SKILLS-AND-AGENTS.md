@@ -135,22 +135,22 @@ This is what Luke has built for his own business using the same tools you're set
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
-                    📱 Luke's Telegram
+                    📱 Luke's Phone (Telegram / WhatsApp)
               Notifications only when a decision
               is needed — approve, skip, or redirect
 ```
 
 ---
 
-## How Telegram Connects It All
+## How Phone Notifications Connect It All
 
-Telegram is a free messaging app. Your AI can send reports, alerts, and task completions directly to your phone.
+Telegram and WhatsApp are free messaging apps. Your AI can send reports, alerts, and task completions directly to your phone. You can use one or both.
 
 ```
 Agent finishes a task or finds something important
         │
         ▼
-Sends a Telegram message to your phone
+Sends a message to your phone (Telegram or WhatsApp)
         │
         ▼
 📱 You get a notification — read it like a text
@@ -179,7 +179,7 @@ TODAY (Workshop)
 30 DAYS
   → Gmail + Calendar connected
   → CRM connected (GHL or HubSpot)
-  → Telegram notifications set up
+  → Telegram and/or WhatsApp notifications set up
   → Running AI on 3-5 tasks per week
 
 90 DAYS
