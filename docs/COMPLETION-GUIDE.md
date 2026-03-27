@@ -81,6 +81,18 @@ This lets you chat with your assistant from Telegram on your phone — ask quest
 
 > For the full guide with troubleshooting, see [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
 
+### Set Up iMessage — Text Your Assistant from Your iPhone (Mac Only)
+
+If you're on a Mac, you can skip Telegram entirely and use iMessage instead. No extra apps — just text yourself.
+
+**Step 1:** In Claude Code, type: `/plugin install imessage@claude-plugins-official`
+**Step 2:** Install Bun (required): `curl -fsSL https://bun.sh/install | bash`
+**Step 3:** Grant Full Disk Access to your terminal (System Settings → Privacy & Security → Full Disk Access)
+**Step 4:** Restart Claude Code with: `claude --channels plugin:imessage@claude-plugins-official`
+**Step 5:** Open Messages and text yourself — your assistant replies instantly
+
+> For the full guide with troubleshooting, see [IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
+
 ---
 
 ### Connect Your CRM (GoHighLevel or HubSpot)

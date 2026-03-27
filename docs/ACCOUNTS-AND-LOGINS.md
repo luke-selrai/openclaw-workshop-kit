@@ -73,6 +73,19 @@ Telegram is a messaging app. Your AI assistant will send you phone notifications
 
 ---
 
+### 4B. iMessage (Mac Users — Alternative to Telegram)
+
+If you use a Mac, you can use iMessage instead of (or alongside) Telegram. No extra app needed — it uses the Messages app already on your Mac and iPhone.
+
+1. No download or signup required — iMessage is built into macOS and iOS
+2. You just need a Mac running Claude Code (iMessage channel is macOS only)
+
+> **What you will do at the workshop:** Grant Full Disk Access to your terminal, install the iMessage plugin, and text yourself. Your assistant guides you through this step by step.
+
+✅ Done when: You have a Mac with Messages working (it already is if you use iMessage)
+
+---
+
 ### 5. Workshop Kit — Download on the Day
 
 You will run this command at the workshop. It downloads everything automatically:
