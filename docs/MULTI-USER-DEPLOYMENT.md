@@ -107,7 +107,7 @@ Each team member gets:
 - **A Linux server or VM** — Ubuntu 22.04+ or Debian 12+ recommended
   - Minimum: 2 CPU, 8 GB RAM (for up to 4 users)
   - Recommended: 4 CPU, 16 GB RAM (for 5–10 users)
-  - **Disk: minimum 20 GB** — shared Python environment uses ~1.5 GB; Whisper tiny model ~72 MB
+  - **Disk: minimum 50 GB** — shared Python environment ~1.5 GB, Whisper model ~72 MB, Claude logs + npm + node_modules fill up fast on smaller disks
   - Budget ~1–2 GB RAM per active Claude Code instance
 - **SSH access** with sudo privileges
 - **A Claude subscription per team member** — Pro ($20/month) or Max ($100/month)
@@ -148,7 +148,21 @@ sudo git clone https://github.com/luke-selrai/openclaw-workshop-kit.git /opt/wor
 sudo chmod -R 755 /opt/workshop-kit
 ```
 
-### Step 4 — Set Up Shared Python Environment
+### Step 4 — Add Swap (Prevents OOM Kills)
+
+Claude Code instances each use ~1–2 GB RAM. Without swap, the kernel kills them under load. Add 2 GB swap before adding users:
+
+```bash
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+Verify: `free -h` should show `Swap: 2.0Gi`.
+
+### Step 5 — Set Up Shared Python Environment
 
 Install Python tools once, shared by all users.
 
@@ -177,7 +191,7 @@ sudo chmod 644 /opt/shared-env/whisper-models/tiny.pt
 
 > **Important:** `chmod 644 tiny.pt` is required. Without it, non-root users get a `PermissionError` when Whisper opens the model file.
 
-### Step 5 — Install the Telegram Plugin (Admin Account)
+### Step 6 — Install the Telegram Plugin (Admin Account)
 
 Log into Claude Code once on the admin account and install the plugin. The onboarding script copies it to each new user automatically.
 
@@ -188,7 +202,7 @@ claude
 # Then exit
 ```
 
-### Step 6 — Create the Onboarding Script
+### Step 7 — Create the Onboarding Script
 
 Save as `/opt/workshop-kit/add-team-member.sh`:
 
@@ -212,6 +226,7 @@ fi
 # ── 2. Workspace ────────────────────────────────────────────────────────────
 sudo -u "$USERNAME" mkdir -p "$HOME_DIR/my-assistant/memory"
 cp /opt/workshop-kit/my-assistant/CLAUDE.md "$HOME_DIR/my-assistant/CLAUDE.md"
+# Optional memory seed files — only copied if they exist in the template
 cp /opt/workshop-kit/my-assistant/memory/USER.md "$HOME_DIR/my-assistant/memory/USER.md" 2>/dev/null || true
 cp /opt/workshop-kit/my-assistant/memory/SETUP.md "$HOME_DIR/my-assistant/memory/SETUP.md" 2>/dev/null || true
 cp /opt/workshop-kit/my-assistant/memory/MEMORY.md "$HOME_DIR/my-assistant/memory/MEMORY.md" 2>/dev/null || true
@@ -261,7 +276,7 @@ cat > "$HOME_DIR/.claude/settings.json" << 'SETTINGSJSON'
     "telegram@claude-plugins-official": true
   },
   "env": {
-    "PATH": "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
+    "PATH": "/opt/shared-env/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
   }
 }
 SETTINGSJSON
@@ -341,7 +356,7 @@ WorkingDirectory=$HOME_DIR/my-assistant
 Restart=always
 RestartSec=10
 Environment=HOME=$HOME_DIR
-Environment=PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+Environment=PATH=/opt/shared-env/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 Environment=WHISPER_CACHE_DIR=/opt/shared-env/whisper-models
 StandardOutput=append:$HOME_DIR/claude-assistant.log
 StandardError=append:$HOME_DIR/claude-assistant.log
@@ -386,7 +401,7 @@ Make it executable:
 sudo chmod +x /opt/workshop-kit/add-team-member.sh
 ```
 
-### Step 7 — Create the Pairing Script
+### Step 8 — Create the Pairing Script
 
 Save as `/opt/workshop-kit/pair-user.sh`:
 
@@ -634,7 +649,7 @@ exit
 | `claude login` shows no URL | Requires interactive terminal: `sudo su - <user>` → `export XDG_RUNTIME_DIR=/run/user/$(id -u)` → `claude login` |
 | `systemctl --user` fails with "No medium found" | Run `export XDG_RUNTIME_DIR=/run/user/$(id -u)` first |
 | Telegram bot not responding | Check service is active; check `~/.cache/claude-cli-nodejs/` MCP logs |
-| Voice messages not transcribing | Check `ffmpeg` installed; `tiny.pt` is `chmod 644`; `WHISPER_CACHE_DIR` set in service |
+| Voice messages not transcribing | Check: `ffmpeg` installed; `tiny.pt` is `chmod 644`; `WHISPER_CACHE_DIR` set in service; service PATH includes `/opt/shared-env/bin` |
 | Whisper PermissionError on model file | `sudo chmod 644 /opt/shared-env/whisper-models/*.pt` |
 | Whisper install pulls in CUDA (~4 GB) | Install torch CPU-only first: `pip install torch --index-url https://download.pytorch.org/whl/cpu` |
 | Plugin not copied by onboarding script | Install plugin on admin account first (Step 5), then re-run the script |
@@ -643,6 +658,7 @@ exit
 | Need to update Claude Code | `sudo npm update -g @anthropic-ai/claude-code` then restart all services |
 | Bot token compromised | Revoke via @BotFather (`/revoke`), update `.env`, restart service |
 | Slow performance with multiple users | Upgrade VM — budget 1–2 GB RAM per active Claude instance |
+| Disk full / SSH not working | `df -h /` — resize disk in cloud console then: `sudo growpart /dev/sda 1 && sudo resize2fs /dev/sda1` |
 
 ---
 
