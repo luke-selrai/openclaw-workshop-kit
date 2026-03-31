@@ -121,7 +121,7 @@ Your assistant should reply directly in iMessage. You can now text your assistan
 | **Quick tasks** | "Draft a reply to John's email about the proposal" |
 | **Search message history** | "Find the last message from Sarah about the project" |
 
-> Your assistant has all 86 skills available through iMessage — the same ones you use in VS Code.
+> Your assistant has all the same skills available through iMessage — the same ones you use in VS Code.
 
 ---
 

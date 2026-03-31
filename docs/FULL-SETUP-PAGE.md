@@ -284,6 +284,10 @@ Ask your assistant: *"What's on my calendar today?"* or *"Show me my recent emai
 
 ---
 
+### Phone Messaging — Choose One
+
+You only need one messaging channel. Pick whichever app you already use: **Telegram**, **WhatsApp**, or **iMessage** (Mac only). Your assistant will recommend one based on your setup.
+
 ### Telegram — Message Your Assistant from Your Phone
 
 This lets you chat with your assistant directly from Telegram on your phone — ask questions, request tasks, send photos, and get replies wherever you are.
@@ -356,6 +360,8 @@ Once you are paired, stop strangers from getting pairing codes:
 
 > For the full guide with troubleshooting, see [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
 
+> **Prefer a different app?** See [iMessage (Mac only)](#imessage--message-your-assistant-from-your-iphone-mac-only) or WhatsApp below.
+
 ---
 
 ### iMessage — Message Your Assistant from Your iPhone (Mac Only)
@@ -414,7 +420,9 @@ By default, only your own messages reach the assistant. To allow someone else:
 
 > For the full guide with troubleshooting, see [IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
 
-> **Using both?** Launch with: `claude --channels plugin:telegram@claude-plugins-official plugin:imessage@claude-plugins-official`
+> **Want multiple channels?** Launch with: `claude --channels plugin:telegram@claude-plugins-official plugin:imessage@claude-plugins-official`
+>
+> **Prefer a different app?** See [Telegram](#telegram--message-your-assistant-from-your-phone) or WhatsApp above.
 
 ---
 

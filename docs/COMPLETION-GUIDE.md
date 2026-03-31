@@ -66,9 +66,9 @@ Your assistant can help you set this up — just ask in the Claude chat:
 
 ---
 
-### Set Up Phone Notifications (Telegram and/or WhatsApp)
+### Set Up Phone Notifications (Telegram, WhatsApp, or iMessage)
 
-This lets you chat with your assistant from your phone — ask questions, request tasks, and get replies wherever you are. You can set up one or both.
+This lets you chat with your assistant from your phone — ask questions, request tasks, and get replies wherever you are. Pick whichever app you already use.
 
 #### Telegram
 
@@ -92,13 +92,13 @@ Your assistant connects to WhatsApp via QR code — no Business API needed.
 **Step 3:** Your assistant will show a QR code — scan it with WhatsApp (Settings > Linked Devices > Link a Device)
 **Step 4:** Once linked, your assistant can send you messages and you can reply directly from WhatsApp
 
-### Set Up iMessage — Text Your Assistant from Your iPhone (Mac Only)
+#### iMessage (Mac Only)
 
-If you're on a Mac, you can skip Telegram entirely and use iMessage instead. No extra apps — just text yourself.
+If you're on a Mac, you can use iMessage instead — no extra apps, no bots, just text yourself.
 
-**Step 1:** In Claude Code, type: `/plugin install imessage@claude-plugins-official`
-**Step 2:** Install Bun (required): `curl -fsSL https://bun.sh/install | bash`
-**Step 3:** Grant Full Disk Access to your terminal (System Settings → Privacy & Security → Full Disk Access)
+**Step 1:** Install Bun (required): `curl -fsSL https://bun.sh/install | bash`
+**Step 2:** Grant Full Disk Access to your terminal (System Settings → Privacy & Security → Full Disk Access)
+**Step 3:** In Claude Code, type: `/plugin install imessage@claude-plugins-official`
 **Step 4:** Restart Claude Code with: `claude --channels plugin:imessage@claude-plugins-official`
 **Step 5:** Open Messages and text yourself — your assistant replies instantly
 

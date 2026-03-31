@@ -281,13 +281,25 @@ What this unlocks: Gmail + Google Calendar + Google Drive + Google Docs + Sheets
 
 ---
 
-### TOOL STEP 4 — Telegram Phone Notifications (Optional)
+### TOOL STEP 4 — Phone Messaging (Optional)
 
-Ask: "Would you like to message me from your phone? I can connect to Telegram so you can chat with me wherever you are."
+Ask: "Would you like to message me from your phone? I can connect to a messaging app so you can chat with me wherever you are — ask questions, request tasks, and get replies on the go."
 
-> **Note:** WhatsApp is also supported but takes longer to set up (~15 minutes). If they ask about WhatsApp, say: "We can set up WhatsApp after the workshop — it takes a bit longer. Let me show you Telegram first, it is quicker." See **Appendix: WhatsApp Setup** at the bottom of this file.
+**How to recommend a channel:**
 
-If yes:
+1. Check the user's tech stack and OS from their Phase 2 onboarding answers.
+2. If they already mentioned using **Telegram** → recommend Telegram.
+3. If they already mentioned using **WhatsApp** → recommend WhatsApp.
+4. If they already mentioned using **iMessage** or are on a Mac → recommend iMessage.
+5. If no clear preference, present the options:
+   - If on **Mac** → offer all three: "You have three options: **Telegram**, **WhatsApp**, or **iMessage**. Since you're on a Mac, iMessage is the quickest — no extra apps, no bots, just text yourself. Telegram and WhatsApp work on any device. Which would you prefer?"
+   - If **not on Mac** → offer two: "You have two options: **Telegram** or **WhatsApp**. Telegram is the quickest to set up at the workshop. Which would you prefer?"
+
+> **Important:** Once one channel is set up, move on to TOOL STEP 5. Do NOT suggest additional channels unless the user specifically asks. One messaging channel is enough — you don't want to overwhelm them.
+
+---
+
+#### If they choose Telegram:
 
 **Step 1 — Install Telegram**
 
@@ -308,21 +320,21 @@ Guide them through BotFather:
 
 **Step 3 — Install the Telegram Plugin**
 
-In the Claude Code chat, type:
+Run these commands yourself in the Claude Code chat:
 ```
 /plugin install telegram@claude-plugins-official
 ```
 
-Then save the bot token:
+Then save the bot token (replace with the token they gave you):
 ```
 /telegram:configure [their token]
 ```
 
 **Step 4 — Install Bun (Required)**
 
-Check: `bun --version`
+Check if Bun is already installed: `bun --version`
 
-If not installed:
+If not installed, tell the user to run:
 - **Mac/Linux:** `curl -fsSL https://bun.sh/install | bash`
 - **Windows:** `powershell -c "irm bun.sh/install.ps1 | iex"`
 
@@ -353,36 +365,39 @@ Say: "Your Telegram is connected. You can now message me from your phone anytime
 
 ---
 
-### TOOL STEP 4B — iMessage Phone Notifications (Optional — Mac Only)
+#### If they choose WhatsApp:
 
-Ask: "Are you on a Mac? I can also connect to iMessage so you can text me directly from your iPhone, iPad, or Mac — no extra apps, no bots, no tokens. It's the fastest channel to set up."
+Say: "We can set up WhatsApp — it takes about 15 minutes." See **Appendix: WhatsApp Setup** at the bottom of this file for the full instructions.
 
-If yes:
+---
+
+#### If they choose iMessage:
 
 > **Important:** Tell the user: "For iMessage setup, use the **Terminal** inside VS Code (open it with Ctrl+` or from the menu: Terminal → New Terminal). This keeps everything in one place and avoids permission issues with external apps."
 
-**Step 1 — Run these 3 commands in Terminal**
+**Step 1 — Install Bun (Required)**
 
-Say: "Open Terminal on your Mac and run these one at a time. I will tell you what each one does."
+Check if Bun is already installed: `bun --version`
 
-First, install Bun (if not already installed):
+If not installed, tell the user to run:
 ```sh
-curl -fsSL https://bun.sh/install | bash && source ~/.bashrc
+curl -fsSL https://bun.sh/install | bash
 ```
 
-Then start Claude Code:
-```sh
-claude
-```
+Say: "Close and reopen your terminal after installing."
 
-Then install the iMessage plugin:
+**Step 2 — Install the iMessage Plugin**
+
+Run this command yourself in the Claude Code chat:
 ```
 /plugin install imessage@claude-plugins-official
 ```
 
+No tokens or passwords needed.
+
 Say: "That's it for installing. Now we just need to restart with iMessage turned on."
 
-**Step 2 — Restart with iMessage enabled**
+**Step 3 — Restart with iMessage enabled**
 
 Say: "Close this Claude session (type /exit), then run this command:"
 
@@ -396,7 +411,7 @@ claude --channels plugin:imessage@claude-plugins-official
 >
 > If the first prompt doesn't appear, go to: **System Settings → Privacy & Security → Full Disk Access** → add **Terminal** → toggle **on**.
 
-**Step 3 — Test it**
+**Step 4 — Test it**
 
 Say: "Now open Messages on your Mac or iPhone and text yourself. That's it — your message will reach me instantly."
 
@@ -404,7 +419,7 @@ No pairing codes. No bot setup. Just text yourself and it works.
 
 Say: "You can now text me from your iPhone anywhere, anytime. No extra apps needed."
 
-**Step 4 — Allow other contacts**
+**Step 5 — Allow other contacts (Optional)**
 
 Ask: "Would you like anyone else to be able to message me through iMessage? For example, a business partner, team member, or family member? Just give me their phone number or Apple ID email."
 
@@ -427,16 +442,13 @@ After adding each contact, say: "Done — [name/number] can now text me and I wi
 
 If they say no or not right now, say: "No worries. You can always add someone later — just tell me their number and I will allow them."
 
-**Note:** If they already set up Telegram, they can run both channels together:
-```sh
-claude --channels plugin:telegram@claude-plugins-official plugin:imessage@claude-plugins-official
-```
+> For the full iMessage guide with troubleshooting, see `docs/IMESSAGE-SETUP.md`.
 
 ---
 
 ### TOOL STEP 5 — Mark Tools Complete
 
-Save to memory which tools were connected (Playwright, Google Workspace, Telegram, iMessage).
+Save to memory which tools were connected (Playwright, Google Workspace, and whichever messaging channel they chose — Telegram, WhatsApp, or iMessage).
 
 Say:
 > "All connected! Now let me show you what I can actually do for your business."

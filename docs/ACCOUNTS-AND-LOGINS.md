@@ -56,9 +56,9 @@ GitHub is where the workshop kit is stored. You need an account to download it a
 
 These get connected during the setup wizard. Just have the accounts ready.
 
-### 4. Telegram and/or WhatsApp Account
+### 4. Phone Messaging — Telegram, WhatsApp, or iMessage
 
-Your AI assistant can send you phone notifications when it finishes tasks or needs a decision. You can set up Telegram, WhatsApp, or both.
+Your AI assistant can send you phone notifications when it finishes tasks or needs a decision. Pick whichever app you already use — you only need one.
 
 #### Telegram
 
@@ -82,11 +82,7 @@ Your AI assistant can send you phone notifications when it finishes tasks or nee
 
 ✅ Done when: WhatsApp is installed and up to date on your phone
 
----
-
-### 4B. iMessage (Mac Users — Alternative to Telegram)
-
-If you use a Mac, you can use iMessage instead of (or alongside) Telegram. No extra app needed — it uses the Messages app already on your Mac and iPhone.
+#### iMessage (Mac Only)
 
 1. No download or signup required — iMessage is built into macOS and iOS
 2. You just need a Mac running Claude Code (iMessage channel is macOS only)
