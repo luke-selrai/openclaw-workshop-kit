@@ -1,6 +1,6 @@
 ---
 name: avoid-ai-writing
-description: "Audit and rewrite content to remove 21 categories of AI writing patterns with a 43-entry replacement table"
+description: "Audit and rewrite content to remove 21 categories of AI writing patterns with a 43-entry replacement table. Casual/channel triggers — 'sounds robotic', 'make it human', 'remove AI writing', 'rewrite naturally', 'this sounds like AI', 'too formal', 'make it sound like me', 'humanize this', 'sounds fake', 'make it real'."
 risk: none
 source: https://github.com/conorbronsdon/avoid-ai-writing
 date_added: "2026-03-06"

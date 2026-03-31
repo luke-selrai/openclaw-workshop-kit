@@ -1,6 +1,6 @@
 ---
 name: competitor-alternatives
-description: "When the user wants to create competitor comparison or alternative pages for SEO and sales enablement. Also use when the user mentions 'alternative page,' 'vs page,' 'competitor comparison,' 'compa..."
+description: "When the user wants to create competitor comparison or alternative pages for SEO and sales enablement. Also use when the user mentions 'alternative page', 'vs page', 'competitor comparison', 'compare to'. Casual/channel triggers — 'check competitors', 'who else does this', 'competitor analysis', 'vs', 'alternative to', 'compare my business to', 'what are my competitors doing', 'spy on competitors', 'who am I competing with'."
 risk: unknown
 source: community
 date_added: "2026-02-27"

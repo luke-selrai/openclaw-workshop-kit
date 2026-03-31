@@ -439,6 +439,135 @@ Advanced skills (56 more) and developer skills (8) are also installed — see SK
 
 ---
 
+## Channel Message Routing — WhatsApp, Telegram, iMessage
+
+When a message arrives via a `<channel>` tag (WhatsApp, Telegram, or iMessage), follow these rules BEFORE responding:
+
+### RULE: Always Match Intent to a Skill First
+
+Channel messages are short and casual. Do NOT just answer directly — check this routing table first and invoke the matching skill. If no match, then respond directly.
+
+**Step 1 — Check the routing table:**
+
+| User Says (casual, short)                                    | Invoke Skill              |
+|--------------------------------------------------------------|---------------------------|
+| "write me a post", "post for insta", "linkedin post", "what should I post", "social media", "content for facebook" | `/social-content` |
+| "make an ad", "facebook ad", "google ad", "write me some ads", "promote my business", "instagram ad" | `/ad-creative` |
+| "write copy", "website text", "fix my homepage", "landing page", "make this more compelling", "tagline" | `/copywriting` |
+| "cold email", "email a lead", "follow up email", "sales email", "outreach", "pitch email" | `/sales-automator` |
+| "write an email", "draft email", "email to my client", "professional email", "reply to this email" | `/email-composer` |
+| "email sequence", "drip campaign", "welcome emails", "nurture sequence", "automated emails" | `/email-sequence` |
+| "deep dive", "look into", "find out about", "investigate", "tell me everything about", "dig into" | `/deep-research` |
+| "brainstorm", "ideas for", "help me think", "what should I do about", "strategy for" | `/brainstorming` |
+| "check competitors", "who else does this", "competitor analysis", "compare to", "vs", "alternative to" | `/competitor-alternatives` |
+| "how to price", "pricing help", "monetize", "make money from", "charge for", "freemium" | `/indie-monetization-strategist` |
+| "run ads", "ad budget", "should I advertise", "boost post", "ad campaign", "targeting" | `/paid-ads` |
+| "blog post", "content strategy", "SEO", "content plan", "article", "content calendar" | `/content-marketer` |
+| "sales copy", "high converting", "direct mail", "sales letter", "conversion copy" | `/direct-response-copy` |
+| "what can you do", "show me skills", "help me", "menu", "skills", "what are my options" | `/skills-discovery` |
+| "check reddit", "what people say", "reddit search", "pain points", "user feedback" | `/reddit-insights` |
+| "will people like this", "is this good", "product feedback", "positioning", "value prop" | `/product-appeal-analyzer` |
+| "market research", "industry analysis", "trend analysis", "landscape", "best practices" | `/research-analyst` |
+| "improve my prompt", "better instructions", "AI prompt", "system prompt" | `/prompt-engineer` |
+| "remove AI writing", "sounds robotic", "make it human", "rewrite naturally" | `/avoid-ai-writing` |
+| "business advice", "founder help", "startup", "overwhelmed", "ADHD", "entrepreneur" | `/tech-entrepreneur-coach-adhd` |
+| "tax help", "investing", "retirement", "savings", "financial advice", "budget" | `/personal-finance-coach` |
+| "plan this out", "break it down", "step by step plan", "implementation plan" | `/writing-plans` |
+
+**Step 1b — Telegram slash commands:**
+
+If the message starts with `/`, match it to a skill directly:
+
+| Command | Skill |
+|---------|-------|
+| `/social` | social-content |
+| `/ad` | ad-creative |
+| `/copy` | copywriting |
+| `/email` | email-composer |
+| `/emailsequence` | email-sequence |
+| `/research` | deep-research |
+| `/brainstorm` | brainstorming |
+| `/competitors` | competitor-alternatives |
+| `/pricing` | indie-monetization-strategist |
+| `/ads` | paid-ads |
+| `/content` | content-marketer |
+| `/salescopy` | direct-response-copy |
+| `/skills` | skills-discovery |
+| `/sales` | sales-automator |
+| `/reddit` | reddit-insights |
+| `/appeal` | product-appeal-analyzer |
+| `/finance` | personal-finance-coach |
+| `/humanize` | avoid-ai-writing |
+| `/plan` | writing-plans |
+| `/coach` | tech-entrepreneur-coach-adhd |
+| `/analyst` | research-analyst |
+| `/prompt` | prompt-engineer |
+
+After matching a slash command, ask ONE follow-up question to get specifics (e.g., "/social" → "What platform and topic? I will write you a post.").
+
+**Step 2 — If ambiguous, ask ONE short clarifying question:**
+
+Common ambiguous words and how to disambiguate:
+
+| User Says | Possible Skills | Ask This |
+|-----------|----------------|----------|
+| "help with email" | email-composer vs email-sequence vs sales-automator | "Do you want to (1) write one email, (2) set up an email sequence, or (3) write a sales/outreach email?" |
+| "help with pricing" | indie-monetization-strategist vs copywriting | "Do you want to (1) figure out what to charge, or (2) write copy for a pricing page?" |
+| "help with ads" | ad-creative vs paid-ads | "Do you want to (1) write ad copy, or (2) plan an ad campaign and budget?" |
+| "research" | deep-research vs research-analyst | "Do you want (1) a deep research report on a topic, or (2) a competitive/market analysis?" |
+| "help with content" | social-content vs content-marketer | "Do you want to (1) write a specific post, or (2) plan a content strategy?" |
+| "help with sales" | sales-automator vs direct-response-copy | "Do you want to (1) write outreach/cold emails, or (2) write sales page copy?" |
+| "marketing help" | copywriting vs content-marketer vs paid-ads | "Do you want help with (1) website copy, (2) content strategy, or (3) running ads?" |
+
+**Step 3 — If the user says "menu", "skills", "what can you do", or "help":**
+
+Reply with this skill menu (top 15 most-used — type "all skills" for the full list of 22):
+
+```
+Here is what I can help with — reply with a number or tell me what you need:
+
+1. Write a social media post
+2. Create ad copy (Facebook, Google, Instagram)
+3. Write or improve website copy
+4. Draft a professional email
+5. Build an email sequence (drip/nurture)
+6. Research a topic in depth
+7. Analyze your competitors
+8. Brainstorm ideas and strategies
+9. Help with pricing and monetization
+10. Write a sales or cold outreach email
+11. Plan an ad campaign (budget and targeting)
+12. Create a content strategy or blog post
+13. Make AI-written text sound human
+14. Get business or founder coaching
+15. Something else — just tell me what you need
+
+Type "all skills" to see everything I can do (22 skills total).
+```
+
+**Step 4 — Use memory to narrow intent:**
+
+When a channel message is ambiguous, check memory for the user's profile:
+- Their business type helps pick the right skill (a bakery asking "write me a post" → social-content about food)
+- Their biggest challenge maps to specific skills (see Phase 4 challenge table above)
+- Their tools tell you what is possible (no Google Workspace = cannot send emails)
+
+**Step 5 — Always read the skill file before executing:**
+
+After matching intent → read `~/.claude/skills/[skill-name]/SKILL.md` → then execute.
+
+### Channel-Specific Formatting
+
+**WhatsApp:** Use WhatsApp markdown — *bold*, _italic_, ~strikethrough~, ```code```. Keep responses under 4096 characters. Split long responses into multiple messages.
+
+**Telegram:** Use HTML formatting — <b>bold</b>, <i>italic</i>, <code>code</code>. Keep under 4096 characters.
+
+**iMessage:** Plain text only. Keep responses concise.
+
+**All channels:** No walls of text. Use numbered lists. One idea per message. If the output is long (research reports, email sequences), break into 2-3 messages.
+
+---
+
 ## If Something Breaks
 
 Never panic. Always say:
@@ -474,6 +603,7 @@ Common fixes:
 - Workshop docs: `~/workshop-kit/docs/`
 - Full setup guide: `~/workshop-kit/docs/FULL-SETUP-PAGE.md`
 - Telegram setup: `~/workshop-kit/docs/TELEGRAM-SETUP.md`
+- Telegram bot commands: `~/workshop-kit/docs/TELEGRAM-BOT-COMMANDS.md`
 - Google Workspace setup: `~/workshop-kit/docs/GOOGLE-WORKSPACE-SETUP.md`
 
 ---

@@ -1,6 +1,6 @@
 ---
 name: content-marketer
-description: Elite content marketing strategist specializing in AI-powered content creation, omnichannel distribution, SEO optimization, and data-driven performance marketing.
+description: Elite content marketing strategist specializing in AI-powered content creation, omnichannel distribution, SEO optimization, and data-driven performance marketing. Casual/channel triggers — "blog post", "content strategy", "SEO help", "content plan", "write an article", "content calendar", "help with SEO", "get found on google", "content ideas", "marketing plan".
 risk: unknown
 source: community
 date_added: '2026-02-27'

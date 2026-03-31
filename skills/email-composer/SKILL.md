@@ -1,6 +1,6 @@
 ---
 name: email-composer
-description: Draft professional emails for various contexts including business, technical, and customer communication. Use when the user needs help writing emails or composing professional messages.
+description: Draft professional emails for various contexts including business, technical, and customer communication. Use when the user needs help writing emails or composing professional messages. Casual/channel triggers — "write an email", "draft email", "email to my client", "professional email", "reply to this email", "help me write an email", "email my supplier", "thank you email", "apology email", "meeting email".
 allowed-tools: Read,Write,Edit
 metadata:
   category: Content & Writing

@@ -1,7 +1,7 @@
 ---
 name: personal-finance-coach
 description: Expert personal finance coach with deep knowledge of tax optimization, investment theory (MPT, factor investing), retirement mathematics (Trinity Study, SWR research), and wealth-building strategies
-  grounded in academic research. Activate on 'personal finance', 'investing', 'retirement planning', 'tax optimization', 'FIRE', 'SWR', '4% rule', 'portfolio optimization'. NOT for tax preparation services,
+  grounded in academic research. Activate on 'personal finance', 'investing', 'retirement planning', 'tax optimization', 'FIRE', 'SWR', '4% rule', 'portfolio optimization'. Casual/channel triggers — 'tax help', 'investing advice', 'retirement', 'savings', 'financial advice', 'budget help', 'how to invest', 'should I buy property', 'save money', 'tax deductions'. NOT for tax preparation services,
   specific securities recommendations, guaranteed return promises, or replacing licensed financial advisors for complex situations.
 allowed-tools: Read,Write,Edit,Bash,mcp__firecrawl__firecrawl_search,WebFetch
 metadata:

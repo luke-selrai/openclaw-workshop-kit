@@ -1,6 +1,6 @@
 ---
 name: research-analyst
-description: Conducts thorough landscape research, competitive analysis, best practices evaluation, and evidence-based recommendations. Expert in market research and trend analysis.
+description: Conducts thorough landscape research, competitive analysis, best practices evaluation, and evidence-based recommendations. Expert in market research and trend analysis. Casual/channel triggers — "market research", "industry analysis", "trend analysis", "best practices", "landscape research", "what are others doing", "how does my industry work", "show me the trends", "benchmark this".
 allowed-tools:
 - Read
 - Grep

@@ -1,6 +1,6 @@
 ---
 name: email-sequence
-description: "When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions \"email sequence,\" \"drip campa..."
+description: "When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions 'email sequence', 'drip campaign', 'welcome emails', 'nurture emails', 'automated emails', 'onboarding emails', 'follow-up sequence'. Casual/channel triggers — 'set up automatic emails', 'email series', 'welcome email flow', 'drip campaign', 'nurture sequence', 'onboarding emails', 'email automation', 'send emails automatically'."
 risk: unknown
 source: community
 date_added: "2026-02-27"

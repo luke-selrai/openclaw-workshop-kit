@@ -2,7 +2,7 @@
 name: product-appeal-analyzer
 description: Evaluate product desirability, market positioning, and emotional resonance—the complement to friction analysis. Assess whether users will WANT a product (not just use it), identity fit, trust
   signals, and value proposition clarity. Activate on "will they like it", "market positioning", "appeal analysis", "product desirability", "value proposition", "why would someone choose this", "landing
-  page review", "conversion optimization", "messaging strategy". NOT for UX friction analysis (use ux-friction-analyzer), visual design implementation (use web-design-expert), or A/B test setup (use frontend-developer).
+  page review", "conversion optimization", "messaging strategy". Casual/channel triggers — "will people like this", "is this good", "product feedback", "positioning", "value prop", "does my offer make sense", "review my product", "would you buy this", "is my idea good". NOT for UX friction analysis (use ux-friction-analyzer), visual design implementation (use web-design-expert), or A/B test setup (use frontend-developer).
 allowed-tools: Read,Write,Edit,WebFetch
 metadata:
   category: Research & Analysis

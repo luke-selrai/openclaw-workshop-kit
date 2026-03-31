@@ -1,6 +1,6 @@
 ---
 name: prompt-engineer
-description: Expert prompt optimization for LLMs and AI systems. Use PROACTIVELY when building AI features, improving agent performance, or crafting system prompts. Masters prompt patterns and techniques.
+description: Expert prompt optimization for LLMs and AI systems. Use PROACTIVELY when building AI features, improving agent performance, or crafting system prompts. Masters prompt patterns and techniques. Casual/channel triggers — "improve my prompt", "better instructions", "AI prompt", "system prompt", "make my AI better", "prompt help", "write a prompt for", "chatgpt instructions".
 allowed-tools: Read,Write,Edit,Glob,Grep,mcp__SequentialThinking__sequentialthinking
 metadata:
   category: AI & Machine Learning

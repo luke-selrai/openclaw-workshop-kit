@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
+description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation. Casual/channel triggers — 'brainstorm', 'ideas for', 'help me think', 'what should I do about', 'give me ideas', 'I need ideas', 'lets brainstorm', 'think of something for', 'creative ideas', 'strategy for'."
 ---
 
 # Brainstorming Ideas Into Designs

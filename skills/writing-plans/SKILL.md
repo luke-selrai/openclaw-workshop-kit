@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: Use when you have a spec or requirements for a multi-step task, before touching code
+description: Use when you have a spec or requirements for a multi-step task, before touching code. Casual/channel triggers — "plan this out", "break it down", "step by step plan", "implementation plan", "how should I approach this", "what are the steps", "make me a plan", "organize this project".
 ---
 
 # Writing Plans

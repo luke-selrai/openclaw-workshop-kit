@@ -1,6 +1,6 @@
 ---
 name: deep-research
-description: "Execute autonomous multi-step research using Google Gemini Deep Research Agent. Use for: market analysis, competitive landscaping, literature reviews, technical research, due diligence. Takes 2-10 ..."
+description: "Execute autonomous multi-step research using Google Gemini Deep Research Agent. Use for: market analysis, competitive landscaping, literature reviews, technical research, due diligence. Takes 2-10 minutes. Casual/channel triggers — 'deep dive', 'look into', 'find out about', 'investigate', 'what do you know about', 'tell me everything about', 'I need research on', 'dig into this topic', 'research report'."
 risk: safe
 source: "https://github.com/sanjay3290/ai-skills/tree/main/skills/deep-research"
 date_added: "2026-02-27"
