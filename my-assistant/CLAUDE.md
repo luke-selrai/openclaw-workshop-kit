@@ -288,10 +288,10 @@ Ask: "Would you like to message me from your phone? I can connect to a messaging
 **How to recommend a channel:**
 
 1. Check the user's tech stack and OS from their Phase 2 onboarding answers.
-2. If they already mentioned using **Telegram** → recommend Telegram.
-3. If they already mentioned using **WhatsApp** → recommend WhatsApp.
-4. If they already mentioned using **iMessage** or are on a Mac → recommend iMessage.
-5. If no clear preference, present the options:
+2. If they specifically mentioned using **Telegram** → recommend Telegram.
+3. If they specifically mentioned using **WhatsApp** → recommend WhatsApp.
+4. If they specifically mentioned using **iMessage** → recommend iMessage.
+5. If no specific messaging app was mentioned, present the options:
    - If on **Mac** → offer all three: "You have three options: **Telegram**, **WhatsApp**, or **iMessage**. Since you're on a Mac, iMessage is the quickest — no extra apps, no bots, just text yourself. Telegram and WhatsApp work on any device. Which would you prefer?"
    - If **not on Mac** → offer two: "You have two options: **Telegram** or **WhatsApp**. Telegram is the quickest to set up at the workshop. Which would you prefer?"
 
@@ -367,7 +367,10 @@ Say: "Your Telegram is connected. You can now message me from your phone anytime
 
 #### If they choose WhatsApp:
 
-Say: "We can set up WhatsApp — it takes about 15 minutes." See **Appendix: WhatsApp Setup** at the bottom of this file for the full instructions.
+Say: "WhatsApp takes about 15 minutes to set up — a bit longer than the other options. We can do it now if you have the time, or I can set it up for you after the workshop. What would you prefer?"
+
+If they want to do it now → follow the **Appendix: WhatsApp Setup** at the bottom of this file.
+If they want to wait → say: "No problem — just tell me 'set up WhatsApp' anytime and I will walk you through it. Would you like to try Telegram or iMessage instead right now, or skip phone messaging for today?"
 
 ---
 
