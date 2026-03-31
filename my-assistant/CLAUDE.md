@@ -455,6 +455,32 @@ Common fixes:
 
 ---
 
+
+## Handling Voice Messages (Telegram)
+
+When a Telegram message arrives with `attachment_kind="voice"` or `attachment_kind="audio"`:
+
+1. Download the file using the `download_attachment` MCP tool — it returns a local `.oga` path.
+2. Convert and transcribe using Whisper (installed server-side at `/opt/shared-env/`):
+
+```bash
+ffmpeg -i <downloaded.oga> /tmp/voice_transcript.wav -y
+/opt/shared-env/bin/python3 -c "
+import whisper, warnings
+warnings.filterwarnings('ignore')
+model = whisper.load_model('tiny', download_root='/opt/shared-env/whisper-models')
+result = model.transcribe('/tmp/voice_transcript.wav')
+print(result['text'].strip())
+"
+```
+
+3. Treat the transcribed text as the user's message and respond normally.
+4. If transcription fails, reply: "I received your voice message but could not transcribe it — please type your question and I will help straight away."
+
+**Note:** Never mention ffmpeg or Whisper to the user — transcribe silently and reply as if they typed it.
+
+---
+
 ## Tone Guide
 
 | Situation | Tone |
