@@ -284,9 +284,43 @@ Ask your assistant: *"What's on my calendar today?"* or *"Show me my recent emai
 
 ---
 
-### Phone Messaging — Choose One
+### Microsoft Outlook & 365 — Email, Calendar, OneDrive, Excel, Teams, SharePoint, OneNote
 
-You only need one messaging channel. Pick whichever app you already use: **Telegram**, **WhatsApp**, or **iMessage** (Mac only). Your assistant will recommend one based on your setup.
+This connects your Microsoft account so your assistant can read and send emails, manage your calendar, access OneDrive, work with Excel files, search SharePoint, read OneNote, view Teams messages, and manage your contacts. No Azure account or app registration needed.
+
+**Step 1 — Install the Microsoft 365 tool**
+
+In the Claude chat, type this and press Enter:
+
+```
+npm install -g @pnp/cli-microsoft365
+```
+
+**Step 2 — Set up the Microsoft connection (one-time)**
+
+```
+m365 setup --interactive
+```
+
+A browser window will open and walk you through a short setup. Follow what it shows and click Allow when asked.
+
+**Step 3 — Sign in to your Microsoft account**
+
+```
+m365 login --authType browser
+```
+
+A browser window will open. **Select the Microsoft account you want to use** — double-check it is the right one. Click **Accept** or **Allow**.
+
+> **If the browser does not open**, run `m365 login` instead. It will show a short code — go to `https://aka.ms/devicelogin`, enter the code, and sign in.
+
+**Step 4 — Test it**
+
+Ask your assistant: *"Show me my unread Outlook emails"*
+
+> For the full guide with troubleshooting and OS compatibility, see [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
+
+---
 
 ### Telegram — Message Your Assistant from Your Phone
 
@@ -359,70 +393,6 @@ Once you are paired, stop strangers from getting pairing codes:
 ```
 
 > For the full guide with troubleshooting, see [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
-
-> **Prefer a different app?** See [iMessage (Mac only)](#imessage--message-your-assistant-from-your-iphone-mac-only) or WhatsApp below.
-
----
-
-### iMessage — Message Your Assistant from Your iPhone (Mac Only)
-
-If you use a Mac, you can text your assistant directly from iMessage — no extra apps needed. Messages go through your local Messages database, so everything stays on your machine.
-
-**Step 1 — Grant Full Disk Access**
-
-Your Mac needs to let Claude Code read your Messages database. The first time it tries, macOS will pop up a permission prompt — click **Allow**.
-
-If the prompt doesn't appear, grant it manually:
-1. Open **System Settings → Privacy & Security → Full Disk Access**
-2. Click the **+** button and add your terminal app (Terminal, iTerm, or VS Code)
-3. Toggle it **on**
-
-**Step 2 — Install the iMessage Plugin**
-
-In the Claude Code chat, type:
-
-```
-/plugin install imessage@claude-plugins-official
-```
-
-No tokens or passwords needed.
-
-**Step 3 — Install Bun (Required)**
-
-The iMessage plugin runs on Bun. Install it:
-
-**Mac:**
-```
-curl -fsSL https://bun.sh/install | bash
-```
-
-Close and reopen your terminal after installing.
-
-**Step 4 — Connect and Test**
-
-Close Claude Code and restart it with the iMessage channel enabled:
-
-```sh
-claude --channels plugin:imessage@claude-plugins-official
-```
-
-Then open the Messages app on your Mac or iPhone and **text yourself**. The message reaches your assistant immediately — no pairing codes needed.
-
-> The first reply triggers a macOS prompt: "Terminal wants to control Messages." Click **OK**.
-
-**Step 5 — Allow Other Contacts (Optional)**
-
-By default, only your own messages reach the assistant. To allow someone else:
-
-```
-/imessage:access allow +15551234567
-```
-
-> For the full guide with troubleshooting, see [IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
-
-> **Want multiple channels?** Launch with: `claude --channels plugin:telegram@claude-plugins-official plugin:imessage@claude-plugins-official`
->
-> **Prefer a different app?** See [Telegram](#telegram--message-your-assistant-from-your-phone) or WhatsApp above.
 
 ---
 
@@ -516,9 +486,10 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 | Claude login loop | Ask your assistant to run: `claude logout` then `claude login` |
 | Mac popup about developer tools | Click "Install" (NOT "Get Xcode") and wait 3–5 minutes |
 | Google connected to wrong account | Run `gws auth logout` then `gws auth login` and select the correct account |
+| Outlook not connecting | Run `m365 logout` then `m365 login --authType browser` and select the correct account. See [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md) |
+| Outlook "Access denied" for Teams or SharePoint | Those features may need IT admin approval on work/company accounts. Personal outlook.com accounts have full access. |
 | Node.js "command not found" | Restart VS Code completely, or reinstall from [nodejs.org](https://nodejs.org) |
 | Telegram bot not responding | Make sure Claude Code is running with `--channels plugin:telegram@claude-plugins-official`. See [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md) |
-| iMessage not working | Grant Full Disk Access to your terminal, then restart with `--channels plugin:imessage@claude-plugins-official`. See [IMESSAGE-SETUP.md](IMESSAGE-SETUP.md) |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 Your assistant is designed to handle problems too — just describe what happened in plain English and it will figure it out.

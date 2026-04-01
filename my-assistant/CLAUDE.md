@@ -281,7 +281,59 @@ What this unlocks: Gmail + Google Calendar + Google Drive + Google Docs + Sheets
 
 ---
 
-### TOOL STEP 4 — Phone Messaging (Optional)
+### TOOL STEP 4 — Connect Microsoft Outlook & 365 (Optional)
+
+Ask: "Would you like to connect your Outlook email, calendar, OneDrive, and other Microsoft 365 tools?"
+
+> **Enterprise / work accounts only.** Personal outlook.com and hotmail.com accounts are not supported by the CLI — skip this step or use the Playwright fallback if the user has a personal account.
+
+**Say:**
+> "I am going to connect your Microsoft account. Once done, I can read and send your Outlook emails, check your calendar, access OneDrive files, work with Excel, and browse Teams, SharePoint, and OneNote."
+
+**Step 1 — Install the Microsoft 365 tool:**
+
+```
+npm install -g @pnp/cli-microsoft365
+```
+
+After install, verify: `m365 --version` — should show a version number.
+
+**Step 2 — Set up your Microsoft connection (one-time):**
+
+```
+m365 setup --interactive
+```
+
+A browser window will open — follow the steps and click Allow when asked.
+If setup errors or freezes: close and reopen the terminal and try again. If it keeps failing, contact your workshop facilitator.
+
+**Step 3 — Sign in to Microsoft:**
+
+```
+m365 login --authType browser
+```
+
+A browser window will open — sign in with your Microsoft account and click Allow.
+
+> If the browser does not open, use the device code method instead:
+> ```
+> m365 login
+> ```
+> Go to `https://aka.ms/devicelogin`, enter the code shown, and sign in.
+
+**Step 4 — Verify it works:**
+
+```
+m365 outlook mail list
+```
+
+If it shows emails, say: "Microsoft 365 is connected. I can now read and send your Outlook emails, manage your calendar, access OneDrive, Excel, Teams, SharePoint, and OneNote."
+
+> For the full setup guide with troubleshooting, see `~/workshop-kit/docs/OUTLOOK-SETUP.md`
+
+---
+
+### TOOL STEP 5 — Phone Messaging (Optional)
 
 Ask: "Would you like to message me from your phone? I can connect to a messaging app so you can chat with me wherever you are — ask questions, request tasks, and get replies on the go."
 
@@ -449,9 +501,9 @@ If they say no or not right now, say: "No worries. You can always add someone la
 
 ---
 
-### TOOL STEP 5 — Mark Tools Complete
+### TOOL STEP 6 — Mark Tools Complete
 
-Save to memory which tools were connected (Playwright, Google Workspace, and whichever messaging channel they chose — Telegram, WhatsApp, or iMessage).
+Save to memory which tools were connected (Playwright, Google Workspace, Microsoft 365 if set up, and whichever messaging channel they chose — Telegram, WhatsApp, or iMessage).
 
 Say:
 > "All connected! Now let me show you what I can actually do for your business."
