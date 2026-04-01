@@ -23,17 +23,12 @@ This guide connects your Microsoft account to your AI assistant. Once set up, yo
 
 ## Compatible Computers
 
-This connector works on all modern computers:
-
-| Computer Type | Supported |
+| Computer | Supported |
 |---|---|
-| Windows 10 / 11 — 64-bit (most common) | Yes |
-| Windows 11 on ARM (Surface Pro X, newer Surface devices) | Yes |
-| Mac — Intel chip (2020 and older) | Yes |
+| Windows 10 / 11 — x64 | Yes |
+| Windows 11 on ARM (Surface Pro X and newer) | Yes |
+| Mac — Intel (2020 and older) | Yes |
 | Mac — Apple Silicon (M1, M2, M3, M4) | Yes |
-| Linux — 64-bit | Yes |
-
-> **Note:** 32-bit Windows (very old computers) is not supported by modern Node.js. If you are unsure, almost all computers bought after 2012 are 64-bit.
 
 ---
 

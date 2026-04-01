@@ -2,16 +2,15 @@
 
 **Built by Selr AI — selrai.com.au**
 
-This connects your Microsoft Outlook account to your AI assistant. Once installed, your assistant can read and send emails, check your calendar, access OneDrive, work with Excel, browse Teams and SharePoint, use OneNote, and manage contacts.
-
-No Azure account or app registration needed.
+Connects your Microsoft Outlook account to your AI assistant. Once installed, your assistant can read and send emails, check your calendar, access OneDrive, work with Excel, browse Teams and SharePoint, use OneNote, and manage contacts — all through plain English.
 
 ---
 
 ## What You Need
 
-- Node.js installed (`node --version` to check)
+- Node.js version 20 or higher — check by typing `node --version`
 - A Microsoft account (outlook.com, hotmail.com, or work/school Microsoft 365)
+- An internet connection
 
 ---
 
@@ -25,28 +24,29 @@ No Azure account or app registration needed.
 
 ## Manual Install (if scripts don't work)
 
-Open your terminal/command window and run these two commands:
+Open your terminal or command window and run these commands one at a time:
 
-**Step 1 — Install:**
+**Step 1 — Install the tool:**
 ```
 npm install -g @pnp/cli-microsoft365
 ```
 
-**Step 2 — Sign in:**
+**Step 2 — Set up your Microsoft connection (one-time):**
+```
+m365 setup --interactive
+```
+A browser window will open — follow the steps and click Allow when asked.
+
+**Step 3 — Sign in:**
 ```
 m365 login --authType browser
 ```
-
 A browser window will open — sign in with your Microsoft account and click Allow.
 
----
-
-## Verify It Worked
-
+**Step 4 — Verify:**
 ```
 m365 outlook mail list
 ```
-
 If it shows your emails, you are connected.
 
 ---
@@ -58,6 +58,7 @@ If it shows your emails, you are connected.
 - "Find the invoice in my OneDrive"
 - "Send an email to [name] about [topic]"
 - "Show me the latest Teams messages"
+- "Find the budget file in SharePoint"
 
 ---
 
@@ -65,10 +66,10 @@ If it shows your emails, you are connected.
 
 | Problem | Fix |
 |---|---|
-| "m365 not found" | Close and reopen your terminal, then try again |
-| Browser doesn't open | Run `m365 login` (without `--authType browser`) and use the code it shows |
-| Wrong account connected | Run `m365 logout` then `m365 login --authType browser` |
-| Work account — access denied | Ask your IT admin to approve the PnP Management Shell app |
+| "m365 not found" after install | Close and reopen your terminal, then try again |
+| Browser does not open during sign-in | Run `m365 login` instead — it shows a code. Go to `https://aka.ms/devicelogin`, enter the code, sign in |
+| Wrong account connected | Run `m365 logout` then `m365 setup --interactive` then `m365 login --authType browser` |
+| Work account — Teams or SharePoint access denied | Ask your IT admin to approve the connection during `m365 setup` |
 
 ---
 
