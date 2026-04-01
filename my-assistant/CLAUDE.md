@@ -281,7 +281,57 @@ What this unlocks: Gmail + Google Calendar + Google Drive + Google Docs + Sheets
 
 ---
 
-### TOOL STEP 4 — Telegram Phone Notifications (Optional)
+### TOOL STEP 4 — Connect Microsoft Outlook & 365 (Optional)
+
+Ask: "Would you like to connect your Outlook email, calendar, OneDrive, and other Microsoft 365 tools?"
+
+If yes — setup takes about 10 minutes (includes a one-time Azure app registration):
+
+**Say:**
+> "I am going to connect your Microsoft account. Once done, I can read and send your Outlook emails, check your calendar, access OneDrive files, work with Excel, and browse Teams, SharePoint, and OneNote."
+
+**Step 1 — Register an App in Azure (One-Time)**
+
+Guide them through the Azure portal setup:
+
+1. Open a browser and go to `https://portal.azure.com` — sign in with the same Microsoft account they use for Outlook
+2. Search for **App registrations** in the top search bar and click it
+3. Click **"+ New registration"**
+4. Name: `My AI Assistant`
+5. Account types: select **"Accounts in any organizational directory and personal Microsoft accounts"**
+6. Redirect URI: select **"Mobile and desktop applications"** → tick `https://login.microsoftonline.com/common/oauth2/nativeclient`
+7. Click **"Register"**
+8. On the summary page, copy the **Application (client) ID** — save this, it is needed next
+9. Click **"API permissions"** → **"+ Add a permission"** → **"Microsoft Graph"** → **"Delegated permissions"**
+10. Search for and add: `Mail.Read`, `Mail.Send`, `Mail.ReadWrite`, `Calendars.Read`, `Calendars.ReadWrite`, `Contacts.Read`, `Contacts.ReadWrite`, `Files.Read.All`, `Files.ReadWrite.All`, `Notes.Read`, `Notes.ReadWrite`, `Sites.Read.All`, `Team.ReadBasic.All`, `ChannelMessage.Read.All`, `User.Read`
+11. Click **"Add permissions"**
+
+**Step 2 — Connect to Claude**
+
+Have them paste this command (replacing `YOUR_CLIENT_ID` with the ID copied above):
+
+```bash
+claude mcp add ms365 --scope user -e CLIENT_ID=YOUR_CLIENT_ID -e TENANT_ID=common npx -y ms-365-mcp-server
+```
+
+**Step 3 — Sign In**
+
+The first time the assistant accesses Outlook it will show a device login code. Guide them:
+1. Open `https://microsoft.com/devicelogin` in a browser
+2. Enter the code shown in the terminal
+3. Sign in with their Microsoft account and click **Allow**
+
+**Step 4 — Test It**
+
+Restart Claude Code, then ask: "Show me my unread Outlook emails"
+
+If it shows emails: "Microsoft 365 is connected. I can now read and send your Outlook emails, manage your calendar, access OneDrive, Excel, Teams, SharePoint, and OneNote."
+
+> For the full setup guide with troubleshooting, see `~/workshop-kit/docs/OUTLOOK-SETUP.md`
+
+---
+
+### TOOL STEP 5 — Telegram Phone Notifications (Optional)
 
 Ask: "Would you like to message me from your phone? I can connect to Telegram so you can chat with me wherever you are."
 
@@ -353,9 +403,9 @@ Say: "Your Telegram is connected. You can now message me from your phone anytime
 
 ---
 
-### TOOL STEP 5 — Mark Tools Complete
+### TOOL STEP 6 — Mark Tools Complete
 
-Save to memory which tools were connected (Playwright, Google Workspace, Telegram).
+Save to memory which tools were connected (Playwright, Google Workspace, Outlook, Telegram).
 
 Say:
 > "All connected! Now let me show you what I can actually do for your business."
@@ -475,6 +525,7 @@ Common fixes:
 - Full setup guide: `~/workshop-kit/docs/FULL-SETUP-PAGE.md`
 - Telegram setup: `~/workshop-kit/docs/TELEGRAM-SETUP.md`
 - Google Workspace setup: `~/workshop-kit/docs/GOOGLE-WORKSPACE-SETUP.md`
+- Outlook & Microsoft 365 setup: `~/workshop-kit/docs/OUTLOOK-SETUP.md`
 
 ---
 
