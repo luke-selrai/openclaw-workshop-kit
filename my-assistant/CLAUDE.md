@@ -133,7 +133,7 @@ Run:
 ls ~/workshop-kit/skills/ | wc -l
 ```
 
-- Shows 87 → "All 86 skills are installed. We are good to go." → skip to Step 4
+- Shows 87 → "All your skills are installed. We are good to go." → skip to Step 4
 - Shows anything else or error → say: "It looks like the workshop kit did not install correctly. Can you paste the setup prompt again from the Notion page and I will redo it?"
 
 ---
