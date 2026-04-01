@@ -286,49 +286,33 @@ Ask your assistant: *"What's on my calendar today?"* or *"Show me my recent emai
 
 ### Microsoft Outlook & 365 — Email, Calendar, OneDrive, Excel, Teams, SharePoint, OneNote
 
-This connects your Microsoft account so your assistant can read and send emails, manage your calendar, access OneDrive, work with Excel files, search SharePoint, read OneNote, and view Teams messages.
+This connects your Microsoft account so your assistant can read and send emails, manage your calendar, access OneDrive, work with Excel files, search SharePoint, read OneNote, view Teams messages, and manage your contacts. No Azure account or app registration needed.
 
-**Step 1 — Register a free app in Microsoft Azure**
+**Step 1 — Install the Microsoft 365 tool**
 
-This creates the private connection between your computer and Microsoft. It is free and only needs to be done once.
-
-1. Go to [**portal.azure.com**](https://portal.azure.com) and sign in with your Microsoft/Outlook account
-2. In the search bar at the top, type **App registrations** and click the result
-3. Click **"+ New registration"**
-4. Fill in the form:
-   - **Name:** `My AI Assistant`
-   - **Account types:** Select — *"Accounts in any organizational directory and personal Microsoft accounts"*
-   - **Redirect URI:** Select **"Mobile and desktop applications"** → tick `https://login.microsoftonline.com/common/oauth2/nativeclient`
-5. Click **"Register"**
-6. On the next page, copy the **Application (client) ID** — save this somewhere, you will need it shortly
-7. Click **"API permissions"** in the left menu → **"+ Add a permission"** → **"Microsoft Graph"** → **"Delegated permissions"**
-8. Search for and add each of these permissions:
-   `Mail.Read`, `Mail.Send`, `Mail.ReadWrite`, `Calendars.Read`, `Calendars.ReadWrite`, `Contacts.Read`, `Contacts.ReadWrite`, `Files.Read.All`, `Files.ReadWrite.All`, `Notes.Read`, `Notes.ReadWrite`, `Sites.Read.All`, `Team.ReadBasic.All`, `ChannelMessage.Read.All`, `User.Read`
-9. Click **"Add permissions"** when done
-
-**Step 2 — Connect to your assistant**
-
-In the Claude chat, paste this command — replace `YOUR_CLIENT_ID` with the ID you copied above:
+In the Claude chat, type this and press Enter:
 
 ```
-claude mcp add ms365 --scope user -e CLIENT_ID=YOUR_CLIENT_ID -e TENANT_ID=common npx -y ms-365-mcp-server
+npm install -g @pnp/cli-microsoft365
 ```
 
-**Step 3 — Sign in to Microsoft**
+**Step 2 — Sign in to your Microsoft account**
 
-The first time your assistant accesses Outlook, it will show a short code in the command window. When you see it:
+Type this and press Enter:
 
-1. Open a browser and go to: `https://microsoft.com/devicelogin`
-2. Type in the code shown
-3. Sign in with your Microsoft account and click **Allow**
+```
+m365 login --authType browser
+```
 
-You only need to do this once.
+A browser window will open. **Select the Microsoft account you want to use** — double-check this is the right one. Click **Accept** or **Allow** through the permissions.
 
-**Step 4 — Test it**
+> **If the browser does not open**, run `m365 login` instead — it will show a short code and a URL. Open the URL, enter the code, and sign in.
+
+**Step 3 — Test it**
 
 Ask your assistant: *"Show me my unread Outlook emails"*
 
-> For the full guide with all permissions and troubleshooting, see [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
+> For the full guide with troubleshooting, see [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
 
 ---
 
@@ -479,8 +463,6 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 | VS Code | [code.visualstudio.com](https://code.visualstudio.com) |
 | Git for Windows | [git-scm.com/download/win](https://git-scm.com/download/win) |
 | Node.js | [nodejs.org](https://nodejs.org) |
-| Microsoft Azure Portal | [portal.azure.com](https://portal.azure.com) |
-| Microsoft Device Login | [microsoft.com/devicelogin](https://microsoft.com/devicelogin) |
 | Selr AI | [selrai.com.au](https://selrai.com.au) |
 | Email Luke | [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
@@ -498,8 +480,8 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 | Claude login loop | Ask your assistant to run: `claude logout` then `claude login` |
 | Mac popup about developer tools | Click "Install" (NOT "Get Xcode") and wait 3–5 minutes |
 | Google connected to wrong account | Run `gws auth logout` then `gws auth login` and select the correct account |
-| Outlook not connecting | Double-check you copied the full Client ID from Azure. See [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md) |
-| Outlook "Access denied" for Teams or SharePoint | Those permissions may need IT admin approval on work accounts |
+| Outlook not connecting | Run `m365 logout` then `m365 login --authType browser` and select the correct account. See [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md) |
+| Outlook "Access denied" for Teams or SharePoint | Those features may need IT admin approval on work/company accounts. Personal outlook.com accounts have full access. |
 | Node.js "command not found" | Restart VS Code completely, or reinstall from [nodejs.org](https://nodejs.org) |
 | Telegram bot not responding | Make sure Claude Code is running with `--channels plugin:telegram@claude-plugins-official`. See [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md) |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |

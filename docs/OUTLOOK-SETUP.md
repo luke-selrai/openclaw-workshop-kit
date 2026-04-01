@@ -1,12 +1,14 @@
 ---
 title: Microsoft Outlook & 365 Setup Guide
-version: 1.0
+version: 2.0
 date: 2026-04-01
 ---
 
 # Microsoft Outlook & 365 — Setup Guide
 
-This guide connects your Microsoft account to your AI assistant. Once set up, your assistant can read and send emails, check your calendar, access OneDrive files, work with Excel, browse SharePoint, use OneNote, and interact with Teams — all through Outlook and Microsoft 365.
+This guide connects your Microsoft account to your AI assistant. Once set up, your assistant can read and send emails, check your calendar, access OneDrive files, work with Excel, browse SharePoint, use OneNote, interact with Teams, and manage your contacts — all through plain English.
+
+No Azure account or app registration needed.
 
 ---
 
@@ -24,167 +26,75 @@ This guide connects your Microsoft account to your AI assistant. Once set up, yo
 |---|---|
 | **Outlook Email** | Read, search, send, reply, and organise your emails |
 | **Outlook Calendar** | Check, create, and update meetings and appointments |
-| **OneDrive** | Find, open, and work with your files |
-| **Excel** | Read and update spreadsheets |
-| **SharePoint** | Browse and search company documents |
-| **OneNote** | Read and add to your notebooks |
-| **Teams** | Read messages and channel conversations |
 | **Contacts** | Look up and manage your contacts |
+| **OneDrive** | Find, open, and work with your files |
+| **SharePoint** | Browse and search company documents |
+| **Teams** | Read messages and channel conversations |
+| **OneNote** | Read and add to your notebooks |
+| **Excel** | Read and update spreadsheets |
+| **To Do** | Manage your Microsoft To Do tasks |
 
 ---
 
-## Step 1 — Register Your App (One-Time Setup, ~5 Minutes)
+## Step 1 — Install the Microsoft 365 Tool
 
-This creates a private connection between your computer and Microsoft. It is free and only takes a few minutes.
-
-### 1.1 — Go to the Azure Portal
-
-Open your browser and go to:
+Type this in the command window and press Enter:
 
 ```
-https://portal.azure.com
+npm install -g @pnp/cli-microsoft365
 ```
 
-Sign in with the **same Microsoft account** you use for Outlook.
+You should see it download and install. When it finishes, verify it worked:
 
-> If you have never used Azure before, that is fine — just sign in and it will take you straight to the dashboard.
+```
+m365 --version
+```
+
+You should see a version number. If you see "command not found", close and reopen your terminal, then try again.
 
 ---
 
-### 1.2 — Find App Registrations
+## Step 2 — Sign In to Your Microsoft Account
 
-1. In the search bar at the top of the page, type: **App registrations**
-2. Click the result that says **"App registrations"** (it has a blue puzzle-piece icon)
-3. Click the **"+ New registration"** button near the top left
+Type this and press Enter:
+
+```
+m365 login --authType browser
+```
+
+A browser window will open:
+
+1. **Select the Microsoft account you want to use** — double-check this is the right one
+2. You may see a permissions screen — click **"Accept"** or **"Allow"**
+3. You should see a success message in the browser
+
+> **If the browser does not open automatically**, use the device code flow instead:
+> ```
+> m365 login
+> ```
+> This will show a short code and a URL. Open the URL in your browser, enter the code, and sign in with your Microsoft account.
 
 ---
 
-### 1.3 — Fill In the Registration Form
+## Step 3 — Test It
 
-You will see a form with three sections. Fill it in like this:
-
-**Name:**
-Type anything — for example: `My AI Assistant`
-
-**Supported account types:**
-Select the option that says:
-> "Accounts in any organizational directory (Any Microsoft Entra ID tenant - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)"
-
-This makes it work with both personal (outlook.com) and work accounts.
-
-**Redirect URI:**
-- Click the dropdown that says "Select a platform" and choose: **"Mobile and desktop applications"**
-- In the box that appears, tick the checkbox next to: `https://login.microsoftonline.com/common/oauth2/nativeclient`
-
-Click **"Register"** at the bottom.
-
----
-
-### 1.4 — Copy Your Client ID
-
-After registering, you will see a summary page. Find the line that says **"Application (client) ID"** — it looks like a long string of letters and numbers.
-
-**Copy that entire ID** — you will need it in Step 3.
-
-> Example of what it looks like: `a1b2c3d4-1234-5678-abcd-ef1234567890`
-
----
-
-### 1.5 — Add Permissions
-
-Your assistant needs permission to access your Microsoft tools. Here is how to add them:
-
-1. In the left-hand menu, click **"API permissions"**
-2. Click **"+ Add a permission"**
-3. Click **"Microsoft Graph"**
-4. Click **"Delegated permissions"**
-5. In the search box, search for and tick each of these permissions one by one:
-
-**Email (Outlook):**
-- `Mail.Read`
-- `Mail.Send`
-- `Mail.ReadWrite`
-
-**Calendar:**
-- `Calendars.Read`
-- `Calendars.ReadWrite`
-
-**Contacts:**
-- `Contacts.Read`
-- `Contacts.ReadWrite`
-
-**OneDrive & Files:**
-- `Files.Read.All`
-- `Files.ReadWrite.All`
-
-**OneNote:**
-- `Notes.Read`
-- `Notes.ReadWrite`
-
-**SharePoint:**
-- `Sites.Read.All`
-
-**Teams:**
-- `Team.ReadBasic.All`
-- `ChannelMessage.Read.All`
-
-**Profile (required):**
-- `User.Read`
-
-6. Click **"Add permissions"** when done
-
-> You do not need to click "Grant admin consent" — your assistant will ask for your approval when it first connects.
-
----
-
-## Step 2 — Connect Your Assistant
-
-Go back to your Claude Code command window and paste this command. Replace `YOUR_CLIENT_ID` with the ID you copied in Step 1.4:
-
-```
-claude mcp add ms365 --scope user -e CLIENT_ID=YOUR_CLIENT_ID -e TENANT_ID=common npx -y ms-365-mcp-server
-```
-
-**Example** (with a real-looking Client ID):
-
-```
-claude mcp add ms365 --scope user -e CLIENT_ID=a1b2c3d4-1234-5678-abcd-ef1234567890 -e TENANT_ID=common npx -y ms-365-mcp-server
-```
-
-Press Enter and wait for it to finish. This installs the connection tool automatically.
-
----
-
-## Step 3 — Sign In to Microsoft
-
-The first time your assistant tries to use Outlook or any Microsoft tool, it will ask you to sign in.
-
-You will see a message like this in the command window:
-
-```
-To sign in, open a browser and go to https://microsoft.com/devicelogin
-Enter the code: XXXXX-XXXXX
-```
-
-1. Open your browser
-2. Go to: `https://microsoft.com/devicelogin`
-3. Type in the code shown in your command window
-4. Sign in with your Microsoft account
-5. Click **"Allow"** to give permission
-
-You only need to do this once. After that, your assistant stays connected automatically.
-
----
-
-## Step 4 — Verify It Works
-
-Restart Claude Code completely, then ask your assistant:
+Once signed in, test it by asking your assistant:
 
 - "Show me my unread Outlook emails"
 - "What meetings do I have this week?"
 - "List my recent OneDrive files"
 
-If it responds with your actual data, the connection is working.
+Or test directly in the command window:
+
+```
+m365 outlook mail list
+```
+
+```
+m365 outlook calendar event list
+```
+
+Your assistant can now use Outlook Mail, Calendar, OneDrive, Teams, SharePoint, OneNote, Excel, Contacts, and To Do — just ask in plain English.
 
 ---
 
@@ -194,16 +104,15 @@ If it responds with your actual data, the connection is working.
 |---|---|
 | **Read emails** | "Show me my unread emails" |
 | **Send an email** | "Send an email to john@example.com about tomorrow's meeting" |
-| **Reply to an email** | "Reply to the email from Sarah and say I will be there at 3pm" |
+| **Reply to an email** | "Reply to Sarah's email and say I will be there at 3pm" |
 | **Search emails** | "Find emails from my accountant in the last month" |
 | **Check calendar** | "What meetings do I have this week?" |
 | **Create a meeting** | "Schedule a call with Lisa on Thursday at 10am" |
 | **Find a file** | "Find the budget spreadsheet in my OneDrive" |
-| **Read a spreadsheet** | "Open the Sales Tracker in my OneDrive and summarise it" |
 | **Check Teams** | "Show me the latest messages in the General channel" |
 | **Search SharePoint** | "Find the company policy document on SharePoint" |
 | **Check contacts** | "Find the phone number for [contact name]" |
-| **Search OneNote** | "Find my notes about the client meeting last month" |
+| **Manage tasks** | "Show me my Microsoft To Do tasks" |
 
 ---
 
@@ -211,19 +120,24 @@ If it responds with your actual data, the connection is working.
 
 | Problem | Fix |
 |---|---|
-| "npx: command not found" | Make sure Node.js is installed: run `node --version`. If not found, reinstall from [nodejs.org](https://nodejs.org) |
-| Device login code does not appear | Restart Claude Code and try asking your assistant to check your emails again |
-| "Access denied" or "Insufficient permissions" | Go back to Step 1.5 and make sure all the permissions are ticked. You may need to sign out and sign back in after adding new permissions |
-| Wrong Microsoft account connected | Sign out of Microsoft in your browser, then trigger the device login again and sign in with the correct account |
-| "Client ID not found" | Double-check you copied the full Client ID from Step 1.4 — it should look like: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
-| Works for email but not Teams or SharePoint | Those permissions (`Team.ReadBasic.All`, `Sites.Read.All`) may need approval from your IT department if you are on a company account |
+| "m365: command not found" | Close and reopen your terminal. If still not found, reinstall: `npm install -g @pnp/cli-microsoft365` |
+| Browser does not open during sign-in | Run `m365 login` (without `--authType browser`) — use the device code method instead |
+| Wrong Microsoft account connected | Run `m365 logout` then `m365 login --authType browser` — select the correct account |
+| "Access denied" for Teams or SharePoint | Those features may need approval from your IT department on a work account. Personal accounts (outlook.com) have full access. |
+| "No emails found" after login | Try `m365 outlook mail list --pageSize 20` to load more results |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 ---
 
 ## Note for Work / Company Accounts
 
-If your Outlook is managed by your employer (common if your email ends in your company name), some permissions may need to be approved by your IT administrator. If you see a message saying "Need admin approval", forward this guide to your IT team and ask them to grant consent for the permissions listed in Step 1.5.
+If your Outlook is managed by your employer, some features (Teams, SharePoint) may require your IT administrator to approve the connection. For personal outlook.com or hotmail.com accounts, everything works immediately with no restrictions.
+
+---
+
+## Playwright Fallback
+
+If any Outlook feature is unavailable through the CLI, your assistant can use its built-in browser automation (Playwright) to access Outlook Web directly. Just ask normally — for example, "Open my Outlook and check if there are any emails from last week" — and the assistant will use the browser if needed.
 
 ---
 

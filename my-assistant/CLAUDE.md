@@ -285,47 +285,46 @@ What this unlocks: Gmail + Google Calendar + Google Drive + Google Docs + Sheets
 
 Ask: "Would you like to connect your Outlook email, calendar, OneDrive, and other Microsoft 365 tools?"
 
-If yes — setup takes about 10 minutes (includes a one-time Azure app registration):
+If yes — quick setup (~3 minutes, no Azure account needed):
 
 **Say:**
-> "I am going to connect your Microsoft account. Once done, I can read and send your Outlook emails, check your calendar, access OneDrive files, work with Excel, and browse Teams, SharePoint, and OneNote."
+> "I am going to connect your Microsoft account. This works the same way as Google Workspace — one install, one sign-in, and I can read and send your Outlook emails, check your calendar, and access your files."
 
-**Step 1 — Register an App in Azure (One-Time)**
-
-Guide them through the Azure portal setup:
-
-1. Open a browser and go to `https://portal.azure.com` — sign in with the same Microsoft account they use for Outlook
-2. Search for **App registrations** in the top search bar and click it
-3. Click **"+ New registration"**
-4. Name: `My AI Assistant`
-5. Account types: select **"Accounts in any organizational directory and personal Microsoft accounts"**
-6. Redirect URI: select **"Mobile and desktop applications"** → tick `https://login.microsoftonline.com/common/oauth2/nativeclient`
-7. Click **"Register"**
-8. On the summary page, copy the **Application (client) ID** — save this, it is needed next
-9. Click **"API permissions"** → **"+ Add a permission"** → **"Microsoft Graph"** → **"Delegated permissions"**
-10. Search for and add: `Mail.Read`, `Mail.Send`, `Mail.ReadWrite`, `Calendars.Read`, `Calendars.ReadWrite`, `Contacts.Read`, `Contacts.ReadWrite`, `Files.Read.All`, `Files.ReadWrite.All`, `Notes.Read`, `Notes.ReadWrite`, `Sites.Read.All`, `Team.ReadBasic.All`, `ChannelMessage.Read.All`, `User.Read`
-11. Click **"Add permissions"**
-
-**Step 2 — Connect to Claude**
-
-Have them paste this command (replacing `YOUR_CLIENT_ID` with the ID copied above):
+**Step 1 — Install the Microsoft 365 tool:**
 
 ```bash
-claude mcp add ms365 --scope user -e CLIENT_ID=YOUR_CLIENT_ID -e TENANT_ID=common npx -y ms-365-mcp-server
+npm install -g @pnp/cli-microsoft365
 ```
 
-**Step 3 — Sign In**
+Verify: `m365 --version` — should show a version number.
 
-The first time the assistant accesses Outlook it will show a device login code. Guide them:
-1. Open `https://microsoft.com/devicelogin` in a browser
-2. Enter the code shown in the terminal
-3. Sign in with their Microsoft account and click **Allow**
+If "command not found" after install: close and reopen the terminal, then try again.
 
-**Step 4 — Test It**
+**Step 2 — Sign in to Microsoft:**
 
-Restart Claude Code, then ask: "Show me my unread Outlook emails"
+```bash
+m365 login --authType browser
+```
 
-If it shows emails: "Microsoft 365 is connected. I can now read and send your Outlook emails, manage your calendar, access OneDrive, Excel, Teams, SharePoint, and OneNote."
+A browser window will open. Say:
+> "A sign-in page just opened in your browser. Pick the Microsoft account you want me to use — make sure it is the right one. Then click Allow."
+
+If `--authType browser` does not open a window, try the device code flow instead:
+```bash
+m365 login
+```
+This shows a code and a URL — open the URL, enter the code, sign in.
+
+**Step 3 — Verify it works:**
+
+```bash
+m365 outlook mail list
+```
+
+If it shows emails (or "no emails found"):
+> "Microsoft 365 is connected. I can now read and send your Outlook emails, manage your calendar, access OneDrive, Excel, Teams, SharePoint, and OneNote."
+
+What this unlocks: Outlook Mail + Calendar + Contacts + OneDrive + SharePoint + Teams + OneNote + Excel + To Do
 
 > For the full setup guide with troubleshooting, see `~/workshop-kit/docs/OUTLOOK-SETUP.md`
 
