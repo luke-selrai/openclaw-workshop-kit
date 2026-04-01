@@ -285,10 +285,10 @@ What this unlocks: Gmail + Google Calendar + Google Drive + Google Docs + Sheets
 
 Ask: "Would you like to connect your Outlook email, calendar, OneDrive, and other Microsoft 365 tools?"
 
-If yes — quick setup (~3 minutes, no Azure account needed):
+If yes — setup takes about 5 minutes:
 
 **Say:**
-> "I am going to connect your Microsoft account. This works the same way as Google Workspace — one install, one sign-in, and I can read and send your Outlook emails, check your calendar, and access your files."
+> "I am going to connect your Microsoft account. I will do all the work — you just sign in when a browser window appears."
 
 **Step 1 — Install the Microsoft 365 tool:**
 
@@ -298,24 +298,36 @@ npm install -g @pnp/cli-microsoft365
 
 Verify: `m365 --version` — should show a version number.
 
-If "command not found" after install: close and reopen the terminal, then try again.
+If "command not found" after install:
+- Windows: close and reopen the terminal, then try again
+- Mac: run `export PATH="$(npm prefix -g)/bin:$PATH"` then try again
 
-**Step 2 — Sign in to Microsoft:**
+**Step 2 — Set up the Microsoft connection (one-time):**
+
+```bash
+m365 setup --interactive
+```
+
+Say: "A browser window is about to open and walk you through a short setup. Just follow what it says and click Allow when asked."
+
+If setup errors or freezes: close and reopen the terminal and try again. If it keeps failing, skip this step and go to Step 3.
+
+**Step 3 — Sign in to Microsoft:**
 
 ```bash
 m365 login --authType browser
 ```
 
 A browser window will open. Say:
-> "A sign-in page just opened in your browser. Pick the Microsoft account you want me to use — make sure it is the right one. Then click Allow."
+> "A sign-in page just opened. Pick the Microsoft account you want me to use — make sure it is the right one. Then click Accept or Allow."
 
 If `--authType browser` does not open a window, try the device code flow instead:
 ```bash
 m365 login
 ```
-This shows a code and a URL — open the URL, enter the code, sign in.
+This shows a short code. Open `https://aka.ms/devicelogin` in a browser, enter the code, and sign in.
 
-**Step 3 — Verify it works:**
+**Step 4 — Verify it works:**
 
 ```bash
 m365 outlook mail list

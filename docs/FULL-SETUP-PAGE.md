@@ -296,23 +296,29 @@ In the Claude chat, type this and press Enter:
 npm install -g @pnp/cli-microsoft365
 ```
 
-**Step 2 — Sign in to your Microsoft account**
+**Step 2 — Set up the Microsoft connection (one-time)**
 
-Type this and press Enter:
+```
+m365 setup --interactive
+```
+
+A browser window will open and walk you through a short setup. Follow what it shows and click Allow when asked.
+
+**Step 3 — Sign in to your Microsoft account**
 
 ```
 m365 login --authType browser
 ```
 
-A browser window will open. **Select the Microsoft account you want to use** — double-check this is the right one. Click **Accept** or **Allow** through the permissions.
+A browser window will open. **Select the Microsoft account you want to use** — double-check it is the right one. Click **Accept** or **Allow**.
 
-> **If the browser does not open**, run `m365 login` instead — it will show a short code and a URL. Open the URL, enter the code, and sign in.
+> **If the browser does not open**, run `m365 login` instead. It will show a short code — go to `https://aka.ms/devicelogin`, enter the code, and sign in.
 
-**Step 3 — Test it**
+**Step 4 — Test it**
 
 Ask your assistant: *"Show me my unread Outlook emails"*
 
-> For the full guide with troubleshooting, see [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
+> For the full guide with troubleshooting and OS compatibility, see [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
 
 ---
 

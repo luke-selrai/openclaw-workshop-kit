@@ -1,6 +1,6 @@
 ---
 title: Microsoft Outlook & 365 Setup Guide
-version: 2.0
+version: 3.0
 date: 2026-04-01
 ---
 
@@ -8,15 +8,32 @@ date: 2026-04-01
 
 This guide connects your Microsoft account to your AI assistant. Once set up, your assistant can read and send emails, check your calendar, access OneDrive files, work with Excel, browse SharePoint, use OneNote, interact with Teams, and manage your contacts — all through plain English.
 
-No Azure account or app registration needed.
-
 ---
 
 ## What You Need Before Starting
 
 - Claude Code installed and working (follow [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) if not done yet)
-- Node.js installed (check by typing `node --version` in the command window)
+- Node.js **version 20 or higher** installed — check by typing `node --version` in the command window
 - A Microsoft account — personal (outlook.com, hotmail.com) or work/school (Microsoft 365)
+- An internet connection
+
+> **If `node --version` shows v18 or lower:** Update Node.js from [nodejs.org](https://nodejs.org) before continuing.
+
+---
+
+## Compatible Computers
+
+This connector works on all modern computers:
+
+| Computer Type | Supported |
+|---|---|
+| Windows 10 / 11 — 64-bit (most common) | Yes |
+| Windows 11 on ARM (Surface Pro X, newer Surface devices) | Yes |
+| Mac — Intel chip (2020 and older) | Yes |
+| Mac — Apple Silicon (M1, M2, M3, M4) | Yes |
+| Linux — 64-bit | Yes |
+
+> **Note:** 32-bit Windows (very old computers) is not supported by modern Node.js. If you are unsure, almost all computers bought after 2012 are 64-bit.
 
 ---
 
@@ -44,19 +61,33 @@ Type this in the command window and press Enter:
 npm install -g @pnp/cli-microsoft365
 ```
 
-You should see it download and install. When it finishes, verify it worked:
+This may take 1–2 minutes. When it finishes, verify it worked:
 
 ```
 m365 --version
 ```
 
-You should see a version number. If you see "command not found", close and reopen your terminal, then try again.
+You should see a version number. If you see "command not found":
+- **Windows:** Close the command window completely and open a new one, then try again
+- **Mac:** Run `export PATH="$(npm prefix -g)/bin:$PATH"` and try again
 
 ---
 
-## Step 2 — Sign In to Your Microsoft Account
+## Step 2 — Set Up Your Microsoft Connection (One-Time)
 
-Type this and press Enter:
+This step creates a secure private link between the tool and your Microsoft account. It only needs to be done once.
+
+```
+m365 setup --interactive
+```
+
+A browser window will open and walk you through a short setup. Follow the steps it shows — it handles everything automatically.
+
+> If you see any errors during setup, contact your workshop facilitator.
+
+---
+
+## Step 3 — Sign In to Your Microsoft Account
 
 ```
 m365 login --authType browser
@@ -68,15 +99,15 @@ A browser window will open:
 2. You may see a permissions screen — click **"Accept"** or **"Allow"**
 3. You should see a success message in the browser
 
-> **If the browser does not open automatically**, use the device code flow instead:
+> **If the browser does not open automatically**, use this instead:
 > ```
 > m365 login
 > ```
-> This will show a short code and a URL. Open the URL in your browser, enter the code, and sign in with your Microsoft account.
+> This shows a short code and a URL. Open `https://aka.ms/devicelogin` in your browser, enter the code, and sign in.
 
 ---
 
-## Step 3 — Test It
+## Step 4 — Test It
 
 Once signed in, test it by asking your assistant:
 
@@ -93,8 +124,6 @@ m365 outlook mail list
 ```
 m365 outlook calendar event list
 ```
-
-Your assistant can now use Outlook Mail, Calendar, OneDrive, Teams, SharePoint, OneNote, Excel, Contacts, and To Do — just ask in plain English.
 
 ---
 
@@ -120,24 +149,26 @@ Your assistant can now use Outlook Mail, Calendar, OneDrive, Teams, SharePoint, 
 
 | Problem | Fix |
 |---|---|
-| "m365: command not found" | Close and reopen your terminal. If still not found, reinstall: `npm install -g @pnp/cli-microsoft365` |
-| Browser does not open during sign-in | Run `m365 login` (without `--authType browser`) — use the device code method instead |
-| Wrong Microsoft account connected | Run `m365 logout` then `m365 login --authType browser` — select the correct account |
-| "Access denied" for Teams or SharePoint | Those features may need approval from your IT department on a work account. Personal accounts (outlook.com) have full access. |
-| "No emails found" after login | Try `m365 outlook mail list --pageSize 20` to load more results |
+| "m365: command not found" after install | Close and reopen your terminal. On Mac, also run: `export PATH="$(npm prefix -g)/bin:$PATH"` |
+| Node.js version too old | Update from [nodejs.org](https://nodejs.org) — download the LTS version |
+| `m365 setup` fails or freezes | Close and reopen your terminal, then try again. If it keeps failing, contact your workshop facilitator |
+| Browser does not open during sign-in | Run `m365 login` (without `--authType browser`) and use the device code method at `https://aka.ms/devicelogin` |
+| Wrong Microsoft account connected | Run `m365 logout` then `m365 setup --interactive` and `m365 login --authType browser` — select the correct account |
+| "Access denied" for Teams or SharePoint | Personal outlook.com accounts have full access. Work accounts may need IT admin approval for Teams and SharePoint |
+| "No emails found" after connecting | Try `m365 outlook mail list --pageSize 20` — your inbox may just be empty or filtered |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 ---
 
 ## Note for Work / Company Accounts
 
-If your Outlook is managed by your employer, some features (Teams, SharePoint) may require your IT administrator to approve the connection. For personal outlook.com or hotmail.com accounts, everything works immediately with no restrictions.
+If your Outlook is managed by your employer, some features (Teams, SharePoint) may require your IT administrator to approve the connection during the `m365 setup` step. For personal outlook.com or hotmail.com accounts, everything works immediately with no restrictions.
 
 ---
 
 ## Playwright Fallback
 
-If any Outlook feature is unavailable through the CLI, your assistant can use its built-in browser automation (Playwright) to access Outlook Web directly. Just ask normally — for example, "Open my Outlook and check if there are any emails from last week" — and the assistant will use the browser if needed.
+If any Outlook feature is unavailable through the CLI, your assistant can use its built-in browser automation (Playwright) to access Outlook Web directly. Just ask normally — for example, "Open my Outlook and check the email from last week" — and the assistant will use the browser if the CLI cannot handle it.
 
 ---
 
