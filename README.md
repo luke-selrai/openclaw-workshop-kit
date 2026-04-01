@@ -223,6 +223,7 @@ workshop-kit/
 │   ├── BOOTSTRAP.md             # Version-controlled copy of the bootstrap prompt
 │   ├── GOOGLE-WORKSPACE-SETUP.md # Google Workspace (Gmail, Calendar, Drive) setup
 │   ├── TELEGRAM-SETUP.md        # Telegram bot setup guide
+│   ├── IMESSAGE-SETUP.md        # iMessage setup guide (Mac only)
 │   ├── WINDOWS-SETUP.md         # Step-by-step Windows guide
 │   ├── COMPLETION-GUIDE.md      # What to do after the workshop
 │   ├── SKILLS-REFERENCE.md      # How to use each skill
@@ -242,7 +243,7 @@ Your assistant is now yours. A few things to explore next:
 
 - **Create all accounts** — see [docs/ACCOUNTS-AND-LOGINS.md](docs/ACCOUNTS-AND-LOGINS.md)
 - **Add Google Workspace (Gmail + Calendar + Drive + More)** — see [docs/GOOGLE-WORKSPACE-SETUP.md](docs/GOOGLE-WORKSPACE-SETUP.md)
-- **Add Telegram and/or WhatsApp** (message your assistant from your phone) — see [docs/TELEGRAM-SETUP.md](docs/TELEGRAM-SETUP.md)
+- **Add phone messaging** (Telegram, WhatsApp, or iMessage) — see [docs/COMPLETION-GUIDE.md](docs/COMPLETION-GUIDE.md#set-up-phone-notifications-telegram-whatsapp-or-imessage)
 - **Upgrade your skills** — Selr AI offers advanced skill packs for deeper automation
 
 Full guide: [docs/COMPLETION-GUIDE.md](docs/COMPLETION-GUIDE.md)

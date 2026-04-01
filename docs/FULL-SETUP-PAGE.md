@@ -284,6 +284,10 @@ Ask your assistant: *"What's on my calendar today?"* or *"Show me my recent emai
 
 ---
 
+### Phone Messaging — Choose One
+
+You only need one messaging channel. Pick whichever app you already use: **Telegram**, **WhatsApp**, or **iMessage** (Mac only). Your assistant will recommend one based on your setup.
+
 ### Telegram — Message Your Assistant from Your Phone
 
 This lets you chat with your assistant directly from Telegram on your phone — ask questions, request tasks, send photos, and get replies wherever you are.
@@ -355,6 +359,70 @@ Once you are paired, stop strangers from getting pairing codes:
 ```
 
 > For the full guide with troubleshooting, see [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
+
+> **Prefer a different app?** See [iMessage (Mac only)](#imessage--message-your-assistant-from-your-iphone-mac-only) or WhatsApp below.
+
+---
+
+### iMessage — Message Your Assistant from Your iPhone (Mac Only)
+
+If you use a Mac, you can text your assistant directly from iMessage — no extra apps needed. Messages go through your local Messages database, so everything stays on your machine.
+
+**Step 1 — Grant Full Disk Access**
+
+Your Mac needs to let Claude Code read your Messages database. The first time it tries, macOS will pop up a permission prompt — click **Allow**.
+
+If the prompt doesn't appear, grant it manually:
+1. Open **System Settings → Privacy & Security → Full Disk Access**
+2. Click the **+** button and add your terminal app (Terminal, iTerm, or VS Code)
+3. Toggle it **on**
+
+**Step 2 — Install the iMessage Plugin**
+
+In the Claude Code chat, type:
+
+```
+/plugin install imessage@claude-plugins-official
+```
+
+No tokens or passwords needed.
+
+**Step 3 — Install Bun (Required)**
+
+The iMessage plugin runs on Bun. Install it:
+
+**Mac:**
+```
+curl -fsSL https://bun.sh/install | bash
+```
+
+Close and reopen your terminal after installing.
+
+**Step 4 — Connect and Test**
+
+Close Claude Code and restart it with the iMessage channel enabled:
+
+```sh
+claude --channels plugin:imessage@claude-plugins-official
+```
+
+Then open the Messages app on your Mac or iPhone and **text yourself**. The message reaches your assistant immediately — no pairing codes needed.
+
+> The first reply triggers a macOS prompt: "Terminal wants to control Messages." Click **OK**.
+
+**Step 5 — Allow Other Contacts (Optional)**
+
+By default, only your own messages reach the assistant. To allow someone else:
+
+```
+/imessage:access allow +15551234567
+```
+
+> For the full guide with troubleshooting, see [IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
+
+> **Want multiple channels?** Launch with: `claude --channels plugin:telegram@claude-plugins-official plugin:imessage@claude-plugins-official`
+>
+> **Prefer a different app?** See [Telegram](#telegram--message-your-assistant-from-your-phone) or WhatsApp above.
 
 ---
 
@@ -450,6 +518,7 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 | Google connected to wrong account | Run `gws auth logout` then `gws auth login` and select the correct account |
 | Node.js "command not found" | Restart VS Code completely, or reinstall from [nodejs.org](https://nodejs.org) |
 | Telegram bot not responding | Make sure Claude Code is running with `--channels plugin:telegram@claude-plugins-official`. See [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md) |
+| iMessage not working | Grant Full Disk Access to your terminal, then restart with `--channels plugin:imessage@claude-plugins-official`. See [IMESSAGE-SETUP.md](IMESSAGE-SETUP.md) |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 Your assistant is designed to handle problems too — just describe what happened in plain English and it will figure it out.
