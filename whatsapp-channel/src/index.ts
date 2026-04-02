@@ -32,6 +32,7 @@ const ALLOW_FROM = process.env.WA_ALLOW_FROM
   ? process.env.WA_ALLOW_FROM.split(",").map((s) => s.trim()).filter(Boolean)
   : [];
 const VERBOSE = process.env.WA_VERBOSE === "1" || process.env.WA_VERBOSE === "true";
+const AUTO_OPEN_QR = process.env.WA_AUTO_OPEN_QR === "1" || process.env.WA_AUTO_OPEN_QR === "true";
 
 // ── MCP Channel Server ─────────────────────────────────────────────
 const mcp = new Server(
@@ -264,20 +265,25 @@ async function main() {
     console.error("[whatsapp-channel] QR server failed to start:", String(err));
   }
 
-  // Open browser IMMEDIATELY if login needed — don't wait for monitor
+  // Open browser IMMEDIATELY if login needed — only when WA_AUTO_OPEN_QR=1
   if (needsQr && qrPort) {
     const url = `http://127.0.0.1:${qrPort}`;
-    const openCmd = process.platform === "win32" ? `start "" "${url}"`
-      : process.platform === "darwin" ? `open "${url}"`
-      : `xdg-open "${url}"`;
-    exec(openCmd, (err) => {
-      if (err) console.error("[whatsapp-channel] Failed to open browser:", String(err));
-    });
+
+    if (AUTO_OPEN_QR) {
+      const openCmd = process.platform === "win32" ? `start "" "${url}"`
+        : process.platform === "darwin" ? `open "${url}"`
+        : `xdg-open "${url}"`;
+      exec(openCmd, (err) => {
+        if (err) console.error("[whatsapp-channel] Failed to open browser:", String(err));
+      });
+    } else {
+      console.error("[whatsapp-channel] QR login needed. Set WA_AUTO_OPEN_QR=1 to auto-open browser.");
+    }
 
     await mcp.notification({
       method: "notifications/claude/channel",
       params: {
-        content: `WhatsApp needs to be linked. A browser window has been opened at ${url}. Scan the QR code with your phone (WhatsApp > Settings > Linked Devices > Link a Device).`,
+        content: `WhatsApp needs to be linked.${AUTO_OPEN_QR ? " A browser window has been opened at" : " Open"} ${url}. Scan the QR code with your phone (WhatsApp > Settings > Linked Devices > Link a Device).`,
         meta: { type: "system", action: "qr_login_required" },
       },
     });

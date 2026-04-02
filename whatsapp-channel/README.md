@@ -39,22 +39,27 @@ Copy the `.mcp.json` to your project or add to `~/.claude.json`:
       "command": "bun",
       "args": ["/full/path/to/whatsapp-channel/src/index.ts"],
       "env": {
-        "WA_VERBOSE": "0"
+        "WA_VERBOSE": "0",
+        "WA_AUTO_OPEN_QR": "0"
       }
     }
   }
 }
 ```
 
+> **Tip:** Keep `WA_AUTO_OPEN_QR` set to `"0"` in `.mcp.json` so the QR page doesn't auto-open when the server loads as a regular MCP server. Pass `WA_AUTO_OPEN_QR=1` as a shell env var when starting via the CLI (see step 3).
+
 ### 3. Start Claude Code with the channel
 
 ```bash
-claude --dangerously-load-development-channels server:whatsapp
+WA_AUTO_OPEN_QR=1 claude --dangerously-load-development-channels server:whatsapp
 ```
+
+> **Note:** `WA_AUTO_OPEN_QR=1` tells the server to automatically open the QR code page in your browser on first login. Without it, the QR page URL is logged but the browser won't open automatically. This prevents the QR page from popping up when the server is loaded as a regular MCP server (e.g. when opening Claude Code chat normally).
 
 ### 4. Scan the QR code
 
-A QR code will appear in the terminal. Open WhatsApp on your phone:
+A browser window will open with the QR code (if `WA_AUTO_OPEN_QR=1` is set). Open WhatsApp on your phone:
 1. Go to **Settings > Linked Devices**
 2. Tap **Link a Device**
 3. Scan the QR code
@@ -82,6 +87,7 @@ Claude reads it, acts on it, and replies back through WhatsApp.
 | `WA_ALLOW_FROM` | Additional E.164 phone numbers to allow (your own is always included) | `""` (self-only) |
 | `WA_AUTH_DIR` | Custom auth directory path | `~/.claude/whatsapp-channel/auth/` |
 | `WA_VERBOSE` | Enable verbose logging (`1` or `true`) | `0` |
+| `WA_AUTO_OPEN_QR` | Auto-open QR code page in browser when login is needed (`1` or `true`) | `0` |
 
 ### Sender Allowlist
 
