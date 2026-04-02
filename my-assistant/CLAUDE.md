@@ -658,12 +658,74 @@ Create (or overwrite) the file `~/whatsapp-channel/.mcp.json` with this exact co
       ],
       "env": {
         "WA_ALLOW_FROM": "",
-        "WA_VERBOSE": "1"
+        "WA_VERBOSE": "1",
+        "WA_AUTO_OPEN_QR": "0"
       }
     }
   }
 }
 ```
+
+> **Why `WA_AUTO_OPEN_QR` is `"0"` here:** This config file is read whenever Claude Code starts in the whatsapp-channel folder. We do not want the QR page opening every time. Instead, we pass `WA_AUTO_OPEN_QR=1` as a shell variable in the startup command (Step 6) so it only opens when you intentionally launch the channel.
+
+**WHATSAPP STEP 4b — Connect WhatsApp to Your Profile and Skills**
+
+Say:
+> "Now I am going to make sure WhatsApp knows who you are and can use all your skills — so chatting on your phone works exactly the same as chatting here."
+
+Create the file `~/whatsapp-channel/CLAUDE.md` with this exact content:
+
+```markdown
+# WhatsApp AI Assistant
+
+You are talking to a user through WhatsApp. Messages arrive via the WhatsApp channel.
+
+## Your Identity & Instructions
+
+You are the same AI Business Assistant defined in `~/my-assistant/CLAUDE.md`. Read that file at the start of every conversation to load your full personality, tone, communication rules, and capabilities.
+
+## User Profile
+
+Read `~/.claude/projects/-Users-jesiecabaneros-my-assistant/memory/user_profile.md` to know who you are talking to. This is the same user who set you up in my-assistant.
+
+## Skills
+
+You have access to all skills installed at `~/.claude/skills/`. Read the SKILL.md file inside each skill folder before performing that task. The full list and guide is at `~/workshop-kit/SKILLS-GUIDE.md`.
+
+## WhatsApp-Specific Rules
+
+- Keep replies short — WhatsApp messages should be concise and conversational
+- Use WhatsApp formatting: *bold*, _italic_ — no markdown links
+- No code blocks unless the user specifically asks for code
+- One topic per message — do not send walls of text
+- If a task produces long output (research, reports), summarise the key points and ask if they want the full version
+```
+
+> **Important:** The path to `user_profile.md` above uses the my-assistant project memory path. If the user's home directory is different, adjust the path accordingly. The pattern is: `~/.claude/projects/-Users-USERNAME-my-assistant/memory/user_profile.md`
+
+Create (or overwrite) `~/whatsapp-channel/.claude/settings.json` with:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "mcp__whatsapp__*"
+    ],
+    "additionalDirectories": [
+      "~/my-assistant",
+      "~/.claude/skills",
+      "~/.claude/projects/-Users-jesiecabaneros-my-assistant/memory",
+      "~/workshop-kit"
+    ]
+  }
+}
+```
+
+> This gives the WhatsApp session permission to read your profile, your skills, and your workshop kit — so Claude on WhatsApp knows everything Claude in VS Code knows.
+
+Say: "Done — WhatsApp is now connected to your profile and all your skills."
+
+---
 
 **WHATSAPP STEP 5 — Security Setup**
 

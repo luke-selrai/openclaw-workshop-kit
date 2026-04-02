@@ -263,7 +263,9 @@ export async function monitorWhatsApp(options: MonitorOptions) {
       }
 
       // Access control — only allowlisted phones can talk to Claude
-      if (!isAllowed(senderPhone, allowFrom)) {
+      // Skip allowlist check for fromMe messages (self-chat) — the user is already authenticated.
+      // This is needed because WhatsApp LID-based JIDs use a different phone number than the real one.
+      if (!fromMe && !isAllowed(senderPhone, allowFrom)) {
         debugLog(`[skip] not allowed: ${senderPhone} jid=${remoteJid} allowList=[${allowFrom.join(",")}]`);
         continue;
       }
