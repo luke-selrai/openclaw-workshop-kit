@@ -1,6 +1,6 @@
 ---
 title: GCP Single-User Server Setup Guide
-version: 5.0
+version: 6.0
 date: 2026-04-02
 ---
 
@@ -41,12 +41,12 @@ Today you are setting up a personal AI assistant that runs **24/7 on a Google Cl
 
 ## How This Setup Works
 
-There are only **two things you do manually** — both require a browser to sign in. Everything else is handled by Claude automatically.
+There are only **two things you do manually** — everything else is handled by Claude automatically.
 
 | Step | Who does it | Why |
 |---|---|---|
 | Sign in to Google Cloud | **You** (once) | Needs your browser |
-| Sign in to Claude on the server | **You** (once) | Needs your browser |
+| Sign in to Claude + install Telegram plugin + pair your account | **You** (one SSH session) | Needs your browser + Telegram app |
 | Create the VM, install everything, set up the service | **Claude** | Fully automated |
 | Clone skills, configure messaging, start the assistant | **Claude** | Fully automated |
 
@@ -123,69 +123,68 @@ Once you have all three answers, proceed with everything below automatically.
 PART 1 — CREATE THE SERVER
 ─────────────────────────────────────
 
-1. Create a GCP VM with these exact specs:
+1. Get the first available zone in the chosen region:
+   gcloud compute zones list --filter="region:<region>" --format="value(name)"
+   Use the first zone listed.
+
+2. Create a GCP VM with these exact specs:
    - Name: claude-assistant (if taken, use claude-assistant-v2)
    - Machine type: e2-standard-2 (2 vCPU, 8GB RAM)
-   - Image: ubuntu-2404-lts-amd64 from ubuntu-os-cloud
+   - Image family: ubuntu-2404-lts from ubuntu-os-cloud
+     Use: --image-family=ubuntu-2404-lts --image-project=ubuntu-os-cloud
    - Boot disk: 50GB standard
-   - Zone: first available in my chosen region
+   - Zone: from step 1
+   Full command:
+     gcloud compute instances create claude-assistant \
+       --project=<project-id> \
+       --zone=<zone> \
+       --machine-type=e2-standard-2 \
+       --image-family=ubuntu-2404-lts \
+       --image-project=ubuntu-os-cloud \
+       --boot-disk-size=50GB \
+       --boot-disk-type=pd-standard
+   If the name claude-assistant is taken, use claude-assistant-v2.
    Tell me the VM name and IP when ready.
 
-2. Wait 15 seconds for the VM to boot, then SSH in:
-   gcloud compute ssh <vm-name> --project=<project-id> --zone=<zone>
+3. Wait 15 seconds for the VM to boot, then confirm SSH works:
+   gcloud compute ssh <vm-name> --project=<project-id> --zone=<zone> --command="echo 'SSH OK'"
 
 ─────────────────────────────────────
 PART 2 — INSTALL EVERYTHING
 ─────────────────────────────────────
 
-Run all of the following on the server:
+Run all of the following on the server via gcloud compute ssh --command:
 
-3. Add 4GB swap space:
-   sudo fallocate -l 4G /swapfile
-   sudo chmod 600 /swapfile
-   sudo mkswap /swapfile
-   sudo swapon /swapfile
+4. Add 4GB swap space:
+   sudo fallocate -l 4G /swapfile && \
+   sudo chmod 600 /swapfile && \
+   sudo mkswap /swapfile && \
+   sudo swapon /swapfile && \
    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
-4. Install system tools:
-   sudo apt-get update -qq
+5. Install system tools:
+   sudo apt-get update -qq && \
    sudo apt-get install -y curl git ffmpeg python3 python3-pip build-essential unzip
 
-5. Install Node.js v22 LTS:
-   curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+6. Install Node.js v22 LTS:
+   curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && \
    sudo apt-get install -y nodejs
 
-6. Install Bun:
-   curl -fsSL https://bun.sh/install | bash
-   source ~/.bashrc
+7. Install Bun:
+   curl -fsSL https://bun.sh/install | bash && \
+   echo 'export BUN_INSTALL="$HOME/.bun"' >> ~/.bashrc && \
+   echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> ~/.bashrc
 
-7. Install Whisper and pre-download the tiny model:
-   pip3 install openai-whisper --quiet --break-system-packages
-   echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
-   source ~/.bashrc
+8. Install Whisper and pre-download the tiny model:
+   pip3 install openai-whisper --quiet --break-system-packages && \
+   echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc && \
    python3 -c "import whisper; whisper.load_model('tiny')"
 
-8. Install Claude Code:
+9. Install Claude Code:
    curl -fsSL https://claude.ai/install.sh -o /tmp/install.sh && bash /tmp/install.sh
 
 ─────────────────────────────────────
-PART 3 — SIGN IN TO CLAUDE (USER DOES THIS)
-─────────────────────────────────────
-
-9. Tell me to open a NEW terminal on my laptop and run this to sign in to Claude on the server:
-
-   gcloud compute ssh <vm-name> --project=<project-id> --zone=<zone>
-
-   Then on the server, run:
-   ~/.local/bin/claude auth login
-
-   Tell me: "A URL will appear. Open it in your browser, sign in with your Claude account,
-   and come back here when done."
-
-   Wait for me to confirm I have signed in before continuing.
-
-─────────────────────────────────────
-PART 4 — SET UP THE ASSISTANT
+PART 3 — SET UP THE ASSISTANT
 ─────────────────────────────────────
 
 10. Set up the workspace:
@@ -197,15 +196,17 @@ PART 4 — SET UP THE ASSISTANT
 
 11. Mark the workspace as trusted and onboarding as complete so Claude starts cleanly:
     python3 -c "
-import json
-with open('/home/$USER/.claude.json') as f:
+import json, os
+path = os.path.expanduser('~/.claude.json')
+with open(path) as f:
     d = json.load(f)
 d['hasCompletedOnboarding'] = True
 d['lastOnboardingVersion'] = 100
 d['theme'] = 'dark'
 if 'projects' not in d:
     d['projects'] = {}
-d['projects']['/home/$USER/my-assistant'] = {
+home = os.path.expanduser('~')
+d['projects'][home + '/my-assistant'] = {
     'allowedTools': [],
     'mcpContextUris': [],
     'mcpServers': {},
@@ -216,133 +217,22 @@ d['projects']['/home/$USER/my-assistant'] = {
     'hasClaudeMdExternalIncludesApproved': True,
     'hasClaudeMdExternalIncludesWarningShown': True
 }
-with open('/home/$USER/.claude.json', 'w') as f:
+with open(path, 'w') as f:
     json.dump(d, f, indent=2)
 print('Done')
 "
 
 ─────────────────────────────────────
-PART 5 — INSTALL MESSAGING PLUGIN
+PART 4 — PREPARE THE SERVICE FILES
 ─────────────────────────────────────
 
-12. Install the plugin for the platform the user chose:
+12. Create the PTY wrapper. Use the correct platform name:
+    - Telegram:  telegram
+    - Discord:   discord
+    - WhatsApp:  whatsapp
+    - iMessage:  imessage
 
-    IF Telegram:
-      mkdir -p ~/.claude/plugins/cache/claude-plugins-official/telegram/0.0.4
-
-      cat > ~/.claude/settings.json << 'EOF'
-      {
-        "enabledPlugins": {
-          "telegram@claude-plugins-official": true
-        }
-      }
-      EOF
-
-      cat > ~/.claude/plugins/installed_plugins.json << EOF
-      {
-        "telegram@claude-plugins-official": [
-          {
-            "scope": "user",
-            "installPath": "/home/$USER/.claude/plugins/cache/claude-plugins-official/telegram/0.0.4",
-            "version": "0.0.4",
-            "installedAt": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
-            "lastUpdated": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
-            "gitCommitSha": "b10b583de281385442474e836644534b938b2678"
-          }
-        ]
-      }
-      EOF
-
-      cat > ~/.claude/plugins/cache/claude-plugins-official/telegram/0.0.4/access.json << EOF
-      {
-        "token": "<telegram-bot-token>",
-        "allowlist": [],
-        "policy": "allowlist"
-      }
-      EOF
-
-    IF Discord:
-      mkdir -p ~/.claude/plugins/cache/claude-plugins-official/discord/0.0.1
-
-      cat > ~/.claude/settings.json << 'EOF'
-      {
-        "enabledPlugins": {
-          "discord@claude-plugins-official": true
-        }
-      }
-      EOF
-
-      cat > ~/.claude/plugins/installed_plugins.json << EOF
-      {
-        "discord@claude-plugins-official": [
-          {
-            "scope": "user",
-            "installPath": "/home/$USER/.claude/plugins/cache/claude-plugins-official/discord/0.0.1",
-            "version": "0.0.1",
-            "installedAt": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
-            "lastUpdated": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
-          }
-        ]
-      }
-      EOF
-
-      cat > ~/.claude/plugins/cache/claude-plugins-official/discord/0.0.1/access.json << EOF
-      {
-        "token": "<discord-bot-token>",
-        "policy": "allowlist",
-        "allowlist": []
-      }
-      EOF
-
-    IF WhatsApp:
-      mkdir -p ~/.claude/plugins/cache/claude-plugins-official/whatsapp/0.0.1
-
-      cat > ~/.claude/settings.json << 'EOF'
-      {
-        "enabledPlugins": {
-          "whatsapp@claude-plugins-official": true
-        }
-      }
-      EOF
-
-      cat > ~/.claude/plugins/installed_plugins.json << EOF
-      {
-        "whatsapp@claude-plugins-official": [
-          {
-            "scope": "user",
-            "installPath": "/home/$USER/.claude/plugins/cache/claude-plugins-official/whatsapp/0.0.1",
-            "version": "0.0.1",
-            "installedAt": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
-            "lastUpdated": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
-          }
-        ]
-      }
-      EOF
-
-      cat > ~/.claude/plugins/cache/claude-plugins-official/whatsapp/0.0.1/access.json << EOF
-      {
-        "token": "<whatsapp-api-token>",
-        "policy": "allowlist",
-        "allowlist": []
-      }
-      EOF
-
-    IF iMessage:
-      Tell me: "iMessage integration requires additional setup on a Mac. For now, your assistant is running on the server. Ask your assistant 'How do I connect iMessage?' once it is running and it will guide you through it."
-      Skip the access.json step — no token needed at this stage.
-
-─────────────────────────────────────
-PART 6 — RUN 24/7 AS A SERVICE
-─────────────────────────────────────
-
-13. Create a PTY wrapper so Claude runs correctly without a terminal.
-    Use the correct --channels flag for the platform the user chose:
-    - Telegram:  plugin:telegram@claude-plugins-official
-    - Discord:   plugin:discord@claude-plugins-official
-    - WhatsApp:  plugin:whatsapp@claude-plugins-official
-    - iMessage:  plugin:imessage@claude-plugins-official
-
-    cat > ~/start-claude.sh << 'EOF'
+    Write ~/start-claude.sh with the correct platform substituted in:
     #!/usr/bin/env python3
     import pty, os
 
@@ -353,13 +243,13 @@ PART 6 — RUN 24/7 AS A SERVICE
         [os.path.expanduser("~/.local/bin/claude"), "--channels", "plugin:<platform>@claude-plugins-official"],
         master_read=read
     )
-    EOF
-    (Replace <platform> with telegram, discord, whatsapp, or imessage as appropriate.)
-    chmod +x ~/start-claude.sh
 
-14. Create the systemd service:
+    Then: chmod +x ~/start-claude.sh
+
+13. Create the systemd service file (do NOT start it yet):
     mkdir -p ~/.config/systemd/user
-    cat > ~/.config/systemd/user/claude-assistant.service << EOF
+
+    Write ~/.config/systemd/user/claude-assistant.service:
     [Unit]
     Description=Claude AI Assistant
     After=network.target
@@ -378,51 +268,110 @@ PART 6 — RUN 24/7 AS A SERVICE
 
     [Install]
     WantedBy=default.target
-    EOF
 
-15. Enable and start:
+─────────────────────────────────────
+PART 5 — USER DOES: SIGN IN + PLUGIN + PAIR
+─────────────────────────────────────
+
+14. Tell me to do the following steps in a new terminal on my laptop.
+    Show me the exact commands to run, filled in with my actual VM name, project, and zone.
+    Tell me clearly what to type at each step inside Claude.
+
+    STEP A — SSH into the server:
+      gcloud compute ssh <vm-name> --project=<project-id> --zone=<zone>
+
+    STEP B — Sign in to Claude:
+      cd ~/my-assistant
+      claude .
+      → When prompted, press 1 (I have a Claude subscription)
+      → A URL will appear — open it in your browser, sign in, then come back
+
+    STEP C — Install the messaging plugin:
+      → In the Claude session, type: /plugins
+      → Find the <platform> plugin and install it
+      → When done, type: /exit
+
+    STEP D — Configure your bot token and pair your account:
+      Run this in the server terminal (not inside Claude):
+        claude . --channels plugin:<platform>@claude-plugins-official
+      → Type: /telegram:configure <bot-token>   (or the equivalent command for your platform)
+      → Open your messaging app, find your bot, and send any message
+      → The bot will reply with a 6-character pairing code
+      → Back in Claude, type: /telegram:access pair <code>
+      → Then type: /telegram:access policy allowlist
+      → Then type: /exit
+
+    Wait for me to confirm I have completed all of these steps before continuing.
+
+─────────────────────────────────────
+PART 6 — START THE SERVICE
+─────────────────────────────────────
+
+15. Enable linger and start the service:
     loginctl enable-linger $USER
     systemctl --user daemon-reload
     systemctl --user enable claude-assistant
     systemctl --user start claude-assistant
 
 16. Wait 15 seconds, then show me the service status and last 20 lines of the log.
+    If the log shows "plugin not installed", tell me and stop — something went wrong in Part 5.
+    If the log shows "Listening for channel messages", tell me it is running successfully.
 
 ─────────────────────────────────────
 PART 7 — FINISH
 ─────────────────────────────────────
 
-17. Walk me through pairing my account with the bot on whichever platform I chose, step by step.
-
-18. When everything is done, tell me to open my messaging app, find my bot, and send "hello".
-    My assistant will introduce itself and ask me 7 questions to learn about my business.
+17. When everything is confirmed running, tell me to open my messaging app, find my bot,
+    and send "hello". My assistant will introduce itself and ask me 7 questions to learn
+    about my business.
 
 Talk to me in plain English throughout. One step at a time.
 ```
 
-**What happens next:** Claude will ask you 3 quick questions (including which messaging app you want to use), then build and configure everything automatically. The only moment you step in is Step 3 — signing in to Claude on the server.
+**What happens next:** Claude will ask you 3 quick questions (including which messaging app you want to use), then build and configure everything automatically. The only moment you step in is Part 5 — one SSH session to sign in, install the plugin, and pair your account.
 
 ---
 
-## Step 3 — Sign In to Claude on the Server
+## Step 3 — Sign In, Install Plugin, and Pair (One SSH Session)
 
-When Claude reaches Part 3, it will tell you to open a new terminal and run a command. Here is what that looks like:
+When Claude reaches Part 5, it will give you the exact commands to run. Here is what to expect:
 
-**Open a new terminal on your laptop and run:**
-
+**A — SSH into the server** (Claude will give you the exact command with your details filled in):
 ```bash
-gcloud compute ssh claude-assistant --project=<your-project> --zone=<your-zone>
+gcloud compute ssh <vm-name> --project=<your-project> --zone=<your-zone>
 ```
 
-**Then on the server, run:**
-
+**B — Sign in to Claude on the server:**
 ```bash
-~/.local/bin/claude auth login
+cd ~/my-assistant
+claude .
+```
+When prompted, press **1** (I have a Claude subscription). A URL will appear — open it in your browser and sign in with your Claude account. Once signed in, type `/exit` to close Claude.
+
+**C — Install the messaging plugin:**
+```bash
+claude .
+```
+Type `/plugins` in the Claude session, find your messaging platform (e.g. Telegram), and install it. Then type `/exit`.
+
+**D — Configure your bot token and pair your account:**
+```bash
+claude . --channels plugin:telegram@claude-plugins-official
+```
+Inside Claude, type:
+```
+/telegram:configure <your-bot-token>
+```
+Then open Telegram on your phone, find your bot, and send any message. The bot will reply with a **6-character pairing code**. Back in Claude, type:
+```
+/telegram:access pair <code>
+/telegram:access policy allowlist
+/exit
 ```
 
-A URL will appear. Open it in your laptop browser and sign in with your Claude account. Come back and tell Claude you are done — it will continue automatically.
+Come back and tell Claude you are done — it will start the service automatically.
 
-✅ Done when: the server terminal says you are logged in
+✅ Done when: you have exited Claude on the server and told Claude on your laptop you are finished
 
 ---
 
@@ -533,7 +482,8 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 | Problem | Solution |
 |---|---|
 | SSH connection fails | Check VM is running: [console.cloud.google.com](https://console.cloud.google.com) → Compute Engine |
-| Claude login URL doesn't work | Open it in the browser where you are logged into claude.ai |
+| Claude login URL doesn't work | Open it in the browser where you are already logged into claude.ai |
+| "plugin not installed" in the log | You need to install the plugin manually — SSH in, run `claude .`, type `/plugins`, install it, then restart the service: `systemctl --user restart claude-assistant` |
 | Bot not responding | SSH into server and run: `tail -50 ~/claude-assistant.log` |
 | Assistant crashed | SSH into server and run: `systemctl --user restart claude-assistant` |
 | Disk full or out of memory | SSH into server and run: `df -h` and `free -h` |

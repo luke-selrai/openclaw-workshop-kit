@@ -1,7 +1,7 @@
 ---
 title: Google Workspace Setup Guide
-version: 5.0
-date: 2026-04-01
+version: 6.0
+date: 2026-04-02
 ---
 
 # Google Workspace — Setup Guide
@@ -68,8 +68,10 @@ Follow the prompts. It will set everything up for you. When it asks for a projec
 Type this and press Enter:
 
 ```
-gws auth login
+gws auth login -s drive,gmail,sheets,calendar
 ```
+
+> **Important:** Always include `-s drive,gmail,sheets,calendar`. Without it, Google may block the login because the app requests too many permissions at once. This flag limits it to just what you need.
 
 A browser window will open automatically:
 
@@ -81,6 +83,8 @@ A browser window will open automatically:
 ✅ Done — your Google account is now connected.
 
 > **If no browser window opens**, look in the terminal for a URL starting with `https://accounts.google.com/...` — copy it and paste it into your browser manually.
+
+> **If you see "Access blocked: This app's request is invalid"**, your Google account needs to be added as a test user. Go to [console.cloud.google.com](https://console.cloud.google.com) → APIs & Services → OAuth consent screen → Test users → Add your email address → Save. Then run `gws auth login -s drive,gmail,sheets,calendar` again.
 
 ---
 
@@ -118,8 +122,9 @@ Your assistant can now use Gmail, Calendar, Drive, Docs, Sheets, and more — ju
 |---|---|
 | "gws: command not found" (Mac/Linux) or "'gws' is not recognized" (Windows) | Close and reopen your terminal. If still not found, reinstall: `npm install -g @googleworkspace/cli` |
 | Permission error during install (Windows) | Reopen Command Prompt as administrator (right-click → Run as administrator) |
-| "Access blocked" during sign-in | Run `gws auth setup` first, then try `gws auth login` again |
-| Wrong Google account connected | Run `gws auth logout` then `gws auth login` — select the correct account this time |
+| "Access blocked: This app's request is invalid" | Your Google account needs to be added as a test user. Go to [console.cloud.google.com](https://console.cloud.google.com) → APIs & Services → OAuth consent screen → Test users → Add your email → Save. Then try again. |
+| Login fails or asks for too many permissions | Always use `gws auth login -s drive,gmail,sheets,calendar` — not plain `gws auth login` |
+| Wrong Google account connected | Run `gws auth logout` then `gws auth login -s drive,gmail,sheets,calendar` — select the correct account |
 | Browser doesn't open during sign-in | Copy the URL from the terminal and paste it into your browser manually |
 | "Google hasn't verified this app" warning | Click **"Continue"** — this is normal for personal projects |
 | Tools not responding after setup | Restart Claude Code completely — close and reopen it |
