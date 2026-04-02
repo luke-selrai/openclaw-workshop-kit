@@ -5,6 +5,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [1.5.0] - 2026-04-02
+
+### Feature: Connector Recommender + Test Suite Update
+
+**Authors:** vishwa603, Gian Carino
+**Source:** [claude-workshop/connector-recommender](https://github.com/vishwa603/claude-workshop/tree/main/connector-recommender)
+
+#### Added
+
+- **skills/connector-recommender/SKILL.md** (219 lines)
+  Business integration advisor. Detects user's business type (ecommerce, agency, SaaS, local business, freelancer, real estate, construction) and recommends 3-5 most impactful connectors. Guides setup using MCP registry (search_mcp_registry, suggest_connectors). Handles existing tools, hybrid businesses, operations-based fallback.
+
+- **skills/connector-recommender/REFERENCE.md** (273 lines)
+  Full architecture documentation: 4-phase flow (Context Detection, Recommendation Engine, Presentation, Setup Execution), component details, integration points with automation-intelligence and n8n skills, limitations, FAQ.
+
+- **skills/connector-recommender/TESTCASES.md** (265 lines)
+  15 test scenarios covering: all 7 business types, unclear input, existing tools, setup accept/decline, unavailable connectors, multiple business types, operations-only, negative case, overwhelm handling. Test summary matrix included.
+
+#### Changed
+
+- **skills/SKILLS-LIST.md** — Updated from 92 to 93 skills. Added connector-recommender under CRM & Business Tools as CORE tier. Updated footer (24 CORE).
+- **docs/INTEGRATION.md** — Added vishwa603 to Contributors and Credits table.
+- **docs/CHANGELOG.md** — Added v1.5.0 entry for connector-recommender.
+- **tests/01-smoke.sh** — Updated to include connector-recommender in skill checks. Fixed skill count assertion for official kit context (was hardcoded to 6).
+- **tests/02-skills.sh** — Added connector-recommender to ALL_SKILLS array for validation.
+- **tests/05-docs.sh** — Adapted README tests for official kit context. Added vishwa603 credit check. Added integration doc file existence checks.
+- Test suite expanded from 324 to 334 tests.
+
+---
+
 ## [1.4.0] - 2026-04-02
 
 ### Feature: Doctor, Uninstaller, Updater

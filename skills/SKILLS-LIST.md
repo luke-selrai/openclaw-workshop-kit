@@ -1,4 +1,4 @@
-# Skills Reference — Your 92 Installed Skills
+# Skills Reference — Your 93 Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need — Claude picks the right skill automatically.
 
@@ -40,6 +40,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `ghl-crm` | GoHighLevel CRM API — contacts, opportunities, conversations, campaigns | "Pull all contacts tagged VIP from GHL" | ADVANCED |
 | `ghl-browser` | GoHighLevel browser automation for UI-only operations | "Log into GHL and export my pipeline report" | ADVANCED |
 | `google-chat` | Send and read Google Chat messages via gws CLI | "Send a message to the Marketing space in Google Chat" | ADVANCED |
+| `connector-recommender` | Detects your business type and recommends which integrations to set up | "What integrations do I need for my agency?" | CORE |
 
 ## Content & Writing
 
@@ -152,8 +153,8 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 
 ---
 
-**Total: 92 skills installed**
-- CORE: 23 skills (shown by default via skills-discovery)
+**Total: 93 skills installed**
+- CORE: 24 skills (shown by default via skills-discovery)
 - ADVANCED: 59 skills (available on request)
 - DEV-ONLY: 10 skills (for technical integrations — never surfaced in demos)
 

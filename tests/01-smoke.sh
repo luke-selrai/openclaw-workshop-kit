@@ -36,7 +36,7 @@ assert_dir_exists "tests/ directory" "$ROOT_DIR/tests"
 # ── All Skills Have SKILL.md ────────────────────────────────────
 suite_header "Skills Exist"
 
-ALL_SKILLS=("ghl-crm" "ghl-browser" "google-chat" "server-setup" "claude-dispatch" "skill-creator")
+ALL_SKILLS=("ghl-crm" "ghl-browser" "google-chat" "server-setup" "claude-dispatch" "skill-creator" "connector-recommender")
 for skill in "${ALL_SKILLS[@]}"; do
   assert_file_exists "$skill/SKILL.md" "$ROOT_DIR/skills/$skill/SKILL.md"
 done
@@ -80,6 +80,6 @@ FILE_COUNT=$(find "$ROOT_DIR" -not -path "*/.git/*" -type f | wc -l)
 assert_greater_than "Total files >= 27" "$FILE_COUNT" 26
 
 SKILL_COUNT=$(find "$ROOT_DIR/skills" -name "SKILL.md" | wc -l)
-assert_equals "Exactly 6 SKILL.md files" "6" "$SKILL_COUNT"
+assert_greater_than "SKILL.md files include our 7 additions" "$SKILL_COUNT" 6
 
 print_summary

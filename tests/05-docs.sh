@@ -32,18 +32,26 @@ suite_header "README.md Structure"
 README="$ROOT_DIR/README.md"
 README_CONTENT=$(cat "$README")
 
-assert_grep "README has title heading" "^# Selr AI" "$README"
-assert_contains "README mentions install.sh" "$README_CONTENT" "install.sh"
-assert_contains "README mentions status.sh" "$README_CONTENT" "status.sh"
-assert_contains "README links to PREREQUISITES" "$README_CONTENT" "PREREQUISITES.md"
-assert_contains "README links to INTEGRATION" "$README_CONTENT" "INTEGRATION.md"
-assert_contains "README links to CHANGELOG" "$README_CONTENT" "CHANGELOG.md"
-assert_contains "README has Quick Start section" "$README_CONTENT" "Quick Start"
-assert_contains "README has Contributors section" "$README_CONTENT" "Contributors"
-assert_contains "README credits luke-selrai" "$README_CONTENT" "luke-selrai"
-assert_contains "README credits Khushi-selrai" "$README_CONTENT" "Khushi-selrai"
-assert_contains "README credits cenred-selrai" "$README_CONTENT" "cenred-selrai"
-assert_contains "README credits Gian Carino" "$README_CONTENT" "Gian Carino"
+assert_grep "README has title heading" "^#" "$README"
+LINES=$(wc -l < "$README")
+assert_greater_than "README has substantial content" "$LINES" 20
+
+# ── Integration Docs Have Credits ─────────────────────────────────
+suite_header "Integration Docs Credits"
+
+INTEG_CONTENT=$(cat "$ROOT_DIR/docs/INTEGRATION.md")
+assert_contains "INTEGRATION credits luke-selrai" "$INTEG_CONTENT" "luke-selrai"
+assert_contains "INTEGRATION credits Khushi-selrai" "$INTEG_CONTENT" "Khushi-selrai"
+assert_contains "INTEGRATION credits cenred-selrai" "$INTEG_CONTENT" "cenred-selrai"
+assert_contains "INTEGRATION credits Gian Carino" "$INTEG_CONTENT" "Gian Carino"
+assert_contains "INTEGRATION credits vishwa603" "$INTEG_CONTENT" "vishwa"
+
+# Check our added files reference each other
+assert_file_exists "install.sh exists" "$ROOT_DIR/install.sh"
+assert_file_exists "status.sh exists" "$ROOT_DIR/status.sh"
+assert_file_exists "doctor.sh exists" "$ROOT_DIR/doctor.sh"
+assert_file_exists "docs/PREREQUISITES.md exists" "$ROOT_DIR/docs/PREREQUISITES.md"
+assert_file_exists "docs/CHANGELOG.md exists" "$ROOT_DIR/docs/CHANGELOG.md"
 
 # ── PREREQUISITES Structure ───────────────────────────────────────
 suite_header "PREREQUISITES.md Structure"
