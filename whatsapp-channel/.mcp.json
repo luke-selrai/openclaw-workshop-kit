@@ -9,7 +9,7 @@
       ],
       "env": {
         "WA_ALLOW_FROM": "",
-        "WA_VERBOSE": "1"
+        "WA_VERBOSE": "0"
       }
     }
   }

@@ -32,6 +32,7 @@ const ALLOW_FROM = process.env.WA_ALLOW_FROM
   ? process.env.WA_ALLOW_FROM.split(",").map((s) => s.trim()).filter(Boolean)
   : [];
 const VERBOSE = process.env.WA_VERBOSE === "1" || process.env.WA_VERBOSE === "true";
+const AUTO_OPEN_QR = process.env.WA_AUTO_OPEN_QR === "1" || process.env.WA_AUTO_OPEN_QR === "true";
 
 // ── MCP Channel Server ─────────────────────────────────────────────
 const mcp = new Server(
@@ -238,10 +239,10 @@ async function main() {
   console.error("[whatsapp-channel] MCP server connected to Claude Code.");
   console.error(`[whatsapp-channel] Auth dir: ${resolveAuthDir(AUTH_DIR)}`);
   if (ALLOW_FROM.length > 0) {
-    console.error(`[whatsapp-channel] Allowlist: ${ALLOW_FROM.join(", ")}`);
+    console.error(`[whatsapp-channel] Extra allowlist: ${ALLOW_FROM.join(", ")}`);
   } else {
-    console.error("[whatsapp-channel] No allowlist set — accepting messages from anyone.");
-    console.error("[whatsapp-channel] Set WA_ALLOW_FROM=+1234567890,+0987654321 to restrict.");
+    console.error("[whatsapp-channel] Only your linked phone can message Claude (self-only mode).");
+    console.error("[whatsapp-channel] Set WA_ALLOW_FROM=+1234567890 to allow additional numbers.");
   }
 
   // Check for existing credentials
@@ -252,10 +253,10 @@ async function main() {
     const self = readSelfId(authDir);
     console.error(`[whatsapp-channel] Existing session found: ${self.phone ?? "unknown"}`);
   } else {
-    console.error("[whatsapp-channel] No existing session. Starting QR server...");
+    console.error("[whatsapp-channel] No existing session. Will show QR code.");
   }
 
-  // Start QR web server so user can scan from browser
+  // Start QR server first — we need it ready before opening the browser
   let qrPort: number | null = null;
   try {
     qrPort = await startQrServer();
@@ -264,27 +265,31 @@ async function main() {
     console.error("[whatsapp-channel] QR server failed to start:", String(err));
   }
 
-  // Auto-open browser and notify Claude if login is needed
+  // Open browser IMMEDIATELY if login needed — only when WA_AUTO_OPEN_QR=1
   if (needsQr && qrPort) {
-    // Open browser automatically (cross-platform)
     const url = `http://127.0.0.1:${qrPort}`;
-    const openCmd = process.platform === "win32" ? `start "" "${url}"`
-      : process.platform === "darwin" ? `open "${url}"`
-      : `xdg-open "${url}"`;
-    exec(openCmd, (err) => {
-      if (err) console.error("[whatsapp-channel] Failed to open browser:", String(err));
-    });
+
+    if (AUTO_OPEN_QR) {
+      const openCmd = process.platform === "win32" ? `start "" "${url}"`
+        : process.platform === "darwin" ? `open "${url}"`
+        : `xdg-open "${url}"`;
+      exec(openCmd, (err) => {
+        if (err) console.error("[whatsapp-channel] Failed to open browser:", String(err));
+      });
+    } else {
+      console.error("[whatsapp-channel] QR login needed. Set WA_AUTO_OPEN_QR=1 to auto-open browser.");
+    }
 
     await mcp.notification({
       method: "notifications/claude/channel",
       params: {
-        content: `WhatsApp needs to be linked. A browser window has been opened at ${url}. Scan the QR code with your phone (WhatsApp > Settings > Linked Devices > Link a Device).`,
+        content: `WhatsApp needs to be linked.${AUTO_OPEN_QR ? " A browser window has been opened at" : " Open"} ${url}. Scan the QR code with your phone (WhatsApp > Settings > Linked Devices > Link a Device).`,
         meta: { type: "system", action: "qr_login_required" },
       },
     });
   }
 
-  // Start WhatsApp monitor
+  // Start WhatsApp monitor (generates QR codes via onQr callback)
   try {
     waMonitor = await monitorWhatsApp({
       authDir: AUTH_DIR,
@@ -298,7 +303,6 @@ async function main() {
       onConnected: () => {
         markConnected();
         console.error("[whatsapp-channel] WhatsApp connected!");
-        // Notify Claude
         mcp.notification({
           method: "notifications/claude/channel",
           params: {
@@ -325,12 +329,9 @@ async function main() {
     const closeReason = await waMonitor.onClose;
     console.error("[whatsapp-channel] Monitor stopped:", JSON.stringify(closeReason));
 
-    // If logged out, don't auto-reconnect
     if (closeReason.isLoggedOut) {
       process.exit(1);
     }
-
-    // For other disconnects (network issues, etc.), exit so Claude Code can restart
     process.exit(1);
   } catch (err) {
     console.error("[whatsapp-channel] Failed to start:", String(err));

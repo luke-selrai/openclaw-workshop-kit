@@ -98,9 +98,11 @@ If you're on a Mac, you can use iMessage instead — no extra apps, no bots, jus
 
 **Step 1:** Install Bun (required): `curl -fsSL https://bun.sh/install | bash`
 **Step 2:** Grant Full Disk Access to your terminal (System Settings → Privacy & Security → Full Disk Access)
-**Step 3:** In Claude Code, type: `/plugin install imessage@claude-plugins-official`
+**Step 3:** In the VS Code terminal, run: `claude plugin install imessage@claude-plugins-official`
 **Step 4:** Restart Claude Code with: `claude --channels plugin:imessage@claude-plugins-official`
 **Step 5:** Open Messages and text yourself — your assistant replies instantly
+
+> The first reply triggers a macOS prompt: "Terminal wants to control Messages." Click **OK** to allow replies.
 
 > For the full guide with troubleshooting, see [IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
 
