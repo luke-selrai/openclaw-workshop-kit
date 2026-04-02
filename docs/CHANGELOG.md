@@ -9,7 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Feature: Connector Recommender + Test Suite Update
 
-**Authors:** vishwa603, Gian Carino
+**Authors:** Gian Carino, vishwa603
 **Source:** [claude-workshop/connector-recommender](https://github.com/vishwa603/claude-workshop/tree/main/connector-recommender)
 
 #### Added
