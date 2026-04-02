@@ -61,6 +61,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 |---|---|---|---|
 | `cost-optimizer` | Track and optimise LLM costs across workflows | "Optimise my API costs" | ADVANCED |
 | `devops-automator` | CI/CD, IaC, Kubernetes, deployment automation | "Set up a CI/CD pipeline for my app" | ADVANCED |
+| `gcp-deployment-expert` | Deploy Claude assistants on GCP VMs — provisioning, systemd, OAuth, Google Workspace auth | "Set up my Claude server on GCP" | ADVANCED |
 | `dispatching-parallel-agents` | Run independent tasks simultaneously | "Run these 3 tasks in parallel" | ADVANCED |
 | `finishing-a-development-branch` | Guide to integrate completed work cleanly | "Help me merge this branch" | ADVANCED |
 | `git-workflow-expert` | Git branching, conflict resolution, monorepo patterns | "Help me resolve this merge conflict" | ADVANCED |
