@@ -7,7 +7,7 @@ A two-way WhatsApp channel for Claude Code sessions, built on [Baileys](https://
 - **QR Code Login** — scan with your phone to link (no Business API needed)
 - **Two-way messaging** — receive messages in Claude, Claude replies via WhatsApp
 - **Permission relay** — approve/deny Claude's tool use from WhatsApp
-- **Sender allowlist** — restrict who can message your Claude session
+- **Self-only by default** — only your linked phone can message Claude (add more numbers via config)
 - **Group chat support** — works in group chats with group metadata
 - **Reactions** — Claude can react to messages with emoji
 - **Deduplication** — prevents duplicate message processing
@@ -39,7 +39,6 @@ Copy the `.mcp.json` to your project or add to `~/.claude.json`:
       "command": "bun",
       "args": ["/full/path/to/whatsapp-channel/src/index.ts"],
       "env": {
-        "WA_ALLOW_FROM": "+1234567890,+0987654321",
         "WA_VERBOSE": "0"
       }
     }
@@ -80,7 +79,7 @@ Claude reads it, acts on it, and replies back through WhatsApp.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `WA_ALLOW_FROM` | Comma-separated E.164 phone numbers to allow | `""` (allow all) |
+| `WA_ALLOW_FROM` | Additional E.164 phone numbers to allow (your own is always included) | `""` (self-only) |
 | `WA_AUTH_DIR` | Custom auth directory path | `~/.claude/whatsapp-channel/auth/` |
 | `WA_VERBOSE` | Enable verbose logging (`1` or `true`) | `0` |
 
@@ -139,8 +138,8 @@ index.ts (MCP channel server) ──── stdio ──── Claude Code
 - Delete `~/.claude/whatsapp-channel/auth/` and restart
 
 ### Messages not arriving
-- Check `WA_ALLOW_FROM` — is the sender's number listed?
-- Run with `WA_VERBOSE=1` to see blocked messages
+- Only your linked phone is allowed by default. To allow others, add their numbers to `WA_ALLOW_FROM`
+- Run with `WA_VERBOSE=1` to see blocked messages in the debug log
 - Verify Claude Code started with `--dangerously-load-development-channels`
 
 ### Session expired

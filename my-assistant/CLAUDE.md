@@ -668,13 +668,13 @@ Create (or overwrite) the file `~/whatsapp-channel/.mcp.json` with this exact co
 **WHATSAPP STEP 5 — Security Setup**
 
 Say:
-> "There is a security setting that controls who can message Claude through your WhatsApp. Right now it is open to everyone."
+> "By default, only YOUR phone can message Claude through WhatsApp. Nobody else can get through — it is locked to your number automatically."
 
 Ask:
-> "Do you want to restrict who can message Claude through WhatsApp? If yes, tell me the phone number or numbers — include the country code at the start. For example: +1 for United States, +44 for United Kingdom, +63 for Philippines, +61 for Australia."
+> "Would you like anyone else to be able to message Claude through WhatsApp? For example, a business partner or team member? If yes, tell me their phone number or numbers — include the country code at the start. For example: +1 for United States, +44 for United Kingdom, +63 for Philippines, +61 for Australia."
 
-- If they give numbers → update `WA_ALLOW_FROM` in the `.mcp.json` with the numbers separated by commas (e.g., `"+61412345678,+61498765432"`)
-- If they say no or skip → leave it empty (anyone can message)
+- If they give numbers → update `WA_ALLOW_FROM` in the `.mcp.json` with the numbers separated by commas (e.g., `"+61412345678,+61498765432"`). Their own number does NOT need to be listed — it is always allowed automatically.
+- If they say no or skip → leave it empty (self-only, which is secure by default)
 
 **WHATSAPP STEP 6 — Connect WhatsApp (Scan the QR Code)**
 
@@ -726,11 +726,9 @@ Say:
 
 **WHATSAPP STEP 8 — Allow WhatsApp to Run Without Permission Popups**
 
-First, check the `.mcp.json` file and read the `WA_ALLOW_FROM` value. If empty, go back to Step 5 first.
+Ask:
 
-Once `WA_ALLOW_FROM` has at least one number, ask:
-
-> "Right now, every time someone sends a WhatsApp message, a popup asks permission before I can read or reply. I can turn that off so I respond automatically — only the phone numbers you already approved can get through. Would you like to turn on automatic replies?"
+> "Right now, every time someone sends a WhatsApp message, a popup asks permission before I can read or reply. I can turn that off so I respond automatically — only your phone (and any extra numbers you approved) can get through. Would you like to turn on automatic replies?"
 
 **If they say yes:**
 
@@ -756,7 +754,7 @@ Say:
 **Troubleshooting WhatsApp:**
 
 - QR code does not appear → make sure no other WhatsApp Web session is active. Delete the auth folder and restart.
-- Messages not arriving → check `WA_ALLOW_FROM` has the sender's number
+- Messages not arriving → your phone is allowed by default. If someone else is messaging Claude, their number must be in `WA_ALLOW_FROM`
 - Session expired → delete the auth folder and scan a new QR code
 
 ---
