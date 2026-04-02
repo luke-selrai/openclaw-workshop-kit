@@ -8,7 +8,7 @@ date: 2026-04-02
 
 > 💡 **Keep this page open on your screen throughout the setup.** Everything you need is right here.
 
-Today you are setting up a personal AI assistant that runs **24/7 on a Google Cloud server**. It learns about your business, remembers everything, and has 86 specialist skills built in — available anytime from Telegram, even when your laptop is off.
+Today you are setting up a personal AI assistant that runs **24/7 on a Google Cloud server**. It learns about your business, remembers everything, and has 86 specialist skills built in — available anytime from your phone, even when your laptop is off.
 
 ---
 
@@ -17,10 +17,10 @@ Today you are setting up a personal AI assistant that runs **24/7 on a Google Cl
 | What | Description |
 |---|---|
 | **Your AI Assistant** | Runs 24/7 on a server. Always on, always ready. |
-| **Telegram Access** | Message your assistant from your phone, anywhere, anytime |
+| **Messaging Access** | Message your assistant via Telegram, Discord, WhatsApp, or iMessage |
 | **86 Skills** | Research, copywriting, sales emails, competitor analysis, and more |
 | **Memory System** | Saves what it learns about you and your business |
-| **Voice Messages** | Send voice notes on Telegram — assistant transcribes and responds |
+| **Voice Messages** | Send voice notes — assistant transcribes and responds |
 
 ---
 
@@ -29,12 +29,13 @@ Today you are setting up a personal AI assistant that runs **24/7 on a Google Cl
 - A **Google Cloud account** — [cloud.google.com](https://cloud.google.com) (credit card required even for free tier)
 - The **gcloud CLI** installed on your laptop — [cloud.google.com/sdk/docs/install](https://cloud.google.com/sdk/docs/install)
 - A **Claude Max account** — [claude.ai](https://claude.ai) → Settings → Billing → Upgrade to Max ($100 USD/month)
-- **Telegram** on your phone and a bot token (see below)
+- One of the following messaging apps on your phone: **Telegram** (recommended), **Discord**, **WhatsApp**, or **iMessage**
 
-> 💳 **How to get a Telegram bot token:**
-> 1. Open Telegram → search **@BotFather** → tap **Start**
-> 2. Send `/newbot` → give it a name → give it a username ending in `bot`
-> 3. Copy the token BotFather gives you — you will need it later
+> 💳 **Platform quick-start:**
+> - **Telegram** — Open Telegram → search **@BotFather** → send `/newbot` → copy the token it gives you
+> - **Discord** — Have your server ID ready (right-click your server → Copy Server ID)
+> - **WhatsApp** — You will need a WhatsApp Business API token (setup guided during install)
+> - **iMessage** — Mac only; no token needed
 
 ---
 
@@ -47,7 +48,7 @@ There are only **two things you do manually** — both require a browser to sign
 | Sign in to Google Cloud | **You** (once) | Needs your browser |
 | Sign in to Claude on the server | **You** (once) | Needs your browser |
 | Create the VM, install everything, set up the service | **Claude** | Fully automated |
-| Clone skills, configure Telegram, start the assistant | **Claude** | Fully automated |
+| Clone skills, configure messaging, start the assistant | **Claude** | Fully automated |
 
 ---
 
@@ -101,10 +102,20 @@ Ask me: "Which region is closest to you?" and show these options:
   6. Other — I will type it myself
 Wait for my answer before continuing.
 
-QUESTION 3 — Telegram bot token:
-Ask me: "Please paste your Telegram bot token."
-Remind me: "You can get one by opening Telegram, searching @BotFather, and running /newbot."
-Wait for me to paste it before continuing.
+QUESTION 3 — Messaging platform:
+Ask me: "Which messaging app would you like to use to talk to your assistant?" and show these options:
+  1. Telegram (recommended — easiest to set up)
+  2. Discord
+  3. WhatsApp
+  4. iMessage (Mac only)
+Wait for my answer before continuing.
+
+Then, depending on my choice:
+- If Telegram: Ask "Please paste your Telegram bot token." and remind me: "Open Telegram, search @BotFather, send /newbot, and copy the token it gives you."
+- If Discord: Ask "Please paste your Discord bot token." and remind me: "Go to discord.com/developers → New Application → Bot → Reset Token."
+- If WhatsApp: Ask "Please paste your WhatsApp Business API token." and remind me: "You need a Meta Business account at developers.facebook.com to get this."
+- If iMessage: Confirm they are on a Mac. No token needed.
+Wait for my answer before continuing.
 
 Once you have all three answers, proceed with everything below automatically.
 
@@ -211,48 +222,126 @@ print('Done')
 "
 
 ─────────────────────────────────────
-PART 5 — INSTALL TELEGRAM PLUGIN
+PART 5 — INSTALL MESSAGING PLUGIN
 ─────────────────────────────────────
 
-12. Create the plugin directory and write the settings file:
-    mkdir -p ~/.claude/plugins/cache/claude-plugins-official/telegram/0.0.4
+12. Install the plugin for the platform the user chose:
 
-    cat > ~/.claude/settings.json << 'EOF'
-    {
-      "enabledPlugins": {
-        "telegram@claude-plugins-official": true
-      }
-    }
-    EOF
+    IF Telegram:
+      mkdir -p ~/.claude/plugins/cache/claude-plugins-official/telegram/0.0.4
 
-    cat > ~/.claude/plugins/installed_plugins.json << EOF
-    {
-      "telegram@claude-plugins-official": [
-        {
-          "scope": "user",
-          "installPath": "/home/$USER/.claude/plugins/cache/claude-plugins-official/telegram/0.0.4",
-          "version": "0.0.4",
-          "installedAt": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
-          "lastUpdated": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
-          "gitCommitSha": "b10b583de281385442474e836644534b938b2678"
+      cat > ~/.claude/settings.json << 'EOF'
+      {
+        "enabledPlugins": {
+          "telegram@claude-plugins-official": true
         }
-      ]
-    }
-    EOF
+      }
+      EOF
 
-    cat > ~/.claude/plugins/cache/claude-plugins-official/telegram/0.0.4/access.json << EOF
-    {
-      "token": "<telegram-bot-token>",
-      "allowlist": [],
-      "policy": "allowlist"
-    }
-    EOF
+      cat > ~/.claude/plugins/installed_plugins.json << EOF
+      {
+        "telegram@claude-plugins-official": [
+          {
+            "scope": "user",
+            "installPath": "/home/$USER/.claude/plugins/cache/claude-plugins-official/telegram/0.0.4",
+            "version": "0.0.4",
+            "installedAt": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+            "lastUpdated": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+            "gitCommitSha": "b10b583de281385442474e836644534b938b2678"
+          }
+        ]
+      }
+      EOF
+
+      cat > ~/.claude/plugins/cache/claude-plugins-official/telegram/0.0.4/access.json << EOF
+      {
+        "token": "<telegram-bot-token>",
+        "allowlist": [],
+        "policy": "allowlist"
+      }
+      EOF
+
+    IF Discord:
+      mkdir -p ~/.claude/plugins/cache/claude-plugins-official/discord/0.0.1
+
+      cat > ~/.claude/settings.json << 'EOF'
+      {
+        "enabledPlugins": {
+          "discord@claude-plugins-official": true
+        }
+      }
+      EOF
+
+      cat > ~/.claude/plugins/installed_plugins.json << EOF
+      {
+        "discord@claude-plugins-official": [
+          {
+            "scope": "user",
+            "installPath": "/home/$USER/.claude/plugins/cache/claude-plugins-official/discord/0.0.1",
+            "version": "0.0.1",
+            "installedAt": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+            "lastUpdated": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+          }
+        ]
+      }
+      EOF
+
+      cat > ~/.claude/plugins/cache/claude-plugins-official/discord/0.0.1/access.json << EOF
+      {
+        "token": "<discord-bot-token>",
+        "policy": "allowlist",
+        "allowlist": []
+      }
+      EOF
+
+    IF WhatsApp:
+      mkdir -p ~/.claude/plugins/cache/claude-plugins-official/whatsapp/0.0.1
+
+      cat > ~/.claude/settings.json << 'EOF'
+      {
+        "enabledPlugins": {
+          "whatsapp@claude-plugins-official": true
+        }
+      }
+      EOF
+
+      cat > ~/.claude/plugins/installed_plugins.json << EOF
+      {
+        "whatsapp@claude-plugins-official": [
+          {
+            "scope": "user",
+            "installPath": "/home/$USER/.claude/plugins/cache/claude-plugins-official/whatsapp/0.0.1",
+            "version": "0.0.1",
+            "installedAt": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+            "lastUpdated": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+          }
+        ]
+      }
+      EOF
+
+      cat > ~/.claude/plugins/cache/claude-plugins-official/whatsapp/0.0.1/access.json << EOF
+      {
+        "token": "<whatsapp-api-token>",
+        "policy": "allowlist",
+        "allowlist": []
+      }
+      EOF
+
+    IF iMessage:
+      Tell me: "iMessage integration requires additional setup on a Mac. For now, your assistant is running on the server. Ask your assistant 'How do I connect iMessage?' once it is running and it will guide you through it."
+      Skip the access.json step — no token needed at this stage.
 
 ─────────────────────────────────────
 PART 6 — RUN 24/7 AS A SERVICE
 ─────────────────────────────────────
 
-13. Create a PTY wrapper so Claude runs correctly without a terminal:
+13. Create a PTY wrapper so Claude runs correctly without a terminal.
+    Use the correct --channels flag for the platform the user chose:
+    - Telegram:  plugin:telegram@claude-plugins-official
+    - Discord:   plugin:discord@claude-plugins-official
+    - WhatsApp:  plugin:whatsapp@claude-plugins-official
+    - iMessage:  plugin:imessage@claude-plugins-official
+
     cat > ~/start-claude.sh << 'EOF'
     #!/usr/bin/env python3
     import pty, os
@@ -261,10 +350,11 @@ PART 6 — RUN 24/7 AS A SERVICE
         return os.read(fd, 1024)
 
     pty.spawn(
-        [os.path.expanduser("~/.local/bin/claude"), "--channels", "plugin:telegram@claude-plugins-official"],
+        [os.path.expanduser("~/.local/bin/claude"), "--channels", "plugin:<platform>@claude-plugins-official"],
         master_read=read
     )
     EOF
+    (Replace <platform> with telegram, discord, whatsapp, or imessage as appropriate.)
     chmod +x ~/start-claude.sh
 
 14. Create the systemd service:
@@ -302,15 +392,15 @@ PART 6 — RUN 24/7 AS A SERVICE
 PART 7 — FINISH
 ─────────────────────────────────────
 
-17. Walk me through pairing my Telegram account with the bot, step by step.
+17. Walk me through pairing my account with the bot on whichever platform I chose, step by step.
 
-18. When everything is done, tell me to open Telegram, find my bot, and send "hello".
+18. When everything is done, tell me to open my messaging app, find my bot, and send "hello".
     My assistant will introduce itself and ask me 7 questions to learn about my business.
 
 Talk to me in plain English throughout. One step at a time.
 ```
 
-**What happens next:** Claude will ask you 3 quick questions, then build and configure everything automatically. The only moment you step in is Step 3 — signing in to Claude on the server.
+**What happens next:** Claude will ask you 3 quick questions (including which messaging app you want to use), then build and configure everything automatically. The only moment you step in is Step 3 — signing in to Claude on the server.
 
 ---
 
@@ -338,7 +428,7 @@ A URL will appear. Open it in your laptop browser and sign in with your Claude a
 
 ## Step 4 — Your Assistant Will Ask You 7 Questions
 
-After pairing Telegram, open it on your phone, find your bot, and send **hello**. Your assistant will introduce itself and ask:
+After pairing your messaging app, open it on your phone, find your bot, and send **hello**. Your assistant will introduce itself and ask:
 
 | # | Question |
 |---|---|
@@ -364,7 +454,7 @@ After pairing Telegram, open it on your phone, find your bot, and send **hello**
 | **Analyse a market** | "What are the trends in [my industry] right now?" |
 | **Plan your week** | "Help me plan my most important tasks for this week" |
 | **Write a blog post** | "Write a 1000-word blog post about [topic] for my website" |
-| **Send a voice note** | Send a voice message on Telegram — it transcribes and responds |
+| **Send a voice note** | Send a voice message in your messaging app — it transcribes and responds |
 
 ---
 
@@ -444,7 +534,7 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 |---|---|
 | SSH connection fails | Check VM is running: [console.cloud.google.com](https://console.cloud.google.com) → Compute Engine |
 | Claude login URL doesn't work | Open it in the browser where you are logged into claude.ai |
-| Telegram bot not responding | SSH into server and run: `tail -50 ~/claude-assistant.log` |
+| Bot not responding | SSH into server and run: `tail -50 ~/claude-assistant.log` |
 | Assistant crashed | SSH into server and run: `systemctl --user restart claude-assistant` |
 | Disk full or out of memory | SSH into server and run: `df -h` and `free -h` |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
