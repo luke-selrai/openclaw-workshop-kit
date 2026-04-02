@@ -537,9 +537,58 @@ If they say no, say: "No worries — just tell me a name and number anytime and 
 
 ---
 
+### TOOL STEP 5 — Connect Business Tools (Auto-Recommended)
+
+**Read** `~/workshop-kit/connectors/CONNECTORS.md` before running this step. It has the full list of available connectors and exact setup instructions.
+
+**Say:**
+> "Now let me connect the business tools you already use. Based on what you told me earlier, I have some recommendations."
+
+**How to recommend connectors:**
+
+Look at the user's answer to Question 5 ("What apps or tools do you use?") and their business type from Question 2. Match keywords to available connectors:
+
+| If they mention... | Recommend... | What it does (say this) |
+|---|---|---|
+| GoHighLevel / GHL / HighLevel | `ghl` | "I can manage your contacts, send messages, book appointments, and post to social media — all through GoHighLevel." |
+| Shopify | `shopify` | "I can manage your products, check orders, and look up customers in your Shopify store." |
+| Xero | `xero` | "I can create invoices, check who owes you money, and pull financial reports from Xero." |
+| Stripe | `stripe` | "I can check payments, create invoices, and manage your customers in Stripe." |
+| QuickBooks / QB / Intuit | `quickbooks` | "I can manage invoices, customers, and expenses in QuickBooks." |
+| HubSpot | `hubspot` | "I can look up contacts, deals, and tickets in HubSpot." |
+| Square / Square POS | `square` | "I can check orders, manage your catalog, and look up customers in Square." |
+
+**Inference rules (when no direct match):**
+- User sells products online but no e-commerce tool mentioned → suggest Shopify
+- User has no CRM mentioned → suggest GHL ("GoHighLevel is a popular tool for managing clients — it is included in the workshop. Would you like to try it?")
+- User has no accounting tool → suggest Xero (for AU/NZ/UK businesses) or QuickBooks (for US/CA businesses)
+- User takes payments but no payment processor mentioned → suggest Stripe
+- User has a physical store or takes bookings but no POS mentioned → suggest Square
+
+**Rules:**
+- Recommend a maximum of 3 connectors at once
+- Present the most relevant one first (based on their biggest challenge)
+- For the rest, say: "I can also connect [others] later whenever you are ready."
+- All connectors are optional — never force one
+- If they say no → "No problem. Just say 'connect [name]' any time."
+
+**To install a connector:**
+
+1. Say what it does in ONE sentence (from the table above)
+2. Ask: "Would you like me to connect [tool name]?"
+3. If yes:
+   a. Run: `bash ~/workshop-kit/connectors/install-connector.sh [name]`
+   b. The script installs the skill and creates a credentials file
+   c. Guide the user through getting their credentials (read CONNECTORS.md for exact steps per platform)
+   d. Run: `bash ~/workshop-kit/connectors/[name]/test.sh` to verify
+   e. Save to memory which connectors were installed
+4. If no → move to the next recommendation or proceed to Tool Step 6
+
+---
+
 ### TOOL STEP 6 — Mark Tools Complete
 
-Save to memory which tools were connected (Playwright, Google Workspace, Microsoft 365 if set up, and whichever messaging channel they chose — Telegram, WhatsApp, or iMessage).
+Save to memory which tools were connected (Playwright, Google Workspace, Microsoft 365 if set up, messaging channel, and any business tool connectors).
 
 Say:
 > "All connected! Now let me show you what I can actually do for your business."
@@ -659,6 +708,8 @@ Common fixes:
 - Full setup guide: `~/workshop-kit/docs/FULL-SETUP-PAGE.md`
 - Telegram setup: `~/workshop-kit/docs/TELEGRAM-SETUP.md`
 - Google Workspace setup: `~/workshop-kit/docs/GOOGLE-WORKSPACE-SETUP.md`
+- Connectors guide: `~/workshop-kit/connectors/CONNECTORS.md`
+- Individual connectors: `~/workshop-kit/connectors/[name]/` (ghl, shopify, xero, stripe, quickbooks, hubspot, square)
 
 ---
 
