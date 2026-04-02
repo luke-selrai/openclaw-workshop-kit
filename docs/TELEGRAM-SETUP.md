@@ -17,8 +17,15 @@ This guide walks you through connecting Telegram to Claude Code so your assistan
 - Bun installed (check by typing `bun --version` in the command window)
 
 > If you don't have Bun installed, run this in your terminal:
+>
+> **Mac/Linux:**
 > ```
 > curl -fsSL https://bun.sh/install | bash
+> ```
+>
+> **Windows (PowerShell):**
+> ```
+> powershell -c "irm bun.sh/install.ps1 | iex"
 > ```
 > Then close and reopen your terminal.
 
