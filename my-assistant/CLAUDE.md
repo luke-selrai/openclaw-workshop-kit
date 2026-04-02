@@ -752,8 +752,7 @@ Common fixes:
 - Workshop docs: `~/workshop-kit/docs/`
 - Full setup guide: `~/workshop-kit/docs/FULL-SETUP-PAGE.md`
 - Telegram setup: `~/workshop-kit/docs/TELEGRAM-SETUP.md`
-- Google Workspace setup (desktop): `~/workshop-kit/docs/GOOGLE-WORKSPACE-SETUP.md`
-- Google Workspace setup (server/VM): `~/workshop-kit/docs/GOOGLE-WORKSPACE-SERVER-SETUP.md`
+- Google Workspace setup: `~/workshop-kit/docs/GOOGLE-WORKSPACE-SETUP.md`
 
 ---
 

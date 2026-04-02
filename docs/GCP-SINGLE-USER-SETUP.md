@@ -415,7 +415,7 @@ After pairing your messaging app, open it on your phone, find your bot, and send
 
 Ask your assistant: *"Help me connect my Google Workspace account"*
 
-For the full server-specific guide, see [GOOGLE-WORKSPACE-SERVER-SETUP.md](GOOGLE-WORKSPACE-SERVER-SETUP.md).
+Your assistant handles the full auth flow automatically — just ask it to connect Google Workspace.
 
 **Microsoft 365 — Outlook, OneDrive, Teams**
 
