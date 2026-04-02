@@ -66,7 +66,33 @@ A browser window will open. Sign in with your Google account.
 
 ---
 
-## Step 2 — Paste the Setup Prompt
+## Step 2 — Run the Setup Script
+
+> 💡 **Choose the option that matches your laptop.**
+
+### Option A — Automated Script (Recommended)
+
+Download and run the script for your platform:
+
+**Mac / Linux:**
+```bash
+# From the workshop-kit directory (or wherever you downloaded the files)
+bash gcp-setup/setup.sh
+```
+
+**Windows:**
+Double-click `gcp-setup\setup.bat`, or run it in a Command Prompt:
+```cmd
+gcp-setup\setup.bat
+```
+
+The script will ask you 3 questions, then build everything automatically. The only time you step in is Part 5 — one SSH session to sign in, install the plugin, and pair your account (instructions are printed on screen).
+
+---
+
+### Option B — Paste the Setup Prompt into Claude
+
+If you prefer to run this through Claude Code manually:
 
 1. Open **Claude Code** on your laptop
 2. Copy the entire prompt below and paste it into the Claude chat — **do not fill anything in**, Claude will ask you the questions
@@ -421,7 +447,7 @@ Your assistant handles the full auth flow automatically — just ask it to conne
 
 Ask your assistant: *"Help me connect my Microsoft 365 account"*
 
-Requires a Microsoft 365 Business subscription. See [M365-SETUP.md](M365-SETUP.md).
+Requires a Microsoft 365 Business subscription. See [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md).
 
 **Browser Automation — Playwright**
 
