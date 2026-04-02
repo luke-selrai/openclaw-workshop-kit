@@ -659,14 +659,14 @@ Create (or overwrite) the file `~/whatsapp-channel/.mcp.json` with this exact co
       "env": {
         "WA_ALLOW_FROM": "",
         "WA_VERBOSE": "1",
-        "WA_AUTO_OPEN_QR": "0"
+        "WA_AUTO_OPEN_QR": "1"
       }
     }
   }
 }
 ```
 
-> **Why `WA_AUTO_OPEN_QR` is `"0"` here:** This config file is read whenever Claude Code starts in the whatsapp-channel folder. We do not want the QR page opening every time. Instead, we pass `WA_AUTO_OPEN_QR=1` as a shell variable in the startup command (Step 6) so it only opens when you intentionally launch the channel.
+> **Why `WA_AUTO_OPEN_QR` is `"1"` here:** This config file lives in `~/whatsapp-channel/` which is only used when you intentionally launch the WhatsApp channel. The QR page will auto-open on first login so you can scan it easily.
 
 **WHATSAPP STEP 4b — Connect WhatsApp to Your Profile and Skills**
 
