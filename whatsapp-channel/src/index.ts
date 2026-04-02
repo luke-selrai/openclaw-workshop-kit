@@ -255,74 +255,64 @@ async function main() {
     console.error("[whatsapp-channel] No existing session. Will show QR code.");
   }
 
-  // Start QR server and WhatsApp monitor IN PARALLEL
-  // This eliminates the sequential bottleneck where the browser opened
-  // before the monitor (which generates QR codes) was running.
+  // Start QR server first — we need it ready before opening the browser
   let qrPort: number | null = null;
-  const qrServerPromise = startQrServer()
-    .then((port) => {
-      qrPort = port;
-      console.error(`[whatsapp-channel] QR login page: http://127.0.0.1:${port}`);
-      return port;
-    })
-    .catch((err) => {
-      console.error("[whatsapp-channel] QR server failed to start:", String(err));
-      return null;
+  try {
+    qrPort = await startQrServer();
+    console.error(`[whatsapp-channel] QR login page: http://127.0.0.1:${qrPort}`);
+  } catch (err) {
+    console.error("[whatsapp-channel] QR server failed to start:", String(err));
+  }
+
+  // Open browser IMMEDIATELY if login needed — don't wait for monitor
+  if (needsQr && qrPort) {
+    const url = `http://127.0.0.1:${qrPort}`;
+    const openCmd = process.platform === "win32" ? `start "" "${url}"`
+      : process.platform === "darwin" ? `open "${url}"`
+      : `xdg-open "${url}"`;
+    exec(openCmd, (err) => {
+      if (err) console.error("[whatsapp-channel] Failed to open browser:", String(err));
     });
 
-  // Start WhatsApp monitor concurrently with QR server
-  const monitorPromise = monitorWhatsApp({
-    authDir: AUTH_DIR,
-    verbose: VERBOSE,
-    allowFrom: ALLOW_FROM,
-    onMessage: handleInboundMessage,
-    onQr: (qr) => {
-      updateQr(qr).catch(() => {});
-      console.error("[whatsapp-channel] New QR code generated. Scan at http://127.0.0.1:" + (qrPort ?? 8787));
-    },
-    onConnected: () => {
-      markConnected();
-      console.error("[whatsapp-channel] WhatsApp connected!");
-      mcp.notification({
-        method: "notifications/claude/channel",
-        params: {
-          content: "WhatsApp connected successfully! Now listening for messages.",
-          meta: { type: "system", action: "connected" },
-        },
-      }).catch(() => {});
-    },
-    onClose: (reason) => {
-      console.error("[whatsapp-channel] Connection closed:", JSON.stringify(reason));
-      stopQrServer();
-      if (reason.isLoggedOut) {
-        console.error("[whatsapp-channel] Logged out. Restart to re-authenticate.");
-      }
-    },
-  });
+    await mcp.notification({
+      method: "notifications/claude/channel",
+      params: {
+        content: `WhatsApp needs to be linked. A browser window has been opened at ${url}. Scan the QR code with your phone (WhatsApp > Settings > Linked Devices > Link a Device).`,
+        meta: { type: "system", action: "qr_login_required" },
+      },
+    });
+  }
 
-  // Wait for both to be ready
+  // Start WhatsApp monitor (generates QR codes via onQr callback)
   try {
-    const [resolvedPort, monitor] = await Promise.all([qrServerPromise, monitorPromise]);
-    waMonitor = monitor;
-
-    // Open browser and notify Claude AFTER both are ready (QR is already generated)
-    if (needsQr && resolvedPort) {
-      const url = `http://127.0.0.1:${resolvedPort}`;
-      const openCmd = process.platform === "win32" ? `start "" "${url}"`
-        : process.platform === "darwin" ? `open "${url}"`
-        : `xdg-open "${url}"`;
-      exec(openCmd, (err) => {
-        if (err) console.error("[whatsapp-channel] Failed to open browser:", String(err));
-      });
-
-      await mcp.notification({
-        method: "notifications/claude/channel",
-        params: {
-          content: `WhatsApp needs to be linked. A browser window has been opened at ${url}. Scan the QR code with your phone (WhatsApp > Settings > Linked Devices > Link a Device).`,
-          meta: { type: "system", action: "qr_login_required" },
-        },
-      });
-    }
+    waMonitor = await monitorWhatsApp({
+      authDir: AUTH_DIR,
+      verbose: VERBOSE,
+      allowFrom: ALLOW_FROM,
+      onMessage: handleInboundMessage,
+      onQr: (qr) => {
+        updateQr(qr).catch(() => {});
+        console.error("[whatsapp-channel] New QR code generated. Scan at http://127.0.0.1:" + (qrPort ?? 8787));
+      },
+      onConnected: () => {
+        markConnected();
+        console.error("[whatsapp-channel] WhatsApp connected!");
+        mcp.notification({
+          method: "notifications/claude/channel",
+          params: {
+            content: "WhatsApp connected successfully! Now listening for messages.",
+            meta: { type: "system", action: "connected" },
+          },
+        }).catch(() => {});
+      },
+      onClose: (reason) => {
+        console.error("[whatsapp-channel] Connection closed:", JSON.stringify(reason));
+        stopQrServer();
+        if (reason.isLoggedOut) {
+          console.error("[whatsapp-channel] Logged out. Restart to re-authenticate.");
+        }
+      },
+    });
 
     console.error("[whatsapp-channel] WhatsApp monitor active. Listening for messages...");
     if (waMonitor.selfPhone) {
