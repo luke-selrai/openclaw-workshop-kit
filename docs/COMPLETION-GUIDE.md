@@ -75,7 +75,7 @@ This lets you chat with your assistant from your phone — ask questions, reques
 **Step 1:** Download Telegram on your phone (free) and sign up
 **Step 2:** Search for `@BotFather` in Telegram, send `/newbot`, and follow the prompts to create a bot
 **Step 3:** Copy the bot token BotFather gives you
-**Step 4:** In Claude Code, type: `/plugin install telegram@claude-plugins-official`
+**Step 4:** In the VS Code terminal, run: `claude plugin install telegram@claude-plugins-official`
 **Step 5:** Save your token: `/telegram:configure [your token]`
 **Step 6:** Install Bun (required): `curl -fsSL https://bun.sh/install | bash`
 **Step 7:** Restart Claude Code with: `claude --channels plugin:telegram@claude-plugins-official`

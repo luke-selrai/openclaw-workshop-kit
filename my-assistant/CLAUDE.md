@@ -363,48 +363,79 @@ After installing, sign up with their phone number.
 
 **Step 2 — Create a Bot**
 
+Say:
+> "Now we need to create a little bot in Telegram — this is what I'll use to send and receive your messages. It takes about 2 minutes. Follow these steps on your phone:"
+
 Guide them through BotFather:
-1. Open Telegram and search for **@BotFather** (look for the blue checkmark)
-2. Tap **Start**, then type `/newbot`
-3. BotFather asks for a name — type anything (e.g. "My Assistant")
-4. BotFather asks for a username — must end in `bot` (e.g. `my_assistant_bot`)
-5. BotFather replies with a **token** — copy the entire thing (numbers, colon, and all)
+> 1. Open Telegram and search for **@BotFather** (look for the blue checkmark)
+> 2. Tap **Start**, then type `/newbot`
+> 3. BotFather asks for a name — type anything (e.g. "My Assistant")
+> 4. BotFather asks for a username — it must end in `bot` (e.g. `my_assistant_bot`)
+> 5. BotFather will reply with a long **token** — it looks like `123456789:ABCdefGhIjKlMnOpQrStUvWxYz`
+> 6. **Copy the entire token** and paste it here in our chat
 
-**Step 3 — Install the Telegram Plugin**
+Wait for the user to give you the token before continuing.
 
-Run these commands yourself in the Claude Code chat:
+**Step 3 — Install Bun (a small tool Telegram needs)**
+
+Check if Bun is already installed by running: `bun --version`
+
+If it's already installed, say: "You already have Bun — we can skip this step."
+
+If not installed, say:
+> "We need to install a small tool called Bun that Telegram uses behind the scenes. Don't worry — it takes about 10 seconds."
+
+Tell the user to open the VS Code terminal (click **Terminal** in the top menu → **New Terminal**), then run:
+- **Mac/Linux:** `curl -fsSL https://bun.sh/install | bash`
+- **Windows:** `powershell -c "irm bun.sh/install.ps1 | iex"`
+
+Say: "Close the terminal and open a new one after installing: **Terminal** menu → **New Terminal**"
+
+Wait for the user to confirm before continuing.
+
+**Step 4 — Install the Telegram plugin and restart with it enabled**
+
+Say:
+> "Now we need to install the Telegram plugin and restart Claude with it turned on. Here's exactly what to do:
+>
+> 1. Type `/exit` right here in this chat to close the session
+> 2. Look at the **Terminal** panel at the bottom of VS Code (if you don't see it, click **Terminal** in the top menu → **New Terminal**)
+> 3. Click inside the terminal panel
+> 4. Copy and paste this command to **install the plugin**:"
+
+Show them:
 ```
-/plugin install telegram@claude-plugins-official
+claude plugin install telegram@claude-plugins-official
 ```
 
-Then save the bot token (replace with the token they gave you):
+Say:
+> "5. Press **Enter** and wait for it to finish
+> 6. Now copy and paste this second command to **start Claude with Telegram**:"
+
+Show them:
+```
+claude --channels plugin:telegram@claude-plugins-official
+```
+
+Say:
+> "7. Press **Enter** — Claude will start up again, this time with Telegram connected"
+
+> **Note:** The plugin install is a **terminal command** (`claude plugin install`), NOT a slash command inside the chat. It must be run in the VS Code terminal, not in the Claude chat window.
+
+**Step 5 — Pair and save the bot token**
+
+Once Claude restarts with Telegram enabled, save the bot token (replace with the token they gave you):
 ```
 /telegram:configure [their token]
 ```
 
-**Step 4 — Install Bun (Required)**
-
-Check if Bun is already installed: `bun --version`
-
-If not installed, tell the user to run:
-- **Mac/Linux:** `curl -fsSL https://bun.sh/install | bash`
-- **Windows:** `powershell -c "irm bun.sh/install.ps1 | iex"`
-
-Say: "Close and reopen your terminal after installing."
-
-**Step 5 — Connect and Pair**
-
-Say: "I need to restart with Telegram enabled. Close Claude Code and start it again with this command:"
-
-```sh
-claude --channels plugin:telegram@claude-plugins-official
-```
-
 Then guide them:
-1. Open Telegram on your phone
-2. Find your bot and tap **Start**
-3. Send any message — the bot will reply with a **6-character code**
-4. Back in Claude Code, type: `/telegram:access pair <code>`
+> 1. Open Telegram on your phone
+> 2. Find your bot and tap **Start**
+> 3. Send any message — the bot will reply with a **6-character code**
+> 4. Tell me the code and I'll pair you
+
+Run: `/telegram:access pair <code>`
 
 **Step 6 — Lock Down Access**
 

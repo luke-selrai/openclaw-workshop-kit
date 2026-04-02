@@ -48,14 +48,14 @@ Telegram lets anyone create a bot for free. You do this by talking to a special 
 
 ## Part B — Install the Telegram Plugin
 
-These are Claude Code commands — you need to have Claude Code running.
+This is a terminal command — run it in the VS Code terminal (not inside the Claude chat).
 
 **Step 1 — Install the Plugin**
 
-Type this in the Claude Code chat:
+Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run:
 
 ```
-/plugin install telegram@claude-plugins-official
+claude plugin install telegram@claude-plugins-official
 ```
 
 **Step 2 — Save Your Bot Token**
