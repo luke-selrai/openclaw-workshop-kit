@@ -376,57 +376,97 @@ If they want to wait → say: "No problem — just tell me 'set up WhatsApp' any
 
 #### If they choose iMessage:
 
-> **Important:** Tell the user: "For iMessage setup, use the **Terminal** inside VS Code (open it with Ctrl+` or from the menu: Terminal → New Terminal). This keeps everything in one place and avoids permission issues with external apps."
+Say: "Great choice! iMessage is the easiest one to set up. We just need to do 3 things: give permission, install one small tool, then restart. I will walk you through each step — just follow along."
 
-**Step 1 — Install Bun (Required)**
+**Step 1 — Give permission to read your messages**
 
-Check if Bun is already installed: `bun --version`
+Say:
+> "First, we need to let VS Code read your iMessages. This is a one-time thing. Here's what to do:
+>
+> 1. Click the **Apple logo** () in the very top-left corner of your screen
+> 2. Click **System Settings**
+> 3. In the left sidebar, click **Privacy & Security**
+> 4. Scroll down on the right side until you see **Full Disk Access** — click it
+> 5. You'll see a list of apps. Click the **+** button (bottom-left of the list)
+> 6. A file picker will open — go to **Applications**, find **Visual Studio Code**, and click **Open**
+> 7. Make sure the toggle next to Visual Studio Code is **blue (on)**
+> 8. Now **quit VS Code completely** (press **Cmd + Q**) and **reopen it**
+>
+> This is needed because your iMessages are stored in a private file on your Mac. Without this permission, it won't work."
 
-If not installed, tell the user to run:
-```sh
+Wait for the user to confirm they've done this and reopened VS Code before continuing.
+
+**Step 2 — Install Bun (a small tool iMessage needs)**
+
+Check if Bun is already installed by running: `bun --version`
+
+If it's already installed, say: "You already have Bun — we can skip this step."
+
+If not installed, say:
+> "We need to install a small tool called Bun that iMessage uses behind the scenes. Don't worry — it takes about 10 seconds.
+>
+> 1. Look at the bottom of your VS Code window — you should see a **Terminal** panel. If you don't see it, click **Terminal** in the top menu bar, then click **New Terminal**
+> 2. Click inside that terminal panel (the dark area at the bottom)
+> 3. Copy this command — highlight it and press **Cmd + C**:"
+
+Show them:
+```
 curl -fsSL https://bun.sh/install | bash
 ```
 
-Say: "Close and reopen your terminal after installing."
+Say:
+> "4. Click inside the terminal and press **Cmd + V** to paste it, then press **Enter**
+> 5. When it's done (you'll see a success message), close the terminal by clicking the **X** on the terminal panel, then open a new one: **Terminal** menu → **New Terminal**"
 
-**Step 2 — Install the iMessage Plugin**
+Wait for the user to confirm before continuing.
 
-Run this command yourself in the Claude Code chat:
+**Step 3 — Install the iMessage plugin and restart with it enabled**
+
+Say:
+> "Now we need to install the iMessage plugin and restart Claude with it turned on. Here's exactly what to do:
+>
+> 1. Type `/exit` right here in this chat to close the session
+> 2. Look at the **Terminal** panel at the bottom of VS Code (if you don't see it, click **Terminal** in the top menu → **New Terminal**)
+> 3. Click inside the terminal panel
+> 4. Copy and paste this command to **install the plugin**:"
+
+Show them:
 ```
-/plugin install imessage@claude-plugins-official
+claude plugin install imessage@claude-plugins-official
 ```
 
-No tokens or passwords needed.
+Say:
+> "5. Press **Enter** and wait for it to finish (takes a few seconds)
+> 6. Now copy and paste this second command to **start Claude with iMessage**:"
 
-Say: "That's it for installing. Now we just need to restart with iMessage turned on."
-
-**Step 3 — Restart with iMessage enabled**
-
-Say: "Close this Claude session (type /exit), then run this command:"
-
-```sh
+Show them:
+```
 claude --channels plugin:imessage@claude-plugins-official
 ```
 
-> macOS will pop up **two permission prompts** — click **Allow** or **OK** on both:
-> 1. "Terminal wants to access Messages" → click **Allow**
-> 2. "Terminal wants to control Messages" → click **OK**
+Say:
+> "7. Press **Enter** — Claude will start up again, this time with iMessage connected
 >
-> If the first prompt doesn't appear, go to: **System Settings → Privacy & Security → Full Disk Access** → add **Terminal** → toggle **on**.
+> **Important:** Your Mac might show a pop-up that says 'Terminal wants to control Messages' — click **OK**. This lets me send replies through iMessage."
 
-**Step 4 — Test it**
+> **Note:** The plugin install is a **terminal command** (`claude plugin install`), NOT a slash command inside the chat. It must be run in the VS Code terminal, not in the Claude chat window.
 
-Say: "Now open Messages on your Mac or iPhone and text yourself. That's it — your message will reach me instantly."
+**Step 4 — Test it!**
 
-No pairing codes. No bot setup. Just text yourself and it works.
+Say:
+> "That's it — you're all set! Let's test it now:
+>
+> 1. Open the **Messages** app on your Mac or pick up your **iPhone**
+> 2. Start a new message **to yourself** (type your own phone number or email)
+> 3. Send any message — try 'Hello, are you there?'
+>
+> You should see a reply from me right in iMessage! You can now text me from your iPhone, iPad, or Mac — anywhere, anytime. No extra apps needed."
 
-Say: "You can now text me from your iPhone anywhere, anytime. No extra apps needed."
+**Step 5 — Allow other people to message me (optional)**
 
-**Step 5 — Allow other contacts (Optional)**
+Ask: "Would you like anyone else to be able to text me through iMessage? For example, a business partner, assistant, or family member?"
 
-Ask: "Would you like anyone else to be able to message me through iMessage? For example, a business partner, team member, or family member? Just give me their phone number or Apple ID email."
-
-If they provide a number or email, run the command for each one:
+If yes, ask for their phone number or Apple ID email, then run the command for each:
 ```
 /imessage:access allow +61412345678
 ```
@@ -435,15 +475,11 @@ or:
 /imessage:access allow someone@icloud.com
 ```
 
-Rules for formatting:
-- Phone numbers must start with `+` and country code, no spaces or dashes (e.g. `+61412345678` for Australia, `+15551234567` for US)
-- Apple ID emails work too (e.g. `friend@icloud.com`)
+If they give a number without the country code (e.g. "0412345678"), ask: "What country is that number from?" then add the correct prefix (e.g. `+61` for Australia, `+1` for US).
 
-If they give a number without the country code, ask: "What country is that number from?" then add the correct prefix.
+After adding, say: "Done — [name/number] can now text me and I'll respond to them too."
 
-After adding each contact, say: "Done — [name/number] can now text me and I will respond to them too."
-
-If they say no or not right now, say: "No worries. You can always add someone later — just tell me their number and I will allow them."
+If they say no, say: "No worries — just tell me a name and number anytime and I'll add them."
 
 > For the full iMessage guide with troubleshooting, see `docs/IMESSAGE-SETUP.md`.
 

@@ -377,17 +377,7 @@ If the prompt doesn't appear, grant it manually:
 2. Click the **+** button and add your terminal app (Terminal, iTerm, or VS Code)
 3. Toggle it **on**
 
-**Step 2 — Install the iMessage Plugin**
-
-In the Claude Code chat, type:
-
-```
-/plugin install imessage@claude-plugins-official
-```
-
-No tokens or passwords needed.
-
-**Step 3 — Install Bun (Required)**
+**Step 2 — Install Bun (Required)**
 
 The iMessage plugin runs on Bun. Install it:
 
@@ -397,6 +387,16 @@ curl -fsSL https://bun.sh/install | bash
 ```
 
 Close and reopen your terminal after installing.
+
+**Step 3 — Install the iMessage Plugin**
+
+In the Claude Code chat, type:
+
+```
+claude plugin install imessage@claude-plugins-official
+```
+
+No tokens or passwords needed.
 
 **Step 4 — Connect and Test**
 

@@ -47,14 +47,14 @@ iMessage stores your messages in a database file on your Mac (`~/Library/Message
 
 ## Part B — Install the iMessage Plugin
 
-These are Claude Code commands — you need to have Claude Code running.
+This is a terminal command — run it in the VS Code terminal (not inside the Claude chat).
 
 **Step 1 — Install the Plugin**
 
-Type this in the Claude Code chat:
+Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run:
 
 ```
-/plugin install imessage@claude-plugins-official
+claude plugin install imessage@claude-plugins-official
 ```
 
 No tokens or passwords needed — iMessage reads your local Messages database directly.
