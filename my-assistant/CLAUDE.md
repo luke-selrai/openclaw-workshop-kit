@@ -689,18 +689,18 @@ Say:
 
 **Mac:**
 ```bash
-cd ~/whatsapp-channel && claude --dangerously-load-development-channels server:whatsapp
+cd ~/whatsapp-channel && WA_AUTO_OPEN_QR=1 claude --dangerously-load-development-channels server:whatsapp
 ```
 
 **Windows:**
 ```cmd
-cd %USERPROFILE%\whatsapp-channel && claude --dangerously-load-development-channels server:whatsapp
+cd %USERPROFILE%\whatsapp-channel && set WA_AUTO_OPEN_QR=1 && claude --dangerously-load-development-channels server:whatsapp
 ```
 
 Say:
 > "The flag in that command sounds scary but it is completely normal — it just means this channel is not in the official store yet. It is safe because it runs entirely on your computer."
 
-A webpage should automatically open showing a QR code. If not, tell them to open `http://127.0.0.1:8787` in their browser.
+A webpage should automatically open showing a QR code (thanks to `WA_AUTO_OPEN_QR=1`). If not, tell them to open `http://127.0.0.1:8787` in their browser.
 
 Guide them through scanning:
 1. Open WhatsApp on your phone
