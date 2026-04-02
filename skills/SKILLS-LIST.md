@@ -1,4 +1,4 @@
-# Skills Reference — Your 86 Installed Skills
+# Skills Reference — Your 92 Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need — Claude picks the right skill automatically.
 
@@ -31,6 +31,15 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `skill-creator` | Create and improve Claude skills | "Create a new skill for my business" | ADVANCED |
 | `skills-discovery` | Shows all 22 core skills with personalised recommendations | "What can you do for my business?" | CORE |
 | `first-run-setup` | Step-by-step guided setup for first-time users | Used automatically during initial setup | ADVANCED |
+| `claude-dispatch` | Control Claude remotely from your phone via Dispatch or Remote Control | "Set up Dispatch so I can send tasks from my phone" | CORE |
+
+## CRM & Business Tools
+
+| Skill | What It Does | Example Prompt | Tier |
+|---|---|---|---|
+| `ghl-crm` | GoHighLevel CRM API — contacts, opportunities, conversations, campaigns | "Pull all contacts tagged VIP from GHL" | ADVANCED |
+| `ghl-browser` | GoHighLevel browser automation for UI-only operations | "Log into GHL and export my pipeline report" | ADVANCED |
+| `google-chat` | Send and read Google Chat messages via gws CLI | "Send a message to the Marketing space in Google Chat" | ADVANCED |
 
 ## Content & Writing
 
@@ -71,6 +80,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `terraform-iac-expert` | Terraform and OpenTofu infrastructure as code | "Write Terraform for my AWS setup" | DEV-ONLY |
 | `using-git-worktrees` | Isolated feature work with git worktrees | "Set up a git worktree for this feature" | DEV-ONLY |
 | `vercel-deployment` | Deploy Next.js and React apps to Vercel | "Deploy my Next.js app to Vercel" | ADVANCED |
+| `server-setup` | 12-phase automated server provisioning — AWS EC2, Tailscale, Supabase, agents | "Set up a production server for my Claude agents" | DEV-ONLY |
 
 ## Engineering
 
@@ -142,10 +152,10 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 
 ---
 
-**Total: 86 skills installed**
-- CORE: 22 skills (shown by default via skills-discovery)
-- ADVANCED: 56 skills (available on request)
-- DEV-ONLY: 8 skills (for technical integrations — never surfaced in demos)
+**Total: 92 skills installed**
+- CORE: 23 skills (shown by default via skills-discovery)
+- ADVANCED: 59 skills (available on request)
+- DEV-ONLY: 10 skills (for technical integrations — never surfaced in demos)
 
 > Ask your assistant to do anything — it will automatically use the right skill for the job.
 

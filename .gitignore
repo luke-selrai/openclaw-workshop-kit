@@ -1,2 +1,8 @@
 docs/NOTION-PAGE-DRAFT.md
 .DS_Store
+
+# Toolkit secrets — never commit actual credentials
+toolkits/ghl-toolkit/secrets/ghl.env
+toolkits/google-chat-toolkit/credentials*.json
+toolkits/google-chat-toolkit/token_cache.json
+toolkits/google-chat-toolkit/client_secret.json

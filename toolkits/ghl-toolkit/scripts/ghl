@@ -1,0 +1,302 @@
+#!/bin/bash
+# GHL API Helper — used by Claude Code to manage GoHighLevel CRM
+# Usage: ghl <command> [args...]
+
+# Update this path to point to YOUR secrets file
+source "$(dirname "$0")/../secrets/ghl.env"
+
+BASE="$GHL_BASE_URL"
+LOC="$GHL_LOCATION_ID"
+TZ="${GHL_TIMEZONE:-America/New_York}"
+
+cmd="$1"; shift
+
+case "$cmd" in
+
+  # === CONTACTS ===
+  contacts|list-contacts)
+    LIMIT="${1:-20}"
+    curl -s "$BASE/contacts/?locationId=$LOC&limit=$LIMIT" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  get-contact)
+    curl -s "$BASE/contacts/$1" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  search-contacts)
+    # Search by email, phone, or name. Usage: ghl search-contacts "query"
+    QUERY=$(printf '%s' "$1" | sed 's/ /%20/g; s/@/%40/g; s/+/%2B/g')
+    curl -s "$BASE/contacts/?locationId=$LOC&query=$QUERY&limit=${2:-20}" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  create-contact)
+    # Usage: ghl create-contact '{"firstName":"John","lastName":"Doe","email":"j@d.com"}'
+    curl -s -X POST "$BASE/contacts/" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+      -d "{\"locationId\":\"$LOC\",$(echo "$1" | sed 's/^{//' )}"
+    ;;
+
+  update-contact)
+    # Usage: ghl update-contact <contactId> '{"firstName":"Jane"}'
+    curl -s -X PUT "$BASE/contacts/$1" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+      -d "$2"
+    ;;
+
+  delete-contact)
+    curl -s -X DELETE "$BASE/contacts/$1" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  add-tags)
+    # Usage: ghl add-tags <contactId> '{"tags":["tag1","tag2"]}'
+    curl -s -X POST "$BASE/contacts/$1/tags" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+      -d "$2"
+    ;;
+
+  remove-tags)
+    curl -s -X DELETE "$BASE/contacts/$1/tags" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+      -d "$2"
+    ;;
+
+  add-note)
+    # Usage: ghl add-note <contactId> '{"body":"Note text here"}'
+    curl -s -X POST "$BASE/contacts/$1/notes" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+      -d "$2"
+    ;;
+
+  get-notes)
+    curl -s "$BASE/contacts/$1/notes" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  # === OPPORTUNITIES ===
+  opportunities|list-opps)
+    STAGE="${1:-}"
+    if [ -n "$STAGE" ]; then
+      curl -s "$BASE/opportunities/search?location_id=$LOC&pipeline_id=$GHL_PIPELINE_ID&pipeline_stage_id=$STAGE&limit=${2:-20}" \
+        -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    else
+      curl -s "$BASE/opportunities/search?location_id=$LOC&pipeline_id=$GHL_PIPELINE_ID&limit=${2:-20}" \
+        -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    fi
+    ;;
+
+  get-opp)
+    curl -s "$BASE/opportunities/$1" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  create-opp)
+    # Usage: ghl create-opp '{"name":"Opp Name","contactId":"xxx","pipelineStageId":"xxx"}'
+    curl -s -X POST "$BASE/opportunities/" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+      -d "{\"pipelineId\":\"$GHL_PIPELINE_ID\",\"locationId\":\"$LOC\",$(echo "$1" | sed 's/^{//' )}"
+    ;;
+
+  update-opp)
+    # Usage: ghl update-opp <oppId> '{"name":"New Name","monetaryValue":5000}'
+    curl -s -X PUT "$BASE/opportunities/$1" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+      -d "{\"pipelineId\":\"$GHL_PIPELINE_ID\",$(echo "$2" | sed 's/^{//' )}"
+    ;;
+
+  move-opp)
+    # Usage: ghl move-opp <oppId> <stageId>
+    curl -s -X PUT "$BASE/opportunities/$1/status" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+      -d "{\"pipelineStageId\":\"$2\"}"
+    ;;
+
+  delete-opp)
+    curl -s -X DELETE "$BASE/opportunities/$1" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  # === PIPELINES ===
+  pipelines)
+    curl -s "$BASE/opportunities/pipelines?locationId=$LOC" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  # === CONVERSATIONS & MESSAGES ===
+  conversations)
+    curl -s "$BASE/conversations/search?locationId=$LOC&limit=${1:-20}" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  get-conversation)
+    curl -s "$BASE/conversations/$1" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  get-messages)
+    curl -s "$BASE/conversations/$1/messages?limit=${2:-20}" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  send-sms)
+    # Usage: ghl send-sms <contactId> "Message text"
+    curl -s -X POST "$BASE/conversations/messages" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+      -d "{\"type\":\"SMS\",\"contactId\":\"$1\",\"message\":\"$2\"}"
+    ;;
+
+  send-email)
+    # Usage: ghl send-email <contactId> "Subject" "HTML body"
+    curl -s -X POST "$BASE/conversations/messages" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+      -d "{\"type\":\"Email\",\"contactId\":\"$1\",\"subject\":\"$2\",\"html\":\"$3\",\"emailFrom\":\"$GHL_LOGIN_EMAIL\"}"
+    ;;
+
+  # === CALENDARS ===
+  calendars)
+    curl -s "$BASE/calendars/?locationId=$LOC" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  get-calendar)
+    curl -s "$BASE/calendars/$1" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  calendar-slots)
+    # Usage: ghl calendar-slots <calendarId> <startDate> <endDate>  (dates: YYYY-MM-DD)
+    curl -s "$BASE/calendars/$1/free-slots?startDate=${2}T00:00:00Z&endDate=${3}T23:59:59Z&timezone=$TZ" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  calendar-appointments)
+    # Usage: ghl calendar-appointments <calendarId> <startDate> <endDate>
+    curl -s "$BASE/calendars/events?locationId=$LOC&calendarId=$1&startTime=${2}T00:00:00Z&endTime=${3}T23:59:59Z" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  create-appointment)
+    # Usage: ghl create-appointment '{"calendarId":"xxx","contactId":"xxx","startTime":"2026-03-15T10:00:00+10:00","endTime":"2026-03-15T10:30:00+10:00","title":"Discovery Call"}'
+    curl -s -X POST "$BASE/calendars/events/appointments" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+      -d "$1"
+    ;;
+
+  # === USERS ===
+  users)
+    curl -s "$BASE/users/?locationId=$LOC" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  # === WORKFLOWS ===
+  workflows)
+    curl -s "$BASE/workflows/?locationId=$LOC" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  # === TAGS ===
+  tags)
+    curl -s "$BASE/locations/$LOC/tags" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  # === CUSTOM FIELDS ===
+  custom-fields)
+    curl -s "$BASE/locations/$LOC/customFields" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  # === FORMS ===
+  forms)
+    curl -s "$BASE/forms/?locationId=$LOC&limit=${1:-50}" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  form-submissions)
+    curl -s "$BASE/forms/submissions?locationId=$LOC&formId=$1&limit=${2:-20}" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  # === SURVEYS ===
+  surveys)
+    curl -s "$BASE/surveys/?locationId=$LOC&limit=${1:-50}" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  # === PAYMENTS ===
+  orders)
+    curl -s "$BASE/payments/orders?altId=$LOC&altType=location&limit=${1:-20}" \
+      -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    ;;
+
+  # === RAW API CALL ===
+  raw)
+    # Usage: ghl raw GET "/contacts/?locationId=<YOUR_LOCATION_ID>&limit=5"
+    # Usage: ghl raw POST "/contacts/" '{"firstName":"Test"}'
+    METHOD="$1"; ENDPOINT="$2"; BODY="$3"
+    if [ -n "$BODY" ]; then
+      curl -s -X "$METHOD" "$BASE$ENDPOINT" \
+        -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION" -H "Content-Type: application/json" \
+        -d "$BODY"
+    else
+      curl -s -X "$METHOD" "$BASE$ENDPOINT" \
+        -H "Authorization: Bearer $GHL_API_KEY" -H "Version: $GHL_API_VERSION"
+    fi
+    ;;
+
+  *)
+    echo "GHL CRM CLI — Commands:"
+    echo ""
+    echo "  CONTACTS:"
+    echo "    contacts [limit]              List contacts"
+    echo "    get-contact <id>              Get contact details"
+    echo "    search-contacts <query>       Search by name/email/phone"
+    echo "    create-contact '{json}'       Create new contact"
+    echo "    update-contact <id> '{json}'  Update contact"
+    echo "    delete-contact <id>           Delete contact"
+    echo "    add-tags <id> '{json}'        Add tags to contact"
+    echo "    remove-tags <id> '{json}'     Remove tags"
+    echo "    add-note <id> '{json}'        Add note to contact"
+    echo "    get-notes <id>               Get contact notes"
+    echo ""
+    echo "  OPPORTUNITIES:"
+    echo "    opportunities [stageId] [limit]  List opportunities"
+    echo "    get-opp <id>                     Get opportunity"
+    echo "    create-opp '{json}'              Create opportunity"
+    echo "    update-opp <id> '{json}'         Update opportunity"
+    echo "    move-opp <id> <stageId>          Move to pipeline stage"
+    echo "    delete-opp <id>                  Delete opportunity"
+    echo "    pipelines                        List all pipelines & stages"
+    echo ""
+    echo "  CONVERSATIONS:"
+    echo "    conversations [limit]            List conversations"
+    echo "    get-conversation <id>            Get conversation"
+    echo "    get-messages <convId> [limit]    Get messages"
+    echo "    send-sms <contactId> 'msg'       Send SMS"
+    echo "    send-email <contactId> 'subj' 'html'  Send email"
+    echo ""
+    echo "  CALENDARS:"
+    echo "    calendars                        List calendars"
+    echo "    get-calendar <id>                Get calendar"
+    echo "    calendar-slots <id> <start> <end>  Free slots"
+    echo "    calendar-appointments <id> <start> <end>  Appointments"
+    echo "    create-appointment '{json}'       Book appointment"
+    echo ""
+    echo "  OTHER:"
+    echo "    users                             List users"
+    echo "    workflows                         List workflows"
+    echo "    tags                              List tags"
+    echo "    custom-fields                     List custom fields"
+    echo "    forms [limit]                     List forms"
+    echo "    form-submissions <formId> [limit] Form submissions"
+    echo "    surveys [limit]                   List surveys"
+    echo "    orders [limit]                    List payment orders"
+    echo "    raw <METHOD> <endpoint> [body]    Raw API call"
+    echo ""
+    echo "  PIPELINE STAGES:"
+    echo "    Run 'ghl pipelines' to see your pipeline stage IDs"
+    ;;
+esac

@@ -1,0 +1,5 @@
+# Never commit actual secrets
+secrets/ghl.env
+
+# OS files
+.DS_Store

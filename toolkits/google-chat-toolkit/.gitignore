@@ -1,0 +1,7 @@
+# Never commit actual credentials
+credentials*.json
+token_cache.json
+client_secret.json
+
+# OS files
+.DS_Store
