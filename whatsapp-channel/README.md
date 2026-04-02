@@ -86,13 +86,17 @@ Claude reads it, acts on it, and replies back through WhatsApp.
 
 ### Sender Allowlist
 
-**Important for security**: without an allowlist, anyone who messages your linked WhatsApp number can interact with your Claude session.
+By default, **only your linked phone number** can message Claude (self-only mode). Your phone is auto-detected and added to the allowlist automatically — no configuration needed.
+
+To allow additional phone numbers (e.g. a second phone or a colleague):
 
 ```json
 "env": {
-  "WA_ALLOW_FROM": "+1234567890,+0987654321"
+  "WA_ALLOW_FROM": "+0987654321,+1122334455"
 }
 ```
+
+Your own number is always allowed, even if not listed in `WA_ALLOW_FROM`.
 
 ## Permission Relay
 

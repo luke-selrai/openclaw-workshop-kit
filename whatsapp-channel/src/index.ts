@@ -238,10 +238,10 @@ async function main() {
   console.error("[whatsapp-channel] MCP server connected to Claude Code.");
   console.error(`[whatsapp-channel] Auth dir: ${resolveAuthDir(AUTH_DIR)}`);
   if (ALLOW_FROM.length > 0) {
-    console.error(`[whatsapp-channel] Allowlist: ${ALLOW_FROM.join(", ")}`);
+    console.error(`[whatsapp-channel] Extra allowlist: ${ALLOW_FROM.join(", ")}`);
   } else {
-    console.error("[whatsapp-channel] No allowlist set — accepting messages from anyone.");
-    console.error("[whatsapp-channel] Set WA_ALLOW_FROM=+1234567890,+0987654321 to restrict.");
+    console.error("[whatsapp-channel] Only your linked phone can message Claude (self-only mode).");
+    console.error("[whatsapp-channel] Set WA_ALLOW_FROM=+1234567890 to allow additional numbers.");
   }
 
   // Check for existing credentials
