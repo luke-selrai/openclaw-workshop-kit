@@ -185,7 +185,7 @@ if ! gcloud compute instances create "$VM_NAME" \
     --project="$PROJECT" \
     --zone="$ZONE" \
     --machine-type=e2-standard-2 \
-    --image-family=ubuntu-2404-lts \
+    --image-family=ubuntu-2404-lts-amd64 \
     --image-project=ubuntu-os-cloud \
     --boot-disk-size=50GB \
     --boot-disk-type=pd-standard \
@@ -286,7 +286,7 @@ mkdir -p ~/.claude/skills
 cp -r ~/workshop-kit/skills/*/ ~/.claude/skills/ 2>/dev/null || true
 
 echo "  [4c] Marking workspace as trusted..."
-python3 - << 'PYEOF'
+python3 -c "
 import json, os
 path = os.path.expanduser('~/.claude.json')
 with open(path) as f:
@@ -307,7 +307,7 @@ d['projects'][home + '/my-assistant'] = {
 with open(path, 'w') as f:
     json.dump(d, f, indent=2)
 print('  Workspace trusted.')
-PYEOF
+"
 WORKSPACE
 
 echo ""
