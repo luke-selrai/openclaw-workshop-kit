@@ -190,12 +190,10 @@ export async function monitorWhatsApp(options: MonitorOptions) {
   const sock = await connectWithRetry(options);
   const connectedAtMs = Date.now();
 
-  // Send available presence
-  try {
-    await sock.sendPresenceUpdate("available");
-  } catch (err) {
+  // Send available presence (fire-and-forget — don't block startup)
+  sock.sendPresenceUpdate("available").catch((err) => {
     if (options.verbose) console.error("[whatsapp] Failed to send presence:", String(err));
-  }
+  });
 
   const selfJid = sock.user?.id;
   const selfPhone = jidToPhone(selfJid);
