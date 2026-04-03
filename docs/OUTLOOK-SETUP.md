@@ -68,15 +68,19 @@ You should see a version number. If you see "command not found":
 
 ---
 
-## Step 2 — Set Up Your Microsoft Connection (One-Time)
+## Step 2 — Register Your Microsoft App (One-Time)
 
 This step creates a secure private link between the tool and your Microsoft account. It only needs to be done once.
 
 ```
-m365 setup --interactive
+m365 setup
 ```
 
-A browser window will open and walk you through a short setup. Follow the steps it shows — it handles everything automatically.
+> **Important:** Do NOT use `m365 setup --interactive` — that only configures CLI settings and skips app registration.
+
+A browser window will open. Sign in with your Microsoft account and click **Accept** when asked. This registers a custom Entra app in your tenant with the permissions the CLI needs.
+
+When it finishes you should see a `clientId` and `tenantId` in the output — that means it worked.
 
 > If you see any errors during setup, contact your workshop facilitator.
 
@@ -102,7 +106,47 @@ A browser window will open:
 
 ---
 
-## Step 4 — Test It
+## Step 4 — Add Calendar Write Permission
+
+The default app has read-only calendar access. To create and update events, run these commands:
+
+```bash
+# 1. Get your app's service principal ID
+m365 entra enterpriseapp list --output json --query "[?appId=='<YOUR_APP_ID>'].{id:id}"
+```
+
+Replace `<YOUR_APP_ID>` with the `clientId` from Step 2. Copy the `id` value, then:
+
+```bash
+# 2. Add Calendars.ReadWrite to the app registration
+m365 entra app permission add \
+  --appId <YOUR_APP_ID> \
+  --delegatedPermissions "https://graph.microsoft.com/Calendars.ReadWrite" \
+  --grantAdminConsent
+
+# 3. List the current Graph API grant to get the grantId
+m365 entra oauth2grant list --spObjectId <SERVICE_PRINCIPAL_ID> --output json
+```
+
+Find the grant where `resourceId` matches your Microsoft Graph service principal. Copy the `id` value, then update the scope — replace `Calendars.Read` with `Calendars.ReadWrite`:
+
+```bash
+# 4. Update the OAuth2 grant scope
+m365 entra oauth2grant set --grantId "<GRANT_ID>" --scope "<FULL_SCOPE_STRING_WITH_Calendars.ReadWrite>"
+```
+
+Finally, re-login to pick up the new permission:
+
+```bash
+m365 logout
+m365 login --authType browser
+```
+
+> **Tip:** Your assistant can do all of this for you. Just say: "Upgrade my Outlook calendar permission to read-write."
+
+---
+
+## Step 5 — Test It
 
 Once signed in, test it by asking your assistant:
 
@@ -116,8 +160,10 @@ Or test directly in the command window:
 m365 outlook mail list
 ```
 
-```
-m365 outlook calendar event list
+Calendar events use the Graph API (no built-in calendar command in the CLI):
+
+```bash
+m365 request --url "https://graph.microsoft.com/v1.0/me/events?\$top=5" --method get
 ```
 
 ---
@@ -162,7 +208,7 @@ m365 outlook calendar event list
 
 | Problem | Fix |
 |---|---|
-| `m365 setup` fails or browser never opens | Run `m365 setup --interactive` manually in a new terminal window |
+| `m365 setup` fails or browser never opens | Run `m365 setup` (without `--interactive`) in a new terminal window |
 | `m365 setup` shows "admin consent required" | Ask your IT department or workshop facilitator to approve the PnP Management Shell app at: `https://entra.microsoft.com` → Enterprise Applications → Grant admin consent |
 | `m365 setup` hangs with no response | Press Ctrl+C, close the terminal, open a new one, and retry |
 | Browser does not open during sign-in | Run `m365 login` (without `--authType browser`) — use the device code shown at `https://aka.ms/devicelogin` |

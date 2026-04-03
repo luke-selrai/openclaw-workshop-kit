@@ -184,15 +184,15 @@ echo.
 :: ------------------------------------------------
 :: STEP 3  -- Set up app connection  (one-time)
 :: ------------------------------------------------
-echo [3/5] Setting up your Microsoft connection...
+echo [3/5] Registering your Microsoft app...
 echo   A browser window will open. Sign in with your Microsoft account
 echo   and click "Accept" when asked to approve the connection.
-echo   ^(This links the Selr AI workshop app to your account -- one time only.^)
+echo   ^(This registers a custom Entra app in your tenant -- one time only.^)
 echo.
 echo   If no browser opens, the window will show a URL -- paste it into any browser.
 echo.
 
-m365 setup --interactive
+m365 setup
 if %errorlevel% neq 0 (
     echo.
     echo   Setup did not complete. Possible causes:
@@ -200,11 +200,11 @@ if %errorlevel% neq 0 (
     echo   - Your organisation requires admin approval for new apps
     echo.
     echo   If you see "admin consent required":
-    echo     Ask your IT admin to approve the PnP Management Shell app at:
+    echo     Ask your IT admin to approve the app at:
     echo     https://entra.microsoft.com ^> Enterprise Applications ^> Grant admin consent
     echo.
     echo   To retry just this step, open a new Command Prompt and run:
-    echo     m365 setup --interactive
+    echo     m365 setup
     echo.
     pause
     exit /b 1

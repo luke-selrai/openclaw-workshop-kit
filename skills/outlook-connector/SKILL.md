@@ -1,7 +1,7 @@
 ---
 name: outlook-connector
 description: Install and operate the Microsoft Outlook & 365 connector. Use this skill when the user asks to set up Outlook, connect Microsoft 365, or interact with emails, calendar, OneDrive, Teams, SharePoint, OneNote, Excel, Contacts, or To Do. Handles full installation and uses Playwright for any browser-based steps.
-allowed-tools: Bash,Read,Write,Edit,mcp__Claude_in_Chrome__navigate,mcp__Claude_in_Chrome__computer,mcp__Claude_in_Chrome__get_page_text,mcp__Claude_in_Chrome__find,mcp__Claude_in_Chrome__javascript_tool
+allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__browser_navigate,mcp__plugin_playwright_playwright__browser_snapshot,mcp__plugin_playwright_playwright__browser_click,mcp__plugin_playwright_playwright__browser_type,mcp__plugin_playwright_playwright__browser_take_screenshot
 metadata:
   category: Productivity & Integrations
   tags:
@@ -68,20 +68,52 @@ for /f "tokens=*" %i in ('npm prefix -g') do set PATH=%i\bin;%PATH%
 
 ### Step 4: Run m365 setup (one-time, enterprise accounts)
 
-This registers the PnP Management Shell app with the user's Microsoft tenant. Required because the default PnP app was permanently deleted September 9, 2024.
+This registers a custom Entra app with the user's Microsoft tenant. Required because the default PnP app was permanently deleted September 9, 2024.
 
 ```bash
-m365 setup --interactive
+m365 setup
 ```
 
-**This opens a browser.** Use Playwright to handle it:
-1. Run the command — it will output a URL
-2. Navigate Playwright to that URL
-3. The user signs in and clicks Accept/Allow
-4. Wait for the success message before proceeding
+> **Do NOT use `m365 setup --interactive`** — that only configures CLI settings and skips app registration.
+
+**This opens a browser.** The user signs in and clicks Accept/Allow. Wait for the success message (shows `clientId` and `tenantId`) before proceeding.
 
 If you see `admin consent required` — the user's IT admin needs to approve the app at:
-`https://entra.microsoft.com` → Enterprise Applications → PnP Management Shell → Grant admin consent
+`https://entra.microsoft.com` → Enterprise Applications → Grant admin consent
+
+### Step 4b: Upgrade calendar permission
+
+The default app registers `Calendars.Read` (read-only). To create/update events, upgrade to `Calendars.ReadWrite`:
+
+```bash
+# Get the app's clientId from m365 status
+APP_ID=$(m365 status --output json | python3 -c "import json,sys; print(json.load(sys.stdin)['appId'])")
+
+# Add the permission to the app registration
+m365 entra app permission add --appId "$APP_ID" \
+  --delegatedPermissions "https://graph.microsoft.com/Calendars.ReadWrite" \
+  --grantAdminConsent
+
+# Get the service principal object ID
+SP_ID=$(m365 entra enterpriseapp list --output json \
+  --query "[?appId=='$APP_ID'].id" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['id'])")
+
+# Find the Graph API grant and update the scope (replace Calendars.Read with Calendars.ReadWrite)
+m365 entra oauth2grant list --spObjectId "$SP_ID" --output json | python3 -c "
+import json, sys
+grants = json.load(sys.stdin)
+for g in grants:
+    if '00000003-0000-0000-c000-000000000000' in json.dumps(g) or 'Calendars' in g.get('scope',''):
+        scope = g['scope'].replace('Calendars.Read ', 'Calendars.ReadWrite ')
+        print(f'GRANT_ID={g[\"id\"]}')
+        print(f'SCOPE={scope}')
+"
+# Then run:
+m365 entra oauth2grant set --grantId "<GRANT_ID>" --scope "<SCOPE>"
+
+# Re-login to pick up the new permission
+m365 logout && m365 login --authType browser
+```
 
 ### Step 5: Sign in
 
@@ -155,29 +187,49 @@ m365 outlook mail move --id "<messageId>" --destinationFolderName "Archive"
 
 ---
 
-## Part 3 — Calendar
+## Part 3 — Calendar (via Graph API)
+
+> **Note:** The m365 CLI v11.x has no built-in calendar event commands. Use `m365 request` with the Microsoft Graph API.
 
 ### List upcoming events
 ```bash
-m365 outlook calendar event list \
-  --startDateTime "2026-04-07T00:00:00Z" \
-  --endDateTime "2026-04-14T23:59:59Z"
+m365 request \
+  --url "https://graph.microsoft.com/v1.0/me/events?\$top=10&\$orderby=start/dateTime" \
+  --method get
+```
+
+### List events in a date range
+```bash
+m365 request \
+  --url "https://graph.microsoft.com/v1.0/me/calendarView?\$top=20&startDateTime=2026-04-07T00:00:00Z&endDateTime=2026-04-14T23:59:59Z" \
+  --method get
 ```
 
 ### Create a meeting
 ```bash
-m365 outlook calendar event add \
-  --subject "Meeting title" \
-  --startDateTime "2026-04-08T10:00:00" \
-  --endDateTime "2026-04-08T10:30:00" \
-  --attendees "person@example.com"
+m365 request \
+  --url "https://graph.microsoft.com/v1.0/me/events" \
+  --method post \
+  --content-type "application/json" \
+  --body '{"subject":"Meeting title","start":{"dateTime":"2026-04-08T10:00:00","timeZone":"Asia/Singapore"},"end":{"dateTime":"2026-04-08T10:30:00","timeZone":"Asia/Singapore"},"attendees":[{"emailAddress":{"address":"person@example.com"},"type":"required"}]}'
 ```
-> Always confirm date, time, and attendees with the user before creating.
+> Always confirm date, time, timezone, and attendees with the user before creating.
+> Requires `Calendars.ReadWrite` permission (see Step 4b in Part 1).
 
-### Update or delete a meeting
+### Update a meeting
 ```bash
-m365 outlook calendar event set --id "<eventId>" --subject "New title"
-m365 outlook calendar event remove --id "<eventId>"
+m365 request \
+  --url "https://graph.microsoft.com/v1.0/me/events/<eventId>" \
+  --method patch \
+  --content-type "application/json" \
+  --body '{"subject":"New title"}'
+```
+
+### Delete a meeting
+```bash
+m365 request \
+  --url "https://graph.microsoft.com/v1.0/me/events/<eventId>" \
+  --method delete
 ```
 
 ---
