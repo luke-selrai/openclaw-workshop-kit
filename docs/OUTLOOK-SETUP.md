@@ -223,6 +223,44 @@ If your Outlook is managed by your employer, some features (Teams, SharePoint) m
 
 ---
 
+## Server / Headless VM Setup
+
+If you are running your assistant on a GCP server (or any headless VM without a browser), follow these steps instead:
+
+### One-time prerequisite — run on your laptop (not the server)
+
+The app registration (`m365 setup`) requires a browser and only needs to be done **once per Microsoft tenant**:
+
+```bash
+# On your LAPTOP (not the server)
+m365 setup
+```
+
+Sign in, click Accept. Once you see `clientId` and `tenantId` in the output, the app is registered in your tenant.
+
+### On the server — sign in via device code
+
+```bash
+# On the SERVER (via SSH)
+npm install -g @pnp/cli-microsoft365
+m365 login
+```
+
+This shows a short code and a URL (`https://aka.ms/devicelogin`). Open that URL on your phone or laptop browser, enter the code, and sign in. The server receives the token automatically.
+
+Verify:
+
+```bash
+m365 status
+m365 outlook mail list --pageSize 3
+```
+
+### Token refresh
+
+Tokens refresh automatically. Some corporate tenants expire them in 1–24 hours — if that happens, run `m365 login` again (device code).
+
+---
+
 ## Playwright Fallback
 
 If any Outlook feature is unavailable through the CLI, your assistant can use its built-in browser automation (Playwright) to access Outlook Web directly. Just ask normally — for example, "Open my Outlook and check the email from last week" — and the assistant will use the browser if the CLI cannot handle it.
