@@ -414,7 +414,7 @@ Say:
 
 Show them:
 ```
-claude --channels plugin:telegram@claude-plugins-official
+pkill -f "bun.*telegram" 2>/dev/null; ~/claude-keepalive.sh --channels plugin:telegram@claude-plugins-official
 ```
 
 Say:
