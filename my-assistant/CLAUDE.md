@@ -393,15 +393,12 @@ Say: "Close the terminal and open a new one after installing: **Terminal** menu 
 
 Wait for the user to confirm before continuing.
 
-**Step 4 — Install the Telegram plugin and restart with it enabled**
+**Step 4 — Install the plugin and start Telegram**
 
 Say:
-> "Now we need to install the Telegram plugin and restart Claude with it turned on. Here's exactly what to do:
+> "Almost there! Now we need to install the Telegram plugin and restart Claude with it turned on. Here's what to do:
 >
-> 1. Type `/exit` right here in this chat to close the session
-> 2. Look at the **Terminal** panel at the bottom of VS Code (if you don't see it, click **Terminal** in the top menu → **New Terminal**)
-> 3. Click inside the terminal panel
-> 4. Copy and paste this command to **install the plugin**:"
+> Open a **new terminal** (click **Terminal** in the top menu → **New Terminal**), then paste this command and press **Enter**:"
 
 Show them:
 ```
@@ -409,8 +406,7 @@ claude plugin install telegram@claude-plugins-official
 ```
 
 Say:
-> "5. Press **Enter** and wait for it to finish
-> 6. Now copy and paste this second command to **start Claude with Telegram**:"
+> "Wait for it to finish — you'll see a success message. Then paste this next command and press **Enter**:"
 
 Show them:
 ```
@@ -418,33 +414,37 @@ pkill -f "bun.*telegram" 2>/dev/null; ~/claude-keepalive.sh --channels plugin:te
 ```
 
 Say:
-> "7. Press **Enter** — Claude will start up again, this time with Telegram connected"
+> "This does everything in one go — cleans up old processes and starts Claude with Telegram connected.
+>
+> Press **Enter** and wait — a new Claude chat will open. **Switch to that new chat** — that's where we'll finish the setup.
+>
+> Before you switch, here are the 3 commands you'll need to paste there. Copy them now:"
 
-> **Note:** The plugin install is a **terminal command** (`claude plugin install`), NOT a slash command inside the chat. It must be run in the VS Code terminal, not in the Claude chat window.
+Show them clearly:
 
-**Step 5 — Pair and save the bot token**
-
-Once Claude restarts with Telegram enabled, save the bot token (replace with the token they gave you):
+> **Command 1** — Save your bot token (paste this in the new chat):
 ```
-/telegram:configure [their token]
+/telegram:configure [their token from Step 2]
 ```
 
-Then guide them:
-> 1. Open Telegram on your phone
-> 2. Find your bot and tap **Start**
-> 3. Send any message — the bot will reply with a **6-character code**
-> 4. Tell me the code and I'll pair you
+> **Command 2** — After pairing (I'll explain below):
+```
+/telegram:access pair CODE
+```
 
-Run: `/telegram:access pair <code>`
-
-**Step 6 — Lock Down Access**
-
-Once paired, lock it down:
+> **Command 3** — Lock it down:
 ```
 /telegram:access policy allowlist
 ```
 
-Say: "Your Telegram is connected. You can now message me from your phone anytime."
+Say:
+> "Got them? Now switch to the new chat and paste **Command 1** first.
+>
+> Then open Telegram on your phone, find your bot, tap **Start**, and send any message. The bot will reply with a **6-character code**. Paste **Command 2** in the new chat, replacing CODE with your code.
+>
+> Finally paste **Command 3** to lock it down.
+>
+> That's it — you're connected! Try sending me a message from your phone."
 
 ---
 
