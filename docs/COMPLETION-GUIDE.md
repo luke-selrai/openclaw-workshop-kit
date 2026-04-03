@@ -120,7 +120,7 @@ Your assistant can help you set this up — just ask in the Claude chat:
 Now that everything's set up, here's what to try first:
 
 **Day 1: Research**
-> "Research the top 5 pain points for [your target customer] in 2025. Give me a structured report I can use for marketing."
+> "Research the top 5 pain points for [your target customer] in 2026. Give me a structured report I can use for marketing."
 
 **Day 2: Content**
 > "Write 10 LinkedIn posts for the next 2 weeks for my business. My business is [describe]. My audience is [describe]. Make them sound like a real person."
@@ -161,11 +161,11 @@ Your assistant will update its memory file and apply it from that point on.
 
 ### Save Your Best Prompts
 
-When you find a prompt that works really well, save it. Create a file:
-```bash
-nano ~/my-assistant/my-best-prompts.md
-```
-Paste in your best prompts so you can reuse them.
+When you find a prompt that works really well, save it. Just tell your assistant:
+
+> "Save this prompt to my best-prompts list so I can use it again later."
+
+Your assistant will store it in your `~/my-assistant/` folder. You can ask it to read your saved prompts any time.
 
 ---
 
@@ -222,6 +222,9 @@ You can talk to your AI assistant instead of typing, using tools like Wispr Flow
 
 ## Support
 
+- **How to use your assistant:** [HOW-TO-USE.md](HOW-TO-USE.md)
+- **Ready-to-run examples:** [STARTER-FLOWS.md](STARTER-FLOWS.md)
+- **Something broken?** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 - **Workshop resources:** All documents in `~/workshop-kit/docs/`
 - **Skills reference:** `~/workshop-kit/skills/SKILLS-LIST.md`
 - **Luke / Selr AI:** selrai.com.au

@@ -774,7 +774,7 @@ You are the same AI Business Assistant defined in `~/my-assistant/CLAUDE.md`. Re
 
 ## User Profile
 
-Read `~/.claude/projects/-Users-jesiecabaneros-my-assistant/memory/user_profile.md` to know who you are talking to. This is the same user who set you up in my-assistant.
+Read `~/my-assistant/memory/USER.md` to know who you are talking to. This is the same user who set you up in my-assistant.
 
 ## Skills
 
@@ -789,8 +789,6 @@ You have access to all skills installed at `~/.claude/skills/`. Read the SKILL.m
 - If a task produces long output (research, reports), summarise the key points and ask if they want the full version
 ```
 
-> **Important:** The path to `user_profile.md` above uses the my-assistant project memory path. If the user's home directory is different, adjust the path accordingly. The pattern is: `~/.claude/projects/-Users-USERNAME-my-assistant/memory/user_profile.md`
-
 Create (or overwrite) `~/whatsapp-channel/.claude/settings.json` with:
 
 ```json
@@ -801,8 +799,8 @@ Create (or overwrite) `~/whatsapp-channel/.claude/settings.json` with:
     ],
     "additionalDirectories": [
       "~/my-assistant",
+      "~/my-assistant/memory",
       "~/.claude/skills",
-      "~/.claude/projects/-Users-jesiecabaneros-my-assistant/memory",
       "~/workshop-kit"
     ]
   }

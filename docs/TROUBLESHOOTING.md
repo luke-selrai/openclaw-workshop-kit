@@ -1,0 +1,221 @@
+# Troubleshooting — Common Problems and Fixes
+
+Something not working? Find your issue below. Each fix is written in plain English — no technical knowledge needed.
+
+---
+
+## Setup Problems
+
+### "I can't find Claude Code in VS Code"
+
+1. Open VS Code
+2. Click the **Extensions** icon on the left sidebar (it looks like four squares)
+3. Search **"Claude Code"**
+4. Click **Install**
+5. Restart VS Code once it finishes
+
+If it still doesn't appear, close VS Code completely and reopen it.
+
+---
+
+### "The bootstrap prompt didn't work"
+
+The bootstrap prompt copies the workshop kit to your computer. If something went wrong:
+
+1. Open VS Code and start Claude Code in the terminal
+2. Type exactly: `What happened when I ran the setup? Can you check what's installed and what's missing?`
+3. Your assistant will diagnose what's missing and offer to fix it
+
+If you see a red error message, copy it and tell your assistant: *"Here is the error I got: [paste error]. Please help me fix this step by step."*
+
+---
+
+### "My skills folder is empty or missing"
+
+Your skills live at `~/.claude/skills/`. To check if they're there, ask your assistant:
+
+> "Can you check if my skills are installed? Look in the skills folder and tell me what you find."
+
+If the skills are missing, tell your assistant:
+
+> "My skills didn't install. Help me reinstall them from the workshop kit."
+
+---
+
+### "Claude says it can't find my CLAUDE.md"
+
+This means Claude Code is not looking in the right folder. Fix it by:
+
+1. In VS Code, go to **File → Open Folder**
+2. Navigate to your home folder, then open `my-assistant`
+3. Once that folder is open, start Claude Code in the terminal
+4. Claude will automatically pick up the CLAUDE.md file
+
+---
+
+### "I don't know how to open the terminal in VS Code"
+
+- **Mac:** Press `` Ctrl + ` `` (the backtick key, top-left of keyboard)
+- **Windows:** Press `` Ctrl + ` `` or go to **View → Terminal**
+
+The terminal is the black/dark panel that opens at the bottom of VS Code.
+
+---
+
+## Memory and Onboarding
+
+### "Claude isn't remembering me between sessions"
+
+Your memory file is at `~/my-assistant/memory/USER.md`. If Claude isn't remembering you:
+
+1. Ask your assistant: *"Can you check my memory file and tell me if anything's saved there?"*
+2. If it's empty or missing, say: *"Please run the onboarding questions again so you can learn about my business."*
+
+---
+
+### "I already did onboarding but Claude is asking me again"
+
+This is normal if you start Claude Code from a different folder. Always open the `~/my-assistant/` folder in VS Code before starting Claude. That's where your memory and instructions live.
+
+---
+
+### "Claude seems to have forgotten what I told it"
+
+Ask your assistant to check its own memory:
+
+> "Read my user profile and tell me what you know about me and my business."
+
+If something is missing, just tell it again — it will update its memory file right away.
+
+---
+
+## Google Workspace (Gmail, Calendar, Drive)
+
+### "Google Workspace isn't connecting"
+
+Try these steps:
+
+1. Ask your assistant: *"Google Workspace isn't working. Walk me through reconnecting it."*
+2. If the issue is the wrong Google account being used, see [docs/known-issues/GMAIL-ACCOUNT-SWITCH.md](known-issues/GMAIL-ACCOUNT-SWITCH.md)
+
+The most common issue is being logged into multiple Google accounts. The fix is to log out of Google Workspace and log back in, being careful to pick the right account.
+
+---
+
+### "I got logged into the wrong Google account"
+
+See the dedicated fix guide: [docs/known-issues/GMAIL-ACCOUNT-SWITCH.md](known-issues/GMAIL-ACCOUNT-SWITCH.md)
+
+Short fix:
+1. In the terminal, type: `gws auth logout`
+2. Then type: `gws auth login`
+3. When the browser opens, make sure you click on the correct Google account
+
+---
+
+## Microsoft 365 / Outlook
+
+### "Outlook isn't connecting"
+
+Microsoft 365 only works with **work or school accounts** — it does not work with personal `@outlook.com` or `@hotmail.com` accounts.
+
+If you have a work Microsoft 365 account:
+1. Ask your assistant: *"Walk me through connecting my Microsoft 365 account step by step."*
+2. Or see the full guide: [docs/OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
+
+---
+
+## Phone Messaging (Telegram / WhatsApp / iMessage)
+
+### "Telegram isn't responding to my messages"
+
+1. Make sure you started Claude Code with the Telegram channel enabled
+2. The correct start command is: `claude --channels plugin:telegram@claude-plugins-official`
+3. If you're unsure, ask your assistant: *"How do I start Claude with Telegram enabled?"*
+
+For the full setup: [docs/TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
+
+---
+
+### "WhatsApp QR code isn't scanning"
+
+1. Open WhatsApp on your phone
+2. Go to **Settings → Linked Devices → Link a Device**
+3. Point your phone camera at the QR code on your computer screen
+4. Make sure you're scanning from within the "Link a Device" screen — not from the camera app
+
+If the QR code disappears before you can scan it, ask your assistant to regenerate it.
+
+---
+
+### "iMessage isn't working (Mac only)"
+
+The most common issue is missing permissions. Check:
+
+1. Go to **System Settings → Privacy & Security → Full Disk Access**
+2. Make sure **Terminal** (or **VS Code**) has a tick next to it
+3. If not, click the lock icon, enter your Mac password, and add the app
+
+For the full guide: [docs/IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
+
+---
+
+## General Errors
+
+### "I see a red error message and don't know what it means"
+
+Copy the full red error text and tell your assistant:
+
+> "I got this error. Please help me fix it step by step: [paste the error]"
+
+Your assistant's `systematic-debugging` skill will walk you through diagnosing and fixing it in plain English.
+
+---
+
+### "Something is broken and I don't know what"
+
+Tell your assistant:
+
+> "Something broke in my setup. Can you run a health check and tell me what's working and what isn't?"
+
+Your assistant will check all the key parts of your setup and tell you exactly what needs fixing.
+
+---
+
+### "I forgot the command to start my assistant"
+
+```bash
+cd ~/my-assistant && claude
+```
+
+That's the only command you need. Bookmark this guide or write it on a sticky note!
+
+---
+
+### "Everything was working and now it's not"
+
+Try restarting from scratch:
+
+1. Close VS Code completely
+2. Reopen VS Code
+3. Open the `~/my-assistant/` folder
+4. Start Claude Code in the terminal
+5. Tell your assistant: *"I had a problem. Can you check that everything is working correctly?"*
+
+Most issues are fixed by a fresh restart.
+
+---
+
+## Still Stuck?
+
+If none of the above fixes your problem:
+
+1. Take a screenshot of the error
+2. Note what you were trying to do when it broke
+3. Contact Selr AI at [selrai.com.au](https://selrai.com.au)
+
+Or ask your assistant directly — it is designed to help you troubleshoot even its own setup issues.
+
+---
+
+*OpenClaw Workshop — selrai.com.au*

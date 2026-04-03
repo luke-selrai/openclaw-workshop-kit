@@ -219,15 +219,18 @@ workshop-kit/
 │   └── src/                    # QR-code login, two-way messaging, permission relay
 ├── skills/                      # 86 skills (installed to ~/.claude/skills/)
 ├── docs/
+│   ├── HOW-TO-USE.md            # How to use your assistant day to day (start here after setup)
+│   ├── STARTER-FLOWS.md         # 3 ready-to-run examples — email, agency, daily reporting
+│   ├── FIRST-5-PROMPTS.md       # Copy-paste prompts to get started
 │   ├── FULL-SETUP-PAGE.md       # Complete setup guide — keep open during workshop
 │   ├── BOOTSTRAP.md             # Version-controlled copy of the bootstrap prompt
+│   ├── COMPLETION-GUIDE.md      # What to do after the workshop
+│   ├── TROUBLESHOOTING.md       # Fixes for common problems
 │   ├── GOOGLE-WORKSPACE-SETUP.md # Google Workspace (Gmail, Calendar, Drive) setup
 │   ├── TELEGRAM-SETUP.md        # Telegram bot setup guide
 │   ├── IMESSAGE-SETUP.md        # iMessage setup guide (Mac only)
 │   ├── WINDOWS-SETUP.md         # Step-by-step Windows guide
-│   ├── COMPLETION-GUIDE.md      # What to do after the workshop
 │   ├── SKILLS-REFERENCE.md      # How to use each skill
-│   ├── FIRST-5-PROMPTS.md       # Copy-paste prompts to get started
 │   ├── ACCOUNTS-AND-LOGINS.md   # Every account to create (with links)
 │   ├── SUBSCRIPTIONS-AND-SOFTWARE.md  # What costs what
 │   ├── GLOSSARY.md              # Plain English definitions of every tech term
@@ -239,16 +242,17 @@ workshop-kit/
 
 ## After the Workshop
 
-Your assistant is now yours. A few things to explore next:
+Your assistant is now yours. Start here:
 
-- **Create all accounts** — see [docs/ACCOUNTS-AND-LOGINS.md](docs/ACCOUNTS-AND-LOGINS.md)
-- **Add Google Workspace (Gmail + Calendar + Drive + More)** — see [docs/GOOGLE-WORKSPACE-SETUP.md](docs/GOOGLE-WORKSPACE-SETUP.md)
-- **Add phone messaging** (Telegram, WhatsApp, or iMessage) — see [docs/COMPLETION-GUIDE.md](docs/COMPLETION-GUIDE.md#set-up-phone-notifications-telegram-whatsapp-or-imessage)
+- **How to use it day to day** — [docs/HOW-TO-USE.md](docs/HOW-TO-USE.md)
+- **3 ready-to-run examples** — [docs/STARTER-FLOWS.md](docs/STARTER-FLOWS.md)
+- **Something not working?** — [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- **Create all accounts** — [docs/ACCOUNTS-AND-LOGINS.md](docs/ACCOUNTS-AND-LOGINS.md)
+- **Add Google Workspace (Gmail + Calendar + Drive + More)** — [docs/GOOGLE-WORKSPACE-SETUP.md](docs/GOOGLE-WORKSPACE-SETUP.md)
+- **Add phone messaging** (Telegram, WhatsApp, or iMessage) — [docs/COMPLETION-GUIDE.md](docs/COMPLETION-GUIDE.md#set-up-phone-notifications-telegram-whatsapp-or-imessage)
 - **Upgrade your skills** — Selr AI offers advanced skill packs for deeper automation
 
 Full guide: [docs/COMPLETION-GUIDE.md](docs/COMPLETION-GUIDE.md)
-
----
 
 ---
 
@@ -273,7 +277,9 @@ See [DEVELOPER.md](DEVELOPER.md).
 
 ## Support
 
-- Workshop guides: [`docs/`](docs/)
+- How to use your assistant: [`docs/HOW-TO-USE.md`](docs/HOW-TO-USE.md)
+- Something broke: [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)
+- All workshop guides: [`docs/`](docs/)
 - Windows guide: [`docs/WINDOWS-SETUP.md`](docs/WINDOWS-SETUP.md)
 - Selr AI: [selrai.com.au](https://selrai.com.au)
 ---
