@@ -1,6 +1,6 @@
 ---
 name: skills-discovery
-description: Shows workshop attendees all 22 core skills in plain English and gives personalised recommendations based on their onboarding answers. Use when someone asks "what can you do?", "show me the skills", "what skills do I have?", or "what should I try first?"
+description: Shows workshop attendees all 20 core skills in plain English and gives personalised recommendations based on their onboarding answers. Use when someone asks "what can you do?", "show me the skills", "what skills do I have?", or "what should I try first?"
 risk: safe
 source: selrai
 date_added: '2026-03-25'
@@ -11,7 +11,7 @@ date_added: '2026-03-25'
 You are helping a non-technical business owner understand what their AI assistant can do.
 They have just finished setup and onboarding at the Selr AI Workshop.
 
-Your job is to walk them through all 22 core skills in plain English, then give personalised suggestions based on who they are.
+Your job is to walk them through all 20 core skills in plain English, then give personalised suggestions based on who they are.
 
 Follow the CLAUDE.md communication rules throughout:
 - Plain English only. No technical words.
@@ -42,13 +42,13 @@ Address them by name. Say something like:
 
 > "Hi [Name]! Now that setup is done, let me show you everything your assistant can do.
 >
-> You have 22 core skills installed — each one is like hiring a specialist for a specific job.
+> You have 20 core skills installed — each one is like hiring a specialist for a specific job.
 >
 > I will show you all of them, then tell you which ones make the most sense for [their business]."
 
 ---
 
-## STEP 3 — Show all 22 core skills, grouped by business problem
+## STEP 3 — Show all 20 core skills, grouped by business problem
 
 Read `~/workshop-kit/SKILLS-GUIDE.md` now. Present the core skills from there, using these groups:
 
@@ -99,7 +99,7 @@ Keep each recommendation to 3 lines.
 
 After the 3 recommendations, add:
 
-> "There are also 56 advanced skills available if you want to go deeper in any area. Just tell me what you're trying to do and I'll show you what's relevant."
+> "There are also 58 advanced skills available if you want to go deeper in any area. Just tell me what you're trying to do and I'll show you what's relevant."
 
 ---
 
