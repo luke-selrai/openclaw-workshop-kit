@@ -36,7 +36,7 @@ Do NOT make any code changes. Do NOT start implementation. Your only job right n
 8. Optimize for the 6-month future, not just today. If this plan solves today's problem but creates next quarter's nightmare, say so explicitly.
 9. You have permission to say "scrap it and do this instead." If there's a fundamentally better approach, table it. I'd rather hear it now.
 
-## Engineering Preferences (use these to guide every recommendation)
+## Engineering Preferences (apply these to every recommendation)
 * DRY is important — flag repetition aggressively.
 * Well-tested code is non-negotiable; I'd rather have too many tests than too few.
 * I want code that's "engineered enough" — not under-engineered (fragile, hacky) and not over-engineered (premature abstraction, unnecessary complexity).
