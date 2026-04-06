@@ -29,7 +29,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `orchestrator` | Master coordinator — delegates to specialist skills | "Orchestrate a multi-step research project" | ADVANCED |
 | `prompt-engineer` | Improve AI instructions for better results | "Improve this prompt for better output" | CORE |
 | `skill-creator` | Create and improve Claude skills | "Create a new skill for my business" | ADVANCED |
-| `skills-discovery` | Shows all 22 core skills with personalised recommendations | "What can you do for my business?" | CORE |
+| `skills-discovery` | Shows all 20 core skills with personalised recommendations | "What can you do for my business?" | CORE |
 | `first-run-setup` | Step-by-step guided setup for first-time users | Used automatically during initial setup | ADVANCED |
 
 ## Content & Writing
@@ -132,19 +132,19 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 |---|---|---|---|
 | `ai-product` | AI product development strategy | "Help me design an AI-powered product" | ADVANCED |
 | `analytics-product` | Product analytics — funnels, retention, north star | "Help me define my key metrics" | ADVANCED |
-| `brainstorming` | Structured idea generation | "Give me 15 ideas to grow my revenue" | CORE |
+| `brainstorming` | Collaborative design and spec process for software features | "Help me design this new feature before we build it" | ADVANCED |
 | `plan-ceo-review` | CEO-mode plan review — challenge premises | "Review this plan from a CEO perspective" | ADVANCED |
 | `plan-eng-review` | Engineering review — architecture, edge cases | "Review this technical plan" | ADVANCED |
 | `product-appeal-analyzer` | Product desirability and market positioning | "How can I make my offer more appealing?" | CORE |
 | `systems-thinking` | Maps complex systems to find high-leverage points | "Map out my sales process and find the bottlenecks" | ADVANCED |
 | `tech-entrepreneur-coach-adhd` | Founder strategy — validation, MVP, marketing | "Help me validate this business idea" | CORE |
-| `writing-plans` | Plans complex tasks before executing | "Plan how I could automate my onboarding" | CORE |
+| `writing-plans` | Creates detailed software implementation plans from a spec | "Write the implementation plan for this feature spec" | ADVANCED |
 
 ---
 
 **Total: 86 skills installed**
-- CORE: 22 skills (shown by default via skills-discovery)
-- ADVANCED: 56 skills (available on request)
+- CORE: 20 skills (shown by default via skills-discovery)
+- ADVANCED: 58 skills (available on request)
 - DEV-ONLY: 8 skills (for technical integrations — never surfaced in demos)
 
 > Ask your assistant to do anything — it will automatically use the right skill for the job.
