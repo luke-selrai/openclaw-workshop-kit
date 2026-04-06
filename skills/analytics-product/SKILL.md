@@ -1,10 +1,9 @@
 ---
 name: analytics-product
-description: 'Analytics de produto — PostHog, Mixpanel, eventos, funnels, cohorts, retencao, north star metric, OKRs e dashboards de produto. Ativar para: configurar tracking de eventos, criar funil de...'
+description: 'Product analytics — PostHog, Mixpanel, events, funnels, cohorts, retention, north star metric, OKRs, and product dashboards. Use for: event tracking setup, conversion funnel analysis, cohort retention, DAU/MAU, feature flags, A/B testing, north star metrics, OKRs, product dashboards.'
 risk: none
 source: community
 date_added: '2026-03-06'
-author: renat
 tags:
 - analytics
 - product
@@ -13,17 +12,17 @@ tags:
 - mixpanel
 tools:
 - claude-code
-- antigravity
 - cursor
 - gemini-cli
-- codex-cli
 ---
 
-# ANALYTICS-PRODUCT — Decida com Dados
+# ANALYTICS-PRODUCT — Decide With Data
 
 ## Overview
 
-Analytics de produto — PostHog, Mixpanel, eventos, funnels, cohorts, retencao, north star metric, OKRs e dashboards de produto. Ativar para: configurar tracking de eventos, criar funil de conversao, analise de cohort, retencao, DAU/MAU, feature flags, A/B testing, north star metric, OKRs, dashboard de produto.
+Product analytics skill covering PostHog, Mixpanel, events, funnels, cohorts, retention, north star metric, OKRs, and product dashboards. Use for: event tracking setup, conversion funnel analysis, cohort retention, DAU/MAU, feature flags, A/B testing, north star metrics, OKRs, and product dashboards.
+
+> Note: Code examples throughout this skill use a sample SaaS product as reference — adapt event names, metrics, and targets to your own product.
 
 ## When to Use This Skill
 
