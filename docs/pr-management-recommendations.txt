@@ -1,0 +1,21 @@
+PR Management Recommendations for Workshop Kit
+================================================
+
+The core problem is everyone works in parallel on long-lived branches, then discovers conflicts at merge time. A few approaches:
+
+1. Code Owners for critical files
+Add a CODEOWNERS file so that any PR touching my-assistant/CLAUDE.md, skills/SKILLS-LIST.md, or agents/ requires approval from a specific person (e.g., Luke). This prevents 7 people from independently editing the same file.
+
+2. Short-lived branches + small PRs
+Instead of "add 8 connectors in one PR" (52 files), break it into one PR per connector. Smaller PRs merge faster, conflict less, and are easier to review.
+
+3. Claim system (Notion or GitHub Issues)
+Before starting work, create an issue: "Adding Shopify connector". Others can see what's in progress and avoid duplicating effort. This is where Notion boards or GitHub Projects help.
+
+4. CLAUDE.md is append-only sections
+Structure CLAUDE.md with clear section markers so different PRs add to different sections instead of editing the same lines. Less merge conflict.
+
+5. Weekly sync on what's in flight
+A 10-minute standup: "I'm working on X, touching files Y." Catches duplicates early before the work is done.
+
+The simplest starting point is probably CODEOWNERS + GitHub Issues for claiming work.
