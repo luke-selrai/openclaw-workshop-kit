@@ -27,7 +27,9 @@ Tick these off:
 
 ### If you didn't finish the install:
 
-Open Terminal (Mac: press Command + Space, type "Terminal", press Enter) and run:
+**Windows users:** Double-click `setup.bat` in your `workshop-kit` folder. It handles everything automatically. See [WINDOWS-SETUP.md](WINDOWS-SETUP.md) for details.
+
+**Mac users:** Open Terminal (press Command + Space, type "Terminal", press Enter) and run:
 
 ```bash
 npm install -g @anthropic-ai/claude-code
@@ -60,7 +62,21 @@ Your assistant can help you set this up — just ask in the Claude chat:
 
 Great for keeping a business knowledge base.
 
-#### 3. Slack or Microsoft Teams (if you use them)
+#### 3. Microsoft Outlook & 365 (Email, Calendar, OneDrive, Teams)
+
+Install the Microsoft 365 tool:
+```bash
+npm install -g @pnp/cli-microsoft365
+m365 setup --interactive
+m365 login --authType browser
+```
+
+A browser window opens — pick your Microsoft account and click Accept. Once connected, your assistant can read emails, manage calendar, access OneDrive, and more.
+
+> For the full guide with troubleshooting, see [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
+> Windows users can also run `outlook-connector/setup.bat` for automatic setup.
+
+#### 4. Slack or Microsoft Teams (if you use them)
 Your assistant can help you set this up — just ask in the Claude chat:
 > "Help me connect Slack so you can send and read messages."
 
@@ -120,7 +136,7 @@ Your assistant can help you set this up — just ask in the Claude chat:
 Now that everything's set up, here's what to try first:
 
 **Day 1: Research**
-> "Research the top 5 pain points for [your target customer] in 2025. Give me a structured report I can use for marketing."
+> "Research the top 5 pain points for [your target customer] in 2026. Give me a structured report I can use for marketing."
 
 **Day 2: Content**
 > "Write 10 LinkedIn posts for the next 2 weeks for my business. My business is [describe]. My audience is [describe]. Make them sound like a real person."
@@ -161,11 +177,20 @@ Your assistant will update its memory file and apply it from that point on.
 
 ### Save Your Best Prompts
 
-When you find a prompt that works really well, save it. Create a file:
-```bash
-nano ~/my-assistant/my-best-prompts.md
-```
-Paste in your best prompts so you can reuse them.
+When you find a prompt that works really well, tell your assistant:
+> "Save this prompt to a file called my-best-prompts.md so I can reuse it."
+
+Your assistant will create and update the file for you.
+
+### Automate Recurring Tasks
+
+Once you have tasks you do regularly, automate them:
+> "Check my emails every morning at 9am and send me a summary on Telegram"
+> "Post to LinkedIn every weekday at 10am using my saved content"
+
+Your assistant uses `/schedule` and `/loop` to run these automatically. Your computer needs to be on for them to work.
+
+> For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHEDULE.md)
 
 ---
 
@@ -228,4 +253,4 @@ You can talk to your AI assistant instead of typing, using tools like Wispr Flow
 
 ---
 
-*Built for the OpenClaw Workshop by Selr AI — selrai.com.au*
+*Built for the Claude Code Workshop by Selr AI — selrai.com.au*

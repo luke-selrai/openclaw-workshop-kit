@@ -117,4 +117,4 @@ Your AI assistant already knows your business after setup — so you need far le
 
 ---
 
-*OpenClaw Workshop — selrai.com.au*
+*Claude Code Workshop — selrai.com.au*

@@ -24,7 +24,7 @@ Check if `~/.claude/skills/` has skill directories inside it.
 - If empty or missing → "It looks like your skills did not copy correctly. Let me fix that."
   1. Check if `~/workshop-kit/skills/` exists
   2. If yes → copy all skill folders (not SKILLS-LIST.md) to `~/.claude/skills/`
-  3. If no → re-download: `git clone https://github.com/luke-selrai/openclaw-workshop-kit.git ~/workshop-kit` then copy.
+  3. If no → re-download: `git clone https://github.com/luke-selrai/claude-workshop-kit.git ~/workshop-kit` then copy.
   Use the correct commands for the user's operating system (Mac vs Windows).
 
 ### Step 2 — Detect Operating System
@@ -61,7 +61,7 @@ Save to memory:
 - `setup_complete: true`
 - `setup_date: [today's date]`
 - `os: [Mac, Windows, or Linux]`
-- `skills_installed: 86`
+- `skills_installed: 87`
 
 Say:
 > "Everything looks good! Now let me learn a bit about you and your business. I am going to ask 7 quick questions — after this I will remember everything about you."

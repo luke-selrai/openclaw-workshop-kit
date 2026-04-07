@@ -2,7 +2,7 @@
 
 ## /loop and /schedule — Full Documentation
 
-Prepared for: OpenClaw Workshop Kit
+Prepared for: Claude Code Workshop Kit
 Built by: Selr AI — selrai.com.au
 
 ---

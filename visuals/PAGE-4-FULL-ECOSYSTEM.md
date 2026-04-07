@@ -190,4 +190,4 @@ You just did. You set it up today. The hard part is done.
 
 ---
 
-*OpenClaw Workshop — selrai.com.au*
+*Claude Code Workshop — selrai.com.au*

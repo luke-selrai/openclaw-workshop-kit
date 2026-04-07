@@ -367,4 +367,4 @@ There are also **8 developer-focused skills** installed for attendees building w
 
 *Skills are installed in `~/.claude/skills/` — your assistant reads them automatically when needed.*
 *Full skill list with tier labels: `~/workshop-kit/skills/SKILLS-LIST.md`*
-*Built for the OpenClaw Workshop by Selr AI — selrai.com.au*
+*Built for the Claude Code Workshop by Selr AI — selrai.com.au*
