@@ -119,29 +119,13 @@ function extractReplyContext(message: any): string | undefined {
   return quoted || undefined;
 }
 
-// ── JID type detection ──────────────────────────────────────────────
-function isLidJid(jid: string | null | undefined): boolean {
-  return Boolean(jid && jid.endsWith("@lid"));
-}
-
 // ── Access control ──────────────────────────────────────────────────
-function isAllowed(phone: string | null, allowList: string[], remoteJid?: string): boolean {
-  if (allowList.length === 0) return true; // no allowlist = allow all
+const normalizePhone = (p: string) => p.replace(/^\+/, "");
+
+function isAllowed(phone: string | null, allowList: string[]): boolean {
+  if (allowList.length === 0) return false; // no allowlist = deny all (self-phone is added automatically)
   if (!phone) return false;
-  // Normalize: strip + prefix for comparison
-  const normalize = (p: string) => p.replace(/^\+/, "");
-  const match = allowList.some((a) => normalize(a) === normalize(phone));
-  if (match) return true;
-
-  // LID JIDs (Linked Identity) don't carry the real phone number.
-  // WhatsApp is migrating to LID — allow these through when we can't resolve the real number.
-  // The user can still restrict via pushName or by disabling the allowlist.
-  if (remoteJid && isLidJid(remoteJid)) {
-    debugLog(`[allowlist] LID JID detected (${remoteJid}), allowing through — real phone unknown`);
-    return true;
-  }
-
-  return false;
+  return allowList.some((a) => normalizePhone(a) === normalizePhone(phone));
 }
 
 // ── Monitor ─────────────────────────────────────────────────────────
@@ -185,20 +169,26 @@ async function connectWithRetry(options: MonitorOptions, attempt = 1): Promise<W
 }
 
 export async function monitorWhatsApp(options: MonitorOptions) {
-  const allowFrom = options.allowFrom ?? [];
-
   const sock = await connectWithRetry(options);
   const connectedAtMs = Date.now();
 
-  // Send available presence
-  try {
-    await sock.sendPresenceUpdate("available");
-  } catch (err) {
+  // Send available presence (fire-and-forget — don't block startup)
+  sock.sendPresenceUpdate("available").catch((err) => {
     if (options.verbose) console.error("[whatsapp] Failed to send presence:", String(err));
-  }
+  });
 
   const selfJid = sock.user?.id;
   const selfPhone = jidToPhone(selfJid);
+
+  // Build effective allowlist: always include the linked phone (self),
+  // plus any explicitly configured numbers from WA_ALLOW_FROM.
+  // If WA_ALLOW_FROM is empty, only the user's own phone can talk to Claude.
+  const allowFrom = [...(options.allowFrom ?? [])];
+  if (selfPhone && !allowFrom.some((a) => normalizePhone(a) === normalizePhone(selfPhone))) {
+    allowFrom.push(selfPhone);
+    debugLog(`[allowlist] Auto-added self phone: ${selfPhone}`);
+  }
+  debugLog(`[allowlist] Effective allowlist: [${allowFrom.join(", ")}]`);
 
   // Track message IDs sent by the bot to avoid echo loops in self-chat
   const botSentIds = new Set<string>();
@@ -272,8 +262,10 @@ export async function monitorWhatsApp(options: MonitorOptions) {
         debugLog("[allow] fromMe but not bot-sent — treating as user self-message");
       }
 
-      // Access control
-      if (!isAllowed(senderPhone, allowFrom, remoteJid)) {
+      // Access control — only allowlisted phones can talk to Claude
+      // Skip allowlist check for fromMe messages (self-chat) — the user is already authenticated.
+      // This is needed because WhatsApp LID-based JIDs use a different phone number than the real one.
+      if (!fromMe && !isAllowed(senderPhone, allowFrom)) {
         debugLog(`[skip] not allowed: ${senderPhone} jid=${remoteJid} allowList=[${allowFrom.join(",")}]`);
         continue;
       }

@@ -133,7 +133,7 @@ Run:
 ls ~/workshop-kit/skills/ | wc -l
 ```
 
-- Shows 87 → "All 86 skills are installed. We are good to go." → skip to Step 4
+- Shows 87 → "All your skills are installed. We are good to go." → skip to Step 4
 - Shows anything else or error → say: "It looks like the workshop kit did not install correctly. Can you paste the setup prompt again from the Notion page and I will redo it?"
 
 ---
@@ -281,13 +281,140 @@ What this unlocks: Gmail + Google Calendar + Google Drive + Google Docs + Sheets
 
 ---
 
-### TOOL STEP 4 — Telegram Phone Notifications (Optional)
+### TOOL STEP 4 — Connect Microsoft Outlook & 365 (Optional)
 
-Ask: "Would you like to message me from your phone? I can connect to Telegram so you can chat with me wherever you are."
+Ask: "Would you like to connect your Outlook email, calendar, OneDrive, and other Microsoft 365 tools?"
 
-> **Note:** WhatsApp is also supported but takes longer to set up (~15 minutes). If they ask about WhatsApp, say: "We can set up WhatsApp after the workshop — it takes a bit longer. Let me show you Telegram first, it is quicker." See **Appendix: WhatsApp Setup** at the bottom of this file.
+> **Enterprise / work accounts only.** Personal outlook.com and hotmail.com accounts are not supported by the CLI — skip this step or use the Playwright fallback if the user has a personal account.
 
-If yes:
+**Say:**
+> "I am going to connect your Microsoft account. Once done, I can read and send your Outlook emails, check your calendar, access OneDrive files, work with Excel, and browse Teams, SharePoint, and OneNote."
+
+**Step 1 — Install the Microsoft 365 tool:**
+
+```
+npm install -g @pnp/cli-microsoft365
+```
+
+After install, verify: `m365 --version` — should show a version number.
+
+**Step 2 — Register the Microsoft app (one-time):**
+
+First, detect whether we are on a desktop or a headless server:
+
+```bash
+echo $DISPLAY
+```
+
+**Desktop (has a display):**
+
+```
+m365 setup
+```
+
+> **Do NOT use `m365 setup --interactive`** — that only configures CLI settings and skips app registration.
+
+A browser window will open — follow the steps and click Allow when asked. When it finishes you will see a `clientId` and `tenantId` — that means it worked.
+
+**Headless server (no display):**
+
+The app registration (`m365 setup`) must be done once from a machine with a browser (the user's laptop). It is a per-tenant operation — once the Entra app exists, the server can use it.
+
+If the user has already run `m365 setup` on their laptop, skip to Step 3. If not, tell them:
+> "This one step needs to be done on your laptop first. Open a terminal on your laptop and run: `m365 setup` — sign in when the browser opens. Once you see a clientId in the output, come back here."
+
+**Step 3 — Sign in to Microsoft:**
+
+**Desktop:**
+
+```
+m365 login --authType browser
+```
+
+A browser window will open — sign in with your Microsoft account and click Allow.
+
+**Headless server (no display) — use device code:**
+
+```
+m365 login
+```
+
+This shows a short code and a URL. Say:
+> "Open this link on your phone or laptop browser: https://aka.ms/devicelogin — enter the code shown, and sign in with your Microsoft account."
+
+Wait for the user to confirm they signed in, then verify with `m365 status`.
+
+**Step 4 — Upgrade calendar permission:**
+
+The default app has read-only calendar access (`Calendars.Read`). To create and update events, upgrade to `Calendars.ReadWrite`:
+
+```bash
+# Get app ID from current session
+APP_ID=$(m365 status --output json | python3 -c "import json,sys; print(json.load(sys.stdin)['appId'])")
+
+# Add the write permission
+m365 entra app permission add --appId "$APP_ID" \
+  --delegatedPermissions "https://graph.microsoft.com/Calendars.ReadWrite" \
+  --grantAdminConsent
+
+# Get the service principal ID
+SP_ID=$(m365 entra enterpriseapp list --output json \
+  --query "[?appId=='$APP_ID'].id" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['id'])")
+
+# Update the OAuth2 grant scope (replace Calendars.Read with Calendars.ReadWrite)
+m365 entra oauth2grant list --spObjectId "$SP_ID" --output json | python3 -c "
+import json, sys
+grants = json.load(sys.stdin)
+for g in grants:
+    if 'Calendars' in g.get('scope',''):
+        scope = g['scope'].replace('Calendars.Read ', 'Calendars.ReadWrite ')
+        print(g['id'])
+        print(scope)
+" | { read GRANT_ID; read SCOPE; m365 entra oauth2grant set --grantId "$GRANT_ID" --scope "$SCOPE"; }
+
+# Re-login to pick up the new permission
+m365 logout
+```
+
+Then sign in again (browser or device code, depending on desktop/server — same as Step 3).
+
+**Step 5 — Verify it works:**
+
+```
+m365 outlook mail list
+```
+
+If it shows emails, say: "Microsoft 365 is connected. I can now read and send your Outlook emails, manage your calendar, access OneDrive, Excel, Teams, SharePoint, and OneNote."
+
+To test calendar (uses Graph API — no built-in calendar command in the CLI):
+
+```bash
+m365 request --url "https://graph.microsoft.com/v1.0/me/events?\$top=5" --method get
+```
+
+> For the full setup guide with troubleshooting, see `~/workshop-kit/docs/OUTLOOK-SETUP.md`
+
+---
+
+### TOOL STEP 5 — Phone Messaging (Optional)
+
+Ask: "Would you like to message me from your phone? I can connect to a messaging app so you can chat with me wherever you are — ask questions, request tasks, and get replies on the go."
+
+**How to recommend a channel:**
+
+1. Check the user's tech stack and OS from their Phase 2 onboarding answers.
+2. If they specifically mentioned using **Telegram** → recommend Telegram.
+3. If they specifically mentioned using **WhatsApp** → recommend WhatsApp.
+4. If they specifically mentioned using **iMessage** → recommend iMessage.
+5. If no specific messaging app was mentioned, present the options:
+   - If on **Mac** → offer all three: "You have three options: **Telegram**, **WhatsApp**, or **iMessage**. Since you're on a Mac, iMessage is the quickest — no extra apps, no bots, just text yourself. Telegram and WhatsApp work on any device. Which would you prefer?"
+   - If **not on Mac** → offer two: "You have two options: **Telegram** or **WhatsApp**. Telegram is the quickest to set up at the workshop. Which would you prefer?"
+
+> **Important:** Once one channel is set up, move on to TOOL STEP 5. Do NOT suggest additional channels unless the user specifically asks. One messaging channel is enough — you don't want to overwhelm them.
+
+---
+
+#### If they choose Telegram:
 
 **Step 1 — Install Telegram**
 
@@ -308,21 +435,21 @@ Guide them through BotFather:
 
 **Step 3 — Install the Telegram Plugin**
 
-In the Claude Code chat, type:
+Run these commands yourself in the Claude Code chat:
 ```
 /plugin install telegram@claude-plugins-official
 ```
 
-Then save the bot token:
+Then save the bot token (replace with the token they gave you):
 ```
 /telegram:configure [their token]
 ```
 
 **Step 4 — Install Bun (Required)**
 
-Check: `bun --version`
+Check if Bun is already installed: `bun --version`
 
-If not installed:
+If not installed, tell the user to run:
 - **Mac/Linux:** `curl -fsSL https://bun.sh/install | bash`
 - **Windows:** `powershell -c "irm bun.sh/install.ps1 | iex"`
 
@@ -353,9 +480,129 @@ Say: "Your Telegram is connected. You can now message me from your phone anytime
 
 ---
 
-### TOOL STEP 5 — Mark Tools Complete
+#### If they choose WhatsApp:
 
-Save to memory which tools were connected (Playwright, Google Workspace, Telegram).
+Say: "WhatsApp takes about 15 minutes to set up — a bit longer than the other options. We can do it now if you have the time, or I can set it up for you after the workshop. What would you prefer?"
+
+If they want to do it now → follow the **Appendix: WhatsApp Setup** at the bottom of this file.
+If they want to wait → say: "No problem — just tell me 'set up WhatsApp' anytime and I will walk you through it. Would you like to try Telegram or iMessage instead right now, or skip phone messaging for today?"
+
+---
+
+#### If they choose iMessage:
+
+Say: "Great choice! iMessage is the easiest one to set up. We just need to do 3 things: give permission, install one small tool, then restart. I will walk you through each step — just follow along."
+
+**Step 1 — Give permission to read your messages**
+
+Say:
+> "First, we need to let VS Code read your iMessages. This is a one-time thing. Here's what to do:
+>
+> 1. Click the **Apple logo** () in the very top-left corner of your screen
+> 2. Click **System Settings**
+> 3. In the left sidebar, click **Privacy & Security**
+> 4. Scroll down on the right side until you see **Full Disk Access** — click it
+> 5. You'll see a list of apps. Click the **+** button (bottom-left of the list)
+> 6. A file picker will open — go to **Applications**, find **Visual Studio Code**, and click **Open**
+> 7. Make sure the toggle next to Visual Studio Code is **blue (on)**
+> 8. Now **quit VS Code completely** (press **Cmd + Q**) and **reopen it**
+>
+> This is needed because your iMessages are stored in a private file on your Mac. Without this permission, it won't work."
+
+Wait for the user to confirm they've done this and reopened VS Code before continuing.
+
+**Step 2 — Install Bun (a small tool iMessage needs)**
+
+Check if Bun is already installed by running: `bun --version`
+
+If it's already installed, say: "You already have Bun — we can skip this step."
+
+If not installed, say:
+> "We need to install a small tool called Bun that iMessage uses behind the scenes. Don't worry — it takes about 10 seconds.
+>
+> 1. Look at the bottom of your VS Code window — you should see a **Terminal** panel. If you don't see it, click **Terminal** in the top menu bar, then click **New Terminal**
+> 2. Click inside that terminal panel (the dark area at the bottom)
+> 3. Copy this command — highlight it and press **Cmd + C**:"
+
+Show them:
+```
+curl -fsSL https://bun.sh/install | bash
+```
+
+Say:
+> "4. Click inside the terminal and press **Cmd + V** to paste it, then press **Enter**
+> 5. When it's done (you'll see a success message), close the terminal by clicking the **X** on the terminal panel, then open a new one: **Terminal** menu → **New Terminal**"
+
+Wait for the user to confirm before continuing.
+
+**Step 3 — Install the iMessage plugin and restart with it enabled**
+
+Say:
+> "Now we need to install the iMessage plugin and restart Claude with it turned on. Here's exactly what to do:
+>
+> 1. Type `/exit` right here in this chat to close the session
+> 2. Look at the **Terminal** panel at the bottom of VS Code (if you don't see it, click **Terminal** in the top menu → **New Terminal**)
+> 3. Click inside the terminal panel
+> 4. Copy and paste this command to **install the plugin**:"
+
+Show them:
+```
+claude plugin install imessage@claude-plugins-official
+```
+
+Say:
+> "5. Press **Enter** and wait for it to finish (takes a few seconds)
+> 6. Now copy and paste this second command to **start Claude with iMessage**:"
+
+Show them:
+```
+claude --channels plugin:imessage@claude-plugins-official
+```
+
+Say:
+> "7. Press **Enter** — Claude will start up again, this time with iMessage connected
+>
+> **Important:** Your Mac might show a pop-up that says 'Terminal wants to control Messages' — click **OK**. This lets me send replies through iMessage."
+
+> **Note:** The plugin install is a **terminal command** (`claude plugin install`), NOT a slash command inside the chat. It must be run in the VS Code terminal, not in the Claude chat window.
+
+**Step 4 — Test it!**
+
+Say:
+> "That's it — you're all set! Let's test it now:
+>
+> 1. Open the **Messages** app on your Mac or pick up your **iPhone**
+> 2. Start a new message **to yourself** (type your own phone number or email)
+> 3. Send any message — try 'Hello, are you there?'
+>
+> You should see a reply from me right in iMessage! You can now text me from your iPhone, iPad, or Mac — anywhere, anytime. No extra apps needed."
+
+**Step 5 — Allow other people to message me (optional)**
+
+Ask: "Would you like anyone else to be able to text me through iMessage? For example, a business partner, assistant, or family member?"
+
+If yes, ask for their phone number or Apple ID email, then run the command for each:
+```
+/imessage:access allow +61412345678
+```
+or:
+```
+/imessage:access allow someone@icloud.com
+```
+
+If they give a number without the country code (e.g. "0412345678"), ask: "What country is that number from?" then add the correct prefix (e.g. `+61` for Australia, `+1` for US).
+
+After adding, say: "Done — [name/number] can now text me and I'll respond to them too."
+
+If they say no, say: "No worries — just tell me a name and number anytime and I'll add them."
+
+> For the full iMessage guide with troubleshooting, see `docs/IMESSAGE-SETUP.md`.
+
+---
+
+### TOOL STEP 6 — Mark Tools Complete
+
+Save to memory which tools were connected (Playwright, Google Workspace, Microsoft 365 if set up, and whichever messaging channel they chose — Telegram, WhatsApp, or iMessage).
 
 Say:
 > "All connected! Now let me show you what I can actually do for your business."
@@ -439,6 +686,69 @@ Advanced skills (56 more) and developer skills (8) are also installed — see SK
 
 ---
 
+## AUTOMATION — /loop and /schedule
+
+When the user asks "how can I automate this?", "can you do this every day?", "run this on a schedule", or anything about recurring tasks — use this section to recommend the right approach.
+
+**Quick rule:** Computer must be on? Use `/loop`. Needs to run 24/7? Use `/schedule`.
+
+---
+
+### /loop — Temporary Recurring Tasks (While You Are Working)
+
+What it does: Runs a task on a timer while the current session is open. When you close the session, the loop stops.
+
+- **How to use:** `/loop 5m /some-command` (defaults to 10 minutes if no time given)
+- **Time options:** s (seconds), m (minutes), h (hours), d (days)
+- **Stops when you close the session** — it only runs while you are working
+- **Auto-expires after 3 days** even if you leave the session open
+- **Uses your local timezone**
+
+Best for: checking a website every few minutes, watching for new messages, monitoring something while you work.
+
+**Example for the user:**
+> "I can check that for you every 5 minutes while we are working. I will use /loop — it runs while this session is open and stops when you close it."
+
+---
+
+### /schedule — Persistent Recurring Tasks (Runs Even When Your Computer Is Off)
+
+What it does: Creates a task that runs automatically on a schedule in the cloud. Keeps running even when your computer is off.
+
+- **Minimum interval:** once per hour
+- **Each run is a fresh session** with full access to your files, tools, skills, and connectors
+- **Create via:** the web at https://claude.ai/code/scheduled, the Desktop app, or by typing `/schedule` here
+- **Runs on the cloud** — does not need your computer to be on
+
+Best for: daily reports, weekly summaries, recurring posts, anything long-term or overnight.
+
+**Example for the user:**
+> "I can do that for you every morning automatically — even when your computer is off. I will set up a scheduled task using /schedule."
+
+---
+
+### How to Recommend
+
+| User says... | Recommend |
+|---|---|
+| "Check this every few minutes" | `/loop` |
+| "Do this every morning" | `/schedule` |
+| "Keep an eye on this while I work" | `/loop` |
+| "Send me a report every Monday" | `/schedule` |
+| "Poll this until it is done" | `/loop` |
+| "Run this even when my computer is off" | `/schedule` |
+
+---
+
+### If You Get Stuck on Automation
+
+For detailed documentation on both /loop and /schedule, refer to the official Anthropic docs:
+https://docs.anthropic.com/en/docs/claude-code/scheduled-tasks
+
+This applies to all automation tasks including Telegram, iMessage, WhatsApp, and any other channel or plugin automation.
+
+---
+
 ## If Something Breaks
 
 Never panic. Always say:
@@ -452,6 +762,10 @@ Common fixes:
 - Claude login not working → `claude logout` then `claude login`
 - Playwright not working → `npm install -g @playwright/mcp` then re-add
 - Google wrong account → `gws auth logout` then `gws auth login`
+- M365 not found → `export PATH="$(npm prefix -g)/bin:$PATH"` then retry
+- M365 wrong account → `m365 logout` then `m365 login --authType browser` (desktop) or `m365 login` (server)
+- M365 calendar 403 → permission needs upgrade from Calendars.Read to Calendars.ReadWrite (see Tool Step 4)
+- M365 setup on server → must run `m365 setup` on a laptop first (one-time per tenant), then server uses device code login
 
 ---
 
@@ -475,6 +789,7 @@ Common fixes:
 - Full setup guide: `~/workshop-kit/docs/FULL-SETUP-PAGE.md`
 - Telegram setup: `~/workshop-kit/docs/TELEGRAM-SETUP.md`
 - Google Workspace setup: `~/workshop-kit/docs/GOOGLE-WORKSPACE-SETUP.md`
+- Outlook & M365 setup: `~/workshop-kit/docs/OUTLOOK-SETUP.md`
 
 ---
 
@@ -562,23 +877,85 @@ Create (or overwrite) the file `~/whatsapp-channel/.mcp.json` with this exact co
       ],
       "env": {
         "WA_ALLOW_FROM": "",
-        "WA_VERBOSE": "1"
+        "WA_VERBOSE": "1",
+        "WA_AUTO_OPEN_QR": "1"
       }
     }
   }
 }
 ```
 
+> **Why `WA_AUTO_OPEN_QR` is `"1"` here:** This config file lives in `~/whatsapp-channel/` which is only used when you intentionally launch the WhatsApp channel. The QR page will auto-open on first login so you can scan it easily.
+
+**WHATSAPP STEP 4b — Connect WhatsApp to Your Profile and Skills**
+
+Say:
+> "Now I am going to make sure WhatsApp knows who you are and can use all your skills — so chatting on your phone works exactly the same as chatting here."
+
+Create the file `~/whatsapp-channel/CLAUDE.md` with this exact content:
+
+```markdown
+# WhatsApp AI Assistant
+
+You are talking to a user through WhatsApp. Messages arrive via the WhatsApp channel.
+
+## Your Identity & Instructions
+
+You are the same AI Business Assistant defined in `~/my-assistant/CLAUDE.md`. Read that file at the start of every conversation to load your full personality, tone, communication rules, and capabilities.
+
+## User Profile
+
+Read `~/.claude/projects/-Users-jesiecabaneros-my-assistant/memory/user_profile.md` to know who you are talking to. This is the same user who set you up in my-assistant.
+
+## Skills
+
+You have access to all skills installed at `~/.claude/skills/`. Read the SKILL.md file inside each skill folder before performing that task. The full list and guide is at `~/workshop-kit/SKILLS-GUIDE.md`.
+
+## WhatsApp-Specific Rules
+
+- Keep replies short — WhatsApp messages should be concise and conversational
+- Use WhatsApp formatting: *bold*, _italic_ — no markdown links
+- No code blocks unless the user specifically asks for code
+- One topic per message — do not send walls of text
+- If a task produces long output (research, reports), summarise the key points and ask if they want the full version
+```
+
+> **Important:** The path to `user_profile.md` above uses the my-assistant project memory path. If the user's home directory is different, adjust the path accordingly. The pattern is: `~/.claude/projects/-Users-USERNAME-my-assistant/memory/user_profile.md`
+
+Create (or overwrite) `~/whatsapp-channel/.claude/settings.json` with:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "mcp__whatsapp__*"
+    ],
+    "additionalDirectories": [
+      "~/my-assistant",
+      "~/.claude/skills",
+      "~/.claude/projects/-Users-jesiecabaneros-my-assistant/memory",
+      "~/workshop-kit"
+    ]
+  }
+}
+```
+
+> This gives the WhatsApp session permission to read your profile, your skills, and your workshop kit — so Claude on WhatsApp knows everything Claude in VS Code knows.
+
+Say: "Done — WhatsApp is now connected to your profile and all your skills."
+
+---
+
 **WHATSAPP STEP 5 — Security Setup**
 
 Say:
-> "There is a security setting that controls who can message Claude through your WhatsApp. Right now it is open to everyone."
+> "By default, only YOUR phone can message Claude through WhatsApp. Nobody else can get through — it is locked to your number automatically."
 
 Ask:
-> "Do you want to restrict who can message Claude through WhatsApp? If yes, tell me the phone number or numbers — include the country code at the start. For example: +1 for United States, +44 for United Kingdom, +63 for Philippines, +61 for Australia."
+> "Would you like anyone else to be able to message Claude through WhatsApp? For example, a business partner or team member? If yes, tell me their phone number or numbers — include the country code at the start. For example: +1 for United States, +44 for United Kingdom, +63 for Philippines, +61 for Australia."
 
-- If they give numbers → update `WA_ALLOW_FROM` in the `.mcp.json` with the numbers separated by commas (e.g., `"+61412345678,+61498765432"`)
-- If they say no or skip → leave it empty (anyone can message)
+- If they give numbers → update `WA_ALLOW_FROM` in the `.mcp.json` with the numbers separated by commas (e.g., `"+61412345678,+61498765432"`). Their own number does NOT need to be listed — it is always allowed automatically.
+- If they say no or skip → leave it empty (self-only, which is secure by default)
 
 **WHATSAPP STEP 6 — Connect WhatsApp (Scan the QR Code)**
 
@@ -593,18 +970,18 @@ Say:
 
 **Mac:**
 ```bash
-cd ~/whatsapp-channel && claude --dangerously-load-development-channels server:whatsapp
+cd ~/whatsapp-channel && WA_AUTO_OPEN_QR=1 claude --dangerously-load-development-channels server:whatsapp
 ```
 
 **Windows:**
 ```cmd
-cd %USERPROFILE%\whatsapp-channel && claude --dangerously-load-development-channels server:whatsapp
+cd %USERPROFILE%\whatsapp-channel && set WA_AUTO_OPEN_QR=1 && claude --dangerously-load-development-channels server:whatsapp
 ```
 
 Say:
 > "The flag in that command sounds scary but it is completely normal — it just means this channel is not in the official store yet. It is safe because it runs entirely on your computer."
 
-A webpage should automatically open showing a QR code. If not, tell them to open `http://127.0.0.1:8787` in their browser.
+A webpage should automatically open showing a QR code (thanks to `WA_AUTO_OPEN_QR=1`). If not, tell them to open `http://127.0.0.1:8787` in their browser.
 
 Guide them through scanning:
 1. Open WhatsApp on your phone
@@ -630,11 +1007,9 @@ Say:
 
 **WHATSAPP STEP 8 — Allow WhatsApp to Run Without Permission Popups**
 
-First, check the `.mcp.json` file and read the `WA_ALLOW_FROM` value. If empty, go back to Step 5 first.
+Ask:
 
-Once `WA_ALLOW_FROM` has at least one number, ask:
-
-> "Right now, every time someone sends a WhatsApp message, a popup asks permission before I can read or reply. I can turn that off so I respond automatically — only the phone numbers you already approved can get through. Would you like to turn on automatic replies?"
+> "Right now, every time someone sends a WhatsApp message, a popup asks permission before I can read or reply. I can turn that off so I respond automatically — only your phone (and any extra numbers you approved) can get through. Would you like to turn on automatic replies?"
 
 **If they say yes:**
 
@@ -660,7 +1035,7 @@ Say:
 **Troubleshooting WhatsApp:**
 
 - QR code does not appear → make sure no other WhatsApp Web session is active. Delete the auth folder and restart.
-- Messages not arriving → check `WA_ALLOW_FROM` has the sender's number
+- Messages not arriving → your phone is allowed by default. If someone else is messaging Claude, their number must be in `WA_ALLOW_FROM`
 - Session expired → delete the auth folder and scan a new QR code
 
 ---

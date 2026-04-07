@@ -26,6 +26,7 @@ Everything you need for your AI Business Assistant, listed by priority with exac
 | **Google Account (Gmail)** | Gmail + Calendar + Drive — connects to your assistant | [accounts.google.com/signup](https://accounts.google.com/signup) |
 | **GitHub** | Download the workshop kit and future updates | [github.com/signup](https://github.com/signup) |
 | **Telegram** | Phone notifications from your assistant | [telegram.org](https://telegram.org) (install on phone) |
+| **iMessage** (Mac only) | Text your assistant from iPhone — no extra app | Built into macOS (free) |
 
 **Total: Free**
 
@@ -39,6 +40,7 @@ These connect to Claude Code with one command. No extra cost.
 |---|---|---|---|
 | **Google Workspace** | Free (Google account) | Gmail, Calendar, Drive, Docs, Sheets, and more | `npm install -g @googleworkspace/cli` then `gws auth login` |
 | **Telegram Bot** | Free | Message your assistant from your phone | See `docs/TELEGRAM-SETUP.md` |
+| **iMessage** (Mac only) | Free | Text your assistant from iPhone/Mac | See `docs/IMESSAGE-SETUP.md` |
 | **Notion** | Free / $10 USD/mo | Read and update your notes and workspace | [notion.so](https://www.notion.so) + `claude mcp add notion npx @anthropic-ai/notion-mcp` |
 
 ---

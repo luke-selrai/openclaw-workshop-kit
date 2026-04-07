@@ -42,21 +42,23 @@ export function hasCredentials(authDir: string = DEFAULT_AUTH_DIR): boolean {
   }
 }
 
-function maybeRestoreBackup(authDir: string): void {
+async function maybeRestoreBackup(authDir: string): Promise<void> {
   try {
     const cp = credsPath(authDir);
     const bp = credsBackupPath(authDir);
-    const raw = fs.existsSync(cp) ? fs.readFileSync(cp, "utf-8") : null;
+    let raw: string | null = null;
+    try { raw = await fsp.readFile(cp, "utf-8"); } catch {}
     if (raw && raw.length > 1) {
       JSON.parse(raw); // validate
       return;
     }
     // Try backup
-    if (!fs.existsSync(bp)) return;
-    const backup = fs.readFileSync(bp, "utf-8");
+    let backup: string | null = null;
+    try { backup = await fsp.readFile(bp, "utf-8"); } catch { return; }
+    if (!backup) return;
     JSON.parse(backup); // validate
-    fs.copyFileSync(bp, cp);
-    try { fs.chmodSync(cp, 0o600); } catch {}
+    await fsp.copyFile(bp, cp);
+    try { await fsp.chmod(cp, 0o600); } catch {}
     console.error("[whatsapp] Restored creds from backup");
   } catch {}
 }
@@ -89,6 +91,30 @@ function enqueueSave(authDir: string, saveCreds: () => Promise<void>): void {
   saveQueues.set(authDir, next);
 }
 
+// ── Baileys version cache ──────────────────────────────────────────
+// fetchLatestBaileysVersion() hits the network on every call.
+// Cache it for the lifetime of the process to avoid repeated slow lookups.
+let cachedVersion: [number, number, number] | null = null;
+const FALLBACK_VERSION: [number, number, number] = [2, 3000, 1015901307];
+
+async function getBaileysVersion(verbose?: boolean): Promise<[number, number, number]> {
+  if (cachedVersion) return cachedVersion;
+  try {
+    const result = await Promise.race([
+      fetchLatestBaileysVersion(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Version fetch timeout")), 5_000),
+      ),
+    ]);
+    cachedVersion = result.version;
+    return cachedVersion;
+  } catch (err) {
+    if (verbose) console.error("[whatsapp] Version fetch failed, using fallback:", String(err));
+    cachedVersion = FALLBACK_VERSION;
+    return cachedVersion;
+  }
+}
+
 // ── Socket creation ─────────────────────────────────────────────────
 export type QrCallback = (qr: string) => void;
 export type ConnectionCallback = (update: Partial<ConnectionState>) => void;
@@ -105,11 +131,15 @@ export async function createWhatsAppSocket(
   opts: CreateSocketOptions = {},
 ): Promise<WASocket> {
   const authDir = resolveAuthDir(opts.authDir);
-  await fsp.mkdir(authDir, { recursive: true });
-  maybeRestoreBackup(authDir);
 
-  const { state, saveCreds } = await useMultiFileAuthState(authDir);
-  const { version } = await fetchLatestBaileysVersion();
+  // Run auth dir creation, backup restore, auth state load, and version fetch in parallel
+  await fsp.mkdir(authDir, { recursive: true });
+  await maybeRestoreBackup(authDir);
+
+  const [{ state, saveCreds }, version] = await Promise.all([
+    useMultiFileAuthState(authDir),
+    getBaileysVersion(opts.verbose),
+  ]);
 
   // Baileys wants a pino-like logger; silence it unless verbose
   const logger = {
@@ -178,14 +208,32 @@ export async function createWhatsAppSocket(
 }
 
 // ── Wait for connection ─────────────────────────────────────────────
-export function waitForConnection(sock: WASocket): Promise<void> {
+const DEFAULT_CONNECT_TIMEOUT_MS = 60_000; // 60s — covers QR scan time
+
+export function waitForConnection(
+  sock: WASocket,
+  timeoutMs = DEFAULT_CONNECT_TIMEOUT_MS,
+): Promise<void> {
   return new Promise<void>((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      (sock.ev as any).off?.("connection.update", handler);
+      reject(new Error(`Connection timeout after ${timeoutMs / 1000}s`));
+    }, timeoutMs);
+
     const handler = (update: Partial<ConnectionState>) => {
+      if (settled) return;
       if (update.connection === "open") {
+        settled = true;
+        clearTimeout(timer);
         (sock.ev as any).off?.("connection.update", handler);
         resolve();
       }
       if (update.connection === "close") {
+        settled = true;
+        clearTimeout(timer);
         (sock.ev as any).off?.("connection.update", handler);
         reject(update.lastDisconnect?.error ?? new Error("Connection closed"));
       }

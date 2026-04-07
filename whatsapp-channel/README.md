@@ -7,7 +7,7 @@ A two-way WhatsApp channel for Claude Code sessions, built on [Baileys](https://
 - **QR Code Login** — scan with your phone to link (no Business API needed)
 - **Two-way messaging** — receive messages in Claude, Claude replies via WhatsApp
 - **Permission relay** — approve/deny Claude's tool use from WhatsApp
-- **Sender allowlist** — restrict who can message your Claude session
+- **Self-only by default** — only your linked phone can message Claude (add more numbers via config)
 - **Group chat support** — works in group chats with group metadata
 - **Reactions** — Claude can react to messages with emoji
 - **Deduplication** — prevents duplicate message processing
@@ -39,23 +39,27 @@ Copy the `.mcp.json` to your project or add to `~/.claude.json`:
       "command": "bun",
       "args": ["/full/path/to/whatsapp-channel/src/index.ts"],
       "env": {
-        "WA_ALLOW_FROM": "+1234567890,+0987654321",
-        "WA_VERBOSE": "0"
+        "WA_VERBOSE": "0",
+        "WA_AUTO_OPEN_QR": "0"
       }
     }
   }
 }
 ```
 
+> **Tip:** Keep `WA_AUTO_OPEN_QR` set to `"0"` in `.mcp.json` so the QR page doesn't auto-open when the server loads as a regular MCP server. Pass `WA_AUTO_OPEN_QR=1` as a shell env var when starting via the CLI (see step 3).
+
 ### 3. Start Claude Code with the channel
 
 ```bash
-claude --dangerously-load-development-channels server:whatsapp
+WA_AUTO_OPEN_QR=1 claude --dangerously-load-development-channels server:whatsapp
 ```
+
+> **Note:** `WA_AUTO_OPEN_QR=1` tells the server to automatically open the QR code page in your browser on first login. Without it, the QR page URL is logged but the browser won't open automatically. This prevents the QR page from popping up when the server is loaded as a regular MCP server (e.g. when opening Claude Code chat normally).
 
 ### 4. Scan the QR code
 
-A QR code will appear in the terminal. Open WhatsApp on your phone:
+A browser window will open with the QR code (if `WA_AUTO_OPEN_QR=1` is set). Open WhatsApp on your phone:
 1. Go to **Settings > Linked Devices**
 2. Tap **Link a Device**
 3. Scan the QR code
@@ -80,19 +84,24 @@ Claude reads it, acts on it, and replies back through WhatsApp.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `WA_ALLOW_FROM` | Comma-separated E.164 phone numbers to allow | `""` (allow all) |
+| `WA_ALLOW_FROM` | Additional E.164 phone numbers to allow (your own is always included) | `""` (self-only) |
 | `WA_AUTH_DIR` | Custom auth directory path | `~/.claude/whatsapp-channel/auth/` |
 | `WA_VERBOSE` | Enable verbose logging (`1` or `true`) | `0` |
+| `WA_AUTO_OPEN_QR` | Auto-open QR code page in browser when login is needed (`1` or `true`) | `0` |
 
 ### Sender Allowlist
 
-**Important for security**: without an allowlist, anyone who messages your linked WhatsApp number can interact with your Claude session.
+By default, **only your linked phone number** can message Claude (self-only mode). Your phone is auto-detected and added to the allowlist automatically — no configuration needed.
+
+To allow additional phone numbers (e.g. a second phone or a colleague):
 
 ```json
 "env": {
-  "WA_ALLOW_FROM": "+1234567890,+0987654321"
+  "WA_ALLOW_FROM": "+0987654321,+1122334455"
 }
 ```
+
+Your own number is always allowed, even if not listed in `WA_ALLOW_FROM`.
 
 ## Permission Relay
 
@@ -135,8 +144,8 @@ index.ts (MCP channel server) ──── stdio ──── Claude Code
 - Delete `~/.claude/whatsapp-channel/auth/` and restart
 
 ### Messages not arriving
-- Check `WA_ALLOW_FROM` — is the sender's number listed?
-- Run with `WA_VERBOSE=1` to see blocked messages
+- Only your linked phone is allowed by default. To allow others, add their numbers to `WA_ALLOW_FROM`
+- Run with `WA_VERBOSE=1` to see blocked messages in the debug log
 - Verify Claude Code started with `--dangerously-load-development-channels`
 
 ### Session expired

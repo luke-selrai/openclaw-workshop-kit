@@ -66,9 +66,9 @@ Your assistant can help you set this up — just ask in the Claude chat:
 
 ---
 
-### Set Up Phone Notifications (Telegram and/or WhatsApp)
+### Set Up Phone Notifications (Telegram, WhatsApp, or iMessage)
 
-This lets you chat with your assistant from your phone — ask questions, request tasks, and get replies wherever you are. You can set up one or both.
+This lets you chat with your assistant from your phone — ask questions, request tasks, and get replies wherever you are. Pick whichever app you already use.
 
 #### Telegram
 
@@ -91,6 +91,20 @@ Your assistant connects to WhatsApp via QR code — no Business API needed.
 **Step 2:** Tell your assistant: "I want to set up WhatsApp notifications"
 **Step 3:** Your assistant will show a QR code — scan it with WhatsApp (Settings > Linked Devices > Link a Device)
 **Step 4:** Once linked, your assistant can send you messages and you can reply directly from WhatsApp
+
+#### iMessage (Mac Only)
+
+If you're on a Mac, you can use iMessage instead — no extra apps, no bots, just text yourself.
+
+**Step 1:** Install Bun (required): `curl -fsSL https://bun.sh/install | bash`
+**Step 2:** Grant Full Disk Access to your terminal (System Settings → Privacy & Security → Full Disk Access)
+**Step 3:** In the VS Code terminal, run: `claude plugin install imessage@claude-plugins-official`
+**Step 4:** Restart Claude Code with: `claude --channels plugin:imessage@claude-plugins-official`
+**Step 5:** Open Messages and text yourself — your assistant replies instantly
+
+> The first reply triggers a macOS prompt: "Terminal wants to control Messages." Click **OK** to allow replies.
+
+> For the full guide with troubleshooting, see [IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
 
 ---
 

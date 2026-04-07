@@ -131,25 +131,27 @@ function createHandler() {
   };
 }
 
+const MAX_PORT_RETRIES = 5;
+
 export function startQrServer(): Promise<number> {
   return new Promise((resolve, reject) => {
-    server = http.createServer(createHandler());
+    let attempt = 0;
 
-    server.listen(QR_PORT, "0.0.0.0", () => {
-      resolve(QR_PORT);
-    });
+    function tryPort(port: number): void {
+      server = http.createServer(createHandler());
+      server.listen(port, "0.0.0.0", () => resolve(port));
+      server.on("error", (err: NodeJS.ErrnoException) => {
+        if (err.code === "EADDRINUSE" && attempt < MAX_PORT_RETRIES) {
+          server?.close();
+          attempt++;
+          tryPort(port + 1);
+        } else {
+          reject(err);
+        }
+      });
+    }
 
-    server.on("error", (err: NodeJS.ErrnoException) => {
-      if (err.code === "EADDRINUSE") {
-        server?.close();
-        server = http.createServer(createHandler());
-        server.listen(QR_PORT + 1, "0.0.0.0", () => {
-          resolve(QR_PORT + 1);
-        });
-      } else {
-        reject(err);
-      }
-    });
+    tryPort(QR_PORT);
   });
 }
 
