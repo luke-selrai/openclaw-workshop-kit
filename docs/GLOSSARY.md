@@ -80,4 +80,4 @@ A way for one app to notify another app when something happens. "When a new lead
 
 ---
 
-*OpenClaw Workshop — selrai.com.au*
+*Claude Code Workshop — selrai.com.au*

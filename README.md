@@ -1,4 +1,4 @@
-# OpenClaw Workshop — AI Business Assistant Kit
+# Claude Code Workshop — AI Business Assistant Kit
 
 **Built by Selr AI — [selrai.com.au](https://selrai.com.au)**
 
@@ -278,4 +278,4 @@ See [DEVELOPER.md](DEVELOPER.md).
 - Selr AI: [selrai.com.au](https://selrai.com.au)
 ---
 
-OpenClaw Workshop Kit — Built by Selr AI
+Claude Code Workshop Kit — Built by Selr AI

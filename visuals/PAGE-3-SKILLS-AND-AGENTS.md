@@ -195,4 +195,4 @@ LEVEL 4 (Selr AI can build this for you)
 
 ---
 
-*OpenClaw Workshop — selrai.com.au*
+*Claude Code Workshop — selrai.com.au*

@@ -1,6 +1,6 @@
-# Developer Notes — OpenClaw Workshop Kit
+# Developer Notes — Claude Workshop Kit
 
-**Repo:** https://github.com/luke-selrai/openclaw-workshop-kit
+**Repo:** https://github.com/luke-selrai/claude-workshop-kit
 **Contact:** Workshop facilitator — see your team contacts
 **Workshop:** [DATE TBD], non-technical business owners, 3 hours
 
@@ -19,7 +19,7 @@ A self-installing AI business assistant kit. Non-technical business owners:
 ## Repo Structure
 
 ```
-openclaw-workshop-kit/
+claude-workshop-kit/
 ├── README.md                        # End-user quickstart
 │
 ├── my-assistant/                    # THIS is what gets copied to ~/my-assistant/
@@ -29,7 +29,7 @@ openclaw-workshop-kit/
 │       ├── SETUP.md                 # Setup status tracker
 │       └── MEMORY.md               # Persistent memory across conversations
 │
-├── skills/                          # 86 bundled business skills
+├── skills/                          # 87+ bundled business skills
 │   ├── [25 CORE skills]             # Surfaced to all attendees via skills-discovery
 │   ├── [~61 ADVANCED skills]        # Available on request
 │   └── [8 DEVELOPER-ONLY skills]    # For web app / technical integration use cases

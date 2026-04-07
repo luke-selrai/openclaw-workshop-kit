@@ -228,4 +228,4 @@ You can talk to your AI assistant instead of typing, using tools like Wispr Flow
 
 ---
 
-*Built for the OpenClaw Workshop by Selr AI — selrai.com.au*
+*Built for the Claude Code Workshop by Selr AI — selrai.com.au*

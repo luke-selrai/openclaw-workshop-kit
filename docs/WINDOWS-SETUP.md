@@ -1,6 +1,6 @@
 # Windows Setup Guide — Install Git for Windows
 
-**For Windows users attending the OpenClaw Workshop**
+**For Windows users attending the Claude Code Workshop**
 
 This is the one extra step Windows users need to complete before the workshop. It takes about 5 minutes, plus a restart.
 
@@ -83,4 +83,4 @@ Email **luke@selrai.com.au** before the workshop if anything does not work.
 
 ---
 
-*OpenClaw Workshop — selrai.com.au*
+*Claude Code Workshop — selrai.com.au*

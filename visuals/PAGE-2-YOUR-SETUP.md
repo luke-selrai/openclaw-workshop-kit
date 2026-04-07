@@ -143,4 +143,4 @@ Every session after that, it already knows who you are. No re-explaining needed.
 
 ---
 
-*OpenClaw Workshop — selrai.com.au*
+*Claude Code Workshop — selrai.com.au*
