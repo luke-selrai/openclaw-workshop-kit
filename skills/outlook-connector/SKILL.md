@@ -1,7 +1,7 @@
 ---
 name: outlook-connector
 description: Install and operate the Microsoft Outlook & 365 connector. Use this skill when the user asks to set up Outlook, connect Microsoft 365, or interact with emails, calendar, OneDrive, Teams, SharePoint, OneNote, Excel, Contacts, or To Do. Handles full installation and uses Playwright for any browser-based steps.
-allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__browser_navigate,mcp__plugin_playwright_playwright__browser_snapshot,mcp__plugin_playwright_playwright__browser_click,mcp__plugin_playwright_playwright__browser_type,mcp__plugin_playwright_playwright__browser_take_screenshot
+allowed-tools: Bash,Read,Write,Edit,mcp__playwright__browser_navigate,mcp__playwright__browser_snapshot,mcp__playwright__browser_click,mcp__playwright__browser_type,mcp__playwright__browser_take_screenshot
 metadata:
   category: Productivity & Integrations
   tags:
@@ -78,40 +78,52 @@ m365 setup
 
 **This opens a browser.** The user signs in and clicks Accept/Allow. Wait for the success message (shows `clientId` and `tenantId`) before proceeding.
 
+> **Save the `clientId`** — you will need it in Step 4b. If you lose it, retrieve it later with:
+> ```bash
+> m365 status --output json
+> ```
+> The `appId` field is your `clientId`.
+
 If you see `admin consent required` — the user's IT admin needs to approve the app at:
 `https://entra.microsoft.com` → Enterprise Applications → Grant admin consent
 
 ### Step 4b: Upgrade calendar permission
 
-The default app registers `Calendars.Read` (read-only). To create/update events, upgrade to `Calendars.ReadWrite`:
+The default app registers `Calendars.Read` (read-only). To create/update events, upgrade to `Calendars.ReadWrite`.
+
+> **Tip:** The user can just say "Upgrade my Outlook calendar permission to read-write" and the assistant will run these commands automatically.
 
 ```bash
-# Get the app's clientId from m365 status
-APP_ID=$(m365 status --output json | python3 -c "import json,sys; print(json.load(sys.stdin)['appId'])")
+# 1. Get the app's clientId from m365 status (or use the saved value from Step 4)
+APP_ID=$(m365 status --output json | python3 -c "import json,sys; print(json.load(sys.stdin)['connectedAs'].split('@')[0] if False else json.load(sys.stdin)['appId'])")
+echo "Using app: $APP_ID"
 
-# Add the permission to the app registration
+# 2. Add Calendars.ReadWrite permission to the app registration
 m365 entra app permission add --appId "$APP_ID" \
   --delegatedPermissions "https://graph.microsoft.com/Calendars.ReadWrite" \
   --grantAdminConsent
 
-# Get the service principal object ID
+# 3. Get the service principal object ID
 SP_ID=$(m365 entra enterpriseapp list --output json \
-  --query "[?appId=='$APP_ID'].id" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['id'])")
+  --query "[?appId=='$APP_ID'].id" | python3 -c "import json,sys; print(json.load(sys.stdin)[0])")
+echo "Service principal: $SP_ID"
 
-# Find the Graph API grant and update the scope (replace Calendars.Read with Calendars.ReadWrite)
-m365 entra oauth2grant list --spObjectId "$SP_ID" --output json | python3 -c "
+# 4. Find the Graph API grant and update scope in one step
+eval $(m365 entra oauth2grant list --spObjectId "$SP_ID" --output json | python3 -c "
 import json, sys
 grants = json.load(sys.stdin)
 for g in grants:
-    if '00000003-0000-0000-c000-000000000000' in json.dumps(g) or 'Calendars' in g.get('scope',''):
-        scope = g['scope'].replace('Calendars.Read ', 'Calendars.ReadWrite ')
-        print(f'GRANT_ID={g[\"id\"]}')
-        print(f'SCOPE={scope}')
-"
-# Then run:
-m365 entra oauth2grant set --grantId "<GRANT_ID>" --scope "<SCOPE>"
+    if 'Calendars' in g.get('scope', ''):
+        scope = g['scope'].replace('Calendars.Read', 'Calendars.ReadWrite')
+        print(f'export GRANT_ID=\"{g[\"id\"]}\"')
+        print(f'export SCOPE=\"{scope}\"')
+        break
+")
 
-# Re-login to pick up the new permission
+# 5. Apply the updated scope
+m365 entra oauth2grant set --grantId "$GRANT_ID" --scope "$SCOPE"
+
+# 6. Re-login to pick up the new permission
 m365 logout && m365 login --authType browser
 ```
 

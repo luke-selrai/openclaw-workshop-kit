@@ -82,6 +82,12 @@ A browser window will open. Sign in with your Microsoft account and click **Acce
 
 When it finishes you should see a `clientId` and `tenantId` in the output — that means it worked.
 
+> **Save the `clientId` value** — you may need it later. If you lose it, you can always retrieve it by running:
+> ```
+> m365 status
+> ```
+> The `appId` shown is your `clientId`.
+
 > If you see any errors during setup, contact your workshop facilitator.
 
 ---
@@ -108,41 +114,22 @@ A browser window will open:
 
 ## Step 4 — Add Calendar Write Permission
 
-The default app has read-only calendar access. To create and update events, run these commands:
+The default app has read-only calendar access. To create and update events, you need to upgrade the permission.
 
-```bash
-# 1. Get your app's service principal ID
-m365 entra enterpriseapp list --output json --query "[?appId=='<YOUR_APP_ID>'].{id:id}"
+**Easiest way — ask your assistant:**
+
+> "Upgrade my Outlook calendar permission to read-write."
+
+Your assistant will run the necessary commands automatically. Once done, it will sign you out and back in to apply the change.
+
+**After the upgrade**, re-sign in if your assistant hasn't already:
+
 ```
-
-Replace `<YOUR_APP_ID>` with the `clientId` from Step 2. Copy the `id` value, then:
-
-```bash
-# 2. Add Calendars.ReadWrite to the app registration
-m365 entra app permission add \
-  --appId <YOUR_APP_ID> \
-  --delegatedPermissions "https://graph.microsoft.com/Calendars.ReadWrite" \
-  --grantAdminConsent
-
-# 3. List the current Graph API grant to get the grantId
-m365 entra oauth2grant list --spObjectId <SERVICE_PRINCIPAL_ID> --output json
-```
-
-Find the grant where `resourceId` matches your Microsoft Graph service principal. Copy the `id` value, then update the scope — replace `Calendars.Read` with `Calendars.ReadWrite`:
-
-```bash
-# 4. Update the OAuth2 grant scope
-m365 entra oauth2grant set --grantId "<GRANT_ID>" --scope "<FULL_SCOPE_STRING_WITH_Calendars.ReadWrite>"
-```
-
-Finally, re-login to pick up the new permission:
-
-```bash
 m365 logout
 m365 login --authType browser
 ```
 
-> **Tip:** Your assistant can do all of this for you. Just say: "Upgrade my Outlook calendar permission to read-write."
+> **Manual method:** If you prefer to run the commands yourself, see the [Appendix](#appendix--manual-calendar-permission-upgrade) at the bottom of this page.
 
 ---
 
@@ -239,6 +226,38 @@ If your Outlook is managed by your employer, some features (Teams, SharePoint) m
 ## Playwright Fallback
 
 If any Outlook feature is unavailable through the CLI, your assistant can use its built-in browser automation (Playwright) to access Outlook Web directly. Just ask normally — for example, "Open my Outlook and check the email from last week" — and the assistant will use the browser if the CLI cannot handle it.
+
+---
+
+## Appendix — Manual Calendar Permission Upgrade
+
+If you prefer to run the calendar upgrade commands yourself instead of asking your assistant:
+
+```bash
+# 1. Get your app's clientId (if you didn't save it from Step 2)
+m365 status
+
+# 2. Add Calendars.ReadWrite to the app registration
+m365 entra app permission add \
+  --appId <YOUR_CLIENT_ID> \
+  --delegatedPermissions "https://graph.microsoft.com/Calendars.ReadWrite" \
+  --grantAdminConsent
+
+# 3. Get the service principal object ID
+m365 entra enterpriseapp list --output json --query "[?appId=='<YOUR_CLIENT_ID>'].{id:id}"
+
+# 4. List the current Graph API grant to get the grantId
+m365 entra oauth2grant list --spObjectId <SERVICE_PRINCIPAL_ID> --output json
+
+# 5. Update the OAuth2 grant scope (replace Calendars.Read with Calendars.ReadWrite in the full scope string)
+m365 entra oauth2grant set --grantId "<GRANT_ID>" --scope "<FULL_SCOPE_STRING_WITH_Calendars.ReadWrite>"
+
+# 6. Re-login to pick up the new permission
+m365 logout
+m365 login --authType browser
+```
+
+Replace `<YOUR_CLIENT_ID>` with the `appId` from `m365 status`, `<SERVICE_PRINCIPAL_ID>` with the `id` from step 3, and `<GRANT_ID>` and scope from step 4.
 
 ---
 
