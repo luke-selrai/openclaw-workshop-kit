@@ -298,16 +298,34 @@ npm install -g @pnp/cli-microsoft365
 
 After install, verify: `m365 --version` — should show a version number.
 
-**Step 2 — Set up your Microsoft connection (one-time):**
+**Step 2 — Register the Microsoft app (one-time):**
+
+First, detect whether we are on a desktop or a headless server:
+
+```bash
+echo $DISPLAY
+```
+
+**Desktop (has a display):**
 
 ```
-m365 setup --interactive
+m365 setup
 ```
 
-A browser window will open — follow the steps and click Allow when asked.
-If setup errors or freezes: close and reopen the terminal and try again. If it keeps failing, contact your workshop facilitator.
+> **Do NOT use `m365 setup --interactive`** — that only configures CLI settings and skips app registration.
+
+A browser window will open — follow the steps and click Allow when asked. When it finishes you will see a `clientId` and `tenantId` — that means it worked.
+
+**Headless server (no display):**
+
+The app registration (`m365 setup`) must be done once from a machine with a browser (the user's laptop). It is a per-tenant operation — once the Entra app exists, the server can use it.
+
+If the user has already run `m365 setup` on their laptop, skip to Step 3. If not, tell them:
+> "This one step needs to be done on your laptop first. Open a terminal on your laptop and run: `m365 setup` — sign in when the browser opens. Once you see a clientId in the output, come back here."
 
 **Step 3 — Sign in to Microsoft:**
+
+**Desktop:**
 
 ```
 m365 login --authType browser
@@ -315,19 +333,64 @@ m365 login --authType browser
 
 A browser window will open — sign in with your Microsoft account and click Allow.
 
-> If the browser does not open, use the device code method instead:
-> ```
-> m365 login
-> ```
-> Go to `https://aka.ms/devicelogin`, enter the code shown, and sign in.
+**Headless server (no display) — use device code:**
 
-**Step 4 — Verify it works:**
+```
+m365 login
+```
+
+This shows a short code and a URL. Say:
+> "Open this link on your phone or laptop browser: https://aka.ms/devicelogin — enter the code shown, and sign in with your Microsoft account."
+
+Wait for the user to confirm they signed in, then verify with `m365 status`.
+
+**Step 4 — Upgrade calendar permission:**
+
+The default app has read-only calendar access (`Calendars.Read`). To create and update events, upgrade to `Calendars.ReadWrite`:
+
+```bash
+# Get app ID from current session
+APP_ID=$(m365 status --output json | python3 -c "import json,sys; print(json.load(sys.stdin)['appId'])")
+
+# Add the write permission
+m365 entra app permission add --appId "$APP_ID" \
+  --delegatedPermissions "https://graph.microsoft.com/Calendars.ReadWrite" \
+  --grantAdminConsent
+
+# Get the service principal ID
+SP_ID=$(m365 entra enterpriseapp list --output json \
+  --query "[?appId=='$APP_ID'].id" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['id'])")
+
+# Update the OAuth2 grant scope (replace Calendars.Read with Calendars.ReadWrite)
+m365 entra oauth2grant list --spObjectId "$SP_ID" --output json | python3 -c "
+import json, sys
+grants = json.load(sys.stdin)
+for g in grants:
+    if 'Calendars' in g.get('scope',''):
+        scope = g['scope'].replace('Calendars.Read ', 'Calendars.ReadWrite ')
+        print(g['id'])
+        print(scope)
+" | { read GRANT_ID; read SCOPE; m365 entra oauth2grant set --grantId "$GRANT_ID" --scope "$SCOPE"; }
+
+# Re-login to pick up the new permission
+m365 logout
+```
+
+Then sign in again (browser or device code, depending on desktop/server — same as Step 3).
+
+**Step 5 — Verify it works:**
 
 ```
 m365 outlook mail list
 ```
 
 If it shows emails, say: "Microsoft 365 is connected. I can now read and send your Outlook emails, manage your calendar, access OneDrive, Excel, Teams, SharePoint, and OneNote."
+
+To test calendar (uses Graph API — no built-in calendar command in the CLI):
+
+```bash
+m365 request --url "https://graph.microsoft.com/v1.0/me/events?\$top=5" --method get
+```
 
 > For the full setup guide with troubleshooting, see `~/workshop-kit/docs/OUTLOOK-SETUP.md`
 
@@ -699,6 +762,10 @@ Common fixes:
 - Claude login not working → `claude logout` then `claude login`
 - Playwright not working → `npm install -g @playwright/mcp` then re-add
 - Google wrong account → `gws auth logout` then `gws auth login`
+- M365 not found → `export PATH="$(npm prefix -g)/bin:$PATH"` then retry
+- M365 wrong account → `m365 logout` then `m365 login --authType browser` (desktop) or `m365 login` (server)
+- M365 calendar 403 → permission needs upgrade from Calendars.Read to Calendars.ReadWrite (see Tool Step 4)
+- M365 setup on server → must run `m365 setup` on a laptop first (one-time per tenant), then server uses device code login
 
 ---
 
@@ -722,6 +789,7 @@ Common fixes:
 - Full setup guide: `~/workshop-kit/docs/FULL-SETUP-PAGE.md`
 - Telegram setup: `~/workshop-kit/docs/TELEGRAM-SETUP.md`
 - Google Workspace setup: `~/workshop-kit/docs/GOOGLE-WORKSPACE-SETUP.md`
+- Outlook & M365 setup: `~/workshop-kit/docs/OUTLOOK-SETUP.md`
 
 ---
 

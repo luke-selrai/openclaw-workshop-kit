@@ -191,15 +191,15 @@ echo ""
 # ------------------------------------------------
 # STEP 3  -- Set up app connection  (one-time)
 # ------------------------------------------------
-echo "[3/5] Setting up your Microsoft connection..."
+echo "[3/5] Registering your Microsoft app..."
 echo "  A browser window will open. Sign in with your Microsoft account"
 echo "  and click Accept when asked to approve the connection."
-echo "  (This links the Selr AI workshop app to your account -- one time only.)"
+echo "  (This registers a custom Entra app in your tenant -- one time only.)"
 echo ""
 echo "  If no browser opens, a URL will appear -- paste it into any browser."
 echo ""
 
-if ! m365 setup --interactive; then
+if ! m365 setup; then
     echo ""
     echo "  Setup did not complete. Possible causes:"
     echo "  - Browser was closed before approving"
@@ -210,7 +210,7 @@ if ! m365 setup --interactive; then
     echo "    https://entra.microsoft.com > Enterprise Applications > Grant admin consent"
     echo ""
     echo "  To retry just this step:"
-    echo "    m365 setup --interactive"
+    echo "    m365 setup"
     echo ""
     exit 1
 fi
