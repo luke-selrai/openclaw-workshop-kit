@@ -17,8 +17,15 @@ This guide walks you through connecting Telegram to Claude Code so your assistan
 - Bun installed (check by typing `bun --version` in the command window)
 
 > If you don't have Bun installed, run this in your terminal:
+>
+> **Mac/Linux:**
 > ```
 > curl -fsSL https://bun.sh/install | bash
+> ```
+>
+> **Windows (PowerShell):**
+> ```
+> powershell -c "irm bun.sh/install.ps1 | iex"
 > ```
 > Then close and reopen your terminal.
 
@@ -48,14 +55,14 @@ Telegram lets anyone create a bot for free. You do this by talking to a special 
 
 ## Part B — Install the Telegram Plugin
 
-These are Claude Code commands — you need to have Claude Code running.
+This is a terminal command — run it in the VS Code terminal (not inside the Claude chat).
 
 **Step 1 — Install the Plugin**
 
-Type this in the Claude Code chat:
+Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run:
 
 ```
-/plugin install telegram@claude-plugins-official
+claude plugin install telegram@claude-plugins-official
 ```
 
 **Step 2 — Save Your Bot Token**

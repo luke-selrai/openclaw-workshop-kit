@@ -325,14 +325,63 @@ async function main() {
       console.error(`[whatsapp-channel] Linked to: ${waMonitor.selfPhone}`);
     }
 
-    // Wait for disconnection
-    const closeReason = await waMonitor.onClose;
-    console.error("[whatsapp-channel] Monitor stopped:", JSON.stringify(closeReason));
+    // Auto-reconnect loop: when the connection drops, reconnect instead of exiting.
+    // Only exit permanently if the user logged out (removed the linked device).
+    const MAX_RECONNECTS = 10;
+    const RECONNECT_DELAY_MS = 5000;
+    let reconnectCount = 0;
 
-    if (closeReason.isLoggedOut) {
-      process.exit(1);
+    while (true) {
+      const closeReason = await waMonitor.onClose;
+      console.error("[whatsapp-channel] Connection closed:", JSON.stringify(closeReason));
+
+      if (closeReason.isLoggedOut) {
+        console.error("[whatsapp-channel] Logged out. Restart to re-authenticate.");
+        process.exit(1);
+      }
+
+      reconnectCount++;
+      if (reconnectCount > MAX_RECONNECTS) {
+        console.error(`[whatsapp-channel] Exceeded ${MAX_RECONNECTS} reconnect attempts. Exiting.`);
+        process.exit(1);
+      }
+
+      console.error(`[whatsapp-channel] Reconnecting in ${RECONNECT_DELAY_MS / 1000}s (attempt ${reconnectCount}/${MAX_RECONNECTS})...`);
+      await new Promise((r) => setTimeout(r, RECONNECT_DELAY_MS));
+
+      try {
+        await waMonitor.close();
+      } catch {}
+
+      try {
+        waMonitor = await monitorWhatsApp({
+          authDir: AUTH_DIR,
+          verbose: VERBOSE,
+          allowFrom: ALLOW_FROM,
+          onMessage: handleInboundMessage,
+          onQr: (qr) => {
+            updateQr(qr).catch(() => {});
+          },
+          onConnected: () => {
+            reconnectCount = 0;
+            console.error("[whatsapp-channel] Reconnected to WhatsApp!");
+            mcp.notification({
+              method: "notifications/claude/channel",
+              params: {
+                content: "WhatsApp reconnected after a brief disconnection. Listening for messages again.",
+                meta: { type: "system", action: "reconnected" },
+              },
+            }).catch(() => {});
+          },
+          onClose: (reason) => {
+            console.error("[whatsapp-channel] Connection closed:", JSON.stringify(reason));
+          },
+        });
+        console.error("[whatsapp-channel] Reconnected. Listening for messages...");
+      } catch (err) {
+        console.error("[whatsapp-channel] Reconnect failed:", String(err));
+      }
     }
-    process.exit(1);
   } catch (err) {
     console.error("[whatsapp-channel] Failed to start:", String(err));
     process.exit(1);
