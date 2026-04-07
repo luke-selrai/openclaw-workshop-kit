@@ -1,7 +1,7 @@
 ---
 name: outlook-connector
 description: Install and operate the Microsoft Outlook & 365 connector. Use this skill when the user asks to set up Outlook, connect Microsoft 365, or interact with emails, calendar, OneDrive, Teams, SharePoint, OneNote, Excel, Contacts, or To Do. Handles full installation and uses Playwright for any browser-based steps.
-allowed-tools: Bash,Read,Write,Edit,mcp__playwright__browser_navigate,mcp__playwright__browser_snapshot,mcp__playwright__browser_click,mcp__playwright__browser_type,mcp__playwright__browser_take_screenshot
+allowed-tools: Bash,Read,Write,Edit,mcp__playwright__*,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
   tags:
@@ -95,7 +95,7 @@ The default app registers `Calendars.Read` (read-only). To create/update events,
 
 ```bash
 # 1. Get the app's clientId from m365 status (or use the saved value from Step 4)
-APP_ID=$(m365 status --output json | python3 -c "import json,sys; print(json.load(sys.stdin)['connectedAs'].split('@')[0] if False else json.load(sys.stdin)['appId'])")
+APP_ID=$(m365 status --output json | python3 -c "import json,sys; print(json.load(sys.stdin)['appId'])")
 echo "Using app: $APP_ID"
 
 # 2. Add Calendars.ReadWrite permission to the app registration
@@ -105,7 +105,7 @@ m365 entra app permission add --appId "$APP_ID" \
 
 # 3. Get the service principal object ID
 SP_ID=$(m365 entra enterpriseapp list --output json \
-  --query "[?appId=='$APP_ID'].id" | python3 -c "import json,sys; print(json.load(sys.stdin)[0])")
+  --query "[?appId=='$APP_ID'].id" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d[0]['id'] if isinstance(d[0],dict) else d[0])")
 echo "Service principal: $SP_ID"
 
 # 4. Find the Graph API grant and update scope in one step
