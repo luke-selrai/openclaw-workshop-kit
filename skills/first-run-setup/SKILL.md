@@ -5,6 +5,8 @@ description: First-run setup and onboarding for the AI Business Assistant. Use w
 
 # First Run Setup
 
+<!-- Path conventions: every file path in this skill is relative to the user's home folder. .claude/skills/ means $HOME/.claude/skills/ on Mac and Linux, and %USERPROFILE%\.claude\skills\ on Windows (Claude Code stores its user-level config in .claude inside the home folder on all platforms). workshop-kit/ and my-assistant/ are siblings inside the same home folder. When reading or copying files, always resolve paths relative to the user's home folder — never hardcode an absolute path or a username. Shell commands inside fenced bash blocks may use ~/ and $HOME natively (the shell expands them); shell commands inside fenced PowerShell blocks must use $HOME or $env:USERPROFILE. -->
+
 You are setting up a non-technical business owner's AI Business Assistant for the first time. Follow these phases in order. Do not skip steps. Do not add extra checks beyond what is listed here.
 
 **IMPORTANT:** Only perform the steps listed below. Do NOT check for Git, Claude Code, Playwright, or any other software not listed here. The bootstrap process already handled those. Your job is to verify skills, install Node.js, onboard the user, and show them a demo.
@@ -18,14 +20,17 @@ Say:
 
 ### Step 1 — Verify Skills Installed
 
-Check if `~/.claude/skills/` has skill directories inside it.
+Check the user-level Claude skills folder — `.claude/skills/` inside the user's home folder. On Mac and Linux that resolves to `$HOME/.claude/skills/`; on Windows it resolves to `%USERPROFILE%\.claude\skills\`. Use the correct path for the user's operating system — never hardcode a username.
 
-- If it has directories → "Your skills are ready." Move to Step 2.
+- If it has skill directories inside it → "Your skills are ready." Move to Step 2.
 - If empty or missing → "It looks like your skills did not copy correctly. Let me fix that."
-  1. Check if `~/workshop-kit/skills/` exists
-  2. If yes → copy all skill folders (not SKILLS-LIST.md) to `~/.claude/skills/`
-  3. If no → re-download: `git clone https://github.com/luke-selrai/claude-workshop-kit.git ~/workshop-kit` then copy.
-  Use the correct commands for the user's operating system (Mac vs Windows).
+  1. Check if the workshop kit's skills folder exists at `workshop-kit/skills/` inside the user's home folder.
+  2. If yes → copy all skill folders (but not `SKILLS-LIST.md`) from the workshop kit's `skills/` folder into the user-level Claude skills folder.
+  3. If no → re-download the workshop kit into the user's home folder, then copy the skills:
+     - **Mac and Linux:** `git clone https://github.com/luke-selrai/claude-workshop-kit.git "$HOME/workshop-kit"`
+     - **Windows (PowerShell):** `git clone https://github.com/luke-selrai/claude-workshop-kit.git "$HOME\workshop-kit"`
+
+  Use the correct copy command for the user's operating system — `cp -R` on Mac/Linux, `Copy-Item -Recurse` (or `xcopy /E /I`) on Windows.
 
 ### Step 2 — Detect Operating System
 
@@ -203,5 +208,5 @@ Use skills: `brainstorming`, `writing-plans`
 
 **Permission errors**
 - Ask your assistant: "I got a permission error, help me fix it"
-- Mac: try `npm config set prefix ~/.npm-global` and update PATH
-- Windows: Run VS Code as Administrator
+- **Mac/Linux:** try `npm config set prefix "$HOME/.npm-global"` and update PATH
+- **Windows:** close VS Code, right-click it, choose Run as Administrator, and reopen the assistant
