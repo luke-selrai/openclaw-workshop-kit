@@ -1,6 +1,6 @@
 ---
 name: first-run-setup
-description: First-run setup and onboarding for the AI Business Assistant. Use when setup_complete is false in memory, when skills are missing, when the user says "my setup is broken", "fix my install", or "re-run setup".
+description: First-run setup and onboarding for the AI Business Assistant. Verifies skills, installs dependencies, onboards the user, and runs a demo.
 ---
 
 # First Run Setup

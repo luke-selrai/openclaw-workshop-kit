@@ -1,9 +1,6 @@
 ---
 name: logging-observability
-description: 'Structured logging, distributed tracing, and metrics for production applications. [What: OpenTelemetry setup, log level strategy, correlation IDs, SLI/SLO alerting thresholds, Grafana dashboard
-  design, PagerDuty integration] [When: setting up production logging, adding observability to a service, debugging distributed systems, designing alerting, implementing traces/metrics/logs] [Keywords:
-  logging, observability, OpenTelemetry, OTel, structured logs, distributed tracing, correlation ID, metrics, Grafana, Prometheus, PagerDuty, Winston, Pino, structlog, log levels, SLI, SLO, alerting] NOT
-  for application performance profiling (use a profiler), load testing, or database query optimization.'
+description: 'Structured logging, distributed tracing, and metrics for production applications using OpenTelemetry, Grafana, and Prometheus. Covers log strategy, correlation IDs, and SLI/SLO alerting.'
 allowed-tools: Read,Write,Edit,Bash(npm:*,npx:*,pip:*,docker:*)
 argument-hint: '[service description] [stack: node|python|go|java] [current problem: no-logging|no-tracing|alert-fatigue|pii-leak]'
 metadata:

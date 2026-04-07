@@ -1,7 +1,6 @@
 ---
 name: supabase-admin
-description: Supabase administration, RLS policies, migrations, and schema design. Use for database architecture, Row Level Security, performance tuning, auth integration. Activate on "Supabase", "RLS",
-  "migration", "policy", "schema", "auth.uid()". NOT for Supabase Auth UI configuration (use dashboard), edge functions (use cloudflare-worker-dev), or general SQL without Supabase context.
+description: Supabase administration including database schema design, Row Level Security policies, migrations, performance tuning, and auth integration.
 allowed-tools:
 - Read
 - Write

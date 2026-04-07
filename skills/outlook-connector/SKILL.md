@@ -1,6 +1,6 @@
 ---
 name: outlook-connector
-description: Install and operate the Microsoft Outlook & 365 connector. Use this skill when the user asks to set up Outlook, connect Microsoft 365, or interact with emails, calendar, OneDrive, Teams, SharePoint, OneNote, Excel, Contacts, or To Do. Handles full installation and uses Playwright for any browser-based steps.
+description: Installs and operates the Microsoft Outlook and 365 connector for emails, calendar, OneDrive, Teams, SharePoint, OneNote, Excel, Contacts, and To Do.
 allowed-tools: Bash,Read,Write,Edit,mcp__Claude_in_Chrome__navigate,mcp__Claude_in_Chrome__computer,mcp__Claude_in_Chrome__get_page_text,mcp__Claude_in_Chrome__find,mcp__Claude_in_Chrome__javascript_tool
 metadata:
   category: Productivity & Integrations

@@ -1,8 +1,6 @@
 ---
 name: task-decomposer
-description: Breaks natural-language problem descriptions into sub-tasks suitable for DAG nodes. The entry point of the meta-DAG. Identifies phases, dependencies, parallelization opportunities, and vague/pluripotent
-  nodes that can't yet be specified. Uses domain meta-skills when available. Activate on "decompose task", "break down problem", "plan workflow", "what are the steps", "sub-tasks", "task breakdown". NOT
-  for executing the decomposed tasks (use dag-runtime), building the DAG structure (use dag-planner), or matching skills to nodes (use dag-skills-matcher).
+description: Breaks natural-language problem descriptions into sub-tasks suitable for DAG nodes. Identifies phases, dependencies, parallelization opportunities, and underspecified steps.
 allowed-tools: Read,Grep,Glob
 argument-hint: '[problem-description]'
 metadata:

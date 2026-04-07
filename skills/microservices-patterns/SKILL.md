@@ -1,8 +1,6 @@
 ---
 name: microservices-patterns
-description: Microservice architecture patterns — service decomposition, inter-service communication, API gateway, saga pattern, event-driven architecture, service mesh, circuit breaker, CQRS, event sourcing.
-  Activate on "microservices", "service decomposition", "saga pattern", "API gateway", "event-driven", "service mesh", "circuit breaker", "CQRS", "event sourcing", "bounded context", "strangler fig", "distributed
-  transactions", "choreography vs orchestration". NOT for monolith design, serverless functions, or Kubernetes infrastructure.
+description: Microservice architecture patterns including service decomposition, saga pattern, API gateway, event-driven architecture, CQRS, event sourcing, and circuit breaker.
 allowed-tools: Read,Write,Edit,Bash,Grep,Glob
 metadata:
   category: DevOps & Site Reliability

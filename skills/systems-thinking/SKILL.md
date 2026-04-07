@@ -1,7 +1,6 @@
 ---
 name: systems-thinking
-description: Analyze complex systems through stocks, flows, and feedback loops to find high-leverage interventions. For organizational, environmental, social, and technical systems exhibiting circular causality.
-  NOT for linear problems or simple cause-effect chains.
+description: Analyze complex systems through stocks, flows, and feedback loops to find high-leverage interventions in organizational, environmental, social, and technical systems.
 allowed-tools: Read
 metadata:
   tags:

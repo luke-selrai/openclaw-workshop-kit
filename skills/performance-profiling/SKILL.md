@@ -1,8 +1,6 @@
 ---
 name: performance-profiling
-description: Application performance profiling and bottleneck identification — Node.js profiling, Chrome DevTools, flame graphs, memory leak detection, CPU profiling, React rendering performance. Activate
-  on "profiling", "performance bottleneck", "flame graph", "memory leak", "slow app", "CPU profiling", "heap snapshot", "React re-renders", "EXPLAIN ANALYZE", "event loop lag", "clinic.js", "Core Web Vitals".
-  NOT for infrastructure monitoring or observability (use logging-observability), load testing (use a load-testing skill), or database schema optimization.
+description: Application performance profiling and bottleneck identification using flame graphs, CPU/memory profiling, Chrome DevTools, and React render analysis. Finds and diagnoses slow code paths.
 allowed-tools: Read,Write,Edit,Bash,Grep,Glob
 metadata:
   category: DevOps & Site Reliability

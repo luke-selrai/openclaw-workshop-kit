@@ -1,12 +1,6 @@
 ---
 name: skill-creator
-description: This skill should be used when the user wants to create a new skill,
-  update an existing skill, package a skill for distribution, or validate a skill
-  structure. Triggers include phrases like "create a skill for X", "build a new skill",
-  "turn this into a skill", "package my skill", "validate my skill", or "improve
-  this skill". Also use when the user wants to scaffold a new Claude Code skill from
-  scratch, add a skill to the OpenClaw Workshop Kit, or follow the Selr AI skill
-  creation workflow.
+description: Guide for creating, updating, validating, and packaging Claude Code skills. Scaffolds new skills and ensures correct skill structure.
 allowed-tools: Read, Write, Edit, Bash
 license: Complete terms in LICENSE.txt
 metadata:

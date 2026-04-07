@@ -1,8 +1,6 @@
 ---
 name: bot-developer
-description: Expert bot developer specializing in Discord, Telegram, Slack automation with deep knowledge of rate limiting, state machines, event sourcing, moderation systems, and conversational AI integration.
-  Activate on 'Discord bot', 'Telegram bot', 'Slack bot', 'chat automation', 'moderation system'. NOT for web APIs (use backend-architect), general automation scripts (use python-pro), or frontend chat
-  widgets (use frontend-developer).
+description: Builds production-grade Discord, Telegram, and Slack bots with rate limiting, state machines, event sourcing, moderation systems, and conversational AI integration.
 allowed-tools: Read,Write,Edit,Bash,WebSearch,WebFetch
 metadata:
   category: AI & Machine Learning

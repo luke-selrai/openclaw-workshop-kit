@@ -1,10 +1,7 @@
 ---
 name: retro
 version: 2.0.0
-description: |
-  Weekly engineering retrospective. Analyzes commit history, work patterns,
-  and code quality metrics with persistent history and trend tracking.
-  Team-aware: breaks down per-person contributions with praise and growth areas.
+description: Weekly engineering retrospective. Analyzes commit history, work patterns, and code quality metrics with team-aware per-person breakdowns and trend tracking.
 allowed-tools:
   - Bash
   - Read

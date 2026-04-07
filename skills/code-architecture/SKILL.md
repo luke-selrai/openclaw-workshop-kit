@@ -1,8 +1,6 @@
 ---
 name: code-architecture
-description: Application architecture patterns and code organization — clean architecture, hexagonal architecture, feature-based structure, dependency inversion, module boundaries, SOLID principles at module
-  scale. Activate on "clean architecture", "hexagonal architecture", "feature-based structure", "dependency inversion", "module boundaries", "architecture pattern", "folder structure", "fat controller",
-  "circular dependency", "IoC container". NOT for microservice decomposition (use microservices-patterns) or database schema design (use database-design-patterns).
+description: Application architecture patterns and code organization including clean architecture, hexagonal architecture, feature-based structure, dependency inversion, and SOLID principles at module scale.
 allowed-tools: Read,Write,Edit,Bash,Grep,Glob
 metadata:
   category: Code Quality & Testing

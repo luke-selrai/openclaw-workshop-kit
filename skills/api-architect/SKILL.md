@@ -1,7 +1,6 @@
 ---
 name: api-architect
-description: 'Expert API designer for REST, GraphQL, gRPC architectures. Activate on: API design, REST API, GraphQL schema, gRPC service, OpenAPI, Swagger, API versioning, endpoint design, rate limiting,
-  OAuth flow. NOT for: database schema (use data-pipeline-engineer), frontend consumption (use web-design-expert), deployment (use devops-automator).'
+description: Designs REST, GraphQL, gRPC, and WebSocket APIs including OpenAPI specs, versioning strategies, rate limiting, endpoint design, and API gateway patterns.
 allowed-tools: Read,Write,Edit,Bash(npm:*,npx:*,openapi-generator:*)
 metadata:
   category: Code Quality & Testing

@@ -1,6 +1,6 @@
 ---
 name: skills-discovery
-description: Shows workshop attendees all 22 core skills in plain English and gives personalised recommendations based on their onboarding answers. Use when someone asks "what can you do?", "show me the skills", "what skills do I have?", or "what should I try first?"
+description: Shows workshop attendees all core skills in plain English and gives personalised recommendations based on their onboarding answers.
 risk: safe
 source: selrai
 date_added: '2026-03-25'

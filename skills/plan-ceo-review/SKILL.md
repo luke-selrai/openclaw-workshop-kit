@@ -1,11 +1,7 @@
 ---
 name: plan-ceo-review
 version: 1.0.0
-description: |
-  CEO/founder-mode plan review. Rethink the problem, find the 10-star product,
-  challenge premises, expand scope when it creates a better product. Three modes:
-  SCOPE EXPANSION (dream big), HOLD SCOPE (maximum rigor), SCOPE REDUCTION
-  (strip to essentials).
+description: CEO/founder-mode plan review. Challenges premises and rethinks the problem across three modes — scope expansion, hold scope, or scope reduction.
 allowed-tools:
   - Read
   - Grep
