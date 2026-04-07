@@ -66,10 +66,11 @@ The terminal is the black/dark panel that opens at the bottom of VS Code.
 
 ### "Claude isn't remembering me between sessions"
 
-Your memory file is at `~/my-assistant/memory/USER.md`. If Claude isn't remembering you:
+Tell your assistant:
 
-1. Ask your assistant: *"Can you check my memory file and tell me if anything's saved there?"*
-2. If it's empty or missing, say: *"Please run the onboarding questions again so you can learn about my business."*
+> "Please check your memory notes and tell me what you know about me."
+
+If nothing is saved, say: *"Please run the onboarding questions again so you can learn about my business."*
 
 ---
 
@@ -96,15 +97,13 @@ If something is missing, just tell it again — it will update its memory file r
 Try these steps:
 
 1. Ask your assistant: *"Google Workspace isn't working. Walk me through reconnecting it."*
-2. If the issue is the wrong Google account being used, see [docs/known-issues/GMAIL-ACCOUNT-SWITCH.md](known-issues/GMAIL-ACCOUNT-SWITCH.md)
+2. If the issue is the wrong Google account being used, see the section below.
 
 The most common issue is being logged into multiple Google accounts. The fix is to log out of Google Workspace and log back in, being careful to pick the right account.
 
 ---
 
 ### "I got logged into the wrong Google account"
-
-See the dedicated fix guide: [docs/known-issues/GMAIL-ACCOUNT-SWITCH.md](known-issues/GMAIL-ACCOUNT-SWITCH.md)
 
 Short fix:
 1. In the terminal, type: `gws auth logout`
@@ -121,7 +120,6 @@ Microsoft 365 only works with **work or school accounts** — it does not work w
 
 If you have a work Microsoft 365 account:
 1. Ask your assistant: *"Walk me through connecting my Microsoft 365 account step by step."*
-2. Or see the full guide: [docs/OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
 
 ---
 

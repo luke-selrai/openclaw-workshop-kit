@@ -2,7 +2,7 @@
 
 Everything your assistant knows how to do is listed here. Most skills work immediately with no extra setup. A few need a connector (a tool that links your assistant to an outside service).
 
-**20 core skills** are shown first — these are the ones most business owners use most. After those, you will find **58 advanced skills** for deeper work, automation, and technical integrations.
+**22 core skills** are shown first — these are the ones most business owners use most. After those, you will find **56 advanced skills** for deeper work, automation, and technical integrations.
 
 ---
 
@@ -152,7 +152,7 @@ Diagnoses problems and fixes them step by step — nothing stays stuck.
 Example: "Something is not working right — let me describe what happened."
 
 ### Skills Discovery *(CORE)*
-Shows you all 20 core skills with personalised recommendations based on your business.
+Shows you all 22 core skills with personalised recommendations based on your business.
 Example: "What can you do for a business like mine?"
 
 ### Tech Entrepreneur Coach *(CORE)*

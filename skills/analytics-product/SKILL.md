@@ -37,38 +37,38 @@ Product analytics skill covering PostHog, Mixpanel, events, funnels, cohorts, re
 ## How It Works
 
 ```
-[objeto]_[verbo_passado]
+[object]_[past_verb]
 
-Correto:   user_signed_up, conversation_started, upgrade_completed
-Errado:    signup, click, conversion
+Correct:  user_signed_up, conversation_started, upgrade_completed
+Wrong:    signup, click, conversion
 ```
 
-## Analytics-Product — Decida Com Dados
+## Analytics-Product — Decide With Data
 
 > "In God we trust. All others must bring data." — W. Edwards Deming
 
 ---
 
-## Eventos Essenciais Da Auri
+## Essential Events (Example)
 
 ```python
-AURI_EVENTS = {
-    # Aquisicao
+PRODUCT_EVENTS = {
+    # Acquisition
     "user_signed_up":        {"props": ["source", "medium", "campaign"]},
     "onboarding_started":    {"props": ["step_count"]},
     "onboarding_completed":  {"props": ["time_to_complete", "steps_skipped"]},
 
-    # Ativacao
+    # Activation
     "first_conversation":    {"props": ["intent", "response_time"]},
     "aha_moment_reached":    {"props": ["trigger", "session_number"]},
     "feature_discovered":    {"props": ["feature_name", "discovery_method"]},
 
-    # Retencao
+    # Retention
     "conversation_started":  {"props": ["intent", "user_tier", "device"]},
     "conversation_completed":{"props": ["messages_count", "duration", "rating"]},
     "session_started":       {"props": ["days_since_last", "platform"]},
 
-    # Receita
+    # Revenue
     "upgrade_viewed":        {"props": ["trigger", "current_tier"]},
     "upgrade_started":       {"props": ["target_tier", "trigger"]},
     "upgrade_completed":     {"props": ["tier", "plan", "revenue"]},
@@ -77,7 +77,7 @@ AURI_EVENTS = {
 }
 ```
 
-## Implementacao Posthog (Python)
+## PostHog Implementation (Python)
 
 ```python
 from posthog import Posthog
@@ -101,56 +101,56 @@ def identify(user_id: str, traits: dict):
         properties=traits
     )
 
-## Uso:
+## Usage:
 
 track("user_123", "conversation_started", {
     "intent": "business_advice",
-    "device": "alexa",
+    "device": "mobile",
     "user_tier": "pro"
 })
 ```
 
 ---
 
-## Funil De Ativacao Auri
+## Activation Funnel (Example)
 
 ```
-Visita landing page          (100%)
-    | [meta: 40%]
-Clicou "Experimentar"         (40%)
-    | [meta: 70%]
-Completou cadastro            (28%)
-    | [meta: 60%]
-Fez primeira conversa         (17%)  <- AHA MOMENT
-    | [meta: 50%]
-Voltou no dia seguinte        (8.5%)
-    | [meta: 40%]
-Usou 3+ dias na semana        (3.4%)
-    | [meta: 20%]
-Converteu para Pro            (0.7%)
+Visits landing page          (100%)
+    | [target: 40%]
+Clicks "Try it"               (40%)
+    | [target: 70%]
+Completes sign-up             (28%)
+    | [target: 60%]
+Has first conversation        (17%)  <- AHA MOMENT
+    | [target: 50%]
+Returns next day              (8.5%)
+    | [target: 40%]
+Uses 3+ days per week         (3.4%)
+    | [target: 20%]
+Converts to Pro               (0.7%)
 ```
 
-## Otimizando O Funil
+## Optimising the Funnel
 
 ```
-Para cada drop-off > benchmark:
-1. Identificar: onde exatamente o usuario sai?
-2. Entender: por que? (session recordings, surveys)
-3. Hipotese: qual mudanca poderia melhorar?
-4. Testar: A/B test com amostra estatisticamente significante
-5. Medir: 2 semanas minimo, p-value < 0.05
-6. Aprender: mesmo se falhar, entende-se o usuario melhor
+For each drop-off above benchmark:
+1. Identify: where exactly does the user leave?
+2. Understand: why? (session recordings, surveys)
+3. Hypothesise: what change could improve this?
+4. Test: A/B test with a statistically significant sample
+5. Measure: minimum 2 weeks, p-value < 0.05
+6. Learn: even failures improve your understanding of the user
 ```
 
 ---
 
-## Analise De Cohort (Retencao Semanal)
+## Cohort Analysis (Weekly Retention)
 
 ```python
 def calculate_cohort_retention(events_df):
     """
-    events_df: DataFrame com colunas [user_id, event_date, event_name]
-    Retorna: matriz de retencao [cohort_week x week_number]
+    events_df: DataFrame with columns [user_id, event_date, event_name]
+    Returns: retention matrix [cohort_week x week_number]
     """
     import pandas as pd
 
@@ -171,32 +171,32 @@ def calculate_cohort_retention(events_df):
     return retention
 ```
 
-## Benchmarks De Retencao (Assistentes De Voz)
+## Retention Benchmarks (SaaS Reference)
 
-| Semana | Pessimo | Ok | Bom | Excelente |
-|--------|---------|-----|-----|-----------|
+| Week | Poor | OK | Good | Excellent |
+|------|------|----|------|-----------|
 | W1 | <20% | 20-35% | 35-50% | >50% |
 | W4 | <10% | 10-20% | 20-30% | >30% |
 | W8 | <5% | 5-12% | 12-20% | >20% |
 
 ---
 
-## Definindo A North Star Da Auri
+## Defining Your North Star Metric
 
 ```
 Framework:
-1. O que cria valor real para o usuario? -> Conversas que geram insight/acao
-2. O que prediz crescimento de longo prazo? -> Usuarios com 3+ conv/semana
-3. Como medir? -> "Weekly Active Conversationalists" (WAC)
+1. What creates real value for the user?  -> Conversations that generate insight/action
+2. What predicts long-term growth?        -> Users with 3+ conversations per week
+3. How to measure it?                     -> "Weekly Active Conversationalists" (WAC)
 
 North Star: WAC (Weekly Active Conversationalists)
-Definicao: Usuarios com >= 3 conversas na semana que duraram >= 2 minutos
+Definition: Users with >= 3 conversations per week lasting >= 2 minutes
 
-Meta Ano 1: 10.000 WAC
-Meta Ano 2: 100.000 WAC
+Year 1 Target: 10,000 WAC
+Year 2 Target: 100,000 WAC
 ```
 
-## Dashboard North Star
+## North Star Dashboard
 
 ```python
 def calculate_north_star(db):
@@ -220,7 +220,7 @@ def calculate_north_star(db):
 
 ---
 
-## Feature Flags Com Posthog
+## Feature Flags with PostHog
 
 ```python
 def is_feature_enabled(user_id: str, feature: str) -> bool:
@@ -232,7 +232,7 @@ else:
     show_old_onboarding()
 ```
 
-## Calculadora De Significancia Estatistica
+## A/B Test Significance Calculator
 
 ```python
 from scipy import stats
@@ -268,17 +268,17 @@ def ab_test_significance(
 
 ---
 
-## 6. Comandos
+## Commands
 
-| Comando | Acao |
-|---------|------|
-| `/event-taxonomy` | Define taxonomia de eventos |
-| `/funnel-analysis` | Analisa funil de conversao |
-| `/cohort-retention` | Calcula retencao por cohort |
-| `/north-star` | Define ou revisa North Star Metric |
-| `/ab-test` | Calcula significancia de A/B test |
-| `/dashboard-setup` | Cria dashboard de produto |
-| `/okr-template` | Template de OKRs para produto |
+| Command | Action |
+|---------|--------|
+| `/event-taxonomy` | Define event taxonomy |
+| `/funnel-analysis` | Analyse conversion funnel |
+| `/cohort-retention` | Calculate cohort retention |
+| `/north-star` | Define or review North Star Metric |
+| `/ab-test` | Calculate A/B test significance |
+| `/dashboard-setup` | Create product dashboard |
+| `/okr-template` | OKR template for product teams |
 
 ## Best Practices
 
