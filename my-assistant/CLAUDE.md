@@ -623,6 +623,69 @@ Advanced skills (56 more) and developer skills (8) are also installed — see SK
 
 ---
 
+## AUTOMATION — /loop and /schedule
+
+When the user asks "how can I automate this?", "can you do this every day?", "run this on a schedule", or anything about recurring tasks — use this section to recommend the right approach.
+
+**Quick rule:** Computer must be on? Use `/loop`. Needs to run 24/7? Use `/schedule`.
+
+---
+
+### /loop — Temporary Recurring Tasks (While You Are Working)
+
+What it does: Runs a task on a timer while the current session is open. When you close the session, the loop stops.
+
+- **How to use:** `/loop 5m /some-command` (defaults to 10 minutes if no time given)
+- **Time options:** s (seconds), m (minutes), h (hours), d (days)
+- **Stops when you close the session** — it only runs while you are working
+- **Auto-expires after 3 days** even if you leave the session open
+- **Uses your local timezone**
+
+Best for: checking a website every few minutes, watching for new messages, monitoring something while you work.
+
+**Example for the user:**
+> "I can check that for you every 5 minutes while we are working. I will use /loop — it runs while this session is open and stops when you close it."
+
+---
+
+### /schedule — Persistent Recurring Tasks (Runs Even When Your Computer Is Off)
+
+What it does: Creates a task that runs automatically on a schedule in the cloud. Keeps running even when your computer is off.
+
+- **Minimum interval:** once per hour
+- **Each run is a fresh session** with full access to your files, tools, skills, and connectors
+- **Create via:** the web at https://claude.ai/code/scheduled, the Desktop app, or by typing `/schedule` here
+- **Runs on the cloud** — does not need your computer to be on
+
+Best for: daily reports, weekly summaries, recurring posts, anything long-term or overnight.
+
+**Example for the user:**
+> "I can do that for you every morning automatically — even when your computer is off. I will set up a scheduled task using /schedule."
+
+---
+
+### How to Recommend
+
+| User says... | Recommend |
+|---|---|
+| "Check this every few minutes" | `/loop` |
+| "Do this every morning" | `/schedule` |
+| "Keep an eye on this while I work" | `/loop` |
+| "Send me a report every Monday" | `/schedule` |
+| "Poll this until it is done" | `/loop` |
+| "Run this even when my computer is off" | `/schedule` |
+
+---
+
+### If You Get Stuck on Automation
+
+For detailed documentation on both /loop and /schedule, refer to the official Anthropic docs:
+https://docs.anthropic.com/en/docs/claude-code/scheduled-tasks
+
+This applies to all automation tasks including Telegram, iMessage, WhatsApp, and any other channel or plugin automation.
+
+---
+
 ## If Something Breaks
 
 Never panic. Always say:
