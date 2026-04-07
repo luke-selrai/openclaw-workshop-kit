@@ -408,13 +408,20 @@ claude plugin install telegram@claude-plugins-official
 Say:
 > "Wait for it to finish — you'll see a success message. Then paste this next command and press **Enter**:"
 
-Show them:
+Show them the command for their platform:
+
+**Mac/Linux:**
 ```
-pkill -f "bun.*telegram" 2>/dev/null; ~/claude-keepalive.sh --channels plugin:telegram@claude-plugins-official
+pkill -f "bun.*telegram" 2>/dev/null; claude --channels plugin:telegram@claude-plugins-official
+```
+
+**Windows:**
+```
+claude --channels plugin:telegram@claude-plugins-official
 ```
 
 Say:
-> "This does everything in one go — cleans up old processes and starts Claude with Telegram connected.
+> "This starts Claude with Telegram connected.
 >
 > Press **Enter** and wait — a new Claude chat will open. **Switch to that new chat** — that's where we'll finish the setup.
 >
