@@ -3,6 +3,8 @@
 
 <!-- Last shrunk 2026-04-08. Target: <200 lines. Cold-path content lives in skills/ and docs/ — do not re-inline it here. -->
 
+<!-- Path conventions: every file path in this document is relative to the user's home folder. workshop-kit/docs/FOO.md means $HOME/workshop-kit/docs/FOO.md on Mac and Linux, and C:\Users\<username>\workshop-kit\docs\FOO.md on Windows. The bootstrap places workshop-kit/ and my-assistant/ as siblings inside the user's home folder on all platforms. When reading files, resolve paths relative to $HOME (or %USERPROFILE% on Windows) — never hardcode an absolute path or a username. -->
+
 ---
 
 ## ⚠️ COMMUNICATION RULES — APPLY TO EVERY SINGLE RESPONSE — NO EXCEPTIONS
@@ -79,7 +81,7 @@ Check your memory notes for a profile on this user.
 
 ## First-Time Setup
 
-If your memory notes do not show `setup_complete: true`, read `~/workshop-kit/skills/first-run-setup/SKILL.md` and follow it end to end. That skill handles: skill verification, OS detection, Node.js install, the 7 onboarding questions, Claude CLI install, and Playwright connection. When it finishes, save `setup_complete: true` to memory and move on.
+If your memory notes do not show `setup_complete: true`, read `workshop-kit/skills/first-run-setup/SKILL.md` (in the user's home folder) and follow it end to end. That skill handles: skill verification, OS detection, Node.js install, the 7 onboarding questions, Claude CLI install, and Playwright connection. When it finishes, save `setup_complete: true` to memory and move on.
 
 If memory shows `setup_complete: true`, skip setup entirely and greet the user by name.
 
@@ -89,13 +91,15 @@ If memory shows `setup_complete: true`, skip setup entirely and greet the user b
 
 When the user wants to connect a tool, **read the matching guide first**, then walk them through it one step at a time per the Communication Rules above. Do not improvise the steps from memory.
 
+All paths below are relative to the user's home folder (see the path conventions note at the top of this file).
+
 | Tool | Read this first |
 |---|---|
-| Google Workspace (Gmail, Calendar, Drive) | `~/workshop-kit/docs/GOOGLE-WORKSPACE-SETUP.md` |
-| Microsoft 365 / Outlook | `~/workshop-kit/docs/OUTLOOK-SETUP.md` and `~/workshop-kit/skills/outlook-connector/SKILL.md` |
-| Telegram | `~/workshop-kit/docs/TELEGRAM-SETUP.md` |
-| iMessage | `~/workshop-kit/docs/IMESSAGE-SETUP.md` |
-| WhatsApp | `~/workshop-kit/whatsapp-channel/README.md` |
+| Google Workspace (Gmail, Calendar, Drive) | `workshop-kit/docs/GOOGLE-WORKSPACE-SETUP.md` |
+| Microsoft 365 / Outlook | `workshop-kit/docs/OUTLOOK-SETUP.md` and `workshop-kit/skills/outlook-connector/SKILL.md` |
+| Telegram | `workshop-kit/docs/TELEGRAM-SETUP.md` |
+| iMessage | `workshop-kit/docs/IMESSAGE-SETUP.md` |
+| WhatsApp | `workshop-kit/whatsapp-channel/README.md` |
 
 Each guide is the source of truth. If a guide contradicts something you remember, the guide wins.
 
@@ -103,7 +107,7 @@ Each guide is the source of truth. If a guide contradicts something you remember
 
 ## Skills Discovery
 
-After setup, run the `skills-discovery` skill to recommend the most useful skills based on the user's profile. The full catalogue lives at `~/workshop-kit/SKILLS-GUIDE.md` — read it when the user asks "what can you do?".
+After setup, run the `skills-discovery` skill to recommend the most useful skills based on the user's profile. The full catalogue lives at `workshop-kit/SKILLS-GUIDE.md` (in the user's home folder) — read it when the user asks "what can you do?".
 
 ---
 
@@ -122,7 +126,7 @@ When the user asks "can you do this every day?", "run this on a schedule", or an
 | "Send me a report every Monday" | `/schedule` |
 | "Run this even when my computer is off" | `/schedule` |
 
-For full details on syntax, intervals, and edge cases, read `~/workshop-kit/docs/AUTOMATION-LOOP-AND-SCHEDULE.md`.
+For full details on syntax, intervals, and edge cases, read `workshop-kit/docs/AUTOMATION-LOOP-AND-SCHEDULE.md` (in the user's home folder).
 
 ---
 
@@ -140,8 +144,10 @@ Then:
 
 ## File Locations
 
-- Skills: `~/.claude/skills/`
-- Workshop docs: `~/workshop-kit/docs/`
-- Full skill catalogue: `~/workshop-kit/SKILLS-GUIDE.md`
-- First-run setup: `~/workshop-kit/skills/first-run-setup/SKILL.md`
-- This file: `~/my-assistant/CLAUDE.md`
+All paths below are relative to the user's home folder. On Mac and Linux that is `$HOME` (e.g. `/Users/jane/`); on Windows that is `%USERPROFILE%` (e.g. `C:\Users\jane\`). Never hardcode a username or absolute path.
+
+- Skills: `.claude/skills/`
+- Workshop docs: `workshop-kit/docs/`
+- Full skill catalogue: `workshop-kit/SKILLS-GUIDE.md`
+- First-run setup: `workshop-kit/skills/first-run-setup/SKILL.md`
+- This file: `my-assistant/CLAUDE.md`
