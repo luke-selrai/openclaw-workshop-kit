@@ -96,6 +96,28 @@ Your assistant can now use Gmail, Calendar, Drive, Docs, Sheets, and more — ju
 
 ---
 
+## Step 5 — Install Google Workspace Skills (Optional)
+
+Your assistant can go deeper with Google Workspace by installing **42 specialist skills** — covering Gmail triage, calendar management, Drive uploads, standup reports, meeting prep, and more.
+
+Ask your assistant:
+
+> "Install the Google Workspace skills"
+
+Or run this in your terminal:
+
+```
+gws generate-skills
+```
+
+This generates skills for every Google Workspace service and adds them to your Claude setup. Once installed, your assistant gains detailed knowledge of every command and workflow available.
+
+> **What gets installed:** 18 service skills (Gmail, Calendar, Drive, Sheets, Docs, Slides, Chat, Meet, Tasks, and more), 12 helper shortcuts, 5 multi-step workflows (standup reports, weekly digests, meeting prep), and more.
+
+> **You can skip this step** — your assistant already works with Google Workspace from Step 4. These skills just make it smarter about specific tasks.
+
+---
+
 ## What Your Assistant Can Do Now
 
 | Task | What to Say |
@@ -118,7 +140,7 @@ Your assistant can now use Gmail, Calendar, Drive, Docs, Sheets, and more — ju
 |---|---|
 | "gws: command not found" (Mac/Linux) or "'gws' is not recognized" (Windows) | Close and reopen your terminal. If still not found, reinstall: `npm install -g @googleworkspace/cli` |
 | Permission error during install (Windows) | Reopen Command Prompt as administrator (right-click → Run as administrator) |
-| "Access blocked" during sign-in | Run `gws auth setup` first, then try `gws auth login` again |
+| "Access blocked" during sign-in | Two fixes: (1) Use the scope flag: `gws auth login -s drive,gmail,sheets,calendar` — unverified apps are limited to ~25 scopes. (2) Add your email as a test user: GCP Console → APIs & Services → OAuth consent screen → Test users → Add your email. Then try `gws auth login` again. |
 | Wrong Google account connected | Run `gws auth logout` then `gws auth login` — select the correct account this time |
 | Browser doesn't open during sign-in | Copy the URL from the terminal and paste it into your browser manually |
 | "Google hasn't verified this app" warning | Click **"Continue"** — this is normal for personal projects |
