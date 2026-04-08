@@ -2,7 +2,6 @@
 name: youtube-summarizer
 description: Automatically fetch YouTube video transcripts, generate structured summaries, and send full transcripts to messaging platforms. Detects YouTube URLs and provides metadata, key insights, and downloadable transcripts.
 version: 2.0.0
-author: abe238
 tags: [youtube, transcription, summarization, video, telegram]
 ---
 
@@ -49,11 +48,11 @@ Activate this skill when:
 ## Dependencies
 
 **Required:** MCP YouTube Transcript server must be installed at:
-`/root/clawd/mcp-server-youtube-transcript`
+`~/mcp-server-youtube-transcript`
 
 If not present, install it:
 ```bash
-cd /root/clawd
+cd ~
 git clone https://github.com/kimtaeyoon83/mcp-server-youtube-transcript.git
 cd mcp-server-youtube-transcript
 npm install && npm run build
@@ -71,7 +70,7 @@ Extract video ID from these patterns:
 ### 2. Fetch Transcript
 Run this command to get the transcript:
 ```bash
-cd /root/clawd/mcp-server-youtube-transcript && node --input-type=module -e "
+cd ~/mcp-server-youtube-transcript && node --input-type=module -e "
 import { getSubtitles } from './dist/youtube-fetcher.js';
 const result = await getSubtitles({ videoID: 'VIDEO_ID', lang: 'en' });
 console.log(JSON.stringify(result, null, 2));
@@ -128,7 +127,7 @@ Aim for:
 
 Save the complete transcript to a timestamped file:
 ```
-/root/clawd/transcripts/YYYY-MM-DD_VIDEO_ID.txt
+~/transcripts/YYYY-MM-DD_VIDEO_ID.txt
 ```
 
 Include in the file:
@@ -141,7 +140,7 @@ Include in the file:
 **If channel is Telegram:**
 ```bash
 message --action send --channel telegram --target CHAT_ID \
-  --filePath /root/clawd/transcripts/YYYY-MM-DD_VIDEO_ID.txt \
+  --filePath ~/transcripts/YYYY-MM-DD_VIDEO_ID.txt \
   --caption "📄 YouTube Transcript: [title]"
 ```
 
@@ -356,7 +355,7 @@ youtube-summarizer [URL] --lang es
 
 ```bash
 # 1. Clone and install MCP server
-cd /root/clawd
+cd ~
 git clone https://github.com/kimtaeyoon83/mcp-server-youtube-transcript.git
 cd mcp-server-youtube-transcript
 npm install && npm run build
@@ -369,7 +368,7 @@ console.log(result.metadata.title);
 "
 
 # 3. Create transcripts directory
-mkdir -p /root/clawd/transcripts
+mkdir -p ~/transcripts
 
 # 4. Verify skill is ready
 youtube-summarizer --check-setup
@@ -383,7 +382,7 @@ youtube-summarizer --check-setup
 
 **Issue:** "Failed to fetch transcript" (on VPS)
 - **Cause:** YouTube may have updated their API
-- **Fix:** Update MCP server: `cd /root/clawd/mcp-server-youtube-transcript && git pull && npm install && npm run build`
+- **Fix:** Update MCP server: `cd ~/mcp-server-youtube-transcript && git pull && npm install && npm run build`
 
 **Issue:** "Video ID not recognized"
 - **Cause:** Malformed URL or unsupported format
@@ -403,7 +402,7 @@ Issues or suggestions? Provide:
 - YouTube URL that failed
 - Error message (if any)
 - Expected vs actual behavior
-- MCP server version: `cd /root/clawd/mcp-server-youtube-transcript && git rev-parse HEAD`
+- MCP server version: `cd ~/mcp-server-youtube-transcript && git rev-parse HEAD`
 
 ---
 
