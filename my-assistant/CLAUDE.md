@@ -128,7 +128,7 @@ When the user asks "can you do this every day?", "run this on a schedule", or an
 | "Send me a report every Monday" | `/schedule` |
 | "Run this even when my computer is off" | `/schedule` |
 
-For full details on syntax, intervals, and edge cases, read `workshop-kit/docs/AUTOMATION-LOOP-AND-SCHEDULE.md` (in the user's home folder).
+For full details on syntax, intervals, and edge cases, read `workshop-kit/docs/AUTOMATION-LOOP-AND-SCHEDULE.md` (in the user's home folder). For the underlying cron tools (CronCreate, CronList, CronDelete), read `workshop-kit/docs/CRON-TASKS.md`.
 
 ---
 
