@@ -32,7 +32,7 @@ For the active shell, read `$SHELL` (zsh, bash, fish). If you cannot determine i
 | Shell | Config file |
 |---|---|
 | zsh (any OS) | `~/.zshrc` |
-| bash on macOS | `~/.zprofile` if it exists, otherwise `~/.bash_profile`, otherwise `~/.bashrc` |
+| bash on macOS | `~/.bash_profile` if it exists, otherwise `~/.bashrc` |
 | bash on Linux / WSL / Git Bash | `~/.bashrc` |
 | fish | `~/.config/fish/config.fish` |
 | PowerShell | the path returned by running `pwsh -NoProfile -Command "$PROFILE"` (or `powershell.exe` on older systems). Create the parent directory if it does not exist. |
@@ -69,6 +69,7 @@ Use a comment header so the user can find it later. Append (do not overwrite) th
    - Which file you wrote to (full path)
    - That they need to **open a new terminal** (or run `source <file>` for bash/zsh, or `. $PROFILE` for PowerShell) to activate it
    - That from then on they can type `claude-yolo` to launch Claude Code in bypass mode
+   - That bypass mode means **Claude will not ask for permission before running commands or editing files** — they should only use it when they are comfortable with that
 
 ## Things NOT to do
 
