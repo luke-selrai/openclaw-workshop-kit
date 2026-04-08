@@ -1,6 +1,6 @@
 ---
 title: Shopify Store Setup Guide
-version: 1.0
+version: 1.1
 date: 2026-04-08
 ---
 
@@ -49,8 +49,10 @@ This guide connects your Shopify store to your AI assistant. Once set up, your a
 Type this in the command window and press Enter:
 
 ```
-npm install -g @shopify/cli @shopify/theme
+npm install -g @shopify/cli
 ```
+
+> **Note:** The theme toolkit (`@shopify/theme`) is bundled inside `@shopify/cli` since v3.59.0 — no separate install needed.
 
 This may take 1–2 minutes. When it finishes, verify it worked:
 
@@ -58,33 +60,82 @@ This may take 1–2 minutes. When it finishes, verify it worked:
 shopify version
 ```
 
-You should see a version number. If you see "command not found":
+You should see a version number (e.g., `3.93.1`). If you see "command not found":
 - **Windows:** Close the command window completely and open a new one, then try again
 - **Mac:** Run `export PATH="$(npm prefix -g)/bin:$PATH"` and try again
 
 ---
 
-## Step 2 — Sign In to Shopify
+## Step 2 — Log In to Shopify
 
 ```
-shopify auth login --store your-store-name.myshopify.com
+shopify auth login
 ```
-
-Replace `your-store-name` with your actual store name — it's the part before `.myshopify.com` in your Shopify admin URL.
 
 A browser window will open:
 
-1. **Sign in with your Shopify account**
-2. You may see a permissions screen — click **"Allow"** or **"Install"**
-3. You should see a success message in the browser
+1. **Sign in with your Shopify Partner or organization account**
+2. You should see a success message in the browser
 
 > **If the browser does not open automatically**, copy the URL shown in the terminal and paste it into your browser manually.
 
 ---
 
-## Step 3 — Set Up API Access (for full store operations)
+## Step 3 — Connect to Your Store
 
-For your assistant to query products, orders, customers, and inventory, you need a Custom App with the right permissions.
+This authenticates your assistant against your specific store and requests the permissions it needs:
+
+```
+shopify store auth --store your-store-name.myshopify.com --scopes read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_inventory,write_inventory
+```
+
+Replace `your-store-name` with your actual store name — it's the part before `.myshopify.com` in your Shopify admin URL.
+
+A browser window will open asking you to approve the requested permissions. Click **Install** or **Allow**.
+
+> **To add more permissions later**, re-run this command with the additional scopes included in the `--scopes` list.
+
+---
+
+## Step 4 — Test It
+
+Once connected, verify everything is working:
+
+```
+shopify store execute --store your-store-name.myshopify.com --query "{ shop { name email myshopifyDomain } }"
+```
+
+You should see your store's name and email in the response.
+
+Now try asking your assistant:
+
+- "Show me my recent Shopify orders"
+- "List my products"
+- "How many items are low on stock?"
+- "Look up the customer with email john@example.com"
+
+---
+
+## What Your Assistant Can Do Now
+
+| Task | What to Say |
+|---|---|
+| **View products** | "Show me my Shopify products" |
+| **Search products** | "Find products with 'sneaker' in the title" |
+| **Create a product** | "Create a new draft product called Summer Tee for $29.99" |
+| **Check orders** | "Show me today's orders" |
+| **Find unfulfilled orders** | "Which orders haven't been shipped yet?" |
+| **Look up a customer** | "Find the customer with email jane@example.com" |
+| **Check inventory** | "What products are low on stock?" |
+| **Adjust stock** | "Add 50 units of SKU-1234 to the main warehouse" |
+| **Order details** | "Show me the details for order #1042" |
+| **Revenue check** | "What were my total sales this week?" |
+
+---
+
+## Alternative: Direct API Access (Custom App)
+
+If you prefer to use the Admin API directly (without the Shopify CLI), you can create a Custom App and use curl.
 
 ### Create the Custom App
 
@@ -141,18 +192,7 @@ setx SHOPIFY_STORE "your-store-name.myshopify.com"
 
 > After running `setx` on Windows, close and reopen your terminal for the variables to take effect.
 
----
-
-## Step 4 — Test It
-
-Once set up, test it by asking your assistant:
-
-- "Show me my recent Shopify orders"
-- "List my products"
-- "How many items are low on stock?"
-- "Look up the customer with email john@example.com"
-
-Or test directly in the command window:
+### Test Direct API Access
 
 ```bash
 curl -s -X POST \
@@ -161,25 +201,6 @@ curl -s -X POST \
   -H "X-Shopify-Access-Token: ${SHOPIFY_ACCESS_TOKEN}" \
   -d '{"query": "{ shop { name email myshopifyDomain } }"}' | python3 -m json.tool
 ```
-
-You should see your store's name and email in the response.
-
----
-
-## What Your Assistant Can Do Now
-
-| Task | What to Say |
-|---|---|
-| **View products** | "Show me my Shopify products" |
-| **Search products** | "Find products with 'sneaker' in the title" |
-| **Create a product** | "Create a new draft product called Summer Tee for $29.99" |
-| **Check orders** | "Show me today's orders" |
-| **Find unfulfilled orders** | "Which orders haven't been shipped yet?" |
-| **Look up a customer** | "Find the customer with email jane@example.com" |
-| **Check inventory** | "What products are low on stock?" |
-| **Adjust stock** | "Add 50 units of SKU-1234 to the main warehouse" |
-| **Order details** | "Show me the details for order #1042" |
-| **Revenue check** | "What were my total sales this week?" |
 
 ---
 
@@ -202,18 +223,19 @@ You should see your store's name and email in the response.
 |---|---|
 | Browser does not open during login | Copy the URL from the terminal output and paste it into your browser manually |
 | "Store not found" error | Double-check your store name — it should be just the subdomain, e.g., `my-store` not the full URL |
-| Login fails or loops | Run `shopify auth logout` then try `shopify auth login --store your-store.myshopify.com` again |
+| Login fails or loops | Run `shopify auth logout` then try `shopify auth login` again |
 | "You don't have permission" | Your Shopify account needs staff or owner access to the store |
+| Scope error after `store auth` | Re-run `shopify store auth --store <store> --scopes <all-needed-scopes>` with the missing scopes added |
 
-### API Problems
+### Query Problems
 
 | Problem | Fix |
 |---|---|
-| 401 Unauthorized | Your access token is invalid or expired. Create a new one in Shopify Admin > Settings > Apps > your app > API credentials |
-| 403 Forbidden / scope error | The custom app is missing the required API scope. Go to your app's settings and add the missing scope, then reinstall the app |
+| "Mutations are not allowed" | Add `--allow-mutations` to your `shopify store execute` command |
+| 401 Unauthorized | Your stored token expired. Re-run `shopify store auth --store <store> --scopes <scopes>` |
 | "Access denied" on orders | Some Shopify plans restrict API access. Check that your plan supports Admin API access |
 | Rate limit errors (429) | Wait a moment and try again. Your assistant handles this automatically |
-| Environment variable not set | Verify with `echo $SHOPIFY_ACCESS_TOKEN` (Mac) or `echo %SHOPIFY_ACCESS_TOKEN%` (Windows). Re-run the export/setx command if empty |
+| Environment variable not set (curl method) | Verify with `echo $SHOPIFY_ACCESS_TOKEN` (Mac) or `echo %SHOPIFY_ACCESS_TOKEN%` (Windows). Re-run the export/setx command if empty |
 | Something else | Contact your workshop facilitator |
 
 ---
@@ -226,7 +248,7 @@ Development stores created through the Shopify Partner dashboard have full API a
 
 ## Note for Shopify Plus Stores
 
-Shopify Plus stores have additional API resources available (e.g., Gift Cards, Multipass). If you're on Shopify Plus and need access to these, add the corresponding scopes when configuring your custom app.
+Shopify Plus stores have additional API resources available (e.g., Gift Cards, Multipass). If you're on Shopify Plus and need access to these, add the corresponding scopes when running `shopify store auth`.
 
 ---
 
