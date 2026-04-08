@@ -100,6 +100,8 @@ All paths below are relative to the user's home folder (see the path conventions
 | Telegram | `workshop-kit/docs/TELEGRAM-SETUP.md` |
 | iMessage | `workshop-kit/docs/IMESSAGE-SETUP.md` |
 | WhatsApp | `workshop-kit/whatsapp-channel/README.md` |
+| Dispatch (phone → desktop) | `workshop-kit/docs/dispatch/DISPATCH-SETUP.md` and `workshop-kit/skills/claude-dispatch/SKILL.md` |
+| Shopify | `workshop-kit/skills/shopify-connector/SKILL.md` |
 
 Each guide is the source of truth. If a guide contradicts something you remember, the guide wins.
 
