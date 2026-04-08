@@ -88,7 +88,7 @@ Type a message from your phone — Claude gets to work on your desktop.
 
 ## Key Differences — Dispatch vs Other Tools
 
-| | Dispatch | OpenClaw (Channels) | Claude Code Remote |
+| | Dispatch | Claude Workshop Kit (Channels) | Claude Code Remote |
 |---|---|---|---|
 | **Setup time** | ~2 minutes (QR code) | Complex (Node.js, Docker, env vars) | Terminal / SSH |
 | **Who it's for** | Non-technical users | Advanced users | Developers |
