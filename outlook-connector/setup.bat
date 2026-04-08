@@ -103,7 +103,7 @@ set INSTALL_ATTEMPTS=0
 
 :TRY_INSTALL
 set /a INSTALL_ATTEMPTS+=1
-npm install -g @pnp/cli-microsoft365 >"%TEMP%\m365_install.txt" 2>&1
+call npm install -g @pnp/cli-microsoft365 >"%TEMP%\m365_install.txt" 2>&1
 set INSTALL_EXIT=%errorlevel%
 
 if %INSTALL_EXIT% equ 0 goto INSTALL_OK
@@ -113,13 +113,13 @@ findstr /i "EINTEGRITY" "%TEMP%\m365_install.txt" >nul 2>&1
 if %errorlevel% equ 0 (
     if %INSTALL_ATTEMPTS% equ 1 (
         echo   npm cache corruption detected -- cleaning cache and retrying...
-        npm cache clean --force >nul 2>&1
+        call npm cache clean --force >nul 2>&1
         goto TRY_INSTALL
     )
 )
 
 :: EPERM / EACCES -- permissions error
-findstr /i "EPERM\|EACCES\|permission" "%TEMP%\m365_install.txt" >nul 2>&1
+findstr /i /c:"EPERM" /c:"EACCES" /c:"permission" "%TEMP%\m365_install.txt" >nul 2>&1
 if %errorlevel% equ 0 (
     echo.
     echo   Permission error during install.
@@ -139,7 +139,7 @@ if %errorlevel% equ 0 (
 )
 
 :: ECONNRESET / 403 -- proxy / firewall blocking npmjs.com
-findstr /i "ECONNRESET\|ECONNREFUSED\|403\|ssl\|proxy" "%TEMP%\m365_install.txt" >nul 2>&1
+findstr /i /c:"ECONNRESET" /c:"ECONNREFUSED" /c:"403" /c:"ssl" /c:"proxy" "%TEMP%\m365_install.txt" >nul 2>&1
 if %errorlevel% equ 0 (
     echo.
     echo   Network error -- npm cannot reach the internet.
@@ -169,7 +169,7 @@ del "%TEMP%\m365_install.txt" >nul 2>&1
 for /f "tokens=*" %%i in ('npm prefix -g') do set NPMGLOBAL=%%i
 set PATH=%NPMGLOBAL%\bin;%PATH%
 
-m365 --version >nul 2>&1
+call m365 --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo.
     echo   The tool installed but cannot be found in this window yet.
@@ -184,15 +184,28 @@ echo.
 :: ------------------------------------------------
 :: STEP 3  -- Set up app connection  (one-time)
 :: ------------------------------------------------
-echo [3/5] Setting up your Microsoft connection...
-echo   A browser window will open. Sign in with your Microsoft account
+echo [3/5] Setting up your Microsoft account...
+echo.
+echo   What type of Microsoft account will you use?
+echo.
+echo     1. Work or School account  ^(e.g. user@company.com with Microsoft 365^)
+echo     2. Personal account        ^(e.g. user@outlook.com, user@hotmail.com^)
+echo.
+set /p ACCOUNT_TYPE="  Enter 1 or 2: "
+
+if "%ACCOUNT_TYPE%"=="2" goto PERSONAL_ACCOUNT
+
+:WORK_ACCOUNT
+echo.
+echo   Registering a custom Entra app for your organisation...
+echo   A browser window will open. Sign in with your WORK account
 echo   and click "Accept" when asked to approve the connection.
-echo   ^(This links the Selr AI workshop app to your account -- one time only.^)
+echo   ^(This registers a custom Entra app in your tenant -- one time only.^)
 echo.
 echo   If no browser opens, the window will show a URL -- paste it into any browser.
 echo.
 
-m365 setup --interactive
+call m365 setup
 if %errorlevel% neq 0 (
     echo.
     echo   Setup did not complete. Possible causes:
@@ -200,17 +213,32 @@ if %errorlevel% neq 0 (
     echo   - Your organisation requires admin approval for new apps
     echo.
     echo   If you see "admin consent required":
-    echo     Ask your IT admin to approve the PnP Management Shell app at:
+    echo     Ask your IT admin to approve the app at:
     echo     https://entra.microsoft.com ^> Enterprise Applications ^> Grant admin consent
     echo.
     echo   To retry just this step, open a new Command Prompt and run:
-    echo     m365 setup --interactive
+    echo     m365 setup
     echo.
     pause
     exit /b 1
 )
 echo   Connection set up -- OK
 echo.
+goto STEP_4
+
+:PERSONAL_ACCOUNT
+echo.
+echo   Configuring CLI for personal account...
+echo   ^(Using the default PnP Management Shell app.^)
+echo.
+call m365 setup --interactive
+set DEFAULT_APPID=31359c7f-bd7e-475c-86db-fdb8c937548e
+:: Disable auto-open browser -- crashes on Node.js v24 with open package
+call m365 cli config set --key autoOpenLinksInBrowser --value false >nul 2>&1
+echo   CLI configured -- OK
+echo.
+
+:STEP_4
 
 :: ------------------------------------------------
 :: STEP 4  -- Sign in
@@ -221,13 +249,28 @@ echo   and click Accept or Allow when asked.
 echo.
 
 :: Check for stale session and clear it first
-m365 status >nul 2>&1
+call m365 status >nul 2>&1
 if %errorlevel% equ 0 (
     echo   Existing session found -- refreshing...
-    m365 logout >nul 2>&1
+    call m365 logout >nul 2>&1
 )
 
-call m365 login --authType browser >"%TEMP%\m365_login.txt" 2>&1
+:: Personal accounts use device code (browser auth doesn't work with default PnP app)
+:: Work accounts use browser auth (faster, registered app supports redirects)
+if defined DEFAULT_APPID (
+    echo   A device code will appear below.
+    echo   Open https://aka.ms/devicelogin in your browser, enter the code, and sign in.
+    echo.
+    call m365 login --appId %DEFAULT_APPID%
+    set LOGIN_EXIT=!errorlevel!
+    if !LOGIN_EXIT! equ 0 goto LOGIN_OK
+    echo.
+    echo   Device code sign-in failed.
+    echo.
+    goto LOGIN_FAILED
+) else (
+    call m365 login --authType browser >"%TEMP%\m365_login.txt" 2>&1
+)
 set LOGIN_EXIT=%errorlevel%
 
 if %LOGIN_EXIT% equ 0 (
@@ -236,7 +279,7 @@ if %LOGIN_EXIT% equ 0 (
 )
 
 :: AADSTS53003 -- Conditional Access blocks browser login
-findstr /i "53003\|AADSTS53003" "%TEMP%\m365_login.txt" >nul 2>&1
+findstr /i /c:"53003" /c:"AADSTS53003" "%TEMP%\m365_login.txt" >nul 2>&1
 if %errorlevel% equ 0 (
     echo   Your organisation's security policy blocked browser sign-in.
     echo   Switching to device code sign-in instead...
@@ -246,7 +289,7 @@ if %errorlevel% equ 0 (
 )
 
 :: AADSTS90094 -- Admin consent required
-findstr /i "90094\|AADSTS90094" "%TEMP%\m365_login.txt" >nul 2>&1
+findstr /i /c:"90094" /c:"AADSTS90094" "%TEMP%\m365_login.txt" >nul 2>&1
 if %errorlevel% equ 0 (
     echo.
     echo   Your Microsoft tenant requires an IT administrator to approve this app.
@@ -260,12 +303,16 @@ if %errorlevel% equ 0 (
 )
 
 :: AADSTS70043 -- Token/session expired
-findstr /i "70043\|AADSTS70043" "%TEMP%\m365_login.txt" >nul 2>&1
+findstr /i /c:"70043" /c:"AADSTS70043" "%TEMP%\m365_login.txt" >nul 2>&1
 if %errorlevel% equ 0 (
     echo   Previous session expired -- clearing and retrying...
-    m365 logout >nul 2>&1
+    call m365 logout >nul 2>&1
     del "%TEMP%\m365_login.txt" >nul 2>&1
-    call m365 login --authType browser >"%TEMP%\m365_login.txt" 2>&1
+    if defined DEFAULT_APPID (
+        call m365 login --authType browser --appId !DEFAULT_APPID! >"%TEMP%\m365_login.txt" 2>&1
+    ) else (
+        call m365 login --authType browser >"%TEMP%\m365_login.txt" 2>&1
+    )
     if !errorlevel! equ 0 (
         del "%TEMP%\m365_login.txt" >nul 2>&1
         goto LOGIN_OK
@@ -279,7 +326,11 @@ echo.
 echo   You will see a short code below.
 echo   Open https://aka.ms/devicelogin in your browser, enter the code, and sign in.
 echo.
-call m365 login >"%TEMP%\m365_login.txt" 2>&1
+if defined DEFAULT_APPID (
+    call m365 login --appId %DEFAULT_APPID% >"%TEMP%\m365_login.txt" 2>&1
+) else (
+    call m365 login >"%TEMP%\m365_login.txt" 2>&1
+)
 set LOGIN2_EXIT=%errorlevel%
 
 if %LOGIN2_EXIT% equ 0 (
@@ -287,6 +338,7 @@ if %LOGIN2_EXIT% equ 0 (
     goto LOGIN_OK
 )
 
+:LOGIN_FAILED
 echo.
 echo   Sign-in failed. Please check:
 echo   - Your internet connection

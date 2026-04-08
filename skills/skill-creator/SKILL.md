@@ -5,7 +5,7 @@ description: This skill should be used when the user wants to create a new skill
   structure. Triggers include phrases like "create a skill for X", "build a new skill",
   "turn this into a skill", "package my skill", "validate my skill", or "improve
   this skill". Also use when the user wants to scaffold a new Claude Code skill from
-  scratch, add a skill to the OpenClaw Workshop Kit, or follow the Selr AI skill
+  scratch, add a skill to the Claude Code Workshop Kit, or follow the Selr AI skill
   creation workflow.
 allowed-tools: Read, Write, Edit, Bash
 license: Complete terms in LICENSE.txt
@@ -17,7 +17,7 @@ metadata:
     - documentation
     - beginner-friendly
     - selr-ai
-    - openclaw
+    - claude-workshop
   pairs-with:
     - skill: skill-architect
       reason: Architecture patterns inform the creation workflow for structurally sound skills
@@ -29,7 +29,7 @@ metadata:
 
 # Skill Creator
 
-This skill provides guidance for creating, validating, and packaging effective Claude Code skills within the Selr AI / OpenClaw Workshop Kit ecosystem.
+This skill provides guidance for creating, validating, and packaging effective Claude Code skills within the Selr AI / Claude Code Workshop Kit ecosystem.
 
 ---
 
@@ -67,7 +67,7 @@ When installing skills locally for Claude Code, always use the cross-platform pa
 ~/.claude/skills/<skill-name>/
 ```
 
-For the OpenClaw Workshop Kit repository, skills live under:
+For the Claude Code Workshop Kit repository, skills live under:
 
 ```
 skills/

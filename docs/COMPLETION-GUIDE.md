@@ -27,7 +27,9 @@ Tick these off:
 
 ### If you didn't finish the install:
 
-Open Terminal (Mac: press Command + Space, type "Terminal", press Enter) and run:
+**Windows users:** Double-click `setup.bat` in your `workshop-kit` folder. It handles everything automatically. See [WINDOWS-SETUP.md](WINDOWS-SETUP.md) for details.
+
+**Mac users:** Open Terminal (press Command + Space, type "Terminal", press Enter) and run:
 
 ```bash
 npm install -g @anthropic-ai/claude-code
@@ -60,7 +62,21 @@ Your assistant can help you set this up — just ask in the Claude chat:
 
 Great for keeping a business knowledge base.
 
-#### 3. Slack or Microsoft Teams (if you use them)
+#### 3. Microsoft Outlook & 365 (Email, Calendar, OneDrive, Teams)
+
+Install the Microsoft 365 tool:
+```bash
+npm install -g @pnp/cli-microsoft365
+m365 setup --interactive
+m365 login --authType browser
+```
+
+A browser window opens — pick your Microsoft account and click Accept. Once connected, your assistant can read emails, manage calendar, access OneDrive, and more.
+
+> For the full guide with troubleshooting, see [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
+> Windows users can also run `outlook-connector/setup.bat` for automatic setup.
+
+#### 4. Slack or Microsoft Teams (if you use them)
 Your assistant can help you set this up — just ask in the Claude chat:
 > "Help me connect Slack so you can send and read messages."
 
@@ -75,9 +91,9 @@ This lets you chat with your assistant from your phone — ask questions, reques
 **Step 1:** Download Telegram on your phone (free) and sign up
 **Step 2:** Search for `@BotFather` in Telegram, send `/newbot`, and follow the prompts to create a bot
 **Step 3:** Copy the bot token BotFather gives you
-**Step 4:** In Claude Code, type: `/plugin install telegram@claude-plugins-official`
+**Step 4:** In the VS Code terminal, run: `claude plugin install telegram@claude-plugins-official`
 **Step 5:** Save your token: `/telegram:configure [your token]`
-**Step 6:** Install Bun (required): `curl -fsSL https://bun.sh/install | bash`
+**Step 6:** Install Bun (required): Mac/Linux: `curl -fsSL https://bun.sh/install | bash` — Windows: `powershell -c "irm bun.sh/install.ps1 | iex"`
 **Step 7:** Restart Claude Code with: `claude --channels plugin:telegram@claude-plugins-official`
 **Step 8:** Message your bot on Telegram, get a pairing code, then type: `/telegram:access pair [code]`
 
@@ -231,4 +247,4 @@ You can talk to your AI assistant instead of typing, using tools like Wispr Flow
 
 ---
 
-*Built for the OpenClaw Workshop by Selr AI — selrai.com.au*
+*Built for the Claude Code Workshop by Selr AI — selrai.com.au*

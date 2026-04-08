@@ -8,7 +8,7 @@ date: 2026-03-27
 
 > **Keep this page open on your screen throughout the setup.** Everything you need is right here.
 
-Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has 86 specialist skills built in.
+Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has 87+ specialist skills built in.
 
 ---
 
@@ -18,7 +18,7 @@ Today you are setting up a personal AI assistant that lives on YOUR computer. It
 |---|---|
 | **Your AI Assistant** | Runs locally on your computer. Knows your business. |
 | **Browser Control** | Can open websites and automate tasks for you |
-| **86 Skills** | Research, copywriting, sales emails, competitor analysis, and more |
+| **87+ Skills** | Research, copywriting, sales emails, competitor analysis, and more |
 | **Memory System** | Saves what it learns about you and your business |
 
 ---
@@ -146,6 +146,20 @@ Node.js is needed to connect Gmail, Calendar, browser automation, and Telegram l
 
 ---
 
+## Windows Shortcut — One-Click Setup (Optional)
+
+> **Windows users only.** If you prefer to skip Steps 5 and 6, you can run the automatic installer instead.
+
+1. Download or locate the `setup.bat` file from the workshop kit
+2. Double-click `setup.bat`
+3. It checks Node.js, Git, and VS Code automatically
+4. Downloads the workshop kit, installs all skills, and opens VS Code for you
+5. When it finishes, skip ahead to **Step 7** (onboarding questions)
+
+> **Mac users:** Continue with Step 5 below.
+
+---
+
 ## Step 5 — Paste the Setup Prompt
 
 1. Click the **Claude icon** in the left sidebar
@@ -161,7 +175,7 @@ Do these steps one at a time, telling me what you are doing in plain English.
 Use the correct commands for my operating system (detect whether I am on Mac or Windows).
 
 1. Download the workshop content by running:
-   git clone https://github.com/luke-selrai/openclaw-workshop-kit.git ~/workshop-kit
+   git clone https://github.com/luke-selrai/claude-workshop-kit.git ~/workshop-kit
 
    NOTE: On Mac, if a popup appears asking to install developer tools,
    tell me to click "Install" and wait a few minutes before continuing.
@@ -171,7 +185,7 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 3. Copy this file from the downloaded workshop-kit into my-assistant:
    - workshop-kit/my-assistant/CLAUDE.md → my-assistant/CLAUDE.md
 
-4. Install all 86 skills: copy every folder from workshop-kit/skills/
+4. Install all skills: copy every folder from workshop-kit/skills/
    into ~/.claude/skills/ (create the skills directory if it does not exist).
    Do not copy SKILLS-LIST.md — only the folders.
 
@@ -182,7 +196,7 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 Talk to me like I am not technical. Plain English, one step at a time.
 ```
 
-**What happens next:** Claude will download your tools, install 86 skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
+**What happens next:** Claude will download your tools, install 87+ skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
 
 ---
 
@@ -338,21 +352,7 @@ This lets you chat with your assistant directly from Telegram on your phone — 
 6. BotFather will ask for a **username** — must end in `bot` (e.g. `my_assistant_bot`)
 7. BotFather will reply with a **token** — copy the entire thing (numbers, colon, and all)
 
-**Step 2 — Install the Telegram Plugin**
-
-In the Claude Code chat, type:
-
-```
-/plugin install telegram@claude-plugins-official
-```
-
-Then save your bot token (replace with your actual token):
-
-```
-/telegram:configure 123456789:AAHfiqksKZ8...
-```
-
-**Step 3 — Install Bun (Required)**
+**Step 2 — Install Bun (Required)**
 
 The Telegram plugin runs on Bun. Install it:
 
@@ -364,6 +364,22 @@ curl -fsSL https://bun.sh/install | bash
 **Windows:**
 ```
 powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+Close and reopen your terminal after installing.
+
+**Step 3 — Install the Telegram Plugin**
+
+Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run:
+
+```
+claude plugin install telegram@claude-plugins-official
+```
+
+Then save your bot token (replace with your actual token):
+
+```
+/telegram:configure 123456789:AAHfiqksKZ8...
 ```
 
 Close and reopen your terminal after installing.
@@ -394,7 +410,7 @@ Once you are paired, stop strangers from getting pairing codes:
 
 > For the full guide with troubleshooting, see [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
 
-> **Prefer a different app?** See [iMessage (Mac only)](#imessage--message-your-assistant-from-your-iphone-mac-only) or WhatsApp below.
+> **Prefer a different app?** See [iMessage (Mac only)](#imessage--message-your-assistant-from-your-iphone-mac-only) below.
 
 ---
 
@@ -456,7 +472,7 @@ By default, only your own messages reach the assistant. To allow someone else:
 
 > **Want multiple channels?** Launch with: `claude --channels plugin:telegram@claude-plugins-official plugin:imessage@claude-plugins-official`
 >
-> **Prefer a different app?** See [Telegram](#telegram--message-your-assistant-from-your-phone) or WhatsApp above.
+> **Prefer a different app?** See [Telegram](#telegram--message-your-assistant-from-your-phone) above.
 ---
 
 ## After Connecting Tools
@@ -482,7 +498,27 @@ To check what is connected, ask your assistant: *"What tools do you have connect
 
 ---
 
-## Your 86 Skills — Quick Reference
+## Automation — Schedules and Loops
+
+Your assistant can run tasks automatically on a schedule or in a loop.
+
+| What to Say | What It Does |
+|---|---|
+| "Check my emails every morning at 9am" | Creates a scheduled task that runs daily |
+| "Post to social media every weekday at 10am" | Creates a recurring automation |
+| "Monitor my website every 5 minutes" | Runs a check on a loop |
+
+**How it works:**
+- `/schedule` — creates a task that runs at set times (like a cron job)
+- `/loop` — runs something repeatedly on an interval
+
+> **Note:** Your computer must be on and VS Code open for scheduled tasks to run. For always-on automation, see the server setup guide.
+
+For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHEDULE.md)
+
+---
+
+## Your 87+ Skills — Quick Reference
 
 <details>
 <summary>Click to see all skill categories</summary>
@@ -527,11 +563,13 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 
 | Resource | Link |
 |---|---|
-| Workshop Kit (GitHub) | [github.com/luke-selrai/openclaw-workshop-kit](https://github.com/luke-selrai/openclaw-workshop-kit) |
+| Workshop Kit (GitHub) | [github.com/luke-selrai/claude-workshop-kit](https://github.com/luke-selrai/claude-workshop-kit) |
 | Claude.ai | [claude.ai](https://claude.ai) |
 | VS Code | [code.visualstudio.com](https://code.visualstudio.com) |
 | Git for Windows | [git-scm.com/download/win](https://git-scm.com/download/win) |
 | Node.js | [nodejs.org](https://nodejs.org) |
+| Claude Code Docs | [docs.anthropic.com/en/docs/claude-code](https://docs.anthropic.com/en/docs/claude-code) |
+| MCP Documentation | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
 | Selr AI | [selrai.com.au](https://selrai.com.au) |
 | Email Luke | [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 

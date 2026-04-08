@@ -68,15 +68,25 @@ You should see a version number. If you see "command not found":
 
 ---
 
-## Step 2 — Set Up Your Microsoft Connection (One-Time)
+## Step 2 — Register Your Microsoft App (One-Time)
 
 This step creates a secure private link between the tool and your Microsoft account. It only needs to be done once.
 
 ```
-m365 setup --interactive
+m365 setup
 ```
 
-A browser window will open and walk you through a short setup. Follow the steps it shows — it handles everything automatically.
+> **Important:** Do NOT use `m365 setup --interactive` — that only configures CLI settings and skips app registration.
+
+A browser window will open. Sign in with your Microsoft account and click **Accept** when asked. This registers a custom Entra app in your tenant with the permissions the CLI needs.
+
+When it finishes you should see a `clientId` and `tenantId` in the output — that means it worked.
+
+> **Save the `clientId` value** — you may need it later. If you lose it, you can always retrieve it by running:
+> ```
+> m365 status
+> ```
+> The `appId` shown is your `clientId`.
 
 > If you see any errors during setup, contact your workshop facilitator.
 
@@ -102,7 +112,28 @@ A browser window will open:
 
 ---
 
-## Step 4 — Test It
+## Step 4 — Add Calendar Write Permission
+
+The default app has read-only calendar access. To create and update events, you need to upgrade the permission.
+
+**Easiest way — ask your assistant:**
+
+> "Upgrade my Outlook calendar permission to read-write."
+
+Your assistant will run the necessary commands automatically. Once done, it will sign you out and back in to apply the change.
+
+**After the upgrade**, re-sign in if your assistant hasn't already:
+
+```
+m365 logout
+m365 login --authType browser
+```
+
+> **Manual method:** If you prefer to run the commands yourself, see the [Appendix](#appendix--manual-calendar-permission-upgrade) at the bottom of this page.
+
+---
+
+## Step 5 — Test It
 
 Once signed in, test it by asking your assistant:
 
@@ -116,8 +147,10 @@ Or test directly in the command window:
 m365 outlook mail list
 ```
 
-```
-m365 outlook calendar event list
+Calendar events use the Graph API (no built-in calendar command in the CLI):
+
+```bash
+m365 request --url "https://graph.microsoft.com/v1.0/me/events?\$top=5" --method get
 ```
 
 ---
@@ -162,7 +195,7 @@ m365 outlook calendar event list
 
 | Problem | Fix |
 |---|---|
-| `m365 setup` fails or browser never opens | Run `m365 setup --interactive` manually in a new terminal window |
+| `m365 setup` fails or browser never opens | Run `m365 setup` (without `--interactive`) in a new terminal window |
 | `m365 setup` shows "admin consent required" | Ask your IT department or workshop facilitator to approve the PnP Management Shell app at: `https://entra.microsoft.com` → Enterprise Applications → Grant admin consent |
 | `m365 setup` hangs with no response | Press Ctrl+C, close the terminal, open a new one, and retry |
 | Browser does not open during sign-in | Run `m365 login` (without `--authType browser`) — use the device code shown at `https://aka.ms/devicelogin` |
@@ -190,9 +223,79 @@ If your Outlook is managed by your employer, some features (Teams, SharePoint) m
 
 ---
 
+## Server / Headless VM Setup
+
+If you are running your assistant on a GCP server (or any headless VM without a browser), follow these steps instead:
+
+### One-time prerequisite — run on your laptop (not the server)
+
+The app registration (`m365 setup`) requires a browser and only needs to be done **once per Microsoft tenant**:
+
+```bash
+# On your LAPTOP (not the server)
+m365 setup
+```
+
+Sign in, click Accept. Once you see `clientId` and `tenantId` in the output, the app is registered in your tenant.
+
+### On the server — sign in via device code
+
+```bash
+# On the SERVER (via SSH)
+npm install -g @pnp/cli-microsoft365
+m365 login
+```
+
+This shows a short code and a URL (`https://aka.ms/devicelogin`). Open that URL on your phone or laptop browser, enter the code, and sign in. The server receives the token automatically.
+
+Verify:
+
+```bash
+m365 status
+m365 outlook mail list --pageSize 3
+```
+
+### Token refresh
+
+Tokens refresh automatically. Some corporate tenants expire them in 1–24 hours — if that happens, run `m365 login` again (device code).
+
+---
+
 ## Playwright Fallback
 
 If any Outlook feature is unavailable through the CLI, your assistant can use its built-in browser automation (Playwright) to access Outlook Web directly. Just ask normally — for example, "Open my Outlook and check the email from last week" — and the assistant will use the browser if the CLI cannot handle it.
+
+---
+
+## Appendix — Manual Calendar Permission Upgrade
+
+If you prefer to run the calendar upgrade commands yourself instead of asking your assistant:
+
+```bash
+# 1. Get your app's clientId (if you didn't save it from Step 2)
+m365 status
+
+# 2. Add Calendars.ReadWrite to the app registration
+m365 entra app permission add \
+  --appId <YOUR_CLIENT_ID> \
+  --delegatedPermissions "https://graph.microsoft.com/Calendars.ReadWrite" \
+  --grantAdminConsent
+
+# 3. Get the service principal object ID
+m365 entra enterpriseapp list --output json --query "[?appId=='<YOUR_CLIENT_ID>'].{id:id}"
+
+# 4. List the current Graph API grant to get the grantId
+m365 entra oauth2grant list --spObjectId <SERVICE_PRINCIPAL_ID> --output json
+
+# 5. Update the OAuth2 grant scope (replace Calendars.Read with Calendars.ReadWrite in the full scope string)
+m365 entra oauth2grant set --grantId "<GRANT_ID>" --scope "<FULL_SCOPE_STRING_WITH_Calendars.ReadWrite>"
+
+# 6. Re-login to pick up the new permission
+m365 logout
+m365 login --authType browser
+```
+
+Replace `<YOUR_CLIENT_ID>` with the `appId` from `m365 status`, `<SERVICE_PRINCIPAL_ID>` with the `id` from step 3, and `<GRANT_ID>` and scope from step 4.
 
 ---
 

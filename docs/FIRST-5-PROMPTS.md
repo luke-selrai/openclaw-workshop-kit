@@ -76,4 +76,4 @@ Include post ideas for each week with topics and hooks.
 
 ---
 
-*OpenClaw Workshop — selrai.com.au*
+*Claude Code Workshop — selrai.com.au*

@@ -20,7 +20,7 @@ Do these steps one at a time, telling me what you are doing in plain English.
 Use the correct commands for my operating system (detect whether I am on Mac or Windows).
 
 1. Download the workshop content by running:
-   git clone https://github.com/luke-selrai/openclaw-workshop-kit.git ~/workshop-kit
+   git clone https://github.com/luke-selrai/claude-workshop-kit.git ~/workshop-kit
 
    NOTE: On Mac, if a popup appears asking to install developer tools,
    tell me to click "Install" and wait a few minutes before continuing.

@@ -225,4 +225,4 @@ You can also trigger a skill directly by mentioning the skill name:
 
 ---
 
-*OpenClaw Workshop — selrai.com.au*
+*Claude Code Workshop — selrai.com.au*

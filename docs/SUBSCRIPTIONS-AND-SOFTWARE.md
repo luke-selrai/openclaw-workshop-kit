@@ -104,4 +104,4 @@ Right now your assistant only runs when your laptop is open. A server lets it ru
 
 ---
 
-*OpenClaw Workshop — selrai.com.au*
+*Claude Code Workshop — selrai.com.au*

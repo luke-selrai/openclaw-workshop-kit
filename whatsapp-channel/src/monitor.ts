@@ -177,6 +177,13 @@ export async function monitorWhatsApp(options: MonitorOptions) {
     if (options.verbose) console.error("[whatsapp] Failed to send presence:", String(err));
   });
 
+  // Keepalive: send presence every 45 seconds to prevent idle disconnection.
+  const keepaliveInterval = setInterval(() => {
+    sock.sendPresenceUpdate("available").catch((err) => {
+      if (options.verbose) console.error("[whatsapp] Keepalive presence failed:", String(err));
+    });
+  }, 45_000);
+
   const selfJid = sock.user?.id;
   const selfPhone = jidToPhone(selfJid);
 
@@ -361,6 +368,7 @@ export async function monitorWhatsApp(options: MonitorOptions) {
     },
     close: async () => {
       try {
+        clearInterval(keepaliveInterval);
         sock.ev.removeAllListeners("messages.upsert");
         sock.ev.removeAllListeners("connection.update");
         sock.end(undefined);
