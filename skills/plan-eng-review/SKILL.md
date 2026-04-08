@@ -19,7 +19,7 @@ Review this plan thoroughly before making any code changes. For every issue or r
 ## Priority hierarchy
 If you are running low on context or the user asks you to compress: Step 0 > Test diagram > Opinionated recommendations > Everything else. Never skip Step 0 or the test diagram.
 
-## My engineering preferences (use these to guide your recommendations):
+## Engineering preferences (apply these to guide recommendations):
 * DRY is important—flag repetition aggressively.
 * Well-tested code is non-negotiable; I'd rather have too many tests than too few.
 * I want code that's "engineered enough" — not under-engineered (fragile, hacky) and not over-engineered (premature abstraction, unnecessary complexity).
