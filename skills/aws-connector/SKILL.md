@@ -32,35 +32,41 @@ This skill does two things:
 
 ## Part 1 — Installation
 
+Guide conversationally — one step at a time:
+
 ### Step 1: Check if already installed
 
-```bash
-aws --version
-```
+Run `aws --version`. If it returns a version number, say:
+> "AWS is already installed on your computer. Let me check if you're signed in."
 
-If this returns a version number, skip to Step 3 (credentials). If "command not found", continue.
+Skip to Part 2.
 
-### Step 2: Install AWS CLI
+If "command not found", say:
+> "We need to install the AWS command-line tool first. This will take about a minute."
 
-Detect the user's OS first:
+### Step 2: Install based on OS
 
-```bash
-uname -s
-```
+Detect OS with `uname -s` (or check if PowerShell is available for Windows).
 
-**macOS (Homebrew):**
+**macOS — say:**
+> "I'm going to install the AWS tool using Homebrew."
+
 ```bash
 brew install awscli
 ```
 
-**macOS (without Homebrew):**
+If Homebrew is not installed, say:
+> "I'll download the installer directly from Amazon instead."
+
 ```bash
 curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
 sudo installer -pkg AWSCLIV2.pkg -target /
 rm AWSCLIV2.pkg
 ```
 
-**Linux (x86_64):**
+**Linux (x86_64) — say:**
+> "I'm going to download and install the AWS tool from Amazon."
+
 ```bash
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
@@ -68,7 +74,7 @@ sudo ./aws/install
 rm -rf aws awscliv2.zip
 ```
 
-**Linux (ARM):**
+**Linux (ARM) — same message, different URL:**
 ```bash
 curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
@@ -76,55 +82,64 @@ sudo ./aws/install
 rm -rf aws awscliv2.zip
 ```
 
-**Windows (winget):**
+**Windows — say:**
+> "I'm going to install the AWS tool now. You'll see some progress in the terminal."
+
 ```powershell
 winget install Amazon.AWSCLI
 ```
 
-**Windows (MSI installer):**
-Download from https://awscli.amazonaws.com/AWSCLIV2.msi and run the installer.
+If winget is unavailable, say:
+> "I'll need you to download the installer. Open this link in your browser: https://awscli.amazonaws.com/AWSCLIV2.msi — then run it and click through the steps. Let me know when it's done."
 
-### Step 3: Verify installation
+### Step 3: Verify
 
-```bash
-aws --version
-```
+Run `aws --version`. If it works, say:
+> "That worked! AWS is installed. Now let's connect it to your account."
 
-If this returns `aws-cli/2.x.x`, installation is complete.
+If it still fails after install, say:
+> "The terminal needs a refresh. Please close this terminal and open a new one, then tell me to continue."
 
 ---
 
 ## Part 2 — Credentials
 
-### Step 4: Get AWS credentials
+### Step 4: Ask about existing credentials
 
-The user needs an **Access Key ID** and **Secret Access Key**. Ask:
+Say:
+> "Do you already have AWS access keys? These are like a username and password for the command line. They look like a long string of letters and numbers."
 
-> "Do you already have AWS access keys? If not, I can help you create them."
+**If yes** → go to Step 5.
 
-**If they need to create keys:**
-1. Go to https://console.aws.amazon.com/iam/
-2. Click **Users** → select your user (or create one)
-3. Click **Security credentials** tab
-4. Click **Create access key**
-5. Select **Command Line Interface (CLI)**
-6. Copy the Access Key ID and Secret Access Key
+**If no or unsure** → say:
+> "No problem. I'll help you create them. Open this link in your browser:"
+> `https://console.aws.amazon.com/iam/`
 
-> **Important:** The secret key is only shown once. Save it securely.
+Then guide step by step:
+1. "Click **Users** in the left sidebar."
+2. "Click on your username. If you don't see one, you may need to ask whoever manages your AWS account to create one for you."
+3. "Click the **Security credentials** tab."
+4. "Scroll down to **Access keys** and click **Create access key**."
+5. "Select **Command Line Interface (CLI)** and click **Next**."
+6. "Click **Create access key**."
+7. "You'll see two values — an **Access Key ID** and a **Secret Access Key**. Copy both of them somewhere safe. The secret is only shown once."
 
-### Step 5: Configure credentials
+If the user needs Playwright assistance navigating the console, use it.
 
+### Step 5: Configure
+
+Say:
+> "Now I'm going to run the setup. It will ask you four things — I'll tell you what to enter for each one."
+
+Run:
 ```bash
 aws configure
 ```
 
-This prompts for four values:
-- **AWS Access Key ID** — paste the key
-- **AWS Secret Access Key** — paste the secret
-- **Default region name** — e.g. `ap-southeast-2` (Sydney), `us-east-1` (Virginia)
-- **Default output format** — enter `json`
-
-If the user doesn't know their region, help them pick one:
+Guide each prompt:
+1. **AWS Access Key ID** → "Paste your Access Key ID here."
+2. **AWS Secret Access Key** → "Paste your Secret Access Key here."
+3. **Default region name** → "Which region are you closest to?" Help them pick:
 
 | Location | Region code |
 |---|---|
@@ -136,17 +151,40 @@ If the user doesn't know their region, help them pick one:
 | Frankfurt | `eu-central-1` |
 | Tokyo | `ap-northeast-1` |
 
+4. **Default output format** → "Type `json` and press Enter."
+
 ### Step 6: Verify
 
+Run:
 ```bash
 aws sts get-caller-identity
 ```
 
-This should return the user's account ID, user ARN, and user ID. If it works, setup is complete.
+If it returns account info, say:
+> "That worked! You're connected to AWS as [account/user]. Your AWS is ready to go."
+
+If it fails, check the error and refer to the Troubleshooting section.
 
 ---
 
-## Part 3 — Common Operations
+## Part 3 — What to Try First
+
+After setup, suggest simple tasks:
+
+> "Want to try something? Here are a few things I can do with your AWS:"
+
+```
+"Show me my S3 buckets."
+"What's running in my AWS account?"
+"List my EC2 instances."
+```
+
+Say:
+> "Start with something simple. Once you're comfortable, I can help with more complex tasks like deploying apps or managing databases."
+
+---
+
+## Part 4 — Common Operations
 
 ### S3 (Storage)
 
@@ -212,18 +250,19 @@ aws sts get-caller-identity
 
 ---
 
-## Part 4 — SSO Login (Alternative to Access Keys)
+## Part 5 — SSO Login (Alternative to Access Keys)
 
-If the user's organisation uses AWS SSO (IAM Identity Center):
+If the user's organisation uses AWS SSO (IAM Identity Center), say:
+> "Your company uses a different sign-in method. I'll set that up instead."
 
 ```bash
 aws configure sso
 ```
 
 This prompts for:
-- **SSO start URL** — provided by their IT admin (e.g. `https://my-company.awsapps.com/start`)
-- **SSO region** — the region where SSO is configured
-- **Account and role** — selected from a list after browser sign-in
+- **SSO start URL** — "Ask your IT admin for this. It looks like `https://my-company.awsapps.com/start`."
+- **SSO region** — "Ask your IT admin which region your company's sign-in is in."
+- **Account and role** — "A browser will open. Sign in, then pick your account and role from the list."
 
 After setup, log in with:
 ```bash
@@ -232,7 +271,7 @@ aws sso login --profile <profile-name>
 
 ---
 
-## Part 5 — Auth & Session
+## Part 6 — Auth & Session
 
 ```bash
 # Check who is signed in
@@ -247,14 +286,13 @@ export AWS_PROFILE=other-profile
 # List configured profiles
 aws configure list-profiles
 
-# Clear credentials (remove from config files)
-# Credentials are stored in ~/.aws/credentials
-# Config is stored in ~/.aws/config
+# Reconfigure credentials
+aws configure
 ```
 
 ---
 
-## Part 6 — Troubleshooting
+## Part 7 — Troubleshooting
 
 | Problem | Fix |
 |---|---|
@@ -267,6 +305,11 @@ aws configure list-profiles
 | `An error occurred (ExpiredToken)` | SSO session expired — run `aws sso login` |
 | `The security token included in the request is invalid` | Credentials expired — re-run `aws configure` or `aws sso login` |
 
+When an error occurs, say:
+> "No problem — let me try a different way."
+
+Then diagnose and fix. Never show raw error messages to the user — translate them into plain English.
+
 ---
 
 ## Behaviour Guidelines
@@ -277,3 +320,4 @@ aws configure list-profiles
 - **Auth errors** → `aws configure` for access keys, `aws sso login` for SSO.
 - **aws not found** → restart shell or reinstall.
 - **Never echo or log secret keys** — they should only be entered via `aws configure`.
+- **One step at a time** — do not dump all instructions at once. Say what to do, wait, then give the next step.
