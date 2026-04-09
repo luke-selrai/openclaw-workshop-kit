@@ -103,6 +103,8 @@ All paths below are relative to the user's home folder (see the path conventions
 | Dispatch (phone → desktop) | `workshop-kit/docs/dispatch/DISPATCH-SETUP.md` and `workshop-kit/skills/claude-dispatch/SKILL.md` |
 | Shopify | `workshop-kit/skills/shopify-connector/SKILL.md` |
 | Google Cloud (gcloud) | `workshop-kit/skills/gcloud-connector/SKILL.md` |
+| AWS | `workshop-kit/skills/aws-connector/SKILL.md` |
+| Azure | `workshop-kit/skills/azure-connector/SKILL.md` |
 
 Each guide is the source of truth. If a guide contradicts something you remember, the guide wins.
 
