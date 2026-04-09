@@ -34,28 +34,35 @@ This skill does two things:
 
 ## Part 1 — Installation
 
+Guide conversationally — one step at a time:
+
 ### Step 1: Check if already installed
 
-```bash
-az --version
-```
+Run `az --version`. If it returns a version number, say:
+> "Azure is already installed on your computer. Let me check if you're signed in."
 
-If this returns a version number, skip to Step 3 (authentication). If "command not found", continue.
+Skip to Part 2.
 
-### Step 2: Install Azure CLI
+If "command not found", say:
+> "We need to install the Azure command-line tool first. This will take about a minute."
 
-Detect the user's OS first:
+### Step 2: Install based on OS
 
-```bash
-uname -s
-```
+Detect OS with `uname -s` (or check if PowerShell is available for Windows).
 
-**macOS (Homebrew):**
+**macOS — say:**
+> "I'm going to install the Azure tool using Homebrew."
+
 ```bash
 brew install azure-cli
 ```
 
-**Linux (Ubuntu/Debian):**
+If Homebrew is not installed, say:
+> "I'll need you to install Homebrew first. Run this command, then let me know when it's done."
+
+**Linux (Ubuntu/Debian) — say:**
+> "I'm going to download and install the Azure tool."
+
 ```bash
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 ```
@@ -67,21 +74,23 @@ sudo dnf install -y https://packages.microsoft.com/config/rhel/9.0/packages-micr
 sudo dnf install -y azure-cli
 ```
 
-**Windows (winget):**
+**Windows — say:**
+> "I'm going to install the Azure tool now. You'll see some progress in the terminal."
+
 ```powershell
 winget install Microsoft.AzureCLI
 ```
 
-**Windows (MSI installer):**
-Download from https://aka.ms/installazurecliwindowsx64 and run the installer.
+If winget is unavailable, say:
+> "I'll need you to download the installer. Open this link in your browser: https://aka.ms/installazurecliwindowsx64 — then run it and click through the steps. Let me know when it's done."
 
-### Step 3: Verify installation
+### Step 3: Verify
 
-```bash
-az --version
-```
+Run `az --version`. If it works, say:
+> "That worked! Azure is installed. Now let's sign you in."
 
-If this returns `azure-cli 2.x.x`, installation is complete.
+If it still fails after install, say:
+> "The terminal needs a refresh. Please close this terminal and open a new one, then tell me to continue."
 
 ---
 
@@ -89,45 +98,84 @@ If this returns `azure-cli 2.x.x`, installation is complete.
 
 ### Step 4: Log in
 
+Say:
+> "I'm going to sign you in to Azure now. A browser window will open — sign in with your Microsoft account."
+
 ```bash
 az login
 ```
 
-**This opens a browser.** The user signs in with their Microsoft account and grants access.
+**If the browser opens** — wait for the user to sign in. After success, say:
+> "You're signed in. Let me check which subscriptions you have."
 
-If the browser does not open automatically, the command will print a URL and a device code. Tell the user:
+**If the browser does not open** — say:
 > "A link and a code appeared in the terminal. Open the link in your browser, enter the code, and sign in with your Microsoft account."
 
-If running in a headless/remote environment:
+**If running headless or browser is blocked:**
 ```bash
 az login --use-device-code
 ```
 
+Say:
+> "Open this link on any device: https://microsoft.com/devicelogin — then enter this code: [code]. Sign in with your Microsoft account."
+
 ### Step 5: Set default subscription
 
-List available subscriptions:
+Run:
 ```bash
 az account list --output table
 ```
 
-If the user has multiple subscriptions, help them pick the right one:
+**If one subscription** — set it automatically and say:
+> "You have one subscription. I've set it as your default."
+
 ```bash
-az account set --subscription "<subscription-id-or-name>"
+az account set --subscription "<subscription-id>"
 ```
 
-If the list is empty, they need to create a subscription at https://portal.azure.com.
+**If multiple subscriptions** — say:
+> "You have a few subscriptions. Which one would you like to use as your default?"
+
+Show the list and let the user pick, then:
+```bash
+az account set --subscription "<their-choice>"
+```
+
+**If no subscriptions** — say:
+> "You don't have an Azure subscription yet. You'll need to create one at https://portal.azure.com. Would you like me to help you with that?"
+
+Use Playwright to guide them through the portal if needed.
 
 ### Step 6: Verify
 
+Run:
 ```bash
-az account show
+az account show --output table
 ```
 
-This should show the logged-in user and active subscription. If both appear, setup is complete.
+If it shows the account and subscription, say:
+> "That worked! You're connected to Azure with the [subscription name] subscription. Your Azure is ready to go."
 
 ---
 
-## Part 3 — Common Operations
+## Part 3 — What to Try First
+
+After setup, suggest simple tasks:
+
+> "Want to try something? Here are a few things I can do with your Azure:"
+
+```
+"Show me my Azure resource groups."
+"What web apps do I have running?"
+"List my storage accounts."
+```
+
+Say:
+> "Start with something simple. Once you're comfortable, I can help with more complex tasks like deploying apps or managing secrets."
+
+---
+
+## Part 4 — Common Operations
 
 ### Storage (Blob)
 
@@ -205,25 +253,26 @@ az group create --name <rg-name> --location australiaeast
 
 ---
 
-## Part 4 — Service Principal (for Automation)
+## Part 5 — Service Principal (for Automation)
 
-For automated scripts or CI/CD, create a service principal instead of using user login:
+If the user needs automated/non-interactive access (CI/CD, scripts), say:
+> "For automation, I'll create a service account that can sign in without a browser."
 
 ```bash
 az ad sp create-for-rbac --name "my-automation" --role contributor --scopes /subscriptions/<subscription-id>
 ```
 
-This outputs `appId`, `password`, and `tenant`. Use them to log in non-interactively:
+This outputs `appId`, `password`, and `tenant`. Say:
+> "Save these three values somewhere safe — especially the password, which is only shown once."
 
+To log in with a service principal:
 ```bash
 az login --service-principal -u <appId> -p <password> --tenant <tenant>
 ```
 
-> **Store the password securely** — it is only shown once.
-
 ---
 
-## Part 5 — Auth & Session
+## Part 6 — Auth & Session
 
 ```bash
 # Check who is signed in
@@ -250,23 +299,28 @@ az config get
 
 ---
 
-## Part 6 — Troubleshooting
+## Part 7 — Troubleshooting
 
 | Problem | Fix |
 |---|---|
 | `az: command not found` | Shell needs restart — open a new terminal |
 | `Please run 'az login' to setup account` | Not signed in — run `az login` |
 | `The subscription could not be found` | Wrong subscription — run `az account list` and `az account set` |
-| `AuthorizationFailed` | User doesn't have permission on this resource — check role assignments in Azure Portal |
+| `AuthorizationFailed` | User doesn't have permission — check role assignments in Azure Portal |
 | `InteractionRequired` | MFA or Conditional Access required — complete the browser prompt |
 | `AADSTS50076` | MFA required — sign in via browser and complete MFA |
-| `No subscriptions found` | Account has no Azure subscriptions — create one at portal.azure.com |
+| `No subscriptions found` | No Azure subscription — create one at portal.azure.com |
 | Browser doesn't open on login | Use `az login --use-device-code` instead |
-| `Certificate verification failed` | Corporate proxy — try `az config set core.ssl_verification=false` (temporary) or configure proxy cert |
+| `Certificate verification failed` | Corporate proxy issue — contact IT or try `az config set core.ssl_verification=false` temporarily |
+
+When an error occurs, say:
+> "No problem — let me try a different way."
+
+Then diagnose and fix. Never show raw error messages to the user — translate them into plain English.
 
 ---
 
-## Part 7 — Playwright Fallback
+## Part 8 — Playwright Fallback
 
 Use Playwright when:
 - The browser does not open automatically during `az login`
@@ -292,7 +346,8 @@ Always try the CLI command first. Only switch to Playwright if the CLI returns a
 
 - **Always run `az account show` first** at the start of a session to confirm the user is signed in.
 - **Confirm before destructive actions** — deleting resource groups, deallocating VMs, removing secrets.
-- **Subscription context matters** — always check `az account show --query 'name'` before running commands, to avoid operating on the wrong subscription.
+- **Subscription context matters** — always check `az account show --query 'name'` before running commands.
 - **Auth errors** → `az login` or `az login --use-device-code`.
 - **az not found** → restart shell or reinstall.
 - **Location/region** — if the user is in Australia, default to `australiaeast`. Always confirm before creating resources.
+- **One step at a time** — do not dump all instructions at once. Say what to do, wait, then give the next step.
