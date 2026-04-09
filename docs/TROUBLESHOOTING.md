@@ -146,6 +146,32 @@ If the QR code disappears before you can scan it, ask your assistant to regenera
 
 ---
 
+### "WhatsApp messages aren't arriving"
+
+1. Make sure Claude Code is running with `--dangerously-load-development-channels server:whatsapp`
+2. Only your own phone number is allowed by default — if someone else is messaging, their number needs to be added to `WA_ALLOW_FROM`
+3. Run with `WA_VERBOSE=1` to see if messages are being blocked in the debug log
+
+---
+
+### "WhatsApp session expired"
+
+WhatsApp Web sessions can expire if your phone is offline for too long.
+
+1. Delete the auth folder: remove the folder at `~/.claude/whatsapp-channel/auth/`
+2. Restart Claude Code with the channel flag
+3. Scan a new QR code
+
+---
+
+### "WhatsApp shows 'blocked by org policy'"
+
+Your Team or Enterprise admin needs to enable channels in the Claude Code settings. Contact your admin.
+
+For the full WhatsApp guide: [docs/WHATSAPP-SETUP.md](WHATSAPP-SETUP.md)
+
+---
+
 ### "iMessage isn't working (Mac only)"
 
 The most common issue is missing permissions. Check:
