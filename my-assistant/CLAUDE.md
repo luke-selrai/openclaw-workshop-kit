@@ -99,7 +99,7 @@ All paths below are relative to the user's home folder (see the path conventions
 | Microsoft 365 / Outlook | `workshop-kit/docs/OUTLOOK-SETUP.md` and `workshop-kit/skills/outlook-connector/SKILL.md` |
 | Telegram | `workshop-kit/docs/TELEGRAM-SETUP.md` |
 | iMessage | `workshop-kit/docs/IMESSAGE-SETUP.md` |
-| WhatsApp | `workshop-kit/whatsapp-channel/README.md` |
+| WhatsApp | `workshop-kit/docs/WHATSAPP-SETUP.md` |
 | Dispatch (phone → desktop) | `workshop-kit/docs/dispatch/DISPATCH-SETUP.md` and `workshop-kit/skills/claude-dispatch/SKILL.md` |
 | Shopify | `workshop-kit/skills/shopify-connector/SKILL.md` |
 | Google Cloud (gcloud) | `workshop-kit/skills/gcloud-connector/SKILL.md` |

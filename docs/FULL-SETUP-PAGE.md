@@ -472,7 +472,58 @@ By default, only your own messages reach the assistant. To allow someone else:
 
 > **Want multiple channels?** Launch with: `claude --channels plugin:telegram@claude-plugins-official plugin:imessage@claude-plugins-official`
 >
-> **Prefer a different app?** See [Telegram](#telegram--message-your-assistant-from-your-phone) above.
+> **Prefer a different app?** See [Telegram](#telegram--message-your-assistant-from-your-phone) above or [WhatsApp](#whatsapp--message-your-assistant-from-your-phone) below.
+
+---
+
+### WhatsApp — Message Your Assistant from Your Phone
+
+This lets you chat with your assistant directly from WhatsApp — ask questions, request tasks, and get replies wherever you are. It connects using the same QR code method as WhatsApp Web — no bot tokens or API keys needed.
+
+**Step 1 — Install Bun (Required)**
+
+The WhatsApp channel runs on Bun. Install it:
+
+**Mac/Linux:**
+```
+curl -fsSL https://bun.sh/install | bash
+```
+
+**Windows:**
+```
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+Close and reopen your terminal after installing.
+
+**Step 2 — Install the WhatsApp Channel**
+
+Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run:
+
+```
+cd ~/workshop-kit/whatsapp-channel && bun install
+```
+
+**Step 3 — Connect**
+
+No extra config needed — the whatsapp-channel folder already has its own config. Open a terminal and run:
+
+```sh
+cd ~/workshop-kit/whatsapp-channel && WA_AUTO_OPEN_QR=1 claude --dangerously-load-development-channels server:whatsapp
+```
+
+A browser window will open with a QR code. On your phone, open **WhatsApp → Settings → Linked Devices → Link a Device** and scan the code.
+
+**Step 4 — Test It**
+
+Send a message from your phone to the linked WhatsApp number. Your assistant should reply directly in WhatsApp.
+
+> For the full guide with troubleshooting, see [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md)
+
+> **Want multiple channels?** You can run WhatsApp alongside Telegram and iMessage.
+>
+> **Prefer a different app?** See [Telegram](#telegram--message-your-assistant-from-your-phone) or [iMessage](#imessage--message-your-assistant-from-your-iphone-mac-only) above.
+
 ---
 
 ## After Connecting Tools
@@ -591,6 +642,7 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 | Outlook "Access denied" for Teams or SharePoint | Those features may need IT admin approval on work/company accounts. Personal outlook.com accounts have full access. |
 | Node.js "command not found" | Restart VS Code completely, or reinstall from [nodejs.org](https://nodejs.org) |
 | Telegram bot not responding | Make sure Claude Code is running with `--channels plugin:telegram@claude-plugins-official`. See [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md) |
+| WhatsApp not connecting | Make sure Claude Code is running with `--dangerously-load-development-channels server:whatsapp`. See [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md) |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 Your assistant is designed to handle problems too — just describe what happened in plain English and it will figure it out.
