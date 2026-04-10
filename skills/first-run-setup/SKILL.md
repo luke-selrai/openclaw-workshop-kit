@@ -27,8 +27,8 @@ Check the user-level Claude skills folder — `.claude/skills/` inside the user'
   1. Check if the workshop kit's skills folder exists at `workshop-kit/skills/` inside the user's home folder.
   2. If yes → copy all skill folders (but not `SKILLS-LIST.md`) from the workshop kit's `skills/` folder into the user-level Claude skills folder.
   3. If no → re-download the workshop kit into the user's home folder, then copy the skills:
-     - **Mac and Linux:** `git clone https://github.com/luke-selrai/claude-workshop-kit.git "$HOME/workshop-kit"`
-     - **Windows (PowerShell):** `git clone https://github.com/luke-selrai/claude-workshop-kit.git "$HOME\workshop-kit"`
+     - **Mac and Linux:** `git clone https://github.com/selrai-company/claude-workshop-kit.git "$HOME/workshop-kit"`
+     - **Windows (PowerShell):** `git clone https://github.com/selrai-company/claude-workshop-kit.git "$HOME\workshop-kit"`
 
   Use the correct copy command for the user's operating system — `cp -R` on Mac/Linux, `Copy-Item -Recurse` (or `xcopy /E /I`) on Windows.
 
