@@ -75,7 +75,7 @@ After install, verify it worked:
 stripe --version
 ```
 
-You should see a version number (e.g. `stripe version 1.21.0`). If you see "command not found":
+You should see a version number (e.g. `stripe version 1.40.3`). If you see "command not found":
 - **Windows:** Close the command window and open a new one, then try again
 - **Mac:** Run `brew doctor` and follow any instructions, then try again
 
@@ -87,11 +87,12 @@ You should see a version number (e.g. `stripe version 1.21.0`). If you see "comm
 stripe login
 ```
 
-A browser window will open:
+A pairing code will appear in the terminal and a browser window will open:
 
 1. **Sign in to your Stripe account** (or create one at stripe.com if you don't have one yet)
-2. Click **Allow access** when prompted
-3. You should see a success message: `Done! The Stripe CLI is configured for your-account-name`
+2. **Verify the pairing code** shown in the terminal matches what you see in the browser
+3. Click **Allow access** when prompted
+4. You should see a success message: `Done! The Stripe CLI is configured for your-account-name`
 
 > **If the browser does not open automatically**, copy the URL shown in the terminal and paste it into your browser manually.
 

@@ -70,17 +70,22 @@ stripe --version
 stripe login
 ```
 
-This opens a browser. The user signs in to their Stripe account and clicks **Allow access**. A restricted API key is saved locally.
+**In a terminal (TTY):** This prints a pairing code and opens a browser. The user signs in to their Stripe account and clicks **Allow access**. A restricted API key is saved locally.
+
+**In a non-TTY / agent context:** The CLI outputs JSON with a `browser_url` and a `next_step` command. Show the `browser_url` to the user and ask them to approve in the browser, then run the `next_step` command to complete login:
+```bash
+stripe login --complete '<poll-url-from-next_step>'
+```
 
 > If the browser does not open, copy the URL from the terminal output and paste it into a browser manually.
 
 ### Step 4: Verify
 
 ```bash
-stripe config --list
+stripe customers list --limit 1
 ```
 
-You should see the account details. Then confirm API access:
+If customer data (or an empty list) is returned, the connector is working. You can also check the saved config:
 
 ```bash
 stripe customers list --limit 1
@@ -218,16 +223,16 @@ stripe invoiceitems create \
 ### Finalize and send an invoice
 ```bash
 # Finalize (locks the invoice)
-stripe invoices finalize in_XXXXXXXXXXXXXXXX
+stripe invoices finalize_invoice in_XXXXXXXXXXXXXXXX
 
 # Send to customer
-stripe invoices send in_XXXXXXXXXXXXXXXX
+stripe invoices send_invoice in_XXXXXXXXXXXXXXXX
 ```
 > Confirm with the user before finalizing or sending — finalized invoices cannot be edited.
 
 ### Void an invoice
 ```bash
-stripe invoices void in_XXXXXXXXXXXXXXXX
+stripe invoices void_invoice in_XXXXXXXXXXXXXXXX
 ```
 
 ---
