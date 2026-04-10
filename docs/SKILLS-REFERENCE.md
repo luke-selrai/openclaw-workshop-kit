@@ -1,6 +1,8 @@
-# Skills Reference — Complete Guide to Your AI Abilities
+# Skills Reference — Guide to Your AI Abilities
 
-This document explains every skill your AI assistant has, with example prompts and tips for getting the best results.
+This document covers the most commonly used skills. Your assistant has **95 skills total** — this guide highlights the ones you'll reach for most often.
+
+> To see the full list, ask your assistant: "Show me all available skills" or see the skill folders in `~/.claude/skills/`.
 
 ---
 

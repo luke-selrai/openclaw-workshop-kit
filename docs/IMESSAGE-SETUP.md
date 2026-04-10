@@ -186,4 +186,11 @@ claude --channels plugin:imessage@claude-plugins-official
 
 ---
 
+## Still Having Trouble?
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more fixes, or ask your assistant:
+> "Something went wrong with my iMessage setup. Help me fix it."
+
+---
+
 *Built by Selr AI — [selrai.com.au](https://selrai.com.au)*

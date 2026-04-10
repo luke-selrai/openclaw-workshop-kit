@@ -299,4 +299,11 @@ Replace `<YOUR_CLIENT_ID>` with the `appId` from `m365 status`, `<SERVICE_PRINCI
 
 ---
 
+## Still Having Trouble?
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more fixes, or ask your assistant:
+> "Something went wrong with my Outlook connection. Help me fix it."
+
+---
+
 *Built by Selr AI — [selrai.com.au](https://selrai.com.au)*

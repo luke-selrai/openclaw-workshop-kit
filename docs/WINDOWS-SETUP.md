@@ -17,9 +17,13 @@ If you already have Node.js and Git installed, you can skip this entire guide an
 
 > If setup.bat finds anything missing, it will tell you exactly what to install and where to get it.
 
+**If setup.bat completed successfully — you are done. Do not follow the manual steps below.**
+
 ---
 
 ## Manual Setup — Step by Step
+
+> **Only follow these steps if you did NOT use setup.bat, or if setup.bat reported an error.**
 
 ### Step 1 — Install Git for Windows
 

@@ -6,6 +6,9 @@
 **AI (Artificial Intelligence)**
 Software that can think, write, and learn. Trained on billions of pages of text from the internet. Not magic — just very sophisticated pattern matching at enormous scale.
 
+**Automation**
+When your assistant does a task on a schedule or in response to an event — without you having to ask each time. Example: "Every morning at 9am, check my emails and send me a summary on Telegram." The `/schedule` and `/loop` commands set this up.
+
 **API (Application Programming Interface)**
 A way for two apps to talk to each other. When your assistant connects to Gmail, it uses Gmail's API — like a special door that only apps can use, not humans. You do not need to understand APIs; your assistant handles them.
 
@@ -21,6 +24,9 @@ A text-based way to give instructions to your computer — instead of clicking, 
 **Claude**
 The AI made by Anthropic. The most capable AI for writing, research, and business tasks. Comes in different versions: Claude.ai (the website), Claude Code (runs on your computer), and Claude API (for developers building apps).
 
+**Cron / Cron Job**
+A scheduled task that runs automatically at a set time or interval. Named after the Unix `cron` system. When you use `/schedule`, it creates a cron job behind the scenes. You do not need to understand cron syntax — your assistant handles it.
+
 **Claude Code**
 The version of Claude that runs inside your computer. Much more powerful than the website version — it can install software, connect to your apps, control your browser, and automate tasks. What you are setting up today.
 
@@ -28,6 +34,10 @@ The version of Claude that runs inside your computer. Much more powerful than th
 A file that tells Claude who it is, how to behave, and what it can do. Think of it like a job description for your AI assistant. Every time Claude Code starts, it reads this file first.
 
 **Extension (VS Code Extension)**
+An add-on for VS Code — like an app for your app. The Claude Code extension connects Claude AI directly inside VS Code so you can chat with it while looking at your files.
+
+**Plugin (Claude Plugin)**
+An add-on that gives Claude Code a new capability — like connecting to Telegram, reading iMessages, or integrating with a third-party service. Installed once, then available as a command. Similar to an extension, but specifically for Claude Code's tools and channels.
 An add-on for VS Code — like an app for your app. The Claude Code extension connects Claude AI directly inside VS Code so you can chat with it while looking at your files.
 
 **Git**
@@ -69,8 +79,11 @@ A way to securely connect to and control a remote computer (like a server) from 
 **Terminal**
 A text-based window on your computer where you type instructions. On Mac it is called Terminal. In VS Code, you open it by clicking Terminal → New Terminal. It is not as scary as it looks — you mostly just paste commands that your assistant or workshop guide gives you.
 
-**Token**
-A unit of text that AI processes. Also used to mean an API key or password. "Claude is running out of tokens" means the conversation is getting too long. "Enter your bot token" means enter a password-like code.
+**Token (AI)**
+A unit of text that AI processes — roughly 3–4 characters, or about ¾ of a word. "Claude is running out of tokens" means the conversation is getting too long and you should start a new one. Longer conversations cost more.
+
+**Token (Bot / API)**
+A password-like code that gives access to a service. When BotFather gives you a "bot token," it is a secret code that lets Claude control your Telegram bot. Treat it like a password — never share it.
 
 **VS Code (Visual Studio Code)**
 A free app made by Microsoft. It is where you will chat with your AI assistant, see your files, and run your terminal. Think of it like a supercharged Notepad — most professional developers and AI users work in it.

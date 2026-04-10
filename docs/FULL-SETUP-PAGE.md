@@ -8,7 +8,7 @@ date: 2026-03-27
 
 > **Keep this page open on your screen throughout the setup.** Everything you need is right here.
 
-Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has 87+ specialist skills built in.
+Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has 95 specialist skills built in.
 
 ---
 
@@ -18,7 +18,7 @@ Today you are setting up a personal AI assistant that lives on YOUR computer. It
 |---|---|
 | **Your AI Assistant** | Runs locally on your computer. Knows your business. |
 | **Browser Control** | Can open websites and automate tasks for you |
-| **87+ Skills** | Research, copywriting, sales emails, competitor analysis, and more |
+| **95 Skills** | Research, copywriting, sales emails, competitor analysis, and more |
 | **Memory System** | Saves what it learns about you and your business |
 
 ---
@@ -118,9 +118,11 @@ If you still see "git is not recognized", double-check the PATH fix — make sur
 
 ---
 
-## Step 4 — Install Node.js
+## Step 4 — Install Node.js and Bun
 
-Node.js is needed to connect Gmail, Calendar, browser automation, and Telegram later. Install it now so everything is ready.
+Node.js is needed to connect Gmail, Calendar, and browser automation. **Bun is also required** if you plan to use Telegram, WhatsApp, or iMessage. Install both now so everything is ready later.
+
+> **Note:** If you skip Bun here, you will need to install it before setting up any messaging channel.
 
 **Mac:**
 
@@ -138,11 +140,33 @@ Node.js is needed to connect Gmail, Calendar, browser automation, and Telegram l
 4. Click **Next**, then **Next**, then **Next**, then **Install**
 5. **Close and reopen VS Code completely** after installing
 
-### Verify It Worked
+### Verify Node.js
 
 1. Open a terminal in VS Code: **Terminal** menu → **New Terminal**
 2. Type: `node --version`
 3. You should see a version number like `v22.x.x`
+
+### Install Bun
+
+Bun is required for Telegram, WhatsApp, and iMessage integrations.
+
+**Mac / Linux:**
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+Then close and reopen your terminal.
+
+**Windows:**
+```powershell
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+Then close and reopen VS Code.
+
+### Verify Bun
+```bash
+bun --version
+```
+You should see a version number like `1.x.x`.
 
 ---
 
@@ -196,7 +220,7 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 Talk to me like I am not technical. Plain English, one step at a time.
 ```
 
-**What happens next:** Claude will download your tools, install 87+ skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
+**What happens next:** Claude will download your tools, install 95 skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
 
 ---
 
@@ -563,13 +587,13 @@ Your assistant can run tasks automatically on a schedule or in a loop.
 - `/schedule` — creates a task that runs at set times (like a cron job)
 - `/loop` — runs something repeatedly on an interval
 
-> **Note:** Your computer must be on and VS Code open for scheduled tasks to run. For always-on automation, see the server setup guide.
+> **Note:** `/schedule` runs in the cloud — your computer does not need to be on. `/loop` runs locally and requires your computer to be on with Claude Code running.
 
 For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHEDULE.md)
 
 ---
 
-## Your 87+ Skills — Quick Reference
+## Your 95 Skills — Quick Reference
 
 <details>
 <summary>Click to see all skill categories</summary>
@@ -646,6 +670,16 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 Your assistant is designed to handle problems too — just describe what happened in plain English and it will figure it out.
+
+---
+
+## Going Further — Claude Dispatch (Advanced)
+
+Once you're comfortable with your assistant, **Claude Dispatch** lets you run multiple AI agents in parallel — delegating complex, multi-step work across several Claude instances at once.
+
+> This is an advanced feature. Get your assistant working well first, then explore this.
+
+See [dispatch/DISPATCH-SETUP.md](dispatch/DISPATCH-SETUP.md) for setup instructions.
 
 ---
 

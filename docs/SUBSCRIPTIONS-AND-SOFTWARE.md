@@ -69,7 +69,13 @@ Right now your assistant only runs when your laptop is open. A server lets it ru
 | **Hetzner VPS** | $4–8 USD/mo | Cheapest option |
 | **Vultr** | $6–12 USD/mo | Good performance |
 
-> **Talk to Luke at the workshop** if you want a server set up — it takes 10 minutes and he can walk you through it.
+**To set up a server yourself:**
+1. Create an account on your chosen provider (links above)
+2. Spin up the smallest Linux instance (Ubuntu 22.04)
+3. Tell your assistant: "Help me set up Claude Code on my new server — here are the SSH details: [paste your server IP and login]"
+4. Your assistant will walk you through the rest step by step
+
+> Need help? Email [luke@selrai.com.au](mailto:luke@selrai.com.au) or ask your assistant to guide you through it.
 
 ---
 
@@ -98,7 +104,7 @@ Right now your assistant only runs when your laptop is open. A server lets it ru
 
 - An AI assistant available 24/7 — never sick, never on leave, never distracted
 - Writes, researches, and automates across your whole business
-- 86 specialist skills built in from day one
+- 95 specialist skills built in from day one
 - Gets smarter every time you use it
 - Replaces 10–20 hours of admin and content work per month
 
