@@ -574,8 +574,6 @@ Your assistant can run tasks automatically on a schedule or in a loop.
 - `/loop` — runs something repeatedly on an interval
 
 > **Note:** `/schedule` runs in the cloud — your computer does not need to be on. `/loop` runs locally and requires your computer to be on with Claude Code running.
->
-> To set up the cloud server that runs `/schedule` and other always-on automations, see [claude-cloud-kit](https://github.com/selrai-company/claude-cloud-kit).
 
 For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHEDULE.md)
 
