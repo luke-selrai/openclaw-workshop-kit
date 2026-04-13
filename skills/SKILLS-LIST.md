@@ -1,4 +1,4 @@
-# Skills Reference — Your 86 Installed Skills
+# Skills Reference — Your 97 Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need — Claude picks the right skill automatically.
 
@@ -142,7 +142,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 
 ---
 
-**Total: 95 skills installed**
+**Total: 97 skills installed**
 - CORE: 22 skills (shown by default via skills-discovery)
 - ADVANCED: 56 skills (available on request)
 - DEV-ONLY: 8 skills (for technical integrations — never surfaced in demos)

@@ -46,7 +46,7 @@ GitHub is where the workshop kit is stored. You need an account to download it a
 3. Verify your email address (check your inbox)
 4. Done — the free plan is all you need
 
-> **What is GitHub?** It's like Google Drive for code and documents. Your workshop kit lives at `github.com/luke-selrai/claude-workshop-kit` — free and public.
+> **What is GitHub?** It's like Google Drive for code and documents. Your workshop kit lives at `github.com/selrai-company/claude-workshop-kit` — free and public.
 
 ✅ Done when: You can log in at [github.com](https://github.com)
 
@@ -100,7 +100,7 @@ Your AI assistant can send you phone notifications when it finishes tasks or nee
 You will run this command at the workshop. It downloads everything automatically:
 
 ```bash
-git clone https://github.com/luke-selrai/claude-workshop-kit.git ~/workshop-kit
+git clone https://github.com/selrai-company/claude-workshop-kit.git ~/workshop-kit
 ```
 
 No GitHub login required to download — the repo is public.

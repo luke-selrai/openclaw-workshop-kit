@@ -28,7 +28,7 @@ This skill does two things:
 1. **Installs** the Azure CLI (`az`) on the user's computer (one-time setup)
 2. **Operates** the CLI — interacting with Azure services (Storage, App Service, VMs, Key Vault, etc.)
 
-> **This is for local laptop setup only.** Server provisioning (Azure VMs) lives in [claude-cloud-kit](https://github.com/luke-selrai/claude-cloud-kit).
+> **This is for local laptop setup only.** Server provisioning (Azure VMs) lives in [claude-cloud-kit](https://github.com/selrai-company/claude-cloud-kit).
 
 ---
 

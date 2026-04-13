@@ -20,7 +20,7 @@
 │  │                                                                       │    │
 │  │   Reads:  CLAUDE.md — your instructions                              │    │
 │  │   Knows:  memory/USER.md — your business permanently                 │    │
-│  │   Uses:   95 skills — specialist capabilities on demand              │    │
+│  │   Uses:   97 skills — specialist capabilities on demand              │    │
 │  │   Via:    CLI tools · MCP connections · Browser automation           │    │
 │  └───────┬──────────────┬───────────────────┬────────────────┬─────────┘    │
 │          │              │                   │                │               │

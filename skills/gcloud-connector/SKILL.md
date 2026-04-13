@@ -24,7 +24,7 @@ This skill does two things:
 1. **Installs** the `gcloud` CLI on the user's computer (one-time setup)
 2. **Operates** the CLI — interacting with GCP services (BigQuery, Cloud Storage, Cloud Run, etc.)
 
-> **This is for local laptop setup only.** Server/VM provisioning lives in [claude-cloud-kit](https://github.com/luke-selrai/claude-cloud-kit).
+> **This is for local laptop setup only.** Server/VM provisioning lives in [claude-cloud-kit](https://github.com/selrai-company/claude-cloud-kit).
 
 ---
 

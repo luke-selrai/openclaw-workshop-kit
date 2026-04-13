@@ -1,6 +1,6 @@
 # Developer Notes — Claude Workshop Kit
 
-**Repo:** https://github.com/luke-selrai/claude-workshop-kit
+**Repo:** https://github.com/selrai-company/claude-workshop-kit
 **Contact:** Workshop facilitator — see your team contacts
 **Workshop:** [DATE TBD], non-technical business owners, 3 hours
 

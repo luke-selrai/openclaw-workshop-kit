@@ -50,7 +50,7 @@ A file you can read and edit that tells Claude who you are, how to talk to you, 
 ### Skills (86 installed)
 Specialist training programs that give Claude deep expertise. When you ask Claude to write ad copy, it reads the copywriting skill first. When you ask for competitor research, it reads the research skill. No extra steps needed — it chooses automatically.
 
-> Like giving your assistant access to 86 specialist textbooks they can reference on demand.
+> Like giving your assistant access to 97 specialist textbooks they can reference on demand.
 
 ### MCP Tools — App Connections
 Live connections to your other apps. Once connected, Claude can read your emails, check your calendar, update your CRM, and control your browser — without you having to copy and paste anything.
@@ -78,7 +78,7 @@ YOUR COMPUTER
 │
 ├── workshop-kit/
 │   ├── setup.sh               ← The installer that set everything up
-│   ├── skills/                ← Your 95 skill files
+│   ├── skills/                ← Your 97 skill files
 │   └── docs/                  ← Guides and reference docs
 │
 └── .claude/
