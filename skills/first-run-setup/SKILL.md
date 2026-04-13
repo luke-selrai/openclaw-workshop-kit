@@ -204,9 +204,85 @@ Use skills: `brainstorming`, `writing-plans`
 
 **"git: command not found"**
 - Mac: A popup should appear to install developer tools. Click Install, wait 3-5 minutes.
-- Windows: Git for Windows needs to be installed. See the workshop Notion page for instructions.
+- Windows: Git for Windows needs to be installed — it is the one prerequisite the user installs themselves before the bootstrap can start. Tell the user: "I need you to install Git for Windows from https://git-scm.com/download/win — the 64-bit installer. Click through with the default settings (you do not need to change anything), then come back and tell me you are done." After they confirm, verify with `git --version`. If the command is still not found after they installed, it is a PATH issue — see the Windows snags reference below.
 
 **Permission errors**
 - Ask your assistant: "I got a permission error, help me fix it"
 - **Mac/Linux:** try `npm config set prefix "$HOME/.npm-global"` and update PATH
 - **Windows:** close VS Code, right-click it, choose Run as Administrator, and reopen the assistant
+
+---
+
+## Windows Snags Reference — For the Assistant, Not the User
+
+When a Windows user hits one of the snags below, the assistant fixes it conversationally — it does not send the user to a doc or a terminal command. Always explain what you are about to do in plain English first, then do it.
+
+**`'git' is not recognized` after the user has installed Git for Windows**
+
+Almost always a PATH problem — the Git installer is supposed to add `C:\Program Files\Git\cmd` to the System PATH but does not always succeed. Fix by editing the PATH directly:
+
+1. Tell the user: "The Git install completed but Windows cannot find it yet. I'm going to add it to your PATH so every terminal can see it — this takes about 30 seconds."
+2. Run (in PowerShell):
+   ```powershell
+   [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Git\cmd", [EnvironmentVariableTarget]::Machine)
+   ```
+   This needs administrator privileges. If it fails with an access-denied error, tell the user: "I need to do this with administrator access. Please right-click VS Code, choose Run as Administrator, then come back and tell me you are ready." After they reopen as admin, retry.
+3. Tell the user: "I added it to your PATH. Please close this VS Code window completely and reopen it — the new PATH will not be picked up until VS Code restarts. Come back and tell me you are ready."
+4. Verify with `git --version` after they return.
+
+If Git is installed in a non-default location, substitute the actual path. Check with `dir "C:\Program Files\Git\cmd"` first if uncertain.
+
+**PowerShell says "running scripts is disabled" / "cannot be loaded because running scripts is disabled on this system"**
+
+The user's PowerShell execution policy blocks local scripts. Fix by setting it to `RemoteSigned` at the `CurrentUser` scope — this is the safe choice recommended by Microsoft and does not require admin.
+
+1. Tell the user: "Windows is blocking scripts on your computer — this is a safety setting. I'm going to change it to the standard recommended setting, which still blocks unsigned scripts from the internet but allows your own scripts to run. This takes one command."
+2. Run (in PowerShell):
+   ```powershell
+   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+   ```
+3. Verify with `Get-ExecutionPolicy -Scope CurrentUser` — it should return `RemoteSigned`.
+4. Retry whatever command originally failed.
+
+**`EPERM` or "permission denied" during `npm install`**
+
+VS Code does not have the permissions it needs. The fix is to run VS Code as administrator.
+
+1. Tell the user: "Windows is blocking the install because VS Code does not have permission to write to this folder. Please close VS Code completely, then right-click the VS Code icon and choose Run as Administrator. Come back and tell me when you are ready."
+2. After they return, retry the install.
+
+**`EBUSY` during `npm install` (Windows Defender scanning files)**
+
+Defender's real-time scanning is locking files as npm tries to write them.
+
+1. Tell the user: "Windows Defender is scanning files faster than I can install them, which is blocking the install. I need you to temporarily pause Real-Time Protection for about 2 minutes — I'll tell you when it's safe to turn it back on. Do this: open **Windows Security** (you can search for it in the Start menu), click **Virus & threat protection**, click **Manage settings** under *Virus & threat protection settings*, and toggle **Real-time protection** to Off. Tell me when it is off."
+2. After they confirm, retry the install.
+3. When it succeeds, tell the user: "All done. Please turn Real-time protection back on now — same place, flip the toggle back to On."
+
+**"Path too long" / `ENAMETOOLONG` / dependencies fail to extract**
+
+The user's workshop folder is nested too deep. Windows has a 260-character path limit and OneDrive/Desktop paths like `C:\Users\Jane\OneDrive - Company Pty Ltd\Desktop\workshop-kit\node_modules\...\something.js` blow past it.
+
+1. Tell the user: "Your folder is in a location with a really long path, which is breaking the install. I need you to move the workshop folder to a shorter path. Create a folder called `workshop` directly on your C drive (`C:\workshop`), then move the `workshop-kit` folder into it so the new path is `C:\workshop\workshop-kit`. Come back and tell me when you have done that."
+2. Update any stored paths in memory (`home_folder` / `workshop_path`) to the new location.
+3. Retry the install from the new location.
+
+**Bun install fails on Windows / `bun: command not found` after install**
+
+Bun is not yet shipped via winget on all Windows builds. Fall back to the PowerShell one-liner from bun.sh.
+
+1. Run (in PowerShell):
+   ```powershell
+   powershell -c "irm bun.sh/install.ps1 | iex"
+   ```
+2. Tell the user: "Bun is installed. Please close this terminal and open a new one — the new tool will not be available until the terminal restarts. Come back and tell me you are ready."
+3. Verify with `bun --version`.
+
+**"Access denied" when editing System environment variables**
+
+The user's account does not have administrator rights on the machine.
+
+1. Tell the user: "You need administrator access to change this setting. If this is your personal laptop, right-click VS Code and choose Run as Administrator. If this is a work laptop, you may need to ask your IT team for help — or let me know and we can work around it."
+2. If it is a work laptop and IT is not available, try user-scoped alternatives (e.g. user PATH instead of system PATH for the Git fix above) and tell the user what you did.
+
+---

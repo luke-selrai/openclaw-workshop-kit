@@ -181,14 +181,14 @@ m365 request --url "https://graph.microsoft.com/v1.0/me/events?\$top=5" --method
 |---|---|
 | "m365: command not found" after install | Close and reopen your terminal. On Mac, also run: `export PATH="$(npm prefix -g)/bin:$PATH"` |
 | Node.js version too old | Update from [nodejs.org](https://nodejs.org) — download the LTS version (v22 or v20) |
-| **EPERM / permission denied** during install on Windows | Close the window, right-click `setup.bat` → "Run as administrator", and try again |
+| **EPERM / permission denied** during install on Windows | Close VS Code, right-click it → "Run as administrator", reopen, and ask Claude to retry the install |
 | **EACCES** during install on Mac | Avoid using `sudo npm`. Instead install via nvm: `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh \| bash` then `nvm install --lts` and retry |
 | **EINTEGRITY** error during install | npm cache is corrupted. Run `npm cache clean --force` then try again |
 | **ECONNRESET / 403** during install | Your corporate firewall is blocking npmjs.com. Ask IT to allow `registry.npmjs.org:443` |
 | install fails on Mac — "command not found: node" | nvm installed but not loaded. Run `source ~/.nvm/nvm.sh` then retry |
 | Script blocked on Mac ("cannot be opened because the developer cannot be verified") | Right-click `setup.sh` → Open, or run: `xattr -d com.apple.quarantine setup.sh` |
 | **Script blocked on Windows** ("running scripts is disabled") | Run in PowerShell: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` then retry |
-| Windows Defender blocks npm install (EBUSY) | Temporarily pause Real-Time Protection in Windows Security, run setup.bat, then re-enable |
+| Windows Defender blocks npm install (EBUSY) | Temporarily pause Real-Time Protection in Windows Security, ask Claude to retry the install, then re-enable Real-Time Protection |
 | Path too long error on Windows | Your folder path may exceed Windows' 260-character limit. Move the `outlook-connector` folder to `C:\workshop\` and try again |
 
 ### Setup & Sign-in Problems

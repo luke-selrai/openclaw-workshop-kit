@@ -182,7 +182,6 @@ You just did. You set it up today. The hard part is done.
 ## Getting Help After the Workshop
 
 - **Full guide:** `~/workshop-kit/docs/COMPLETION-GUIDE.md`
-- **Windows guide:** `~/workshop-kit/docs/WINDOWS-SETUP.md`
 - **Skills reference:** `~/workshop-kit/docs/SKILLS-REFERENCE.md`
 - **Selr AI:** selrai.com.au
 
