@@ -6,36 +6,32 @@ Connects your Xero accounting account to Claude Code. Once installed, Claude can
 
 ---
 
+## How to Install
+
+Open Claude Code and say:
+
+> *"Connect my Xero account"*
+
+Claude will walk you through the whole setup conversationally — checking Node.js, installing dependencies, asking for your Xero credentials, running the OAuth sign-in, and wiring everything into Claude Code. You don't need to run any commands yourself.
+
+The only things you'll need to hand over during the conversation:
+
+1. A Xero **Client ID** and **Client Secret** (free, from your Xero developer app — Claude tells you how to create one)
+2. A click on **Allow** when Xero opens in your browser
+
+See the `skills/xero-connector/SKILL.md` skill for the full conversational flow Claude follows.
+
+---
+
 ## What You Need
 
 - Claude Code installed and working
-- Node.js version 20 or higher — check by typing `node --version`
+- Node.js version 20 or higher (Claude will check this and help you install it if needed)
 - A Xero account (Starter, Standard, or Premium)
-- A Xero developer app (free — see XERO-SETUP.md Step 1 for how to create one)
 
 ---
 
-## Install — One Prompt
-
-Open Claude Code, paste this prompt, and press Enter:
-
-```
-Run the Xero connector installer:
-node /full/path/to/xero-connector/src/install.js
-```
-
-Replace `/full/path/to/xero-connector` with the actual path to this folder.
-
-Claude Code will handle everything from there. The only things you need to do:
-
-1. Enter your Client ID and Secret when prompted (from XERO-SETUP.md Step 1)
-2. Click Allow when Xero opens in your browser
-
-That's it — Claude Code installs dependencies, saves your credentials, runs the OAuth flow, configures itself, and verifies the connection automatically.
-
----
-
-## What to Say to Claude
+## What to Say to Claude (after setup)
 
 - "Show me my recent Xero invoices"
 - "List all unpaid invoices in Xero"
@@ -66,15 +62,30 @@ That's it — Claude Code installs dependencies, saves your credentials, runs th
 
 ---
 
-## Troubleshooting
+## If Something Breaks
 
-| Problem | Fix |
+Just tell Claude what's wrong — it knows how to recover. Common recoveries:
+
+| Problem | What to say |
 |---|---|
-| "Missing credentials" during install | Enter your real Client ID and Secret — get them from developer.xero.com (see XERO-SETUP.md Step 1) |
-| Browser does not open during sign-in | The URL is printed in the terminal — paste it into any browser |
-| "Token expired" when using Claude | Run `npm run auth` in the xero-connector folder to get a fresh token |
-| "Invalid scope for client" on auth | Your Xero app was created after 2 March 2026 and only supports granular scopes. The installer uses the correct scopes automatically — check that your Client ID in .env matches your app at developer.xero.com |
-| Claude says tool not available | Restart Claude Code. If still broken, check that the path in `~/.claude.json` is correct and absolute |
+| Token expired | *"My Xero connection expired — reconnect it"* |
+| Wrong credentials | *"Re-do my Xero credentials"* |
+| Claude says "Xero tool not available" | Restart Claude Code, then try again |
+| Not sure what went wrong | *"My Xero connection isn't working — can you check it?"* |
+
+Claude will jump to the specific step in the install flow that needs rerunning, without making you start over.
+
+---
+
+## Internal Files
+
+If you're contributing to this connector:
+
+- `src/index.js` — the MCP server that Claude Code connects to
+- `src/auth.js` — standalone OAuth flow (`npm run auth`) used by the skill during install
+- `src/install.js` — **legacy one-shot installer.** Retained for backwards compatibility but not part of the canonical install path. The conversational skill in `skills/xero-connector/SKILL.md` is the primary install experience.
+- `.env` — your credentials (gitignored)
+- `.xero-token.json` — your auth tokens (gitignored)
 
 ---
 
