@@ -170,20 +170,6 @@ You should see a version number like `1.x.x`.
 
 ---
 
-## Windows Shortcut — One-Click Setup (Optional)
-
-> **Windows users only.** If you prefer to skip Steps 5 and 6, you can run the automatic installer instead.
-
-1. Download or locate the `setup.bat` file from the workshop kit
-2. Double-click `setup.bat`
-3. It checks Node.js, Git, and VS Code automatically
-4. Downloads the workshop kit, installs all skills, and opens VS Code for you
-5. When it finishes, skip ahead to **Step 7** (onboarding questions)
-
-> **Mac users:** Continue with Step 5 below.
-
----
-
 ## Step 5 — Paste the Setup Prompt
 
 1. Click the **Claude icon** in the left sidebar

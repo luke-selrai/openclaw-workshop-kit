@@ -27,7 +27,7 @@ Tick these off:
 
 ### If you didn't finish the install:
 
-**Windows users:** Double-click `setup.bat` in your `workshop-kit` folder. It handles everything automatically. See [WINDOWS-SETUP.md](WINDOWS-SETUP.md) for details.
+**Windows users:** Make sure [Git for Windows](https://gitforwindows.org) is installed first. Then open VS Code, click the Claude icon in the left sidebar, and paste the bootstrap prompt from the workshop page — your assistant walks you through the whole install conversationally, including Node.js install and any Windows-specific snags.
 
 **Mac users:** Open Terminal (press Command + Space, type "Terminal", press Enter) and run:
 
@@ -74,7 +74,6 @@ m365 login --authType browser
 A browser window opens — pick your Microsoft account and click Accept. Once connected, your assistant can read emails, manage calendar, access OneDrive, and more.
 
 > For the full guide with troubleshooting, see [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
-> Windows users can also run `outlook-connector/setup.bat` for automatic setup.
 
 #### 4. Slack or Microsoft Teams (if you use them)
 Your assistant can help you set this up — just ask in the Claude chat:

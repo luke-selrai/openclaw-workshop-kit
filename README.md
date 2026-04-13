@@ -59,7 +59,7 @@ After that, every time you open VS Code and type `claude`, your assistant alread
 2. Install **VS Code** at [code.visualstudio.com](https://code.visualstudio.com)
 3. Install the **Claude Code extension** inside VS Code (search "Claude Code" in Extensions)
 
-**Windows users:** also install [Git for Windows](https://gitforwindows.org) — see [docs/WINDOWS-SETUP.md](docs/WINDOWS-SETUP.md) before arriving.
+**Windows users:** also install [Git for Windows](https://gitforwindows.org) before arriving — your assistant needs Git to clone the workshop kit. Everything else (Node.js, PATH fixes, PowerShell execution policy, etc.) is handled conversationally by your assistant when you paste the bootstrap prompt.
 
 No other pre-installs needed on Mac.
 
@@ -224,7 +224,6 @@ workshop-kit/
 │   ├── GOOGLE-WORKSPACE-SETUP.md # Google Workspace (Gmail, Calendar, Drive) setup
 │   ├── TELEGRAM-SETUP.md        # Telegram bot setup guide
 │   ├── IMESSAGE-SETUP.md        # iMessage setup guide (Mac only)
-│   ├── WINDOWS-SETUP.md         # Step-by-step Windows guide
 │   ├── COMPLETION-GUIDE.md      # What to do after the workshop
 │   ├── SKILLS-REFERENCE.md      # How to use each skill
 │   ├── FIRST-5-PROMPTS.md       # Copy-paste prompts to get started
@@ -264,7 +263,7 @@ Claude Max is $100 USD/month (~$155 AUD). That is the only required cost. Everyt
 Your assistant will notice and offer to fix it. Just open `~/my-assistant/` in VS Code, start Claude Code, and it will pick up where you left off.
 
 **Can I use this on Windows?**
-Yes. See [docs/WINDOWS-SETUP.md](docs/WINDOWS-SETUP.md) for the complete Windows walkthrough.
+Yes. Install [Git for Windows](https://gitforwindows.org) beforehand (see Prerequisites above), then open Claude Code and paste the bootstrap prompt — your assistant walks you through the rest conversationally, including any Windows-specific snags (Node.js install via winget, PATH fixes, PowerShell execution policy, Defender EBUSY errors, etc.).
 
 **I am a developer — how do I customise this?**
 See [DEVELOPER.md](DEVELOPER.md).
@@ -274,7 +273,6 @@ See [DEVELOPER.md](DEVELOPER.md).
 ## Support
 
 - Workshop guides: [`docs/`](docs/)
-- Windows guide: [`docs/WINDOWS-SETUP.md`](docs/WINDOWS-SETUP.md)
 - Selr AI: [selrai.com.au](https://selrai.com.au)
 ---
 

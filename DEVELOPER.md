@@ -95,11 +95,9 @@ The most important thing is a clean end-to-end test:
 - Playwright MCP install command: `claude mcp add playwright npx @playwright/mcp@latest --scope user` — verify this is the correct syntax for the current Claude Code version
 - `~/.claude/skills/` path — verify the bootstrap prompt copies skills here correctly
 
-### HIGH — Windows support
+### RESOLVED — Windows support
 
-Windows users need Git for Windows installed before running the bootstrap prompt. No other pre-installs required.
-- Verify the bootstrap prompt works in Git Bash / PowerShell terminal inside VS Code
-- `docs/WINDOWS-SETUP.md` should reflect the new bootstrap flow
+Windows users need Git for Windows installed before running the bootstrap prompt. No other pre-installs required — everything else (Node.js, PATH, PowerShell execution policy, Defender EBUSY, OneDrive path-too-long, Bun install) is handled conversationally by `skills/first-run-setup/SKILL.md` when the user pastes the bootstrap prompt. The old `docs/WINDOWS-SETUP.md` was removed in #85 — Windows guidance lives in `README.md` (the one-line Git prerequisite) and inside the bootstrap skill (the runtime snags).
 
 ### RESOLVED — Google Workspace
 
