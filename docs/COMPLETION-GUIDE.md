@@ -189,7 +189,7 @@ Once you have tasks you do regularly, automate them:
 
 Your assistant uses `/schedule` and `/loop` to run these automatically.
 
-- **`/schedule`** — runs in the cloud. Your computer does not need to be on. To set up the cloud server, see [claude-cloud-kit](https://github.com/selrai-company/claude-cloud-kit).
+- **`/schedule`** — runs in the cloud. Your computer does not need to be on.
 - **`/loop`** — runs locally on your machine. Your computer must be on and Claude Code must be running.
 
 > For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHEDULE.md)
