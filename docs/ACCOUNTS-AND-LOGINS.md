@@ -58,6 +58,8 @@ These get connected during the setup wizard. Just have the accounts ready.
 
 ### 4. Phone Messaging — Telegram, WhatsApp, or iMessage
 
+> **Software required:** Telegram, WhatsApp, and iMessage integrations all require **Bun** (a JavaScript runtime) installed on your computer. This is separate from Node.js. It is installed during the main workshop setup — no action needed before the workshop.
+
 Your AI assistant can send you phone notifications when it finishes tasks or needs a decision. Pick whichever app you already use — you only need one.
 
 #### Telegram

@@ -148,4 +148,11 @@ This generates skills for every Google Workspace service and adds them to your C
 
 ---
 
+## Still Having Trouble?
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more fixes, or ask your assistant:
+> "Something went wrong with my Google Workspace connection. Help me fix it."
+
+---
+
 *Built by Selr AI — [selrai.com.au](https://selrai.com.au)*

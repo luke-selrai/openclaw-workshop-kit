@@ -10,16 +10,22 @@ This guide walks you through connecting WhatsApp to Claude Code so your assistan
 
 ---
 
-> **WARNING — Read This Before You Start**
->
-> This channel uses an **unofficial** WhatsApp Web protocol (Baileys). It is **not endorsed by Meta**. WhatsApp may detect unofficial usage and **temporarily or permanently ban** the phone number linked to it.
->
-> - A **temporary ban** lasts 24–72 hours — you will see a countdown timer in WhatsApp
-> - A **permanent ban** means that phone number **can never use WhatsApp again** — your chats, groups, and history are lost and cannot be recovered
->
-> **We strongly recommend using a secondary phone number** (a cheap prepaid SIM) for this channel. **Do not use your primary personal or business WhatsApp number.** If something goes wrong with a secondary number, you lose nothing important.
->
-> By continuing, you accept this risk.
+## ⚠️ STOP — Read This Before You Do Anything
+
+This channel uses an **unofficial** WhatsApp Web protocol (Baileys). It is **not endorsed by Meta**.
+
+| Risk | What Happens |
+|---|---|
+| **Temporary ban** | Your number is blocked for 24–72 hours. WhatsApp shows a countdown timer. |
+| **Permanent ban** | Your number **can never use WhatsApp again**. All chats, groups, and history are gone — unrecoverable. |
+
+**Use a secondary phone number (cheap prepaid SIM) — not your real number.**
+
+If something goes wrong with a secondary number, you lose nothing important. If something goes wrong with your primary number, you lose your entire WhatsApp account permanently.
+
+> This is a real risk, not a disclaimer. Several users have been permanently banned. Use a secondary number.
+
+By continuing past this point, you accept this risk.
 
 ---
 
@@ -190,6 +196,13 @@ You can customise behavior with environment variables. Set these in the `env` se
 | **Permission relay** | Yes — approve/deny tool use from WhatsApp | No | No |
 | **Group chat** | Supported | Not supported | Not supported |
 | **Media** | Placeholders only (not downloaded) | Full file support | Full file support |
+
+---
+
+## Still Having Trouble?
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more fixes, or ask your assistant:
+> "Something went wrong with my WhatsApp setup. Help me fix it."
 
 ---
 

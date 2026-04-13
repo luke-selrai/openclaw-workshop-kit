@@ -51,6 +51,8 @@ Telegram lets anyone create a bot for free. You do this by talking to a special 
 
 > The token includes the numbers, the colon, and everything after it. Copy the whole thing.
 
+> **Security:** Your bot token is like a password — anyone who has it can control your bot and read your messages. **Never share it, never paste it into a chat, email, or document.** If you accidentally expose it, go to BotFather, send `/revoke`, and generate a new one immediately.
+
 ---
 
 ## Part B — Install the Telegram Plugin
@@ -134,7 +136,7 @@ Your assistant should reply directly in Telegram. You can now message your assis
 | **Send files** | Send a photo or document — your assistant can read it |
 | **Quick tasks** | "Draft a reply to John's email about the proposal" |
 
-> Your assistant has all 86 skills available through Telegram — the same ones you use in VS Code.
+> Your assistant has all 95 skills available through Telegram — the same ones you use in VS Code.
 
 ---
 
@@ -150,6 +152,13 @@ Your assistant should reply directly in Telegram. You can now message your assis
 | Need to remove someone's access | Run `/telegram:access remove <senderId>` |
 | Token changed or bot recreated | Run `/telegram:configure <new-token>` and restart Claude Code |
 | Photos not being read by assistant | Send the photo as a file (long-press → Send as File) for full quality |
+
+---
+
+## Still Having Trouble?
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more fixes, or ask your assistant:
+> "Something went wrong with my Telegram setup. Help me fix it."
 
 ---
 

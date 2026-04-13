@@ -252,4 +252,11 @@ Shopify Plus stores have additional API resources available (e.g., Gift Cards, M
 
 ---
 
+## Still Having Trouble?
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more fixes, or ask your assistant:
+> "Something went wrong with my Shopify connection. Help me fix it."
+
+---
+
 *Built by Selr AI — [selrai.com.au](https://selrai.com.au)*

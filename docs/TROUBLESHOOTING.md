@@ -53,6 +53,23 @@ This means Claude Code is not looking in the right folder. Fix it by:
 
 ---
 
+### "Node.js is too old" or "Unsupported Node.js version"
+
+Claude Code requires **Node.js version 18 or higher**. To check yours:
+```bash
+node --version
+```
+
+If you see `v16.x.x` or lower, update Node.js:
+
+1. Go to [nodejs.org](https://nodejs.org)
+2. Download the **LTS** version (the big green button)
+3. Run the installer — it will replace your old version
+4. Close VS Code completely and reopen it
+5. Run `node --version` again to confirm it updated
+
+---
+
 ### "I don't know how to open the terminal in VS Code"
 
 - **Mac:** Press `` Ctrl + ` `` (the backtick key, top-left of keyboard)

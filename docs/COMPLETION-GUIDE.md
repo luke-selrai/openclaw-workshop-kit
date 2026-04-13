@@ -188,7 +188,10 @@ Once you have tasks you do regularly, automate them:
 > "Check my emails every morning at 9am and send me a summary on Telegram"
 > "Post to LinkedIn every weekday at 10am using my saved content"
 
-Your assistant uses `/schedule` and `/loop` to run these automatically. Your computer needs to be on for them to work.
+Your assistant uses `/schedule` and `/loop` to run these automatically.
+
+- **`/schedule`** — runs in the cloud. Your computer does not need to be on.
+- **`/loop`** — runs locally on your machine. Your computer must be on and Claude Code must be running.
 
 > For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHEDULE.md)
 
@@ -239,6 +242,9 @@ n8n is a visual automation tool (like Zapier, but you own it). Your AI assistant
 
 ### Your Own Agents
 Once you see the value of AI in your business, you can deploy your own agents that run 24/7. Luke and the Selr AI team can set this up for you.
+
+### Claude Dispatch (Run Multiple Agents in Parallel)
+Dispatch lets you run several Claude agents at once, each handling a different part of a complex task. See [dispatch/DISPATCH-SETUP.md](dispatch/DISPATCH-SETUP.md) for details.
 
 ### Voice Interface
 You can talk to your AI assistant instead of typing, using tools like Wispr Flow (what Luke uses).

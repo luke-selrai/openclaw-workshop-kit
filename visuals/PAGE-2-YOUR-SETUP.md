@@ -25,7 +25,7 @@ Think of your AI setup like a kitchen — you're the head chef, Claude is your s
 │   │                                                          │   │
 │   │  Reads:    CLAUDE.md — your instructions & who you are  │   │
 │   │  Remembers: memory/USER.md — your business profile      │   │
-│   │  Uses:     86 Skills — specialist capabilities          │   │
+│   │  Uses:     95 Skills — specialist capabilities          │   │
 │   │  Connects: MCP tools — Gmail, Calendar, CRM, and more   │   │
 │   └─────────────────────────────────────────────────────────┘   │
 │                                                                   │
@@ -78,7 +78,7 @@ YOUR COMPUTER
 │
 ├── workshop-kit/
 │   ├── setup.sh               ← The installer that set everything up
-│   ├── skills/                ← Your 86 skill files
+│   ├── skills/                ← Your 95 skill files
 │   └── docs/                  ← Guides and reference docs
 │
 └── .claude/
