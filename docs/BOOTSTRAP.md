@@ -20,7 +20,7 @@ Do these steps one at a time, telling me what you are doing in plain English.
 Use the correct commands for my operating system (detect whether I am on Mac or Windows).
 
 1. Download the workshop content by running:
-   git clone https://github.com/luke-selrai/claude-workshop-kit.git ~/workshop-kit
+   git clone https://github.com/selrai-company/claude-workshop-kit.git ~/workshop-kit
 
    NOTE: On Mac, if a popup appears asking to install developer tools,
    tell me to click "Install" and wait a few minutes before continuing.
@@ -30,7 +30,7 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 3. Copy this file from the downloaded workshop-kit into my-assistant:
    - workshop-kit/my-assistant/CLAUDE.md → my-assistant/CLAUDE.md
 
-4. Install all 95 skills: copy every folder from workshop-kit/skills/
+4. Install all 97 skills: copy every folder from workshop-kit/skills/
    into ~/.claude/skills/ (create the skills directory if it does not exist).
    Do not copy SKILLS-LIST.md — only the folders.
 

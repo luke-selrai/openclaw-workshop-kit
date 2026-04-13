@@ -104,7 +104,7 @@ Right now your assistant only runs when your laptop is open. A server lets it ru
 
 - An AI assistant available 24/7 — never sick, never on leave, never distracted
 - Writes, researches, and automates across your whole business
-- 95 specialist skills built in from day one
+- 97 specialist skills built in from day one
 - Gets smarter every time you use it
 - Replaces 10–20 hours of admin and content work per month
 

@@ -8,7 +8,7 @@ date: 2026-03-27
 
 > **Keep this page open on your screen throughout the setup.** Everything you need is right here.
 
-Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has 95 specialist skills built in.
+Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has 97 specialist skills built in.
 
 ---
 
@@ -185,7 +185,7 @@ Do these steps one at a time, telling me what you are doing in plain English.
 Use the correct commands for my operating system (detect whether I am on Mac or Windows).
 
 1. Download the workshop content by running:
-   git clone https://github.com/luke-selrai/claude-workshop-kit.git ~/workshop-kit
+   git clone https://github.com/selrai-company/claude-workshop-kit.git ~/workshop-kit
 
    NOTE: On Mac, if a popup appears asking to install developer tools,
    tell me to click "Install" and wait a few minutes before continuing.
@@ -206,7 +206,7 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 Talk to me like I am not technical. Plain English, one step at a time.
 ```
 
-**What happens next:** Claude will download your tools, install 95 skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
+**What happens next:** Claude will download your tools, install 97 skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
 
 ---
 
@@ -624,7 +624,7 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 
 | Resource | Link |
 |---|---|
-| Workshop Kit (GitHub) | [github.com/luke-selrai/claude-workshop-kit](https://github.com/luke-selrai/claude-workshop-kit) |
+| Workshop Kit (GitHub) | [github.com/selrai-company/claude-workshop-kit](https://github.com/selrai-company/claude-workshop-kit) |
 | Claude.ai | [claude.ai](https://claude.ai) |
 | VS Code | [code.visualstudio.com](https://code.visualstudio.com) |
 | Git for Windows | [git-scm.com/download/win](https://git-scm.com/download/win) |
