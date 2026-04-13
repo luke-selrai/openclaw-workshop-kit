@@ -1,25 +1,23 @@
 ---
 title: Xero Connector — Setup Guide
-version: 2.0
-date: 2026-04-10
+version: 3.0
+date: 2026-04-13
 ---
 
 # Xero Connector — Setup Guide
 
 This guide connects your Xero accounting account to Claude Code. Once set up, Claude can read and create invoices, look up contacts, view your chart of accounts, check bank transactions, list payments, and pull financial reports — all through plain English.
 
-The entire setup takes about 5 minutes. There is only one manual step (creating a free Xero app) — the installer handles everything else.
+The entire setup takes about 5 minutes. **You only do one manual thing yourself** (create a free Xero developer app). Everything else — installing the connector pieces, saving credentials, running the browser sign-in, configuring Claude Code, verifying the connection — is handled by Claude Code conversationally.
 
 ---
 
 ## What You Need Before Starting
 
 - Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../docs/FULL-SETUP-PAGE.md) if not done yet)
-- Node.js **version 20 or higher** installed — check by typing `node --version` in the command window
+- Node.js version 20 or higher — Claude will check this for you during setup
 - A Xero account (any plan — Starter, Standard, or Premium)
 - An internet connection
-
-> **If `node --version` shows v18 or lower:** Update Node.js from [nodejs.org](https://nodejs.org) before continuing. Download the LTS version (v22 or v20).
 
 ---
 
@@ -51,7 +49,7 @@ The entire setup takes about 5 minutes. There is only one manual step (creating 
 
 ## Step 1 — Create Your Xero OAuth App (One-Time)
 
-This is the only manual step. Xero requires every connection to use a developer "app" — this is free and takes about 2 minutes.
+This is the only manual step. Xero requires every connection to use a developer "app" — this is free and takes about 2 minutes. Claude cannot do this step for you because Xero needs you to be signed in as yourself.
 
 1. Go to [developer.xero.com/app/manage](https://developer.xero.com/app/manage)
 2. Sign in with your Xero account
@@ -66,7 +64,7 @@ This is the only manual step. Xero requires every connection to use a developer 
 7. **Copy your Client ID** — it is shown at the top of the page
 8. Click **Generate a secret** to reveal your Client Secret
 9. **Copy your Client Secret** — it is shown below the button
-10. **Save both values somewhere safe** — you will need them in Step 3
+10. **Save both values somewhere safe** — you will paste them to Claude when asked
 
 > **Common mistakes to avoid:**
 >
@@ -76,83 +74,26 @@ This is the only manual step. Xero requires every connection to use a developer 
 
 ---
 
-## Step 2 — Run the Installer via Claude Code
+## Step 2 — Let Claude Do the Rest
 
-Open Claude Code, paste this prompt, and press Enter:
+Open Claude Code and say:
 
-```
-Run the Xero connector installer:
-node /full/path/to/xero-connector/src/install.js
-```
+> **"Help me connect my Xero account"**
 
-Replace `/full/path/to/xero-connector` with the actual path to the xero-connector folder on your computer.
+Claude will guide you through every remaining step conversationally:
 
-### How to find the full path
+1. Check that Node.js is installed (and install it for you if not)
+2. Install the connector pieces
+3. Ask you to paste your Client ID and Client Secret from Step 1
+4. Save your credentials securely
+5. Open Xero in your browser for sign-in — you click **Allow access**
+6. Wire the connector into Claude Code automatically
+7. Verify the connection by fetching your organisation name
+8. Tell you it's done
 
-**Windows:** Open the `xero-connector` folder in File Explorer. Click the address bar at the top — it shows the full path (e.g. `C:\Users\You\claude-workshop-kit\xero-connector`).
+You will not run any commands yourself. Claude handles all the technical work. You just answer its questions in plain English and click **Allow access** when the browser opens.
 
-**Mac:** Open Terminal, drag the `xero-connector` folder into the window, and press Space — the full path appears (e.g. `/Users/You/claude-workshop-kit/xero-connector`).
-
-The installer will:
-- Check your Node.js version
-- Install all required packages
-- Prompt you for your Xero credentials (Step 3)
-- Open your browser for sign-in (Step 4)
-- Configure Claude Code automatically
-- Verify the connection works
-
----
-
-## Step 3 — Enter Credentials When Prompted
-
-The installer will ask you to paste two values:
-
-```
-Paste your Xero Client ID: ████████████████████████████████
-Paste your Xero Client Secret: ████████████████████████████████████████████████
-```
-
-Paste the values you saved from Step 1. Your input is visible so you can check for typos.
-
-> If you already ran the installer before and your credentials are saved, it will ask if you want to reuse them — type `y` and press Enter.
-
----
-
-## Step 4 — Approve in Browser
-
-After you enter your credentials, a browser window will open showing the Xero sign-in page:
-
-1. Sign in with your Xero account if prompted
-2. Select the Xero organisation you want to connect
-3. Click **Allow access**
-4. You should see a green success page — return to your terminal
-
-Your terminal should display:
-
-```
-[4/7] Connecting to Xero...
-  Signed in to Xero -- OK
-```
-
-> **If the browser does not open:** The sign-in URL is printed in your terminal. Copy and paste it into any browser.
-
----
-
-## Step 5 — Restart Claude Code
-
-The installer configures Claude Code automatically by adding the Xero MCP server to your `~/.claude.json` file.
-
-For the new configuration to take effect, **restart Claude Code**:
-- Close Claude Code completely
-- Open it again
-
-> You only need to restart once after the initial setup.
-
----
-
-## Step 6 — Test It
-
-After restarting, try asking Claude:
+When Claude tells you it's finished, close Claude Code completely and open it again. That makes the new connection active. Then try asking:
 
 - "Show me my recent Xero invoices"
 - "What organisation am I connected to in Xero?"
@@ -175,18 +116,22 @@ If Claude responds with your Xero data, you are all set.
 | **Chart of accounts** | "List my Xero expense accounts" |
 | **Bank transactions** | "Show me my recent bank transactions in Xero" |
 | **Payments** | "Show me recent payments in Xero" |
+| **Reconnect** | "My Xero connection has stopped working" |
+| **Switch organisations** | "I want to switch to a different Xero organisation" |
 
 ---
 
 ## Keeping Your Connection Active
 
-Xero tokens refresh automatically. If you see a "token expired" error in Claude, run this in your terminal inside the `xero-connector` folder:
+Xero access tokens refresh automatically in the background. You should almost never need to think about this.
 
-```
-npm run auth
-```
+If you ever see an error like "token expired" or "your Xero connection has dropped", just say to Claude:
 
-This reconnects your account in under 30 seconds.
+> **"My Xero connection has stopped working"**
+
+Claude will re-run the browser sign-in for you in under 30 seconds. You click **Allow access** once when the browser opens, and you're back.
+
+The underlying refresh token stays valid for 60 days as long as the connection is used at least once in that window. If you haven't touched Xero in over two months, you may need to reconnect.
 
 ---
 
@@ -194,41 +139,43 @@ This reconnects your account in under 30 seconds.
 
 ### Installation Problems
 
+These are issues Claude may report back to you during setup. In most cases Claude will translate the error into plain English and handle it automatically — this table exists so you can recognise what's happening if you're curious.
+
 | Problem | Fix |
 |---|---|
-| `node --version` shows v18 or lower | Update Node.js at [nodejs.org](https://nodejs.org) — download the LTS version (v22 or v20) |
-| **EPERM / permission denied** on Windows | Close the window, right-click your terminal → "Run as administrator", and try again |
-| **EACCES** on Mac | Avoid using `sudo npm`. Instead install via nvm: `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh \| bash` then `nvm install --lts` and retry |
-| **EINTEGRITY** error during install | npm cache is corrupted. Run `npm cache clean --force` then try again |
-| **ECONNRESET / 403** during install | Corporate firewall blocking npmjs.com. Ask IT to allow `registry.npmjs.org:443` |
-| install fails on Mac — "command not found: node" | nvm installed but not loaded. Run `source ~/.nvm/nvm.sh` then retry |
-| Script blocked on Mac ("developer cannot be verified") | Right-click the file → Open, or run: `xattr -d com.apple.quarantine src/install.js` |
-| Script blocked on Windows ("running scripts is disabled") | Run in PowerShell: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` then retry |
-| Windows Defender blocks npm install (EBUSY) | Temporarily pause Real-Time Protection in Windows Security, run the installer, then re-enable |
-| Path too long error on Windows | Your folder path may exceed Windows' 260-character limit. Move the `xero-connector` folder to `C:\workshop\` and try again |
+| `node --version` shows v18 or lower | Claude will install Node.js v20 for you automatically during setup. If it can't, Claude will tell you what to do. |
+| **EPERM / permission denied** on Windows | Claude will ask you to close and reopen your terminal as administrator, then resume. |
+| **EACCES** on Mac | Claude will install Node via nvm (which avoids sudo) and retry. You just watch. |
+| **EINTEGRITY** error during install | Claude will clean the package cache and retry automatically. |
+| **ECONNRESET / 403** during install | Your network (usually a corporate firewall) is blocking npmjs.com. Claude will tell you — you will need to try from a home connection or ask IT to allow `registry.npmjs.org:443`. |
+| install fails on Mac — "command not found: node" | Claude will reload the shell profile and retry. |
+| Script blocked on Mac ("developer cannot be verified") | Tell Claude "there's a Mac security warning" and it will run the unlock command for you. |
+| Script blocked on Windows ("running scripts is disabled") | Tell Claude "scripts are blocked on my Windows" and it will talk you through enabling them. |
+| Windows Defender blocks npm install (EBUSY) | Temporarily pause Real-Time Protection in Windows Security, then ask Claude to retry. |
+| Path too long error on Windows | Your folder path exceeds Windows' 260-character limit. Move the `xero-connector` folder to `C:\workshop\` and ask Claude to try again. |
 
 ### App & Authentication Problems
 
 | Problem | Fix |
 |---|---|
-| "Missing credentials" during install | Enter your real Client ID and Secret — get them from [developer.xero.com/app/manage](https://developer.xero.com/app/manage) |
-| "redirect_uri_mismatch" in browser | In your Xero app settings at developer.xero.com, confirm the redirect URI is exactly `http://localhost:3000/callback` — no https, no trailing slash |
-| Client Secret not showing in Xero | Go to your app at developer.xero.com and click **Generate a secret** again — this creates a new one (the old one is revoked) |
-| "Invalid scope for client" on auth | Your Xero app was created after 2 March 2026 and only supports granular scopes. The installer uses the correct granular scopes automatically — if you see this error, check that your Client ID in `.env` matches the app at developer.xero.com |
-| "invalid_client" error in browser | Your Client ID or Secret is wrong. Double-check both values match exactly what Xero shows |
-| "Port 3000 is already in use" | Something else is running on port 3000. Close it and try again, or stop the other process first |
-| Browser does not open during sign-in | The sign-in URL is printed in your terminal — copy and paste it into any browser |
-| No response from browser after 2 minutes | Close any other apps using port 3000, check your internet connection, and run the installer again |
+| "Missing credentials" during setup | Claude will ask you to re-paste your Client ID and Secret. Get them from [developer.xero.com/app/manage](https://developer.xero.com/app/manage). |
+| "redirect_uri_mismatch" in browser | In your Xero app settings at developer.xero.com, confirm the redirect URI is exactly `http://localhost:3000/callback` — no `https`, no trailing slash. Then tell Claude to try again. |
+| Client Secret not showing in Xero | Go to your app at developer.xero.com and click **Generate a secret** again — this creates a new one (the old one is revoked). Then paste the new secret when Claude asks. |
+| "Invalid scope for client" on auth | Your Xero app was created after 2 March 2026 and only supports granular scopes. The connector uses the correct granular scopes automatically — if you see this, check that your Client ID matches the app at developer.xero.com, then tell Claude to try again. |
+| "invalid_client" error in browser | Your Client ID or Secret is wrong. Tell Claude "I need to re-enter my Xero credentials" and it will take them from you again. |
+| "Port 3000 is already in use" | Something else is running on port 3000. Close it, then tell Claude to try again. |
+| Browser does not open during sign-in | Claude will paste the sign-in URL into the chat as a clickable link. |
+| No response from browser after 2 minutes | Close any other apps using port 3000, check your internet connection, and tell Claude to try again. |
 
 ### After Setup
 
 | Problem | Fix |
 |---|---|
-| Claude says "tool not available" | Restart Claude Code. If still broken, check the path in `~/.claude.json` — it must be the full absolute path, not a relative path |
-| "Token expired" error | Run `npm run auth` in the xero-connector folder to refresh your token |
-| "No Xero organisations found" | Run `npm run auth` again — the previous token may be invalid or for the wrong account |
-| Wrong Xero organisation connected | Run `npm run auth` again and select the correct organisation when prompted |
-| "Xero API error" on reports | Your Xero plan may not support this report type. Check your Xero subscription level |
+| Claude says "tool not available" | Close Claude Code completely and reopen it. The connection becomes active on restart. |
+| "Token expired" error | Say to Claude: **"my Xero connection has stopped working"** — Claude will reconnect it for you. |
+| "No Xero organisations found" | Say to Claude: **"my Xero connection is broken"** — Claude will re-do the sign-in for you. Remember to select an organisation during sign-in. |
+| Wrong Xero organisation connected | Say to Claude: **"I want to switch to a different Xero organisation"** — Claude will re-run the sign-in so you can pick a different one. |
+| "Xero API error" on reports | Your Xero plan may not support this report type. Check your Xero subscription level. |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 ---
@@ -237,57 +184,17 @@ This reconnects your account in under 30 seconds.
 
 If you are connecting to a client's Xero organisation, you need **Adviser** or **Standard** user access to that organisation. The organisation owner can add you under Settings → Users in Xero.
 
-If you manage multiple organisations, the installer connects to the first one you select during sign-in. To switch organisations, run `npm run auth` again and select a different one.
+If you manage multiple organisations, Claude connects to one at a time — whichever you select during the browser sign-in. To switch to a different organisation, say to Claude: **"I want to switch to a different Xero organisation"** and Claude will re-run the sign-in so you can pick a different one.
 
 ---
 
 ## Security Notes
 
-- Your Xero credentials are stored only in the `.env` file on your computer
-- Your Xero access token is stored in `.xero-token.json` — this file is excluded from Git
-- Never share your `.env` or `.xero-token.json` files with anyone
+- Your Xero credentials are stored only in a local `.env` file on your computer (Claude creates it; you never edit it)
+- Your Xero access token is stored in a local `.xero-token.json` file — this file is excluded from Git
+- Neither file is ever sent to Anthropic, Selr AI, or any third party
+- Never share these files with anyone
 - The connector only requests read/write access to accounting data — it does not access payroll or files
-
----
-
-## Server / Headless VM Setup
-
-If you are running your assistant on a server or headless VM without a browser, the OAuth sign-in needs a small workaround.
-
-### On your laptop (not the server)
-
-1. Run `npm run auth` on your laptop to complete the browser sign-in
-2. Copy the `.xero-token.json` file from your laptop to the server's `xero-connector` folder
-3. Copy the `.env` file as well (same credentials)
-
-### On the server
-
-```bash
-cd /path/to/xero-connector
-npm install
-node src/index.js
-```
-
-The server will use the token file you copied. Tokens refresh automatically. If they expire, repeat the process from your laptop.
-
----
-
-## Appendix — Manual Token Refresh
-
-If `npm run auth` is not available or you need to refresh the token programmatically, you can do it manually:
-
-```bash
-cd /path/to/xero-connector
-node src/auth.js
-```
-
-This runs the same OAuth flow as the installer — it opens your browser, waits for you to sign in and click Allow, then saves the new token to `.xero-token.json`.
-
-The token includes a refresh token that the MCP server uses to automatically renew access. Under normal use, you should never need to manually refresh. The main reasons you would run `npm run auth` again are:
-
-- The refresh token itself has expired (after 60 days of inactivity)
-- You want to switch to a different Xero organisation
-- You regenerated your Client Secret at developer.xero.com
 
 ---
 
