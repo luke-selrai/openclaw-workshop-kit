@@ -26,7 +26,7 @@ This skill does two things:
 1. **Installs** the AWS CLI on the user's computer (one-time setup)
 2. **Operates** the CLI — interacting with AWS services (S3, EC2, Lambda, DynamoDB, etc.)
 
-> **This is for local laptop setup only.** Server provisioning (EC2/Lightsail) lives in [claude-cloud-kit](https://github.com/selrai-company/claude-cloud-kit).
+> **This is for local laptop setup only.** This skill connects your laptop to AWS so you can interact with your account. Server provisioning (spinning up EC2 or Lightsail instances) is a separate topic — ask your assistant if you need that.
 
 ---
 

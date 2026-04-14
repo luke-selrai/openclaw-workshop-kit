@@ -136,7 +136,7 @@ Your assistant should reply directly in Telegram. You can now message your assis
 | **Send files** | Send a photo or document — your assistant can read it |
 | **Quick tasks** | "Draft a reply to John's email about the proposal" |
 
-> Your assistant has all 97 skills available through Telegram — the same ones you use in VS Code.
+> Your assistant has all 99 skills available through Telegram — the same ones you use in VS Code.
 
 ---
 

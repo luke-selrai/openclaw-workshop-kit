@@ -171,7 +171,7 @@ You stay in control. AI does the work. You make the calls.
 ```
 TODAY (Workshop)
   ✅ Claude Code set up on your laptop
-  ✅ 97 skills installed
+  ✅ 99 skills installed
   ✅ Memory of your business saved
   ✅ Browser automation connected
   ✅ First real task done live

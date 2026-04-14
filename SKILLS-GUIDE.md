@@ -2,7 +2,7 @@
 
 Everything your assistant knows how to do is listed here. Most skills work immediately with no extra setup. A few need a connector (a tool that links your assistant to an outside service).
 
-**22 core skills** are shown first — these are the ones most business owners use most. After those, you will find **56 advanced skills** for deeper work, automation, and technical integrations.
+**22 core skills** are shown first — these are the ones most business owners use most. After those, you will find **69 advanced skills** for deeper work, automation, technical integrations, and connecting your existing business tools.
 
 ---
 
@@ -358,6 +358,64 @@ Example: "Help me resolve this complicated merge conflict."
 ### Finishing a Development Branch *(ADVANCED)*
 Guides the final integration of completed work — tests, review, merge strategy.
 Example: "I've finished this feature — help me integrate it cleanly."
+
+---
+
+## GROUP H — Connectors & Integrations
+
+These skills connect your assistant to the tools your business already uses — accounting software, CRM, cloud platforms, payments, and communication tools. Each connector installs the required CLI or API client for you and handles authentication step by step.
+
+### Connector Recommender *(ADVANCED)*
+Asks about your business and recommends which connectors will have the most impact — ranked by your industry and workflow.
+Example: "What integrations should I set up for a marketing agency?"
+
+### Stripe Connector *(ADVANCED)*
+Connects Stripe — payments, invoices, subscriptions, customers, and refunds, all from your terminal.
+Example: "List my last 10 Stripe payments and show me the total."
+
+### Xero Connector *(ADVANCED)*
+Connects Xero accounting — invoices, contacts, bank reconciliation, profit and loss, and payroll.
+Example: "Show me all outstanding invoices in Xero."
+
+### QuickBooks Connector *(ADVANCED)*
+Reads and updates QuickBooks Online — invoices, customers, P&L, balance sheet, and bank transactions.
+Example: "Show me all unpaid invoices in QuickBooks."
+
+### Shopify Connector *(ADVANCED)*
+Connects your Shopify store — products, orders, customers, and inventory management.
+Example: "Show me my recent Shopify orders and flag any that are unfulfilled."
+
+### GoHighLevel Connector *(ADVANCED)*
+Reads and updates GoHighLevel CRM — contacts, deals, pipelines, calendar bookings, payments, and social posts.
+Example: "Show me all open opportunities in my GHL pipeline."
+
+### Outlook & Microsoft 365 Connector *(ADVANCED)*
+Connects Microsoft 365 — reads and sends Outlook email, manages calendar events, OneDrive files, Teams messages, SharePoint, and To Do.
+Example: "Read my last 5 unread emails and draft a reply to the most urgent one."
+
+### Google Chat Connector *(ADVANCED)*
+Sends and reads messages in Google Chat spaces and direct messages via Google Workspace.
+Example: "Post this weekly update to our team's Google Chat space."
+
+### AWS Connector *(ADVANCED)*
+Installs the AWS CLI and connects to your Amazon Web Services account — S3, EC2, Lambda, DynamoDB, and more.
+Example: "Connect my AWS account and show me what's in my S3 buckets."
+
+### Azure Connector *(ADVANCED)*
+Installs the Azure CLI and connects to Microsoft Azure — storage, web apps, virtual machines, and Key Vault.
+Example: "Set up my Azure connection and list my resource groups."
+
+### Google Cloud Connector *(ADVANCED)*
+Installs the Google Cloud CLI and connects to GCP — BigQuery, Cloud Storage, Cloud Run, and more.
+Example: "Connect my Google Cloud account and list my active projects."
+
+### Claude Dispatch *(ADVANCED)*
+Pairs your phone with your desktop so you can assign Claude tasks remotely — without being at your computer.
+Example: "Set up Claude Dispatch so I can send tasks from my phone while I'm out."
+
+### Install claude-yolo *(ADVANCED)*
+Installs a one-word shortcut (`claude-yolo`) that launches Claude Code with all permissions enabled — no confirmation prompts.
+Example: "Install the claude-yolo shortcut on my machine."
 
 ---
 

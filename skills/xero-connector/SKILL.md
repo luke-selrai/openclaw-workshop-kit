@@ -92,7 +92,7 @@ Tell the user (spread across a few short messages, one instruction at a time):
 4. When they see the form → deliver the field values one message at a time (or in a short numbered list if appropriate):
    - "For **App name**, type: **Claude Assistant**."
    - "For **Integration type**, choose: **Web app**. (Not 'Public app' and not 'Private app'.)"
-   - "For **Company or application URL**, paste: `https://selrai.com.au` — any valid web address works, this is just for display."
+   - "For **Company or application URL**, paste your website URL (e.g. `https://yourbusiness.com.au`) — any valid web address works, this is just for display."
    - "For **OAuth 2.0 redirect URI**, paste this exactly: `http://localhost:3000/callback`"
    - "Tick the box to accept the terms, then click the blue **Create app** button. Tell me when you are on the new app's page."
 5. When they confirm → "On the left menu, click **Configuration**. At the top of this page is your **Client ID** — please copy it and paste it to me."

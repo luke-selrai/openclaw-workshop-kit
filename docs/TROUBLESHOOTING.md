@@ -247,6 +247,19 @@ Most issues are fixed by a fresh restart.
 
 ---
 
+## Connector-Specific Known Issues
+
+Some connectors have limitations that are not bugs — they are known constraints of the underlying tool. If a connector is behaving unexpectedly, check the known-issues folder before troubleshooting further:
+
+| Issue | File |
+|---|---|
+| Xero connection drops after 30 minutes | `known-issues/XERO-TOKEN-EXPIRY.md` |
+| QuickBooks only shows test/demo data | `known-issues/QUICKBOOKS-SANDBOX-ONLY.md` |
+| Stripe login does not open a browser | `known-issues/STRIPE-NON-TTY-LOGIN.md` |
+| Outlook does not work with @outlook.com / @hotmail.com accounts | `known-issues/OUTLOOK-PERSONAL-ACCOUNTS.md` |
+
+---
+
 ## Still Stuck?
 
 If none of the above fixes your problem:

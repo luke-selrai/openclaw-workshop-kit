@@ -1,4 +1,4 @@
-# Skills Reference — Your 97 Installed Skills
+# Skills Reference — Your 99 Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need — Claude picks the right skill automatically.
 
@@ -104,6 +104,24 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `retro` | Engineering retrospectives with code quality metrics | "Run a retrospective on this sprint" | DEV-ONLY |
 | `task-decomposer` | Break complex problems into parallel sub-tasks | "Break this project into tasks" | ADVANCED |
 
+## Connectors & Integrations
+
+| Skill | What It Does | Example Prompt | Tier |
+|---|---|---|---|
+| `aws-connector` | Install and configure the AWS CLI on your laptop | "Connect my AWS account" | ADVANCED |
+| `azure-connector` | Install and configure the Azure CLI on your laptop | "Connect my Azure account" | ADVANCED |
+| `claude-dispatch` | Run multiple Claude agents in parallel on complex tasks | "Dispatch agents to research these 5 competitors at once" | ADVANCED |
+| `connector-recommender` | Detects your business type and recommends the best integrations to set up | "What should I connect first?" | ADVANCED |
+| `gcloud-connector` | Install and configure the Google Cloud CLI on your laptop | "Connect my Google Cloud project" | ADVANCED |
+| `ghl-connector` | Read and update GoHighLevel CRM — contacts, pipelines, bookings, social posts | "Show me my open opportunities in GHL" | ADVANCED |
+| `google-chat-connector` | Install and operate Google Chat — send messages, manage spaces, post to team rooms | "Connect my Google Chat" | ADVANCED |
+| `install-claude-yolo` | Install a `claude-yolo` alias that launches Claude Code in bypass permissions mode | "Install the claude-yolo shortcut" | ADVANCED |
+| `outlook-connector` | Connect Microsoft Outlook and 365 — email, calendar, Teams, SharePoint, OneDrive | "Connect my Outlook account" | ADVANCED |
+| `quickbooks-connector` | Read and update QuickBooks Online — invoices, customers, P&L, balance sheet | "Show me my unpaid invoices in QuickBooks" | ADVANCED |
+| `shopify-connector` | Connect Shopify — products, orders, customers, inventory, analytics | "Show me my Shopify orders from this week" | ADVANCED |
+| `stripe-connector` | Connect Stripe — payments, invoices, subscriptions, customers | "Show me my Stripe revenue this month" | ADVANCED |
+| `xero-connector` | Read and update Xero — invoices, contacts, P&L, balance sheet, bank transactions | "Show me my unpaid invoices in Xero" | ADVANCED |
+
 ## Research & Intelligence
 
 | Skill | What It Does | Example Prompt | Tier |
@@ -142,9 +160,9 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 
 ---
 
-**Total: 97 skills installed**
+**Total: 99 skills installed**
 - CORE: 22 skills (shown by default via skills-discovery)
-- ADVANCED: 56 skills (available on request)
+- ADVANCED: 69 skills (available on request)
 - DEV-ONLY: 8 skills (for technical integrations — never surfaced in demos)
 
 > Ask your assistant to do anything — it will automatically use the right skill for the job.
