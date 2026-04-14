@@ -49,9 +49,7 @@ The user is a non-technical business owner. Every message you send during Phase 
 
 ## PHASE 1 — Install & Auth
 
-This phase gets the connector installed, credentials entered, the browser sign-in completed, and the connector wired into Claude Code. You do every technical action; the user only provides information and clicks things in their browser.
-
-**Important:** Do NOT run `xero-connector/src/install.js` end-to-end. That script is interactive and expects to talk to a human via the terminal. You talk to the human via chat instead, so you do each step yourself and only invoke `xero-connector/src/auth.js` to handle the browser sign-in dance (which is non-interactive once credentials are in place).
+This phase gets the connector installed, credentials entered, the browser sign-in completed, and the connector wired into Claude Code. You do every technical action; the user only provides information and clicks things in their browser. For the browser sign-in, invoke `xero-connector/src/auth.js` — it's non-interactive once credentials are in place.
 
 ### Step 1 — Check Node.js is installed
 
