@@ -508,25 +508,60 @@ Close and reopen your terminal after installing.
 
 **Step 2 — Install the WhatsApp Channel**
 
-Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run:
+Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run the commands for your shell.
 
-```
+*Mac / Linux (bash, zsh):*
+```bash
 cd ~/workshop-kit/whatsapp-channel && bun install
+```
+
+*Windows (PowerShell):*
+```powershell
+cd $HOME\workshop-kit\whatsapp-channel
+bun install
+```
+
+*Windows (Command Prompt):*
+```cmd
+cd %USERPROFILE%\workshop-kit\whatsapp-channel
+bun install
 ```
 
 **Step 3 — Connect**
 
-No extra config needed — the whatsapp-channel folder already has its own config. Open a terminal and run:
+No extra config needed — the whatsapp-channel folder already has its own config. Open a terminal and run the commands for your shell. Environment variables are set differently in each one — paste the block that matches yours.
 
-```sh
-cd ~/workshop-kit/whatsapp-channel && WA_AUTO_OPEN_QR=1 claude --dangerously-load-development-channels server:whatsapp
+*Mac / Linux (bash, zsh):*
+```bash
+cd ~/workshop-kit/whatsapp-channel
+WA_AUTO_OPEN_QR=1 claude --dangerously-load-development-channels server:whatsapp
 ```
+
+*Windows (PowerShell):*
+```powershell
+cd $HOME\workshop-kit\whatsapp-channel
+$env:WA_AUTO_OPEN_QR = "1"
+claude --dangerously-load-development-channels server:whatsapp
+```
+
+*Windows (Command Prompt):*
+```cmd
+cd %USERPROFILE%\workshop-kit\whatsapp-channel
+set WA_AUTO_OPEN_QR=1
+claude --dangerously-load-development-channels server:whatsapp
+```
+
+> If you see `'WA_AUTO_OPEN_QR=1' is not recognised` on Windows, you pasted the Mac command. Use the PowerShell or Command Prompt block instead.
 
 A browser window will open with a QR code. On your phone, open **WhatsApp → Settings → Linked Devices → Link a Device** and scan the code.
 
-**Step 4 — Test It**
+**Step 4 — Test It (Self-Only by Default)**
 
-Send a message from your phone to the linked WhatsApp number. Your assistant should reply directly in WhatsApp.
+By default, only **your own phone number** can message your assistant — every other number is blocked automatically. The easiest way to test is to use WhatsApp's built-in self-chat: open WhatsApp → tap the pencil icon → search for your own name → tap **Message yourself** → send "hello claude". Your assistant replies back in the self-chat.
+
+Once that works, you can add other phone numbers via `WA_ALLOW_FROM` in `.mcp.json` — see [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md) Part D.
+
+> **Read past messages on demand:** every inbound message is saved to a persistent log, so your assistant can answer questions like *"Show me the last 10 WhatsApp messages I received"* even across sessions. See [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md) Part E.
 
 > For the full guide with troubleshooting, see [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md)
 

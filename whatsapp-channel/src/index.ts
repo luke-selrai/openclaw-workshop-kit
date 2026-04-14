@@ -25,6 +25,13 @@ import { exec } from "node:child_process";
 import { monitorWhatsApp, type InboundMessage } from "./monitor.js";
 import { hasCredentials, resolveAuthDir, readSelfId } from "./session.js";
 import { startQrServer, updateQr, markConnected, stopQrServer } from "./qr-server.js";
+import {
+  appendInbound,
+  appendOutbound,
+  readHistory,
+  listChats,
+  HISTORY_FILE,
+} from "./history.js";
 
 // ── Configuration from environment ──────────────────────────────────
 const AUTH_DIR = process.env.WA_AUTH_DIR ?? undefined;
@@ -49,6 +56,8 @@ const mcp = new Server(
       'WhatsApp messages arrive as <channel source="whatsapp" chat_id="..." sender_phone="..." sender_name="..." chat_type="direct|group">.',
       "Each message includes the sender's phone number and name when available.",
       'Reply using the "whatsapp_reply" tool, passing the chat_id from the tag.',
+      'To read past messages (including ones from before this session started), use "whatsapp_history" — it reads from a persistent log at ~/.claude/whatsapp-channel/history.jsonl.',
+      'Use "whatsapp_list_chats" to discover chat_ids when the user references a conversation you did not see live.',
       "For group messages, the group subject is included when available.",
       "If a message is a reply to a previous message, reply_to_body contains the quoted text.",
       "Media messages show placeholders like <media:image>, <media:video>, etc.",
@@ -77,6 +86,59 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
           },
         },
         required: ["chat_id", "text"],
+      },
+    },
+    {
+      name: "whatsapp_history",
+      description:
+        "Read past WhatsApp messages from the persistent history log. Works across sessions — returns messages even if they arrived before this session started. Results are chronological (oldest first).",
+      inputSchema: {
+        type: "object" as const,
+        properties: {
+          chat_id: {
+            type: "string",
+            description: "Filter to a single chat JID (e.g. a direct chat or group). Omit to search across all chats.",
+          },
+          sender_phone: {
+            type: "string",
+            description: "Filter to messages from a specific phone number in E.164 (e.g. '+1234567890').",
+          },
+          contains: {
+            type: "string",
+            description: "Case-insensitive substring to search for in message bodies.",
+          },
+          since_ts: {
+            type: "number",
+            description: "Only return messages at or after this Unix timestamp in milliseconds.",
+          },
+          until_ts: {
+            type: "number",
+            description: "Only return messages at or before this Unix timestamp in milliseconds.",
+          },
+          direction: {
+            type: "string",
+            enum: ["in", "out"],
+            description: "Filter by inbound (received) or outbound (sent by you/Claude) messages.",
+          },
+          limit: {
+            type: "number",
+            description: "Maximum number of messages to return (1-500, default 50). Returns the most recent matches.",
+          },
+        },
+      },
+    },
+    {
+      name: "whatsapp_list_chats",
+      description:
+        "List all WhatsApp chats that have appeared in the history log, sorted by most recent activity. Useful for finding a chat_id to pass to whatsapp_history or whatsapp_reply.",
+      inputSchema: {
+        type: "object" as const,
+        properties: {
+          limit: {
+            type: "number",
+            description: "Maximum number of chats to return (default 50).",
+          },
+        },
       },
     },
     {
@@ -115,6 +177,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
     }
     try {
       const result = await waMonitor.sendMessage(chat_id, text);
+      appendOutbound(chat_id, text, result.messageId);
       return {
         content: [{ type: "text", text: `Sent (id: ${result.messageId})` }],
       };
@@ -122,6 +185,70 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       return {
         content: [{ type: "text", text: `Failed to send: ${String(err)}` }],
       };
+    }
+  }
+
+  if (req.params.name === "whatsapp_history") {
+    const args = (req.params.arguments ?? {}) as {
+      chat_id?: string;
+      sender_phone?: string;
+      contains?: string;
+      since_ts?: number;
+      until_ts?: number;
+      direction?: "in" | "out";
+      limit?: number;
+    };
+    try {
+      const entries = await readHistory(args);
+      if (entries.length === 0) {
+        return {
+          content: [{
+            type: "text",
+            text: `No messages found matching the query. History file: ${HISTORY_FILE}`,
+          }],
+        };
+      }
+      const lines = entries.map((e) => {
+        const when = new Date(e.ts).toISOString();
+        const who = e.direction === "out"
+          ? "you"
+          : (e.sender_name ?? e.sender_phone ?? "unknown");
+        const chat = e.group_subject ? `group:${e.group_subject}` : e.chat_type;
+        return `[${when}] (${chat}) ${who}: ${e.body}`;
+      });
+      return {
+        content: [{
+          type: "text",
+          text: `Found ${entries.length} message(s):\n${lines.join("\n")}`,
+        }],
+      };
+    } catch (err) {
+      return { content: [{ type: "text", text: `Failed to read history: ${String(err)}` }] };
+    }
+  }
+
+  if (req.params.name === "whatsapp_list_chats") {
+    const { limit } = (req.params.arguments ?? {}) as { limit?: number };
+    try {
+      const chats = await listChats(limit ?? 50);
+      if (chats.length === 0) {
+        return {
+          content: [{
+            type: "text",
+            text: `No chats in history yet. History file: ${HISTORY_FILE}`,
+          }],
+        };
+      }
+      const lines = chats.map((c) => {
+        const when = new Date(c.last_ts).toISOString();
+        const label = c.group_subject ?? c.last_sender ?? c.chat_id;
+        return `[${when}] ${c.chat_type} "${label}" — ${c.message_count} msg — chat_id=${c.chat_id}`;
+      });
+      return {
+        content: [{ type: "text", text: `Chats (${chats.length}):\n${lines.join("\n")}` }],
+      };
+    } catch (err) {
+      return { content: [{ type: "text", text: `Failed to list chats: ${String(err)}` }] };
     }
   }
 
@@ -184,6 +311,9 @@ const PERMISSION_REPLY_RE = /^\s*(y|yes|n|no)\s*([a-km-z]{5})?\s*$/i;
 
 // ── Inbound message handler ─────────────────────────────────────────
 async function handleInboundMessage(msg: InboundMessage): Promise<void> {
+  // Persist to history log so whatsapp_history can read it across sessions.
+  appendInbound(msg);
+
   // Track the most recent DM sender for permission relay
   if (msg.chatType === "direct") {
     permissionReplyTarget = msg.chatId;
