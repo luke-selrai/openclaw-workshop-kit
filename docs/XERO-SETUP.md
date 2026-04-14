@@ -14,7 +14,7 @@ The entire setup takes about 5 minutes. **You only do one manual thing yourself*
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../docs/FULL-SETUP-PAGE.md) if not done yet)
+- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) if not done yet)
 - Node.js version 20 or higher — Claude will check this for you during setup
 - A Xero account (any plan — Starter, Standard, or Premium)
 - An internet connection

@@ -4,7 +4,6 @@
   "description": "Xero MCP server for Claude Code — built by Selr AI",
   "type": "module",
   "scripts": {
-    "install-connector": "node src/install.js",
     "auth": "node src/auth.js",
     "start": "node src/index.js"
   },

@@ -11,7 +11,7 @@ Connects your Xero accounting account to Claude Code. Once installed, Claude can
 - Claude Code installed and working
 - Node.js version 20 or higher — Claude will check this for you during setup
 - A Xero account (Starter, Standard, or Premium)
-- A Xero developer app (free — see XERO-SETUP.md Step 1 for how to create one)
+- A Xero developer app (free — see `docs/XERO-SETUP.md` Step 1 for how to create one)
 
 ---
 
@@ -66,7 +66,7 @@ That's it. Claude installs everything, saves your credentials, runs the sign-in 
 
 | Problem | Fix |
 |---|---|
-| "Missing credentials" during install | Enter your real Client ID and Secret — get them from developer.xero.com (see XERO-SETUP.md Step 1) |
+| "Missing credentials" during install | Enter your real Client ID and Secret — get them from developer.xero.com (see `docs/XERO-SETUP.md` Step 1) |
 | Browser does not open during sign-in | The URL is printed in the terminal — paste it into any browser |
 | "Token expired" when using Claude | Say to Claude: "my Xero connection has stopped working" and Claude will reconnect it for you |
 | "Invalid scope for client" on auth | Your Xero app was created after 2 March 2026 and only supports granular scopes. The installer uses the correct scopes automatically — check that your Client ID in .env matches your app at developer.xero.com |
