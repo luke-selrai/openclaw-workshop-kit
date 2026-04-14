@@ -149,56 +149,63 @@ Once the connector is configured, use the `mcp__hubspot__*` MCP tools below to a
 
 The official MCP server exposes tools with the prefix `mcp__hubspot__`. The exact tool names follow the pattern `mcp__hubspot__hubspot-<action>`. Below are the known tools and when to use them:
 
-#### Contacts & Companies
+#### CRM Objects (Contacts, Companies, Deals, Tickets)
 
-| Tool | Use when |
-|---|---|
-| `hubspot-search-crm-objects` | User asks to find contacts, companies, deals, or tickets by name, email, or property |
-| `hubspot-get-crm-object` | User asks for details about a specific contact, company, deal, or ticket by ID |
-| `hubspot-create-crm-object` | User asks to create a new contact, company, deal, or ticket |
-| `hubspot-update-crm-object` | User asks to update properties on any CRM object |
-| `hubspot-list-objects-on-page` | User asks to list/browse CRM objects with pagination |
+| Tool | Description | Use when |
+|---|---|---|
+| `hubspot-list-objects` | Retrieves a paginated list of CRM records for a specified object type | User asks to list/browse contacts, companies, deals, or tickets |
+| `hubspot-search-objects` | Performs filtered searches across CRM records using complex criteria | User asks to find records by name, email, or property value |
+| `hubspot-batch-read-objects` | Retrieves multiple CRM records by their IDs in a single batch | User asks for details about specific records by ID |
+| `hubspot-batch-create-objects` | Creates multiple CRM records of the same type in a single call | User asks to create a new contact, company, deal, or ticket — **confirm first** |
+| `hubspot-batch-update-objects` | Updates multiple existing CRM records with new property values | User asks to update properties on any CRM object — **confirm first** |
 
 #### Properties
 
-| Tool | Use when |
-|---|---|
-| `hubspot-list-properties` | User asks what fields/properties are available on contacts, companies, deals, etc. |
-| `hubspot-create-property` | User asks to add a custom property to a CRM object type |
+| Tool | Description | Use when |
+|---|---|---|
+| `hubspot-list-properties` | Retrieves the complete catalog of properties for any CRM object type | User asks what fields are available on contacts, companies, deals, etc. |
+| `hubspot-get-property` | Retrieves detailed information about a specific property definition | User asks about a specific field's options or configuration |
+| `hubspot-create-property` | Creates new custom properties for CRM object types | User asks to add a custom field — **confirm first** |
+| `hubspot-update-property` | Updates settings for existing custom properties | User asks to modify a custom field — **confirm first** |
 
 #### Associations
 
-| Tool | Use when |
-|---|---|
-| `hubspot-list-associations` | User asks what is linked to a contact/company/deal (e.g., "what deals does Acme have?") |
-| `hubspot-create-association` | User asks to link a contact to a company, a deal to a contact, etc. |
+| Tool | Description | Use when |
+|---|---|---|
+| `hubspot-list-associations` | Retrieves existing relationships between a record and associated records | User asks what is linked to a contact/company/deal (e.g., "what deals does Acme have?") |
+| `hubspot-batch-create-associations` | Establishes multiple relationships between CRM records | User asks to link a contact to a company, a deal to a contact, etc. — **confirm first** |
+| `hubspot-get-association-definitions` | Retrieves valid association types and labels between object types | You need to know which association types are valid before creating one |
 
 #### Engagements (Notes & Tasks)
 
-| Tool | Use when |
-|---|---|
-| `hubspot-create-engagement` | User asks to create a note or task on a contact, company, or deal |
-| `hubspot-get-engagements` | User asks to see notes or tasks for a CRM record |
+| Tool | Description | Use when |
+|---|---|---|
+| `hubspot-create-engagement` | Creates engagements (Notes or Tasks) associated with CRM records | User asks to create a note or task on a contact, company, or deal — **confirm first** |
+| `hubspot-get-engagement` | Retrieves engagement details by ID | User asks to see a specific note or task |
+| `hubspot-update-engagement` | Updates an existing engagement with new information | User asks to edit a note or task — **confirm first** |
 
 #### Custom Objects
 
-| Tool | Use when |
-|---|---|
-| `hubspot-list-custom-object-schemas` | User asks about custom object types in their portal |
+| Tool | Description | Use when |
+|---|---|---|
+| `hubspot-get-schemas` | Retrieves available custom object schemas with objectTypeId and definitions | User asks about custom object types in their portal |
 
 #### Workflows
 
-| Tool | Use when |
-|---|---|
-| `hubspot-list-workflows` | User asks to see their automated workflows |
+| Tool | Description | Use when |
+|---|---|---|
+| `hubspot-list-workflows` | Retrieves a paginated list of workflows | User asks to see their automated workflows |
+| `hubspot-get-workflow` | Retrieves detailed info about a specific workflow (actions, enrollment criteria) | User asks about a specific workflow's configuration |
 
-#### Account
+#### Account & Links
 
-| Tool | Use when |
-|---|---|
-| `hubspot-get-user-details` | User asks "what HubSpot account am I connected to?" or you need to verify the connection |
+| Tool | Description | Use when |
+|---|---|---|
+| `hubspot-get-user-details` | Authenticates token and returns user info, hub details, and scopes | User asks "what HubSpot account am I connected to?" or you need to verify the connection |
+| `hubspot-get-link` | Generates HubSpot UI URLs to directly access records in the browser | User wants a link to open a record in HubSpot |
+| `hubspot-generate-feedback-link` | Generates a feedback link for reporting tool issues to HubSpot | User wants to report an issue with the MCP tools |
 
-> **Note:** Tool names are based on the `@hubspot/mcp-server` beta. If a tool name does not resolve, try listing available tools with the `mcp__hubspot__` prefix to discover the current naming.
+> **Note:** Tool names are from `@hubspot/mcp-server` v0.4.0 (beta). If a tool name does not resolve, try listing available tools with the `mcp__hubspot__` prefix to discover the current naming.
 
 ---
 
@@ -206,18 +213,18 @@ The official MCP server exposes tools with the prefix `mcp__hubspot__`. The exac
 
 | What the user says | Tool to use |
 |---|---|
-| "Show me my contacts" | `hubspot-list-objects-on-page` (objectType: contacts) |
-| "Find the contact with email jane@example.com" | `hubspot-search-crm-objects` (objectType: contacts, search by email) |
-| "Show me details for contact #12345" | `hubspot-get-crm-object` (objectType: contacts) |
-| "Create a new contact for Jane Doe" | `hubspot-create-crm-object` (objectType: contacts) — **confirm first** |
-| "List my companies" | `hubspot-list-objects-on-page` (objectType: companies) |
-| "Show me my open deals" | `hubspot-search-crm-objects` (objectType: deals, filter by stage) |
-| "Create a deal for Acme Corp" | `hubspot-create-crm-object` (objectType: deals) — **confirm first** |
-| "Update the phone number on contact #12345" | `hubspot-update-crm-object` (objectType: contacts) — **confirm first** |
+| "Show me my contacts" | `hubspot-list-objects` (objectType: contacts) |
+| "Find the contact with email jane@example.com" | `hubspot-search-objects` (objectType: contacts, search by email) |
+| "Show me details for contact #12345" | `hubspot-batch-read-objects` (objectType: contacts) |
+| "Create a new contact for Jane Doe" | `hubspot-batch-create-objects` (objectType: contacts) — **confirm first** |
+| "List my companies" | `hubspot-list-objects` (objectType: companies) |
+| "Show me my open deals" | `hubspot-search-objects` (objectType: deals, filter by stage) |
+| "Create a deal for Acme Corp" | `hubspot-batch-create-objects` (objectType: deals) — **confirm first** |
+| "Update the phone number on contact #12345" | `hubspot-batch-update-objects` (objectType: contacts) — **confirm first** |
 | "What deals are linked to Acme Corp?" | `hubspot-list-associations` |
-| "Link this deal to that contact" | `hubspot-create-association` |
+| "Link this deal to that contact" | `hubspot-batch-create-associations` |
 | "Add a note to this deal" | `hubspot-create-engagement` (type: note) |
-| "Show me tasks on this contact" | `hubspot-get-engagements` |
+| "Show me tasks on this contact" | `hubspot-get-engagement` |
 | "What properties does a contact have?" | `hubspot-list-properties` (objectType: contacts) |
 | "Show me my workflows" | `hubspot-list-workflows` |
 | "What HubSpot account am I connected to?" | `hubspot-get-user-details` |
