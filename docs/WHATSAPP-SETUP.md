@@ -40,9 +40,18 @@ That's it. Don't worry about installing Bun or opening terminals yourself — th
 
 ## Part A — Install the WhatsApp Channel (Fast Setup)
 
-**You don't have to run any commands yourself.** Paste the prompt below into your Claude Code chat and your assistant will install everything, detect whether you're on Mac or Windows, and tell you exactly what to do next in plain English.
+**You don't have to run any commands yourself.** In your Claude Code chat, just say:
 
-### The fast-setup prompt — copy everything below
+> *"Set up the WhatsApp channel for me."*
+
+Your assistant will load the `whatsapp-connector` skill, detect your OS and shell, install the helper tool if needed, install the channel's packages, and hand you the exact launch command to run. It walks you through it one step at a time in plain English — just like the rest of the workshop-kit setup.
+
+**The skill also handles everyday use** after setup: sending messages, reading past messages via the history log, managing the allowlist, and troubleshooting the QR pairing flow. Just ask in natural language.
+
+<details>
+<summary><strong>Advanced: paste this long prompt instead (e.g. if the skill didn't auto-load)</strong></summary>
+
+If for some reason your assistant doesn't pick up the `whatsapp-connector` skill automatically, you can paste this prompt to kick off the same flow manually:
 
 ```
 I want to set up the WhatsApp channel for Claude Code.
@@ -85,6 +94,8 @@ seeing on my screen before continuing.
 **What happens next:** Your assistant will check for Bun, install it if needed, install the WhatsApp channel's packages, and give you the exact command to launch Claude Code with WhatsApp. It will also tell you if anything needs your attention (like closing and reopening your terminal after installing Bun).
 
 Once your assistant tells you the launch command, run it and move on to **Part B — Scan the QR Code**.
+
+</details>
 
 ---
 
