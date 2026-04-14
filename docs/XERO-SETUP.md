@@ -1,23 +1,40 @@
 ---
-title: Xero Connector — Setup Guide
-version: 3.0
-date: 2026-04-13
+title: Xero — Setup Guide
+version: 4.0
+date: 2026-04-15
 ---
 
-# Xero Connector — Setup Guide
+# Xero — Setup Guide
 
-This guide connects your Xero accounting account to Claude Code. Once set up, Claude can read and create invoices, look up contacts, view your chart of accounts, check bank transactions, list payments, and pull financial reports — all through plain English.
+This guide connects your Xero accounting account to your AI assistant using the **official Xero MCP server** built and maintained by Xero themselves. Once set up, your assistant can read and create invoices, find contacts, manage quotes and credit notes, pull profit & loss and balance sheet reports, check bank transactions, and more — all through plain English.
 
-The entire setup takes about 5 minutes. **You only do one manual thing yourself** (create a free Xero developer app). Everything else — installing the connector pieces, saving credentials, running the browser sign-in, configuring Claude Code, verifying the connection — is handled by Claude Code conversationally.
+The entire setup takes about 5 minutes. **You only do one manual thing yourself** (create a Custom Connection in Xero's developer portal). Everything else — saving your connection details, wiring them into Claude Code, verifying the connection — is handled by your assistant conversationally.
+
+---
+
+## ⚠️ Before You Start — Two Things You Need to Know
+
+### 1. This costs about $5 USD per month
+
+Xero charges a small recurring fee — roughly **$5 USD per month** (about $8 AUD, £5 GBP) — to enable the "Custom Connection" type of connection that this guide uses. The fee is billed by Xero on top of your normal Xero subscription.
+
+**Why the cost?** This is the only connection type Xero offers that works silently in the background without making you click "Allow access" every 30 minutes. It's the right choice for a daily-use AI assistant. If the monthly fee is a blocker, contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) and we can discuss alternatives.
+
+### 2. Only available in AU, NZ, UK, and US
+
+Xero currently only offers Custom Connections for organisations in **Australia, New Zealand, the United Kingdom, and the United States**. If your Xero organisation is based in any other country, this setup path will not work for you — please contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) for the alternative.
 
 ---
 
 ## What You Need Before Starting
 
 - Claude Code installed and working (follow [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) if not done yet)
-- Node.js version 20 or higher — Claude will check this for you during setup
 - A Xero account (any plan — Starter, Standard, or Premium)
+- A Xero developer account (free — sign up at [developer.xero.com](https://developer.xero.com))
+- A payment method saved in Xero (credit card or direct debit — for the monthly Custom Connection charge)
 - An internet connection
+
+> **No coding experience required.** Your assistant handles everything technical. You only copy and paste two values from Xero.
 
 ---
 
@@ -34,72 +51,90 @@ The entire setup takes about 5 minutes. **You only do one manual thing yourself*
 
 ## What This Unlocks
 
-| Tool | What Your Assistant Can Do |
+| Area | What Your Assistant Can Do |
 |---|---|
-| **Invoices** | List, view, search, and create invoices |
-| **Contacts** | Search customers and suppliers, add new contacts |
-| **Chart of Accounts** | Browse your account codes and types |
+| **Invoices** | List, search, view, create (as drafts), and update invoices |
+| **Contacts** | Search customers and suppliers, add new contacts, update details |
+| **Quotes** | List, create, and update sales quotes |
+| **Credit Notes** | List, create, and update credit notes / refunds |
+| **Items** | Browse your product catalogue and pricing |
 | **Bank Transactions** | List bank transactions with dates and amounts |
-| **Payments** | List payments recorded against invoices and bills |
+| **Payments** | List payments recorded against invoices and bills, record new payments |
+| **Chart of Accounts** | Browse account codes, types, and tax rates |
 | **Profit & Loss** | Pull income and expense reports for any date range |
 | **Balance Sheet** | View assets, liabilities, and equity at a point in time |
+| **Trial Balance** | Pull an accountant-style account summary |
+| **Aged Receivables / Payables** | See who owes you money and who you owe, by contact and age |
+| **Manual Journals** | Post and view manual journal entries |
+| **Tracking Categories** | Manage cost centres, departments, and tracking dimensions |
+| **Payroll (NZ/UK only)** | Read and manage employees, leave, and timesheets |
 | **Organisation** | Check which Xero organisation is connected |
+
+This is powered by the [official `@xeroapi/xero-mcp-server`](https://github.com/XeroAPI/xero-mcp-server), which exposes around **56 tools** covering the full accounting surface.
 
 ---
 
-## Step 1 — Create Your Xero OAuth App (One-Time)
+## Step 1 — Create a Custom Connection in Xero (One-Time, You Do This)
 
-This is the only manual step. Xero requires every connection to use a developer "app" — this is free and takes about 2 minutes. Claude cannot do this step for you because Xero needs you to be signed in as yourself.
+This is the only manual step. Xero requires you to be signed in to create a connection. Your assistant will walk you through it conversationally — you can **skip reading this section** and just say *"Connect my Xero"* to your assistant. The steps below are here for reference or if you prefer to do it yourself.
 
 1. Go to [developer.xero.com/app/manage](https://developer.xero.com/app/manage)
 2. Sign in with your Xero account
-3. Click **New app**
+3. Click **New app** (top right)
 4. Fill in the form:
    - **App name:** `Claude Assistant` (or any name you like)
-   - **Integration type:** Web app
-   - **Company or application URL:** `https://selrai.com.au` (or any valid URL — this is just for display)
-   - **OAuth 2.0 redirect URI:** `http://localhost:3000/callback`
-5. Click **Create app**
-6. You are now on the app detail page. Click **Configuration** in the left menu
-7. **Copy your Client ID** — it is shown at the top of the page
-8. Click **Generate a secret** to reveal your Client Secret
-9. **Copy your Client Secret** — it is shown below the button
-10. **Save both values somewhere safe** — you will paste them to Claude when asked
+   - **Integration type:** **Custom connection** (⚠️ *not* "Web app" — this is the key choice)
+   - **Company or application URL:** your business website URL, e.g. `https://yourbusiness.com.au` (any valid URL works — this is just for display)
+5. Tick the box to accept the terms, then click the blue **Create app** button
+6. On the new app's page, select which **Xero organisation** you want to connect — Custom connections are linked to one organisation at a time
+7. Under **Scopes**, tick these permissions:
+   - `accounting.transactions`
+   - `accounting.reports.read`
+   - `accounting.journals.read`
+   - `accounting.settings`
+   - `accounting.contacts`
+   - `accounting.attachments`
+   - *(If you're in NZ or UK and want payroll tools:)* `payroll.employees`, `payroll.payruns`, `payroll.payslip`, `payroll.timesheets`, `payroll.settings`
+8. Click **Save**
+9. **Activate the connection** — Xero will prompt you to confirm payment details and activate the recurring monthly charge (~$5 USD). Follow Xero's prompts to complete this step
+10. Once activated, you'll see your **Client ID** at the top of the connection page — **copy it**
+11. Click **Generate a secret** to reveal your **Client Secret** — **copy it immediately**
+12. **Save both values somewhere safe** — you will paste them to your assistant in Step 2
 
 > **Common mistakes to avoid:**
 >
-> - The redirect URI must be **exactly** `http://localhost:3000/callback` — no `https`, no trailing slash, no capital letters. Copy and paste it.
-> - The Client Secret is **only shown once**. Copy it before leaving the page. If you lose it, you can generate a new one (which revokes the old one).
-> - The integration type must be **Web app**, not "Public app" or "Private app".
+> - **Integration type must be "Custom connection"** — not "Web app", not "Mobile or desktop app". If you pick the wrong type, you'll need to delete the app and start over.
+> - **The Client Secret is only shown once.** Copy it immediately. If you lose it, you can generate a new one (which revokes the old one).
+> - **Scopes must be saved** — don't forget to click the **Save** button after ticking the boxes.
+> - **The connection must be active** — if you don't complete the payment/activation step, the connection exists but won't work.
 
 ---
 
-## Step 2 — Let Claude Do the Rest
+## Step 2 — Tell Your Assistant to Connect (Your Assistant Does the Rest)
 
 Open Claude Code and say:
 
 > **"Help me connect my Xero account"**
 
-Claude will guide you through every remaining step conversationally:
+Your assistant will:
 
-1. Check that Node.js is installed (and install it for you if not)
-2. Install the connector pieces
-3. Ask you to paste your Client ID and Client Secret from Step 1
-4. Save your credentials securely
-5. Open Xero in your browser for sign-in — you click **Allow access**
-6. Wire the connector into Claude Code automatically
-7. Verify the connection by fetching your organisation name
-8. Tell you it's done
+1. Ask you the two safety-gate questions (which country is your Xero in, are you OK with the small monthly charge)
+2. Walk you through Step 1 above conversationally, one step at a time, in plain English — so if you haven't done Step 1 yet, your assistant will guide you through it now
+3. Ask you to paste the Client ID and Client Secret from Step 1
+4. Save the connection details securely on your computer
+5. Ask you to restart Claude Code once so the connection becomes active
+6. Verify the connection is working and tell you which Xero organisation you're connected to
 
-You will not run any commands yourself. Claude handles all the technical work. You just answer its questions in plain English and click **Allow access** when the browser opens.
+You will not run any commands yourself. Your assistant handles all the technical work. You just answer its questions in plain English and paste the two values when asked.
 
-When Claude tells you it's finished, close Claude Code completely and open it again. That makes the new connection active. Then try asking:
+When your assistant tells you it's finished, try asking:
 
-- "Show me my recent Xero invoices"
-- "What organisation am I connected to in Xero?"
-- "List my Xero contacts"
+- *"Show me my recent Xero invoices"*
+- *"What Xero organisation am I connected to?"*
+- *"Find Acme Corp in my Xero contacts"*
+- *"What's my profit and loss for this year?"*
 
-If Claude responds with your Xero data, you are all set.
+If your assistant responds with your Xero data, you're all set.
 
 ---
 
@@ -107,94 +142,103 @@ If Claude responds with your Xero data, you are all set.
 
 | Task | What to Say |
 |---|---|
-| **Check invoices** | "Show me my unpaid invoices" |
-| **Create an invoice** | "Create a Xero invoice for Acme Corp for $500" |
-| **Find a contact** | "Find John Smith in my Xero contacts" |
-| **Add a contact** | "Add a new contact called ABC Pty Ltd" |
-| **Profit & Loss** | "Show me the Xero profit and loss for this year" |
-| **Balance Sheet** | "Get the Xero balance sheet as of today" |
-| **Chart of accounts** | "List my Xero expense accounts" |
-| **Bank transactions** | "Show me my recent bank transactions in Xero" |
-| **Payments** | "Show me recent payments in Xero" |
-| **Reconnect** | "My Xero connection has stopped working" |
-| **Switch organisations** | "I want to switch to a different Xero organisation" |
+| **Check invoices** | *"Show me my unpaid invoices"* |
+| **Create an invoice** | *"Create a Xero invoice for Acme Corp for $500"* |
+| **Update an invoice** | *"Update invoice INV-0042 to add a $100 line item"* |
+| **Find a contact** | *"Find John Smith in my Xero contacts"* |
+| **Add a contact** | *"Add a new contact called ABC Pty Ltd"* |
+| **Create a quote** | *"Create a quote for Acme Corp for three months of consulting"* |
+| **Issue a credit note** | *"Issue a credit note for Acme Corp for $200"* |
+| **Profit & Loss** | *"Show me the Xero profit and loss for this year"* |
+| **Balance Sheet** | *"Get the Xero balance sheet as of today"* |
+| **Aged receivables** | *"Who owes me money and how overdue are they?"* |
+| **Aged payables** | *"Who do I owe money to?"* |
+| **Chart of accounts** | *"List my Xero expense accounts"* |
+| **Bank transactions** | *"Show me my recent bank transactions in Xero"* |
+| **Payments** | *"Show me recent payments in Xero"* |
+| **Record a payment** | *"Record a $500 payment from Acme Corp against invoice INV-0042"* |
+| **Products / items** | *"List my Xero inventory items"* |
+| **Tax rates** | *"What Xero tax codes can I use?"* |
+| **Reconnect** | *"My Xero connection has stopped working"* |
+| **Switch organisations** | *"I want to connect a different Xero organisation"* |
 
 ---
 
 ## Keeping Your Connection Active
 
-Xero access tokens refresh automatically in the background. You should almost never need to think about this.
+Custom Connections don't expire the way older OAuth connections did — as long as:
 
-If you ever see an error like "token expired" or "your Xero connection has dropped", just say to Claude:
+1. Your **Custom Connection is active** in your Xero developer portal (the monthly charge is being paid)
+2. Your **Client ID and Client Secret** haven't been revoked or regenerated
+
+…your assistant will keep working silently in the background with no browser sign-ins, no 30-minute token refreshes, and no 60-day expiry.
+
+**If something does stop working**, just say to your assistant:
 
 > **"My Xero connection has stopped working"**
 
-Claude will re-run the browser sign-in for you in under 30 seconds. You click **Allow access** once when the browser opens, and you're back.
+Your assistant will check what's wrong and walk you through the fix. The most common causes:
 
-The underlying refresh token stays valid for 60 days as long as the connection is used at least once in that window. If you haven't touched Xero in over two months, you may need to reconnect.
+- The Custom Connection was deactivated (check the billing page in your Xero developer portal)
+- You regenerated the Client Secret without updating your assistant (paste the new one)
+- A permission you added later hasn't been ticked yet
+
+---
+
+## Adding More Permissions Later
+
+If your assistant tells you it needs an extra permission for something (for example, payroll tools if you didn't tick those originally):
+
+1. Go to [developer.xero.com/app/manage](https://developer.xero.com/app/manage)
+2. Click on your **Claude Assistant** Custom Connection
+3. Click the **Scopes** section and tick the additional boxes your assistant mentioned
+4. Click **Save**
+5. Go back to Claude Code and try your request again — **no restart needed**, scope changes apply on the next call
 
 ---
 
 ## Troubleshooting
 
-### Installation Problems
-
-These are issues Claude may report back to you during setup. In most cases Claude will translate the error into plain English and handle it automatically — this table exists so you can recognise what's happening if you're curious.
+### Setup Problems
 
 | Problem | Fix |
 |---|---|
-| `node --version` shows v18 or lower | Claude will install Node.js v20 for you automatically during setup. If it can't, Claude will tell you what to do. |
-| **EPERM / permission denied** on Windows | Claude will ask you to close and reopen your terminal as administrator, then resume. |
-| **EACCES** on Mac | Claude will install Node via nvm (which avoids sudo) and retry. You just watch. |
-| **EINTEGRITY** error during install | Claude will clean the package cache and retry automatically. |
-| **ECONNRESET / 403** during install | Your network (usually a corporate firewall) is blocking npmjs.com. Claude will tell you — you will need to try from a home connection or ask IT to allow `registry.npmjs.org:443`. |
-| install fails on Mac — "command not found: node" | Claude will reload the shell profile and retry. |
-| Script blocked on Mac ("developer cannot be verified") | Tell Claude "there's a Mac security warning" and it will run the unlock command for you. |
-| Script blocked on Windows ("running scripts is disabled") | Tell Claude "scripts are blocked on my Windows" and it will talk you through enabling them. |
-| Windows Defender blocks npm install (EBUSY) | Temporarily pause Real-Time Protection in Windows Security, then ask Claude to retry. |
-| Path too long error on Windows | Your folder path exceeds Windows' 260-character limit. Move the `xero-connector` folder to `C:\workshop\` and ask Claude to try again. |
-
-### App & Authentication Problems
-
-| Problem | Fix |
-|---|---|
-| "Missing credentials" during setup | Claude will ask you to re-paste your Client ID and Secret. Get them from [developer.xero.com/app/manage](https://developer.xero.com/app/manage). |
-| "redirect_uri_mismatch" in browser | In your Xero app settings at developer.xero.com, confirm the redirect URI is exactly `http://localhost:3000/callback` — no `https`, no trailing slash. Then tell Claude to try again. |
-| Client Secret not showing in Xero | Go to your app at developer.xero.com and click **Generate a secret** again — this creates a new one (the old one is revoked). Then paste the new secret when Claude asks. |
-| "Invalid scope for client" on auth | Your Xero app was created after 2 March 2026 and only supports granular scopes. The connector uses the correct granular scopes automatically — if you see this, check that your Client ID matches the app at developer.xero.com, then tell Claude to try again. |
-| "invalid_client" error in browser | Your Client ID or Secret is wrong. Tell Claude "I need to re-enter my Xero credentials" and it will take them from you again. |
-| "Port 3000 is already in use" | Something else is running on port 3000. Close it, then tell Claude to try again. |
-| Browser does not open during sign-in | Claude will paste the sign-in URL into the chat as a clickable link. |
-| No response from browser after 2 minutes | Close any other apps using port 3000, check your internet connection, and tell Claude to try again. |
+| *"I don't see a Custom connection option in the integration type dropdown"* | Your Xero organisation is not in one of the supported countries (AU, NZ, UK, US). Contact Luke at luke@selrai.com.au for the alternative. |
+| *"Xero is asking me for a payment method"* | Normal — Custom Connections carry a small monthly charge. Add a card to your Xero developer account and continue. |
+| *"The Client Secret didn't show up after I clicked Generate"* | Sometimes it appears below the button. Scroll down. If still nothing, refresh the page and click **Generate a secret** again — this creates a new one and revokes the old. |
+| *"I lost the Client Secret"* | Go back to the Custom Connection page, click **Generate a secret** to create a new one, and tell your assistant: *"I have a new Xero connection key."* |
+| *"Connection key not working"* (401 invalid_client) | Double-check you copied the full Client ID and Secret — no extra spaces, no missing characters. Ask your assistant to save the details again. |
 
 ### After Setup
 
 | Problem | Fix |
 |---|---|
-| Claude says "tool not available" | Close Claude Code completely and reopen it. The connection becomes active on restart. |
-| "Token expired" error | Say to Claude: **"my Xero connection has stopped working"** — Claude will reconnect it for you. |
-| "No Xero organisations found" | Say to Claude: **"my Xero connection is broken"** — Claude will re-do the sign-in for you. Remember to select an organisation during sign-in. |
-| Wrong Xero organisation connected | Say to Claude: **"I want to switch to a different Xero organisation"** — Claude will re-run the sign-in so you can pick a different one. |
-| "Xero API error" on reports | Your Xero plan may not support this report type. Check your Xero subscription level. |
+| Assistant says *"tool not available"* | Close Claude Code completely and reopen it. The connection becomes active on restart. |
+| *"Your Xero connection has been deactivated"* | Your Custom Connection was turned off in Xero — usually because the monthly charge lapsed. Reactivate it at [developer.xero.com/app/manage](https://developer.xero.com/app/manage). |
+| *"I need an extra permission"* | See **Adding More Permissions Later** above. Your assistant will tell you which scope to tick. |
+| *"Xero is asking me to slow down"* (rate limit) | Xero enforces per-organisation rate limits. Wait a moment and try again — rare in normal use. |
+| Wrong Xero organisation connected | Custom Connections are one-per-organisation. To switch, create a second Custom Connection for the other organisation in Xero, then tell your assistant: *"Switch my Xero connection to the new one."* |
+| *"Xero API error"* on reports | Your Xero plan may not include that report type. Check your Xero subscription level. |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 ---
 
 ## Note for Accountants and Advisors
 
-If you are connecting to a client's Xero organisation, you need **Adviser** or **Standard** user access to that organisation. The organisation owner can add you under Settings → Users in Xero.
+Custom Connections are tied to a single Xero organisation at creation time. If you manage multiple client organisations, you'll need to create a separate Custom Connection for each — and each carries its own monthly charge. Your assistant can only connect to one at a time; to switch clients, tell your assistant *"Switch my Xero to [other client name]"* and it will walk you through swapping the connection key.
 
-If you manage multiple organisations, Claude connects to one at a time — whichever you select during the browser sign-in. To switch to a different organisation, say to Claude: **"I want to switch to a different Xero organisation"** and Claude will re-run the sign-in so you can pick a different one.
+For accounting practices wanting a more scalable multi-tenant setup, contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) — there are alternative paths for practice-scale deployments.
 
 ---
 
 ## Security Notes
 
-- Your Xero credentials are stored only in a local `.env` file on your computer (Claude creates it; you never edit it)
-- Your Xero access token is stored in a local `.xero-token.json` file — this file is excluded from Git
-- Neither file is ever sent to Anthropic, Selr AI, or any third party
-- Never share these files with anyone
-- The connector only requests read/write access to accounting data — it does not access payroll or files
+- Your Client ID and Client Secret are stored only in your local Claude Code settings file on your computer — never sent to Anthropic, Selr AI, or any third party
+- Your assistant uses the **official Xero MCP server** published and maintained by Xero themselves at [github.com/XeroAPI/xero-mcp-server](https://github.com/XeroAPI/xero-mcp-server)
+- The connection uses Xero's Custom Connection authentication — no OAuth callback URLs, no browser sign-ins, no token refresh cycle
+- You can revoke the connection at any time by deactivating the Custom Connection in your Xero developer portal
+- The connector respects whatever scopes you ticked — if you only granted read access, your assistant physically cannot create or modify records even if you ask it to
+- Never share your Client ID and Client Secret with anyone — treat them like a password
 
 ---
 
