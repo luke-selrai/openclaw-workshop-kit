@@ -14,7 +14,7 @@ This guide connects your HubSpot CRM account to your AI assistant using the offi
 
 - Claude Code installed and working (follow [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) if not done yet)
 - A HubSpot account (free CRM available at hubspot.com)
-- Node.js 18 or newer installed (check with `node --version`)
+- Node.js 20 or newer installed (check with `node --version`)
 - An internet connection
 
 > **No coding experience required.** Your connection key stays on your machine and is never sent to third parties.
@@ -61,7 +61,6 @@ This step creates a secure connection key that lets your assistant talk to HubSp
    - `crm.objects.contacts.read`
    - `crm.objects.companies.read`
    - `crm.objects.deals.read`
-   - `crm.objects.quotes.read`
    - `crm.schemas.contacts.read`
    - If you also want your assistant to create or update records, tick the `.write` versions too
 6. Click the orange **Create app** button (top right), then click **Continue creating** if asked

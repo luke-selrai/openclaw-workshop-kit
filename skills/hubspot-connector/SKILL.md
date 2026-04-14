@@ -81,7 +81,7 @@ Tell the user (one instruction at a time, waiting for confirmation between each)
    - "Now click the **Scopes** tab at the top of the form."
 
 4. When they are on the Scopes tab → guide them through selecting scopes. Start with read-only for safety:
-   - "Under **CRM**, tick these boxes: **crm.objects.contacts.read**, **crm.objects.companies.read**, **crm.objects.deals.read**, **crm.objects.quotes.read**, and **crm.schemas.contacts.read**."
+   - "Under **CRM**, tick these boxes: **crm.objects.contacts.read**, **crm.objects.companies.read**, **crm.objects.deals.read**, and **crm.schemas.contacts.read**."
    - "If you also want me to create or update records for you, also tick: **crm.objects.contacts.write**, **crm.objects.companies.write**, and **crm.objects.deals.write**."
    - "You can always add more permissions later without starting over."
    - "When you have ticked the boxes, click the orange **Create app** button in the top right. Then click **Continue creating** if HubSpot asks you to confirm."
