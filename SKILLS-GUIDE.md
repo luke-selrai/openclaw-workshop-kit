@@ -365,6 +365,84 @@ Example: "I've finished this feature — help me integrate it cleanly."
 
 ---
 
+## GROUP H — Connectors & Integrations
+
+These skills connect your assistant to the tools your business already uses — accounting software, CRM, cloud platforms, payments, communication tools, and developer services. Each connector walks you through the one-time authentication step by step and then lets you interact with the service in plain English.
+
+### Connector Recommender *(ADVANCED)*
+Asks about your business and recommends which connectors will have the most impact — ranked by your industry and workflow.
+Example: "What integrations should I set up for a marketing agency?"
+
+### Stripe Connector *(ADVANCED)*
+Connects Stripe — payments, invoices, subscriptions, customers, and refunds, all from your terminal.
+Example: "List my last 10 Stripe payments and show me the total."
+
+### Xero Connector *(ADVANCED)*
+Connects Xero accounting via the official Xero MCP server — invoices, contacts, reports, bank transactions, and payroll.
+Example: "Show me all outstanding invoices in Xero."
+
+### QuickBooks Connector *(ADVANCED)*
+Reads and updates QuickBooks Online — invoices, customers, P&L, balance sheet, and bank transactions.
+Example: "Show me all unpaid invoices in QuickBooks."
+
+### Square Connector *(ADVANCED)*
+Connects Square via the official Square MCP server — payments, refunds, catalog, inventory, orders, customers, invoices, bookings, loyalty, gift cards, locations, and payouts.
+Example: "Show me my recent Square payments this week."
+
+### Shopify Connector *(ADVANCED)*
+Connects your Shopify store — products, orders, customers, and inventory management.
+Example: "Show me my recent Shopify orders and flag any that are unfulfilled."
+
+### HubSpot Connector *(ADVANCED)*
+Connects HubSpot CRM via the official HubSpot MCP server — contacts, companies, deals, tickets, and engagements.
+Example: "Show me my top 10 deals by value in HubSpot."
+
+### GoHighLevel Connector *(ADVANCED)*
+Reads and updates GoHighLevel CRM — contacts, deals, pipelines, calendar bookings, payments, and social posts.
+Example: "Show me all open opportunities in my GHL pipeline."
+
+### Notion Connector *(ADVANCED)*
+Connects Notion via the official Notion MCP server — search pages, create and update pages, manage databases and rows.
+Example: "Find the product launch page in my Notion workspace and summarise it."
+
+### GitHub Connector *(ADVANCED)*
+Connects GitHub via the official GitHub remote MCP server — read repositories, manage issues and pull requests, run code searches, trigger workflows, and review security alerts.
+Example: "Show me open pull requests in my acme/widget repo."
+
+### CircleCI Connector *(ADVANCED)*
+Connects CircleCI via the official CircleCI MCP server — check pipeline status, pull failure logs, find flaky tests, and trigger pipeline runs.
+Example: "Why did the latest build on main fail in CircleCI?"
+
+### Outlook & Microsoft 365 Connector *(ADVANCED)*
+Connects Microsoft 365 — reads and sends Outlook email, manages calendar events, OneDrive files, Teams messages, SharePoint, and To Do.
+Example: "Read my last 5 unread emails and draft a reply to the most urgent one."
+
+### Google Chat Connector *(ADVANCED)*
+Sends and reads messages in Google Chat spaces and direct messages via Google Workspace.
+Example: "Post this weekly update to our team's Google Chat space."
+
+### AWS Connector *(ADVANCED)*
+Installs the AWS CLI and connects to your Amazon Web Services account — S3, EC2, Lambda, DynamoDB, and more.
+Example: "Connect my AWS account and show me what's in my S3 buckets."
+
+### Azure Connector *(ADVANCED)*
+Installs the Azure CLI and connects to Microsoft Azure — storage, web apps, virtual machines, and Key Vault.
+Example: "Set up my Azure connection and list my resource groups."
+
+### Google Cloud Connector *(ADVANCED)*
+Installs the Google Cloud CLI and connects to GCP — BigQuery, Cloud Storage, Cloud Run, and more.
+Example: "Connect my Google Cloud account and list my active projects."
+
+### Claude Dispatch *(ADVANCED)*
+Pairs your phone with your desktop so you can assign Claude tasks remotely — without being at your computer.
+Example: "Set up Claude Dispatch so I can send tasks from my phone while I'm out."
+
+### Install claude-yolo *(ADVANCED)*
+Installs a one-word shortcut (`claude-yolo`) that launches Claude Code with all permissions enabled — no confirmation prompts.
+Example: "Install the claude-yolo shortcut on my machine."
+
+---
+
 There are also **8 developer-focused skills** installed for attendees building web apps or technical integrations. These activate automatically when relevant and do not need to be called directly.
 
 ---
