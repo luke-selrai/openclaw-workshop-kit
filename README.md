@@ -178,6 +178,7 @@ This kit includes the full professional skill library — the same depth used to
 | `devops-automator` | CI/CD, IaC, Kubernetes, deployment automation |
 | `terraform-iac-expert` | Terraform and OpenTofu infrastructure as code |
 | `github-actions-pipeline-builder` | Production CI/CD pipelines with GitHub Actions |
+| `circleci-connector` | Read CircleCI pipelines, builds, logs, flaky tests; trigger runs |
 | `site-reliability-engineer` | SRE practices, deployment safety, build health |
 | `vercel-deployment` | Deploy Next.js and React apps to Vercel |
 | `git-workflow-expert` | Git branching, conflict resolution, monorepo patterns |
