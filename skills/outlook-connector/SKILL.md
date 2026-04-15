@@ -68,7 +68,7 @@ for /f "tokens=*" %i in ('npm prefix -g') do set PATH=%i\bin;%PATH%
 
 ### Step 4: Run m365 setup (one-time, enterprise accounts)
 
-This registers a custom Entra app with the user's Microsoft tenant. Required for enterprise Microsoft 365 accounts that block third-party app consent.
+This registers a custom Entra app with the user's Microsoft tenant. Required because the default PnP app was permanently deleted September 9, 2024.
 
 ```bash
 m365 setup
