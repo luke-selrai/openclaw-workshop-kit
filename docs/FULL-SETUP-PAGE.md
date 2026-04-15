@@ -568,6 +568,45 @@ Once that works, you can add other phone numbers via `WA_ALLOW_FROM` in `.mcp.js
 
 ---
 
+### monday.com — Boards, Items, Tasks, and Team
+
+This connects your monday.com account so your assistant can browse your boards, create and update tasks, move items between groups, post comments, and manage your team — all through plain English.
+
+**Step 1 — Get your monday.com connection key**
+
+1. Open **monday.com** and sign in
+2. Click your **profile picture** in the bottom-left corner
+3. Click **Developers** → **My Access Tokens**
+4. Click **Show** (or **Generate**) and **copy** the token
+
+> If you don't see "Developers" in the menu, try **Administration** → **Connections** → **API**.
+
+**Step 2 — Tell your assistant to connect**
+
+In the Claude chat, say:
+
+```
+Help me connect my monday.com account
+```
+
+Your assistant will ask for the token you copied, save the connection securely, and verify it works.
+
+**Step 3 — Restart Claude Code once**
+
+The connection activates after a restart.
+
+**Step 4 — Test it**
+
+Ask your assistant: *"Show me my boards"* or *"What's on the Roadmap board?"*
+
+> For the full guide with troubleshooting, see [MONDAY-SETUP.md](MONDAY-SETUP.md)
+
+> **Don't have Node.js?** No problem — say *"Connect my monday.com using the hosted option"* and your assistant will use monday.com's hosted connection instead. No installation needed.
+
+> **Want a safe first try?** Say *"Connect my monday.com in read-only mode"* instead — it blocks all writes so you can explore without risk. (Note: read-only is only available with the Local setup option.)
+
+---
+
 ### Jotform — Forms, Submissions, and Intake Data
 
 This connects your Jotform account so your assistant can browse your forms, read submissions, create and edit forms, and assign forms to teammates — all through plain English. **No API keys needed** — Jotform handles the sign-in in your browser.

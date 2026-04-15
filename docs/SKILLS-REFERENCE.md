@@ -227,4 +227,30 @@ You can also trigger a skill directly by mentioning the skill name:
 
 ---
 
+## Integration & Connector Skills
+
+---
+
+### monday-connector
+**What it does:** Connects your monday.com account so your assistant can browse boards, create and update items, move tasks between groups, post comments, list your team, and manage board structure (groups and columns) — through the official `@mondaydotcomorg/monday-api-mcp` server.
+
+**When to use:** When you want to manage monday.com tasks, boards, or comments through your assistant instead of clicking around the UI.
+
+**Example prompts:**
+> "Help me connect my monday.com account"
+> "Show me what's on the Roadmap board"
+> "Create an item 'Q2 planning' on the Roadmap board, assign to me, due Friday"
+> "Move item 12345 to Done"
+> "Post a comment 'shipped' on this task"
+> "Who's on my team?"
+
+**Setup:** See [MONDAY-SETUP.md](MONDAY-SETUP.md) for the 2-minute setup guide.
+
+**Tips:**
+- Works on every monday.com plan (Free, Basic, Standard, Pro, Enterprise)
+- Ask for "read-only mode" if you want a safe first try with no accidental writes
+- Say "enable the full monday API tools" to unlock advanced features like listing workspaces and reading docs
+
+---
+
 *Claude Code Workshop — selrai.com.au*
