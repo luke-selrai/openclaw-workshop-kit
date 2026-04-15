@@ -1,0 +1,27 @@
+name: audit-skills
+
+on:
+  pull_request:
+    paths:
+      - "skills/**"
+      - "scripts/audit-skills.mjs"
+      - ".github/workflows/audit-skills.yml"
+      - "README.md"
+      - "DEVELOPER.md"
+      - "SKILLS-GUIDE.md"
+      - "docs/**"
+      - "visuals/**"
+  push:
+    branches:
+      - main
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run skill-count audit
+        run: node scripts/audit-skills.mjs --check
