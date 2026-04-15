@@ -163,6 +163,15 @@ If the QR code disappears before you can scan it, ask your assistant to regenera
 
 ---
 
+### "'WA_AUTO_OPEN_QR=1' is not recognised" (Windows)
+
+You pasted the Mac launch command into PowerShell or Command Prompt. Mac/Linux shells allow inline env vars (`NAME=value program`); Windows shells do not. Use the shell-specific block from [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md) Part B Step 1:
+
+- **PowerShell:** set `$env:WA_AUTO_OPEN_QR = "1"` on its own line before running `claude …`
+- **Command Prompt:** use `set WA_AUTO_OPEN_QR=1` on its own line before running `claude …`
+
+---
+
 ### "WhatsApp messages aren't arriving"
 
 1. Make sure Claude Code is running with `--dangerously-load-development-channels server:whatsapp`
@@ -175,8 +184,11 @@ If the QR code disappears before you can scan it, ask your assistant to regenera
 
 WhatsApp Web sessions can expire if your phone is offline for too long.
 
-1. Delete the auth folder: remove the folder at `~/.claude/whatsapp-channel/auth/`
-2. Restart Claude Code with the channel flag
+1. Delete the auth folder:
+   - **Mac / Linux:** `rm -rf ~/.claude/whatsapp-channel/auth`
+   - **Windows (PowerShell):** `Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\whatsapp-channel\auth"`
+   - **Windows (Command Prompt):** `rmdir /S /Q "%USERPROFILE%\.claude\whatsapp-channel\auth"`
+2. Restart Claude Code with the channel flag (see [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md) Part B Step 1 for the shell-specific launch command)
 3. Scan a new QR code
 
 ---
