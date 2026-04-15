@@ -83,13 +83,13 @@ Why this fits you: [1 sentence referencing their specific situation — use thei
 
 What you could do right now: [A specific, concrete first task they could run today]
 
-Example (for Harvey at Selr AI):
+Example (for a marketing agency owner who said writing proposals takes too long):
 
 RECOMMENDED: Sales Automator
 
-Why this fits you: You said proposals take up 50% of your time at Selr AI — this skill can generate a first draft in under 2 minutes.
+Why this fits you: You said proposals take up 50% of your time — this skill can generate a first draft in under 2 minutes.
 
-What you could do right now: "Write a proposal for a client who needs AI automation for their sales team."
+What you could do right now: "Write a proposal for a client who needs help with their social media strategy."
 
 ---
 

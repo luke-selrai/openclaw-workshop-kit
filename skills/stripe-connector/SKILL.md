@@ -88,7 +88,7 @@ stripe customers list --limit 1
 If customer data (or an empty list) is returned, the connector is working. You can also check the saved config:
 
 ```bash
-stripe customers list --limit 1
+stripe config --list
 ```
 
 If customer data (or an empty list) is returned, the connector is working.
