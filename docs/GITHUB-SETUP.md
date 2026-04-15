@@ -227,4 +227,13 @@ If you need any of these, let your assistant know and they can check if support 
 
 ---
 
-Built by Selr AI
+## Still Having Trouble?
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more fixes, or ask your assistant:
+> "Something went wrong with my GitHub connection. Help me fix it."
+
+For known limitations (read-only tokens, Enterprise Server, rate limits), see [known-issues/GITHUB-REMOTE-MCP-CAVEATS.md](../known-issues/GITHUB-REMOTE-MCP-CAVEATS.md).
+
+---
+
+*Built by Selr AI — [selrai.com.au](https://selrai.com.au)*

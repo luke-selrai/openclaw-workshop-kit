@@ -120,7 +120,22 @@ If you're on a Mac, you can use iMessage instead — no extra apps, no bots, jus
 ### Connect Your CRM (GoHighLevel or HubSpot)
 
 Your assistant can help you set this up — just ask in the Claude chat:
-> "Help me connect my CRM (GoHighLevel / HubSpot) so you can manage my contacts. My API key is [key]."
+> "Help me connect my CRM so you can manage my contacts."
+
+Your assistant will walk you through the right steps for your CRM:
+
+- **GoHighLevel:** Needs your GHL API key from Settings → Integrations → API Keys. See [GHL-SETUP.md](GHL-SETUP.md)
+- **HubSpot:** Creates a Private App in your HubSpot account — no API key to find manually. See [HUBSPOT-SETUP.md](HUBSPOT-SETUP.md)
+
+---
+
+### Connect GitHub, Square, or CircleCI
+
+If you use any of these tools, your assistant can connect to them too:
+
+- **GitHub** — read issues, pull requests, code, and CI status across your repos. Tell your assistant: "Help me connect my GitHub account." See [GITHUB-SETUP.md](GITHUB-SETUP.md)
+- **Square** — read sales, orders, customers, and invoices from your Square account. Tell your assistant: "Connect my Square account." See [SQUARE-SETUP.md](SQUARE-SETUP.md)
+- **CircleCI** — check build status, read failure logs, trigger reruns. Tell your assistant: "Connect my CircleCI account." See [CIRCLECI-SETUP.md](CIRCLECI-SETUP.md)
 
 ---
 

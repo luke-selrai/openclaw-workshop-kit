@@ -299,6 +299,10 @@ Some connectors have limitations that are not bugs — they are known constraint
 | QuickBooks only shows test/demo data | `known-issues/QUICKBOOKS-SANDBOX-ONLY.md` |
 | Stripe login does not open a browser | `known-issues/STRIPE-NON-TTY-LOGIN.md` |
 | Outlook does not work with @outlook.com / @hotmail.com accounts | `known-issues/OUTLOOK-PERSONAL-ACCOUNTS.md` |
+| GitHub: read-only token, Enterprise Server not supported, rate limits | `known-issues/GITHUB-REMOTE-MCP-CAVEATS.md` |
+| Square: beta status, intermittent auth errors, sandbox token expiry | `known-issues/SQUARE-BETA-STATUS.md` |
+| Notion: requires plugin marketplace — cannot be set up from the terminal | `known-issues/NOTION-PLUGIN-ONLY.md` |
+| HubSpot: 403 errors after setup mean a scope needs to be added | `known-issues/HUBSPOT-MISSING-SCOPES.md` |
 
 ---
 

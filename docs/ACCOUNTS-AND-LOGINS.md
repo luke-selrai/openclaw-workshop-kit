@@ -158,6 +158,63 @@ If you want your assistant to manage your sales pipeline and contacts:
 
 ---
 
+### HubSpot CRM (Optional — Free Tier Available)
+
+If you want your assistant to manage HubSpot contacts, deals, companies, and notes:
+
+1. Go to: [hubspot.com](https://www.hubspot.com) → click **Get HubSpot free**
+2. Sign up with Google or email — the free CRM plan is all you need to get started
+3. Once your account is set up, tell your assistant: "Help me connect my HubSpot account."
+4. Your assistant will guide you through creating a **Private App** (a limited-permission access key) inside HubSpot Settings
+
+> **Paid plans?** The connector works on all HubSpot plans including free. Paid plans unlock more CRM features, but the connection itself is free.
+
+> For the full guide, see [docs/HUBSPOT-SETUP.md](HUBSPOT-SETUP.md)
+
+---
+
+### GitHub (as a Connector — Optional)
+
+This is separate from the GitHub account you use to download the workshop kit. This connects Claude to your **actual repositories** so it can read issues, pull requests, code, and CI status.
+
+1. You already have a GitHub account (Priority 1 Step 3)
+2. No extra signup needed — your assistant walks you through creating a **Personal Access Token** (PAT) with the right permissions
+3. Tell your assistant: "Help me connect my GitHub account so you can read my repos."
+
+> **Read-only or read-write?** Your assistant will ask which you prefer during setup. Read-only is safer to start — you can upgrade later.
+
+> For the full guide, see [docs/GITHUB-SETUP.md](GITHUB-SETUP.md)
+
+---
+
+### Square (Optional — Free)
+
+If you take payments through Square and want your assistant to read sales, orders, customers, and invoices:
+
+1. Go to: [squareup.com](https://squareup.com) and sign in (or create a free account)
+2. No extra setup before the workshop — your assistant handles everything
+3. Tell your assistant: "Help me connect my Square account."
+4. A browser sign-in to Square's server takes about 30 seconds — no token or API key needed
+
+> **Note:** Square's Claude connector is in beta. It works well for everyday reads; occasional retries may be needed.
+
+> For the full guide, see [docs/SQUARE-SETUP.md](SQUARE-SETUP.md)
+
+---
+
+### CircleCI (Optional — Free Tier)
+
+If you use CircleCI for testing or deployments and want your assistant to check build status and logs:
+
+1. Go to: [circleci.com](https://circleci.com) → sign in with GitHub (uses your existing account)
+2. The free tier covers most individual and small-team use cases
+3. Tell your assistant: "Help me connect my CircleCI account."
+4. Your assistant will guide you through creating a **Personal API Token** in CircleCI Settings
+
+> For the full guide, see [docs/CIRCLECI-SETUP.md](CIRCLECI-SETUP.md)
+
+---
+
 ## Account Summary
 
 | Account | Cost | When to Create | Link |
@@ -169,6 +226,10 @@ If you want your assistant to manage your sales pipeline and contacts:
 | WhatsApp | Free | Before workshop (phone) | [whatsapp.com](https://www.whatsapp.com) |
 | Notion | Free | After workshop | [notion.so](https://www.notion.so) |
 | GoHighLevel | $97-297 USD/mo | After workshop | [gohighlevel.com](https://www.gohighlevel.com) |
+| HubSpot | Free / paid | After workshop | [hubspot.com](https://www.hubspot.com) |
+| GitHub (connector) | Free | After workshop | Uses existing GitHub account |
+| Square | Free | After workshop | [squareup.com](https://squareup.com) |
+| CircleCI | Free tier | After workshop | [circleci.com](https://circleci.com) |
 
 **Before the workshop: 4 accounts (3 free + Claude Max)**
 **Total pre-workshop cost: $100 USD/month (~$155 AUD)**

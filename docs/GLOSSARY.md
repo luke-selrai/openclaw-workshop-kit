@@ -51,6 +51,21 @@ A way to connect Claude Code to external tools and apps — Gmail, Calendar, Not
 **Memory (auto-memory)**
 Claude's built-in system for remembering things across conversations. It stores facts you've shared — your name, business, preferences — and surfaces them automatically every time you chat. You can view or edit it by typing `/memory` in a Code session. Your memory stays on your computer; nothing is sent to anyone except in the normal flow of conversation with Claude.
 
+**PAT (Personal Access Token)**
+A password-like code you create on a platform (GitHub, HubSpot, CircleCI, etc.) that gives Claude permission to act on your behalf. Unlike a real password, a PAT has limited permissions and can be revoked any time without changing your actual login. Treat it like a password — never share it or paste it into a public place.
+
+**Pipeline**
+A sequence of automated steps that run when code changes. In CI/CD tools like CircleCI or GitHub Actions: code gets pushed → tests run automatically → if they pass, the code deploys. Your assistant can check pipeline status, read failure logs, and trigger reruns.
+
+**Plugin Marketplace**
+A built-in screen inside Claude Code where you can install official integrations. Access it via the puzzle-piece icon in the sidebar. Notion uses this path — rather than setting up a connection manually, you just search and install like an app store.
+
+**Private App (HubSpot)**
+A connection key you create inside your HubSpot account that gives Claude permission to read and update your CRM data. Created in HubSpot → Settings → Integrations → Private Apps. Lets you control exactly what Claude can see — just contacts, or deals, or everything. You can revoke it any time from the same screen.
+
+**Remote MCP Server**
+An MCP server hosted on the internet by the tool's maker — rather than running on your own computer. GitHub and Square use this model: Claude Code connects to their remote server over the internet, you sign in once in a browser, and no local installation is needed. The trade-off is that you depend on their server being available.
+
 **Node.js**
 Software that lets JavaScript (a programming language) run on your computer. Claude Code needs it to run. You will never need to interact with it directly — the setup script installs it automatically.
 
