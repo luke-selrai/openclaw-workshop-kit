@@ -1,6 +1,6 @@
 # Skills Reference — Guide to Your AI Abilities
 
-This document covers the most commonly used skills. Your assistant has **<!-- skills-audit:total -->106<!-- /skills-audit:total --> skills total** — this guide highlights the ones you'll reach for most often.
+This document covers the most commonly used skills. Your assistant has **<!-- skills-audit:total -->108<!-- /skills-audit:total --> skills total** — this guide highlights the ones you'll reach for most often.
 
 > To see the full list, ask your assistant: "Show me all available skills" or see the skill folders in `~/.claude/skills/`.
 

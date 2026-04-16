@@ -8,7 +8,7 @@ date: 2026-03-27
 
 > **Keep this page open on your screen throughout the setup.** Everything you need is right here.
 
-Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->106<!-- /skills-audit:total --> specialist skills built in.
+Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->108<!-- /skills-audit:total --> specialist skills built in.
 
 ---
 
@@ -18,7 +18,7 @@ Today you are setting up a personal AI assistant that lives on YOUR computer. It
 |---|---|
 | **Your AI Assistant** | Runs locally on your computer. Knows your business. |
 | **Browser Control** | Can open websites and automate tasks for you |
-| **<!-- skills-audit:total -->106<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
+| **<!-- skills-audit:total -->108<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
 | **Memory System** | Saves what it learns about you and your business |
 
 ---
@@ -210,7 +210,7 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 Talk to me like I am not technical. Plain English, one step at a time.
 ```
 
-**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->106<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
+**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
 
 ---
 
@@ -565,6 +565,45 @@ Once that works, you can add other phone numbers via `WA_ALLOW_FROM` in `.mcp.js
 > **Want multiple channels?** You can run WhatsApp alongside Telegram and iMessage.
 >
 > **Prefer a different app?** See [Telegram](#telegram--message-your-assistant-from-your-phone) or [iMessage](#imessage--message-your-assistant-from-your-iphone-mac-only) above.
+
+---
+
+### Slack — Channels, Messages, and Team
+
+This connects your Slack workspace so your assistant can list channels, read recent messages, post to channels, reply in threads, add reactions, and search for users — all through plain English.
+
+**Step 1 — Create a Slack connection app**
+
+1. Open **https://api.slack.com/apps** and sign in
+2. Click **Create New App** → **From scratch**
+3. Name it **Claude Assistant**, pick your workspace, click **Create App**
+4. Click **OAuth & Permissions** in the left menu
+5. Under **Bot Token Scopes**, add these six permissions:
+   - `channels:history`, `channels:read`, `chat:write`, `reactions:write`, `users:read`, `users.profile:read`
+6. Scroll to the top and click **Install to Workspace** → **Allow**
+7. Copy the **Bot User OAuth Token** (starts with `xoxb-`)
+
+**Step 2 — Tell your assistant to connect**
+
+In the Claude chat, say:
+
+```
+Help me connect my Slack workspace
+```
+
+Your assistant will ask for the token you copied, save the connection securely, and verify it works.
+
+**Step 3 — Fully close and reopen Claude Code once**
+
+The connection activates after a full restart (closing the chat tab alone is not enough).
+
+**Step 4 — Test it**
+
+Ask your assistant: *"What channels do we have in Slack?"* or *"Show me the latest messages in #general"*
+
+> For the full guide with troubleshooting, see [SLACK-SETUP.md](SLACK-SETUP.md)
+
+> **Private channels?** Your assistant needs to be invited first. In Slack, type `/invite @Claude Assistant` in the channel you want to use.
 
 ---
 
