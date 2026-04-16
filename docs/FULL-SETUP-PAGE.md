@@ -758,7 +758,7 @@ For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHE
 
 ---
 
-## Your 95 Skills — Quick Reference
+## Your <!-- skills-audit:total -->104<!-- /skills-audit:total --> Skills — Quick Reference
 
 <details>
 <summary>Click to see all skill categories</summary>
