@@ -19,7 +19,7 @@
 │  │                  (Your AI Brain + Hands)                             │    │
 │  │                                                                       │    │
 │  │   Reads:  CLAUDE.md — your instructions                              │    │
-│  │   Knows:  memory/USER.md — your business permanently                 │    │
+│  │   Knows:  auto-memory — your business permanently (via /memory)      │    │
 │  │   Uses:   <!-- skills-audit:total -->106<!-- /skills-audit:total --> skills — specialist capabilities on demand              │    │
 │  │   Via:    CLI tools · MCP connections · Browser automation           │    │
 │  └───────┬──────────────┬───────────────────┬────────────────┬─────────┘    │

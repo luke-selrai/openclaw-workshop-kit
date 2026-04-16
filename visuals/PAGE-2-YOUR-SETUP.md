@@ -25,7 +25,7 @@ Think of your AI setup like a kitchen — you're the head chef, Claude is your s
 │   │                  YOUR AI ASSISTANT                       │    │
 │   │                                                          │    │
 │   │  Reads:    CLAUDE.md — your instructions & who you are  │    │
-│   │  Remembers: memory/USER.md — your business profile      │    │
+│   │  Remembers: auto-memory — your business profile (/memory)│    │
 │   │  Uses:     <!-- skills-audit:total -->106<!-- /skills-audit:total --> Skills — specialist capabilities          │    │
 │   │  Connects: MCP tools — Gmail, Calendar, CRM, and more   │    │
 │   └─────────────────────────────────────────────────────────┘    │
@@ -62,8 +62,8 @@ Live connections to your other apps. Once connected, Claude can read your emails
 
 > Like giving your assistant login access to your business apps.
 
-### Memory — USER.md
-A file where Claude saves everything it learns about you. Your name, your business, your customers, your communication style. Reads it at the start of every conversation so it always knows who you are.
+### Memory — Auto-memory
+Claude's built-in memory that remembers everything you tell it across every conversation — your name, business, customers, communication style. You view or edit it by typing `/memory` in a Code session. It stays on your computer.
 
 > This is what makes it YOUR assistant, not just any AI.
 
@@ -76,18 +76,15 @@ YOUR COMPUTER
 │
 ├── my-assistant/
 │   ├── CLAUDE.md              ← Claude's instructions (loads every session)
-│   ├── .mcp.json              ← Browser automation auto-connects on startup
-│   └── memory/
-│       ├── USER.md            ← Your profile (name, business, preferences)
-│       └── SETUP.md           ← Setup completion status
+│   └── .mcp.json              ← Browser automation auto-connects on startup
 │
 ├── workshop-kit/
-│   ├── setup.sh               ← The installer that set everything up
 │   ├── skills/                ← Your <!-- skills-audit:total -->106<!-- /skills-audit:total --> skill files
 │   └── docs/                  ← Guides and reference docs
 │
 └── .claude/
-    └── skills/                ← Where Claude looks for your installed skills
+    ├── skills/                ← Where Claude looks for your installed skills
+    └── (auto-memory)          ← Claude's own memory store (view with /memory)
 ```
 
 ---
@@ -101,7 +98,7 @@ You type a message
 Claude reads CLAUDE.md (your instructions — loads every time)
         │
         ▼
-Claude reads memory/USER.md (your business profile — who you are)
+Claude's auto-memory surfaces what it already knows about you
         │
         ▼
 Claude picks the right skill (e.g. copywriting skill for writing tasks)
@@ -113,7 +110,7 @@ Claude does the work (research, writing, browser, automation)
 Claude responds in your preferred style and format
         │
         ▼
-If it learned something new → saves to your memory file
+If it learned something new → auto-memory captures it automatically
 ```
 
 ---
