@@ -111,13 +111,11 @@ Creates a task that runs automatically on a schedule in the cloud. It keeps runn
 
 ### How to Create a Scheduled Task
 
-There are three ways to create a scheduled task:
+There are two ways to create a scheduled task:
 
-**In Claude Code (CLI or VS Code):** Type `/schedule` and follow the prompts.
+**In Claude Desktop:** Type `/schedule` in the chat and follow the prompts, or use the scheduling feature in the app directly.
 
 **On the web:** Go to https://claude.ai/code/scheduled and create it there.
-
-**In the Desktop app:** Use the scheduling feature in the Claude Desktop app.
 
 ### Key Details
 

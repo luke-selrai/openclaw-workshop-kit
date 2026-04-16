@@ -57,11 +57,11 @@ Telegram lets anyone create a bot for free. You do this by talking to a special 
 
 ## Part B — Install the Telegram Plugin
 
-This is a terminal command — run it in the VS Code terminal (not inside the Claude chat).
+This is a terminal command — run it in Claude Desktop's terminal (not inside the Claude chat).
 
 **Step 1 — Install the Plugin**
 
-Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run:
+Open the terminal in Claude Desktop (it's the bottom panel of a Code session — if you don't see it, use the View menu to show the terminal), then run:
 
 ```
 claude plugin install telegram@claude-plugins-official
@@ -136,7 +136,7 @@ Your assistant should reply directly in Telegram. You can now message your assis
 | **Send files** | Send a photo or document — your assistant can read it |
 | **Quick tasks** | "Draft a reply to John's email about the proposal" |
 
-> Your assistant has all <!-- skills-audit:total -->105<!-- /skills-audit:total --> skills available through Telegram — the same ones you use in VS Code.
+> Your assistant has all <!-- skills-audit:total -->105<!-- /skills-audit:total --> skills available through Telegram — the same ones you use in Claude Desktop.
 
 ---
 

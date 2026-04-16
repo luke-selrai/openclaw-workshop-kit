@@ -106,9 +106,9 @@ Once your assistant tells you the launch command, run it and move on to **Part B
 
 **Step 1 — Open a terminal**
 
-- **Mac:** Press `Cmd + Space`, type **Terminal**, press Enter.
-- **Windows:** Press the Windows key, type **PowerShell**, press Enter. (PowerShell is recommended — it comes built-in and works with all our commands.)
-- **VS Code (any OS):** Click **Terminal** in the top menu → **New Terminal**. ⚠️ On Windows, check the top-right corner of the terminal panel — it should say `powershell` or `pwsh`. If it says `cmd`, `bash`, `wsl`, or something else, click the ⌄ dropdown next to the + button and pick **PowerShell**.
+- **Claude Desktop (any OS):** Start a new Code session. The terminal panel sits at the bottom — use the View menu to show it if it's hidden. This is the recommended path. ⚠️ On Windows, check the top-right corner of the terminal panel — it should say `powershell` or `pwsh`. If it says `cmd`, `bash`, `wsl`, or something else, click the ⌄ dropdown next to the + button and pick **PowerShell**.
+- **Mac system terminal:** Press `Cmd + Space`, type **Terminal**, press Enter.
+- **Windows system terminal:** Press the Windows key, type **PowerShell**, press Enter. (PowerShell is recommended — it comes built-in and works with all our commands.)
 
 ### Which terminal am I in?
 
@@ -361,7 +361,7 @@ You don't need to open this file — your assistant reads it for you. It's just 
 | **Approve tool use** | Reply `yes <code>` or `no <code>` when Claude asks for permission |
 | **Read past messages** | "Show me the last 10 WhatsApp messages I received" or "Find WhatsApp messages about the invoice" (uses the history log — see Part E) |
 
-> Your assistant has all the same skills available through WhatsApp — the same ones you use in VS Code.
+> Your assistant has all the same skills available through WhatsApp — the same ones you use in Claude Desktop.
 
 ---
 

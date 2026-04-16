@@ -19,6 +19,7 @@ Works on **Windows, Mac, and Linux**.
 - A Google account (e.g. yourname@gmail.com or yourname@yourbusiness.com)
 
 > **How to open your terminal:**
+> - **Claude Desktop (recommended)** — Start a new Code session. The terminal is the bottom panel. If you don't see it, use the View menu to show it.
 > - **Windows** — Press `Windows key + R`, type `cmd`, press Enter. Or search for **Command Prompt** or **Terminal** in the Start menu.
 > - **Mac** — Press `Cmd + Space`, type `Terminal`, press Enter.
 > - **Linux** — Press `Ctrl + Alt + T` or search for **Terminal** in your applications.
