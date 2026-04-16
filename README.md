@@ -13,7 +13,7 @@ This kit sets up a personal AI business assistant on your laptop. Not a chatbot 
 - **Remembers your business** — your name, your customers, your biggest challenges
 - **Lives on your computer** — runs locally, not in a browser tab
 - **Controls your browser** — can open websites, fill forms, and do research for you
-- **Has <!-- skills-audit:total -->105<!-- /skills-audit:total --> specialist skills** — research, copywriting, sales emails, social content, competitor analysis, and more
+- **Has <!-- skills-audit:total -->106<!-- /skills-audit:total --> specialist skills** — research, copywriting, sales emails, social content, competitor analysis, and more
 - **Gets smarter over time** — every conversation builds on the last
 
 It is built on [Claude Code](https://claude.ai/claude-code) by Anthropic — the same AI that powers Claude, configured specifically for your business.
@@ -36,7 +36,7 @@ Your Laptop
          └── Your AI Assistant (inside Claude Desktop)
               ├── CLAUDE.md (your assistant's instructions + memory loader)
               ├── memory/ (saves what it learns about you)
-              ├── skills/ (<!-- skills-audit:total -->105<!-- /skills-audit:total --> specialist skills)
+              ├── skills/ (<!-- skills-audit:total -->106<!-- /skills-audit:total --> specialist skills)
               └── Playwright (browser remote control)
 ```
 
@@ -78,7 +78,7 @@ Your assistant handles it all conversationally, one step at a time. No scripts t
 
 ---
 
-## Your <!-- skills-audit:total -->105<!-- /skills-audit:total --> Skills
+## Your <!-- skills-audit:total -->106<!-- /skills-audit:total --> Skills
 
 Skills are specialist capabilities your assistant can use. Think of them like switching your assistant from "general helper" to "expert copywriter", "market researcher", "DevOps engineer", or "product strategist" for a specific task.
 
@@ -219,7 +219,7 @@ workshop-kit/
 │   └── CLAUDE.md                # Your assistant's brain — instructions + onboarding agent
 ├── whatsapp-channel/            # Optional WhatsApp integration (can use alongside Telegram)
 │   └── src/                    # QR-code login, two-way messaging, permission relay
-├── skills/                      # <!-- skills-audit:total -->105<!-- /skills-audit:total --> skills (installed to ~/.claude/skills/)
+├── skills/                      # <!-- skills-audit:total -->106<!-- /skills-audit:total --> skills (installed to ~/.claude/skills/)
 ├── docs/
 │   ├── FULL-SETUP-PAGE.md       # Complete setup guide — keep open during workshop
 │   ├── BOOTSTRAP.md             # Version-controlled copy of the bootstrap prompt

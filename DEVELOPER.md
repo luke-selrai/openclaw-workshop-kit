@@ -29,7 +29,7 @@ claude-workshop-kit/
 │       ├── SETUP.md                 # Setup status tracker
 │       └── MEMORY.md               # Persistent memory across conversations
 │
-├── skills/                          # <!-- skills-audit:total -->105<!-- /skills-audit:total --> bundled business skills
+├── skills/                          # <!-- skills-audit:total -->106<!-- /skills-audit:total --> bundled business skills
 │   ├── [<!-- skills-audit:core -->22<!-- /skills-audit:core --> CORE skills]             # Surfaced to all attendees via skills-discovery
 │   ├── [<!-- skills-audit:advanced -->56<!-- /skills-audit:advanced --> ADVANCED skills]        # Available on request
 │   └── [<!-- skills-audit:dev-only -->8<!-- /skills-audit:dev-only --> DEVELOPER-ONLY skills]    # For web app / technical integration use cases
