@@ -13,7 +13,7 @@ This kit sets up a personal AI business assistant on your laptop. Not a chatbot 
 - **Remembers your business** — your name, your customers, your biggest challenges
 - **Lives on your computer** — runs locally, not in a browser tab
 - **Controls your browser** — can open websites, fill forms, and do research for you
-- **Has <!-- skills-audit:total -->106<!-- /skills-audit:total --> specialist skills** — research, copywriting, sales emails, social content, competitor analysis, and more
+- **Has <!-- skills-audit:total -->108<!-- /skills-audit:total --> specialist skills** — research, copywriting, sales emails, social content, competitor analysis, and more
 - **Gets smarter over time** — every conversation builds on the last
 
 It is built on [Claude Code](https://claude.ai/claude-code) by Anthropic — the same AI that powers Claude, configured specifically for your business.
@@ -36,7 +36,7 @@ Your Laptop
          └── Your AI Assistant (inside Claude Desktop)
               ├── CLAUDE.md (your assistant's instructions)
               ├── Auto-memory (remembers you across conversations, via /memory)
-              ├── skills/ (<!-- skills-audit:total -->106<!-- /skills-audit:total --> specialist skills)
+              ├── skills/ (<!-- skills-audit:total -->108<!-- /skills-audit:total --> specialist skills)
               └── Playwright (browser remote control)
 ```
 
@@ -78,7 +78,7 @@ Your assistant handles it all conversationally, one step at a time. No scripts t
 
 ---
 
-## Your <!-- skills-audit:total -->106<!-- /skills-audit:total --> Skills
+## Your <!-- skills-audit:total -->108<!-- /skills-audit:total --> Skills
 
 Skills are specialist capabilities your assistant can use. Think of them like switching your assistant from "general helper" to "expert copywriter", "market researcher", "DevOps engineer", or "product strategist" for a specific task.
 
@@ -211,6 +211,34 @@ This kit includes the full professional skill library — the same depth used to
 
 ---
 
+## Connectors
+
+Connectors link your assistant to the tools your business already uses. Each one installs the required CLI or API client and handles authentication step by step — just ask your assistant to connect it.
+
+| Connector | What It Plugs Into | Setup Guide |
+|---|---|---|
+| `google-workspace` | Gmail, Calendar, Drive, Docs, Sheets, Meet | [GOOGLE-WORKSPACE-SETUP.md](docs/GOOGLE-WORKSPACE-SETUP.md) |
+| `outlook-connector` | Microsoft 365 — email, calendar, OneDrive, Teams, SharePoint | [OUTLOOK-SETUP.md](docs/OUTLOOK-SETUP.md) |
+| `github-connector` | GitHub repos, issues, pull requests, Actions, code search | [GITHUB-SETUP.md](docs/GITHUB-SETUP.md) |
+| `hubspot-connector` | HubSpot CRM — contacts, deals, companies, notes, tasks | [HUBSPOT-SETUP.md](docs/HUBSPOT-SETUP.md) |
+| `ghl-connector` | GoHighLevel CRM — contacts, pipelines, calendar, invoices | [GHL-SETUP.md](docs/GHL-SETUP.md) |
+| `stripe-connector` | Stripe — payments, invoices, subscriptions, customers, refunds | [STRIPE-SETUP.md](docs/STRIPE-SETUP.md) |
+| `xero-connector` | Xero accounting — invoices, contacts, P&L, bank reconciliation | [XERO-SETUP.md](docs/XERO-SETUP.md) |
+| `quickbooks-connector` | QuickBooks Online — invoices, customers, P&L, balance sheet | [QUICKBOOKS-SETUP.md](docs/QUICKBOOKS-SETUP.md) |
+| `square-connector` | Square — payments, orders, catalog, customers, bookings | [SQUARE-SETUP.md](docs/SQUARE-SETUP.md) |
+| `shopify-connector` | Shopify store — products, orders, customers, inventory | [SHOPIFY-SETUP.md](docs/SHOPIFY-SETUP.md) |
+| `notion-connector` | Notion — pages, databases, meeting notes | [NOTION-SETUP.md](docs/NOTION-SETUP.md) |
+| `google-chat-connector` | Google Chat — spaces, DMs, Google Workspace messaging | [GOOGLE-CHAT-SETUP.md](docs/GOOGLE-CHAT-SETUP.md) |
+| `aws-connector` | AWS — S3, EC2, Lambda, DynamoDB, IAM | [skills/aws-connector/SKILL.md](skills/aws-connector/SKILL.md) |
+| `azure-connector` | Azure — storage, web apps, VMs, Key Vault | [skills/azure-connector/SKILL.md](skills/azure-connector/SKILL.md) |
+| `gcloud-connector` | Google Cloud — BigQuery, Cloud Storage, Cloud Run | [skills/gcloud-connector/SKILL.md](skills/gcloud-connector/SKILL.md) |
+| `circleci-connector` | CircleCI — pipelines, builds, logs, flaky tests, triggers | [CIRCLECI-SETUP.md](docs/CIRCLECI-SETUP.md) |
+| `whatsapp-connector` | WhatsApp — two-way messaging from your phone | [WHATSAPP-SETUP.md](docs/WHATSAPP-SETUP.md) |
+
+> **Don't know which connectors to set up?** Ask your assistant: *"What connectors should I set up for a business like mine?"* — the `connector-recommender` skill will ask about your business and recommend the highest-impact connections.
+
+---
+
 ## What's In This Kit
 
 ```text
@@ -219,7 +247,7 @@ workshop-kit/
 │   └── CLAUDE.md                # Your assistant's brain — instructions + onboarding agent
 ├── whatsapp-channel/            # Optional WhatsApp integration (can use alongside Telegram)
 │   └── src/                    # QR-code login, two-way messaging, permission relay
-├── skills/                      # <!-- skills-audit:total -->106<!-- /skills-audit:total --> skills (installed to ~/.claude/skills/)
+├── skills/                      # <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills (installed to ~/.claude/skills/)
 ├── docs/
 │   ├── FULL-SETUP-PAGE.md       # Complete setup guide — keep open during workshop
 │   ├── BOOTSTRAP.md             # Version-controlled copy of the bootstrap prompt

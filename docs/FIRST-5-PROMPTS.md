@@ -76,4 +76,42 @@ Include post ideas for each week with topics and hooks.
 
 ---
 
+## Bonus — If You've Connected Your Tools
+
+Once you've connected your CRM, inbox, or payment tools, try these:
+
+**If you've connected HubSpot or GoHighLevel:**
+```
+Show me all deals that haven't moved in the last 14 days.
+Which contacts came in this week and haven't been contacted yet?
+```
+
+**If you've connected Gmail:**
+```
+Read my last 10 emails and tell me which ones need a reply today.
+Find any emails about unpaid invoices and summarise them.
+```
+
+**If you've connected Stripe or Xero:**
+```
+What were my total payments this month compared to last month?
+Show me all overdue invoices and draft a follow-up email for each one.
+```
+
+**If you've connected GitHub:**
+```
+What issues are open in my repo right now? Group them by type.
+Why did my last build fail? Show me the error.
+```
+
+**If you've connected Square:**
+```
+What were my top-selling items this week?
+How many new customers did I get this month?
+```
+
+> **Haven't connected anything yet?** Ask: *"What tools should I connect first for a business like mine?"*
+
+---
+
 *Claude Code Workshop — selrai.com.au*

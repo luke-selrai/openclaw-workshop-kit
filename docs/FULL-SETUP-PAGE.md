@@ -8,7 +8,7 @@ date: 2026-03-27
 
 > **Keep this page open on your screen throughout the setup.** Everything you need is right here.
 
-Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->106<!-- /skills-audit:total --> specialist skills built in.
+Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->108<!-- /skills-audit:total --> specialist skills built in.
 
 ---
 
@@ -18,7 +18,7 @@ Today you are setting up a personal AI assistant that lives on YOUR computer. It
 |---|---|
 | **Your AI Assistant** | Runs locally on your computer. Knows your business. |
 | **Browser Control** | Can open websites and automate tasks for you |
-| **<!-- skills-audit:total -->106<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
+| **<!-- skills-audit:total -->108<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
 | **Memory System** | Saves what it learns about you and your business |
 
 ---
@@ -210,7 +210,7 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 Talk to me like I am not technical. Plain English, one step at a time.
 ```
 
-**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->106<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
+**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
 
 ---
 
@@ -537,6 +537,84 @@ Once that works, you can add other phone numbers via `WA_ALLOW_FROM` in `.mcp.js
 
 ---
 
+### Slack — Channels, Messages, and Team
+
+This connects your Slack workspace so your assistant can list channels, read recent messages, post to channels, reply in threads, add reactions, and search for users — all through plain English.
+
+**Step 1 — Create a Slack connection app**
+
+1. Open **https://api.slack.com/apps** and sign in
+2. Click **Create New App** → **From scratch**
+3. Name it **Claude Assistant**, pick your workspace, click **Create App**
+4. Click **OAuth & Permissions** in the left menu
+5. Under **Bot Token Scopes**, add these six permissions:
+   - `channels:history`, `channels:read`, `chat:write`, `reactions:write`, `users:read`, `users.profile:read`
+6. Scroll to the top and click **Install to Workspace** → **Allow**
+7. Copy the **Bot User OAuth Token** (starts with `xoxb-`)
+
+**Step 2 — Tell your assistant to connect**
+
+In the Claude chat, say:
+
+```
+Help me connect my Slack workspace
+```
+
+Your assistant will ask for the token you copied, save the connection securely, and verify it works.
+
+**Step 3 — Fully close and reopen Claude Code once**
+
+The connection activates after a full restart (closing the chat tab alone is not enough).
+
+**Step 4 — Test it**
+
+Ask your assistant: *"What channels do we have in Slack?"* or *"Show me the latest messages in #general"*
+
+> For the full guide with troubleshooting, see [SLACK-SETUP.md](SLACK-SETUP.md)
+
+> **Private channels?** Your assistant needs to be invited first. In Slack, type `/invite @Claude Assistant` in the channel you want to use.
+
+---
+
+### monday.com — Boards, Items, Tasks, and Team
+
+This connects your monday.com account so your assistant can browse your boards, create and update tasks, move items between groups, post comments, and manage your team — all through plain English.
+
+**Step 1 — Get your monday.com connection key**
+
+1. Open **monday.com** and sign in
+2. Click your **profile picture** in the bottom-left corner
+3. Click **Developers** → **My Access Tokens**
+4. Click **Show** (or **Generate**) and **copy** the token
+
+> If you don't see "Developers" in the menu, try **Administration** → **Connections** → **API**.
+
+**Step 2 — Tell your assistant to connect**
+
+In the Claude chat, say:
+
+```
+Help me connect my monday.com account
+```
+
+Your assistant will ask for the token you copied, save the connection securely, and verify it works.
+
+**Step 3 — Restart Claude Code once**
+
+The connection activates after a restart.
+
+**Step 4 — Test it**
+
+Ask your assistant: *"Show me my boards"* or *"What's on the Roadmap board?"*
+
+> For the full guide with troubleshooting, see [MONDAY-SETUP.md](MONDAY-SETUP.md)
+
+> **Don't have Node.js?** No problem — say *"Connect my monday.com using the hosted option"* and your assistant will use monday.com's hosted connection instead. No installation needed.
+
+> **Want a safe first try?** Say *"Connect my monday.com in read-only mode"* instead — it blocks all writes so you can explore without risk. (Note: read-only is only available with the Local setup option.)
+
+---
+
 ### Jotform — Forms, Submissions, and Intake Data
 
 This connects your Jotform account so your assistant can browse your forms, read submissions, create and edit forms, and assign forms to teammates — all through plain English. **No API keys needed** — Jotform handles the sign-in in your browser.
@@ -574,6 +652,28 @@ Ask your assistant: *"Show me my Jotform forms"* or *"How many submissions did t
 > **Works on every plan** — Free, Bronze, Silver, Gold, and Enterprise. Free tier is rate-limited to 60 requests per minute, which is plenty for normal use.
 
 > **Sensitive data note** — submissions often contain personal information (names, emails, free-text feedback). Your assistant will summarise rather than dump raw entries into the chat unless you ask.
+
+---
+
+### More Connectors — Set Up After the Workshop
+
+The tools above cover the most common setups. Once you are up and running, your assistant can also connect to:
+
+| Tool | What It Plugs Into | Guide |
+|---|---|---|
+| **HubSpot** | CRM — contacts, deals, companies, notes | [HUBSPOT-SETUP.md](HUBSPOT-SETUP.md) |
+| **GoHighLevel** | All-in-one CRM and marketing platform | [GHL-SETUP.md](GHL-SETUP.md) |
+| **Stripe** | Payments, invoices, subscriptions, refunds | [STRIPE-SETUP.md](STRIPE-SETUP.md) |
+| **Xero** | Accounting — invoices, contacts, P&L | [XERO-SETUP.md](XERO-SETUP.md) |
+| **QuickBooks** | Accounting — invoices, customers, P&L | [QUICKBOOKS-SETUP.md](QUICKBOOKS-SETUP.md) |
+| **Shopify** | Online store — products, orders, inventory | [SHOPIFY-SETUP.md](SHOPIFY-SETUP.md) |
+| **Square** | Payments, orders, customers, bookings | [SQUARE-SETUP.md](SQUARE-SETUP.md) |
+| **GitHub** | Repos, issues, pull requests, CI status | [GITHUB-SETUP.md](GITHUB-SETUP.md) |
+| **CircleCI** | Build pipelines, logs, flaky tests | [CIRCLECI-SETUP.md](CIRCLECI-SETUP.md) |
+| **Notion** | Pages, databases, notes | [NOTION-SETUP.md](NOTION-SETUP.md) |
+| **Google Chat** | Google Workspace messaging | [GOOGLE-CHAT-SETUP.md](GOOGLE-CHAT-SETUP.md) |
+
+Not sure which ones to connect? Ask your assistant: *"What connectors should I set up for a business like mine?"*
 
 ---
 

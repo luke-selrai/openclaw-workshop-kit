@@ -300,6 +300,13 @@ Some connectors have limitations that are not bugs — they are known constraint
 | QuickBooks only shows test/demo data | [known-issues/QUICKBOOKS-SANDBOX-ONLY.md](../known-issues/QUICKBOOKS-SANDBOX-ONLY.md) |
 | Stripe login does not open a browser | [known-issues/STRIPE-NON-TTY-LOGIN.md](../known-issues/STRIPE-NON-TTY-LOGIN.md) |
 | Outlook does not work with @outlook.com / @hotmail.com accounts | [known-issues/OUTLOOK-PERSONAL-ACCOUNTS.md](../known-issues/OUTLOOK-PERSONAL-ACCOUNTS.md) |
+| QuickBooks only shows test/demo data | [known-issues/QUICKBOOKS-SANDBOX-ONLY.md](../known-issues/QUICKBOOKS-SANDBOX-ONLY.md) |
+| Stripe login does not open a browser | [known-issues/STRIPE-NON-TTY-LOGIN.md](../known-issues/STRIPE-NON-TTY-LOGIN.md) |
+| Outlook does not work with @outlook.com / @hotmail.com accounts | [known-issues/OUTLOOK-PERSONAL-ACCOUNTS.md](../known-issues/OUTLOOK-PERSONAL-ACCOUNTS.md) |
+| GitHub: read-only access key, Enterprise Server not supported, request limits | [known-issues/GITHUB-REMOTE-MCP-CAVEATS.md](../known-issues/GITHUB-REMOTE-MCP-CAVEATS.md) |
+| Square: beta status, intermittent auth errors, sandbox token expiry | [known-issues/SQUARE-BETA-STATUS.md](../known-issues/SQUARE-BETA-STATUS.md) |
+| Notion: requires plugin marketplace — cannot be set up from the terminal | [known-issues/NOTION-PLUGIN-ONLY.md](../known-issues/NOTION-PLUGIN-ONLY.md) |
+| HubSpot: 403 errors after setup mean a permission needs to be added | [known-issues/HUBSPOT-MISSING-SCOPES.md](../known-issues/HUBSPOT-MISSING-SCOPES.md) |
 
 ---
 
