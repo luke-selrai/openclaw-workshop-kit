@@ -232,7 +232,7 @@ The Square MCP server is currently a **beta** product from Square. This means:
 - New features may appear, and a small number of edge cases may not yet be covered
 - You may see behaviour changes without notice as Square iterates
 
-None of this affects the setup flow in this guide, and Claude translates all errors into plain English. If anything feels broken for more than a retry or two, it is almost always a Square-side hiccup and not something wrong with your setup.
+None of this affects the setup flow in this guide, and Claude translates all errors into plain English. If anything feels broken for more than a retry or two, it is almost always a Square-side hiccup and not something wrong with your setup. If you hit something persistent, email Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au).
 
 ---
 

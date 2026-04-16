@@ -56,6 +56,7 @@ If the sandbox returns an auth error:
 If a tool returns an unexpected error (not an auth error), try:
 1. Retrying the same request once — beta-side blips usually clear on the second attempt
 2. If it consistently fails, tell your assistant what you were trying to do — it will find an alternative approach or flag it as a known beta limitation
+3. If nothing works after a couple of retries, email Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) with a description of what you asked and what error appeared
 
 ---
 

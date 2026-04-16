@@ -1,43 +1,43 @@
-# Known Issue — GitHub: Remote MCP Server Limitations
+# Known Issue — GitHub: Connector Limitations
 
 **Status:** Known limitations
 **Affects:** github-connector
-**Symptoms:** Tool errors on large repos; rate limit hits; write operations failing on a read-only token; GitHub Enterprise Server not working
+**Symptoms:** Tool errors on large repos; hitting request limits; write operations failing on a read-only access key; GitHub Enterprise Server not working
 
 ---
 
 ## How the GitHub Connector Works
 
-The GitHub connector uses GitHub's **official remote MCP server**, hosted by GitHub at `https://api.githubcopilot.com/mcp`. There is nothing to install — authentication is a Personal Access Token (PAT) that you create once in your GitHub settings. Claude Code sends requests through that hosted server rather than talking to the GitHub API directly.
+The GitHub connector runs through **GitHub's hosted connection** — a service GitHub operates at their end that Claude talks to over the internet. There is nothing to install locally. You create a **GitHub access key** (a one-time setup in your GitHub settings) and Claude uses it to read and update your repos on your behalf.
 
-This is convenient but introduces a few constraints that a local CLI would not have.
+This is convenient, but because everything goes through GitHub's hosted service there are a few constraints worth knowing about.
 
 ---
 
-## Limitation 1 — Read-only vs. Write Access Depends on Your Token
+## Limitation 1 — Read-only vs. Write Access Depends on Your Access Key
 
-When you set up the connector you choose the permission level for your token. If you chose **read-only**, Claude cannot create issues, open pull requests, push code, or make any other changes — even if you ask it to.
+When you set up the connector you choose the permission level for your access key. If you chose **read-only**, Claude cannot create issues, open pull requests, push code, or make any other changes — even if you ask it to.
 
 **Fix:** Tell your assistant you want to upgrade:
-> "My GitHub token is read-only. Can you walk me through upgrading it?"
+> "My GitHub access key is read-only. Can you walk me through upgrading it?"
 
-Your assistant will guide you to GitHub Settings → Developer Settings → Personal Access Tokens, where you can edit the existing token and tick the write permissions you need (Issues, Pull requests, Contents). No need to create a new token.
+Your assistant will guide you to GitHub Settings → Developer Settings → Personal Access Tokens, where you can edit the existing key and tick the write permissions you need (Issues, Pull requests, Contents). No need to create a new one.
 
 ---
 
 ## Limitation 2 — GitHub Enterprise Server Is Not Supported
 
-The remote MCP server (`https://api.githubcopilot.com/mcp`) only works with **github.com** accounts. If your organisation uses **GitHub Enterprise Server** (a self-hosted GHES instance with its own domain, e.g. `github.yourcompany.com`), the connector will fail to authenticate.
+GitHub's hosted connection only works with standard **github.com** accounts. If your organisation runs its own private GitHub instance (sometimes called GitHub Enterprise Server, usually on a domain like `github.yourcompany.com`), the connector will fail to authenticate.
 
-**Workaround:** GHES support requires the local Docker version of the GitHub MCP server with a `--gh-host` flag. This is not set up by the current connector. Contact your Selr AI contact to discuss a custom setup.
+**Workaround:** Self-hosted GitHub instances need a different setup that is not covered by this connector version. Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) to discuss a custom setup.
 
 ---
 
-## Limitation 3 — Rate Limits at High Volume
+## Limitation 3 — GitHub Temporarily Slows You Down at High Volume
 
-Authenticated PATs have a limit of **5,000 GitHub API requests per hour**. In normal use this is never reached. However, automated workflows that loop over many repos, issues, or commits can hit it faster than expected.
+GitHub limits how many requests can be made per hour using your access key (up to 5,000 in an hour). In normal use this is never reached. However, if you ask your assistant to scan many repos, issues, or commits in a row, GitHub will temporarily slow things down — it asks you to wait before continuing.
 
-**Symptoms:** You will see a 429 or "secondary rate limit" error. Your assistant will automatically wait 10 seconds and retry once. If the second attempt also fails, you will need to wait before continuing.
+**Symptoms:** Your assistant will tell you GitHub is asking it to slow down and will automatically wait a few seconds before trying again. If it still can't continue, it will let you know and suggest trying again in a minute.
 
 **Fix:** If you are running a large scan (e.g. "summarise all open issues across all my repos"), ask your assistant to process in smaller batches.
 
