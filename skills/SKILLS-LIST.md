@@ -138,7 +138,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 
 ---
 
-## Recommended optional plugin — Superpowers
+## Recommended Optional Plugin — Superpowers
 
 Four skills that used to ship with this kit — `writing-plans`, `systematic-debugging`, `test-driven-development`, and `verification-before-completion` — now live in Anthropic's official **Superpowers** plugin. Installing Superpowers is optional, but strongly recommended. In a Code session, paste:
 
