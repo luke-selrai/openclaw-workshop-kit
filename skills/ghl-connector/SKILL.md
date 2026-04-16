@@ -15,7 +15,7 @@ metadata:
     - campaigns
     - mcp
   pairs-with:
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting PIT/scope or MCP connection errors
     - skill: playwright-skill
       reason: Used only as a fallback for UI-only surfaces the official MCP server doesn't cover (SMS composer, visual workflow editor)
@@ -302,6 +302,6 @@ The GHL connector **cannot** (needs Playwright fallback, or isn't exposed at all
 - **playwright-skill** — required fallback engine for UI-only surfaces (SMS review-before-send, calendar create/cancel, workflow builder)
 - **xero-connector** — same MCP pattern for accounting
 - **connector-recommender** — recommending which connectors to set up
-- **systematic-debugging** — troubleshooting PIT scope or MCP connection errors
+- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended) — troubleshooting PIT scope or MCP connection errors
 - **email-composer** — drafting campaign copy before pushing it into a GHL email template
 - **n8n-workflow-patterns** — building GHL-triggered automations

@@ -228,7 +228,7 @@ Your assistant can help you set this up — just ask in the Claude chat:
 Tell your assistant:
 > "Something broke. Here's the error: [paste the red error text]. Help me fix it step by step."
 
-Your `systematic-debugging` skill handles this — your assistant will walk you through diagnosing and fixing it in plain English.
+Your assistant will walk you through diagnosing and fixing it in plain English, step by step. (If you have the Superpowers plugin installed, it uses `superpowers:systematic-debugging` for a more rigorous diagnosis.)
 
 ### "I forgot how to start my assistant"
 Open Claude Desktop → start a new Code session → click the folder icon at the top and pick `~/my-assistant/`. Your assistant loads automatically. Put a sticky note on your monitor if needed!

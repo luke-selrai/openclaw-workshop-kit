@@ -20,7 +20,7 @@ Result: Forgettable               Result: Emails people actually reply to
 
 ---
 
-## Your <!-- skills-audit:total -->108<!-- /skills-audit:total --> Installed Skills
+## Your <!-- skills-audit:total -->104<!-- /skills-audit:total --> Installed Skills
 
 Organised by what they do for your business:
 
@@ -44,9 +44,9 @@ Organised by what they do for your business:
 │                    │  product-appeal-analyzer, brainstorming    │
 │                    │  tech-entrepreneur-coach-adhd              │
 ├────────────────────┼────────────────────────────────────────────┤
-│  STRATEGY &        │  systems-thinking, writing-plans           │
-│  PLANNING          │  plan-ceo-review, plan-eng-review          │
-│                    │  task-decomposer, personal-finance-coach   │
+│  STRATEGY &        │  systems-thinking, plan-ceo-review         │
+│  PLANNING          │  plan-eng-review, task-decomposer          │
+│                    │  personal-finance-coach                    │
 │                    │  ai-product, analytics-product             │
 ├────────────────────┼────────────────────────────────────────────┤
 │  AI & AUTOMATION   │  agent-creator, mcp-creator                │
@@ -171,7 +171,7 @@ You stay in control. AI does the work. You make the calls.
 ```
 TODAY (Workshop)
   ✅ Claude Code set up on your laptop
-  ✅ <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills installed
+  ✅ <!-- skills-audit:total -->104<!-- /skills-audit:total --> skills installed
   ✅ Memory of your business saved
   ✅ Browser automation connected
   ✅ First real task done live

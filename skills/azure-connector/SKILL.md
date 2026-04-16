@@ -12,7 +12,7 @@ metadata:
     - app-service
     - installer
   pairs-with:
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting Azure auth or permission errors
     - skill: outlook-connector
       reason: Both use Microsoft ecosystem — Azure CLI can complement M365 workflows

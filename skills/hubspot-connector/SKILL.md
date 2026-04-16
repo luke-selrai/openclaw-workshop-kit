@@ -17,7 +17,7 @@ metadata:
       reason: Compose follow-up emails for deals or contacts
     - skill: n8n-workflow-patterns
       reason: Build automations triggered by HubSpot events (deal stage change, new contact, etc.)
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting HubSpot auth or API errors
 ---
 
@@ -292,5 +292,5 @@ The HubSpot MCP connector **cannot** do (deferred to a future version):
 ## Related Skills
 
 - **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
-- **systematic-debugging**: For troubleshooting HubSpot auth or API errors
+- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting HubSpot auth or API errors
 - **xero-connector**: Sibling accounting connector — similar MCP pattern for a different platform

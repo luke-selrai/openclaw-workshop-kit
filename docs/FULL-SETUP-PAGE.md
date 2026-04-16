@@ -8,7 +8,7 @@ date: 2026-03-27
 
 > **Keep this page open on your screen throughout the setup.** Everything you need is right here.
 
-Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->108<!-- /skills-audit:total --> specialist skills built in.
+Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills built in.
 
 ---
 
@@ -18,7 +18,7 @@ Today you are setting up a personal AI assistant that lives on YOUR computer. It
 |---|---|
 | **Your AI Assistant** | Runs locally on your computer. Knows your business. |
 | **Browser Control** | Can open websites and automate tasks for you |
-| **<!-- skills-audit:total -->108<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
+| **<!-- skills-audit:total -->104<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
 | **Memory System** | Saves what it learns about you and your business |
 
 ---
@@ -217,7 +217,7 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 Talk to me like I am not technical. Plain English, one step at a time.
 ```
 
-**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
+**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->104<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
 
 ---
 
@@ -758,7 +758,7 @@ For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHE
 
 ---
 
-## Your 95 Skills — Quick Reference
+## Your <!-- skills-audit:total -->104<!-- /skills-audit:total --> Skills — Quick Reference
 
 <details>
 <summary>Click to see all skill categories</summary>
@@ -773,7 +773,7 @@ Deep research, competitor analysis, competitive cartography, Reddit insights, ma
 
 **Strategy & Business**
 
-Brainstorming, writing plans, systems thinking, product appeal analysis, CEO-mode plan reviews, engineering plan reviews, personal finance coaching, ADHD entrepreneur coaching, indie monetisation, AI product development, analytics
+Brainstorming, systems thinking, product appeal analysis, CEO-mode plan reviews, engineering plan reviews, personal finance coaching, ADHD entrepreneur coaching, indie monetisation, AI product development, analytics
 
 **AI & Automation**
 
@@ -781,7 +781,7 @@ AI agents architect, AI engineer, agent creator, agent memory systems, agent mem
 
 **Engineering & Development**
 
-API architect, code architecture, full-stack debugger, systematic debugging, Next.js App Router, TypeScript advanced patterns, Supabase admin, PostgreSQL optimization, security auditor, modern auth 2026, OAuth/OIDC, microservices patterns, performance profiling, logging & observability, test-driven development, verification before completion, QA, webapp testing, Playwright
+API architect, code architecture, full-stack debugger, Next.js App Router, TypeScript advanced patterns, Supabase admin, PostgreSQL optimization, security auditor, modern auth 2026, OAuth/OIDC, microservices patterns, performance profiling, logging & observability, QA, webapp testing, Playwright
 
 **DevOps & Infrastructure**
 
@@ -837,6 +837,30 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 Your assistant is designed to handle problems too — just describe what happened in plain English and it will figure it out.
+
+---
+
+## Recommended Optional Plugin — Superpowers
+
+**Superpowers** is an official Anthropic plugin that gives your assistant four engineering skills: planning complex work, diagnosing errors step by step, writing tests before code, and verifying work before claiming it's done. It's optional — your assistant works without it — but most workshop attendees install it the same day they finish setup.
+
+**Install it:**
+
+In a new Code session, paste these two commands one at a time (press Enter after each):
+
+```
+/plugin marketplace add anthropics/claude-plugins-official
+```
+
+```
+/plugin install superpowers@claude-plugins-official
+```
+
+Claude Desktop confirms the install and the plugin is active immediately — nothing else to configure.
+
+> **Why can't your assistant install it for you?** The `/plugin` command is run by *you*, not your assistant — a deliberate guardrail so AI can never silently install code on your machine. You paste the two lines above once, and it's done.
+
+For the full feature list, see [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers).
 
 ---
 
