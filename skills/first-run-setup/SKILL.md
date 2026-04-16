@@ -1,6 +1,6 @@
 ---
 name: first-run-setup
-description: First-run setup and onboarding for the AI Business Assistant. Use when setup_complete is false in memory, when skills are missing, when the user says "my setup is broken", "fix my install", or "re-run setup".
+description: First-run setup and onboarding for the AI Business Assistant. Use when there's no prior memory of this user (no name, no business), when skills are missing, when the user says "my setup is broken", "fix my install", or "re-run setup".
 ---
 
 # First Run Setup
@@ -34,7 +34,7 @@ Check the user-level Claude skills folder — `.claude/skills/` inside the user'
 
 ### Step 2 — Detect Operating System
 
-Detect whether the user is on Mac, Windows, or Linux. Save this to memory.
+Detect whether the user is on Mac, Windows, or Linux. Claude's memory will retain this automatically once you've noted it — no explicit save step needed.
 
 ### Step 3 — Install Node.js
 
@@ -79,24 +79,20 @@ If winget is not available at all (very old Windows), use Playwright to drive ht
 
 **General rule — never send the user to a website to manually click through an installer.** Always try in this order: (1) terminal install via the platform-native package manager, (2) Playwright-driven automated download, (3) manual click-through only as an absolute last resort with no other option available.
 
-### Step 4 — Mark Setup Complete
-
-Save to memory:
-- `setup_complete: true`
-- `setup_date: [today's date]`
-- `os: [Mac, Windows, or Linux]`
-- `skills_installed: 87`
+### Step 4 — Setup Complete
 
 Say:
-> "Everything looks good! Now let me learn a bit about you and your business. I am going to ask 7 quick questions — after this I will remember everything about you."
+> "Everything looks good! Now let me learn a bit about you and your business. I am going to ask 7 quick questions — after this I will remember everything about you across every conversation."
 
 → Move to Phase 2.
+
+Note to the assistant: Claude's native `/memory` captures everything the user tells you automatically across sessions. Do NOT write to any `my-assistant/memory/` file — there is no such folder and no workshop-managed memory files. Setup-state like "this user has been onboarded" is implicit: if you know their name and business from memory, setup is done.
 
 ---
 
 ## PHASE 2 — ONBOARDING
 
-Check memory for a user profile. If no profile exists → ask these questions one at a time:
+If you already know the user's name and business from memory, skip this phase entirely and greet them by name. Otherwise, ask these 7 questions one at a time:
 
 1. "What is your first name?"
 2. "What is your business called, and what do you do in one sentence?"
@@ -106,10 +102,10 @@ Check memory for a user profile. If no profile exists → ask these questions on
 6. "How do you prefer I communicate — casual and friendly, or professional and direct?"
 7. "What would feel like a win for you from today?"
 
-Save all answers to memory as a user profile note covering: name, business, customers, biggest challenge, tools, communication style, workshop goal, and OS. Include a "How to Speak to Them" summary (2-3 sentences) and an "Always Remember" list of key facts.
+Ask them conversationally, one at a time, per the Communication Rules in CLAUDE.md. Claude's memory retains everything they tell you automatically — you do NOT need to write anything to disk or "save a profile note". Just acknowledge each answer naturally and move to the next question.
 
-Say:
-> "Done! I have saved everything. I will always know who you are from now on. Now let me connect the tools that will make me really useful for you."
+After the last question, say:
+> "Done! I'll remember all of this from now on. Now let me connect the tools that will make me really useful for you."
 
 → Move to Phase 2.5.
 
@@ -170,7 +166,7 @@ npm install -g @playwright/mcp
 claude mcp add playwright @playwright/mcp --scope user
 ```
 
-Save to memory which tools were connected.
+Mention which tools were connected in your next reply — Claude's memory will retain that context automatically.
 
 Say:
 > "All connected! Now let me show you what I can actually do for your business."
@@ -277,7 +273,7 @@ Defender's real-time scanning is locking files as npm tries to write them.
 The user's workshop folder is nested too deep. Windows has a 260-character path limit and OneDrive/Desktop paths like `C:\Users\Jane\OneDrive - Company Pty Ltd\Desktop\workshop-kit\node_modules\...\something.js` blow past it.
 
 1. Tell the user: "Your folder is in a location with a really long path, which is breaking the install. I need you to move the workshop folder to a shorter path. Create a folder called `workshop` directly on your C drive (`C:\workshop`), then move the `workshop-kit` folder into it so the new path is `C:\workshop\workshop-kit`. Come back and tell me when you have done that."
-2. Update any stored paths in memory (`home_folder` / `workshop_path`) to the new location.
+2. Confirm the new path in your next reply so Claude's memory picks up the change.
 3. Retry the install from the new location.
 
 **Bun install fails on Windows / `bun: command not found` after install**
