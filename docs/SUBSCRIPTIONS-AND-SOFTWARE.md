@@ -9,9 +9,8 @@ Everything you need for your AI Business Assistant, listed by priority with exac
 | Tool | Cost | What It Is | Get It |
 |---|---|---|---|
 | **Claude Max** | $100 USD/mo | The AI brain — powers everything | [claude.ai](https://claude.ai) → Settings → Billing |
-| **VS Code** | Free | The app where you work with your assistant | [code.visualstudio.com](https://code.visualstudio.com) |
-| **Claude Code Extension** | Free | Connects Claude inside VS Code | VS Code → Extensions → search "Claude Code" |
-| **Node.js LTS** | Free | Required for Claude Code to run | [nodejs.org](https://nodejs.org) (auto-installed on Mac) |
+| **Claude Desktop** | Free | The app where you chat with your assistant, open project folders, and run commands | [claude.ai/download](https://claude.ai/download) |
+| **Node.js LTS** | Free | Required for some connectors | [nodejs.org](https://nodejs.org) (auto-installed on Mac) |
 | **Git** | Free | Downloads the workshop kit and updates | Auto-installed on Mac via Xcode tools |
 | **GitHub Account** | Free | Where the workshop kit is stored | [github.com/signup](https://github.com/signup) |
 
