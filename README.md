@@ -32,8 +32,8 @@ It is built on [Claude Code](https://claude.ai/claude-code) by Anthropic — the
 
 ```text
 Your Laptop
-    └── VS Code (your workspace app)
-         └── Claude Code (your AI assistant)
+    └── Claude Desktop (the app you chat with)
+         └── Your AI Assistant (inside Claude Desktop)
               ├── CLAUDE.md (your assistant's instructions + memory loader)
               ├── memory/ (saves what it learns about you)
               ├── skills/ (<!-- skills-audit:total -->105<!-- /skills-audit:total --> specialist skills)
@@ -44,33 +44,34 @@ Your Laptop
 
 | Step | What Happens |
 |---|---|
-| **1. Bootstrap** | Paste the bootstrap prompt into Claude Code — it clones the repo, copies skills, and creates your workspace |
-| **2. Open workspace** | Open `~/my-assistant/` in VS Code and start Claude Code — the CLAUDE.md agent handles onboarding, asks 7 questions about your business, and runs a live demo |
+| **1. Bootstrap** | Start a new Code session in Claude Desktop, paste the bootstrap prompt — Claude clones the repo, copies skills, and creates your workspace |
+| **2. Open workspace** | In Claude Desktop, start a new Code session and click the folder icon to point it at `~/my-assistant/` — the CLAUDE.md agent handles onboarding, asks 7 questions about your business, and runs a live demo |
 
-After that, every time you open VS Code and type `claude`, your assistant already knows who you are.
+After that, every time you open Claude Desktop and load your `my-assistant` folder, your assistant already knows who you are.
 
 ---
 
 ## Quick Start
 
-**Before the workshop**, complete these 3 steps — takes about 15 minutes:
+**Before the workshop**, complete these 2 steps — takes about 10 minutes:
 
 1. Get a **Claude Max** subscription at [claude.ai](https://claude.ai) ($100 USD/month)
-2. Install **VS Code** at [code.visualstudio.com](https://code.visualstudio.com)
-3. Install the **Claude Code extension** inside VS Code (search "Claude Code" in Extensions)
+2. Install **Claude Desktop** at [claude.ai/download](https://claude.ai/download) and sign in
 
 **Windows users:** also install [Git for Windows](https://gitforwindows.org) before arriving — your assistant needs Git to clone the workshop kit. Everything else (Node.js, PATH fixes, PowerShell execution policy, etc.) is handled conversationally by your assistant when you paste the bootstrap prompt.
 
 No other pre-installs needed on Mac.
 
+> **Prefer VS Code?** You can still run this kit through the Claude Code extension in VS Code. See [docs/ADVANCED-VSCODE.md](docs/ADVANCED-VSCODE.md). We don't recommend it for first-time users — Claude Desktop is simpler.
+
 ---
 
 ## At the Workshop
 
-1. Open VS Code and start Claude Code in the terminal
-2. Copy the **bootstrap prompt** from the workshop Notion page and paste it into Claude Code
+1. Open **Claude Desktop** and start a new Code session
+2. Copy the **bootstrap prompt** from the workshop Notion page and paste it into the Code session
 3. Claude handles everything: clones the repo, copies skills, creates your workspace
-4. When it finishes, open `~/my-assistant/` in VS Code and start Claude Code
+4. When it finishes, start a new Code session in Claude Desktop and click the folder icon — point it at `~/my-assistant/`
 5. The CLAUDE.md agent takes over — it greets you, asks about your business, and shows you what it can do
 
 Your assistant handles it all conversationally, one step at a time. No scripts to run, no commands to memorise.
@@ -261,10 +262,10 @@ Yes. Your memory files (`~/my-assistant/memory/`) live on your computer only. No
 Claude Max is $100 USD/month (~$155 AUD). That is the only required cost. Everything else in this kit is free.
 
 **What if I miss a step during setup?**
-Your assistant will notice and offer to fix it. Just open `~/my-assistant/` in VS Code, start Claude Code, and it will pick up where you left off.
+Your assistant will notice and offer to fix it. Just open Claude Desktop, start a new Code session, click the folder icon and point it at `~/my-assistant/` — your assistant picks up where you left off.
 
 **Can I use this on Windows?**
-Yes. Install [Git for Windows](https://gitforwindows.org) beforehand (see Prerequisites above), then open Claude Code and paste the bootstrap prompt — your assistant walks you through the rest conversationally, including any Windows-specific snags (Node.js install via winget, PATH fixes, PowerShell execution policy, Defender EBUSY errors, etc.).
+Yes. Install [Git for Windows](https://gitforwindows.org) beforehand (see Quick Start above), then open Claude Desktop, start a new Code session, and paste the bootstrap prompt — your assistant walks you through the rest conversationally, including any Windows-specific snags (Node.js install via winget, PATH fixes, PowerShell execution policy, Defender EBUSY errors, etc.).
 
 **I am a developer — how do I customise this?**
 See [DEVELOPER.md](DEVELOPER.md).
