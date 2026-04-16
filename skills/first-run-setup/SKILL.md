@@ -73,7 +73,7 @@ winget install --id OpenJS.NodeJS.LTS -e --source winget
 
 Then tell the user: "I need you to close this terminal window and open a new one so the new tools can be picked up." After they reopen, verify: `node --version`.
 
-If winget says "access denied", tell the user: "I need to run this with administrator access. Please right-click VS Code, choose Run as Administrator, then come back to me." After they restart VS Code as admin, retry the winget command.
+If winget says "access denied", tell the user: "I need to run this with administrator access. Please right-click Claude Desktop, choose Run as Administrator, then come back to me." After they restart Claude Desktop as admin, retry the winget command.
 
 If winget is not available at all (very old Windows), use Playwright to drive https://nodejs.org and download the LTS installer automatically — do not ask the user to do it manually.
 
@@ -145,7 +145,7 @@ export PATH="$(npm prefix -g)/bin:$PATH"
 ```
 Then try `claude --version` again.
 
-**Windows note:** If it still says "command not found", tell the user: "Close VS Code completely and reopen it, then say 'continue' to me."
+**Windows note:** If it still says "command not found", tell the user: "Close Claude Desktop completely and reopen it, then say 'continue' to me."
 
 ### Step 2 — Connect Browser Automation
 
@@ -200,7 +200,7 @@ Use skills: `brainstorming`, `writing-plans`
 ## Common Problems
 
 **Skills installed but not showing as slash commands**
-- Close and reopen VS Code. Skills are loaded when a new session starts.
+- Close and reopen Claude Desktop. Skills are loaded when a new session starts.
 
 **"git: command not found"**
 - Mac: A popup should appear to install developer tools. Click Install, wait 3-5 minutes.
@@ -209,7 +209,7 @@ Use skills: `brainstorming`, `writing-plans`
 **Permission errors**
 - Ask your assistant: "I got a permission error, help me fix it"
 - **Mac/Linux:** try `npm config set prefix "$HOME/.npm-global"` and update PATH
-- **Windows:** close VS Code, right-click it, choose Run as Administrator, and reopen the assistant
+- **Windows:** close Claude Desktop, right-click it, choose Run as Administrator, and reopen the assistant
 
 ---
 
@@ -226,8 +226,8 @@ Almost always a PATH problem — the Git installer is supposed to add `C:\Progra
    ```powershell
    [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Git\cmd", [EnvironmentVariableTarget]::Machine)
    ```
-   This needs administrator privileges. If it fails with an access-denied error, tell the user: "I need to do this with administrator access. Please right-click VS Code, choose Run as Administrator, then come back and tell me you are ready." After they reopen as admin, retry.
-3. Tell the user: "I added it to your PATH. Please close this VS Code window completely and reopen it — the new PATH will not be picked up until VS Code restarts. Come back and tell me you are ready."
+   This needs administrator privileges. If it fails with an access-denied error, tell the user: "I need to do this with administrator access. Please right-click Claude Desktop, choose Run as Administrator, then come back and tell me you are ready." After they reopen as admin, retry.
+3. Tell the user: "I added it to your PATH. Please close Claude Desktop completely and reopen it — the new PATH will not be picked up until Claude Desktop restarts. Come back and tell me you are ready."
 4. Verify with `git --version` after they return.
 
 If Git is installed in a non-default location, substitute the actual path. Check with `dir "C:\Program Files\Git\cmd"` first if uncertain.
@@ -246,9 +246,9 @@ The user's PowerShell execution policy blocks local scripts. Fix by setting it t
 
 **`EPERM` or "permission denied" during `npm install`**
 
-VS Code does not have the permissions it needs. The fix is to run VS Code as administrator.
+Claude Desktop does not have the permissions it needs. The fix is to run Claude Desktop as administrator.
 
-1. Tell the user: "Windows is blocking the install because VS Code does not have permission to write to this folder. Please close VS Code completely, then right-click the VS Code icon and choose Run as Administrator. Come back and tell me when you are ready."
+1. Tell the user: "Windows is blocking the install because Claude Desktop does not have permission to write to this folder. Please close Claude Desktop completely, then right-click the Claude Desktop icon and choose Run as Administrator. Come back and tell me when you are ready."
 2. After they return, retry the install.
 
 **`EBUSY` during `npm install` (Windows Defender scanning files)**
@@ -282,7 +282,7 @@ Bun is not yet shipped via winget on all Windows builds. Fall back to the PowerS
 
 The user's account does not have administrator rights on the machine.
 
-1. Tell the user: "You need administrator access to change this setting. If this is your personal laptop, right-click VS Code and choose Run as Administrator. If this is a work laptop, you may need to ask your IT team for help — or let me know and we can work around it."
+1. Tell the user: "You need administrator access to change this setting. If this is your personal laptop, right-click Claude Desktop and choose Run as Administrator. If this is a work laptop, you may need to ask your IT team for help — or let me know and we can work around it."
 2. If it is a work laptop and IT is not available, try user-scoped alternatives (e.g. user PATH instead of system PATH for the Git fix above) and tell the user what you did.
 
 ---

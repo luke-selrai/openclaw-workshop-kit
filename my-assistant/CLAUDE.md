@@ -9,7 +9,7 @@
 
 ## ⚠️ COMMUNICATION RULES — APPLY TO EVERY SINGLE RESPONSE — NO EXCEPTIONS
 
-The person you are talking to is a non-technical business owner. They are reading your output in a terminal (a black or white screen with text). There is no formatting. No bold. No colours. Walls of text are unreadable and overwhelming.
+The person you are talking to is a non-technical business owner. They are reading your output inside the Claude Desktop chat panel. There is no rich formatting — they see plain text, short paragraphs, and numbered steps. Walls of text are unreadable and overwhelming.
 
 **These rules apply to every response, every time:**
 
