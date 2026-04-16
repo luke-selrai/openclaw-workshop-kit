@@ -117,11 +117,16 @@ Some Git installers do not add themselves to the system PATH. If the verificatio
 
 ---
 
-## Step 4 — Install Node.js and Bun
+## Step 4 — Install Node.js (and Bun if you want messaging)
 
-Node.js is needed to connect Gmail, Calendar, and browser automation. **Bun is also required** if you plan to use Telegram, WhatsApp, or iMessage. Install both now so everything is ready later.
+**Node.js is required for everyone.** Your assistant needs it to connect Gmail, Calendar, browser automation, and most other tools.
 
-> **Note:** If you skip Bun here, you will need to install it before setting up any messaging channel.
+**Bun is only required if you plan to use a messaging channel** — Telegram, WhatsApp, or iMessage. If you are not using any of those, you can skip the Bun section below. (You can also come back to it later — your assistant will run the install for you when you start a messaging setup.)
+
+| If you plan to use… | Install Node.js? | Install Bun? |
+|---|---|---|
+| Email, Calendar, browser automation, CRM, accounting, etc. | Yes | No |
+| Telegram, WhatsApp, or iMessage | Yes | Yes |
 
 **Mac:**
 
@@ -145,9 +150,11 @@ Node.js is needed to connect Gmail, Calendar, and browser automation. **Bun is a
 2. Type: `node --version`
 3. You should see a version number like `v22.x.x`
 
-### Install Bun
+### Install Bun (optional — only if you want messaging)
 
-Bun is required for Telegram, WhatsApp, and iMessage integrations.
+**Skip this section if you are not planning to connect Telegram, WhatsApp, or iMessage.** Bun is only used by those three messaging channels. Everything else in the workshop kit runs on Node.js alone.
+
+If you do want messaging now, install Bun:
 
 **Mac / Linux:**
 ```bash

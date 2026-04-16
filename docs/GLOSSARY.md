@@ -15,6 +15,9 @@ A way for two apps to talk to each other. When your assistant connects to Gmail,
 **Browser Automation**
 When your AI assistant controls your web browser — opening websites, clicking buttons, filling in forms — without you having to touch anything. Like having someone sit at your computer and do things for you.
 
+**Bun**
+A faster alternative to Node.js, used by some of the assistant's messaging tools. You only need Bun if you plan to connect a messaging channel — **Telegram, WhatsApp, or iMessage**. If you are not using any of those, you can skip Bun entirely. Like Node.js, you never interact with Bun directly — your assistant uses it behind the scenes.
+
 **Chrome / Chromium**
 A web browser. Chrome is the version Google makes. Chromium is the open-source version it is built on. When your assistant automates your browser, it usually opens a Chromium window.
 
