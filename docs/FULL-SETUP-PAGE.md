@@ -686,6 +686,28 @@ Ask your assistant: *"Show me my Jotform forms"* or *"How many submissions did t
 
 ---
 
+### More Connectors — Set Up After the Workshop
+
+The tools above cover the most common setups. Once you are up and running, your assistant can also connect to:
+
+| Tool | What It Plugs Into | Guide |
+|---|---|---|
+| **HubSpot** | CRM — contacts, deals, companies, notes | [HUBSPOT-SETUP.md](HUBSPOT-SETUP.md) |
+| **GoHighLevel** | All-in-one CRM and marketing platform | [GHL-SETUP.md](GHL-SETUP.md) |
+| **Stripe** | Payments, invoices, subscriptions, refunds | [STRIPE-SETUP.md](STRIPE-SETUP.md) |
+| **Xero** | Accounting — invoices, contacts, P&L | [XERO-SETUP.md](XERO-SETUP.md) |
+| **QuickBooks** | Accounting — invoices, customers, P&L | [QUICKBOOKS-SETUP.md](QUICKBOOKS-SETUP.md) |
+| **Shopify** | Online store — products, orders, inventory | [SHOPIFY-SETUP.md](SHOPIFY-SETUP.md) |
+| **Square** | Payments, orders, customers, bookings | [SQUARE-SETUP.md](SQUARE-SETUP.md) |
+| **GitHub** | Repos, issues, pull requests, CI status | [GITHUB-SETUP.md](GITHUB-SETUP.md) |
+| **CircleCI** | Build pipelines, logs, flaky tests | [CIRCLECI-SETUP.md](CIRCLECI-SETUP.md) |
+| **Notion** | Pages, databases, notes | [NOTION-SETUP.md](NOTION-SETUP.md) |
+| **Google Chat** | Google Workspace messaging | [GOOGLE-CHAT-SETUP.md](GOOGLE-CHAT-SETUP.md) |
+
+Not sure which ones to connect? Ask your assistant: *"What connectors should I set up for a business like mine?"*
+
+---
+
 ## After Connecting Tools
 
 **Restart Claude Code** to make sure all tools are active.

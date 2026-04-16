@@ -197,4 +197,11 @@ This connector assumes you're using CircleCI's SaaS service at `https://circleci
 
 ---
 
+## Still Having Trouble?
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more fixes, or ask your assistant:
+> "Something went wrong with my CircleCI connection. Help me fix it."
+
+---
+
 *Built by Selr AI — [selrai.com.au](https://selrai.com.au)*
