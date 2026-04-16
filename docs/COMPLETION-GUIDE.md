@@ -164,7 +164,7 @@ More context = better results. Always include:
 The more you tell your assistant, the better it gets. After any conversation, you can say:
 > "Remember that for future — I prefer emails to be under 200 words and always end with a question."
 
-Your assistant will update its memory file and apply it from that point on.
+Your assistant will capture that in its memory automatically and apply it from that point on. You can always check what it remembers by typing `/memory` in a Code session.
 
 ---
 
@@ -200,11 +200,10 @@ Your skills were installed during the workshop setup. They live at `~/.claude/sk
 > "My skills folder is empty. Help me reinstall the workshop skills."
 
 ### "Claude isn't remembering me"
-Check your memory file exists:
-```bash
-cat ~/my-assistant/memory/USER.md
-```
-If it says "status: not-yet-onboarded", start a new conversation and your assistant will run the onboarding questions again.
+Ask your assistant directly in the chat:
+> "What do you know about me?"
+
+If the answer comes back blank or wrong, say: *"I haven't been onboarded yet — please run the setup questions again."* Your assistant will kick off the 7 onboarding questions. You can also type `/memory` in a Code session to see exactly what Claude has stored.
 
 ### "Google Workspace isn't connecting"
 Your assistant can help you set this up — just ask in the Claude chat:
