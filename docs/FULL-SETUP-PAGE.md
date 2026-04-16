@@ -85,21 +85,35 @@ Done when: You see the main Claude window and can start a new chat.
 4. Click **Next** through every screen — all default settings are fine
 5. Click **Install**, then **Finish**
 
-### Your assistant will finish the Git setup for you
+### Close and reopen Claude Desktop after installing Git
 
-You don't need to edit Windows environment variables yourself. When you paste the bootstrap prompt in Step 5, your assistant detects whether Git is available and walks you through any remaining PATH fix in plain English — one step at a time, asking for admin access only if it needs to.
+**This step is not optional.** Windows only picks up the new Git location in Claude Desktop's terminal after a full restart of the app. Completely quit Claude Desktop (don't just minimise) and reopen it before you move on.
 
-If Git's own installer already added itself to your PATH, you're done. If not, Claude will handle it later with a single PowerShell command — no Environment Variables dialog required.
-
-### Verify It Worked (Optional — Claude will do this for you)
-
-If you want to check now:
+### Verify It Worked
 
 1. Open **Claude Desktop**, start a new **Code** session, and show the terminal panel at the bottom (use the View menu if you don't see it)
 2. Type: `git --version`
 3. You should see something like: `git version 2.43.0.windows.1`
 
-If you see "git is not recognized", skip ahead — Claude will fix it for you in Step 5.
+If you see `git is not recognized`, the installer didn't add Git to your system PATH. Follow the fallback below.
+
+### Fallback — If Git still isn't recognised after restarting Claude Desktop
+
+Some Git installers do not add themselves to the system PATH. If the verification above failed, add it manually. The assistant cannot fix this for you — `git` must be available before the bootstrap can run its first command.
+
+1. Press the **Windows key** on your keyboard
+2. Type: **Environment Variables**
+3. Click **"Edit the system environment variables"**
+4. Click the **"Environment Variables"** button at the bottom of the window
+5. In the bottom section (System variables), find the row called **Path** and click it
+6. Click **Edit**
+7. Click **New**
+8. Type exactly: `C:\Program Files\Git\cmd`
+9. Click **OK**, **OK**, **OK** to close all windows
+10. **Completely quit Claude Desktop and reopen it** — the PATH change only takes effect in new processes
+11. Re-run `git --version` in a new Code session to confirm
+
+> **Why can't Claude fix this itself?** If `git` isn't on the PATH when Claude Desktop starts, the assistant's first command (`git clone …`) fails before the conversation can even begin. There's no in-session fix — the app has to restart with the new PATH before anything else works.
 
 ---
 
@@ -701,7 +715,7 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 
 | Problem | Solution |
 |---|---|
-| "git is not recognized" (Windows) | Install [Git for Windows](https://git-scm.com/download/win) with default settings, close and reopen Claude Desktop, then tell your assistant to retry. If Git's installer didn't add itself to the PATH, your assistant will fix the PATH for you. |
+| "git is not recognized" (Windows) | Install [Git for Windows](https://git-scm.com/download/win), then **fully quit and reopen Claude Desktop** (required — the new PATH only applies to Claude Desktop after a restart). If it still isn't recognised, Git's installer didn't add itself to PATH — follow the [Fallback section](#fallback--if-git-still-isnt-recognised-after-restarting-claude-desktop) above, then restart Claude Desktop again. |
 | Mac popup: "command line tools are required" | Click **Install** (NOT "Get Xcode") and wait 3–5 minutes. Your assistant pauses until the install finishes. |
 | Claude Desktop sign-in loop | Sign out of claude.ai in your browser, then sign in again inside Claude Desktop. If the loop continues, restart the app. |
 | Skills not showing up | Close Claude Desktop completely and reopen it. Skills load on fresh start. |

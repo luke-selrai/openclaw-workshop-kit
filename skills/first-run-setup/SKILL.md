@@ -219,16 +219,29 @@ When a Windows user hits one of the snags below, the assistant fixes it conversa
 
 **`'git' is not recognized` after the user has installed Git for Windows**
 
-Almost always a PATH problem — the Git installer is supposed to add `C:\Program Files\Git\cmd` to the System PATH but does not always succeed. Fix by editing the PATH directly:
+This is a PATH problem — the Git installer is supposed to add `C:\Program Files\Git\cmd` to the System PATH but does not always succeed.
 
-1. Tell the user: "The Git install completed but Windows cannot find it yet. I'm going to add it to your PATH so every terminal can see it — this takes about 30 seconds."
+**Important — you (the assistant) cannot run the fix mid-conversation and have it take effect immediately.** Claude Desktop's terminal inherits the Windows environment at launch time. A PATH change made via PowerShell writes to the registry but does NOT update the currently-running Claude Desktop process. The user must fully quit and reopen Claude Desktop before `git` becomes available.
+
+Two paths forward, in this order:
+
+**Path A — Try the PowerShell fix (fast, needs admin):**
+
+1. Tell the user: "Windows can't find Git yet. I'm going to add it to your PATH — this takes about 30 seconds, but you'll need to fully quit and reopen Claude Desktop afterwards for the change to take effect."
 2. Run (in PowerShell):
    ```powershell
    [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Git\cmd", [EnvironmentVariableTarget]::Machine)
    ```
-   This needs administrator privileges. If it fails with an access-denied error, tell the user: "I need to do this with administrator access. Please right-click Claude Desktop, choose Run as Administrator, then come back and tell me you are ready." After they reopen as admin, retry.
-3. Tell the user: "I added it to your PATH. Please close Claude Desktop completely and reopen it — the new PATH will not be picked up until Claude Desktop restarts. Come back and tell me you are ready."
-4. Verify with `git --version` after they return.
+   This needs administrator privileges.
+3. If it succeeds: tell the user: "Done. Please fully quit Claude Desktop (not minimise — actually close it) and reopen it, then come back and tell me you're ready. The new PATH only applies to Claude Desktop after a restart."
+4. If it fails with an access-denied error, admin is required and likely not available. Fall through to Path B.
+5. After the user restarts Claude Desktop, verify with `git --version`.
+
+**Path B — Send the user to the manual fallback in the setup docs:**
+
+If Path A fails or admin isn't available, tell the user: "Windows needs me to use the Environment Variables dialog to fix this, but I don't have admin access from here. The setup guide has a step-by-step fallback for exactly this situation — open the guide, find the section titled **Fallback — If Git still isn't recognised after restarting Claude Desktop** in the Windows Users Only — Install Git section, and follow those 11 steps. Come back and tell me when `git --version` works."
+
+**Do not tell the user you've 'fixed' their PATH and then try to run `git clone` in the same session — the current session cannot see the new PATH until Claude Desktop restarts. Always ask them to restart before you continue.**
 
 If Git is installed in a non-default location, substitute the actual path. Check with `dir "C:\Program Files\Git\cmd"` first if uncertain.
 
