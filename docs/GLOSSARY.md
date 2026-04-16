@@ -48,8 +48,8 @@ A website where developers store and share collections of files. Like Google Dri
 **MCP (Model Context Protocol)**
 A way to connect Claude Code to external tools and apps — Gmail, Calendar, Notion, your CRM, etc. When you add an MCP, you are giving Claude a new connection to the outside world. You do not need to understand the technical details; just know it is how Claude connects to your apps.
 
-**Memory File**
-A file your assistant reads at the start of every conversation to remember who you are. Stored at `~/my-assistant/memory/USER.md`. Think of it as your assistant's notepad about you.
+**Memory (auto-memory)**
+Claude's built-in system for remembering things across conversations. It stores facts you've shared — your name, business, preferences — and surfaces them automatically every time you chat. You can view or edit it by typing `/memory` in a Code session. Your memory stays on your computer; nothing is sent to anyone except in the normal flow of conversation with Claude.
 
 **Node.js**
 Software that lets JavaScript (a programming language) run on your computer. Claude Code needs it to run. You will never need to interact with it directly — the setup script installs it automatically.

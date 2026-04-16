@@ -117,27 +117,29 @@ If you see `v16.x.x` or lower, update Node.js:
 
 ### "Claude isn't remembering me between sessions"
 
-Tell your assistant:
+Ask your assistant directly:
 
-> "Please check your memory notes and tell me what you know about me."
+> "What do you know about me?"
 
 If nothing is saved, say: *"Please run the onboarding questions again so you can learn about my business."*
+
+You can also type `/memory` in a Code session to see exactly what Claude has stored — this is Claude's built-in memory view and covers everything it remembers across conversations.
 
 ---
 
 ### "I already did onboarding but Claude is asking me again"
 
-This is normal if your Code session is pointing at a different folder. In Claude Desktop, start a new Code session, click the folder icon, and pick `~/my-assistant/`. That's where your memory and instructions live.
+This is normal if your Code session is pointing at a different folder. In Claude Desktop, start a new Code session, click the folder icon, and pick `~/my-assistant/`. That's where your assistant's instructions (`CLAUDE.md`) live. Memory itself is managed by Claude and follows you across sessions.
 
 ---
 
 ### "Claude seems to have forgotten what I told it"
 
-Ask your assistant to check its own memory:
+Ask your assistant directly:
 
-> "Read my user profile and tell me what you know about me and my business."
+> "What do you know about me and my business?"
 
-If something is missing, just tell it again — it will update its memory file right away.
+If something is missing or wrong, just tell it again — Claude's memory updates automatically. For a technical view of what's stored, type `/memory` in a Code session.
 
 ---
 
