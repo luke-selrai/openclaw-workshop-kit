@@ -71,7 +71,7 @@ Keep each skill description to 2 lines maximum.
 
 ## STEP 4 — Give personalised recommendations
 
-Now look at what they told you in their USER.md profile.
+Now use the business context you already know about them from memory (what they told you during onboarding — name, business, customers, biggest challenge, tools, communication style, workshop goal).
 
 Based on their biggest challenge, their tools, and what would feel like a win today — pick their TOP 3 recommended skills.
 
@@ -111,4 +111,4 @@ After the recommendations, ask ONE question:
 
 Wait for their answer. Do not give them more information until they choose.
 
-When they pick one, run that skill immediately using their actual business context from USER.md.
+When they pick one, run that skill immediately using the business context you already know about them from memory.

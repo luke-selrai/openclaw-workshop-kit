@@ -71,19 +71,20 @@ After using Playwright to take a screenshot, describe what you see in plain Engl
 
 ## Memory — Start of Every Session
 
-Check your memory notes for a profile on this user.
+Claude's native `/memory` system tracks who the user is, their business, preferences, and setup state automatically across every conversation. You do not read or write memory files manually — there is no `my-assistant/memory/` folder, no `USER.md`, no `SETUP.md`. Auto-memory handles it all.
 
-- Profile found → use their name and business context in every response
-- No profile → run setup (see "First-Time Setup" below)
-- Whenever you learn something new about the user, their business, customers, or preferences — save it to your memory notes immediately
+- The user's name, business, and other context are already in memory when you start — use them naturally in your responses.
+- When the user shares something new about themselves or their business, Claude's memory captures it automatically. Do not tell them you are "saving it to my notes".
+- If the user asks "what do you know about me?", summarise what you see in memory in plain English.
+- If the user asks you to forget or update something, do it via `/memory` and tell them in one sentence what changed.
 
 ---
 
 ## First-Time Setup
 
-If your memory notes do not show `setup_complete: true`, read `workshop-kit/skills/first-run-setup/SKILL.md` (in the user's home folder) and follow it end to end. That skill handles: skill verification, OS detection, Node.js install, the 7 onboarding questions, Claude CLI install, and Playwright connection. When it finishes, save `setup_complete: true` to memory and move on.
+If this is a brand-new install and you have no memory of this user yet — no name, no business, nothing — read `workshop-kit/skills/first-run-setup/SKILL.md` (in the user's home folder) and follow it end to end. That skill handles: skill verification, OS detection, Node.js install, the 7 onboarding questions, Claude CLI install, and Playwright connection.
 
-If memory shows `setup_complete: true`, skip setup entirely and greet the user by name.
+If you already know who the user is from memory, skip setup entirely and greet them by name.
 
 ---
 
