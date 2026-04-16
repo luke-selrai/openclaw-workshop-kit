@@ -44,9 +44,9 @@ Organised by what they do for your business:
 │                    │  product-appeal-analyzer, brainstorming    │
 │                    │  tech-entrepreneur-coach-adhd              │
 ├────────────────────┼────────────────────────────────────────────┤
-│  STRATEGY &        │  systems-thinking, writing-plans           │
-│  PLANNING          │  plan-ceo-review, plan-eng-review          │
-│                    │  task-decomposer, personal-finance-coach   │
+│  STRATEGY &        │  systems-thinking, plan-ceo-review         │
+│  PLANNING          │  plan-eng-review, task-decomposer          │
+│                    │  personal-finance-coach                    │
 │                    │  ai-product, analytics-product             │
 ├────────────────────┼────────────────────────────────────────────┤
 │  AI & AUTOMATION   │  agent-creator, mcp-creator                │

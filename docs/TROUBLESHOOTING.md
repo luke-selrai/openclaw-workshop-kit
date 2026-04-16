@@ -283,7 +283,7 @@ Copy the full red error text and tell your assistant:
 
 > "I got this error. Please help me fix it step by step: [paste the error]"
 
-Your assistant's `systematic-debugging` skill will walk you through diagnosing and fixing it in plain English.
+Your assistant will walk you through diagnosing and fixing it in plain English, step by step. (If you have the Superpowers plugin installed, it uses `superpowers:systematic-debugging` for a more rigorous diagnosis.)
 
 ---
 

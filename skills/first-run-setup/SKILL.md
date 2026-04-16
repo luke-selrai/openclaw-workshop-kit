@@ -189,7 +189,7 @@ Use skills: `copywriting`, `email-composer`, `avoid-ai-writing`
 
 **Too busy/overwhelmed:**
 > "Let me map out which tasks in your business I could take off your plate this week."
-Use skills: `brainstorming`, `writing-plans`
+Use skills: `brainstorming`. If the user has the Superpowers plugin installed, follow on with `superpowers:writing-plans` to produce the formal plan; otherwise walk the plan through in plain conversation and offer to install Superpowers later.
 
 ---
 
