@@ -253,11 +253,15 @@ For the full guide: [docs/IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
 
 ### "Claude says I've hit my usage limit"
 
-Claude Max has a usage cap that resets roughly every 5 hours. When you hit it, your assistant stops mid-task with a message like *"You've reached your usage limit. Try again at 3:42pm."* This is normal — it does not mean anything is broken, and you have not lost any of your work or your memory.
+Claude Max has a usage cap that resets roughly every 5 hours. When you hit it, your assistant stops mid-task with a message like *"You've reached your usage limit. Try again at 3:42pm."* This is normal — it does not mean anything is broken, and your memory (everything Claude knows about you and your business) stays intact across the cooldown. If your assistant was halfway through a task when it stopped, ask it to summarise what it had finished and what was still in progress before you decide what to do next — partial work like a half-written file or a half-filled form may need picking up after the reset.
 
 **What's happening**
 
-Anthropic limits how much Claude any single account can use in a 5-hour window so that all paying subscribers get a fair share of capacity. Long, heavy conversations (lots of file reading, browser automation, big web searches) use up the cap faster than short chats. Once you hit the cap, the same Claude Max account is paused on every device until the cooldown ends.
+Anthropic limits how much Claude any single account can use in a 5-hour window so that all paying subscribers get a fair share of capacity. Long, heavy conversations (lots of file reading, browser automation, big web searches) use up the cap faster than short chats. The cooldown applies to the Claude model you were using (usually Opus) on every device signed into your account — switching to a less-heavy model like Sonnet (see option 2 below) usually still works during the cooldown.
+
+**A note on the weekly cap**
+
+Since August 2025, Claude Max also has a **weekly cap** on top of the 5-hour one. Most workshop users never hit it, but heavy users — running long automations every day, or sharing an account across a team — sometimes do. If the message Claude shows you mentions a *weekly* limit rather than a 5-hour reset, the wait is longer (usually until the start of the next week). The same fixes below still apply.
 
 **What to do — pick whichever fits**
 
