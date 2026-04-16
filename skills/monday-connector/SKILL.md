@@ -83,7 +83,7 @@ Tell the user (one instruction at a time, waiting for confirmation between each)
 Common mistakes to look out for (and correct by re-asking):
 - The user pasted a placeholder like `your_token_here` → ask again: "I think that was a copy mistake — please try the real value. It's a long string of letters and numbers."
 - The user pasted something clearly too short (under 40 characters) → "That doesn't look like the full key. Can you go back and copy it all? It's quite long."
-- The user says they can't find **Developers** in the profile menu → ask them to open `monday.com/developers/apps` directly in a new tab.
+- The user says they can't find **Developers** in the profile menu → "No problem — I'll send you a direct link to the Developers page." Then provide a clickable link rather than a raw path.
 
 ### Step 3 — Save the connection
 
@@ -126,7 +126,7 @@ Merge your chosen option into the existing `mcpServers` object rather than overw
 
 **Optional flags** (Local transport only — hosted doesn't accept CLI flags):
 - `"--read-only"` — locks the connector to read-only operations. Recommended for first-time users or shared machines.
-- `"--enable-dynamic-api-tools", "true"` — exposes the full monday.com GraphQL surface (listing boards/workspaces, reading `me`, etc.). Enable this when the user wants anything beyond the 17 typed tools.
+- `"--enable-dynamic-api-tools", "true"` — exposes the full monday.com GraphQL surface (listing boards/workspaces, reading `me`, etc.). Enable this when the user wants anything beyond the 14 typed tools.
 
 > ⚠️ **`--read-only` and `--enable-dynamic-api-tools` are mutually exclusive.** Dynamic API Tools require full API access and will not work in read-only mode. Pick one or the other — never both. If the user asks for both, pick read-only and tell them they can re-enable Dynamic Tools later when they're comfortable with write access.
 
@@ -159,7 +159,7 @@ Tell the user, in one short message:
 
 ## PHASE 2 — Use Tools
 
-Once the connector is configured, use the `mcp__monday__*` MCP tools below to answer questions and make changes in monday.com. The `@mondaydotcomorg/monday-api-mcp` server provides **~17 typed tools** covering the most common operations, plus **3 optional Dynamic API Tools** (enabled via `--enable-dynamic-api-tools true`) for arbitrary GraphQL.
+Once the connector is configured, use the `mcp__monday__*` MCP tools below to answer questions and make changes in monday.com. The `@mondaydotcomorg/monday-api-mcp` server provides **14 typed tools** covering the most common operations, plus **3 optional Dynamic API Tools** (enabled via `--enable-dynamic-api-tools true`) for arbitrary GraphQL.
 
 ### Tool Reference
 

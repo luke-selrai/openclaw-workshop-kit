@@ -125,11 +125,11 @@ This is a safe way to try the connector for the first time, or to use it on a sh
 
 ## Unlock the Full monday.com API (Local option only, advanced)
 
-The connector ships with 17 common tools out of the box. To unlock the full monday.com GraphQL API — listing workspaces, reading docs, archiving/duplicating items, fetching update history, etc. — tell your assistant:
+The connector ships with 14 typed tools out of the box plus 3 dynamic tools for advanced use. To unlock the full monday.com GraphQL API — listing workspaces, reading docs, archiving/duplicating items, fetching update history, etc. — tell your assistant:
 
 > "Enable the full monday API tools"
 
-Your assistant will update the connection settings. Only available with the **Local** setup option. This is optional and only recommended if you hit a request the 17 default tools don't cover.
+Your assistant will update the connection settings. Only available with the **Local** setup option. This is optional and only recommended if you hit a request the 14 default typed tools don't cover.
 
 > ⚠️ **You cannot combine read-only mode with the full API tools.** Pick one or the other. The full API tools need write access to function. If you want both safety and advanced features, start in read-only mode and switch to full tools once you are comfortable.
 
@@ -153,7 +153,7 @@ A column was renamed or deleted since your assistant last looked at the board. J
 Make sure you restarted Claude Code after the initial setup. The connection only activates after a restart.
 
 ### "I can't find the Developers menu"
-Click your profile picture (bottom-left) and look for **Developers** in the menu. If it's not there, open https://monday.com/developers/apps directly in your browser.
+Click your profile picture (bottom-left) and look for **Developers** in the menu. If it's not there, try opening the monday.com Developers page directly in your browser.
 
 ### Need to switch monday.com accounts
 Sign in to the other account, copy a Personal API Token from its Developers page, and tell your assistant: *"I want to switch to a different monday.com account."* They will walk you through updating the connection.
@@ -166,7 +166,7 @@ Sign in to the other account, copy a Personal API Token from its Developers page
 - The token can be regenerated at any time from monday.com → Developers → My Access Tokens (regenerating will invalidate the old one)
 - Your assistant will always confirm with you before creating, updating, moving, or deleting records
 - No OAuth, no browser redirects, no client secrets — just a single personal token
-- The connection uses the official `@mondaydotcomorg/monday-api-mcp` server maintained by monday.com
+- The connection uses the official `@mondaydotcomorg/monday-api-mcp` server maintained by monday.com — see [monday MCP documentation](https://support.monday.com/hc/en-us/articles/28588158981266-Get-started-with-monday-MCP) and the [GitHub repo](https://github.com/mondaycom/mcp)
 - Personal tokens inherit your user's permissions — if you can't do something in the monday.com UI, your assistant can't either
 
 ---

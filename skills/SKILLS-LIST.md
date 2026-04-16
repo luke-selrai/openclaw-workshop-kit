@@ -95,26 +95,6 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `typescript-advanced-patterns` | Advanced TypeScript for production codebases | "Improve my TypeScript types" | DEV-ONLY |
 | `verification-before-completion` | Verify work before claiming done | "Verify this implementation is correct" | ADVANCED |
 
-## Integrations & Connectors
-
-| Skill | What It Does | Example Prompt | Tier |
-|---|---|---|---|
-| `aws-connector` | Install and configure the AWS CLI | "Set up AWS on my computer" | ADVANCED |
-| `azure-connector` | Install and configure the Azure CLI | "Set up Azure on my computer" | ADVANCED |
-| `connector-recommender` | Recommends which connectors to install based on your business | "Which connectors should I set up?" | CORE |
-| `gcloud-connector` | Install and configure the Google Cloud CLI | "Set up Google Cloud on my computer" | ADVANCED |
-| `ghl-connector` | GoHighLevel CRM — contacts, pipelines, calendar, payments | "Move this deal to Proposal Sent in GHL" | CORE |
-| `google-chat-connector` | Read and post to Google Chat spaces | "Post an update to our team chat" | ADVANCED |
-| `hubspot-connector` | HubSpot CRM — contacts, companies, deals, tickets | "List my open deals in HubSpot" | CORE |
-| `monday-connector` | monday.com — boards, items, columns, comments, users | "Create an item on the Roadmap board" | CORE |
-| `notion-connector` | Notion — pages, databases, blocks | "Add a task to my Notion project database" | CORE |
-| `outlook-connector` | Microsoft Outlook — email and calendar | "Draft a reply to my latest email" | CORE |
-| `quickbooks-connector` | QuickBooks — invoices, expenses, reports | "Show me this month's P&L from QuickBooks" | CORE |
-| `shopify-connector` | Shopify — products, orders, customers | "Show me today's Shopify orders" | CORE |
-| `stripe-connector` | Stripe — payments, customers, subscriptions | "Show me this week's Stripe revenue" | CORE |
-| `whatsapp-connector` | WhatsApp — read and reply to messages | "Reply to the last WhatsApp message" | CORE |
-| `xero-connector` | Xero accounting — invoices, bills, contacts | "Show me unpaid invoices in Xero" | CORE |
-
 ## Process
 
 | Skill | What It Does | Example Prompt | Tier |
