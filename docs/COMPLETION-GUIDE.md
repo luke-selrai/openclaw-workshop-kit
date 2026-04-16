@@ -190,33 +190,11 @@ Your assistant uses `/schedule` and `/loop` to run these automatically.
 
 ---
 
-## Troubleshooting Common Issues
+## Troubleshooting
 
-### "Claude says it can't find my skills"
-```bash
-ls ~/.claude/skills/
-```
-Your skills were installed during the workshop setup. They live at `~/.claude/skills/`. If the folder is empty, ask your assistant for help:
-> "My skills folder is empty. Help me reinstall the workshop skills."
+If something isn't working, see the full troubleshooting guide: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
-### "Claude isn't remembering me"
-Ask your assistant directly in the chat:
-> "What do you know about me?"
-
-If the answer comes back blank or wrong, say: *"I haven't been onboarded yet — please run the setup questions again."* Your assistant will kick off the 7 onboarding questions. You can also type `/memory` in a Code session to see exactly what Claude has stored.
-
-### "Google Workspace isn't connecting"
-Your assistant can help you set this up — just ask in the Claude chat:
-> "Google Workspace isn't working. Help me reconnect it."
-
-### "Something broke and I don't know what"
-Tell your assistant:
-> "Something broke. Here's the error: [paste the red error text]. Help me fix it step by step."
-
-Your `systematic-debugging` skill handles this — your assistant will walk you through diagnosing and fixing it in plain English.
-
-### "I forgot how to start my assistant"
-Open Claude Desktop → start a new Code session → click the folder icon at the top and pick `~/my-assistant/`. Your assistant loads automatically. Put a sticky note on your monitor if needed!
+Or just ask your assistant: *"Something broke. Here's the error: [paste the error]. Help me fix it."*
 
 ---
 
