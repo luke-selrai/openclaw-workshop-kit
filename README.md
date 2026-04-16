@@ -34,8 +34,8 @@ It is built on [Claude Code](https://claude.ai/claude-code) by Anthropic — the
 Your Laptop
     └── Claude Desktop (the app you chat with)
          └── Your AI Assistant (inside Claude Desktop)
-              ├── CLAUDE.md (your assistant's instructions + memory loader)
-              ├── memory/ (saves what it learns about you)
+              ├── CLAUDE.md (your assistant's instructions)
+              ├── Auto-memory (remembers you across conversations, via /memory)
               ├── skills/ (<!-- skills-audit:total -->106<!-- /skills-audit:total --> specialist skills)
               └── Playwright (browser remote control)
 ```
@@ -256,7 +256,7 @@ Full guide: [docs/COMPLETION-GUIDE.md](docs/COMPLETION-GUIDE.md)
 ## Common Questions
 
 **Is my data private?**
-Yes. Your memory files (`~/my-assistant/memory/`) live on your computer only. Nothing is sent to a third party except your conversations with Claude (which go to Anthropic, same as using claude.ai normally).
+Yes. Your CLAUDE.md and Claude's auto-memory (viewable with `/memory`) live on your computer only. Nothing is sent to a third party except your conversations with Claude (which go to Anthropic, same as using claude.ai normally).
 
 **What does it cost after the workshop?**
 Claude Max is $100 USD/month (~$155 AUD). That is the only required cost. Everything else in this kit is free.

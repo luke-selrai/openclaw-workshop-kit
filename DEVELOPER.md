@@ -23,11 +23,8 @@ claude-workshop-kit/
 ├── README.md                        # End-user quickstart
 │
 ├── my-assistant/                    # THIS is what gets copied to ~/my-assistant/
-│   ├── CLAUDE.md                    # AI agent brain — onboarding + demo agent
-│   └── memory/
-│       ├── USER.md                  # Onboarding placeholder (status: not-yet-onboarded)
-│       ├── SETUP.md                 # Setup status tracker
-│       └── MEMORY.md               # Persistent memory across conversations
+│   └── CLAUDE.md                    # AI agent brain — onboarding + demo agent
+│                                     # (memory is handled by Claude's native /memory — no workshop-managed files)
 │
 ├── skills/                          # <!-- skills-audit:total -->106<!-- /skills-audit:total --> bundled business skills
 │   ├── [<!-- skills-audit:core -->22<!-- /skills-audit:core --> CORE skills]             # Surfaced to all attendees via skills-discovery
@@ -69,7 +66,7 @@ No Node.js or Git pre-install needed on Mac. Windows users only need Git for Win
 **Step 2: Open the workspace**
 
 The user starts a new Code session in Claude Desktop and clicks the folder icon to open `~/my-assistant/`. Claude reads `my-assistant/CLAUDE.md` and the agent takes over:
-1. **Onboarding:** Asks 7 questions about their business, saves to `~/my-assistant/memory/USER.md`
+1. **Onboarding:** Asks 7 questions about their business — answers flow into Claude's native auto-memory (viewable via `/memory`), no workshop-managed files.
 2. **Demo:** Runs a live demo task matched to their stated business challenge
 
 **Key design decisions:**
@@ -151,7 +148,7 @@ For pushing updates to everyone: just commit to `main`. Next time they pull, the
 - **Claude Code** — Anthropic's CLI tool (`@anthropic-ai/claude-code`)
 - **Playwright MCP** — Browser automation (`@playwright/mcp`)
 - **Skills system** — Plain markdown files in `~/.claude/skills/`
-- **Memory system** — Plain markdown files in `~/my-assistant/memory/`
+- **Memory system** — Claude's native auto-memory (managed by Claude, viewable/editable via `/memory`). Workshop kit does NOT manage its own memory files.
 - **CLAUDE.md** — Plain markdown, read by Claude Code on startup
 - **No database, no backend, no build step** — intentionally simple
 
