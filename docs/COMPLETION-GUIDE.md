@@ -10,13 +10,12 @@ If you didn't get through everything today, this guide walks you through complet
 
 Tick these off:
 
-- [ ] VS Code installed
-- [ ] Terminal basics understood
-- [ ] Claude Code installed (`npm install -g @anthropic-ai/claude-code`)
-- [ ] Logged in to Claude (`claude login`)
-- [ ] Workshop kit downloaded (`git clone ...`)
+- [ ] Claude Desktop installed and signed in
+- [ ] New Code session opened in Claude Desktop
+- [ ] Workshop kit downloaded (handled by the bootstrap prompt)
 - [ ] Skills installed (check `~/.claude/skills/`)
 - [ ] Playwright (browser automation) connected
+- [ ] `~/my-assistant/` folder opened in Claude Desktop via the folder icon
 - [ ] Google Workspace connected (Gmail + Calendar) (optional — if you got to it)
 - [ ] Onboarding completed (told your assistant about your business)
 - [ ] Tested a first task with your assistant
@@ -27,14 +26,9 @@ Tick these off:
 
 ### If you didn't finish the install:
 
-**Windows users:** Make sure [Git for Windows](https://gitforwindows.org) is installed first. Then open VS Code, click the Claude icon in the left sidebar, and paste the bootstrap prompt from the workshop page — your assistant walks you through the whole install conversationally, including Node.js install and any Windows-specific snags.
+**Windows users:** Make sure [Git for Windows](https://gitforwindows.org) is installed first. Then open Claude Desktop, start a new Code session, and paste the bootstrap prompt from the workshop page — your assistant walks you through the whole install conversationally, including any Windows-specific snags.
 
-**Mac users:** Open Terminal (press Command + Space, type "Terminal", press Enter) and run:
-
-```bash
-npm install -g @anthropic-ai/claude-code
-claude login
-```
+**Mac users:** Open Claude Desktop, start a new Code session, and paste the bootstrap prompt from the workshop page. If macOS prompts you to install the Xcode Command Line Tools during setup, click **Install** and wait for it to finish — your assistant will pick up from there.
 
 Your skills were installed during the workshop setup. They live at `~/.claude/skills/`
 
@@ -90,7 +84,7 @@ This lets you chat with your assistant from your phone — ask questions, reques
 **Step 1:** Download Telegram on your phone (free) and sign up
 **Step 2:** Search for `@BotFather` in Telegram, send `/newbot`, and follow the prompts to create a bot
 **Step 3:** Copy the bot token BotFather gives you
-**Step 4:** In the VS Code terminal, run: `claude plugin install telegram@claude-plugins-official`
+**Step 4:** In Claude Desktop's terminal (bottom panel of a Code session), run: `claude plugin install telegram@claude-plugins-official`
 **Step 5:** Save your token: `/telegram:configure [your token]`
 **Step 6:** Install Bun (required): Mac/Linux: `curl -fsSL https://bun.sh/install | bash` — Windows: `powershell -c "irm bun.sh/install.ps1 | iex"`
 **Step 7:** Restart Claude Code with: `claude --channels plugin:telegram@claude-plugins-official`
@@ -112,12 +106,12 @@ Your assistant connects to WhatsApp via QR code — no Business API needed.
 If you're on a Mac, you can use iMessage instead — no extra apps, no bots, just text yourself.
 
 **Step 1:** Install Bun (required): `curl -fsSL https://bun.sh/install | bash`
-**Step 2:** Grant Full Disk Access to your terminal (System Settings → Privacy & Security → Full Disk Access)
-**Step 3:** In the VS Code terminal, run: `claude plugin install imessage@claude-plugins-official`
+**Step 2:** Grant Full Disk Access to Claude Desktop (System Settings → Privacy & Security → Full Disk Access → add Claude)
+**Step 3:** In Claude Desktop's terminal (bottom panel of a Code session), run: `claude plugin install imessage@claude-plugins-official`
 **Step 4:** Restart Claude Code with: `claude --channels plugin:imessage@claude-plugins-official`
 **Step 5:** Open Messages and text yourself — your assistant replies instantly
 
-> The first reply triggers a macOS prompt: "Terminal wants to control Messages." Click **OK** to allow replies.
+> The first reply triggers a macOS prompt: "Claude wants to control Messages." Click **OK** to allow replies.
 
 > For the full guide with troubleshooting, see [IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
 
@@ -223,10 +217,7 @@ Tell your assistant:
 Your `systematic-debugging` skill handles this — your assistant will walk you through diagnosing and fixing it in plain English.
 
 ### "I forgot how to start my assistant"
-```bash
-cd ~/my-assistant && claude
-```
-That's the only command you need to remember. Put a note on your monitor if needed!
+Open Claude Desktop → start a new Code session → click the folder icon at the top and pick `~/my-assistant/`. Your assistant loads automatically. Put a sticky note on your monitor if needed!
 
 ---
 

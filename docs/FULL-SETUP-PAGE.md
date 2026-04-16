@@ -8,7 +8,7 @@ date: 2026-03-27
 
 > **Keep this page open on your screen throughout the setup.** Everything you need is right here.
 
-Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->105<!-- /skills-audit:total --> specialist skills built in.
+Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->106<!-- /skills-audit:total --> specialist skills built in.
 
 ---
 
@@ -18,7 +18,7 @@ Today you are setting up a personal AI assistant that lives on YOUR computer. It
 |---|---|
 | **Your AI Assistant** | Runs locally on your computer. Knows your business. |
 | **Browser Control** | Can open websites and automate tasks for you |
-| **<!-- skills-audit:total -->105<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
+| **<!-- skills-audit:total -->106<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
 | **Memory System** | Saves what it learns about you and your business |
 
 ---
@@ -46,34 +46,30 @@ Without Claude Max, Claude Code will not work.
 
 ---
 
-## Step 2 — Install VS Code
+## Step 2 — Install Claude Desktop
+
+Claude Desktop is the app where you will chat with your assistant, open your workspace folder, and run any commands it needs. One download replaces the old "VS Code + extension" setup.
 
 **Mac:**
 
-1. Go to [code.visualstudio.com](https://code.visualstudio.com)
+1. Go to [**claude.ai/download**](https://claude.ai/download)
 2. Click **"Download for Mac"**
-3. Open the downloaded .zip file
-4. Drag **Visual Studio Code** into your **Applications** folder
+3. Open the downloaded `.dmg` file
+4. Drag **Claude** into your **Applications** folder
 5. Open it from Applications
+6. Sign in with the Claude account you just created
 
 **Windows:**
 
-1. Go to [code.visualstudio.com](https://code.visualstudio.com)
+1. Go to [**claude.ai/download**](https://claude.ai/download)
 2. Click **"Download for Windows"**
-3. Run the installer
-4. On the "Select Additional Tasks" screen: make sure **"Add to PATH"** is ticked
-5. Click **Install**, then **Finish**
+3. Run the installer and click through with the default settings
+4. Open **Claude** from the Start menu
+5. Sign in with the Claude account you just created
 
----
+Done when: You see the main Claude window and can start a new chat.
 
-## Step 3 — Install the Claude Code Extension
-
-1. Open VS Code
-2. Click the **Extensions** icon on the left sidebar (it looks like 4 small squares) — or press **Cmd+Shift+X** (Mac) / **Ctrl+Shift+X** (Windows)
-3. In the search box, type: **Claude Code**
-4. Find the result by **Anthropic** and click **Install**
-5. A Claude icon will appear in your left sidebar — click it
-6. Follow the prompts to **sign in** with your Claude account
+> **Prefer VS Code?** The old "VS Code + Claude Code extension" path still works and is supported as an advanced option — see [ADVANCED-VSCODE.md](ADVANCED-VSCODE.md). We don't recommend it for first-time users.
 
 ---
 
@@ -89,9 +85,21 @@ Without Claude Max, Claude Code will not work.
 4. Click **Next** through every screen — all default settings are fine
 5. Click **Install**, then **Finish**
 
-### Fix the PATH (IMPORTANT)
+### Close and reopen Claude Desktop after installing Git
 
-The installer does not always add Git to your system correctly. Do this manually:
+**This step is not optional.** Windows only picks up the new Git location in Claude Desktop's terminal after a full restart of the app. Completely quit Claude Desktop (don't just minimise) and reopen it before you move on.
+
+### Verify It Worked
+
+1. Open **Claude Desktop**, start a new **Code** session, and show the terminal panel at the bottom (use the View menu if you don't see it)
+2. Type: `git --version`
+3. You should see something like: `git version 2.43.0.windows.1`
+
+If you see `git is not recognized`, the installer didn't add Git to your system PATH. Follow the fallback below.
+
+### Fallback — If Git still isn't recognised after restarting Claude Desktop
+
+Some Git installers do not add themselves to the system PATH. If the verification above failed, add it manually. The assistant cannot fix this for you — `git` must be available before the bootstrap can run its first command.
 
 1. Press the **Windows key** on your keyboard
 2. Type: **Environment Variables**
@@ -102,19 +110,10 @@ The installer does not always add Git to your system correctly. Do this manually
 7. Click **New**
 8. Type exactly: `C:\Program Files\Git\cmd`
 9. Click **OK**, **OK**, **OK** to close all windows
+10. **Completely quit Claude Desktop and reopen it** — the PATH change only takes effect in new processes
+11. Re-run `git --version` in a new Code session to confirm
 
-### Close and Reopen VS Code
-
-**You must close VS Code completely and reopen it** for the changes to take effect. Do this now.
-
-### Verify It Worked
-
-1. Open VS Code
-2. Open a terminal: **Terminal** menu → **New Terminal**
-3. Type: `git --version`
-4. You should see something like: `git version 2.43.0.windows.1`
-
-If you still see "git is not recognized", double-check the PATH fix — make sure the path is exactly right.
+> **Why can't Claude fix this itself?** If `git` isn't on the PATH when Claude Desktop starts, the assistant's first command (`git clone …`) fails before the conversation can even begin. There's no in-session fix — the app has to restart with the new PATH before anything else works.
 
 ---
 
@@ -138,11 +137,11 @@ Node.js is needed to connect Gmail, Calendar, and browser automation. **Bun is a
 2. Click the big green button that says **"Download Node.js (LTS)"**
 3. Open the downloaded file
 4. Click **Next**, then **Next**, then **Next**, then **Install**
-5. **Close and reopen VS Code completely** after installing
+5. **Close and reopen Claude Desktop completely** after installing
 
 ### Verify Node.js
 
-1. Open a terminal in VS Code: **Terminal** menu → **New Terminal**
+1. Open Claude Desktop, start a new Code session, and show the terminal at the bottom (View menu if hidden)
 2. Type: `node --version`
 3. You should see a version number like `v22.x.x`
 
@@ -160,7 +159,7 @@ Then close and reopen your terminal.
 ```powershell
 powershell -c "irm bun.sh/install.ps1 | iex"
 ```
-Then close and reopen VS Code.
+Then close and reopen Claude Desktop.
 
 ### Verify Bun
 ```bash
@@ -172,8 +171,8 @@ You should see a version number like `1.x.x`.
 
 ## Step 5 — Paste the Setup Prompt
 
-1. Click the **Claude icon** in the left sidebar
-2. **Copy the entire prompt below** and paste it into the Claude chat
+1. In **Claude Desktop**, start a **new Code session**
+2. **Copy the entire prompt below** and paste it into the chat
 3. Press **Enter** and follow what Claude tells you
 
 ### The Setup Prompt — Copy Everything Below
@@ -189,6 +188,9 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 
    NOTE: On Mac, if a popup appears asking to install developer tools,
    tell me to click "Install" and wait a few minutes before continuing.
+   On Windows, if Git is not recognised, pause and tell me to install
+   Git for Windows from https://git-scm.com/download/win, then to close
+   and reopen Claude Desktop before we continue.
 
 2. Create a folder called "my-assistant" in my home directory.
 
@@ -199,14 +201,16 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
    into ~/.claude/skills/ (create the skills directory if it does not exist).
    Do not copy SKILLS-LIST.md — only the folders.
 
-5. When everything is done, tell me to open the folder "my-assistant" in VS Code:
-   - Mac: Cmd+Shift+P → type "open folder" → navigate to my home folder → my-assistant
-   - Windows: Ctrl+Shift+P → type "open folder" → navigate to C:\Users\[my username]\my-assistant
+5. When everything is done, tell me to start a new Code session in Claude
+   Desktop and click the folder icon at the top to point it at my
+   "my-assistant" folder:
+   - Mac: ~/my-assistant
+   - Windows: C:\Users\[my username]\my-assistant
 
 Talk to me like I am not technical. Plain English, one step at a time.
 ```
 
-**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->105<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
+**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->106<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
 
 ---
 
@@ -214,27 +218,20 @@ Talk to me like I am not technical. Plain English, one step at a time.
 
 After Claude finishes the setup above, it will tell you to open your workspace folder. Here is how:
 
-**Mac:**
-
-1. Press **Cmd+Shift+P**
-2. Type: **open folder**
-3. Navigate to your **home folder** → **my-assistant**
-4. Click **Open**
-
-**Windows:**
-
-1. Press **Ctrl+Shift+P**
-2. Type: **open folder**
-3. Navigate to **C:\Users\[your username]\my-assistant**
+1. In **Claude Desktop**, start a **new Code session**
+2. At the top of the Code session there is a **folder icon**. Click it.
+3. Navigate to your **my-assistant** folder:
+   - **Mac:** `~/my-assistant` (your home folder → my-assistant)
+   - **Windows:** `C:\Users\[your username]\my-assistant`
 4. Click **Open**
 
 **Then:**
 
-1. VS Code will reload with your new workspace
-2. You will see **CLAUDE.md** in the left panel
-3. Click the **Claude icon** in the sidebar
-4. Type **hello** and press Enter
-5. Your assistant will introduce itself, check its tools, and start asking about your business
+1. Claude Desktop will load your workspace — you'll see `CLAUDE.md` in the file list on the left
+2. Type **hello** in the chat and press Enter
+3. Your assistant will introduce itself, check its tools, and start asking about your business
+
+> No keyboard shortcut needed — the folder icon does the whole job.
 
 ---
 
@@ -380,7 +377,7 @@ Close and reopen your terminal after installing.
 
 **Step 3 — Install the Telegram Plugin**
 
-Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run:
+Open Claude Desktop's terminal (the panel at the bottom of a Code session — use the View menu to show it if it's hidden), then run:
 
 ```
 claude plugin install telegram@claude-plugins-official
@@ -434,7 +431,7 @@ Your Mac needs to let Claude Code read your Messages database. The first time it
 
 If the prompt doesn't appear, grant it manually:
 1. Open **System Settings → Privacy & Security → Full Disk Access**
-2. Click the **+** button and add your terminal app (Terminal, iTerm, or VS Code)
+2. Click the **+** button and add the **Claude** app (Claude Desktop)
 3. Toggle it **on**
 
 **Step 2 — Install Bun (Required)**
@@ -450,7 +447,7 @@ Close and reopen your terminal after installing.
 
 **Step 3 — Install the iMessage Plugin**
 
-Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run:
+Open Claude Desktop's terminal (the panel at the bottom of a Code session — use the View menu to show it if it's hidden), then run:
 
 ```
 claude plugin install imessage@claude-plugins-official
@@ -508,7 +505,7 @@ Close and reopen your terminal after installing.
 
 **Step 2 — Install the WhatsApp Channel**
 
-Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run the commands for your shell.
+Open Claude Desktop's terminal (the panel at the bottom of a Code session — use the View menu to show it if it's hidden), then run the commands for your shell.
 
 *Mac / Linux (bash, zsh):*
 ```bash
@@ -701,13 +698,14 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 |---|---|
 | Workshop Kit (GitHub) | [github.com/selrai-company/claude-workshop-kit](https://github.com/selrai-company/claude-workshop-kit) |
 | Claude.ai | [claude.ai](https://claude.ai) |
-| VS Code | [code.visualstudio.com](https://code.visualstudio.com) |
+| Claude Desktop | [claude.ai/download](https://claude.ai/download) |
 | Git for Windows | [git-scm.com/download/win](https://git-scm.com/download/win) |
 | Node.js | [nodejs.org](https://nodejs.org) |
 | Claude Code Docs | [docs.anthropic.com/en/docs/claude-code](https://docs.anthropic.com/en/docs/claude-code) |
 | MCP Documentation | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
 | Selr AI | [selrai.com.au](https://selrai.com.au) |
 | Email Luke | [luke@selrai.com.au](mailto:luke@selrai.com.au) |
+| VS Code (advanced fallback) | [code.visualstudio.com](https://code.visualstudio.com) — see [ADVANCED-VSCODE.md](ADVANCED-VSCODE.md) |
 
 ---
 
@@ -717,15 +715,16 @@ Remotion video, retrospectives, feature manifest, sales automator, technical wri
 
 | Problem | Solution |
 |---|---|
-| "git is not recognized" (Windows) | Go back to the "Windows Users Only" section and follow the PATH fix steps |
-| Skills not showing up | Close VS Code completely and reopen it. Skills load on fresh start. |
+| "git is not recognized" (Windows) | Install [Git for Windows](https://git-scm.com/download/win), then **fully quit and reopen Claude Desktop** (required — the new PATH only applies to Claude Desktop after a restart). If it still isn't recognised, Git's installer didn't add itself to PATH — follow the [Fallback section](#fallback--if-git-still-isnt-recognised-after-restarting-claude-desktop) above, then restart Claude Desktop again. |
+| Mac popup: "command line tools are required" | Click **Install** (NOT "Get Xcode") and wait 3–5 minutes. Your assistant pauses until the install finishes. |
+| Claude Desktop sign-in loop | Sign out of claude.ai in your browser, then sign in again inside Claude Desktop. If the loop continues, restart the app. |
+| Skills not showing up | Close Claude Desktop completely and reopen it. Skills load on fresh start. |
 | Claude keeps asking to set up | Start a new conversation — your assistant will remember your setup status automatically |
-| Claude login loop | Ask your assistant to run: `claude logout` then `claude login` |
-| Mac popup about developer tools | Click "Install" (NOT "Get Xcode") and wait 3–5 minutes |
+| Claude login loop (terminal) | Ask your assistant to run: `claude logout` then `claude login` |
 | Google connected to wrong account | Run `gws auth logout` then `gws auth login` and select the correct account |
 | Outlook not connecting | Run `m365 logout` then `m365 login --authType browser` and select the correct account. See [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md) |
 | Outlook "Access denied" for Teams or SharePoint | Those features may need IT admin approval on work/company accounts. Personal outlook.com accounts have full access. |
-| Node.js "command not found" | Restart VS Code completely, or reinstall from [nodejs.org](https://nodejs.org) |
+| Node.js "command not found" | Restart Claude Desktop completely, or reinstall from [nodejs.org](https://nodejs.org) |
 | Telegram bot not responding | Make sure Claude Code is running with `--channels plugin:telegram@claude-plugins-official`. See [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md) |
 | WhatsApp not connecting | Make sure Claude Code is running with `--dangerously-load-development-channels server:whatsapp`. See [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md) |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |

@@ -6,15 +6,49 @@ Something not working? Find your issue below. Each fix is written in plain Engli
 
 ## Setup Problems
 
-### "I can't find Claude Code in VS Code"
+### "Claude Desktop won't sign me in" / sign-in loop
 
-1. Open VS Code
-2. Click the **Extensions** icon on the left sidebar (it looks like four squares)
-3. Search **"Claude Code"**
-4. Click **Install**
-5. Restart VS Code once it finishes
+This is one of the most common first-launch snags at workshops.
 
-If it still doesn't appear, close VS Code completely and reopen it.
+1. Open a normal browser window and go to [claude.ai](https://claude.ai)
+2. **Sign out** of your Claude account in the browser
+3. Close Claude Desktop completely and reopen it
+4. Sign in again — this time the browser hand-off works cleanly
+5. If it still loops: quit Claude Desktop, delete the app's stored session (Mac: `~/Library/Application Support/Claude/`; Windows: `%APPDATA%\Claude\`), then reopen and sign in
+
+---
+
+### "git is not recognized" on first Windows launch
+
+This is the other common first-launch snag. The bootstrap prompt needs `git` to download the workshop kit, and Windows doesn't ship with it.
+
+**Step 1 — Install Git for Windows**
+
+1. Install [Git for Windows](https://git-scm.com/download/win) with default settings — click **Next** on every screen
+2. **Fully quit Claude Desktop** (not just minimise — actually close it) and reopen it. This step is non-negotiable. Claude Desktop's terminal inherits the Windows PATH at launch, so it can't see a freshly-installed Git until the app restarts.
+3. Paste the bootstrap prompt again — your assistant retries `git --version` and continues from where it stopped.
+
+**Step 2 — If it STILL says "not recognized" after restart**
+
+The Git installer didn't add itself to the system PATH. There are two options:
+
+**Option A (if you have admin access):** Ask your assistant: *"Git installed but Windows still can't find it. Please add it to my PATH."* Your assistant will run one PowerShell command and then tell you to **fully quit and reopen Claude Desktop again** for the change to take effect. If the PowerShell command says "access denied", go to Option B.
+
+**Option B (always works, no admin needed):** Follow the manual walkthrough in [FULL-SETUP-PAGE.md → Windows Users Only → Fallback — If Git still isn't recognised after restarting Claude Desktop](FULL-SETUP-PAGE.md#fallback--if-git-still-isnt-recognised-after-restarting-claude-desktop). It takes about a minute. After finishing the walkthrough, fully quit and reopen Claude Desktop before retrying the bootstrap.
+
+> **Why can't the assistant fix this itself in the same session?** If `git` isn't on the PATH when Claude Desktop started, Claude can't run `git clone` — the very first bootstrap command fails before the conversation can proceed. A PATH change only applies to Claude Desktop after a full restart. There is no in-session recovery.
+
+---
+
+### "Command Line Tools are required" popup on first Mac launch
+
+macOS shows this the first time Claude tries to run `git` on a fresh machine. Do NOT click "Get Xcode" (that's the 10GB full IDE).
+
+1. Click **Install** (the smaller option)
+2. Wait 3–5 minutes for the install to finish
+3. Your assistant pauses until the popup is gone, then continues automatically
+
+If you dismissed the popup by accident, tell your assistant *"please retry"* — it triggers the same popup again.
 
 ---
 
@@ -22,7 +56,7 @@ If it still doesn't appear, close VS Code completely and reopen it.
 
 The bootstrap prompt copies the workshop kit to your computer. If something went wrong:
 
-1. Open VS Code and start Claude Code in the terminal
+1. In Claude Desktop, start a new Code session
 2. Type exactly: `What happened when I ran the setup? Can you check what's installed and what's missing?`
 3. Your assistant will diagnose what's missing and offer to fix it
 
@@ -44,11 +78,11 @@ If the skills are missing, tell your assistant:
 
 ### "Claude says it can't find my CLAUDE.md"
 
-This means Claude Code is not looking in the right folder. Fix it by:
+This means your workspace is pointing at the wrong folder. Fix it by:
 
-1. In VS Code, go to **File → Open Folder**
-2. Navigate to your home folder, then open `my-assistant`
-3. Once that folder is open, start Claude Code in the terminal
+1. In Claude Desktop, start a new Code session
+2. At the top of the session there's a folder icon — click it
+3. Navigate to your home folder, then pick `my-assistant`
 4. Claude will automatically pick up the CLAUDE.md file
 
 ---
@@ -65,17 +99,17 @@ If you see `v16.x.x` or lower, update Node.js:
 1. Go to [nodejs.org](https://nodejs.org)
 2. Download the **LTS** version (the big green button)
 3. Run the installer — it will replace your old version
-4. Close VS Code completely and reopen it
+4. Close Claude Desktop completely and reopen it
 5. Run `node --version` again to confirm it updated
 
 ---
 
-### "I don't know how to open the terminal in VS Code"
+### "I don't know how to open the terminal in Claude Desktop"
 
-- **Mac:** Press `` Ctrl + ` `` (the backtick key, top-left of keyboard)
-- **Windows:** Press `` Ctrl + ` `` or go to **View → Terminal**
-
-The terminal is the black/dark panel that opens at the bottom of VS Code.
+1. In Claude Desktop, start a new **Code session** (not a regular chat)
+2. The terminal is the panel at the bottom of the Code session
+3. If you don't see it, use the **View** menu and turn on the terminal panel
+4. It's the black/dark panel — you paste commands in there when your assistant asks you to
 
 ---
 
@@ -93,7 +127,7 @@ If nothing is saved, say: *"Please run the onboarding questions again so you can
 
 ### "I already did onboarding but Claude is asking me again"
 
-This is normal if you start Claude Code from a different folder. Always open the `~/my-assistant/` folder in VS Code before starting Claude. That's where your memory and instructions live.
+This is normal if your Code session is pointing at a different folder. In Claude Desktop, start a new Code session, click the folder icon, and pick `~/my-assistant/`. That's where your memory and instructions live.
 
 ---
 
@@ -206,7 +240,7 @@ For the full WhatsApp guide: [docs/WHATSAPP-SETUP.md](WHATSAPP-SETUP.md)
 The most common issue is missing permissions. Check:
 
 1. Go to **System Settings → Privacy & Security → Full Disk Access**
-2. Make sure **Terminal** (or **VS Code**) has a tick next to it
+2. Make sure **Claude** (the Desktop app) has a tick next to it
 3. If not, click the lock icon, enter your Mac password, and add the app
 
 For the full guide: [docs/IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
@@ -235,13 +269,9 @@ Your assistant will check all the key parts of your setup and tell you exactly w
 
 ---
 
-### "I forgot the command to start my assistant"
+### "I forgot how to start my assistant"
 
-```bash
-cd ~/my-assistant && claude
-```
-
-That's the only command you need. Bookmark this guide or write it on a sticky note!
+Open **Claude Desktop** → start a new **Code session** → click the **folder icon** and pick `~/my-assistant/`. Your assistant loads automatically. Bookmark this guide or write it on a sticky note!
 
 ---
 
@@ -249,11 +279,10 @@ That's the only command you need. Bookmark this guide or write it on a sticky no
 
 Try restarting from scratch:
 
-1. Close VS Code completely
-2. Reopen VS Code
-3. Open the `~/my-assistant/` folder
-4. Start Claude Code in the terminal
-5. Tell your assistant: *"I had a problem. Can you check that everything is working correctly?"*
+1. Close Claude Desktop completely
+2. Reopen Claude Desktop
+3. Start a new Code session and click the folder icon → pick `~/my-assistant/`
+4. Tell your assistant: *"I had a problem. Can you check that everything is working correctly?"*
 
 Most issues are fixed by a fresh restart.
 

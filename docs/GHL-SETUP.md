@@ -148,8 +148,8 @@ That's by design — the MCP `send_message` tool sends the moment it's called. I
 **"I want to book or cancel a calendar appointment."**
 The official MCP server is read-only for calendar. Your assistant will fall back to opening GHL in a browser for creates and cancellations.
 
-**"My assistant says 'the skill is blocked by VSCode' or similar."**
-Ignore any `allowed-tools` warning from a linter — it's a cosmetic hint, not an error. The skill works normally in Claude Code.
+**"My assistant says 'the skill is blocked' or shows an `allowed-tools` warning."**
+Ignore any `allowed-tools` warning from a linter (whether you see it in Claude Desktop, VS Code, or another editor) — it's a cosmetic hint, not an error. The skill works normally in Claude.
 
 ---
 

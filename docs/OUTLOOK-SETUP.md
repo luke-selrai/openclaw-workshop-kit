@@ -181,7 +181,7 @@ m365 request --url "https://graph.microsoft.com/v1.0/me/events?\$top=5" --method
 |---|---|
 | "m365: command not found" after install | Close and reopen your terminal. On Mac, also run: `export PATH="$(npm prefix -g)/bin:$PATH"` |
 | Node.js version too old | Update from [nodejs.org](https://nodejs.org) — download the LTS version (v22 or v20) |
-| **EPERM / permission denied** during install on Windows | Close VS Code, right-click it → "Run as administrator", reopen, and ask Claude to retry the install |
+| **EPERM / permission denied** during install on Windows | Close Claude Desktop, right-click it → "Run as administrator", reopen, and ask Claude to retry the install |
 | **EACCES** during install on Mac | Avoid using `sudo npm`. Instead install via nvm: `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh \| bash` then `nvm install --lts` and retry |
 | **EINTEGRITY** error during install | npm cache is corrupted. Run `npm cache clean --force` then try again |
 | **ECONNRESET / 403** during install | Your corporate firewall is blocking npmjs.com. Ask IT to allow `registry.npmjs.org:443` |

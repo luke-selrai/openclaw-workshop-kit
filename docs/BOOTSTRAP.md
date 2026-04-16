@@ -10,7 +10,7 @@ This prompt is used by workshop attendees to set up their AI Business Assistant.
 
 ## The Setup Prompt
 
-Copy everything below and paste it into Claude Code:
+Copy everything below and paste it into a new Code session in Claude Desktop:
 
 ---
 
@@ -24,18 +24,23 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 
    NOTE: On Mac, if a popup appears asking to install developer tools,
    tell me to click "Install" and wait a few minutes before continuing.
+   On Windows, if Git is not recognised, pause and tell me to install
+   Git for Windows from https://git-scm.com/download/win, then to close
+   and reopen Claude Desktop before we continue.
 
 2. Create a folder called "my-assistant" in my home directory.
 
 3. Copy this file from the downloaded workshop-kit into my-assistant:
    - workshop-kit/my-assistant/CLAUDE.md → my-assistant/CLAUDE.md
 
-4. Install all <!-- skills-audit:total -->105<!-- /skills-audit:total --> skills: copy every folder from workshop-kit/skills/
+4. Install all <!-- skills-audit:total -->106<!-- /skills-audit:total --> skills: copy every folder from workshop-kit/skills/
    into ~/.claude/skills/ (create the skills directory if it does not exist).
    Do not copy SKILLS-LIST.md — only the folders.
 
-5. When everything is done, tell me to open the folder "my-assistant" in VS Code:
-   - Mac: Cmd+Shift+P → type "open folder" → navigate to my home folder → my-assistant
-   - Windows: Ctrl+Shift+P → type "open folder" → navigate to C:\Users\[my username]\my-assistant
+5. When everything is done, tell me to start a new Code session in Claude
+   Desktop and click the folder icon at the top to point it at my
+   "my-assistant" folder:
+   - Mac: ~/my-assistant
+   - Windows: C:\Users\[my username]\my-assistant
 
 Talk to me like I am not technical. Plain English, one step at a time.

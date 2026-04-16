@@ -28,17 +28,16 @@ The AI made by Anthropic. The most capable AI for writing, research, and busines
 A scheduled task that runs automatically at a set time or interval. Named after the Unix `cron` system. When you use `/schedule`, it creates a cron job behind the scenes. You do not need to understand cron syntax — your assistant handles it.
 
 **Claude Code**
-The version of Claude that runs inside your computer. Much more powerful than the website version — it can install software, connect to your apps, control your browser, and automate tasks. What you are setting up today.
+The version of Claude that runs on your computer. Much more powerful than the website version — it can install software, connect to your apps, control your browser, and automate tasks. You use it through the Claude Desktop app.
+
+**Claude Desktop**
+The Claude app you install on your Mac or Windows computer. The main place you chat with your assistant, open project folders, and run commands. Replaces the old "VS Code + extension" setup. Download from claude.ai/download.
 
 **CLAUDE.md**
-A file that tells Claude who it is, how to behave, and what it can do. Think of it like a job description for your AI assistant. Every time Claude Code starts, it reads this file first.
-
-**Extension (VS Code Extension)**
-An add-on for VS Code — like an app for your app. The Claude Code extension connects Claude AI directly inside VS Code so you can chat with it while looking at your files.
+A file that tells Claude who it is, how to behave, and what it can do. Think of it like a job description for your AI assistant. Every time Claude starts up, it reads this file first.
 
 **Plugin (Claude Plugin)**
-An add-on that gives Claude Code a new capability — like connecting to Telegram, reading iMessages, or integrating with a third-party service. Installed once, then available as a command. Similar to an extension, but specifically for Claude Code's tools and channels.
-An add-on for VS Code — like an app for your app. The Claude Code extension connects Claude AI directly inside VS Code so you can chat with it while looking at your files.
+An add-on that gives your assistant a new capability — like connecting to Telegram, reading iMessages, or integrating with a third-party service. Installed once, then available as a command.
 
 **Git**
 A tool that tracks changes to files and lets you download collections of files from the internet. When you run `git clone`, you are downloading a collection of files — like pressing Download on an app.
@@ -77,7 +76,7 @@ A file that teaches Claude how to do a specific type of task — writing emails,
 A way to securely connect to and control a remote computer (like a server) from your terminal. Like a phone call to your server. Not needed unless you set up a server.
 
 **Terminal**
-A text-based window on your computer where you type instructions. On Mac it is called Terminal. In VS Code, you open it by clicking Terminal → New Terminal. It is not as scary as it looks — you mostly just paste commands that your assistant or workshop guide gives you.
+A text-based window on your computer where you type instructions. In Claude Desktop, you open it from the bottom panel of a Code session. It is not as scary as it looks — you mostly just paste commands that your assistant or workshop guide gives you.
 
 **Token (AI)**
 A unit of text that AI processes — roughly 3–4 characters, or about ¾ of a word. "Claude is running out of tokens" means the conversation is getting too long and you should start a new one. Longer conversations cost more.
@@ -86,7 +85,7 @@ A unit of text that AI processes — roughly 3–4 characters, or about ¾ of a 
 A password-like code that gives access to a service. When BotFather gives you a "bot token," it is a secret code that lets Claude control your Telegram bot. Treat it like a password — never share it.
 
 **VS Code (Visual Studio Code)**
-A free app made by Microsoft. It is where you will chat with your AI assistant, see your files, and run your terminal. Think of it like a supercharged Notepad — most professional developers and AI users work in it.
+A free code editor made by Microsoft. Used to be the primary way to run Claude on your computer (via the Claude Code extension). No longer required — Claude Desktop replaces it. Still supported as an advanced option for developers who already use VS Code. See `docs/ADVANCED-VSCODE.md`.
 
 **Webhook**
 A way for one app to notify another app when something happens. "When a new lead comes in, send me a Telegram or iMessage." Your assistant can set these up for you.

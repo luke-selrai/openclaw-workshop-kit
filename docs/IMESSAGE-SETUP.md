@@ -35,23 +35,23 @@ iMessage stores your messages in a database file on your Mac (`~/Library/Message
 3. Click **Privacy & Security** in the sidebar
 4. Scroll down and click **Full Disk Access**
 
-**Step 2 — Add Your Terminal**
+**Step 2 — Add Claude Desktop**
 
 1. Click the **+** button
-2. Find and select your terminal app (e.g. **Terminal**, **iTerm**, **Ghostty**, or **Visual Studio Code**)
+2. Find and select **Claude** (the Claude Desktop app)
 3. Toggle it **on**
 
-> You may not need to do this manually — the first time Claude Code tries to read your messages, macOS will pop up a permission prompt. Click **Allow** and you're done. If you accidentally clicked "Don't Allow", follow the steps above.
+> You may not need to do this manually — the first time Claude tries to read your messages, macOS will pop up a permission prompt. Click **Allow** and you're done. If you accidentally clicked "Don't Allow", follow the steps above.
 
 ---
 
 ## Part B — Install the iMessage Plugin
 
-This is a terminal command — run it in the VS Code terminal (not inside the Claude chat).
+This is a terminal command — run it in Claude Desktop's terminal (not inside the Claude chat).
 
 **Step 1 — Install the Plugin**
 
-Open the terminal in VS Code (click **Terminal** in the top menu → **New Terminal**), then run:
+Open the terminal in Claude Desktop (it's the bottom panel of a Code session — if you don't see it, use the View menu to show the terminal), then run:
 
 ```
 claude plugin install imessage@claude-plugins-official
@@ -121,7 +121,7 @@ Your assistant should reply directly in iMessage. You can now text your assistan
 | **Quick tasks** | "Draft a reply to John's email about the proposal" |
 | **Search message history** | "Find the last message from Sarah about the project" |
 
-> Your assistant has all the same skills available through iMessage — the same ones you use in VS Code.
+> Your assistant has all the same skills available through iMessage — the same ones you use in Claude Desktop.
 
 ---
 
