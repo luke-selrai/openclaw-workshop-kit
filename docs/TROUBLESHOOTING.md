@@ -251,6 +251,28 @@ For the full guide: [docs/IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
 
 ## General Errors
 
+### "Claude says I've hit my usage limit"
+
+Claude Max has a usage cap that resets roughly every 5 hours. When you hit it, your assistant stops mid-task with a message like *"You've reached your usage limit. Try again at 3:42pm."* This is normal — it does not mean anything is broken, and you have not lost any of your work or your memory.
+
+**What's happening**
+
+Anthropic limits how much Claude any single account can use in a 5-hour window so that all paying subscribers get a fair share of capacity. Long, heavy conversations (lots of file reading, browser automation, big web searches) use up the cap faster than short chats. Once you hit the cap, the same Claude Max account is paused on every device until the cooldown ends.
+
+**What to do — pick whichever fits**
+
+1. **Wait it out.** The exact reset time is in the message Claude showed you — usually within a couple of hours. Good for non-urgent work. Your assistant will pick up exactly where it left off.
+2. **Switch to Sonnet for the rest of the session.** In a Code session, type `/model` and pick **Sonnet 4.6**. Sonnet uses far less of your quota than Opus and is plenty capable for routine work (drafting emails, summarising notes, light research). Switch back to Opus the next morning.
+3. **Upgrade your plan.** If you keep hitting the limit during normal work, Claude Max has higher tiers that raise the cap significantly. See [claude.ai/pricing](https://claude.ai/pricing) — or just ask your assistant *"what are my Claude Max plan options?"* and it will summarise them.
+
+**To avoid hitting it again**
+
+- Start a new conversation when you finish a task instead of letting one chat run all day. Longer chats use more of your cap per message.
+- For heavy automation jobs (scraping a big website, processing a long document), ask: *"Use Sonnet for this task."* Save Opus for the work that genuinely needs it.
+- If you are in a live workshop and your trainer is screen-sharing your account, the trainer's actions count against your quota too — let them know if you start hitting the cap.
+
+---
+
 ### "I see a red error message and don't know what it means"
 
 Copy the full red error text and tell your assistant:
