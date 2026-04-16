@@ -136,7 +136,7 @@ Your assistant should reply directly in Telegram. You can now message your assis
 | **Send files** | Send a photo or document — your assistant can read it |
 | **Quick tasks** | "Draft a reply to John's email about the proposal" |
 
-> Your assistant has all <!-- skills-audit:total -->106<!-- /skills-audit:total --> skills available through Telegram — the same ones you use in Claude Desktop.
+> Your assistant has all <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills available through Telegram — the same ones you use in Claude Desktop.
 
 ---
 

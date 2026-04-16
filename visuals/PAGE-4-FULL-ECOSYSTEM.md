@@ -20,7 +20,7 @@
 │  │                                                                       │    │
 │  │   Reads:  CLAUDE.md — your instructions                              │    │
 │  │   Knows:  auto-memory — your business permanently (via /memory)      │    │
-│  │   Uses:   <!-- skills-audit:total -->106<!-- /skills-audit:total --> skills — specialist capabilities on demand              │    │
+│  │   Uses:   <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills — specialist capabilities on demand              │    │
 │  │   Via:    CLI tools · MCP connections · Browser automation           │    │
 │  └───────┬──────────────┬───────────────────┬────────────────┬─────────┘    │
 │          │              │                   │                │               │
