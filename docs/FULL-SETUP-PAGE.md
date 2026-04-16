@@ -571,6 +571,46 @@ Once that works, you can add other phone numbers via `WA_ALLOW_FROM` in `.mcp.js
 
 ---
 
+### Jotform — Forms, Submissions, and Intake Data
+
+This connects your Jotform account so your assistant can browse your forms, read submissions, create and edit forms, and assign forms to teammates — all through plain English. **No API keys needed** — Jotform handles the sign-in in your browser.
+
+**Step 1 — Tell your assistant to connect**
+
+In the Claude chat, say:
+
+```
+Help me connect my Jotform account
+```
+
+Your assistant will save the connection settings and ask you to restart Claude Code once.
+
+**Step 2 — Restart Claude Code**
+
+Close and reopen Claude Code so the new connection becomes active.
+
+**Step 3 — Sign in to Jotform once in your browser**
+
+Tell your assistant: *"Connect to my Jotform now"*. A browser window will pop up:
+
+1. Sign in with your Jotform email and password
+2. Click **Allow** on the permission screen
+3. Come back to Claude Code
+
+That's it. Your assistant will confirm the connection works.
+
+**Step 4 — Test it**
+
+Ask your assistant: *"Show me my Jotform forms"* or *"How many submissions did the contact form get this week?"*
+
+> For the full guide with troubleshooting, see [JOTFORM-SETUP.md](JOTFORM-SETUP.md)
+
+> **Works on every plan** — Free, Bronze, Silver, Gold, and Enterprise. Free tier is rate-limited to 60 requests per minute, which is plenty for normal use.
+
+> **Sensitive data note** — submissions often contain personal information (names, emails, free-text feedback). Your assistant will summarise rather than dump raw entries into the chat unless you ask.
+
+---
+
 ## After Connecting Tools
 
 **Restart Claude Code** to make sure all tools are active.
