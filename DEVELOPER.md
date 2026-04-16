@@ -26,9 +26,9 @@ claude-workshop-kit/
 │   └── CLAUDE.md                    # AI agent brain — onboarding + demo agent
 │                                     # (memory is handled by Claude's native /memory — no workshop-managed files)
 │
-├── skills/                          # <!-- skills-audit:total -->108<!-- /skills-audit:total --> bundled business skills
-│   ├── [<!-- skills-audit:core -->22<!-- /skills-audit:core --> CORE skills]             # Surfaced to all attendees via skills-discovery
-│   ├── [<!-- skills-audit:advanced -->56<!-- /skills-audit:advanced --> ADVANCED skills]        # Available on request
+├── skills/                          # <!-- skills-audit:total -->104<!-- /skills-audit:total --> bundled business skills
+│   ├── [<!-- skills-audit:core -->21<!-- /skills-audit:core --> CORE skills]             # Surfaced to all attendees via skills-discovery
+│   ├── [<!-- skills-audit:advanced -->53<!-- /skills-audit:advanced --> ADVANCED skills]        # Available on request
 │   └── [<!-- skills-audit:dev-only -->8<!-- /skills-audit:dev-only --> DEVELOPER-ONLY skills]    # For web app / technical integration use cases
 │
 ├── docs/

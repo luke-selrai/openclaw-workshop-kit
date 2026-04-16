@@ -1,4 +1,4 @@
-# Skills Reference — Your <!-- skills-audit:total -->108<!-- /skills-audit:total --> Installed Skills
+# Skills Reference — Your <!-- skills-audit:total -->104<!-- /skills-audit:total --> Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need — Claude picks the right skill automatically.
 
@@ -90,10 +90,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `postgresql-optimization` | PostgreSQL performance tuning | "Optimise this database query" | DEV-ONLY |
 | `security-auditor` | OWASP vulnerability scanning and compliance | "Audit my app for security issues" | ADVANCED |
 | `supabase-admin` | Supabase RLS, migrations, schema design | "Design my Supabase schema" | ADVANCED |
-| `systematic-debugging` | Root-cause analysis and step-by-step fixes | "Something broke — help me fix it" | ADVANCED |
-| `test-driven-development` | TDD — write tests before implementation | "Help me write tests for this feature" | ADVANCED |
 | `typescript-advanced-patterns` | Advanced TypeScript for production codebases | "Improve my TypeScript types" | DEV-ONLY |
-| `verification-before-completion` | Verify work before claiming done | "Verify this implementation is correct" | ADVANCED |
 
 ## Process
 
@@ -138,13 +135,28 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `product-appeal-analyzer` | Product desirability and market positioning | "How can I make my offer more appealing?" | CORE |
 | `systems-thinking` | Maps complex systems to find high-leverage points | "Map out my sales process and find the bottlenecks" | ADVANCED |
 | `tech-entrepreneur-coach-adhd` | Founder strategy — validation, MVP, marketing | "Help me validate this business idea" | CORE |
-| `writing-plans` | Plans complex tasks before executing | "Plan how I could automate my onboarding" | CORE |
 
 ---
 
-**Total: <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills installed**
-- CORE: <!-- skills-audit:core -->22<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
-- ADVANCED: <!-- skills-audit:advanced -->56<!-- /skills-audit:advanced --> skills (available on request)
+## Recommended optional plugin — Superpowers
+
+Four skills that used to ship with this kit — `writing-plans`, `systematic-debugging`, `test-driven-development`, and `verification-before-completion` — now live in Anthropic's official **Superpowers** plugin. Installing Superpowers is optional, but strongly recommended. In a Code session, paste:
+
+```
+/plugin marketplace add anthropics/claude-plugins-official
+```
+
+```
+/plugin install superpowers@claude-plugins-official
+```
+
+See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for what it adds.
+
+---
+
+**Total: <!-- skills-audit:total -->104<!-- /skills-audit:total --> skills installed**
+- CORE: <!-- skills-audit:core -->21<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
+- ADVANCED: <!-- skills-audit:advanced -->53<!-- /skills-audit:advanced --> skills (available on request)
 - DEV-ONLY: <!-- skills-audit:dev-only -->8<!-- /skills-audit:dev-only --> skills (for technical integrations — never surfaced in demos)
 
 > Ask your assistant to do anything — it will automatically use the right skill for the job.
