@@ -251,6 +251,32 @@ For the full guide: [docs/IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
 
 ## General Errors
 
+### "Claude says I've hit my usage limit"
+
+Claude Max has a usage cap that resets roughly every 5 hours. When you hit it, your assistant stops mid-task with a message like *"You've reached your usage limit. Try again at 3:42pm."* This is normal — it does not mean anything is broken, and your memory (everything Claude knows about you and your business) stays intact across the cooldown. If your assistant was halfway through a task when it stopped, ask it to summarise what it had finished and what was still in progress before you decide what to do next — partial work like a half-written file or a half-filled form may need picking up after the reset.
+
+**What's happening**
+
+Anthropic limits how much Claude any single account can use in a 5-hour window so that all paying subscribers get a fair share of capacity. Long, heavy conversations (lots of file reading, browser automation, big web searches) use up the cap faster than short chats. The cooldown applies to the Claude model you were using (usually Opus) on every device signed into your account — switching to a less-heavy model like Sonnet (see option 2 below) usually still works during the cooldown.
+
+**A note on the weekly cap**
+
+Since August 2025, Claude Max also has a **weekly cap** on top of the 5-hour one. Most workshop users never hit it, but heavy users — running long automations every day, or sharing an account across a team — sometimes do. If the message Claude shows you mentions a *weekly* limit rather than a 5-hour reset, the wait is longer (usually until the start of the next week). The same fixes below still apply.
+
+**What to do — pick whichever fits**
+
+1. **Wait it out.** The exact reset time is in the message Claude showed you — usually within a couple of hours. Good for non-urgent work. Your assistant will pick up exactly where it left off.
+2. **Switch to Sonnet for the rest of the session.** In a Code session, type `/model` and pick **Sonnet 4.6**. Sonnet uses far less of your quota than Opus and is plenty capable for routine work (drafting emails, summarising notes, light research). Switch back to Opus the next morning.
+3. **Upgrade your plan.** If you keep hitting the limit during normal work, Claude Max has higher tiers that raise the cap significantly. See [claude.ai/pricing](https://claude.ai/pricing) — or just ask your assistant *"what are my Claude Max plan options?"* and it will summarise them.
+
+**To avoid hitting it again**
+
+- Start a new conversation when you finish a task instead of letting one chat run all day. Longer chats use more of your cap per message.
+- For heavy automation jobs (scraping a big website, processing a long document), ask: *"Use Sonnet for this task."* Save Opus for the work that genuinely needs it.
+- If you are in a live workshop and your trainer is screen-sharing your account, the trainer's actions count against your quota too — let them know if you start hitting the cap.
+
+---
+
 ### "I see a red error message and don't know what it means"
 
 Copy the full red error text and tell your assistant:

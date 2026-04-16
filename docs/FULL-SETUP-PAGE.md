@@ -117,11 +117,16 @@ Some Git installers do not add themselves to the system PATH. If the verificatio
 
 ---
 
-## Step 4 — Install Node.js and Bun
+## Step 4 — Install Node.js (and Bun if you want messaging)
 
-Node.js is needed to connect Gmail, Calendar, and browser automation. **Bun is also required** if you plan to use Telegram, WhatsApp, or iMessage. Install both now so everything is ready later.
+**Node.js is required for everyone.** Your assistant needs it to connect Gmail, Calendar, browser automation, and most other tools.
 
-> **Note:** If you skip Bun here, you will need to install it before setting up any messaging channel.
+**Bun is only required if you plan to use a messaging channel** — Telegram, WhatsApp, or iMessage. If you are not using any of those, you can skip the Bun section below. (You can also come back to it later — each messaging setup section further down this page repeats the Bun install for anyone who skipped it here.)
+
+| If you plan to use… | Install Node.js? | Install Bun? |
+|---|---|---|
+| Email, Calendar, browser automation, CRM, accounting, etc. | Yes | No |
+| Telegram, WhatsApp, or iMessage | Yes | Yes |
 
 **Mac:**
 
@@ -145,9 +150,11 @@ Node.js is needed to connect Gmail, Calendar, and browser automation. **Bun is a
 2. Type: `node --version`
 3. You should see a version number like `v22.x.x`
 
-### Install Bun
+### Install Bun (optional — only if you want messaging)
 
-Bun is required for Telegram, WhatsApp, and iMessage integrations.
+**Skip this section if you are not planning to connect Telegram, WhatsApp, or iMessage.** Bun is only used by those three messaging channels. Everything else in the workshop kit runs on Node.js alone.
+
+If you do want messaging now, install Bun:
 
 **Mac / Linux:**
 ```bash
@@ -359,9 +366,9 @@ This lets you chat with your assistant directly from Telegram on your phone — 
 6. BotFather will ask for a **username** — must end in `bot` (e.g. `my_assistant_bot`)
 7. BotFather will reply with a **token** — copy the entire thing (numbers, colon, and all)
 
-**Step 2 — Install Bun (Required)**
+**Step 2 — Install Bun (skip if you already installed it in Step 4 above)**
 
-The Telegram plugin runs on Bun. Install it:
+The Telegram plugin runs on Bun. If you already installed Bun back in Step 4, skip ahead to Step 3. Otherwise, install it now:
 
 **Mac/Linux:**
 ```
@@ -434,9 +441,9 @@ If the prompt doesn't appear, grant it manually:
 2. Click the **+** button and add the **Claude** app (Claude Desktop)
 3. Toggle it **on**
 
-**Step 2 — Install Bun (Required)**
+**Step 2 — Install Bun (skip if you already installed it in Step 4 above)**
 
-The iMessage plugin runs on Bun. Install it:
+The iMessage plugin runs on Bun. If you already installed Bun back in Step 4, skip ahead to Step 3. Otherwise, install it now:
 
 **Mac:**
 ```
@@ -487,9 +494,9 @@ By default, only your own messages reach the assistant. To allow someone else:
 
 This lets you chat with your assistant directly from WhatsApp — ask questions, request tasks, and get replies wherever you are. It connects using the same QR code method as WhatsApp Web — no bot tokens or API keys needed.
 
-**Step 1 — Install Bun (Required)**
+**Step 1 — Install Bun (skip if you already installed it in Step 4 above)**
 
-The WhatsApp channel runs on Bun. Install it:
+The WhatsApp channel runs on Bun. If you already installed Bun back in Step 4, skip ahead to Step 2. Otherwise, install it now:
 
 **Mac/Linux:**
 ```
