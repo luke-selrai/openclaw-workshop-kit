@@ -10,24 +10,25 @@ Think of your AI setup like a kitchen — you're the head chef, Claude is your s
 ┌─────────────────────────────────────────────────────────────────┐
 │                        YOUR COMPUTER                             │
 │                                                                   │
-│   ┌──────────────┐     ┌──────────────┐     ┌──────────────┐   │
-│   │   VS CODE    │     │   TERMINAL   │     │   BROWSER    │   │
-│   │              │     │              │     │              │   │
-│   │ Your editor  │────▶│ Claude runs  │────▶│ Claude can   │   │
-│   │ See files    │     │ here         │     │ control this │   │
-│   │ Chat & watch │     │ Type commands│     │ Fill forms   │   │
-│   └──────────────┘     └──────────────┘     │ Scrape sites │   │
-│          │                    │              └──────────────┘   │
-│          ▼                    ▼                                   │
-│   ┌─────────────────────────────────────────────────────────┐   │
-│   │                     CLAUDE CODE                          │   │
-│   │                  (Your AI Assistant)                     │   │
-│   │                                                          │   │
-│   │  Reads:    CLAUDE.md — your instructions & who you are  │   │
-│   │  Remembers: memory/USER.md — your business profile      │   │
-│   │  Uses:     <!-- skills-audit:total -->105<!-- /skills-audit:total --> Skills — specialist capabilities          │   │
-│   │  Connects: MCP tools — Gmail, Calendar, CRM, and more   │   │
-│   └─────────────────────────────────────────────────────────┘   │
+│   ┌──────────────────────────────────────┐  ┌──────────────┐    │
+│   │          CLAUDE DESKTOP              │  │   BROWSER    │    │
+│   │                                      │  │              │    │
+│   │   ┌──────────────┐ ┌──────────────┐  │  │ Claude can   │    │
+│   │   │  Chat panel  │ │  Code session │  │──│ control this │    │
+│   │   │              │ │  + folder     │  │  │ Fill forms   │    │
+│   │   │  Ask & read  │ │  + terminal   │  │  │ Scrape sites │    │
+│   │   └──────────────┘ └──────────────┘  │  └──────────────┘    │
+│   │                  │                   │                        │
+│   └──────────────────┼───────────────────┘                        │
+│                      ▼                                            │
+│   ┌─────────────────────────────────────────────────────────┐    │
+│   │                  YOUR AI ASSISTANT                       │    │
+│   │                                                          │    │
+│   │  Reads:    CLAUDE.md — your instructions & who you are  │    │
+│   │  Remembers: memory/USER.md — your business profile      │    │
+│   │  Uses:     <!-- skills-audit:total -->105<!-- /skills-audit:total --> Skills — specialist capabilities          │    │
+│   │  Connects: MCP tools — Gmail, Calendar, CRM, and more   │    │
+│   └─────────────────────────────────────────────────────────┘    │
 │                                                                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -36,11 +37,15 @@ Think of your AI setup like a kitchen — you're the head chef, Claude is your s
 
 ## What Each Part Does
 
-### VS Code
-Your workspace — where you see all your files, read what Claude writes, and give it instructions. Free, made by Microsoft. Think of it as your office desk.
+### Claude Desktop
+The app where you work with your assistant. Three surfaces, one window:
+- **Chat panel** — natural conversation with your assistant
+- **Code session** — opens a folder on your computer (like `~/my-assistant/`) so the assistant can read and edit files
+- **Built-in terminal** — lives at the bottom of a Code session. You paste commands here when the assistant asks. Most days you won't need it.
 
-### Terminal (inside VS Code)
-The text window where you type commands and Claude Code runs. Looks technical, but you only ever need two commands. Claude handles the rest.
+Free. One download from [claude.ai/download](https://claude.ai/download). Replaces the old "VS Code + Claude Code extension" setup.
+
+> Developer already using VS Code? See [ADVANCED-VSCODE.md](../docs/ADVANCED-VSCODE.md) — the extension still works.
 
 ### CLAUDE.md — Your Instructions File
 A file you can read and edit that tells Claude who you are, how to talk to you, and what it can do. It loads automatically every time you open Claude.
@@ -113,18 +118,11 @@ If it learned something new → saves to your memory file
 
 ---
 
-## The 3 Commands You Will Ever Need
+## The 3 Things You Will Ever Need
 
-```bash
-# 1. Start your AI assistant (do this every time)
-cd ~/my-assistant && claude
-
-# 2. Check what tools are connected
-claude mcp list
-
-# 3. Install a new tool connection
-claude mcp add [tool-name] [command]
-```
+1. **Start your AI assistant:** Open Claude Desktop → start a new Code session → click the folder icon and point it at `~/my-assistant/`
+2. **Check what tools are connected:** In the assistant's chat, ask *"What tools do you have connected?"*
+3. **Install a new tool connection:** In the assistant's chat, ask *"Help me connect [tool name]"* — the assistant walks you through it
 
 That is it. Claude handles everything else.
 
@@ -132,7 +130,7 @@ That is it. Claude handles everything else.
 
 ## The First Time You Open It
 
-When you run `cd ~/my-assistant && claude` for the first time, your assistant will:
+When you open `~/my-assistant/` in Claude Desktop for the first time, your assistant will:
 
 1. Greet you by name (once set up)
 2. Tell you what it remembers about your business

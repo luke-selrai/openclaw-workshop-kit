@@ -9,10 +9,10 @@
 ## What This Is
 
 A self-installing AI business assistant kit. Non-technical business owners:
-1. Install VS Code + Claude Code extension (done before workshop)
-2. Paste a bootstrap prompt (from a Notion page) into Claude Code
-3. Claude Code clones the repo, copies skills, creates the workspace — all conversationally
-4. They open `~/my-assistant/` in VS Code, start Claude Code, and the CLAUDE.md agent takes over for onboarding and demos
+1. Install **Claude Desktop** and sign in (done before workshop). VS Code + extension path still supported — see `docs/ADVANCED-VSCODE.md`.
+2. Paste a bootstrap prompt (from a Notion page) into a new Code session in Claude Desktop
+3. Claude clones the repo, copies skills, creates the workspace — all conversationally
+4. They start a new Code session, click the folder icon, point it at `~/my-assistant/`, and the CLAUDE.md agent takes over for onboarding and demos
 
 ---
 
@@ -44,7 +44,7 @@ claude-workshop-kit/
 │
 └── visuals/                         # Printable 4-page reference set
     ├── PAGE-1-AI-MODELS.md          # What AI is, Claude vs GPT vs Gemini, pricing
-    ├── PAGE-2-YOUR-SETUP.md         # VS Code + Terminal + Claude Code diagram
+    ├── PAGE-2-YOUR-SETUP.md         # Claude Desktop + built-in terminal + agent diagram
     ├── PAGE-3-SKILLS-AND-AGENTS.md  # Skills, agents, Telegram/WhatsApp explained
     ├── PAGE-4-FULL-ECOSYSTEM.md     # Full ecosystem diagram
     └── page-1 to page-4 .png        # Generated image versions
@@ -56,9 +56,9 @@ claude-workshop-kit/
 
 The setup is now fully conversational — no bash scripts involved.
 
-**Step 1: Bootstrap prompt (in any directory)**
+**Step 1: Bootstrap prompt (new Code session in Claude Desktop)**
 
-Attendees copy a bootstrap prompt from the workshop Notion page and paste it into Claude Code. The bootstrap prompt instructs Claude to:
+Attendees copy a bootstrap prompt from the workshop Notion page and paste it into a new Code session in Claude Desktop. The bootstrap prompt instructs Claude to:
 1. Clone the repo to `~/workshop-kit`
 2. Copy skills from `skills/` to `~/.claude/skills/`
 3. Copy `my-assistant/` to `~/my-assistant/`
@@ -68,13 +68,14 @@ No Node.js or Git pre-install needed on Mac. Windows users only need Git for Win
 
 **Step 2: Open the workspace**
 
-The user opens `~/my-assistant/` in VS Code and starts Claude Code. Claude reads `my-assistant/CLAUDE.md` and the agent takes over:
+The user starts a new Code session in Claude Desktop and clicks the folder icon to open `~/my-assistant/`. Claude reads `my-assistant/CLAUDE.md` and the agent takes over:
 1. **Onboarding:** Asks 7 questions about their business, saves to `~/my-assistant/memory/USER.md`
 2. **Demo:** Runs a live demo task matched to their stated business challenge
 
 **Key design decisions:**
 - The Notion page is the single source of truth for attendees — the bootstrap prompt lives there and can be updated without pushing to GitHub
 - Playwright MCP is added via `claude mcp add` at the user scope, not via a `.mcp.json` file in the workspace
+- Primary interface is Claude Desktop (post-Apr 2026 overhaul). VS Code + extension still works — see `docs/ADVANCED-VSCODE.md` — but is not the recommended path for non-technical attendees
 
 ---
 
@@ -84,11 +85,12 @@ The user opens `~/my-assistant/` in VS Code and starts Claude Code. Claude reads
 
 The most important thing is a clean end-to-end test:
 1. On a fresh Mac (or a new Mac user account) — not a developer machine
-2. Open VS Code, start Claude Code, paste the bootstrap prompt
+2. Install Claude Desktop, sign in, start a new Code session, paste the bootstrap prompt
 3. Does the repo clone, skill copy, and workspace creation all succeed?
-4. Does opening `~/my-assistant/` in VS Code + starting Claude Code trigger the onboarding agent?
+4. Does pointing a new Code session at `~/my-assistant/` (via the folder icon) trigger the onboarding agent?
 5. Does the Playwright MCP install step work (`claude mcp add` at user scope)?
 6. Does onboarding save to the right path?
+7. Does the same flow work through the VS Code + extension fallback in `docs/ADVANCED-VSCODE.md`?
 
 **Known potential issues:**
 - `git clone` may trigger Xcode popup on fresh Mac — the bootstrap prompt should handle this gracefully
