@@ -12,7 +12,7 @@ metadata:
     - finance
     - mcp
   pairs-with:
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting Xero Custom Connection or API errors
     - skill: quickbooks-connector
       reason: Sibling accounting connector — similar wrap-existing-tooling pattern for a different platform
@@ -344,6 +344,6 @@ The Xero connector **cannot** do:
 ## Related Skills
 
 - **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
-- **systematic-debugging**: For troubleshooting Xero Custom Connection or API errors
+- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Xero Custom Connection or API errors
 - **quickbooks-connector**: Sibling accounting connector for QuickBooks users — similar wrap-existing-tooling pattern
 - **hubspot-connector**: Same Client ID / Secret → `~/.claude.json` pattern for a different first-party MCP server

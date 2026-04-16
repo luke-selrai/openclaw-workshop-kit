@@ -355,4 +355,4 @@ If the user asks for any of the above, tell them plainly what is not supported a
 - **github-connector**: Sibling dev connector — announce pull request activity in a Slack channel
 - **square-connector**: Sibling payments connector — post daily sales summaries to a Slack channel
 - **xero-connector**: Sibling accounting connector — post invoice paid / overdue alerts to a finance channel
-- **systematic-debugging**: For troubleshooting Slack auth or API errors
+- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Slack auth or API errors

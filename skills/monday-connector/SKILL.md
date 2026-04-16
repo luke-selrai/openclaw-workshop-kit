@@ -17,7 +17,7 @@ metadata:
       reason: Draft updates or comments on monday.com items
     - skill: n8n-workflow-patterns
       reason: Build automations triggered by monday.com events (item created, status changed, etc.)
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting monday.com auth or API errors
 ---
 
@@ -302,7 +302,7 @@ The monday.com MCP connector **cannot** do (needs the monday.com UI):
 ## Related Skills
 
 - **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
-- **systematic-debugging**: For troubleshooting monday.com auth or API errors
+- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting monday.com auth or API errors
 - **hubspot-connector**: Sibling CRM connector — same MCP bootstrap pattern for a different platform
 - **notion-connector**: Sibling project/knowledge connector — similar workspace model
 - **n8n-workflow-patterns**: Build monday.com-triggered automations once the connector is live
