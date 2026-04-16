@@ -568,6 +568,45 @@ Once that works, you can add other phone numbers via `WA_ALLOW_FROM` in `.mcp.js
 
 ---
 
+### Slack — Channels, Messages, and Team
+
+This connects your Slack workspace so your assistant can list channels, read recent messages, post to channels, reply in threads, add reactions, and search for users — all through plain English.
+
+**Step 1 — Create a Slack connection app**
+
+1. Open **https://api.slack.com/apps** and sign in
+2. Click **Create New App** → **From scratch**
+3. Name it **Claude Assistant**, pick your workspace, click **Create App**
+4. Click **OAuth & Permissions** in the left menu
+5. Under **Bot Token Scopes**, add these six permissions:
+   - `channels:history`, `channels:read`, `chat:write`, `reactions:write`, `users:read`, `users.profile:read`
+6. Scroll to the top and click **Install to Workspace** → **Allow**
+7. Copy the **Bot User OAuth Token** (starts with `xoxb-`)
+
+**Step 2 — Tell your assistant to connect**
+
+In the Claude chat, say:
+
+```
+Help me connect my Slack workspace
+```
+
+Your assistant will ask for the token you copied, save the connection securely, and verify it works.
+
+**Step 3 — Fully close and reopen Claude Code once**
+
+The connection activates after a full restart (closing the chat tab alone is not enough).
+
+**Step 4 — Test it**
+
+Ask your assistant: *"What channels do we have in Slack?"* or *"Show me the latest messages in #general"*
+
+> For the full guide with troubleshooting, see [SLACK-SETUP.md](SLACK-SETUP.md)
+
+> **Private channels?** Your assistant needs to be invited first. In Slack, type `/invite @Claude Assistant` in the channel you want to use.
+
+---
+
 ### monday.com — Boards, Items, Tasks, and Team
 
 This connects your monday.com account so your assistant can browse your boards, create and update tasks, move items between groups, post comments, and manage your team — all through plain English.
