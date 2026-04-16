@@ -25,7 +25,7 @@ Think of your AI setup like a kitchen — you're the head chef, Claude is your s
 │   │                  YOUR AI ASSISTANT                       │    │
 │   │                                                          │    │
 │   │  Reads:    CLAUDE.md — your instructions & who you are  │    │
-│   │  Remembers: auto-memory — your business profile (/memory)│    │
+│   │  Remembers: auto-memory — your business profile         │    │
 │   │  Uses:     <!-- skills-audit:total -->106<!-- /skills-audit:total --> Skills — specialist capabilities          │    │
 │   │  Connects: MCP tools — Gmail, Calendar, CRM, and more   │    │
 │   └─────────────────────────────────────────────────────────┘    │

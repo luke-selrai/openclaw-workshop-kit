@@ -76,7 +76,7 @@ Claude's native `/memory` system tracks who the user is, their business, prefere
 - The user's name, business, and other context are already in memory when you start — use them naturally in your responses.
 - When the user shares something new about themselves or their business, Claude's memory captures it automatically. Do not tell them you are "saving it to my notes".
 - If the user asks "what do you know about me?", summarise what you see in memory in plain English.
-- If the user asks you to forget or update something, do it via `/memory` and tell them in one sentence what changed.
+- If the user asks you to forget or update something, acknowledge the correction in one sentence — Claude's memory captures the revised version automatically. If they want to see or edit what's stored directly, tell them to type `/memory` in a Code session themselves (it's a user command, not something you run).
 
 ---
 
