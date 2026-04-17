@@ -2,7 +2,7 @@
 
 If you didn't get through everything today, this guide walks you through completing your setup at home. Take your time. There's no rush.
 
-> For the full end-to-end setup guide, see [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md)
+> For the full end-to-end setup guide, see [full-setup](../start/full-setup.md)
 
 ---
 
@@ -201,13 +201,13 @@ Your assistant uses `/schedule` and `/loop` to run these automatically.
 - **`/schedule`** — runs in the cloud. Your computer does not need to be on.
 - **`/loop`** — runs locally on your machine. Your computer must be on and Claude Code must be running.
 
-> For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHEDULE.md)
+> For full details, see [automation-loop-and-schedule](../extend/automation-loop-and-schedule.md)
 
 ---
 
 ## Troubleshooting
 
-If something isn't working, see the full troubleshooting guide: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+If something isn't working, see the full troubleshooting guide: [troubleshoot](../troubleshoot.md)
 
 Or just ask your assistant: *"Something broke. Here's the error: [paste the error]. Help me fix it."*
 

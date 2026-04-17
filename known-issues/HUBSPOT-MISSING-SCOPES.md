@@ -64,5 +64,5 @@ HubSpot enforces **200 API requests per 10 seconds** for Private Apps. In normal
 ## Related
 
 - Connector docs: `skills/hubspot-connector/SKILL.md`
-- Setup guide: `docs/HUBSPOT-SETUP.md`
-- General troubleshooting: `docs/TROUBLESHOOTING.md`
+- Setup guide: `docs/connectors/HUBSPOT-SETUP.md`
+- General troubleshooting: `docs/troubleshoot.md`

@@ -14,7 +14,7 @@ This guide connects your CircleCI account to your AI assistant using the **offic
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) if not done yet)
+- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
 - A CircleCI account (any plan — Free, Performance, or Scale)
 - Node.js 20 or newer installed (check with `node --version`)
 - An internet connection
@@ -199,7 +199,7 @@ This connector assumes you're using CircleCI's SaaS service at `https://circleci
 
 ## Still Having Trouble?
 
-See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more fixes, or ask your assistant:
+See [TROUBLESHOOTING.md](../troubleshoot.md) for more fixes, or ask your assistant:
 > "Something went wrong with my CircleCI connection. Help me fix it."
 
 ---

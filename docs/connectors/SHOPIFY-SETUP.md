@@ -12,7 +12,7 @@ This guide connects your Shopify store to your AI assistant. Once set up, your a
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) if not done yet)
+- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
 - Node.js **version 18 or higher** installed — check by typing `node --version` in the command window
 - A Shopify store (live store, development store, or Partner store all work)
 - Staff or owner access to the store
@@ -254,7 +254,7 @@ Shopify Plus stores have additional API resources available (e.g., Gift Cards, M
 
 ## Still Having Trouble?
 
-See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more fixes, or ask your assistant:
+See [TROUBLESHOOTING.md](../troubleshoot.md) for more fixes, or ask your assistant:
 > "Something went wrong with my Shopify connection. Help me fix it."
 
 ---

@@ -34,7 +34,7 @@ The Git installer didn't add itself to the system PATH. There are two options:
 
 **Option A (if you have admin access):** Ask your assistant: *"Git installed but Windows still can't find it. Please add it to my PATH."* Your assistant will run one PowerShell command and then tell you to **fully quit and reopen Claude Desktop again** for the change to take effect. If the PowerShell command says "access denied", go to Option B.
 
-**Option B (always works, no admin needed):** Follow the manual walkthrough in [FULL-SETUP-PAGE.md → Windows Users Only → Fallback — If Git still isn't recognised after restarting Claude Desktop](FULL-SETUP-PAGE.md#fallback--if-git-still-isnt-recognised-after-restarting-claude-desktop). It takes about a minute. After finishing the walkthrough, fully quit and reopen Claude Desktop before retrying the bootstrap.
+**Option B (always works, no admin needed):** Follow the manual walkthrough in [full-setup.md → Windows Users Only → Fallback — If Git still isn't recognised after restarting Claude Desktop](start/full-setup.md#fallback--if-git-still-isnt-recognised-after-restarting-claude-desktop). It takes about a minute. After finishing the walkthrough, fully quit and reopen Claude Desktop before retrying the bootstrap.
 
 > **Why can't the assistant fix this itself in the same session?** If `git` isn't on the PATH when Claude Desktop started, Claude can't run `git clone` — the very first bootstrap command fails before the conversation can proceed. A PATH change only applies to Claude Desktop after a full restart. There is no in-session recovery.
 
@@ -184,7 +184,7 @@ If you have a work Microsoft 365 account:
 2. The correct start command is: `claude --channels plugin:telegram@claude-plugins-official`
 3. If you're unsure, ask your assistant: *"How do I start Claude with Telegram enabled?"*
 
-For the full setup: [docs/TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
+For the full setup: [docs/connectors/TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
 
 ---
 
@@ -233,7 +233,7 @@ WhatsApp Web sessions can expire if your phone is offline for too long.
 
 Your Team or Enterprise admin needs to enable channels in the Claude Code settings. Contact your admin.
 
-For the full WhatsApp guide: [docs/WHATSAPP-SETUP.md](WHATSAPP-SETUP.md)
+For the full WhatsApp guide: [docs/connectors/WHATSAPP-SETUP.md](WHATSAPP-SETUP.md)
 
 ---
 
@@ -245,7 +245,7 @@ The most common issue is missing permissions. Check:
 2. Make sure **Claude** (the Desktop app) has a tick next to it
 3. If not, click the lock icon, enter your Mac password, and add the app
 
-For the full guide: [docs/IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
+For the full guide: [docs/connectors/IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
 
 ---
 

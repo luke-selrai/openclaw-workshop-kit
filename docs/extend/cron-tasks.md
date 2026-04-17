@@ -1,6 +1,6 @@
 # Cron Tasks — Claude Code Internal Tools
 
-> **See also:** `docs/AUTOMATION-LOOP-AND-SCHEDULE.md` for the user-facing `/loop` and `/schedule` commands that sit on top of these tools.
+> **See also:** `docs/extend/automation-loop-and-schedule.md` for the user-facing `/loop` and `/schedule` commands that sit on top of these tools.
 
 ---
 

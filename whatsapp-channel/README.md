@@ -1,6 +1,6 @@
 # WhatsApp Channel for Claude Code
 
-> 🧑‍🏫 **Workshop attendee? Start here instead:** [docs/WHATSAPP-SETUP.md](../docs/WHATSAPP-SETUP.md) is the non-technical, step-by-step guide with Windows and Mac commands side-by-side, self-chat testing, and plain-English explanations. This README is a technical reference for developers wiring the channel into their own projects.
+> 🧑‍🏫 **Workshop attendee? Start here instead:** [docs/connectors/WHATSAPP-SETUP.md](../docs/connectors/WHATSAPP-SETUP.md) is the non-technical, step-by-step guide with Windows and Mac commands side-by-side, self-chat testing, and plain-English explanations. This README is a technical reference for developers wiring the channel into their own projects.
 
 A two-way WhatsApp channel for Claude Code sessions, built on [Baileys](https://github.com/WhiskeySockets/Baileys) (WhatsApp Web). Send messages to Claude from WhatsApp, and Claude replies back.
 

@@ -55,5 +55,5 @@ Your assistant **cannot** (current plugin scope):
 ## Related
 
 - Connector docs: `skills/notion-connector/SKILL.md`
-- Setup guide: `docs/NOTION-SETUP.md`
-- General troubleshooting: `docs/TROUBLESHOOTING.md`
+- Setup guide: `docs/connectors/NOTION-SETUP.md`
+- General troubleshooting: `docs/troubleshoot.md`

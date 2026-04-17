@@ -16,7 +16,7 @@ The entire setup takes about 5 minutes. **You only do one manual thing yourself*
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) if not done yet)
+- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
 - An Intuit developer account (free — you will create one in Step 1 if you don't already have one)
 - An internet connection
 
@@ -199,7 +199,7 @@ These are issues Claude may report back to you during setup. In most cases Claud
 
 If you are connecting to a **client's** QuickBooks company, note that this skill is **sandbox only** — you cannot use it to touch a real client's books in this configuration. Intuit blocks production access for apps with localhost redirect URIs, and completing Intuit's production assessment requires a public-facing domain, terms of service, privacy policy, and review time.
 
-For working with real client data through the workshop-kit ecosystem, use the **Xero connector** instead (`docs/XERO-SETUP.md`) — Xero allows localhost redirects in production and works out of the box with real company data.
+For working with real client data through the workshop-kit ecosystem, use the **Xero connector** instead (`docs/connectors/XERO-SETUP.md`) — Xero allows localhost redirects in production and works out of the box with real company data.
 
 If you need QuickBooks production access for an accounting practice, contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) — there is a path to a production-ready deployment, but it sits outside the standard workshop and requires additional setup time.
 

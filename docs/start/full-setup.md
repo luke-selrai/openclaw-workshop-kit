@@ -69,7 +69,7 @@ Claude Desktop is the app where you will chat with your assistant, open your wor
 
 Done when: You see the main Claude window and can start a new chat.
 
-> **Prefer VS Code?** The old "VS Code + Claude Code extension" path still works and is supported as an advanced option — see [ADVANCED-VSCODE.md](ADVANCED-VSCODE.md). We don't recommend it for first-time users.
+> **Prefer VS Code?** The old "VS Code + Claude Code extension" path still works and is supported as an advanced option — see [vscode](../extend/vscode.md). We don't recommend it for first-time users.
 
 ---
 
@@ -754,13 +754,13 @@ Your assistant can run tasks automatically on a schedule or in a loop.
 
 > **Note:** `/schedule` runs in the cloud — your computer does not need to be on. `/loop` runs locally and requires your computer to be on with Claude Code running.
 
-For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHEDULE.md)
+For full details, see [automation-loop-and-schedule](../extend/automation-loop-and-schedule.md)
 
 ---
 
 ## Skills — Quick Reference
 
-Your assistant has <!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills covering marketing, research, strategy, AI/automation, engineering, DevOps, and design. For the full categorised list, see [SKILLS-REFERENCE.md](SKILLS-REFERENCE.md).
+Your assistant has <!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills covering marketing, research, strategy, AI/automation, engineering, DevOps, and design. For the full categorised list, see [skills reference](../skills/README.md).
 
 ---
 
@@ -777,7 +777,7 @@ Your assistant has <!-- skills-audit:total -->104<!-- /skills-audit:total --> sp
 | MCP Documentation | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
 | Selr AI | [selrai.com.au](https://selrai.com.au) |
 | Email Luke | [luke@selrai.com.au](mailto:luke@selrai.com.au) |
-| VS Code (advanced fallback) | [code.visualstudio.com](https://code.visualstudio.com) — see [ADVANCED-VSCODE.md](ADVANCED-VSCODE.md) |
+| VS Code (advanced fallback) | [code.visualstudio.com](https://code.visualstudio.com) — see [vscode](../extend/vscode.md) |
 
 ---
 

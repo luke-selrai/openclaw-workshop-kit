@@ -31,7 +31,7 @@ By continuing past this point, you accept this risk.
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) if not done yet)
+- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
 - A WhatsApp account on your phone (free — download from the App Store or Google Play)
 
 That's it. Don't worry about installing Bun or opening terminals yourself — the fast-setup prompt in Part A handles it for you.
@@ -427,7 +427,7 @@ You can customise behavior with environment variables. Set these in the `env` se
 
 ## Still Having Trouble?
 
-See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more fixes, or ask your assistant:
+See [TROUBLESHOOTING.md](../troubleshoot.md) for more fixes, or ask your assistant:
 > "Something went wrong with my WhatsApp setup. Help me fix it."
 
 ---

@@ -60,7 +60,7 @@ After that, every time you open Claude Desktop and load your `my-assistant` fold
 
 No other pre-installs needed on Mac.
 
-> **Prefer VS Code?** You can still run this kit through the Claude Code extension in VS Code. See [docs/ADVANCED-VSCODE.md](docs/ADVANCED-VSCODE.md). We don't recommend it for first-time users — Claude Desktop is simpler.
+> **Prefer VS Code?** You can still run this kit through the Claude Code extension in VS Code. See [docs/extend/vscode.md](docs/extend/vscode.md). We don't recommend it for first-time users — Claude Desktop is simpler.
 
 ---
 
@@ -80,7 +80,7 @@ Your assistant handles it all conversationally, one step at a time. No scripts t
 
 Skills are specialist capabilities your assistant can use. Think of them like switching your assistant from "general helper" to "expert copywriter", "market researcher", "DevOps engineer", or "product strategist" for a specific task.
 
-This kit includes the full professional skill library — the same depth used to power Selr AI's infrastructure. See [docs/SKILLS-REFERENCE.md](docs/SKILLS-REFERENCE.md) for descriptions of every skill, and [docs/BOOTSTRAP.md](docs/BOOTSTRAP.md) for the version-controlled bootstrap prompt.
+This kit includes the full professional skill library — the same depth used to power Selr AI's infrastructure. See [docs/skills/README.md](docs/skills/README.md) for descriptions of every skill, and [docs/start/bootstrap.md](docs/start/bootstrap.md) for the version-controlled bootstrap prompt.
 
 **Marketing & Content**
 
@@ -227,23 +227,23 @@ Connectors link your assistant to the tools your business already uses. Each one
 
 | Connector | What It Plugs Into | Setup Guide |
 |---|---|---|
-| `google-workspace` | Gmail, Calendar, Drive, Docs, Sheets, Meet | [GOOGLE-WORKSPACE-SETUP.md](docs/GOOGLE-WORKSPACE-SETUP.md) |
-| `outlook-connector` | Microsoft 365 — email, calendar, OneDrive, Teams, SharePoint | [OUTLOOK-SETUP.md](docs/OUTLOOK-SETUP.md) |
-| `github-connector` | GitHub repos, issues, pull requests, Actions, code search | [GITHUB-SETUP.md](docs/GITHUB-SETUP.md) |
-| `hubspot-connector` | HubSpot CRM — contacts, deals, companies, notes, tasks | [HUBSPOT-SETUP.md](docs/HUBSPOT-SETUP.md) |
-| `ghl-connector` | GoHighLevel CRM — contacts, pipelines, calendar, invoices | [GHL-SETUP.md](docs/GHL-SETUP.md) |
-| `stripe-connector` | Stripe — payments, invoices, subscriptions, customers, refunds | [STRIPE-SETUP.md](docs/STRIPE-SETUP.md) |
-| `xero-connector` | Xero accounting — invoices, contacts, P&L, bank reconciliation | [XERO-SETUP.md](docs/XERO-SETUP.md) |
-| `quickbooks-connector` | QuickBooks Online — invoices, customers, P&L, balance sheet | [QUICKBOOKS-SETUP.md](docs/QUICKBOOKS-SETUP.md) |
-| `square-connector` | Square — payments, orders, catalog, customers, bookings | [SQUARE-SETUP.md](docs/SQUARE-SETUP.md) |
-| `shopify-connector` | Shopify store — products, orders, customers, inventory | [SHOPIFY-SETUP.md](docs/SHOPIFY-SETUP.md) |
-| `notion-connector` | Notion — pages, databases, meeting notes | [NOTION-SETUP.md](docs/NOTION-SETUP.md) |
-| `google-chat-connector` | Google Chat — spaces, DMs, Google Workspace messaging | [GOOGLE-CHAT-SETUP.md](docs/GOOGLE-CHAT-SETUP.md) |
+| `google-workspace` | Gmail, Calendar, Drive, Docs, Sheets, Meet | [GOOGLE-WORKSPACE-SETUP.md](docs/connectors/GOOGLE-WORKSPACE-SETUP.md) |
+| `outlook-connector` | Microsoft 365 — email, calendar, OneDrive, Teams, SharePoint | [OUTLOOK-SETUP.md](docs/connectors/OUTLOOK-SETUP.md) |
+| `github-connector` | GitHub repos, issues, pull requests, Actions, code search | [GITHUB-SETUP.md](docs/connectors/GITHUB-SETUP.md) |
+| `hubspot-connector` | HubSpot CRM — contacts, deals, companies, notes, tasks | [HUBSPOT-SETUP.md](docs/connectors/HUBSPOT-SETUP.md) |
+| `ghl-connector` | GoHighLevel CRM — contacts, pipelines, calendar, invoices | [GHL-SETUP.md](docs/connectors/GHL-SETUP.md) |
+| `stripe-connector` | Stripe — payments, invoices, subscriptions, customers, refunds | [STRIPE-SETUP.md](docs/connectors/STRIPE-SETUP.md) |
+| `xero-connector` | Xero accounting — invoices, contacts, P&L, bank reconciliation | [XERO-SETUP.md](docs/connectors/XERO-SETUP.md) |
+| `quickbooks-connector` | QuickBooks Online — invoices, customers, P&L, balance sheet | [QUICKBOOKS-SETUP.md](docs/connectors/QUICKBOOKS-SETUP.md) |
+| `square-connector` | Square — payments, orders, catalog, customers, bookings | [SQUARE-SETUP.md](docs/connectors/SQUARE-SETUP.md) |
+| `shopify-connector` | Shopify store — products, orders, customers, inventory | [SHOPIFY-SETUP.md](docs/connectors/SHOPIFY-SETUP.md) |
+| `notion-connector` | Notion — pages, databases, meeting notes | [NOTION-SETUP.md](docs/connectors/NOTION-SETUP.md) |
+| `google-chat-connector` | Google Chat — spaces, DMs, Google Workspace messaging | [GOOGLE-CHAT-SETUP.md](docs/connectors/GOOGLE-CHAT-SETUP.md) |
 | `aws-connector` | AWS — S3, EC2, Lambda, DynamoDB, IAM | [skills/aws-connector/SKILL.md](skills/aws-connector/SKILL.md) |
 | `azure-connector` | Azure — storage, web apps, VMs, Key Vault | [skills/azure-connector/SKILL.md](skills/azure-connector/SKILL.md) |
 | `gcloud-connector` | Google Cloud — BigQuery, Cloud Storage, Cloud Run | [skills/gcloud-connector/SKILL.md](skills/gcloud-connector/SKILL.md) |
-| `circleci-connector` | CircleCI — pipelines, builds, logs, flaky tests, triggers | [CIRCLECI-SETUP.md](docs/CIRCLECI-SETUP.md) |
-| `whatsapp-connector` | WhatsApp — two-way messaging from your phone | [WHATSAPP-SETUP.md](docs/WHATSAPP-SETUP.md) |
+| `circleci-connector` | CircleCI — pipelines, builds, logs, flaky tests, triggers | [CIRCLECI-SETUP.md](docs/connectors/CIRCLECI-SETUP.md) |
+| `whatsapp-connector` | WhatsApp — two-way messaging from your phone | [WHATSAPP-SETUP.md](docs/connectors/WHATSAPP-SETUP.md) |
 
 > **Don't know which connectors to set up?** Ask your assistant: *"What connectors should I set up for a business like mine?"* — the `connector-recommender` skill will ask about your business and recommend the highest-impact connections.
 
@@ -280,12 +280,12 @@ workshop-kit/
 
 Your assistant is now yours. A few things to explore next:
 
-- **Create all accounts** — see [docs/ACCOUNTS-AND-LOGINS.md](docs/ACCOUNTS-AND-LOGINS.md)
-- **Add Google Workspace (Gmail + Calendar + Drive + More)** — see [docs/GOOGLE-WORKSPACE-SETUP.md](docs/GOOGLE-WORKSPACE-SETUP.md)
-- **Add phone messaging** (Telegram, WhatsApp, or iMessage) — see [docs/COMPLETION-GUIDE.md](docs/COMPLETION-GUIDE.md#set-up-phone-notifications-telegram-whatsapp-or-imessage)
+- **Create all accounts** — see [docs/install/accounts-and-logins.md](docs/install/accounts-and-logins.md)
+- **Add Google Workspace (Gmail + Calendar + Drive + More)** — see [docs/connectors/GOOGLE-WORKSPACE-SETUP.md](docs/connectors/GOOGLE-WORKSPACE-SETUP.md)
+- **Add phone messaging** (Telegram, WhatsApp, or iMessage) — see [docs/use/completion-guide.md](docs/use/completion-guide.md#set-up-phone-notifications-telegram-whatsapp-or-imessage)
 - **Upgrade your skills** — Selr AI offers advanced skill packs for deeper automation
 
-Full guide: [docs/COMPLETION-GUIDE.md](docs/COMPLETION-GUIDE.md)
+Full guide: [docs/use/completion-guide.md](docs/use/completion-guide.md)
 
 ---
 

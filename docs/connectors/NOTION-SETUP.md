@@ -14,7 +14,7 @@ This guide connects your Notion workspace to your AI assistant using the **offic
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) if not done yet)
+- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
 - A Notion account (free or paid — both work)
 - An internet connection
 

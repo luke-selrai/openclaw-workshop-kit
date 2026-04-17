@@ -4,7 +4,7 @@ This prompt is used by workshop attendees to set up their AI Business Assistant.
 
 **Primary source:** The workshop Notion page (selrai.notion.site) — attendees copy from there.
 **This file:** Version-controlled backup. Update here whenever the Notion page is updated.
-**Also appears in:** `docs/FULL-SETUP-PAGE.md` Step 5 — keep both in sync.
+**Also appears in:** `docs/start/full-setup.md` Step 5 — keep both in sync.
 
 ---
 

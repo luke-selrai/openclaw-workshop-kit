@@ -28,7 +28,7 @@ Xero currently only offers Custom Connections for organisations in **Australia, 
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) if not done yet)
+- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
 - A Xero account (any plan — Starter, Standard, or Premium)
 - A Xero developer account (free — sign up at [developer.xero.com](https://developer.xero.com))
 - A payment method saved in Xero (credit card or direct debit — for the monthly Custom Connection charge)

@@ -12,7 +12,7 @@ This guide connects your Stripe account to your AI assistant. Once set up, your 
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) if not done yet)
+- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
 - A Stripe account (free to create at stripe.com)
 - An internet connection
 

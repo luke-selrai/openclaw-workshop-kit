@@ -52,5 +52,5 @@ Requesting the contents of a directory with hundreds of files (`get_file_content
 ## Related
 
 - Connector docs: `skills/github-connector/SKILL.md`
-- General troubleshooting: `docs/TROUBLESHOOTING.md`
-- GitHub SETUP guide: `docs/GITHUB-SETUP.md`
+- General troubleshooting: `docs/troubleshoot.md`
+- GitHub SETUP guide: `docs/connectors/GITHUB-SETUP.md`

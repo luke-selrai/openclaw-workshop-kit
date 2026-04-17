@@ -1,6 +1,6 @@
 # Advanced — Using VS Code Instead of Claude Desktop
 
-> **This is an advanced fallback.** The recommended path for the workshop is [Claude Desktop](https://claude.ai/download) + the main [FULL-SETUP-PAGE.md](FULL-SETUP-PAGE.md) guide. Use this page only if you are already comfortable with VS Code and would rather run the assistant through the Claude Code extension.
+> **This is an advanced fallback.** The recommended path for the workshop is [Claude Desktop](https://claude.ai/download) + the main [full-setup](../start/full-setup.md) guide. Use this page only if you are already comfortable with VS Code and would rather run the assistant through the Claude Code extension.
 
 ---
 
@@ -61,7 +61,7 @@ Same as the main flow. Install Node.js from [nodejs.org](https://nodejs.org), th
 ### Step 6 — Paste the bootstrap prompt
 
 1. In VS Code, click the **Claude** icon in the sidebar to open the extension
-2. Paste the bootstrap prompt from the workshop Notion page (same prompt as the Desktop path — see [BOOTSTRAP.md](BOOTSTRAP.md))
+2. Paste the bootstrap prompt from the workshop Notion page (same prompt as the Desktop path — see [bootstrap](../start/bootstrap.md))
 3. The assistant handles the clone, skill copy, and workspace creation
 
 ### Step 7 — Open your workspace
@@ -105,7 +105,7 @@ Restart VS Code completely. If still broken, reinstall from [nodejs.org](https:/
 **"EPERM" or "permission denied" during `npm install` on Windows**
 Close VS Code, right-click it, choose **Run as Administrator**, reopen, retry.
 
-**Everything else** → the main [TROUBLESHOOTING.md](TROUBLESHOOTING.md) applies — the only difference is "restart Claude Desktop" becomes "restart VS Code" for you.
+**Everything else** → the main [troubleshoot](../troubleshoot.md) applies — the only difference is "restart Claude Desktop" becomes "restart VS Code" for you.
 
 ---
 

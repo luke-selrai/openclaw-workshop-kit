@@ -103,7 +103,7 @@ A unit of text that AI processes — roughly 3–4 characters, or about ¾ of a 
 A password-like code that gives access to a service. When BotFather gives you a "bot token," it is a secret code that lets Claude control your Telegram bot. Treat it like a password — never share it.
 
 **VS Code (Visual Studio Code)**
-A free code editor made by Microsoft. Used to be the primary way to run Claude on your computer (via the Claude Code extension). No longer required — Claude Desktop replaces it. Still supported as an advanced option for developers who already use VS Code. See `docs/ADVANCED-VSCODE.md`.
+A free code editor made by Microsoft. Used to be the primary way to run Claude on your computer (via the Claude Code extension). No longer required — Claude Desktop replaces it. Still supported as an advanced option for developers who already use VS Code. See `docs/extend/vscode.md`.
 
 **Webhook**
 A way for one app to notify another app when something happens. "When a new lead comes in, send me a Telegram or iMessage." Your assistant can set these up for you.

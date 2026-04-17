@@ -38,13 +38,13 @@ These connect to Claude Code with one command (or a short setup walkthrough). No
 | Tool | Cost | What Your Assistant Can Do | Connect With |
 |---|---|---|---|
 | **Google Workspace** | Free (Google account) | Gmail, Calendar, Drive, Docs, Sheets, and more | `npm install -g @googleworkspace/cli` then `gws auth login` |
-| **Telegram Bot** | Free | Message your assistant from your phone | See `docs/TELEGRAM-SETUP.md` |
-| **iMessage** (Mac only) | Free | Text your assistant from iPhone/Mac | See `docs/IMESSAGE-SETUP.md` |
-| **Notion** | Free / $10 USD/mo | Read and update your notes and workspace | See `docs/NOTION-SETUP.md` |
-| **GitHub** | Free | Read repos, issues, pull requests, CI status | See `docs/GITHUB-SETUP.md` |
-| **HubSpot** | Free / paid tiers | Read and update contacts, deals, companies, notes | See `docs/HUBSPOT-SETUP.md` |
-| **Square** | Free | Read payments, orders, customers, invoices | See `docs/SQUARE-SETUP.md` |
-| **CircleCI** | Free tier | Check build status, read logs, trigger reruns | See `docs/CIRCLECI-SETUP.md` |
+| **Telegram Bot** | Free | Message your assistant from your phone | See `docs/connectors/TELEGRAM-SETUP.md` |
+| **iMessage** (Mac only) | Free | Text your assistant from iPhone/Mac | See `docs/connectors/IMESSAGE-SETUP.md` |
+| **Notion** | Free / $10 USD/mo | Read and update your notes and workspace | See `docs/connectors/NOTION-SETUP.md` |
+| **GitHub** | Free | Read repos, issues, pull requests, CI status | See `docs/connectors/GITHUB-SETUP.md` |
+| **HubSpot** | Free / paid tiers | Read and update contacts, deals, companies, notes | See `docs/connectors/HUBSPOT-SETUP.md` |
+| **Square** | Free | Read payments, orders, customers, invoices | See `docs/connectors/SQUARE-SETUP.md` |
+| **CircleCI** | Free tier | Check build status, read logs, trigger reruns | See `docs/connectors/CIRCLECI-SETUP.md` |
 
 ---
 

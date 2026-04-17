@@ -340,7 +340,7 @@ Builds production CI/CD pipelines with matrix builds, caching, and deployment st
 Example: "Build a GitHub Actions workflow that tests and deploys my app."
 
 ### CircleCI Connector *(CORE — needs connector)*
-Reads pipeline status, build failure logs, flaky tests, test results, and artifacts from your CircleCI account. Can trigger pipelines, rerun workflows, and run rollback pipelines (with confirmation). Setup takes about two minutes — see [docs/CIRCLECI-SETUP.md](docs/CIRCLECI-SETUP.md).
+Reads pipeline status, build failure logs, flaky tests, test results, and artifacts from your CircleCI account. Can trigger pipelines, rerun workflows, and run rollback pipelines (with confirmation). Setup takes about two minutes — see [docs/connectors/CIRCLECI-SETUP.md](docs/connectors/CIRCLECI-SETUP.md).
 Example: "What's the status of my latest build on main?" or "Why did the last build fail?"
 
 ### Vercel Deployment *(ADVANCED)*
