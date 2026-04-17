@@ -105,8 +105,6 @@ git clone https://github.com/selrai-company/claude-workshop-kit.git ~/workshop-k
 
 No GitHub login required to download — the repo is public.
 
-Your GitHub account is used for eventually storing your own customisations.
-
 ---
 
 ## Priority 3 — Connect After the Workshop
