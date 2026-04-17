@@ -353,7 +353,7 @@ Example: "I've finished this feature — help me integrate it cleanly."
 
 ## GROUP H — Connectors & Integrations
 
-Each connector walks you through a one-time authentication step by step and then lets you interact with the service in plain English. Per-service setup guides are in [../connectors/](../connectors/) — but you almost never need to read them. Just ask your assistant: *"Connect [service]"* and it runs the connector for you.
+Each connector walks you through a one-time authentication step by step and then lets you interact with the service in plain English. You almost never need to read the connector skill yourself — just ask your assistant: *"Connect [service]"* and it runs the full install and sign-in conversationally.
 
 ### Connector Recommender *(ADVANCED)*
 Asks about your business and recommends which connectors will have the most impact — ranked by your industry and workflow.
