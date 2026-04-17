@@ -758,44 +758,9 @@ For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHE
 
 ---
 
-## Your <!-- skills-audit:total -->104<!-- /skills-audit:total --> Skills — Quick Reference
+## Skills — Quick Reference
 
-<details>
-<summary>Click to see all skill categories</summary>
-
-**Marketing & Content**
-
-Copywriting, email sequences, email composer, social media posts, ad copy, blog content, direct response copy, paid ads, content marketing, avoid-AI-writing patterns
-
-**Research & Intelligence**
-
-Deep research, competitor analysis, competitive cartography, Reddit insights, market trends, YouTube summaries, last 30 days trends, Apify market research, Apify competitor intelligence, Apify content analytics
-
-**Strategy & Business**
-
-Brainstorming, systems thinking, product appeal analysis, CEO-mode plan reviews, engineering plan reviews, personal finance coaching, ADHD entrepreneur coaching, indie monetisation, AI product development, analytics
-
-**AI & Automation**
-
-AI agents architect, AI engineer, agent creator, agent memory systems, agent memory MCP, agent tool builder, agent orchestration, autonomous agent patterns, orchestrator, prompt engineer, skill creator, MCP builder, MCP creator, Claude API, bot developer, n8n workflow patterns, n8n MCP tools, agentfolio
-
-**Engineering & Development**
-
-API architect, code architecture, full-stack debugger, Next.js App Router, TypeScript advanced patterns, Supabase admin, PostgreSQL optimization, security auditor, modern auth 2026, OAuth/OIDC, microservices patterns, performance profiling, logging & observability, QA, webapp testing, Playwright
-
-**DevOps & Infrastructure**
-
-DevOps automator, Terraform, GitHub Actions, site reliability engineer, Vercel deployment, git workflow expert, gstack-ship, git worktrees, finishing dev branches, cost optimizer, task decomposer, dispatching parallel agents, subagent-driven development
-
-**Design & UX**
-
-shadcn/ui, web design guidelines, web accessibility, diagramming expert
-
-**Other**
-
-Remotion video, retrospectives, feature manifest, sales automator, technical writer, first-run setup
-
-</details>
+Your assistant has <!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills covering marketing, research, strategy, AI/automation, engineering, DevOps, and design. For the full categorised list, see [SKILLS-REFERENCE.md](SKILLS-REFERENCE.md).
 
 ---
 

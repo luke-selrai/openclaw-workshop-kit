@@ -322,6 +322,10 @@ Some connectors have limitations that are not bugs — they are known constraint
 
 | Issue | File |
 |---|---|
+| Google connects to the wrong account | [known-issues/GMAIL-ACCOUNT-SWITCH.md](../known-issues/GMAIL-ACCOUNT-SWITCH.md) |
+| QuickBooks only shows test/demo data | [known-issues/QUICKBOOKS-SANDBOX-ONLY.md](../known-issues/QUICKBOOKS-SANDBOX-ONLY.md) |
+| Stripe login does not open a browser | [known-issues/STRIPE-NON-TTY-LOGIN.md](../known-issues/STRIPE-NON-TTY-LOGIN.md) |
+| Outlook does not work with @outlook.com / @hotmail.com accounts | [known-issues/OUTLOOK-PERSONAL-ACCOUNTS.md](../known-issues/OUTLOOK-PERSONAL-ACCOUNTS.md) |
 | QuickBooks only shows test/demo data | [known-issues/QUICKBOOKS-SANDBOX-ONLY.md](../known-issues/QUICKBOOKS-SANDBOX-ONLY.md) |
 | Stripe login does not open a browser | [known-issues/STRIPE-NON-TTY-LOGIN.md](../known-issues/STRIPE-NON-TTY-LOGIN.md) |
 | Outlook does not work with @outlook.com / @hotmail.com accounts | [known-issues/OUTLOOK-PERSONAL-ACCOUNTS.md](../known-issues/OUTLOOK-PERSONAL-ACCOUNTS.md) |
