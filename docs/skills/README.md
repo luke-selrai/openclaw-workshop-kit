@@ -375,6 +375,10 @@ Example: "Show me all unpaid invoices in QuickBooks."
 Square — payments, refunds, catalog, inventory, orders, customers, invoices, bookings.
 Example: "Show me my recent Square payments this week."
 
+### PayPal Connector *(ADVANCED)*
+Connects PayPal via the official PayPal MCP server — invoices, payments, refunds, disputes, subscriptions, products, shipment tracking, and transactions.
+Example: "Show me my unpaid PayPal invoices."
+
 ### Shopify Connector *(ADVANCED)*
 Shopify store — products, orders, customers, inventory.
 Example: "Show me my recent Shopify orders and flag any that are unfulfilled."
