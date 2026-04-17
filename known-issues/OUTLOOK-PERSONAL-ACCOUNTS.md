@@ -59,4 +59,4 @@ Your assistant will open a browser, navigate to [outlook.live.com](https://outlo
 
 - Connector docs: `skills/outlook-connector/SKILL.md`
 - Playwright skill: `skills/playwright-skill/SKILL.md`
-- General troubleshooting: `docs/TROUBLESHOOTING.md`
+- General troubleshooting: `docs/troubleshoot.md`

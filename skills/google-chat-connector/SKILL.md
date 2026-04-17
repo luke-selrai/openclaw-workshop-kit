@@ -41,7 +41,7 @@ The connector uses the **Google Workspace CLI** (`@googleworkspace/cli`, invoked
 
 ## Part 1 — Installation
 
-Guide conversationally — one step at a time. For first-time users, also point them at `docs/GOOGLE-CHAT-SETUP.md` which has screenshots and a friendlier walkthrough.
+Guide conversationally — one step at a time. For first-time users, also point them at `docs/connectors/GOOGLE-CHAT-SETUP.md` which has screenshots and a friendlier walkthrough.
 
 ### Step 1: Confirm account type
 
@@ -350,4 +350,4 @@ Activate when the user says things like:
 - "Set up Google Chat"
 - "Connect my Workspace chat"
 
-For initial setup, walk the user through `docs/GOOGLE-CHAT-SETUP.md`.
+For initial setup, walk the user through `docs/connectors/GOOGLE-CHAT-SETUP.md`.

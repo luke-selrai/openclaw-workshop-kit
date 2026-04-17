@@ -96,11 +96,11 @@ All paths below are relative to the user's home folder (see the path conventions
 
 | Tool | Read this first |
 |---|---|
-| Google Workspace (Gmail, Calendar, Drive) | `workshop-kit/docs/GOOGLE-WORKSPACE-SETUP.md` |
-| Microsoft 365 / Outlook | `workshop-kit/docs/OUTLOOK-SETUP.md` and `workshop-kit/skills/outlook-connector/SKILL.md` |
-| Telegram | `workshop-kit/docs/TELEGRAM-SETUP.md` |
-| iMessage | `workshop-kit/docs/IMESSAGE-SETUP.md` |
-| WhatsApp | `workshop-kit/docs/WHATSAPP-SETUP.md` |
+| Google Workspace (Gmail, Calendar, Drive) | `workshop-kit/docs/connectors/GOOGLE-WORKSPACE-SETUP.md` |
+| Microsoft 365 / Outlook | `workshop-kit/docs/connectors/OUTLOOK-SETUP.md` and `workshop-kit/skills/outlook-connector/SKILL.md` |
+| Telegram | `workshop-kit/docs/connectors/TELEGRAM-SETUP.md` |
+| iMessage | `workshop-kit/docs/connectors/IMESSAGE-SETUP.md` |
+| WhatsApp | `workshop-kit/docs/connectors/WHATSAPP-SETUP.md` |
 | Dispatch (phone → desktop) | `workshop-kit/docs/dispatch/DISPATCH-SETUP.md` and `workshop-kit/skills/claude-dispatch/SKILL.md` |
 | Shopify | `workshop-kit/skills/shopify-connector/SKILL.md` |
 | Google Cloud (gcloud) | `workshop-kit/skills/gcloud-connector/SKILL.md` |
@@ -113,7 +113,7 @@ Each guide is the source of truth. If a guide contradicts something you remember
 
 ## Skills Discovery
 
-After setup, run the `skills-discovery` skill to recommend the most useful skills based on the user's profile. The full catalogue lives at `workshop-kit/SKILLS-GUIDE.md` (in the user's home folder) — read it when the user asks "what can you do?".
+After setup, run the `skills-discovery` skill to recommend the most useful skills based on the user's profile. The full catalogue lives at `workshop-kit/docs/skills/README.md` (in the user's home folder) — read it when the user asks "what can you do?".
 
 ---
 
@@ -132,7 +132,7 @@ When the user asks "can you do this every day?", "run this on a schedule", or an
 | "Send me a report every Monday" | `/schedule` |
 | "Run this even when my computer is off" | `/schedule` |
 
-For full details on syntax, intervals, and edge cases, read `workshop-kit/docs/AUTOMATION-LOOP-AND-SCHEDULE.md` (in the user's home folder). For the underlying cron tools (CronCreate, CronList, CronDelete), read `workshop-kit/docs/CRON-TASKS.md`.
+For full details on syntax, intervals, and edge cases, read `workshop-kit/docs/extend/automation-loop-and-schedule.md` (in the user's home folder). For the underlying cron tools (CronCreate, CronList, CronDelete), read `workshop-kit/docs/extend/cron-tasks.md`.
 
 ---
 
@@ -145,7 +145,7 @@ Then:
 1. For any technical issue, if the Superpowers plugin is installed, use `superpowers:systematic-debugging` and follow it. Otherwise, diagnose step by step in plain English — isolate what changed, form a hypothesis, verify before fixing. Never paste a raw stack trace at the user.
 2. If the failure is connector-specific (Google, Outlook, Telegram, iMessage, WhatsApp), re-read the matching guide in the Connecting Tools table — the troubleshooting sections in each guide are the source of truth.
 3. Translate any error message into plain English before showing the user. Never paste a raw stack trace.
-4. If you hit a Claude Max usage-limit error mid-task, NEVER stop silently or paste the raw error. Translate it to plain English ("You've reached your Claude Max limit for now — it resets around <time from the error>"), reassure them that their memory persists across the cooldown, and explicitly flag whether anything mid-task may need picking up afterwards (a half-written file, a half-filled form, an automation that stopped partway). Be specific about what you had done and what was still in progress when the limit hit — do not give a blanket "your work is safe" reassurance, because it may not be. Then offer three concrete options: (a) wait until the reset, (b) switch to Sonnet for less-critical work via `/model` and continue now, or (c) look at upgrading their Claude Max tier. Full guidance lives in `workshop-kit/docs/TROUBLESHOOTING.md` under "Claude says I've hit my usage limit".
+4. If you hit a Claude Max usage-limit error mid-task, NEVER stop silently or paste the raw error. Translate it to plain English ("You've reached your Claude Max limit for now — it resets around <time from the error>"), reassure them that their memory persists across the cooldown, and explicitly flag whether anything mid-task may need picking up afterwards (a half-written file, a half-filled form, an automation that stopped partway). Be specific about what you had done and what was still in progress when the limit hit — do not give a blanket "your work is safe" reassurance, because it may not be. Then offer three concrete options: (a) wait until the reset, (b) switch to Sonnet for less-critical work via `/model` and continue now, or (c) look at upgrading their Claude Max tier. Full guidance lives in `workshop-kit/docs/troubleshoot.md` under "Claude says I've hit my usage limit".
 
 ---
 
@@ -155,6 +155,6 @@ All paths below are relative to the user's home folder. On Mac and Linux that is
 
 - Skills: `.claude/skills/`
 - Workshop docs: `workshop-kit/docs/`
-- Full skill catalogue: `workshop-kit/SKILLS-GUIDE.md`
+- Full skill catalogue: `workshop-kit/docs/skills/README.md`
 - First-run setup: `workshop-kit/skills/first-run-setup/SKILL.md`
 - This file: `my-assistant/CLAUDE.md`

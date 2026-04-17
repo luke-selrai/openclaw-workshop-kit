@@ -45,7 +45,7 @@ The app where you work with your assistant. Three surfaces, one window:
 
 Free. One download from [claude.ai/download](https://claude.ai/download). Replaces the old "VS Code + Claude Code extension" setup.
 
-> Developer already using VS Code? See [ADVANCED-VSCODE.md](../docs/ADVANCED-VSCODE.md) — the extension still works.
+> Developer already using VS Code? See [ADVANCED-VSCODE.md](../docs/extend/vscode.md) — the extension still works.
 
 ### CLAUDE.md — Your Instructions File
 A file you can read and edit that tells Claude who you are, how to talk to you, and what it can do. It loads automatically every time you open Claude.

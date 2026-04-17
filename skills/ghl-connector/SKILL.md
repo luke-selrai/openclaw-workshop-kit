@@ -1,6 +1,6 @@
 ---
 name: ghl-connector
-description: "Interact with GoHighLevel (GHL) through the official HighLevel MCP server. Use this skill when the user asks about GHL contacts, conversations, opportunities, pipelines, calendar, payments, blogs, email templates, or social posts, or says things like 'my GHL contacts', 'move this deal to Proposal Sent', 'today's bookings', 'search my GHL conversations', 'list my pipelines', or 'tag jane@example.com as VIP'. Handles reading and writing contacts, moving opportunities, reading calendar bookings, reading transactions and orders, managing blog posts, and scheduling social posts — all through `mcp__ghl__*` tools. Falls back to Playwright browser automation only for UI-only surfaces (sending SMS, visual workflow editor, campaign builder edits). For initial setup, guide the user through `docs/GHL-SETUP.md`."
+description: "Interact with GoHighLevel (GHL) through the official HighLevel MCP server. Use this skill when the user asks about GHL contacts, conversations, opportunities, pipelines, calendar, payments, blogs, email templates, or social posts, or says things like 'my GHL contacts', 'move this deal to Proposal Sent', 'today's bookings', 'search my GHL conversations', 'list my pipelines', or 'tag jane@example.com as VIP'. Handles reading and writing contacts, moving opportunities, reading calendar bookings, reading transactions and orders, managing blog posts, and scheduling social posts — all through `mcp__ghl__*` tools. Falls back to Playwright browser automation only for UI-only surfaces (sending SMS, visual workflow editor, campaign builder edits). For initial setup, guide the user through `docs/connectors/GHL-SETUP.md`."
 allowed-tools: mcp__ghl__*,Bash,Read,Write,Edit,mcp__playwright__*,mcp__plugin_playwright_playwright__*
 metadata:
   category: CRM & Marketing
@@ -36,7 +36,7 @@ This skill uses the **official HighLevel MCP server** to read and write data in 
 - **Transport:** HTTP MCP — no custom server, no source tree, no shell envvars
 - **Tool surface:** 36 first-party tools covering Contacts, Conversations, Opportunities, Calendar, Payments, Locations, Blogs, Email templates, Social Media
 
-> **Not set up yet?** Walk the user through `docs/GHL-SETUP.md` — it's four steps: create a Private Integration Token, copy the Location ID, add the `ghl` MCP server entry to `~/.claude.json`, then verify with a cheap tool call.
+> **Not set up yet?** Walk the user through `docs/connectors/GHL-SETUP.md` — it's four steps: create a Private Integration Token, copy the Location ID, add the `ghl` MCP server entry to `~/.claude.json`, then verify with a cheap tool call.
 
 > **Fallback:** A small number of GHL surfaces are UI-only (sending SMS from the conversations view, editing the visual workflow builder, authoring full email campaigns). For those, and **only** those, fall back to [playwright-skill](../playwright-skill/SKILL.md). Never reach for Playwright when an `mcp__ghl__*` tool exists for the task.
 
@@ -50,7 +50,7 @@ Before using any GHL tools, confirm:
 2. **PIT and locationId are set** — the entry has `Authorization` and `locationId` headers with real values (not placeholders)
 3. **Scopes are granted** — the Private Integration the PIT was minted from has the scopes the user's task requires (see Error Handling below)
 
-If any of these are missing, guide the user through `docs/GHL-SETUP.md`. Do not fall back to curl recipes or shell envvars — the MCP config is the only supported install path.
+If any of these are missing, guide the user through `docs/connectors/GHL-SETUP.md`. Do not fall back to curl recipes or shell envvars — the MCP config is the only supported install path.
 
 **MCP server entry (for reference — never paste the real PIT into the transcript):**
 

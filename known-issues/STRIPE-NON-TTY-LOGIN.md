@@ -52,4 +52,4 @@ The Stripe CLI only opens a browser automatically when it detects a real interac
 ## Related
 
 - Connector docs: `skills/stripe-connector/SKILL.md`
-- General troubleshooting: `docs/TROUBLESHOOTING.md`
+- General troubleshooting: `docs/troubleshoot.md`
