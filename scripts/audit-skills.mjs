@@ -33,7 +33,6 @@ const TARGET_FILES = [
   "docs/start/bootstrap.md",
   "docs/start/full-setup.md",
   "docs/install/subscriptions-and-software.md",
-  "docs/connectors/TELEGRAM-SETUP.md",
   "skills/SKILLS-LIST.md",
   "visuals/PAGE-1-AI-MODELS.md",
   "visuals/PAGE-2-YOUR-SETUP.md",
