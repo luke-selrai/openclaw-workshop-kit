@@ -11,7 +11,7 @@ Control your local Claude session from your phone — assign tasks while away fr
 
 ## Two Options — Recommend Based on User Profile
 
-Ask: *"Do you use Claude Desktop (the app with a UI) or Claude Code (the terminal)?"*
+Ask: *"Do you use Claude Desktop (the app with a window) or Claude Code (the text-based command window)?"*
 
 **If Claude Desktop → Dispatch** (preferred for most workshop attendees):
 - Non-technical users, Cowork workflows
@@ -49,7 +49,7 @@ Walk the user through these in separate messages, waiting for confirmation betwe
 1. Tell the user to start a session with `claude remote-control` or `claude --remote-control`.
 2. A URL and QR code print in the terminal.
 3. Tell them: *"Open the URL on any browser, or scan the QR code with the Claude app on your phone."*
-4. Tip they can use: *"Press spacebar in the terminal to hide or show the QR code."*
+4. Tip they can use: *"Press spacebar in the command window to hide or show the QR code."*
 
 ### Useful flags
 - `--name "My Project"` — custom session name (shows on the phone)

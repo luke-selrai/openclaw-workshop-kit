@@ -38,7 +38,7 @@ This skill lets you connect a user's iMessage to Claude Code so they can text th
 The user is a non-technical business owner. Every message during Phase 1 follows the rules in `my-assistant/CLAUDE.md`:
 
 - **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** Never say Bun, npm, bash, zsh, CLI, MCP, env var, terminal, AppleScript, AppleScript permission, full disk access API. If you must name a technical thing, describe it plainly: "a small helper tool", "the iMessage pieces", "the launch command", "a permission Windows — sorry, I mean macOS — asks you for".
+- **Plain English only.** Never say Bun, npm, bash, zsh, CLI, MCP, env var, terminal, AppleScript, AppleScript permission, full disk access API. If you must name a technical thing, describe it plainly: "a small helper tool", "the iMessage pieces", "the launch command", "a permission macOS asks you for".
 - **Tell them what is about to happen.** Before any action: "I'm going to install a small helper tool — this takes a few seconds."
 - **React warmly.** Good: "That worked — texts from your phone reach me now." Bad: "Plugin install succeeded, self-chat handle verified."
 - **Never show raw error messages.** Translate into plain English.
