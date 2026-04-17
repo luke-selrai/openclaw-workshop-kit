@@ -7,7 +7,6 @@ on:
       - "scripts/audit-skills.mjs"
       - ".github/workflows/audit-skills.yml"
       - "README.md"
-      - "DEVELOPER.md"
       - "SKILLS-GUIDE.md"
       - "docs/**"
       - "visuals/**"
