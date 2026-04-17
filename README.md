@@ -24,8 +24,6 @@ It is built on [Claude Code](https://claude.ai/claude-code) by Anthropic — the
 
 **Workshop attendees** — follow the setup guide below. Your assistant will walk you through everything.
 
-**Developers** — see [DEVELOPER.md](DEVELOPER.md) for the full technical breakdown, architecture, and how to extend or customise this kit.
-
 ---
 
 ## How It Works
@@ -306,9 +304,6 @@ Your assistant will notice and offer to fix it. Just open Claude Desktop, start 
 
 **Can I use this on Windows?**
 Yes. Install [Git for Windows](https://gitforwindows.org) beforehand (see Quick Start above), then open Claude Desktop, start a new Code session, and paste the bootstrap prompt — your assistant walks you through the rest conversationally, including any Windows-specific snags (Node.js install via winget, PATH fixes, PowerShell execution policy, Defender EBUSY errors, etc.).
-
-**I am a developer — how do I customise this?**
-See [DEVELOPER.md](DEVELOPER.md).
 
 ---
 

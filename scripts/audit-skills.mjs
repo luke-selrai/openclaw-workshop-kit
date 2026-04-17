@@ -29,7 +29,6 @@ const SKILLS_LIST = join(SKILLS_DIR, "SKILLS-LIST.md");
 
 const TARGET_FILES = [
   "README.md",
-  "DEVELOPER.md",
   "SKILLS-GUIDE.md",
   "docs/BOOTSTRAP.md",
   "docs/FULL-SETUP-PAGE.md",
