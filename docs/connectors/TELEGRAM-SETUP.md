@@ -12,7 +12,7 @@ This guide walks you through connecting Telegram to Claude Code so your assistan
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - A Telegram account (free — download the app on your phone from the App Store or Google Play)
 - Bun installed (check by typing `bun --version` in the command window)
 
@@ -157,7 +157,7 @@ Your assistant should reply directly in Telegram. You can now message your assis
 
 ## Still Having Trouble?
 
-See [TROUBLESHOOTING.md](../troubleshoot.md) for more fixes, or ask your assistant:
+See [the troubleshooting guide](../troubleshoot.md) for more fixes, or ask your assistant:
 > "Something went wrong with my Telegram setup. Help me fix it."
 
 ---

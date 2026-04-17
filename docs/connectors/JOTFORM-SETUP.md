@@ -12,7 +12,7 @@ This guide connects your Jotform account to your AI assistant using the official
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - A Jotform account (any plan, including Free)
 - A web browser (for the one-time sign-in)
 - An internet connection

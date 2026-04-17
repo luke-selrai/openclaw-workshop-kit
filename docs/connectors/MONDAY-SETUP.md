@@ -12,7 +12,7 @@ This guide connects your monday.com account to your AI assistant using the offic
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - A monday.com account (any plan, including Free)
 - Node.js 20 or newer installed (check with `node --version`) — **only if you choose the Local option below**
 - An internet connection

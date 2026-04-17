@@ -12,7 +12,7 @@ This guide connects your GitHub account to your AI assistant using the official 
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - A GitHub account (free at github.com)
 - An internet connection
 
@@ -229,7 +229,7 @@ If you need any of these, let your assistant know and they can check if support 
 
 ## Still Having Trouble?
 
-See [TROUBLESHOOTING.md](../troubleshoot.md) for more fixes, or ask your assistant:
+See [the troubleshooting guide](../troubleshoot.md) for more fixes, or ask your assistant:
 > "Something went wrong with my GitHub connection. Help me fix it."
 
 For known limitations (read-only tokens, Enterprise Server, rate limits), see [known-issues/GITHUB-REMOTE-MCP-CAVEATS.md](../known-issues/GITHUB-REMOTE-MCP-CAVEATS.md).

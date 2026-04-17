@@ -16,7 +16,7 @@ The entire setup takes about 5 minutes. **You only do one manual thing yourself*
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - An Intuit developer account (free — you will create one in Step 1 if you don't already have one)
 - An internet connection
 

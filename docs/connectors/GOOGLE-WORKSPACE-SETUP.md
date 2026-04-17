@@ -14,7 +14,7 @@ Works on **Windows, Mac, and Linux**.
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - Node.js installed (check: open your terminal and type `node --version` — you should see a version number)
 - A Google account (e.g. yourname@gmail.com or yourname@yourbusiness.com)
 
@@ -151,7 +151,7 @@ This generates skills for every Google Workspace service and adds them to your C
 
 ## Still Having Trouble?
 
-See [TROUBLESHOOTING.md](../troubleshoot.md) for more fixes, or ask your assistant:
+See [the troubleshooting guide](../troubleshoot.md) for more fixes, or ask your assistant:
 > "Something went wrong with my Google Workspace connection. Help me fix it."
 
 ---

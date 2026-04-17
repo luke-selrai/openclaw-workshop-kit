@@ -18,7 +18,7 @@ The entire setup takes about **1 minute** if you pick the real-account path, or 
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - A Square account (for the real-account path) **OR** a free Square developer account (for the sandbox path — takes 2 minutes to create)
 - An internet connection
 
@@ -238,7 +238,7 @@ None of this affects the setup flow in this guide, and Claude translates all err
 
 ## Still Having Trouble?
 
-See [TROUBLESHOOTING.md](../troubleshoot.md) for more fixes, or ask your assistant:
+See [the troubleshooting guide](../troubleshoot.md) for more fixes, or ask your assistant:
 > "Something went wrong with my Square connection. Help me fix it."
 
 For beta-related issues (intermittent auth errors, tool name changes), see [known-issues/SQUARE-BETA-STATUS.md](../known-issues/SQUARE-BETA-STATUS.md).

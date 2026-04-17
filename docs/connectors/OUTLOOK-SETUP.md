@@ -12,7 +12,7 @@ This guide connects your Microsoft account to your AI assistant. Once set up, yo
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - Node.js **version 20 or higher** installed — check by typing `node --version` in the command window
 - A Microsoft account — personal (outlook.com, hotmail.com) or work/school (Microsoft 365)
 - An internet connection
@@ -301,7 +301,7 @@ Replace `<YOUR_CLIENT_ID>` with the `appId` from `m365 status`, `<SERVICE_PRINCI
 
 ## Still Having Trouble?
 
-See [TROUBLESHOOTING.md](../troubleshoot.md) for more fixes, or ask your assistant:
+See [the troubleshooting guide](../troubleshoot.md) for more fixes, or ask your assistant:
 > "Something went wrong with my Outlook connection. Help me fix it."
 
 ---

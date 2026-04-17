@@ -12,7 +12,7 @@ This guide connects your Slack workspace to your AI assistant using the `slack-m
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - A Slack account with access to the workspace you want to connect
 - Node.js 20 or newer installed (check with `node --version`)
 - An internet connection

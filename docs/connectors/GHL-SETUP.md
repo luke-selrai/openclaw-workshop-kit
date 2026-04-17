@@ -14,7 +14,7 @@ This guide connects your GoHighLevel (GHL) account to your AI assistant using Hi
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - A GoHighLevel sub-account login (the one you use to manage a single business)
 - A text editor (or you can ask your assistant to edit the config file for you)
 

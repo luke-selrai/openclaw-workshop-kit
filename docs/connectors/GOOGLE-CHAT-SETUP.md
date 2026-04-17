@@ -14,7 +14,7 @@ This guide connects your Google Chat to your AI assistant using the **Google Wor
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - A **Google Workspace** account — this is the work/school email your organisation gave you (e.g. `you@company.com`). Personal Gmail accounts (`@gmail.com`) do NOT work — the Google Chat API is a Workspace-only feature.
 - **Node.js** installed (check with `node --version` — needs v18 or higher)
 

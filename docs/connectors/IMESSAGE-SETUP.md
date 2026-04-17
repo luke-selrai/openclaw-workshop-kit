@@ -12,7 +12,7 @@ This guide walks you through connecting iMessage to Claude Code so your assistan
 
 ## What You Need Before Starting
 
-- Claude Code installed and working (follow [FULL-SETUP-PAGE.md](../start/full-setup.md) if not done yet)
+- Claude Code installed and working (follow [the setup walkthrough](../start/full-setup.md) if not done yet)
 - A Mac (iMessage channel is macOS only — it reads your local Messages database)
 - Bun installed (check by typing `bun --version` in the command window)
 
@@ -188,7 +188,7 @@ claude --channels plugin:imessage@claude-plugins-official
 
 ## Still Having Trouble?
 
-See [TROUBLESHOOTING.md](../troubleshoot.md) for more fixes, or ask your assistant:
+See [the troubleshooting guide](../troubleshoot.md) for more fixes, or ask your assistant:
 > "Something went wrong with my iMessage setup. Help me fix it."
 
 ---
