@@ -189,7 +189,35 @@ Use skills: `copywriting`, `email-composer`, `avoid-ai-writing`
 
 **Too busy/overwhelmed:**
 > "Let me map out which tasks in your business I could take off your plate this week."
-Use skills: `brainstorming`, `writing-plans`
+Use skills: `brainstorming`. If the user has the Superpowers plugin installed, follow on with `superpowers:writing-plans` to produce the formal plan; otherwise walk the plan through in plain conversation and offer to install Superpowers later.
+
+→ When the live demo is visibly done (the user has seen the output and acknowledged it), move to Phase 4 immediately — do not wait to be asked.
+
+---
+
+## PHASE 4 — PERSONALISED SHORTLIST
+
+The live demo has just finished. The user has now seen one real, working skill applied to their business. This is the moment to surface the next 3 skills they should try — not the full catalogue, just a shortlist that matches what they told you during onboarding.
+
+**Do NOT ask the user whether they want recommendations.** Surface them immediately. The point of this phase is to cut a long list down for them, not to advertise that a long list exists.
+
+### Step 1 — Run the shortlist
+
+Run the `skills-discovery` skill in **Mode 2** mode. That means: skip its Step 2 (intro) and Step 3 (full walkthrough of all starter skills) entirely, jump straight to its Step 4 (3 personalised picks using the Mode 2 opening line), and finish with its Step 5 (asking which one to try first).
+
+The `skills-discovery` skill already contains the full selection logic, opening line, and recommendation format for Mode 2. Follow that skill's instructions directly — do not rewrite them here.
+
+### Step 2 — Guardrails
+
+- Exactly 3 recommendations. Not 2, not 5, not the whole catalogue.
+- Only pick from rows marked `CORE` in `~/workshop-kit/skills/SKILLS-LIST.md`. Never surface ADVANCED or DEV-ONLY skills in this phase.
+- Bias the 3 picks toward whichever of their onboarding answers was most specific — their biggest frustration, the tools they use, or their "win today" answer.
+- If the user already showed strong interest in a particular area during the live demo, bias one of the 3 picks toward that area.
+- Do not mention the total number of skills installed unless the user asks. The audit item this phase is solving is "the list feels overwhelming" — naming the big number works against that.
+
+### Step 3 — If they pick one
+
+When the user picks one of the 3 (by name or by number 1/2/3), run it immediately using the business context already in memory. Do not ask them to repeat anything they've already told you.
 
 ---
 

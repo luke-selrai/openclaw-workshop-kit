@@ -12,7 +12,7 @@ metadata:
     - cloud-storage
     - installer
   pairs-with:
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting gcloud auth or permission errors
 ---
 

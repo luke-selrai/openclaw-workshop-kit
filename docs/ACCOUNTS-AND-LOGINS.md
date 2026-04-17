@@ -39,7 +39,7 @@ You almost certainly have one already. If not:
 
 ### 3. GitHub Account
 
-GitHub is where the workshop kit is stored. You need an account to download it and get future updates.
+GitHub is where the workshop kit is stored. You need an account to download it.
 
 1. Go to: [github.com/signup](https://github.com/signup)
 2. Enter your email, choose a username and password
@@ -104,10 +104,6 @@ git clone https://github.com/selrai-company/claude-workshop-kit.git ~/workshop-k
 ```
 
 No GitHub login required to download — the repo is public.
-
-Your GitHub account is used for:
-- Getting future updates (`git pull` to pull new skills and guides)
-- Eventually storing your own customisations
 
 ---
 

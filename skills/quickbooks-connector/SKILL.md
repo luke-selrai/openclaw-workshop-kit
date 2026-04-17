@@ -13,7 +13,7 @@ metadata:
     - finance
     - cli
   pairs-with:
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting qbo auth or API errors
     - skill: xero-connector
       reason: Sibling accounting connector — similar conversational bootstrap pattern for a different platform
@@ -534,6 +534,6 @@ It **requires** at least one Product/Service Item to exist in the company before
 ## Related Skills
 
 - **first-run-setup**: The source pattern for conversational bootstrap
-- **systematic-debugging**: For troubleshooting qbo auth or API errors
+- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting qbo auth or API errors
 - **xero-connector**: Sibling accounting connector for Xero users — same bootstrap pattern
 - **voska/qbo-cli** (external, installed in Phase 1 Step 3): Comprehensive reference for every qbo entity and command

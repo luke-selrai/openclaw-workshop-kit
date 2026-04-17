@@ -12,7 +12,7 @@ metadata:
     - lambda
     - installer
   pairs-with:
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting AWS auth or permission errors
     - skill: gcloud-connector
       reason: Similar pattern — local CLI connector for a cloud provider

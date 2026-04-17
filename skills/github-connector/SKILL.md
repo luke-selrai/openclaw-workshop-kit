@@ -19,7 +19,7 @@ metadata:
       reason: Sibling connector — same conversational-bootstrap pattern
     - skill: square-connector
       reason: Sibling connector — same Phase 1/Phase 2 structure
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting GitHub auth or API errors
 ---
 
@@ -358,6 +358,6 @@ The GitHub MCP connector **cannot** do (deferred):
 ## Related Skills
 
 - **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
-- **systematic-debugging**: For troubleshooting GitHub auth or API errors
+- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting GitHub auth or API errors
 - **xero-connector**, **quickbooks-connector**, **square-connector**: Sibling connectors — same Phase 1 / Phase 2 structure for different platforms
 - **github-actions-pipeline-builder**: Complementary skill for designing GitHub Actions workflows (this skill operates them; that skill designs them)

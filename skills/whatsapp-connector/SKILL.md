@@ -13,7 +13,7 @@ metadata:
   pairs-with:
     - skill: first-run-setup
       reason: Shares the Bun / PATH / shell-detection patterns used during install
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting QR, auth, or message-delivery failures
 ---
 
@@ -214,7 +214,7 @@ When a user asks to add a number, you edit `.mcp.json`, validate the JSON, tell 
 | Inbound messages not arriving | Sender isn't on the allowlist, or channel isn't running | Check `~/.claude/whatsapp-channel/auth/creds.json` exists; check `WA_ALLOW_FROM`; ask the user which number they sent from |
 | "blocked by org policy" | Team/Enterprise plan with channels disabled | Tell the user their workspace admin needs to enable development channels in Claude Code settings |
 
-For anything not covered here, invoke `systematic-debugging` and diagnose silently before reporting back to the user in plain English.
+For anything not covered here, if the Superpowers plugin is installed, invoke `superpowers:systematic-debugging` and diagnose silently before reporting back to the user in plain English. If it isn't installed, work through the failure step by step yourself — isolate what changed, form a hypothesis, verify before fixing — and summarise the outcome in plain English. Never paste a raw stack trace at the user either way.
 
 ---
 

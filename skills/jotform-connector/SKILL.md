@@ -16,7 +16,7 @@ metadata:
       reason: Draft follow-ups based on Jotform submission data
     - skill: n8n-workflow-patterns
       reason: Build automations triggered by new Jotform submissions
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting Jotform auth or API errors
 ---
 
@@ -221,7 +221,7 @@ The Jotform MCP connector **cannot** do (needs the Jotform UI or other tools):
 ## Related Skills
 
 - **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
-- **systematic-debugging**: For troubleshooting Jotform auth or API errors
+- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Jotform auth or API errors
 - **monday-connector**: Sibling project/data connector — same MCP bootstrap pattern for a different platform
 - **notion-connector**: Sibling workspace connector — similar conversational install
 - **n8n-workflow-patterns**: Build Jotform-triggered automations once the connector is live

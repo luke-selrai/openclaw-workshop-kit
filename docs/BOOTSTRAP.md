@@ -33,7 +33,7 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 3. Copy this file from the downloaded workshop-kit into my-assistant:
    - workshop-kit/my-assistant/CLAUDE.md → my-assistant/CLAUDE.md
 
-4. Install all <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills: copy every folder from workshop-kit/skills/
+4. Install all <!-- skills-audit:total -->104<!-- /skills-audit:total --> skills: copy every folder from workshop-kit/skills/
    into ~/.claude/skills/ (create the skills directory if it does not exist).
    Do not copy SKILLS-LIST.md — only the folders.
 

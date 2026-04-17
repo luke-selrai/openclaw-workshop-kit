@@ -13,7 +13,7 @@ This kit sets up a personal AI business assistant on your laptop. Not a chatbot 
 - **Remembers your business** — your name, your customers, your biggest challenges
 - **Lives on your computer** — runs locally, not in a browser tab
 - **Controls your browser** — can open websites, fill forms, and do research for you
-- **Has <!-- skills-audit:total -->108<!-- /skills-audit:total --> specialist skills** — research, copywriting, sales emails, social content, competitor analysis, and more
+- **Has <!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills** — research, copywriting, sales emails, social content, competitor analysis, and more
 - **Gets smarter over time** — every conversation builds on the last
 
 It is built on [Claude Code](https://claude.ai/claude-code) by Anthropic — the same AI that powers Claude, configured specifically for your business.
@@ -23,8 +23,6 @@ It is built on [Claude Code](https://claude.ai/claude-code) by Anthropic — the
 ## Who Is This For?
 
 **Workshop attendees** — follow the setup guide below. Your assistant will walk you through everything.
-
-**Developers** — see [DEVELOPER.md](DEVELOPER.md) for the full technical breakdown, architecture, and how to extend or customise this kit.
 
 ---
 
@@ -36,7 +34,7 @@ Your Laptop
          └── Your AI Assistant (inside Claude Desktop)
               ├── CLAUDE.md (your assistant's instructions)
               ├── Auto-memory (remembers you across conversations, via /memory)
-              ├── skills/ (<!-- skills-audit:total -->108<!-- /skills-audit:total --> specialist skills)
+              ├── skills/ (<!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills)
               └── Playwright (browser remote control)
 ```
 
@@ -78,7 +76,7 @@ Your assistant handles it all conversationally, one step at a time. No scripts t
 
 ---
 
-## Your <!-- skills-audit:total -->108<!-- /skills-audit:total --> Skills
+## Your <!-- skills-audit:total -->104<!-- /skills-audit:total --> Skills
 
 Skills are specialist capabilities your assistant can use. Think of them like switching your assistant from "general helper" to "expert copywriter", "market researcher", "DevOps engineer", or "product strategist" for a specific task.
 
@@ -117,7 +115,6 @@ This kit includes the full professional skill library — the same depth used to
 | Skill | What It Does |
 |---|---|
 | `brainstorming` | Structured idea generation |
-| `writing-plans` | Plans complex tasks before executing |
 | `systems-thinking` | Maps complex systems to find high-leverage interventions |
 | `indie-monetization-strategist` | Monetisation models for solopreneurs and small teams |
 | `tech-entrepreneur-coach-adhd` | Founder strategy — validation, MVP, marketing, money |
@@ -156,7 +153,6 @@ This kit includes the full professional skill library — the same depth used to
 | `api-architect` | REST, GraphQL, gRPC API design |
 | `code-architecture` | Clean architecture, hexagonal, feature-based patterns |
 | `fullstack-debugger` | Next.js + Cloudflare + Supabase debugging |
-| `systematic-debugging` | Root-cause analysis and fixes |
 | `nextjs-app-router-expert` | Next.js 14/15 App Router, React Server Components |
 | `typescript-advanced-patterns` | Advanced TypeScript for production codebases |
 | `supabase-admin` | Supabase RLS, migrations, schema design |
@@ -167,8 +163,6 @@ This kit includes the full professional skill library — the same depth used to
 | `microservices-patterns` | Service decomposition, API gateway, saga patterns |
 | `performance-profiling` | Application performance and bottleneck identification |
 | `logging-observability` | Structured logging, tracing, metrics for production |
-| `test-driven-development` | TDD before writing implementation code |
-| `verification-before-completion` | Verify work before claiming it's done |
 | `playwright-skill` | Browser automation with Playwright |
 | `feature-manifest` | Manage feature manifests for code traceability |
 
@@ -211,6 +205,22 @@ This kit includes the full professional skill library — the same depth used to
 
 ---
 
+## Recommended Optional Plugin — Superpowers
+
+Four engineering skills that used to ship with this kit — planning complex work, systematic debugging, test-driven development, and verifying work before claiming done — now live in Anthropic's official **Superpowers** plugin. We recommend installing it on workshop day. In a Code session, paste these two commands one at a time:
+
+```
+/plugin marketplace add anthropics/claude-plugins-official
+```
+
+```
+/plugin install superpowers@claude-plugins-official
+```
+
+See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for details.
+
+---
+
 ## Connectors
 
 Connectors link your assistant to the tools your business already uses. Each one installs the required CLI or API client and handles authentication step by step — just ask your assistant to connect it.
@@ -247,7 +257,7 @@ workshop-kit/
 │   └── CLAUDE.md                # Your assistant's brain — instructions + onboarding agent
 ├── whatsapp-channel/            # Optional WhatsApp integration (can use alongside Telegram)
 │   └── src/                    # QR-code login, two-way messaging, permission relay
-├── skills/                      # <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills (installed to ~/.claude/skills/)
+├── skills/                      # <!-- skills-audit:total -->104<!-- /skills-audit:total --> skills (installed to ~/.claude/skills/)
 ├── docs/
 │   ├── FULL-SETUP-PAGE.md       # Complete setup guide — keep open during workshop
 │   ├── BOOTSTRAP.md             # Version-controlled copy of the bootstrap prompt
@@ -294,9 +304,6 @@ Your assistant will notice and offer to fix it. Just open Claude Desktop, start 
 
 **Can I use this on Windows?**
 Yes. Install [Git for Windows](https://gitforwindows.org) beforehand (see Quick Start above), then open Claude Desktop, start a new Code session, and paste the bootstrap prompt — your assistant walks you through the rest conversationally, including any Windows-specific snags (Node.js install via winget, PATH fixes, PowerShell execution policy, Defender EBUSY errors, etc.).
-
-**I am a developer — how do I customise this?**
-See [DEVELOPER.md](DEVELOPER.md).
 
 ---
 

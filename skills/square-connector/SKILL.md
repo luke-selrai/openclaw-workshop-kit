@@ -13,7 +13,7 @@ metadata:
     - customers
     - mcp
   pairs-with:
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting Square MCP connection or API errors
     - skill: quickbooks-connector
       reason: Sibling financial-data connector — same conversational bootstrap pattern
@@ -592,7 +592,7 @@ The real-account path permissions are whatever the user granted during browser s
 ## Related Skills
 
 - **first-run-setup**: The source pattern for conversational bootstrap
-- **systematic-debugging**: For troubleshooting Square MCP connection or API errors
+- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Square MCP connection or API errors
 - **quickbooks-connector**: Sibling financial-data connector — same conversational bootstrap pattern, different platform
 - **xero-connector**: Sibling financial-data connector — same conversational bootstrap pattern, different platform
 - **Square Developer Docs** (external): https://developer.squareup.com/docs — definitive reference for every Square API endpoint, request type, and response shape. Use this as the authoritative source when the MCP discovery tools don't have enough detail.

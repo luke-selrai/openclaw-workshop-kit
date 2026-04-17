@@ -8,7 +8,7 @@ date: 2026-03-27
 
 > **Keep this page open on your screen throughout the setup.** Everything you need is right here.
 
-Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->108<!-- /skills-audit:total --> specialist skills built in.
+Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills built in.
 
 ---
 
@@ -18,7 +18,7 @@ Today you are setting up a personal AI assistant that lives on YOUR computer. It
 |---|---|
 | **Your AI Assistant** | Runs locally on your computer. Knows your business. |
 | **Browser Control** | Can open websites and automate tasks for you |
-| **<!-- skills-audit:total -->108<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
+| **<!-- skills-audit:total -->104<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
 | **Memory System** | Saves what it learns about you and your business |
 
 ---
@@ -117,11 +117,16 @@ Some Git installers do not add themselves to the system PATH. If the verificatio
 
 ---
 
-## Step 4 — Install Node.js and Bun
+## Step 4 — Install Node.js (and Bun if you want messaging)
 
-Node.js is needed to connect Gmail, Calendar, and browser automation. **Bun is also required** if you plan to use Telegram, WhatsApp, or iMessage. Install both now so everything is ready later.
+**Node.js is required for everyone.** Your assistant needs it to connect Gmail, Calendar, browser automation, and most other tools.
 
-> **Note:** If you skip Bun here, you will need to install it before setting up any messaging channel.
+**Bun is only required if you plan to use a messaging channel** — Telegram, WhatsApp, or iMessage. If you are not using any of those, you can skip the Bun section below. (You can also come back to it later — each messaging setup section further down this page repeats the Bun install for anyone who skipped it here.)
+
+| If you plan to use… | Install Node.js? | Install Bun? |
+|---|---|---|
+| Email, Calendar, browser automation, CRM, accounting, etc. | Yes | No |
+| Telegram, WhatsApp, or iMessage | Yes | Yes |
 
 **Mac:**
 
@@ -145,9 +150,11 @@ Node.js is needed to connect Gmail, Calendar, and browser automation. **Bun is a
 2. Type: `node --version`
 3. You should see a version number like `v22.x.x`
 
-### Install Bun
+### Install Bun (optional — only if you want messaging)
 
-Bun is required for Telegram, WhatsApp, and iMessage integrations.
+**Skip this section if you are not planning to connect Telegram, WhatsApp, or iMessage.** Bun is only used by those three messaging channels. Everything else in the workshop kit runs on Node.js alone.
+
+If you do want messaging now, install Bun:
 
 **Mac / Linux:**
 ```bash
@@ -210,7 +217,7 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 Talk to me like I am not technical. Plain English, one step at a time.
 ```
 
-**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
+**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->104<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
 
 ---
 
@@ -359,9 +366,21 @@ This lets you chat with your assistant directly from Telegram on your phone — 
 6. BotFather will ask for a **username** — must end in `bot` (e.g. `my_assistant_bot`)
 7. BotFather will reply with a **token** — copy the entire thing (numbers, colon, and all)
 
-**Step 2 — Bun (Required)**
+**Step 2 — Install Bun (skip if you already installed it in Step 4 above)**
 
-Bun was installed in Step 4 above. If you skipped it, install it now — see [Step 4](#step-4--install-nodejs-and-bun).
+The Telegram plugin runs on Bun. If you already installed Bun back in Step 4, skip ahead to Step 3. Otherwise, install it now:
+
+**Mac/Linux:**
+```
+curl -fsSL https://bun.sh/install | bash
+```
+
+**Windows:**
+```
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+Close and reopen your terminal after installing.
 
 **Step 3 — Install the Telegram Plugin**
 
@@ -422,9 +441,16 @@ If the prompt doesn't appear, grant it manually:
 2. Click the **+** button and add the **Claude** app (Claude Desktop)
 3. Toggle it **on**
 
-**Step 2 — Bun (Required)**
+**Step 2 — Install Bun (skip if you already installed it in Step 4 above)**
 
-Bun was installed in Step 4 above. If you skipped it, install it now — see [Step 4](#step-4--install-nodejs-and-bun).
+The iMessage plugin runs on Bun. If you already installed Bun back in Step 4, skip ahead to Step 3. Otherwise, install it now:
+
+**Mac:**
+```
+curl -fsSL https://bun.sh/install | bash
+```
+
+Close and reopen your terminal after installing.
 
 **Step 3 — Install the iMessage Plugin**
 
@@ -468,9 +494,21 @@ By default, only your own messages reach the assistant. To allow someone else:
 
 This lets you chat with your assistant directly from WhatsApp — ask questions, request tasks, and get replies wherever you are. It connects using the same QR code method as WhatsApp Web — no bot tokens or API keys needed.
 
-**Step 1 — Bun (Required)**
+**Step 1 — Install Bun (skip if you already installed it in Step 4 above)**
 
-Bun was installed in Step 4 above. If you skipped it, install it now — see [Step 4](#step-4--install-nodejs-and-bun).
+The WhatsApp channel runs on Bun. If you already installed Bun back in Step 4, skip ahead to Step 2. Otherwise, install it now:
+
+**Mac/Linux:**
+```
+curl -fsSL https://bun.sh/install | bash
+```
+
+**Windows:**
+```
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+Close and reopen your terminal after installing.
 
 **Step 2 — Install the WhatsApp Channel**
 
@@ -722,7 +760,7 @@ For full details, see [AUTOMATION-LOOP-AND-SCHEDULE.md](AUTOMATION-LOOP-AND-SCHE
 
 ## Skills — Quick Reference
 
-Your assistant has <!-- skills-audit:total -->106<!-- /skills-audit:total --> specialist skills covering marketing, research, strategy, AI/automation, engineering, DevOps, and design. For the full categorised list, see [SKILLS-REFERENCE.md](SKILLS-REFERENCE.md).
+Your assistant has <!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills covering marketing, research, strategy, AI/automation, engineering, DevOps, and design. For the full categorised list, see [SKILLS-REFERENCE.md](SKILLS-REFERENCE.md).
 
 ---
 
@@ -764,6 +802,30 @@ Your assistant has <!-- skills-audit:total -->106<!-- /skills-audit:total --> sp
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 Your assistant is designed to handle problems too — just describe what happened in plain English and it will figure it out.
+
+---
+
+## Recommended Optional Plugin — Superpowers
+
+**Superpowers** is an official Anthropic plugin that gives your assistant four engineering skills: planning complex work, diagnosing errors step by step, writing tests before code, and verifying work before claiming it's done. It's optional — your assistant works without it — but most workshop attendees install it the same day they finish setup.
+
+**Install it:**
+
+In a new Code session, paste these two commands one at a time (press Enter after each):
+
+```
+/plugin marketplace add anthropics/claude-plugins-official
+```
+
+```
+/plugin install superpowers@claude-plugins-official
+```
+
+Claude Desktop confirms the install and the plugin is active immediately — nothing else to configure.
+
+> **Why can't your assistant install it for you?** The `/plugin` command is run by *you*, not your assistant — a deliberate guardrail so AI can never silently install code on your machine. You paste the two lines above once, and it's done.
+
+For the full feature list, see [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers).
 
 ---
 

@@ -29,7 +29,7 @@ You MUST create a task for each of these items and complete them in order:
 6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
 7. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 5 iterations, then surface to human)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+9. **Transition to implementation** — invoke superpowers:writing-plans skill to create implementation plan
 
 ## Process Flow
 
@@ -46,7 +46,7 @@ digraph brainstorming {
     "Spec review loop" [shape=box];
     "Spec review passed?" [shape=diamond];
     "User reviews spec?" [shape=diamond];
-    "Invoke writing-plans skill" [shape=doublecircle];
+    "Invoke superpowers:writing-plans skill" [shape=doublecircle];
 
     "Explore project context" -> "Visual questions ahead?";
     "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
@@ -62,11 +62,13 @@ digraph brainstorming {
     "Spec review passed?" -> "Spec review loop" [label="issues found,\nfix and re-dispatch"];
     "Spec review passed?" -> "User reviews spec?" [label="approved"];
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
+    "User reviews spec?" -> "Invoke superpowers:writing-plans skill" [label="approved"];
 }
 ```
 
-**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-creator, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+**The terminal state is invoking `superpowers:writing-plans`** (from the official Anthropic Superpowers plugin — optional but strongly recommended in this kit). Do NOT invoke frontend-design, mcp-creator, or any other implementation skill. The ONLY skill you invoke after brainstorming is `superpowers:writing-plans`.
+
+**If Superpowers is not installed,** do not silently halt or invoke an implementation skill. Tell the user: *"The Superpowers plugin isn't installed — that's the piece that turns a design into a step-by-step plan. Want to install it now? Paste `/plugin marketplace add anthropics/claude-plugins-official` and then `/plugin install superpowers@claude-plugins-official` in a Code session, then come back here. If you'd rather skip it for now, I can walk through the plan conversationally with you instead."* Wait for their decision before proceeding.
 
 ## The Process
 
@@ -132,8 +134,8 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 **Implementation:**
 
-- Invoke the writing-plans skill to create a detailed implementation plan
-- Do NOT invoke any other skill. writing-plans is the next step.
+- Invoke the superpowers:writing-plans skill to create a detailed implementation plan
+- Do NOT invoke any other skill. superpowers:writing-plans is the next step.
 
 ## Key Principles
 

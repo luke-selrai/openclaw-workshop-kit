@@ -11,7 +11,7 @@ Everything you need for your AI Business Assistant, listed by priority with exac
 | **Claude Max** | $100 USD/mo | The AI brain — powers everything | [claude.ai](https://claude.ai) → Settings → Billing |
 | **Claude Desktop** | Free | The app where you chat with your assistant, open project folders, and run commands | [claude.ai/download](https://claude.ai/download) |
 | **Node.js LTS** | Free | Required for some connectors | [nodejs.org](https://nodejs.org) (auto-installed on Mac) |
-| **Git** | Free | Downloads the workshop kit and updates | Auto-installed on Mac via Xcode tools |
+| **Git** | Free | Downloads the workshop kit | Auto-installed on Mac via Xcode tools |
 | **GitHub Account** | Free | Where the workshop kit is stored | [github.com/signup](https://github.com/signup) |
 
 **Required monthly cost: $100 USD (~$155 AUD/month)**
@@ -23,7 +23,7 @@ Everything you need for your AI Business Assistant, listed by priority with exac
 | Account | What It Gives You | Get It |
 |---|---|---|
 | **Google Account (Gmail)** | Gmail + Calendar + Drive — connects to your assistant | [accounts.google.com/signup](https://accounts.google.com/signup) |
-| **GitHub** | Download the workshop kit and future updates | [github.com/signup](https://github.com/signup) |
+| **GitHub** | Download the workshop kit | [github.com/signup](https://github.com/signup) |
 | **Telegram** | Phone notifications from your assistant | [telegram.org](https://telegram.org) (install on phone) |
 | **iMessage** (Mac only) | Text your assistant from iPhone — no extra app | Built into macOS (free) |
 
@@ -107,7 +107,7 @@ Right now your assistant only runs when your laptop is open. A server lets it ru
 
 - An AI assistant available 24/7 — never sick, never on leave, never distracted
 - Writes, researches, and automates across your whole business
-- <!-- skills-audit:total -->108<!-- /skills-audit:total --> specialist skills built in from day one
+- <!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills built in from day one
 - Gets smarter every time you use it
 - Replaces 10–20 hours of admin and content work per month
 

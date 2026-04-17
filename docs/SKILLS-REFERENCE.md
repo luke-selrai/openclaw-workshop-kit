@@ -1,6 +1,6 @@
 # Skills Reference — Guide to Your AI Abilities
 
-This document covers the most commonly used skills. Your assistant has **<!-- skills-audit:total -->108<!-- /skills-audit:total --> skills total** — this guide highlights the ones you'll reach for most often.
+This document covers the most commonly used skills. Your assistant has **<!-- skills-audit:total -->104<!-- /skills-audit:total --> skills total** — this guide highlights the ones you'll reach for most often.
 
 > To see the full list, ask your assistant: "Show me all available skills" or see the skill folders in `~/.claude/skills/`.
 
@@ -185,18 +185,6 @@ You can also trigger a skill directly by mentioning the skill name:
 
 ---
 
-### writing-plans
-**What it does:** Creates detailed plans BEFORE executing complex tasks — maps out steps, risks, and what success looks like.
-
-**When to use:** Before any complex task to make sure the approach is right.
-
-**Example prompts:**
-> "Plan how I could automate my lead follow-up process. Map out all the steps."
-> "Create a 90-day marketing plan for my business"
-> "Plan the steps to launch a new service offering"
-
----
-
 ### prompt-engineer
 **What it does:** Improves your AI prompts to get dramatically better results. Teaches you the patterns that make prompts work.
 
@@ -208,22 +196,21 @@ You can also trigger a skill directly by mentioning the skill name:
 
 ---
 
-## Problem-Solving Skills
+## Recommended Optional Plugin — Superpowers
 
----
+Four skills that used to ship with this kit — `writing-plans`, `systematic-debugging`, `test-driven-development`, and `verification-before-completion` — now live in Anthropic's official **Superpowers** plugin. They stay out of this kit so we never ship a stale copy. Installing Superpowers is optional but strongly recommended for anyone doing more technical work. In a Code session, paste these two commands one at a time:
 
-### systematic-debugging
-**What it does:** Diagnoses errors and problems step by step. Translates technical errors into plain English and provides a fix.
+```
+/plugin marketplace add anthropics/claude-plugins-official
+```
 
-**When to use:** When ANYTHING breaks.
+```
+/plugin install superpowers@claude-plugins-official
+```
 
-**Example prompts:**
-> "Something broke. Here's the error: [paste the red text]. What does it mean and how do I fix it?"
-> "My [tool/app] stopped working. Here's what happened: [describe]. Help me fix it."
+Once installed, your assistant will automatically reach for those skills when relevant — for example, when you ask it to plan a complex task or diagnose an error step by step.
 
-**Tips:**
-- Always paste the exact error message (the red text) — don't describe it, paste it
-- Say what you were doing when it broke
+See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for the full feature list.
 
 ---
 

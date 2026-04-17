@@ -12,7 +12,7 @@ metadata:
     - devops
     - mcp
   pairs-with:
-    - skill: systematic-debugging
+    - skill: superpowers:systematic-debugging
       reason: Use for diagnosing failing CircleCI builds and flaky tests
     - skill: xero-connector
       reason: Same Personal-Token → ~/.claude.json wrap-existing-tooling pattern for a different first-party MCP server
@@ -258,7 +258,7 @@ The CircleCI connector **cannot** do:
 ## Related Skills
 
 - **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
-- **systematic-debugging**: For diagnosing failing CircleCI builds, flaky tests, and CI/CD issues
+- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For diagnosing failing CircleCI builds, flaky tests, and CI/CD issues
 - **xero-connector**: Same Personal-Token → `~/.claude.json` wrap-existing-tooling pattern for a different first-party MCP server
 - **hubspot-connector**: Same single-token conversational-bootstrap shape
 - **github-actions-pipeline-builder**: Sibling CI/CD skill for GitHub Actions users
