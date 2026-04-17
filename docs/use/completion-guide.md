@@ -222,7 +222,7 @@ n8n is a visual automation tool (like Zapier, but you own it). Your AI assistant
 Once you see the value of AI in your business, you can deploy your own agents that run 24/7. Luke and the Selr AI team can set this up for you.
 
 ### Claude Dispatch (Run Multiple Agents in Parallel)
-Dispatch lets you run several Claude agents at once, each handling a different part of a complex task. See [dispatch/DISPATCH-SETUP.md](dispatch/DISPATCH-SETUP.md) for details.
+Dispatch lets you send tasks to your assistant from your phone and come back to finished work. Just ask your assistant: *"Set up Claude Dispatch."*
 
 ### Voice Interface
 You can talk to your AI assistant instead of typing, using tools like Wispr Flow (what Luke uses).

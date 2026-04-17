@@ -827,7 +827,7 @@ Once you're comfortable with your assistant, **Claude Dispatch** lets you run mu
 
 > This is an advanced feature. Get your assistant working well first, then explore this.
 
-See [dispatch/DISPATCH-SETUP.md](dispatch/DISPATCH-SETUP.md) for setup instructions.
+Just ask your assistant: *"Set up Claude Dispatch."* — it walks you through the QR-code pairing conversationally.
 
 ---
 
