@@ -184,7 +184,7 @@ If you have a work Microsoft 365 account:
 2. The correct start command is: `claude --channels plugin:telegram@claude-plugins-official`
 3. If you're unsure, ask your assistant: *"How do I start Claude with Telegram enabled?"*
 
-For the full setup: [docs/connectors/TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
+For the full setup: `skills/telegram-connector`
 
 ---
 
@@ -201,7 +201,7 @@ If the QR code disappears before you can scan it, ask your assistant to regenera
 
 ### "'WA_AUTO_OPEN_QR=1' is not recognised" (Windows)
 
-You pasted the Mac launch command into PowerShell or Command Prompt. Mac/Linux shells allow inline env vars (`NAME=value program`); Windows shells do not. Use the shell-specific block from [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md) Part B Step 1:
+You pasted the Mac launch command into PowerShell or Command Prompt. Mac/Linux shells allow inline env vars (`NAME=value program`); Windows shells do not. Use the shell-specific block from `Connect WhatsApp` Part B Step 1:
 
 - **PowerShell:** set `$env:WA_AUTO_OPEN_QR = "1"` on its own line before running `claude …`
 - **Command Prompt:** use `set WA_AUTO_OPEN_QR=1` on its own line before running `claude …`
@@ -224,7 +224,7 @@ WhatsApp Web sessions can expire if your phone is offline for too long.
    - **Mac / Linux:** `rm -rf ~/.claude/whatsapp-channel/auth`
    - **Windows (PowerShell):** `Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\whatsapp-channel\auth"`
    - **Windows (Command Prompt):** `rmdir /S /Q "%USERPROFILE%\.claude\whatsapp-channel\auth"`
-2. Restart Claude Code with the channel flag (see [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md) Part B Step 1 for the shell-specific launch command)
+2. Restart Claude Code with the channel flag (see `Connect WhatsApp` Part B Step 1 for the shell-specific launch command)
 3. Scan a new QR code
 
 ---
@@ -233,7 +233,7 @@ WhatsApp Web sessions can expire if your phone is offline for too long.
 
 Your Team or Enterprise admin needs to enable channels in the Claude Code settings. Contact your admin.
 
-For the full WhatsApp guide: [docs/connectors/WHATSAPP-SETUP.md](WHATSAPP-SETUP.md)
+For the full WhatsApp guide: `skills/whatsapp-connector`
 
 ---
 
@@ -245,7 +245,7 @@ The most common issue is missing permissions. Check:
 2. Make sure **Claude** (the Desktop app) has a tick next to it
 3. If not, click the lock icon, enter your Mac password, and add the app
 
-For the full guide: [docs/connectors/IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
+For the full guide: `skills/imessage-connector`
 
 ---
 

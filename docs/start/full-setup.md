@@ -308,7 +308,6 @@ A browser window will open. **Select the Google account you want to use** — do
 
 Ask your assistant: *"What's on my calendar today?"* or *"Show me my recent emails"*
 
-> For the full setup guide with troubleshooting, see [GOOGLE-WORKSPACE-SETUP.md](GOOGLE-WORKSPACE-SETUP.md)
 
 ---
 
@@ -346,7 +345,6 @@ A browser window will open. **Select the Microsoft account you want to use** —
 
 Ask your assistant: *"Show me my unread Outlook emails"*
 
-> For the full guide with troubleshooting and OS compatibility, see [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
 
 ---
 
@@ -422,7 +420,6 @@ Once you are paired, stop strangers from getting pairing codes:
 /telegram:access policy allowlist
 ```
 
-> For the full guide with troubleshooting, see [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
 
 > **Prefer a different app?** See [iMessage (Mac only)](#imessage--message-your-assistant-from-your-iphone-mac-only) below.
 
@@ -482,7 +479,6 @@ By default, only your own messages reach the assistant. To allow someone else:
 /imessage:access allow +15551234567
 ```
 
-> For the full guide with troubleshooting, see [IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
 
 > **Want multiple channels?** Launch with: `claude --channels plugin:telegram@claude-plugins-official plugin:imessage@claude-plugins-official`
 >
@@ -563,11 +559,10 @@ A browser window will open with a QR code. On your phone, open **WhatsApp → Se
 
 By default, only **your own phone number** can message your assistant — every other number is blocked automatically. The easiest way to test is to use WhatsApp's built-in self-chat: open WhatsApp → tap the pencil icon → search for your own name → tap **Message yourself** → send "hello claude". Your assistant replies back in the self-chat.
 
-Once that works, you can add other phone numbers via `WA_ALLOW_FROM` in `.mcp.json` — see [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md) Part D.
+Once that works, you can add other phone numbers via `WA_ALLOW_FROM` in `.mcp.json` — see `Connect WhatsApp` Part D.
 
-> **Read past messages on demand:** every inbound message is saved to a persistent log, so your assistant can answer questions like *"Show me the last 10 WhatsApp messages I received"* even across sessions. See [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md) Part E.
+> **Read past messages on demand:** every inbound message is saved to a persistent log, so your assistant can answer questions like *"Show me the last 10 WhatsApp messages I received"* even across sessions. See `Connect WhatsApp` Part E.
 
-> For the full guide with troubleshooting, see [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md)
 
 > **Want multiple channels?** You can run WhatsApp alongside Telegram and iMessage.
 >
@@ -608,7 +603,6 @@ The connection activates after a full restart (closing the chat tab alone is not
 
 Ask your assistant: *"What channels do we have in Slack?"* or *"Show me the latest messages in #general"*
 
-> For the full guide with troubleshooting, see [SLACK-SETUP.md](SLACK-SETUP.md)
 
 > **Private channels?** Your assistant needs to be invited first. In Slack, type `/invite @Claude Assistant` in the channel you want to use.
 
@@ -645,7 +639,6 @@ The connection activates after a restart.
 
 Ask your assistant: *"Show me my boards"* or *"What's on the Roadmap board?"*
 
-> For the full guide with troubleshooting, see [MONDAY-SETUP.md](MONDAY-SETUP.md)
 
 > **Don't have Node.js?** No problem — say *"Connect my monday.com using the hosted option"* and your assistant will use monday.com's hosted connection instead. No installation needed.
 
@@ -685,7 +678,6 @@ That's it. Your assistant will confirm the connection works.
 
 Ask your assistant: *"Show me my Jotform forms"* or *"How many submissions did the contact form get this week?"*
 
-> For the full guide with troubleshooting, see [JOTFORM-SETUP.md](JOTFORM-SETUP.md)
 
 > **Works on every plan** — Free, Bronze, Silver, Gold, and Enterprise. Free tier is rate-limited to 60 requests per minute, which is plenty for normal use.
 
@@ -699,17 +691,17 @@ The tools above cover the most common setups. Once you are up and running, your 
 
 | Tool | What It Plugs Into | Guide |
 |---|---|---|
-| **HubSpot** | CRM — contacts, deals, companies, notes | [HUBSPOT-SETUP.md](HUBSPOT-SETUP.md) |
-| **GoHighLevel** | All-in-one CRM and marketing platform | [GHL-SETUP.md](GHL-SETUP.md) |
-| **Stripe** | Payments, invoices, subscriptions, refunds | [STRIPE-SETUP.md](STRIPE-SETUP.md) |
-| **Xero** | Accounting — invoices, contacts, P&L | [XERO-SETUP.md](XERO-SETUP.md) |
-| **QuickBooks** | Accounting — invoices, customers, P&L | [QUICKBOOKS-SETUP.md](QUICKBOOKS-SETUP.md) |
-| **Shopify** | Online store — products, orders, inventory | [SHOPIFY-SETUP.md](SHOPIFY-SETUP.md) |
-| **Square** | Payments, orders, customers, bookings | [SQUARE-SETUP.md](SQUARE-SETUP.md) |
-| **GitHub** | Repos, issues, pull requests, CI status | [GITHUB-SETUP.md](GITHUB-SETUP.md) |
-| **CircleCI** | Build pipelines, logs, flaky tests | [CIRCLECI-SETUP.md](CIRCLECI-SETUP.md) |
-| **Notion** | Pages, databases, notes | [NOTION-SETUP.md](NOTION-SETUP.md) |
-| **Google Chat** | Google Workspace messaging | [GOOGLE-CHAT-SETUP.md](GOOGLE-CHAT-SETUP.md) |
+| **HubSpot** | CRM — contacts, deals, companies, notes | `Connect HubSpot` |
+| **GoHighLevel** | All-in-one CRM and marketing platform | `Connect GoHighLevel` |
+| **Stripe** | Payments, invoices, subscriptions, refunds | `Connect Stripe` |
+| **Xero** | Accounting — invoices, contacts, P&L | `Connect Xero` |
+| **QuickBooks** | Accounting — invoices, customers, P&L | `Connect QuickBooks` |
+| **Shopify** | Online store — products, orders, inventory | `Connect Shopify` |
+| **Square** | Payments, orders, customers, bookings | `Connect Square` |
+| **GitHub** | Repos, issues, pull requests, CI status | `Connect GitHub` |
+| **CircleCI** | Build pipelines, logs, flaky tests | `Connect CircleCI` |
+| **Notion** | Pages, databases, notes | `Connect Notion` |
+| **Google Chat** | Google Workspace messaging | `Connect Google Chat` |
 
 Not sure which ones to connect? Ask your assistant: *"What connectors should I set up for a business like mine?"*
 
@@ -794,11 +786,11 @@ Your assistant has <!-- skills-audit:total -->107<!-- /skills-audit:total --> sp
 | Claude keeps asking to set up | Start a new conversation — your assistant will remember your setup status automatically |
 | Claude login loop (terminal) | Ask your assistant to run: `claude logout` then `claude login` |
 | Google connected to wrong account | Run `gws auth logout` then `gws auth login` and select the correct account |
-| Outlook not connecting | Run `m365 logout` then `m365 login --authType browser` and select the correct account. See [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md) |
+| Outlook not connecting | Run `m365 logout` then `m365 login --authType browser` and select the correct account. See `Connect Outlook` |
 | Outlook "Access denied" for Teams or SharePoint | Those features may need IT admin approval on work/company accounts. Personal outlook.com accounts have full access. |
 | Node.js "command not found" | Restart Claude Desktop completely, or reinstall from [nodejs.org](https://nodejs.org) |
-| Telegram bot not responding | Make sure Claude Code is running with `--channels plugin:telegram@claude-plugins-official`. See [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md) |
-| WhatsApp not connecting | Make sure Claude Code is running with `--dangerously-load-development-channels server:whatsapp`. See [WHATSAPP-SETUP.md](WHATSAPP-SETUP.md) |
+| Telegram bot not responding | Make sure Claude Code is running with `--channels plugin:telegram@claude-plugins-official`. See `Connect Telegram` |
+| WhatsApp not connecting | Make sure Claude Code is running with `--dangerously-load-development-channels server:whatsapp`. See `Connect WhatsApp` |
 | Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 
 Your assistant is designed to handle problems too — just describe what happened in plain English and it will figure it out.

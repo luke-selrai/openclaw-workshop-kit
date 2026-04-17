@@ -96,12 +96,12 @@ All paths below are relative to the user's home folder (see the path conventions
 
 | Tool | Read this first |
 |---|---|
-| Google Workspace (Gmail, Calendar, Drive) | `workshop-kit/docs/connectors/GOOGLE-WORKSPACE-SETUP.md` |
-| Microsoft 365 / Outlook | `workshop-kit/docs/connectors/OUTLOOK-SETUP.md` and `workshop-kit/skills/outlook-connector/SKILL.md` |
-| Telegram | `workshop-kit/docs/connectors/TELEGRAM-SETUP.md` |
-| iMessage | `workshop-kit/docs/connectors/IMESSAGE-SETUP.md` |
-| WhatsApp | `workshop-kit/docs/connectors/WHATSAPP-SETUP.md` |
-| Dispatch (phone → desktop) | `workshop-kit/docs/dispatch/DISPATCH-SETUP.md` and `workshop-kit/skills/claude-dispatch/SKILL.md` |
+| Google Workspace (Gmail, Calendar, Drive) | `workshop-kit/skills/google-workspace-connector/SKILL.md` |
+| Microsoft 365 / Outlook | `workshop-kit/skills/outlook-connector/SKILL.md` |
+| Telegram | `workshop-kit/skills/telegram-connector/SKILL.md` |
+| iMessage | `workshop-kit/skills/imessage-connector/SKILL.md` |
+| WhatsApp | `workshop-kit/skills/whatsapp-connector/SKILL.md` |
+| Dispatch (phone → desktop) | `workshop-kit/skills/claude-dispatch/SKILL.md` |
 | Shopify | `workshop-kit/skills/shopify-connector/SKILL.md` |
 | Google Cloud (gcloud) | `workshop-kit/skills/gcloud-connector/SKILL.md` |
 | AWS | `workshop-kit/skills/aws-connector/SKILL.md` |

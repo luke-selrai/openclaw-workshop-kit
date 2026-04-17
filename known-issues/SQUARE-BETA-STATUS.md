@@ -63,5 +63,4 @@ If a tool returns an unexpected error (not an auth error), try:
 ## Related
 
 - Connector docs: `skills/square-connector/SKILL.md`
-- Setup guide: `docs/connectors/SQUARE-SETUP.md`
 - General troubleshooting: `docs/troubleshoot.md`
