@@ -29,12 +29,11 @@ const SKILLS_LIST = join(SKILLS_DIR, "SKILLS-LIST.md");
 
 const TARGET_FILES = [
   "README.md",
-  "SKILLS-GUIDE.md",
-  "docs/BOOTSTRAP.md",
-  "docs/FULL-SETUP-PAGE.md",
-  "docs/SKILLS-REFERENCE.md",
-  "docs/SUBSCRIPTIONS-AND-SOFTWARE.md",
-  "docs/TELEGRAM-SETUP.md",
+  "docs/skills/README.md",
+  "docs/start/bootstrap.md",
+  "docs/start/full-setup.md",
+  "docs/install/subscriptions-and-software.md",
+  "docs/connectors/TELEGRAM-SETUP.md",
   "skills/SKILLS-LIST.md",
   "visuals/PAGE-1-AI-MODELS.md",
   "visuals/PAGE-2-YOUR-SETUP.md",
