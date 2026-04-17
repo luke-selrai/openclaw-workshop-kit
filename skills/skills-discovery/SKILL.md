@@ -22,11 +22,11 @@ Follow the CLAUDE.md communication rules throughout:
 
 ## Two ways this skill is used
 
-**Path 1 — User asked directly.** They said something like "what can you do?", "show me the skills", "what should I try first?" → run Step 1 through Step 5 in order.
+**Mode 1 — User asked directly.** They said something like "what can you do?", "show me the skills", "what should I try first?" → run Step 1 through Step 5 in order.
 
-**Path 2 — Called proactively from `first-run-setup` Phase 4.** The user has just watched you run a live demo in the same conversation → skip Step 2 and Step 3 entirely. Jump straight to Step 4 and use the Path 2 wording there. Do NOT ask the user whether they want recommendations first — surface them immediately.
+**Mode 2 — Called proactively from `first-run-setup` Phase 4.** The user has just watched you run a live demo in the same conversation → skip Step 2 and Step 3 entirely. Jump straight to Step 4 and use the Mode 2 wording there. Do NOT ask the user whether they want recommendations first — surface them immediately.
 
-If the user has just watched you run a skill for them in the same conversation, you are on Path 2.
+If the user has just watched you run a skill for them in the same conversation, you are on Mode 2.
 
 ---
 
@@ -45,7 +45,7 @@ If their name or business is missing from memory, stop and run `first-run-setup`
 
 ---
 
-## STEP 2 — Introduction (Path 1 only — skip on Path 2)
+## STEP 2 — Introduction (Mode 1 only — skip on Mode 2)
 
 Read the skill counts from `~/workshop-kit/skills/SKILLS-LIST.md`. The three numbers you need live inside markers:
 - Total: `<!-- skills-audit:total -->N<!-- /skills-audit:total -->`
@@ -62,7 +62,7 @@ Address them by name and say something like:
 
 ---
 
-## STEP 3 — Walk through the starter skills (Path 1 only — skip on Path 2)
+## STEP 3 — Walk through the starter skills (Mode 1 only — skip on Mode 2)
 
 Read `~/workshop-kit/skills/SKILLS-LIST.md` and present only the rows whose **Tier** column is `CORE`. Never surface `ADVANCED` or `DEV-ONLY` skills in this step.
 
@@ -92,13 +92,13 @@ Selection rules:
 - If the same skill could fit two of their criteria (for example both their frustration and their win), prefer it over a skill that only matches one.
 - If the user's profile is thin (e.g., missing tools or win), pick 3 skills that cover the broadest range of starter value — writing, research, and one strategy skill.
 
-### Path 1 opening line (user asked directly)
+### Mode 1 opening line (user asked directly)
 
 Before the 3 recommendations, say:
 
 > "Based on what you told me — [one-sentence summary tying their business + biggest frustration + win] — here are the 3 I'd start with."
 
-### Path 2 opening line (proactive, right after a live demo)
+### Mode 2 opening line (proactive, right after a live demo)
 
 Before the 3 recommendations, say:
 
