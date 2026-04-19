@@ -1,6 +1,6 @@
 # Skills — What Your Assistant Can Do
 
-Your assistant has <!-- skills-audit:total -->107<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
+Your assistant has <!-- skills-audit:total -->108<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
 
 <!-- skills-audit:core -->21<!-- /skills-audit:core --> of them are **CORE** — the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->53<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->8<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
 
@@ -374,6 +374,10 @@ Example: "Show me all unpaid invoices in QuickBooks."
 ### Square Connector *(ADVANCED)*
 Square — payments, refunds, catalog, inventory, orders, customers, invoices, bookings.
 Example: "Show me my recent Square payments this week."
+
+### PayPal Connector *(ADVANCED)*
+Connects PayPal via the official PayPal MCP server — invoices, payments, refunds, disputes, subscriptions, products, shipment tracking, and transactions.
+Example: "Show me my unpaid PayPal invoices."
 
 ### Shopify Connector *(ADVANCED)*
 Shopify store — products, orders, customers, inventory.
