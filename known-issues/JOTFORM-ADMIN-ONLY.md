@@ -35,7 +35,7 @@ And you know that **nobody else on your Jotform team has connected Jotform to Cl
 You do **not** need admin rights on your own computer — this is about your role inside Jotform.
 
 1. Find out who the admin of your Jotform workspace is (usually whoever set up the Jotform account for your team)
-2. Ask them to connect Jotform from **their** Claude Code first — they can follow [docs/JOTFORM-SETUP.md](../docs/JOTFORM-SETUP.md)
+2. Ask them to connect Jotform from **their** Claude Code first — they can just tell their own assistant *"Connect Jotform"* and it walks through the install conversationally
 3. Once the admin confirms their connection is working, tell your assistant *"Help me connect my Jotform account"* and go through the sign-in yourself — it should now complete normally
 4. If you hit a `403 Forbidden` on a specific form after connecting, that is a separate, per-form permission issue — ask the form owner to share it with you inside Jotform
 
@@ -53,13 +53,10 @@ Add an upfront note at the top of Phase 1 Step 1 along the lines of:
 
 > "Quick check first: are you the admin of your Jotform workspace? If not, ask your admin to connect their Claude Code to Jotform first — Jotform only lets a workspace admin set this up the first time. Once they are done, I can connect you in under a minute."
 
-The same caveat should also be added to [docs/JOTFORM-SETUP.md](../docs/JOTFORM-SETUP.md) under **What You Need Before Starting**.
-
 ---
 
 ## Related
 
-- Connector docs: `skills/jotform-connector/SKILL.md`
-- Setup guide: `docs/JOTFORM-SETUP.md`
+- Connector skill: `skills/jotform-connector/SKILL.md`
 - Upstream reference: https://github.com/jotform/mcp-server
-- General troubleshooting: `docs/TROUBLESHOOTING.md`
+- General troubleshooting: `docs/troubleshoot.md`
