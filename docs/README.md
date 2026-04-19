@@ -9,8 +9,7 @@ Read in this order if you are starting from zero:
 | [install/](install/README.md) | What to sign up for and what to buy before the workshop | **Before workshop day** |
 | [start/](start/README.md) | Paste the bootstrap prompt and run the full setup walkthrough | **During the workshop** |
 | [use/](use/README.md) | First prompts, what Claude remembers about you, plain-English glossary | **Right after setup** |
-| [skills/](skills/README.md) | Every skill your assistant can use, grouped by business problem | **Week 1** |
-| [connectors/](connectors/) | Per-integration setup guides (Google Workspace, Outlook, Xero, etc.) | **As needed** |
+| [skills/](skills/README.md) | Every skill your assistant can use, grouped by business problem (connecting outside tools is Group H) | **Week 1** |
 | [extend/](extend/README.md) | Optional deep-dives: VS Code path, scheduling, automation loops | **Month 2+** |
 | [troubleshoot.md](troubleshoot.md) | When something is not working | **Any time** |
 

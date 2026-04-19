@@ -38,13 +38,13 @@ These connect to Claude Code with one command (or a short setup walkthrough). No
 | Tool | Cost | What Your Assistant Can Do | Connect With |
 |---|---|---|---|
 | **Google Workspace** | Free (Google account) | Gmail, Calendar, Drive, Docs, Sheets, and more | `npm install -g @googleworkspace/cli` then `gws auth login` |
-| **Telegram Bot** | Free | Message your assistant from your phone | See `docs/connectors/TELEGRAM-SETUP.md` |
-| **iMessage** (Mac only) | Free | Text your assistant from iPhone/Mac | See `docs/connectors/IMESSAGE-SETUP.md` |
-| **Notion** | Free / $10 USD/mo | Read and update your notes and workspace | See `docs/connectors/NOTION-SETUP.md` |
-| **GitHub** | Free | Read repos, issues, pull requests, CI status | See `docs/connectors/GITHUB-SETUP.md` |
-| **HubSpot** | Free / paid tiers | Read and update contacts, deals, companies, notes | See `docs/connectors/HUBSPOT-SETUP.md` |
-| **Square** | Free | Read payments, orders, customers, invoices | See `docs/connectors/SQUARE-SETUP.md` |
-| **CircleCI** | Free tier | Check build status, read logs, trigger reruns | See `docs/connectors/CIRCLECI-SETUP.md` |
+| **Telegram Bot** | Free | Message your assistant from your phone | Ask your assistant: `Connect Telegram` |
+| **iMessage** (Mac only) | Free | Text your assistant from iPhone/Mac | Ask your assistant: `Connect iMessage` |
+| **Notion** | Free / $10 USD/mo | Read and update your notes and workspace | Ask your assistant: `Connect Notion` |
+| **GitHub** | Free | Read repos, issues, pull requests, CI status | Ask your assistant: `Connect GitHub` |
+| **HubSpot** | Free / paid tiers | Read and update contacts, deals, companies, notes | Ask your assistant: `Connect HubSpot` |
+| **Square** | Free | Read payments, orders, customers, invoices | Ask your assistant: `Connect Square` |
+| **CircleCI** | Free tier | Check build status, read logs, trigger reruns | Ask your assistant: `Connect CircleCI` |
 
 ---
 
@@ -107,7 +107,7 @@ Right now your assistant only runs when your laptop is open. A server lets it ru
 
 - An AI assistant available 24/7 — never sick, never on leave, never distracted
 - Writes, researches, and automates across your whole business
-- <!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills built in from day one
+- <!-- skills-audit:total -->107<!-- /skills-audit:total --> specialist skills built in from day one
 - Gets smarter every time you use it
 - Replaces 10–20 hours of admin and content work per month
 

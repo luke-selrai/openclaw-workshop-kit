@@ -1,6 +1,6 @@
 # Skills — What Your Assistant Can Do
 
-Your assistant has <!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
+Your assistant has <!-- skills-audit:total -->107<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
 
 <!-- skills-audit:core -->21<!-- /skills-audit:core --> of them are **CORE** — the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->53<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->8<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
 
@@ -353,7 +353,7 @@ Example: "I've finished this feature — help me integrate it cleanly."
 
 ## GROUP H — Connectors & Integrations
 
-Each connector walks you through a one-time authentication step by step and then lets you interact with the service in plain English. Per-service setup guides are in [../connectors/](../connectors/) — but you almost never need to read them. Just ask your assistant: *"Connect [service]"* and it runs the connector for you.
+Each connector walks you through a one-time authentication step by step and then lets you interact with the service in plain English. You almost never need to read the connector skill yourself — just ask your assistant: *"Connect [service]"* and it runs the full install and sign-in conversationally.
 
 ### Connector Recommender *(ADVANCED)*
 Asks about your business and recommends which connectors will have the most impact — ranked by your industry and workflow.

@@ -13,7 +13,7 @@ This kit sets up a personal AI business assistant on your laptop. Not a chatbot 
 - **Remembers your business** — your name, your customers, your biggest challenges
 - **Lives on your computer** — runs locally, not in a browser tab
 - **Controls your browser** — can open websites, fill forms, and do research for you
-- **Has <!-- skills-audit:total -->104<!-- /skills-audit:total --> specialist skills** — research, copywriting, sales emails, social content, competitor analysis, and more
+- **Has <!-- skills-audit:total -->107<!-- /skills-audit:total --> specialist skills** — research, copywriting, sales emails, social content, competitor analysis, and more
 - **Gets smarter over time** — every conversation builds on the last
 
 It is built on [Claude Code](https://claude.ai/claude-code) by Anthropic — configured specifically for your business.
@@ -29,9 +29,8 @@ Everything you need is in [`docs/`](docs/). The reading order:
 | 1 | [`docs/install/`](docs/install/) — what to buy and sign up for | **Before the workshop** |
 | 2 | [`docs/start/`](docs/start/) — paste the bootstrap prompt, run the setup walkthrough | **During the workshop** |
 | 3 | [`docs/use/`](docs/use/) — first prompts, what your assistant remembers, plain-English glossary | **Right after setup** |
-| 4 | [`docs/skills/`](docs/skills/) — every skill your assistant can use, grouped by business problem | **Week 1** |
-| 5 | [`docs/connectors/`](docs/connectors/) — per-integration setup guides (Google Workspace, Outlook, Xero, etc.) | **As needed** |
-| 6 | [`docs/extend/`](docs/extend/) — optional: VS Code path, scheduling, automation loops | **Month 2+** |
+| 4 | [`docs/skills/`](docs/skills/) — every skill your assistant can use, grouped by business problem (connecting outside tools is part of Group H) | **Week 1** |
+| 5 | [`docs/extend/`](docs/extend/) — optional: VS Code path, scheduling, automation loops | **Month 2+** |
 | — | [`docs/troubleshoot.md`](docs/troubleshoot.md) — when something is not working | **Any time** |
 
 If you prefer VS Code over Claude Desktop, see [`docs/extend/vscode.md`](docs/extend/vscode.md) — advanced fallback, not recommended for first-time users.

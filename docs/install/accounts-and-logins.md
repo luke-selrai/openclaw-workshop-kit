@@ -165,7 +165,6 @@ If you want your assistant to manage HubSpot contacts, deals, companies, and not
 
 > **Paid plans?** The connector works on all HubSpot plans including free. Paid plans unlock more CRM features, but the connection itself is free.
 
-> For the full guide, see [docs/connectors/HUBSPOT-SETUP.md](HUBSPOT-SETUP.md)
 
 ---
 
@@ -179,7 +178,6 @@ This is separate from the GitHub account you use to download the workshop kit. T
 
 > **Read-only or read-write?** Your assistant will ask which you prefer during setup. Read-only is safer to start — you can upgrade later.
 
-> For the full guide, see [docs/connectors/GITHUB-SETUP.md](GITHUB-SETUP.md)
 
 ---
 
@@ -194,7 +192,6 @@ If you take payments through Square and want your assistant to read sales, order
 
 > **Note:** Square's Claude connector is in beta. It works well for everyday reads; occasional retries may be needed.
 
-> For the full guide, see [docs/connectors/SQUARE-SETUP.md](SQUARE-SETUP.md)
 
 ---
 
@@ -207,7 +204,6 @@ If you use CircleCI for testing or deployments and want your assistant to check 
 3. Tell your assistant: "Help me connect my CircleCI account."
 4. Your assistant will guide you through creating a **Personal API Token** in CircleCI Settings
 
-> For the full guide, see [docs/connectors/CIRCLECI-SETUP.md](CIRCLECI-SETUP.md)
 
 ---
 

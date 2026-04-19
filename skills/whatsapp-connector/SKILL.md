@@ -223,5 +223,3 @@ For anything not covered here, if the Superpowers plugin is installed, invoke `s
 - Channel source: `whatsapp-channel/` in the workshop-kit repo
 - Pairing credentials: `~/.claude/whatsapp-channel/auth/`
 - On-demand message log: `~/.claude/whatsapp-channel/history.jsonl`
-- User-facing setup doc (screenshots, fuller explanations): `docs/connectors/WHATSAPP-SETUP.md`
-- Risk disclosure and allowlist format: `docs/connectors/WHATSAPP-SETUP.md` Part D

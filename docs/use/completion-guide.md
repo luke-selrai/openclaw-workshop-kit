@@ -48,7 +48,6 @@ gws auth login
 
 A browser window opens — pick your Google account and click Allow. Once connected, your assistant can read and send emails, check your calendar, access Drive, Docs, Sheets, and more.
 
-> For the full guide with troubleshooting, see [GOOGLE-WORKSPACE-SETUP.md](GOOGLE-WORKSPACE-SETUP.md)
 
 #### 2. Notion (knowledge base)
 Your assistant can help you set this up — just ask in the Claude chat:
@@ -67,7 +66,6 @@ m365 login --authType browser
 
 A browser window opens — pick your Microsoft account and click Accept. Once connected, your assistant can read emails, manage calendar, access OneDrive, and more.
 
-> For the full guide with troubleshooting, see [OUTLOOK-SETUP.md](OUTLOOK-SETUP.md)
 
 #### 4. Slack or Microsoft Teams (if you use them)
 Your assistant can help you set this up — just ask in the Claude chat:
@@ -90,7 +88,6 @@ This lets you chat with your assistant from your phone — ask questions, reques
 **Step 7:** Restart Claude Code with: `claude --channels plugin:telegram@claude-plugins-official`
 **Step 8:** Message your bot on Telegram, get a pairing code, then type: `/telegram:access pair [code]`
 
-> For the full guide with troubleshooting, see [TELEGRAM-SETUP.md](TELEGRAM-SETUP.md)
 
 #### WhatsApp
 
@@ -113,7 +110,6 @@ If you're on a Mac, you can use iMessage instead — no extra apps, no bots, jus
 
 > The first reply triggers a macOS prompt: "Claude wants to control Messages." Click **OK** to allow replies.
 
-> For the full guide with troubleshooting, see [IMESSAGE-SETUP.md](IMESSAGE-SETUP.md)
 
 ---
 
@@ -124,8 +120,8 @@ Your assistant can help you set this up — just ask in the Claude chat:
 
 Your assistant will walk you through the right steps for your CRM:
 
-- **GoHighLevel:** Needs your GHL API key from Settings → Integrations → API Keys. See [GHL-SETUP.md](GHL-SETUP.md)
-- **HubSpot:** Creates a Private App in your HubSpot account — no API key to find manually. See [HUBSPOT-SETUP.md](HUBSPOT-SETUP.md)
+- **GoHighLevel:** Needs your GHL API key from Settings → Integrations → API Keys. See `Connect GoHighLevel`
+- **HubSpot:** Creates a Private App in your HubSpot account — no API key to find manually. See `Connect HubSpot`
 
 ---
 
@@ -133,9 +129,9 @@ Your assistant will walk you through the right steps for your CRM:
 
 If you use any of these tools, your assistant can connect to them too:
 
-- **GitHub** — read issues, pull requests, code, and CI status across your repos. Tell your assistant: "Help me connect my GitHub account." See [GITHUB-SETUP.md](GITHUB-SETUP.md)
-- **Square** — read sales, orders, customers, and invoices from your Square account. Tell your assistant: "Connect my Square account." See [SQUARE-SETUP.md](SQUARE-SETUP.md)
-- **CircleCI** — check build status, read failure logs, trigger reruns. Tell your assistant: "Connect my CircleCI account." See [CIRCLECI-SETUP.md](CIRCLECI-SETUP.md)
+- **GitHub** — read issues, pull requests, code, and CI status across your repos. Tell your assistant: "Help me connect my GitHub account." See `Connect GitHub`
+- **Square** — read sales, orders, customers, and invoices from your Square account. Tell your assistant: "Connect my Square account." See `Connect Square`
+- **CircleCI** — check build status, read failure logs, trigger reruns. Tell your assistant: "Connect my CircleCI account." See `Connect CircleCI`
 
 ---
 
@@ -226,7 +222,7 @@ n8n is a visual automation tool (like Zapier, but you own it). Your AI assistant
 Once you see the value of AI in your business, you can deploy your own agents that run 24/7. Luke and the Selr AI team can set this up for you.
 
 ### Claude Dispatch (Run Multiple Agents in Parallel)
-Dispatch lets you run several Claude agents at once, each handling a different part of a complex task. See [dispatch/DISPATCH-SETUP.md](dispatch/DISPATCH-SETUP.md) for details.
+Dispatch lets you send tasks to your assistant from your phone and come back to finished work. Just ask your assistant: *"Set up Claude Dispatch."*
 
 ### Voice Interface
 You can talk to your AI assistant instead of typing, using tools like Wispr Flow (what Luke uses).
