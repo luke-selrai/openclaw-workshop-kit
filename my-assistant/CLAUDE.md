@@ -107,6 +107,7 @@ All paths below are relative to the user's home folder (see the path conventions
 | AWS | `workshop-kit/skills/aws-connector/SKILL.md` |
 | Azure | `workshop-kit/skills/azure-connector/SKILL.md` |
 | PayPal | `workshop-kit/skills/paypal-connector/SKILL.md` |
+| Airtable | `workshop-kit/skills/airtable-connector/SKILL.md` |
 
 Each guide is the source of truth. If a guide contradicts something you remember, the guide wins.
 
