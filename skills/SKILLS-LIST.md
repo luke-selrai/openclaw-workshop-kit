@@ -1,4 +1,4 @@
-# Skills Reference — Your <!-- skills-audit:total -->108<!-- /skills-audit:total --> Installed Skills
+# Skills Reference — Your <!-- skills-audit:total -->110<!-- /skills-audit:total --> Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need — Claude picks the right skill automatically.
 
@@ -154,7 +154,7 @@ See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for
 
 ---
 
-**Total: <!-- skills-audit:total -->108<!-- /skills-audit:total --> skills installed**
+**Total: <!-- skills-audit:total -->110<!-- /skills-audit:total --> skills installed**
 - CORE: <!-- skills-audit:core -->21<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
 - ADVANCED: <!-- skills-audit:advanced -->53<!-- /skills-audit:advanced --> skills (available on request)
 - DEV-ONLY: <!-- skills-audit:dev-only -->8<!-- /skills-audit:dev-only --> skills (for technical integrations — never surfaced in demos)

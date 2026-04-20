@@ -26,7 +26,7 @@ Think of your AI setup like a kitchen — you're the head chef, Claude is your s
 │   │                                                          │    │
 │   │  Reads:    CLAUDE.md — your instructions & who you are  │    │
 │   │  Remembers: auto-memory — your business profile         │    │
-│   │  Uses:     <!-- skills-audit:total -->108<!-- /skills-audit:total --> Skills — specialist capabilities          │    │
+│   │  Uses:     <!-- skills-audit:total -->110<!-- /skills-audit:total --> Skills — specialist capabilities          │    │
 │   │  Connects: MCP tools — Gmail, Calendar, CRM, and more   │    │
 │   └─────────────────────────────────────────────────────────┘    │
 │                                                                   │
@@ -52,10 +52,10 @@ A file you can read and edit that tells Claude who you are, how to talk to you, 
 
 > Like an instruction manual for a new employee that Claude re-reads every morning.
 
-### Skills (<!-- skills-audit:total -->108<!-- /skills-audit:total --> installed)
+### Skills (<!-- skills-audit:total -->110<!-- /skills-audit:total --> installed)
 Specialist training programs that give Claude deep expertise. When you ask Claude to write ad copy, it reads the copywriting skill first. When you ask for competitor research, it reads the research skill. No extra steps needed — it chooses automatically.
 
-> Like giving your assistant access to <!-- skills-audit:total -->108<!-- /skills-audit:total --> specialist textbooks they can reference on demand.
+> Like giving your assistant access to <!-- skills-audit:total -->110<!-- /skills-audit:total --> specialist textbooks they can reference on demand.
 
 ### MCP Tools — App Connections
 Live connections to your other apps. Once connected, Claude can read your emails, check your calendar, update your CRM, and control your browser — without you having to copy and paste anything.
@@ -79,7 +79,7 @@ YOUR COMPUTER
 │   └── .mcp.json              ← Browser automation auto-connects on startup
 │
 ├── workshop-kit/
-│   ├── skills/                ← Your <!-- skills-audit:total -->108<!-- /skills-audit:total --> skill files
+│   ├── skills/                ← Your <!-- skills-audit:total -->110<!-- /skills-audit:total --> skill files
 │   └── docs/                  ← Guides and reference docs
 │
 └── .claude/
