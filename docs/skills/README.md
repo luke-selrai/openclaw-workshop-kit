@@ -1,6 +1,6 @@
 # Skills — What Your Assistant Can Do
 
-Your assistant has <!-- skills-audit:total -->111<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
+Your assistant has <!-- skills-audit:total -->112<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
 
 <!-- skills-audit:core -->21<!-- /skills-audit:core --> of them are **CORE** — the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->53<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->8<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
 
