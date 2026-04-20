@@ -8,7 +8,7 @@ date: 2026-03-27
 
 > **Keep this page open on your screen throughout the setup.** Everything you need is right here.
 
-Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->110<!-- /skills-audit:total --> specialist skills built in.
+Today you are setting up a personal AI assistant that lives on YOUR computer. It learns about your business, remembers everything, and has <!-- skills-audit:total -->111<!-- /skills-audit:total --> specialist skills built in.
 
 ---
 
@@ -18,7 +18,7 @@ Today you are setting up a personal AI assistant that lives on YOUR computer. It
 |---|---|
 | **Your AI Assistant** | Runs locally on your computer. Knows your business. |
 | **Browser Control** | Can open websites and automate tasks for you |
-| **<!-- skills-audit:total -->110<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
+| **<!-- skills-audit:total -->111<!-- /skills-audit:total --> Skills** | Research, copywriting, sales emails, competitor analysis, and more |
 | **Memory System** | Saves what it learns about you and your business |
 
 ---
@@ -217,7 +217,7 @@ Use the correct commands for my operating system (detect whether I am on Mac or 
 Talk to me like I am not technical. Plain English, one step at a time.
 ```
 
-**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->110<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
+**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->111<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
 
 ---
 
@@ -752,7 +752,7 @@ For full details, see [automation-loop-and-schedule](../extend/automation-loop-a
 
 ## Skills — Quick Reference
 
-Your assistant has <!-- skills-audit:total -->110<!-- /skills-audit:total --> specialist skills covering marketing, research, strategy, AI/automation, engineering, DevOps, and design. For the full categorised list, see [skills reference](../skills/README.md).
+Your assistant has <!-- skills-audit:total -->111<!-- /skills-audit:total --> specialist skills covering marketing, research, strategy, AI/automation, engineering, DevOps, and design. For the full categorised list, see [skills reference](../skills/README.md).
 
 ---
 

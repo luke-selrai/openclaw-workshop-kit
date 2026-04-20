@@ -1,6 +1,6 @@
 # Skills — What Your Assistant Can Do
 
-Your assistant has <!-- skills-audit:total -->110<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
+Your assistant has <!-- skills-audit:total -->111<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
 
 <!-- skills-audit:core -->21<!-- /skills-audit:core --> of them are **CORE** — the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->53<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->8<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
 
@@ -410,6 +410,10 @@ Example: "Why did the latest build on main fail in CircleCI?"
 ### JotForm Connector *(ADVANCED)*
 JotForm — pull new submissions, manage forms.
 Example: "Pull this week's JotForm submissions and email me a summary."
+
+### Atlassian Connector *(ADVANCED)*
+Atlassian Cloud — Jira tickets (search, create, update, transition, comment) and Confluence pages (search, read, create, update). Cloud only.
+Example: "Show me my open Jira tickets and create a Confluence page summarising this week's progress."
 
 ### Calendly Connector *(ADVANCED)*
 Calendly scheduling — event types, availability, meetings, invitees, one-time booking links, no-shows, routing forms.
