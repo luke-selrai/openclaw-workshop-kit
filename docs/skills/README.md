@@ -407,6 +407,10 @@ Example: "Why did the latest build on main fail in CircleCI?"
 JotForm — pull new submissions, manage forms.
 Example: "Pull this week's JotForm submissions and email me a summary."
 
+### Atlassian Connector *(ADVANCED)*
+Atlassian Cloud — Jira tickets (search, create, update, transition, comment) and Confluence pages (search, read, create, update). Cloud only.
+Example: "Show me my open Jira tickets and create a Confluence page summarising this week's progress."
+
 ### Monday Connector *(ADVANCED)*
 Monday boards — items, updates, column values, status moves.
 Example: "Move all stuck items on my ops board to the blocked column."
