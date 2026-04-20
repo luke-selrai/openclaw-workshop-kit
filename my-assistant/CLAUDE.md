@@ -110,6 +110,7 @@ All paths below are relative to the user's home folder (see the path conventions
 | Airtable | `workshop-kit/skills/airtable-connector/SKILL.md` |
 | Atlassian (Jira + Confluence) | `workshop-kit/skills/atlassian-connector/SKILL.md` (setup reference: `workshop-kit/docs/ATLASSIAN-SETUP.md`) |
 | Calendly | `workshop-kit/skills/calendly-connector/SKILL.md` |
+| Linear | `workshop-kit/skills/linear-connector/SKILL.md` |
 
 Each guide is the source of truth. If a guide contradicts something you remember, the guide wins.
 

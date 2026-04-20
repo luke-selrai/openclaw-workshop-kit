@@ -1,6 +1,6 @@
 # Skills — What Your Assistant Can Do
 
-Your assistant has <!-- skills-audit:total -->111<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
+Your assistant has <!-- skills-audit:total -->112<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
 
 <!-- skills-audit:core -->21<!-- /skills-audit:core --> of them are **CORE** — the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->53<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->8<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
 
@@ -418,6 +418,10 @@ Example: "Show me my open Jira tickets and create a Confluence page summarising 
 ### Calendly Connector *(ADVANCED)*
 Calendly scheduling — event types, availability, meetings, invitees, one-time booking links, no-shows, routing forms.
 Example: "What meetings do I have this week and who's on each one?"
+
+### Linear Connector *(ADVANCED)*
+Linear issue tracking — issues, projects, teams, comments, statuses, labels, and documents.
+Example: "Show me my open issues and move ENG-123 to In Progress."
 
 ### Monday Connector *(ADVANCED)*
 Monday boards — items, updates, column values, status moves.
