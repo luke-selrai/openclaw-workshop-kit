@@ -419,6 +419,10 @@ Example: "Show me my open Jira tickets and create a Confluence page summarising 
 Calendly scheduling — event types, availability, meetings, invitees, one-time booking links, no-shows, routing forms.
 Example: "What meetings do I have this week and who's on each one?"
 
+### Linear Connector *(ADVANCED)*
+Linear issue tracking — issues, projects, teams, comments, statuses, labels, and documents.
+Example: "Show me my open issues and move ENG-123 to In Progress."
+
 ### Monday Connector *(ADVANCED)*
 Monday boards — items, updates, column values, status moves.
 Example: "Move all stuck items on my ops board to the blocked column."
