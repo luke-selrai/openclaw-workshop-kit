@@ -399,6 +399,10 @@ Example: "Find the product launch page in my Notion workspace and summarise it."
 Read and update Airtable bases, tables, and records.
 Example: "Show me all records in my Leads table."
 
+### Canva Connector *(ADVANCED)*
+Search, export, generate, and edit Canva designs — plus comments, folders, brand templates, and AI-generated designs.
+Example: "Export my latest Canva presentation as a PDF."
+
 ### GitHub Connector *(ADVANCED)*
 GitHub — read repositories, manage issues and pull requests, run code searches, trigger workflows.
 Example: "Show me open pull requests in my acme/widget repository."
