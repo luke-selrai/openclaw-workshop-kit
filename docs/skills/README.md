@@ -395,6 +395,10 @@ Example: "Show me all open opportunities in my GHL pipeline."
 Notion — search pages, create and update pages, manage databases and rows.
 Example: "Find the product launch page in my Notion workspace and summarise it."
 
+### Airtable Connector *(ADVANCED)*
+Read and update Airtable bases, tables, and records.
+Example: "Show me all records in my Leads table."
+
 ### GitHub Connector *(ADVANCED)*
 GitHub — read repositories, manage issues and pull requests, run code searches, trigger workflows.
 Example: "Show me open pull requests in my acme/widget repository."
