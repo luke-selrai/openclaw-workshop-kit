@@ -1,6 +1,6 @@
 # Skills — What Your Assistant Can Do
 
-Your assistant has <!-- skills-audit:total -->112<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
+Your assistant has <!-- skills-audit:total -->113<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
 
 <!-- skills-audit:core -->21<!-- /skills-audit:core --> of them are **CORE** — the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->53<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->8<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
 
@@ -398,6 +398,10 @@ Example: "Find the product launch page in my Notion workspace and summarise it."
 ### Airtable Connector *(ADVANCED)*
 Read and update Airtable bases, tables, and records.
 Example: "Show me all records in my Leads table."
+
+### Canva Connector *(ADVANCED)*
+Search, export, generate, and edit Canva designs — plus comments, folders, brand templates, and AI-generated designs.
+Example: "Export my latest Canva presentation as a PDF."
 
 ### GitHub Connector *(ADVANCED)*
 GitHub — read repositories, manage issues and pull requests, run code searches, trigger workflows.
