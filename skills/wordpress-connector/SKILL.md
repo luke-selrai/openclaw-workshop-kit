@@ -177,7 +177,7 @@ Wait for the user to restart. When they return, tell them: *"Welcome back. Let m
 
 ### Step 5 — Verify the connection
 
-Call the `mcp__wordpress__list_posts` tool with `per_page: 1` (or the equivalent in the actual `@rnaga/wp-mcp` tool surface) to fetch one post. Handle the response:
+Call the `mcp__wordpress__posts_list` tool with `per_page: 1` to fetch one post. Handle the response:
 
 - **Tool returns at least one post (or an empty list with no error)** → connection works. Capture the site title from the response if available. Tell the user:
   > "All done! I'm now connected to your WordPress site. You can ask me things like 'show me my latest posts', 'create a draft post about X', or 'who's commented on my last article?'. Give it a try!"
@@ -200,55 +200,71 @@ Call the `mcp__wordpress__list_posts` tool with `per_page: 1` (or the equivalent
 
 Once configured, use the `mcp__wordpress__*` MCP tools to answer questions and make changes.
 
-**Tool naming convention:** `@rnaga/wp-mcp` exposes tools with snake_case verb-resource naming (e.g. `list_posts`, `create_post`, `update_post`). In Claude Code they appear as `mcp__wordpress__list_posts`, `mcp__wordpress__create_post`, etc. **Exact tool names depend on the installed `@rnaga/wp-mcp` version** — if a tool name in the tables below doesn't match, search for the matching `mcp__wordpress__` prefix in available tools and adapt.
+**Tool naming convention:** `@rnaga/wp-mcp` exposes tools with snake_case `{resource}_{verb}` naming. Plural for `_list` (e.g. `posts_list`, `users_list`); singular for individual operations (`post_get`, `post_create`, `post_update`, `post_trash`, `user_delete`). In Claude Code they appear as `mcp__wordpress__posts_list`, `mcp__wordpress__post_create`, etc. Tool names below were verified against the `@rnaga/wp-mcp` source on 2026-04-27. If the installed version differs, search for the matching `mcp__wordpress__` prefix in available tools and adapt.
+
+**Important capability gaps to know up front:**
+
+- **Pages** are not a separate tool surface — WordPress treats pages as a post type. Use `posts_list` with a `type: "page"` filter. Same for `post_get`, `post_create`, etc., on pages
+- **Media** (images, video, file uploads + listing) is NOT exposed by `@rnaga/wp-mcp` v1. Recommend the user manage media via WP-admin directly, or fetch by URL once they paste a media URL
+- **Categories and tags** are part of WordPress's broader **taxonomies** (called `terms`). Use `terms_list` with a `taxonomy` parameter (`category`, `post_tag`, or any custom taxonomy)
+- **Site settings** are **read-only** via this MCP (`settings_get` exists, no `settings_update`). For changing site title, tagline, etc., direct the user to WP-admin → Settings → General. The lower-level `options_get` / `options_update` tools exist but operate on individual option keys with no schema validation — use only when the user explicitly requests it
 
 ### Core read tools
 
 | Tool | Description | Use when |
 |---|---|---|
-| `list_posts` | Lists posts with optional filters (status, date range, author, search query, pagination) | User asks to see posts, drafts, published posts, scheduled posts, or posts by a specific author |
-| `get_post` | Returns a single post by ID | User asks about a specific post by ID or title |
-| `list_pages` | Lists pages | User asks about pages (About, Contact, etc.) |
-| `get_page` | Returns a single page by ID | User asks about a specific page |
-| `list_users` | Lists site users with role filter | User asks "who has access to my site?" or wants to find a specific user |
-| `get_user` | Returns a single user by ID or login name | User asks about a specific user |
-| `list_comments` | Lists comments with status filter (approved, pending, spam, trash) | User asks "what comments are pending moderation?" or about reader engagement |
-| `get_comment` | Returns a single comment by ID | User asks about a specific comment |
-| `list_media` | Lists media library entries (images, videos, files) | User asks about uploaded media or images |
-| `list_categories` | Lists post categories | User asks about how their content is organised by category |
-| `list_tags` | Lists post tags | User asks about content tags |
-| `get_settings` | Returns general site options (title, tagline, URL, language, timezone) | User asks about site title, tagline, or general configuration |
+| `posts_list` | Lists posts with optional filters (status, date range, author, categories, tags, search query, pagination). Pass `type: "page"` to list pages instead of posts | User asks to see posts, drafts, published posts, scheduled posts, pages, or content by a specific author |
+| `post_get` | Returns a single post (or page) by ID | User asks about a specific post or page by ID |
+| `users_list` | Lists site users with optional filters | User asks "who has access to my site?" or wants to find a specific user |
+| `user_get` | Returns a single user by ID | User asks about a specific user |
+| `comments_list` | Lists comments with status filter (approved, pending, spam, trash) | User asks "what comments are pending moderation?" or about reader engagement |
+| `comment_get` | Returns a single comment by ID | User asks about a specific comment |
+| `terms_list` | Lists terms in a taxonomy. Pass `taxonomy: "category"` for categories, `"post_tag"` for tags, or any custom taxonomy slug | User asks about how their content is organised by category or tag |
+| `term_get` | Returns a single term by ID | User asks about a specific category or tag |
+| `meta_list` | Lists custom field (post-meta) entries for a post or page | User asks about custom fields on a specific post |
+| `meta_get` | Returns a single custom field value | User asks about one specific custom field |
+| `revisions_list` | Lists revision history for a post | User asks "show me previous versions of this post" |
+| `revision_get` | Returns a single revision by ID | User asks to see a specific past revision |
+| `settings_get` | Returns general site settings (title, tagline, URL, language, timezone) | User asks about site title, tagline, or general configuration |
+| `options_get` | Returns the value of a single WordPress option by key (low-level; use sparingly) | Advanced: user asks for a specific option value not exposed by `settings_get` |
 
 ### Create tools — **always confirm with the user before calling**
 
 | Tool | Description | Use when |
 |---|---|---|
-| `create_post` | Creates a new **DRAFT** post — never auto-published | User asks to create, draft, or write a post. **Always created as DRAFT** so the user reviews and publishes via WP-admin |
-| `create_page` | Creates a new **DRAFT** page | User asks to create a new page (About, Contact, etc.) |
-| `create_comment` | Creates a comment (or reply) on a post | User asks to reply to a comment from their account |
-| `create_category` | Creates a new category | User asks to add a new content category |
-| `create_tag` | Creates a new tag | User asks to add a new tag |
-| `upload_media` | Uploads a file to the media library | User asks to upload an image or file (requires the file to already exist on the user's machine) |
+| `post_create` | Creates a new **DRAFT** post — never auto-published. Pass `type: "page"` to create a page instead | User asks to create, draft, or write a post or page. **Always created as DRAFT** so the user reviews and publishes via WP-admin |
+| `comment_create` | Creates a comment (or reply) on a post | User asks to reply to a comment from their account |
+| `term_create` | Creates a new term in a taxonomy. Use `taxonomy: "category"` for categories, `"post_tag"` for tags | User asks to add a new content category or tag |
+| `meta_create` | Creates a new custom field (post-meta) entry on a post | User asks to add a custom field to a post |
+| `user_create` | Creates a new user (Admin role required) | User asks to add a new user to their site — **flag this clearly to the user as it grants site access** |
+
+> **Note**: media upload is NOT supported by `@rnaga/wp-mcp` v1. If the user asks to upload an image or file, direct them to WP-admin → Media → Add New.
 
 ### Update tools — **always confirm with the user before calling**
 
 | Tool | Description | Use when |
 |---|---|---|
-| `update_post` | Updates an existing post (any status — draft, scheduled, published) | User asks to edit a post's title, content, or other fields |
-| `update_page` | Updates an existing page | User asks to edit a page |
-| `update_comment` | Updates a comment (or its moderation status) | User asks to approve, mark as spam, or trash a comment |
-| `update_user` | Updates a user (own profile by default; others require Admin role) | User asks to change their bio, profile picture URL, etc. |
-| `update_settings` | Updates general site options | User asks to change site title, tagline, etc. — **rare; confirm extra carefully** |
+| `post_update` | Updates an existing post or page (any status: draft, scheduled, published) | User asks to edit a post or page's title, content, or other fields |
+| `comment_update` | Updates a comment's content or moderation status (approve, spam, trash) | User asks to approve, mark as spam, or update a comment |
+| `term_update` | Updates an existing term (rename a category, change tag slug, etc.) | User asks to rename or modify a category, tag, or custom term |
+| `meta_update` | Updates a custom field value on a post | User asks to change a custom field |
+| `user_update` | Updates a user (own profile by default; others require Admin role) | User asks to change their bio, profile picture URL, etc. |
+| `revision_restore` | Restores a previous revision of a post (replaces current content) | User asks to roll back a post to an earlier version |
+| `options_update` | Updates a single WordPress option by key (low-level; no schema validation) | Advanced: only when user explicitly asks for a specific option key by name. **Confirm extra carefully** |
 
-### Delete tools — **require explicit user confirmation, twice**
+> **Note**: general **site settings** (title, tagline, URL, etc.) cannot be updated via this MCP — `settings_get` is read-only. Direct the user to WP-admin → Settings → General for changes.
+
+### Trash / delete tools — **require explicit user confirmation, twice**
 
 | Tool | Description | Use when |
 |---|---|---|
-| `delete_post` | Moves a post to trash (or deletes permanently with `force: true`) | User explicitly asks to delete a post |
-| `delete_page` | Same as delete_post but for pages | Same |
-| `delete_comment` | Trashes a comment | User asks to delete a comment they made |
+| `post_trash` | Moves a post (or page, with `type: "page"`) to trash. Recoverable from WP-admin Trash for 30 days, then auto-permanently deleted | User explicitly asks to delete a post or page |
+| `comment_delete` | Permanently deletes a comment (no trash holding period for comments via this tool) | User asks to delete a specific comment |
+| `term_delete` | Deletes a term from a taxonomy (removes the category or tag, doesn't delete posts using it) | User asks to delete a category or tag — **flag that posts assigned to it lose that category/tag** |
+| `meta_delete` | Removes a custom field entry from a post | User asks to delete a specific custom field |
+| `user_delete` | Deletes a user (Admin role required) | User asks to remove a user — **flag that this requires choosing what to do with their content (reassign or delete)** |
 
-> **Note:** The full tool surface of `@rnaga/wp-mcp` may include additional helpers (revisions, taxonomies, plugins as REST resources, etc.). If the user asks for something not in these tables, search for a matching tool name with the `mcp__wordpress__` prefix.
+> **Note**: The skill targets the verified tool surface of `@rnaga/wp-mcp` as of 2026-04-27 (sourced from `src/mcp/tools/*.mcp.ts`). Future versions may add more tools (e.g. media upload, settings update) — search for any `mcp__wordpress__` prefix tool not in these tables before falling back to "not supported".
 
 ---
 
@@ -257,23 +273,29 @@ Once configured, use the `mcp__wordpress__*` MCP tools to answer questions and m
 | What the user says | Tool to use |
 |---|---|
 | "Connect my WordPress" / "Help me set up WordPress" | **Run Phase 1** (starting with the safety gate) |
-| "Show me my latest posts" / "List my posts" | `list_posts` |
-| "Show drafts" / "What posts haven't I published yet?" | `list_posts` with `status: draft` |
-| "Show published posts from last week" | `list_posts` with `status: publish` + date filter |
-| "Find posts about [topic]" | `list_posts` with `search: <topic>` |
-| "Create a draft post about [topic]" | `create_post` — **confirm first** |
-| "Update post [id or title]" | `update_post` — **confirm first** |
-| "Delete post [id]" / "Trash that post" | `delete_post` — **confirm twice** |
-| "List my pages" | `list_pages` |
-| "Show pending comments" / "What needs moderating?" | `list_comments` with `status: hold` |
-| "Approve comment [id]" | `update_comment` with `status: approved` — **confirm first** |
-| "Mark that comment as spam" | `update_comment` with `status: spam` — **confirm first** |
-| "Show all users" / "Who has access to my site?" | `list_users` |
-| "What's my site title and tagline?" | `get_settings` |
-| "Change my site tagline to [new tagline]" | `update_settings` — **confirm extra carefully** |
-| "List my categories" / "Tags" | `list_categories` / `list_tags` |
-| "Add a category called [name]" | `create_category` — **confirm first** |
-| "Show my media library" | `list_media` |
+| "Show me my latest posts" / "List my posts" | `posts_list` |
+| "Show drafts" / "What posts haven't I published yet?" | `posts_list` with `status: ["draft"]` |
+| "Show published posts from last week" | `posts_list` with `status: ["publish"]` + `after` date filter |
+| "Find posts about [topic]" | `posts_list` with `search: <topic>` |
+| "Show me my pages" / "List pages" | `posts_list` with `type: "page"` |
+| "Create a draft post about [topic]" | `post_create` — **confirm first** |
+| "Create a new page" | `post_create` with `type: "page"` — **confirm first** |
+| "Update post [id or title]" | `post_update` — **confirm first** |
+| "Delete post [id]" / "Trash that post" | `post_trash` — **confirm twice** |
+| "Show pending comments" / "What needs moderating?" | `comments_list` with `status: ["hold"]` |
+| "Approve comment [id]" | `comment_update` with `status: "approved"` — **confirm first** |
+| "Mark that comment as spam" | `comment_update` with `status: "spam"` — **confirm first** |
+| "Delete that comment" | `comment_delete` — **confirm twice** |
+| "Show all users" / "Who has access to my site?" | `users_list` |
+| "What's my site title and tagline?" | `settings_get` |
+| "Change my site tagline to [new tagline]" | Direct user to WP-admin → Settings → General. `settings_get` is read-only via this MCP |
+| "List my categories" | `terms_list` with `taxonomy: "category"` |
+| "List my tags" | `terms_list` with `taxonomy: "post_tag"` |
+| "Add a category called [name]" | `term_create` with `taxonomy: "category"` — **confirm first** |
+| "Show my media library" | Not supported via this MCP — direct user to WP-admin → Media |
+| "Show revisions of this post" | `revisions_list` |
+| "Roll back this post to the previous version" | `revision_restore` — **confirm twice** |
+| "Show me the value of [option key]" | `options_get` (advanced; only when user knows the exact option key) |
 
 ---
 
@@ -339,8 +361,8 @@ The WordPress connector **can** do (via `@rnaga/wp-mcp` + WordPress core REST AP
 
 - Read and write posts, pages, comments, categories, tags
 - Read users (limited to public fields by default; full fields require Admin)
-- Read media library; upload media if the file is on the user's machine
-- Read and update site general settings (title, tagline, etc.) with appropriate user role
+- (Media library access and uploads are NOT supported by `@rnaga/wp-mcp` v1 — direct user to WP-admin)
+- Read general site settings (title, tagline, etc.) via `settings_get` — **read-only**. Updates require WP-admin
 - Moderate comments (approve, spam, trash, restore)
 - Create drafts and pending posts/pages — **never auto-publish**
 
@@ -363,7 +385,7 @@ If a user asks for one of the unsupported operations, redirect them to perform i
 
 - **Always confirm before creating, updating, or deleting** records — summarise what you are about to do, including titles or IDs, and wait for the user's OK before calling the tool
 - **Posts and pages are always created as DRAFT** — never imply a post has been published. Say *"I've created a draft titled [X] — review and publish it in your WordPress dashboard when you're ready."*
-- **Format dates correctly** — use the site's timezone from `get_settings`. Show dates in human-friendly form (e.g. *"published 3 days ago"*, *"last updated yesterday at 2:14 PM"*)
+- **Format dates correctly** — use the site's timezone from `settings_get`. Show dates in human-friendly form (e.g. *"published 3 days ago"*, *"last updated yesterday at 2:14 PM"*)
 - **Pagination** — default to 10 items unless the user asks for more. Offer to show more if there are additional pages
 - **Rate limits** — WordPress hosts vary in rate-limit policy. If you hit 429, back off
 - **Never log or echo credentials** — `WP_USERNAME`, `WP_APP_PASSWORD`, `WP_BASE_URL` must never appear in any output visible to the user
