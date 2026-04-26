@@ -1,6 +1,6 @@
 ---
 name: telegram-connector
-description: "Connect the user's Telegram to Claude Code so they can message their assistant from their phone. Handles the full install + BotFather + pairing flow conversationally. Use this skill when the user says 'set up Telegram', 'connect my Telegram', 'install the Telegram channel', 'message Claude from my phone via Telegram', or asks about BotFather, pairing codes, or the Telegram allowlist."
+description: "Connect the user's Telegram to Claude Code so they can message their assistant from their phone. Handles the full install + BotFather + pairing flow conversationally. Use this skill when the user says 'set up Telegram', 'connect my Telegram', 'install the Telegram plugin', 'install the Telegram channel', 'message Claude from my phone via Telegram', or asks about BotFather, pairing codes, or the Telegram allowlist."
 allowed-tools: Bash, Read, Write, Edit
 metadata:
   category: Channels & Messaging
@@ -37,9 +37,9 @@ The user is a non-technical business owner. Every message during Phase 1 follows
 
 - **One step at a time.** Never stack two instructions in one message.
 - **Plain English only.** No jargon. Never say Bun, npm, bash, zsh, PowerShell, CLI, MCP, env var, terminal, plugin registry, config file. If you must refer to a technical thing, name it plainly: "a small helper tool", "the Telegram pieces", "the launch command", "your phone".
-- **Tell them what is about to happen.** Before any action: "I'm going to check if a small helper tool is already on your computer — this takes a couple of seconds."
-- **React warmly.** Good: "That worked — Telegram is linked." Bad: "Plugin install succeeded, 6-char pair code issued."
-- **Never show raw error messages.** Translate into plain English, then diagnose silently: "No problem — let me try a different way."
+- **Tell them what is about to happen.** Before any action: "I'm going to check if a small helper tool is already on your computer. This takes a couple of seconds."
+- **React warmly.** Good: "That worked. Telegram is linked." Bad: "Plugin install succeeded, 6-char pair code issued."
+- **Never show raw error messages.** Translate into plain English, then diagnose silently: "No problem, let me try a different way."
 - **Short messages.** Maximum 8 lines per message.
 - **Never show commands or paths.** You run them; you do not paste them into chat.
 - **Security: never repeat the bot token back to the user.** When they share it with you, acknowledge you've received it, save it immediately with `/telegram:configure`, then forget it. Do not log it, echo it back, or write it to any file you read later.
@@ -50,6 +50,14 @@ The user is a non-technical business owner. Every message during Phase 1 follows
 
 This phase walks the user through creating a bot with BotFather, installing the Telegram plugin, saving the bot token, re-launching Claude Code with the Telegram flag, and entering the 6-character pairing code to link their personal Telegram account to the bot.
 
+### Step 0 — Check the user has what they need
+
+Before you start anything else, confirm three things in one short message. Send:
+
+*"Before we begin, two quick checks. Do you have your phone with you with the Telegram app installed and a Telegram account already set up? If you've never used Telegram, you'll need to install it and create an account first."*
+
+Wait for "yes" before moving on. If they say no, pause the setup. Tell them to install Telegram on their phone, create an account, then come back. Do not try to work around this. The bot conversation has to happen on the user's phone.
+
 ### Step 1 — Detect the user's OS and shell
 
 Silently run, in order:
@@ -59,7 +67,7 @@ uname -s           # darwin = Mac, linux = Linux
 echo $SHELL        # /bin/zsh, /bin/bash, etc.
 ```
 
-On Windows (if the above fails), the user is almost certainly in PowerShell or Command Prompt. Ask them: *"Quick question — on your computer, when you open a black or blue text window to type commands, does the prompt start with `PS` or just `C:\...>`? Or are you not sure?"* Map their answer the same way `whatsapp-connector` does.
+On Windows (if the above fails), the user is almost certainly in PowerShell or Command Prompt. Ask them: *"Quick question. On your computer, when you open a black or blue text window to type commands, does the prompt start with `PS` or just `C:\...>`? Or are you not sure?"* Map their answer the same way `whatsapp-connector` does.
 
 ### Step 2 — Check that Bun is installed
 
@@ -81,7 +89,7 @@ If it still fails, apply the PATH fix guidance in `skills/first-run-setup/SKILL.
 The user has to do this part on their phone — only they can talk to BotFather. Walk them through it one message at a time:
 
 1. *"On your phone, open Telegram and search for `@BotFather`. It has a blue checkmark. Tap Start. Tell me when you've done that."*
-2. When they confirm, tell them: *"Now send the message `/newbot` to BotFather. It'll ask you two questions — a name (whatever you want, like 'My Assistant') and a username (must end in `bot`, for example `harvey_assistant_bot`). Go through those, then paste the whole token BotFather gives you back to me. It looks like a long string with a colon in the middle."*
+2. When they confirm, tell them: *"Now send the message `/newbot` to BotFather. It'll ask you two questions: a name (whatever you want, like 'My Assistant') and a username (must end in `bot`, for example `harvey_assistant_bot`). Go through those, then paste the whole token BotFather gives you back to me. It looks like a long string with a colon in the middle."*
 3. When they paste the token:
    - Do NOT echo it back.
    - Acknowledge plainly: *"Got it. Saving that now."*
@@ -91,15 +99,18 @@ The user has to do this part on their phone — only they can talk to BotFather.
 
 Tell the user: *"I'm installing the Telegram pieces. About 30 seconds."*
 
-Silently run in the user's Claude Desktop terminal:
+The install runs **inside this Claude Code session** (not the terminal) so the new pieces become available without restarting. Run, in order:
 
-```bash
-claude plugin install telegram@claude-plugins-official
+```
+/plugin install telegram@claude-plugins-official
+/reload-plugins
 ```
 
+After the reload, verify install succeeded by running `/plugin` (no args) and confirming `telegram@claude-plugins-official` shows as enabled. Do not parse the install command's chat output — `/plugin` is the stable success check.
+
 - Success → "That's done." Go to Step 5.
-- Permissions error (`EACCES`, `EPERM`) → translate: "Your computer needs a small permission fix — let me sort it." Apply guidance from `skills/first-run-setup/SKILL.md`, then retry.
-- Network error → "Your network is blocking the install — happens on company laptops. Could you try from a home connection?"
+- Permissions error (`EACCES`, `EPERM`) → translate: "Your computer needs a small permission fix, give me a moment to sort it." Apply guidance from `skills/first-run-setup/SKILL.md`, then retry.
+- Network error → "Your network is blocking the install. This happens on company laptops. Could you try from a home connection?"
 
 ### Step 5 — Save the bot token
 
@@ -109,13 +120,13 @@ In the Claude Code chat (not the terminal), run:
 /telegram:configure <token>
 ```
 
-Replacing `<token>` with the bot token from Step 3. This saves the token into Claude Code's plugin state. Do NOT print the token in your reply to the user — just say: *"Token saved. Next I'll re-launch Claude Code so Telegram turns on."*
+Replacing `<token>` with the bot token from Step 3. This saves the token into Claude Code's plugin state. Do NOT print the token in your reply to the user. Just say: *"Token saved. Next, we'll re-launch Claude Code together so Telegram turns on."*
 
 ### Step 6 — Hand the user the launch command
 
 Like the WhatsApp channel, Telegram needs a **fresh Claude Code session** started with the `--channels` flag to actually listen for messages. Send two short messages:
 
-1. *"Telegram is ready to link. To finish, you'll need to close this Claude Code session and open a fresh one with Telegram turned on. I'll give you the exact command in a moment — ready?"*
+1. *"Telegram is ready to link. To finish, you'll need to close this Claude Code session and open a fresh one with Telegram turned on. I'll give you the exact command in a moment. Ready?"*
 2. When they confirm, paste the block for their shell:
 
    **Mac / Linux / Windows (any shell):**
@@ -129,16 +140,16 @@ Like the WhatsApp channel, Telegram needs a **fresh Claude Code session** starte
 
 When the user returns in the new session, walk them through pairing:
 
-1. *"Open Telegram on your phone. Search for your bot by its username (the one you made in Step 3). Tap Start and send any message — something like 'hello'. The bot will reply with a 6-character code. Send me that code."*
+1. *"Open Telegram on your phone. Search for your bot by its username (the one you made in Step 3). Tap Start and send any message, something like 'hello'. The bot will reply with a 6-character code. Send me that code."*
 2. When they paste the code, run in Claude Code:
    ```
    /telegram:access pair <code>
    ```
-3. Wait for the confirmation, then tell the user: *"Perfect — Telegram is linked. Try messaging your bot again and I'll reply there."*
+3. Wait for the confirmation, then tell the user: *"Perfect. Telegram is linked. Try messaging your bot again and I'll reply there."*
 
 ### Step 8 — Lock down access (recommended)
 
-Tell the user: *"One more thing — by default anyone who messages your bot gets a pairing code. I'll switch that off so only you can use it."*
+Tell the user: *"One more thing. By default anyone who messages your bot gets a pairing code. I'll switch that off so only you can use it."*
 
 Run in Claude Code:
 
@@ -158,11 +169,19 @@ Once paired, the user can message their bot from Telegram and Claude responds di
 
 ### Common requests
 
-**"Add another person to my allowlist."** → ask the user for the other person's sender ID (they'll get it by having the person message the bot and running `/telegram:access list`). Once you have it, run:
+**"Add another person to my allowlist."** → easiest path is to have the new person DM the bot. The bot replies with a 6-character pairing code; the user pastes that code to you and you run:
 
 ```
-/telegram:access add <senderId>
+/telegram:access pair <code>
 ```
+
+If you already have the person's numeric Telegram user ID (e.g. they got it from @userinfobot), you can skip pairing and add them directly:
+
+```
+/telegram:access allow <senderId>
+```
+
+To see who is currently allowed and any pending pairing codes, run `/telegram:access` with no arguments.
 
 **"Remove someone's access."** → run:
 
@@ -194,6 +213,6 @@ For anything not covered here, if the Superpowers plugin is installed, invoke `s
 
 ## Reference — what lives where
 
-- Plugin source: installed via `claude plugin install telegram@claude-plugins-official` into the user's Claude Code plugin directory
+- Plugin source: installed via `/plugin install telegram@claude-plugins-official` into the user's Claude Code plugin directory
 - Bot token: stored by the plugin itself after `/telegram:configure`; never written to any workshop-kit file
 - Allowlist state: managed by the plugin via `/telegram:access` subcommands
