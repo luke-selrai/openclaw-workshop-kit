@@ -38,11 +38,15 @@ The skill carries state across the restart via `~/.claude/channels/telegram/.han
 
 ---
 
-## Golden rule — do not open the user's own browser
+## Golden rule — browser-driven by default, phone is a fallback only
 
-Every step that needs a browser runs inside the **Playwright MCP** browser (`mcp__plugin_playwright_playwright__browser_*`). Never tell the user to open Telegram Web themselves, never launch `https://web.telegram.org` in their default browser. The only human-in-the-loop moment is the QR scan from their phone — Claude shows the QR code on screen via the Playwright window, the user scans it with their phone Telegram app to authenticate Telegram Web, and Claude takes it from there.
+**The default path for this skill is the Playwright MCP browser.** Phase 1 Steps 4 and 5 open Telegram Web inside a Playwright window and drive @BotFather autonomously. The user's only manual action is scanning a QR code with their phone to authenticate Telegram Web. Everything else — searching for BotFather, clicking Start, sending `/newbot`, picking a name, picking a username, capturing the token — happens inside the Playwright window driven by Claude.
 
-If for any reason the Playwright MCP browser cannot be used (extension not installed, non-recoverable launch failure), fall back to **Phone Fallback** at the end of this file. Do not open the user's own browser as an intermediate step.
+**Do not skip to the Phone Fallback section unless Step 4 actually fails twice in a row.** Telling the user "open Telegram on your phone and search for @BotFather" before you have even attempted to open Telegram Web in Playwright is the wrong path. If you find yourself about to type that, stop and run Step 4 instead.
+
+Every browser step uses `mcp__plugin_playwright_playwright__browser_*` tools. Never tell the user to open Telegram Web in their own Chrome/Safari, never launch `https://web.telegram.org` outside the Playwright MCP window.
+
+If, after two genuine attempts, the Playwright MCP browser cannot be used (extension not installed, non-recoverable launch failure), then and only then fall back to **Phone Fallback** at the end of this file.
 
 ---
 
@@ -68,6 +72,8 @@ The user is a non-technical business owner. Every message during Phase 1 follows
 ---
 
 ## PHASE 1 — Install & Pair
+
+**Run Steps 0 through 12 in order. Step 4 opens Telegram Web in the Playwright MCP browser; Step 5 drives @BotFather autonomously inside that browser. The Phone Fallback section at the bottom of this file is only for when Step 4 fails twice in a row — do not start there.**
 
 ### Step 0 — Resume check (run this first, every time)
 
