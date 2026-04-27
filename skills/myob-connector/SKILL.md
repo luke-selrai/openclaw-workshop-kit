@@ -1,6 +1,6 @@
 ---
 name: myob-connector
-description: "Connect and operate MYOB accounting via direct REST API. Handles invoices (list, view, create), contacts (customer, supplier, employee), items, banking, payroll, and the connected company file's settings across MYOB Business and AccountRight. Use this skill when the user asks to 'connect my MYOB', 'set up MYOB', 'help with my MYOB account', or asks anything about their MYOB invoices, contacts, sales, purchases, or accounts. Drives the entire OAuth flow inside a Playwright MCP browser — never opens the user's own browser. On the first use of any MYOB feature, run Phase 1 to authorize the connection and write tokens to ~/.config/myob/tokens.json before attempting any API call."
+description: "Connect and operate MYOB accounting via direct REST API for users who ALREADY have a paid MYOB subscription. Handles invoices (list, view, create), contacts (customer, supplier, employee), items, banking, payroll, and the connected company file's settings across MYOB Business (Lite/Pro) and AccountRight (Plus/Premier). Use this skill when the user asks to 'connect my MYOB', 'set up MYOB', 'help with my MYOB account', or asks anything about their MYOB invoices, contacts, sales, purchases, or accounts. Do NOT use to recommend MYOB to users who don't already use it — workshop attendees without an existing MYOB subscription should be directed to the xero-connector instead (Xero has a free trial path; MYOB does not). Drives the entire OAuth flow inside a Playwright MCP browser — never opens the user's own browser. On the first use of any MYOB feature, run Phase 1 to authorize the connection and write tokens to ~/.config/myob/tokens.json before attempting any API call."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -83,20 +83,30 @@ fi
 
 If the result is **`MISSING`** or **`INCOMPLETE`**, **stop immediately**. Do not run the safety gate. Do not start Phase 1. Do not open a browser.
 
-Tell the user exactly this (in plain English — no jargon, no file paths):
+First, check whether the user actually uses MYOB before pushing them toward any solution. The user may have triggered this skill from an ambient match (e.g., asking "can you connect my accounting?") rather than because they actually use MYOB. Ask them in plain English:
 
-> "I'd love to help you connect MYOB, but the MYOB connector isn't enabled in this workshop kit yet. MYOB is the only tool we work with that doesn't offer free developer access — it requires a paid subscription on the workshop's side before any of you can use it. The workshop team is deciding whether to enable it (you can see the conversation at <https://github.com/selrai-company/claude-workshop-kit/issues/146>).
->
-> In the meantime, if you use **Xero** for accounting, I can connect that instead — Xero works exactly the same way and is already set up. Want me to do that?"
+> "Quick check before I help — do you currently have a **paid MYOB subscription** that you use for your business, or are you just curious about MYOB?"
 
 **Handle the response:**
 
-- **User wants Xero instead** → invoke the `xero-connector` skill. Do not return to MYOB.
-- **User says they have only MYOB, not Xero** → say: *"Got it. I'll let you know the moment the MYOB connector is ready — for now, the team is working on it. Is there anything else I can help with?"* Do not proceed.
-- **User asks why MYOB costs money** → say in plain English: *"MYOB charges developers like us about $110 a month just to access their connection point — most other accounting tools (Xero, QuickBooks) give that to developers for free. The workshop team is figuring out whether to take that on."*
-- **User says they'll pay for MYOB themselves** → say: *"That's really kind, but unfortunately the cost is on the workshop side, not on you — you'd already be paying for your own MYOB business subscription separately. The workshop just needs to subscribe to MYOB's developer side as well, which is a one-off decision the team is making. I'll flag your interest."* Do not proceed.
+- **User confirms they have a paid MYOB subscription** → tell them this:
+  > "Got it. I'd love to help you connect it — but the MYOB connector isn't enabled in this workshop kit yet. MYOB is the only tool we work with that doesn't offer free developer access; it requires a paid subscription on the workshop's side before any of you can use it. The workshop team is deciding whether to enable it (you can see the conversation at <https://github.com/selrai-company/claude-workshop-kit/issues/146>).
+  >
+  > I'll flag your interest so the team knows there's real demand. In the meantime, if you also use Xero alongside MYOB, I can connect that instead — let me know."
 
-Only proceed past this check when the credential file exists, contains both `MYOB_CLIENT_ID` and `MYOB_CLIENT_SECRET`, and both have non-empty values.
+- **User says they don't currently use MYOB / they're just curious / they're shopping for accounting software** → tell them this and **do not push MYOB**:
+  > "No worries — in that case I won't try to set up MYOB for you, since it only makes sense if you already pay for an MYOB subscription. If you're already using **Xero** for accounting (or want to start), Xero is set up in this workshop and I can connect that instead. If you're using something else like QuickBooks, I can help with that too. What does your business actually use today?"
+  Then route them to the right connector (`xero-connector`, `quickbooks-connector`, etc.) based on their answer. Do not return to MYOB.
+
+- **User says they have something else (Xero, QuickBooks, Stripe, etc.)** → route to the matching connector skill. Do not return to MYOB.
+
+- **User asks why MYOB costs money** → say in plain English: *"MYOB charges developers like us about $110 a month just to access their connection point — most other accounting tools (Xero, QuickBooks) give that to developers for free. The workshop team is figuring out whether to take that on."*
+
+- **User says they'll pay for MYOB themselves** → say: *"That's really kind, but the cost is actually on the workshop side, not yours — you'd already be paying for your own MYOB business subscription separately. The workshop just needs to subscribe to MYOB's developer side as well, which is a one-off decision the team is making. I'll flag your interest."* Do not proceed.
+
+Only proceed past this check when **both** of these are true:
+1. The credential file exists and contains non-empty `MYOB_CLIENT_ID` and `MYOB_CLIENT_SECRET`
+2. The user has confirmed they have a paid MYOB subscription
 
 > **Note for the skill author:** the credential file format is a simple shell-sourceable env file:
 >
@@ -111,11 +121,32 @@ Only proceed past this check when the credential file exists, contains both `MYO
 
 ## ⚠️ Safety gate — run this BEFORE Phase 1 Step 1
 
-MYOB has two product lines that materially change the endpoint shape. The user must clarify which one they have before you touch anything.
+This skill is for users who **already have a paid MYOB subscription**. It does not provision MYOB for them, does not sell them MYOB, and does not work against a free trial. Two checks are required before touching anything.
 
-**Say this verbatim (or very close to it) and wait for the user's answer:**
+### Step 0a — Confirm the user has a paid MYOB subscription
 
-> "Before we start — quick check: MYOB makes two flavours of accounting software, and the connection works slightly differently for each.
+Even if the pre-flight credential check passed, you still need to confirm the user is actually a current MYOB subscriber. The skill auto-loads on phrases like "connect my MYOB" but the user might have said it speculatively.
+
+**Say this and wait for the user's answer:**
+
+> "Before we start — quick check: do you currently have a **paid MYOB subscription** that you use for your business?"
+
+**Handle the response:**
+
+- **Yes, paid MYOB subscriber** → continue to Step 0b (product line).
+- **No / not yet / shopping around / on a free trial** → say: *"In that case I won't try to set up MYOB — it only works once you've got a real subscription. If you already use Xero or QuickBooks, I can connect either of those instead. What does your business currently use?"* Route to the matching connector (`xero-connector` is the closest sibling for AU SMBs). **Do not proceed past this gate.**
+- **User asks if they should sign up for MYOB** → say: *"That's really up to you — MYOB and Xero are both solid AU options and most businesses pick one or the other. If you don't already have an accountant suggesting one, Xero tends to be a smoother starting point because it's already set up in this workshop and has a free trial. If you go with MYOB later, just say 'connect my MYOB' once you're subscribed and I'll pick this back up."* Do not proceed.
+- **User confirms they have MYOB but only through their accountant / it's not their own login** → say: *"Got it. I'll need a login that's directly on the MYOB account — typically the business owner's. Do you have one of those, or would you need to ask your accountant for access first?"* Wait for clarification before continuing.
+
+Only continue to Step 0b when the user has confirmed they're a current MYOB subscriber **with their own login**.
+
+### Step 0b — Confirm the product line
+
+MYOB has two product lines that materially change the endpoint shape. Confirm which one the user has.
+
+**Say this and wait for the user's answer:**
+
+> "Great — MYOB makes two flavours of accounting software, and the connection works slightly differently for each:
 >
 > - **MYOB Business** is the cloud-first one most newer accounts use. Plans are called Lite, Pro, or Solo, with a monthly subscription.
 > - **MYOB AccountRight** is the older desktop-and-cloud hybrid. Plans are called Plus or Premier.
