@@ -30,7 +30,13 @@ metadata:
 
 This skill lets you read and update a user's MYOB accounting data on their behalf using **MYOB's direct REST API** (no MCP server, no CLI — see [issue #146](https://github.com/selrai-company/claude-workshop-kit/issues/146) for the architectural decision).
 
-> **Workshop infrastructure cost:** MYOB is the only connector in this kit with no free developer tier. API access requires Developer Program membership, lowest tier **AUD $110/month** (incl. GST) — bundles 1× MYOB Business Pro + 1× AccountRight live subscriptions + a shared sandbox file. The workshop pays this once on behalf of all attendees and ships the resulting `client_id` / `client_secret` in `skills/myob-connector/.workshop-credentials` (gitignored). Each attendee then authorizes the connector against their *own* MYOB account at no cost to them.
+> **How this connector works (read this once before reading the rest):**
+> The architecture is dead simple. Claude reads the user's saved tokens out of `~/.config/myob/tokens.json`, then runs `curl` against MYOB's REST endpoints — every API call carries the user's `Authorization: Bearer ...` token plus the workshop's `x-myobapi-key`. **The user's own paid MYOB subscription is what authorises the data access** — the workshop's developer credentials only authorise the *connection point*, not the data itself.
+>
+> Two paid layers exist; both are required for the connector to function:
+>
+> 1. **Workshop side (one-off, the workshop pays).** MYOB is the only connector in this kit with no free developer tier — API access requires Developer Program membership at AUD $110/month (incl. GST). The workshop covers this on behalf of all attendees and ships the resulting `client_id` / `client_secret` in `skills/myob-connector/.workshop-credentials` (gitignored). This is a fixed line item; attendees never see the credentials and never pay this fee.
+> 2. **User side (recurring, the user pays).** Each attendee needs their own **paid MYOB Business or AccountRight subscription**. Free trials and accountant-only logins do **not** work. Without a real subscription, there's no company file for the connector to read, and OAuth will refuse to issue tokens. Same constraint as Xero/QuickBooks — the data lives in the user's account, so the user has to be the account holder.
 
 It has two phases:
 
@@ -90,9 +96,9 @@ First, check whether the user actually uses MYOB before pushing them toward any 
 **Handle the response:**
 
 - **User confirms they have a paid MYOB subscription** → tell them this:
-  > "Got it. I'd love to help you connect it — but the MYOB connector isn't enabled in this workshop kit yet. MYOB is the only tool we work with that doesn't offer free developer access; it requires a paid subscription on the workshop's side before any of you can use it. The workshop team is deciding whether to enable it (you can see the conversation at <https://github.com/selrai-company/claude-workshop-kit/issues/146>).
+  > "Got it. I'd love to help you connect it — but the MYOB connection isn't switched on in this workshop kit yet. The workshop team is finalising the setup on their end (one-off; doesn't affect your subscription or cost you anything). It should be ready shortly — track progress at <https://github.com/selrai-company/claude-workshop-kit/issues/146>.
   >
-  > I'll flag your interest so the team knows there's real demand. In the meantime, if you also use Xero alongside MYOB, I can connect that instead — let me know."
+  > In the meantime, if you also use Xero alongside MYOB, I can connect that instead — let me know."
 
 - **User says they don't currently use MYOB / they're just curious / they're shopping for accounting software** → tell them this and **do not push MYOB**:
   > "No worries — in that case I won't try to set up MYOB for you, since it only makes sense if you already pay for an MYOB subscription. If you're already using **Xero** for accounting (or want to start), Xero is set up in this workshop and I can connect that instead. If you're using something else like QuickBooks, I can help with that too. What does your business actually use today?"
@@ -100,9 +106,9 @@ First, check whether the user actually uses MYOB before pushing them toward any 
 
 - **User says they have something else (Xero, QuickBooks, Stripe, etc.)** → route to the matching connector skill. Do not return to MYOB.
 
-- **User asks why MYOB costs money** → say in plain English: *"MYOB charges developers like us about $110 a month just to access their connection point — most other accounting tools (Xero, QuickBooks) give that to developers for free. The workshop team is figuring out whether to take that on."*
+- **User asks why MYOB costs money on the workshop's side** → say in plain English: *"MYOB charges developers like us about $110 a month just to access their connection point — most other accounting tools (Xero, QuickBooks) give that to developers for free. The workshop covers it so you don't see any extra cost — you just pay your normal MYOB subscription, same as before."*
 
-- **User says they'll pay for MYOB themselves** → say: *"That's really kind, but the cost is actually on the workshop side, not yours — you'd already be paying for your own MYOB business subscription separately. The workshop just needs to subscribe to MYOB's developer side as well, which is a one-off decision the team is making. I'll flag your interest."* Do not proceed.
+- **User says they'll cover the workshop's developer fee** → say: *"That's really generous, but no need — the workshop's already covering the developer-side fee on their end. You only need your own MYOB subscription, same as you'd be paying anyway."* Do not proceed.
 
 Only proceed past this check when **both** of these are true:
 1. The credential file exists and contains non-empty `MYOB_CLIENT_ID` and `MYOB_CLIENT_SECRET`
@@ -125,11 +131,13 @@ This skill is for users who **already have a paid MYOB subscription**. It does n
 
 ### Step 0a — Confirm the user has a paid MYOB subscription
 
-Even if the pre-flight credential check passed, you still need to confirm the user is actually a current MYOB subscriber. The skill auto-loads on phrases like "connect my MYOB" but the user might have said it speculatively.
+Even if the pre-flight credential check passed, you still need to confirm the user is actually a current MYOB subscriber. The skill auto-loads on phrases like "connect my MYOB" but the user might have said it speculatively. **Without a real paid subscription on the user's side, MYOB itself will refuse to issue OAuth tokens — there's no company file to authorise.** Set this expectation upfront in plain English so the user understands why the question matters.
 
 **Say this and wait for the user's answer:**
 
-> "Before we start — quick check: do you currently have a **paid MYOB subscription** that you use for your business?"
+> "Before we start — quick check: do you currently have a **paid MYOB subscription** that you use for your business?
+>
+> *(Heads-up on how this works: when you ask me anything about your MYOB — invoices, customers, sales — I run the request directly against MYOB's website using your account. So I need you to be a real paid MYOB subscriber on your end, with your own login. Free trials and accountant-only logins won't work. The good news: you don't pay anything extra to use the connection itself — just your normal MYOB subscription.)*"
 
 **Handle the response:**
 
@@ -572,11 +580,18 @@ The MYOB connector **cannot** do (in v1):
 
 ## Open items (tracked in [issue #146](https://github.com/selrai-company/claude-workshop-kit/issues/146))
 
-This is a v1 draft. Before merge, the following need to land:
+The skill itself is complete and ready to ship. The remaining items are operational (registering MYOB's developer-side credentials) and verification.
 
-- [ ] **Workshop budget sign-off** — the connector requires the workshop org to subscribe to MYOB Developer Access at AUD $110/mo (≈$1,320/yr incl. GST). No free tier exists. Whoever owns workshop infrastructure budget needs to authorize before any further work. Bundles: 1× MYOB Business Pro live sub, 1× AccountRight live sub, shared sandbox file.
+**Decided / not blocking merge:**
+
+- [x] **Workshop budget approved** — the workshop subscribes to MYOB Developer Access at AUD $110/mo. Treated as fixed workshop infrastructure cost, comparable to the AWS / Supabase / domain registrations the kit already pays for. Attendees never see this cost.
+- [x] **Architecture confirmed: direct REST via `curl`** — the skill ships against MYOB Business + AccountRight REST APIs, no MCP server, no CLI. Decided per #146 discussion.
+- [x] **Audience scoped to existing paid subscribers** — the skill self-filters; attendees without a paid MYOB subscription get routed to the Xero connector instead. Decided 2026-04-27.
+
+**Operational follow-ups (post-merge):**
+
 - [ ] **Developer Program application submitted** at <https://apisupport.myob.com/hc/en-us/requests/new?ticket_form_id=6175906535311> using the workshop's business email + ABN. 1–5 business day approval.
-- [ ] **Workshop developer credentials registered** at developer.myob.com after approval → distributed via `skills/myob-connector/.workshop-credentials` (gitignored). The skill reads `MYOB_CLIENT_ID` and `MYOB_CLIENT_SECRET` from this file in Phase 1.
+- [ ] **Workshop developer credentials registered** at developer.myob.com after approval → distributed via `skills/myob-connector/.workshop-credentials` (gitignored). The skill reads `MYOB_CLIENT_ID` and `MYOB_CLIENT_SECRET` from this file in Phase 1. Until this lands, the pre-flight check correctly tells users the connector isn't switched on yet.
 - [ ] **Phase -1 self-install** — zip-based bootstrap so attendees can install this skill from a Downloads zip per Luke's 6-criterion bar.
 - [ ] **Live API verification against the bundled MYOB Business Pro live subscription** — confirms the OAuth flow against a real (private, workshop-controlled) account. This is the canonical demo file.
 - [ ] **Live API verification against the shared developer sandbox** — confirms the same flow works against sandbox for workshop-internal testing without polluting the demo account. (Sandbox is shared with other developers — never use it for live attendee demos.)
