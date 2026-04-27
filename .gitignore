@@ -1,2 +1,5 @@
 docs/NOTION-PAGE-DRAFT.md
 .DS_Store
+
+# Workshop-shipped connector credentials — never commit
+skills/myob-connector/.workshop-credentials

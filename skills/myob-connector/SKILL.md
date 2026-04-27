@@ -63,6 +63,52 @@ If a step in this skill fails, follow the `if X fails, try Y` branch documented 
 
 ---
 
+## ⛔ Pre-flight credential check — run this FIRST, before the safety gate
+
+The MYOB connector cannot function without workshop developer credentials. These are issued by MYOB after the workshop org subscribes to the **MYOB Developer Access** tier (AUD $110/month — there is no free tier; see §Overview). The credentials ship in `skills/myob-connector/.workshop-credentials` (gitignored, distributed via the workshop install bundle).
+
+Before saying anything else, run this check:
+
+```bash
+# Look for the workshop credentials file
+CRED_FILE="$(dirname "$0")/.workshop-credentials"  # or use the absolute skill path
+if [ ! -f "$CRED_FILE" ]; then
+  echo "MISSING"
+elif ! grep -q "MYOB_CLIENT_ID=" "$CRED_FILE" || ! grep -q "MYOB_CLIENT_SECRET=" "$CRED_FILE"; then
+  echo "INCOMPLETE"
+else
+  echo "OK"
+fi
+```
+
+If the result is **`MISSING`** or **`INCOMPLETE`**, **stop immediately**. Do not run the safety gate. Do not start Phase 1. Do not open a browser.
+
+Tell the user exactly this (in plain English — no jargon, no file paths):
+
+> "I'd love to help you connect MYOB, but the MYOB connector isn't enabled in this workshop kit yet. MYOB is the only tool we work with that doesn't offer free developer access — it requires a paid subscription on the workshop's side before any of you can use it. The workshop team is deciding whether to enable it (you can see the conversation at <https://github.com/selrai-company/claude-workshop-kit/issues/146>).
+>
+> In the meantime, if you use **Xero** for accounting, I can connect that instead — Xero works exactly the same way and is already set up. Want me to do that?"
+
+**Handle the response:**
+
+- **User wants Xero instead** → invoke the `xero-connector` skill. Do not return to MYOB.
+- **User says they have only MYOB, not Xero** → say: *"Got it. I'll let you know the moment the MYOB connector is ready — for now, the team is working on it. Is there anything else I can help with?"* Do not proceed.
+- **User asks why MYOB costs money** → say in plain English: *"MYOB charges developers like us about $110 a month just to access their connection point — most other accounting tools (Xero, QuickBooks) give that to developers for free. The workshop team is figuring out whether to take that on."*
+- **User says they'll pay for MYOB themselves** → say: *"That's really kind, but unfortunately the cost is on the workshop side, not on you — you'd already be paying for your own MYOB business subscription separately. The workshop just needs to subscribe to MYOB's developer side as well, which is a one-off decision the team is making. I'll flag your interest."* Do not proceed.
+
+Only proceed past this check when the credential file exists, contains both `MYOB_CLIENT_ID` and `MYOB_CLIENT_SECRET`, and both have non-empty values.
+
+> **Note for the skill author:** the credential file format is a simple shell-sourceable env file:
+>
+> ```
+> MYOB_CLIENT_ID=<workshop-dev-app-key>
+> MYOB_CLIENT_SECRET=<workshop-dev-app-secret>
+> ```
+>
+> The file should be `chmod 600` and never committed to git. Add `skills/myob-connector/.workshop-credentials` to the repo's `.gitignore` before any work that touches real credentials.
+
+---
+
 ## ⚠️ Safety gate — run this BEFORE Phase 1 Step 1
 
 MYOB has two product lines that materially change the endpoint shape. The user must clarify which one they have before you touch anything.
