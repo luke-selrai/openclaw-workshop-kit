@@ -50,6 +50,22 @@ If, after two genuine attempts, the Playwright MCP browser cannot be used (exten
 
 ---
 
+## Autonomy rule — Claude does the work, the user does not paste commands
+
+The plugin ships user-invocable skills for token save (`/telegram:configure`), pairing (`/telegram:access pair`), and policy (`/telegram:access policy`). **This skill does not use any of them.** Asking a non-technical user to paste slash commands into chat is the wrong experience. Instead, Claude edits the underlying state files directly via Bash and Write tools:
+
+- `~/.claude/channels/telegram/.env` — bot token (instead of `/telegram:configure`)
+- `~/.claude/channels/telegram/access.json` — allowlist + pending pairings + policy (instead of `/telegram:access *`)
+- `~/.claude/channels/telegram/approved/<senderId>` — approval signal file the channel server polls (written as part of pairing)
+
+Same end result, no paste required. The channel server reads these files at boot and re-reads `access.json` on every inbound, so direct edits take effect without any plugin skill being invoked.
+
+The only command the user runs themselves is the channel-session launch in Step 8 (`claude --channels …`), because that starts a new process which the current Claude Code session cannot replace from inside itself. Even there, the skill attempts to auto-open a new terminal first.
+
+If you find yourself about to type "paste this into the chat", stop. Either run it via Bash, write the file directly, or note that this is a true exception and explain why.
+
+---
+
 ## No-deviation rule
 
 If a step in this skill fails, follow the documented `if X fails, try Y` branch for that step. Do not improvise with `curl https://api.telegram.org/...`, do not edit the plugin's `server.ts`, do not invent new slash commands. If you hit an undocumented failure, tell the user exactly what failed in plain English and stop. Do not silently pivot.
@@ -77,9 +93,7 @@ The user is a non-technical business owner. Every message during Phase 1 follows
 
 ### Step 0 — Resume check (run this first, every time)
 
-Before greeting the user or starting anything new, check whether this is a resumed session.
-
-Read `~/.claude/channels/telegram/.handoff-state.json` if it exists. The file shape is:
+**Before greeting, before describing what you'll do, before anything else** — check whether this is a resumed channel session. Read `~/.claude/channels/telegram/.handoff-state.json`. The file shape is:
 
 ```json
 {
@@ -91,15 +105,19 @@ Read `~/.claude/channels/telegram/.handoff-state.json` if it exists. The file sh
 
 **Branches:**
 
-- **File present, `phase` is `awaiting_pair`, `savedAt` is within the last hour** → this is the channel session post-relaunch. The plugin is installed, the token is saved. Skip Steps 1 through 8. Greet the user proactively:
+- **File present, `phase` is `awaiting_pair`, `savedAt` is within the last hour** → this is the channel session post-relaunch. The plugin is installed, the token is saved. Skip Steps 1 through 8 entirely.
 
-  *"Welcome back. Telegram is set up with your bot @\<botUsername\>. To finish, open Telegram on your phone, search for your bot, tap Start, and send any message like 'hi'. The bot will reply with a 6-character code. Send me that code here."*
+  Your **very first message** to the user must be the proactive greeting below — do not wait for them to say "I'm back" or anything specific. The launcher script (Step 8) seeded the system prompt with instructions to start immediately on any first message:
 
-  Then jump to **Step 9 — Pair**.
+  *"Welcome back. Your bot @\<botUsername\> is set up and ready to link. Open Telegram on your phone, search for @\<botUsername\>, tap Start, and send any message like 'hi'. The bot will reply with a 6-character code. Paste that code here and I'll finish the connection."*
+
+  Then jump to **Step 9 — Pair** and execute it as soon as the user pastes the code (no `/telegram:access pair` ask — direct file edit per Step 9's script).
 
 - **File present but `savedAt` is older than 1 hour** → previous setup was interrupted. Ask: *"It looks like there's a half-finished Telegram setup from earlier. Want me to pick up from where you left off, or start completely fresh?"* If continue, jump to Step 9. If fresh, delete the file and start at Step 1.
 
 - **File absent** → fresh setup. Continue to Step 1.
+
+Generic greetings are wrong here. If you find yourself saying "Hi! How can I help?" in a channel session that has a recent handoff-state file, you have failed Step 0.
 
 ### Step 1 — Prerequisite check
 
@@ -217,33 +235,37 @@ Hold the token in mind for Step 7. Do not echo it. Do not write it to any file o
 
 Tell the user: *"I'm installing the Telegram pieces. About 30 seconds."*
 
-The install runs **inside this Claude Code session** so the new pieces become available without restarting. Run, in order:
+Silently run the install via Bash:
 
-```
-/plugin install telegram@claude-plugins-official
-/reload-plugins
+```bash
+claude plugin install telegram@claude-plugins-official
 ```
 
-After the reload, verify install succeeded by running `/plugin` (no args) and confirming `telegram@claude-plugins-official` shows as enabled. Do not parse the install command's chat output — `/plugin` is the stable success check.
+Verify with a separate, stable command (do not parse the install output):
+
+```bash
+claude plugin list | grep telegram@claude-plugins-official
+```
+
+Expect a line showing `telegram@claude-plugins-official` with a version. The plugin's own skills (`/telegram:configure`, `/telegram:access`) won't be loaded into the running session until a restart, but that's fine — per the Autonomy rule above, this skill never invokes them. The only thing that matters here is that the plugin is registered in `~/.claude/plugins/installed_plugins.json` so the channel session in Step 8 can find it.
 
 - Success → "That's done." Go to Step 7.
-- Permissions error (`EACCES`, `EPERM`) → translate: "Your computer needs a small permission fix, give me a moment to sort it." Apply guidance from `skills/first-run-setup/SKILL.md`, then retry.
-- Network error → "Your network is blocking the install. This happens on company laptops. Could you try from a home connection?"
+- Permissions error (`EACCES`, `EPERM`) → translate: *"Your computer needs a small permission fix, give me a moment to sort it."* Apply guidance from `skills/first-run-setup/SKILL.md`, then retry.
+- Network error → *"Your network is blocking the install. This happens on company laptops. Could you try from a home connection?"*
 
 ### Step 7 — Save the bot token + write handoff state
 
-In the Claude Code chat, run:
+Save the token directly to the channel server's env file. Do NOT print the token in any reply to the user. Treat the token like a password: hold it in mind only long enough to write the file, then drop it.
 
-```
-/telegram:configure <token>
-```
-
-Replacing `<token>` with the bot token from Step 5. This saves the token into Claude Code's plugin state. Do NOT print the token in your reply to the user.
-
-Immediately after the configure call succeeds, write the handoff state file so the channel session can pick up where this one leaves off:
+Silently run via Bash (substituting `<token>` with the actual value captured in Step 5 and `<botUsername>` with the bot's username from Step 5, no `@`):
 
 ```bash
 mkdir -p ~/.claude/channels/telegram
+# Token write — never echo $TOKEN
+TOKEN='<token>' bash -c 'printf "TELEGRAM_BOT_TOKEN=%s\n" "$TOKEN" > ~/.claude/channels/telegram/.env'
+chmod 600 ~/.claude/channels/telegram/.env
+
+# Handoff state write — read by Step 0 in the channel session
 cat > ~/.claude/channels/telegram/.handoff-state.json <<EOF
 {
   "phase": "awaiting_pair",
@@ -253,46 +275,142 @@ cat > ~/.claude/channels/telegram/.handoff-state.json <<EOF
 EOF
 ```
 
-Replace `<botUsername>` with the username chosen in Step 5 (without the `@`).
+Verify the env file was written without echoing it. A safe check:
 
-Then say to the user: *"Token saved. Next, we'll re-launch Claude Code together so Telegram turns on."*
+```bash
+test -s ~/.claude/channels/telegram/.env && echo "ok"
+```
 
-### Step 8 — Hand off to the channel session
+(Just confirms non-empty existence; does not print contents.)
 
-Tell the user, in two short messages:
+Then say to the user: *"Token saved. Next, we'll open a fresh Claude session so Telegram turns on."*
 
-1. *"Telegram is ready to link. To finish, you'll close this Claude Code session and open a fresh one with Telegram turned on. I'll give you the exact command in a moment. Ready?"*
-2. When they confirm, paste:
+### Step 8 — Open the channel session (auto-launch new terminal)
 
-   ```
-   claude --channels plugin:telegram@claude-plugins-official
-   ```
+The channel session is a fresh `claude` process started with `--channels`. The current session can't replace itself; this is the one place a new process boundary is unavoidable. **It is NOT acceptable to ask the user to find a new terminal and paste a long command.** Auto-open the new terminal yourself.
 
-   Say: *"Close this Claude Code session, open a fresh terminal window, paste the command above, and press Enter. When the new session opens, just say 'I'm back' and I'll pick up from there."*
+Tell the user: *"I'm opening a new Claude session for you with Telegram turned on. Watch your screen for it."*
 
-The phrase 'I'm back' (or anything similar) lets this skill auto-load in the channel session via the description match. The Step 0 resume check then takes over.
+**Build the resume launcher.** This is a tiny shell script that starts the channel session with a system-prompt injection so the new Claude knows it's mid-pair before the user says anything:
+
+```bash
+mkdir -p ~/.claude/channels/telegram
+cat > ~/.claude/channels/telegram/.resume-launcher.sh <<'LAUNCHER'
+#!/bin/bash
+RESUME_PROMPT='You are resuming a Telegram setup mid-flow. The previous Claude Code session installed the plugin and saved the bot token. Read ~/.claude/channels/telegram/.handoff-state.json for the bot username and timestamp, then immediately invoke the telegram-connector skill at Step 0 (resume check). On the user'"'"'s very first message — whatever it is — greet them proactively by their bot username and walk them through pairing. Do not wait for a specific trigger phrase. Do not produce a generic greeting.'
+exec claude --channels plugin:telegram@claude-plugins-official --append-system-prompt "$RESUME_PROMPT"
+LAUNCHER
+chmod +x ~/.claude/channels/telegram/.resume-launcher.sh
+```
+
+**Open a new terminal that runs the launcher.** Branch by OS:
+
+- **Mac:**
+  ```bash
+  osascript -e 'tell application "Terminal" to do script "~/.claude/channels/telegram/.resume-launcher.sh"' \
+            -e 'tell application "Terminal" to activate'
+  ```
+  A new Terminal.app window should pop up with Claude starting. Confirm to the user: *"A new window should have just opened with the fresh Claude session. Switch to it to continue."* If the user reports nothing opened, fall through to the manual path below.
+
+- **Linux:**
+  ```bash
+  for term in gnome-terminal konsole xterm; do
+    if command -v "$term" >/dev/null 2>&1; then
+      "$term" -- bash -c '~/.claude/channels/telegram/.resume-launcher.sh; exec bash' &
+      break
+    fi
+  done
+  ```
+  If none of those terminals exist, fall through to manual.
+
+- **Windows:**
+  ```powershell
+  Start-Process powershell -ArgumentList "-NoExit", "-Command", "& '$HOME\.claude\channels\telegram\.resume-launcher.sh'"
+  ```
+
+- **Manual fallback (any OS, only if the auto-launch above genuinely failed):** tell the user: *"I couldn't open a new window automatically. Open a fresh terminal yourself, paste this one line, and press Enter:"* then paste:
+  ```
+  ~/.claude/channels/telegram/.resume-launcher.sh
+  ```
+  That is one short path, not the long `claude --channels …` flag string.
+
+After the new window is up, the current Claude Code session has nothing more to do for Phase 1. Tell the user: *"You can close this window once you've moved over to the new one."*
+
+Phase 1 continues in the channel session, which boots with the resume system-prompt and runs Step 0 against the handoff-state file on the user's first message.
 
 ### Step 9 — Pair the user's personal Telegram (channel session)
 
-This step runs in the channel session — the one started with `--channels`. Step 0 has already greeted the user proactively. The user is now opening Telegram on their phone.
+This step runs in the channel session. Step 0 has already greeted the user with their bot username and asked them to DM the bot.
 
-Walk them through:
+Walk them through if Step 0 hasn't already covered this completely:
 
-1. *"Open Telegram on your phone. Search for your bot by its username (the one we picked, @\<botUsername\>). Tap Start and send any message, something like 'hi'. The bot will reply with a 6-character code. Send me that code."*
-2. When they paste the code, run in Claude Code:
+1. *"Open Telegram on your phone. Search for your bot by its username, @\<botUsername\>. Tap Start and send any message, something like 'hi'. The bot will reply with a 6-character code. Send me that code."*
+
+2. When the user pastes the code, do the pair operation directly via file edits — **never** ask the user to run `/telegram:access pair <code>` themselves. Read the access state, find the pending entry, move the sender into `allowFrom`, write the approval signal:
+
+   ```bash
+   CODE='<code>'
+   ACCESS_FILE=~/.claude/channels/telegram/access.json
+   APPROVED_DIR=~/.claude/channels/telegram/approved
+
+   # Read access.json (or default if missing)
+   if [ ! -f "$ACCESS_FILE" ]; then
+     echo '{"dmPolicy":"pairing","allowFrom":[],"groups":{},"pending":{}}' > "$ACCESS_FILE"
+   fi
+
+   # Use python or jq to mutate the JSON safely
+   python3 - <<PYEOF
+   import json, os, sys, time
+   path = os.path.expanduser("$ACCESS_FILE")
+   with open(path) as f:
+       data = json.load(f)
+   pending = data.get("pending", {})
+   entry = pending.get("$CODE")
+   if not entry:
+       print("ERROR: code not in pending; user may have sent a stale code", file=sys.stderr)
+       sys.exit(2)
+   if entry.get("expiresAt", 0) < int(time.time() * 1000):
+       print("ERROR: code expired", file=sys.stderr)
+       sys.exit(3)
+   sender = entry["senderId"]
+   chat = entry["chatId"]
+   allow = data.get("allowFrom", [])
+   if sender not in allow:
+       allow.append(sender)
+   data["allowFrom"] = allow
+   pending.pop("$CODE", None)
+   data["pending"] = pending
+   with open(path, "w") as f:
+       json.dump(data, f, indent=2)
+   approved_dir = os.path.expanduser("$APPROVED_DIR")
+   os.makedirs(approved_dir, exist_ok=True)
+   with open(os.path.join(approved_dir, sender), "w") as f:
+       f.write(chat)
+   print("OK", sender)
+   PYEOF
    ```
-   /telegram:access pair <code>
-   ```
-3. Wait for the confirmation, then move to Step 10.
+
+3. If the script exits 2 or 3, tell the user the code didn't match or expired and ask them to message the bot again to get a fresh one. Re-run with the new code.
+
+4. On success, move to Step 10. The channel server will have already noticed the new file in `approved/` and sent the user a "you're approved" message on Telegram.
 
 ### Step 10 — Lock down access
 
 Tell the user: *"One more thing. By default anyone who messages your bot gets a pairing code. I'll switch that off so only you can use it."*
 
-Run:
+Edit `access.json` directly — do NOT ask the user to run `/telegram:access policy allowlist`:
 
-```
-/telegram:access policy allowlist
+```bash
+python3 - <<'PYEOF'
+import json, os
+path = os.path.expanduser("~/.claude/channels/telegram/access.json")
+with open(path) as f:
+    data = json.load(f)
+data["dmPolicy"] = "allowlist"
+with open(path, "w") as f:
+    json.dump(data, f, indent=2)
+print("locked")
+PYEOF
 ```
 
 Confirm: *"Done. Strangers can't trigger pairing on your bot now."*
@@ -365,33 +483,70 @@ Once paired, the user messages their bot from Telegram and Claude responds direc
 
 ### Common requests
 
-**"Add another person to my allowlist."** → easiest path is to have the new person DM the bot. The bot replies with a 6-character pairing code (briefly flip policy to `pairing` first if you locked it down: `/telegram:access policy pairing`). The user pastes the code and you run:
+All Phase 2 mutations are direct edits to `~/.claude/channels/telegram/access.json` (or `.env` for tokens). The user is never asked to run `/telegram:configure` or `/telegram:access *` themselves.
 
-```
-/telegram:access pair <code>
-```
+**"Add another person to my allowlist."** — easiest path is to have the new person DM the bot. If the policy is currently `allowlist`, flip it to `pairing` first so the bot will reply with a code, then flip it back after pairing:
 
-Then flip back: `/telegram:access policy allowlist`.
-
-If you already have the person's numeric Telegram user ID (e.g. they got it from @userinfobot), you can skip pairing and add them directly:
-
-```
-/telegram:access allow <senderId>
-```
-
-To see who is currently allowed and any pending pairing codes, run `/telegram:access` with no arguments.
-
-**"Remove someone's access."** → run:
-
-```
-/telegram:access remove <senderId>
+```bash
+python3 - <<'PYEOF'
+import json, os
+p = os.path.expanduser("~/.claude/channels/telegram/access.json")
+with open(p) as f: d = json.load(f)
+d["dmPolicy"] = "pairing"
+with open(p, "w") as f: json.dump(d, f, indent=2)
+PYEOF
 ```
 
-**"Pair a second device."** → ask the user to message the bot from the new device/account, grab the pairing code from the bot's reply, then run `/telegram:access pair <new-code>`. (Same flip-to-pairing-then-back trick as adding a person if currently locked down.)
+Tell the user the new person should DM the bot now. When the user pastes the resulting 6-char code to you, run the same pair script as Step 9 (the `python3 - <<PYEOF` block). After success, flip policy back to `allowlist` (same script as Step 10).
 
-**"Rotate my bot token."** → ask the user to talk to BotFather again, send `/revoke`, generate a new token, and paste it to you. Run `/telegram:configure <new-token>`, then tell them they need to restart Claude Code with the `--channels` flag (or just run `claude-tg`) for the new token to take effect.
+If you already have the person's numeric Telegram user ID (e.g. they got it from @userinfobot), skip pairing and add directly:
 
-**"My shortcut stopped working / I'm in a new terminal and `claude-tg` isn't found."** → the most common cause is a freshly-opened terminal that hasn't sourced the updated PATH. Tell them: *"Open a brand-new terminal window (not the current one) and try again. If it still doesn't work, tell me and I'll check the shortcut."* If still broken, verify with `which claude-tg` and `ls -la ~/.local/bin/claude-tg`.
+```bash
+SENDER_ID='<id>'
+python3 - <<PYEOF
+import json, os
+p = os.path.expanduser("~/.claude/channels/telegram/access.json")
+with open(p) as f: d = json.load(f)
+allow = d.get("allowFrom", [])
+if "$SENDER_ID" not in allow: allow.append("$SENDER_ID")
+d["allowFrom"] = allow
+with open(p, "w") as f: json.dump(d, f, indent=2)
+PYEOF
+```
+
+**"Remove someone's access."** — direct edit:
+
+```bash
+SENDER_ID='<id>'
+python3 - <<PYEOF
+import json, os
+p = os.path.expanduser("~/.claude/channels/telegram/access.json")
+with open(p) as f: d = json.load(f)
+d["allowFrom"] = [x for x in d.get("allowFrom", []) if x != "$SENDER_ID"]
+with open(p, "w") as f: json.dump(d, f, indent=2)
+PYEOF
+```
+
+**"Pair a second device."** — same as adding a person via pairing. Flip to pairing, ask the user to message the bot from the new device, run the pair script with the new code, flip back to allowlist.
+
+**"Rotate my bot token."** — ask the user to talk to BotFather again (browser path preferred — open the same Telegram Web BotFather chat in Playwright and send `/revoke`, follow prompts to issue a new token). Capture the new token via `browser_evaluate` regex extract, then write the env file directly:
+
+```bash
+TOKEN='<new-token>' bash -c 'printf "TELEGRAM_BOT_TOKEN=%s\n" "$TOKEN" > ~/.claude/channels/telegram/.env'
+chmod 600 ~/.claude/channels/telegram/.env
+```
+
+Tell the user the channel session needs a restart for the new token to take effect (the server reads `.env` at boot, not on every message). Offer to relaunch via the same osascript pattern from Step 8.
+
+**"My shortcut stopped working / I'm in a new terminal and `claude-tg` isn't found."** — most common cause is a fresh terminal that hasn't sourced the updated PATH. Tell them: *"Open a brand-new terminal window (not the current one) and try again. If it still doesn't work, tell me and I'll check the shortcut."* If still broken, verify with `which claude-tg` and `ls -la ~/.local/bin/claude-tg`.
+
+**"What's currently allowed?"** — read and summarise:
+
+```bash
+python3 -c 'import json,os; print(json.dumps(json.load(open(os.path.expanduser("~/.claude/channels/telegram/access.json"))), indent=2))'
+```
+
+Report it in plain English to the user, never as raw JSON.
 
 ---
 
