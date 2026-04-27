@@ -13,6 +13,16 @@ on:
     branches:
       - main
 
+# Required so the auto-fix step on main can commit + push count corrections.
+permissions:
+  contents: write
+
+# Serialise main pushes so a second concurrent push doesn't race the first
+# auto-fix commit. PRs run independently (group keyed on PR number/ref).
+concurrency:
+  group: audit-skills-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   audit:
     runs-on: ubuntu-latest
@@ -21,5 +31,44 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Run skill-count audit
+
+      # PR check: read-only. Authors run `node scripts/audit-skills.mjs --write`
+      # locally and commit the result before opening the PR.
+      - name: Audit skill counts (PR check)
+        if: github.event_name == 'pull_request'
         run: node scripts/audit-skills.mjs --check
+
+      # Main auto-fix: regenerate counts on push to main and auto-commit any
+      # drift. Closes the race where two skill-adding PRs squash-merge in
+      # close succession and each PR's count-bump was based on the same now-
+      # stale baseline. The audit script runs deterministically off the on-
+      # disk skills/* tree, so the regenerated state is always correct.
+      #
+      # The auto-commit message includes [skip ci] to avoid re-triggering this
+      # workflow on the auto-fix push (the rerun would be a no-op since the
+      # tree is now drift-free, but skipping saves CI minutes).
+      - name: Audit skill counts (main auto-fix)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          if node scripts/audit-skills.mjs --check; then
+            echo "::notice::No skill-count drift on main."
+            exit 0
+          fi
+
+          echo "Drift detected — regenerating counts."
+          node scripts/audit-skills.mjs --write
+
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "::error::audit --check failed but --write produced no changes — investigate."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(audit-skills): auto-fix skill-count drift after concurrent merges
+
+          [skip ci]"
+          git push
+          echo "::notice::Auto-fixed skill-count drift on main and pushed correction."
