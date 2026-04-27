@@ -30,6 +30,8 @@ metadata:
 
 This skill lets you read and update a user's MYOB accounting data on their behalf using **MYOB's direct REST API** (no MCP server, no CLI — see [issue #146](https://github.com/selrai-company/claude-workshop-kit/issues/146) for the architectural decision).
 
+> **Workshop infrastructure cost:** MYOB is the only connector in this kit with no free developer tier. API access requires Developer Program membership, lowest tier **AUD $110/month** (incl. GST) — bundles 1× MYOB Business Pro + 1× AccountRight live subscriptions + a shared sandbox file. The workshop pays this once on behalf of all attendees and ships the resulting `client_id` / `client_secret` in `skills/myob-connector/.workshop-credentials` (gitignored). Each attendee then authorizes the connector against their *own* MYOB account at no cost to them.
+
 It has two phases:
 
 - **Phase 1 — Install & Connect.** A conversational bootstrap (≤6 steps). The user has never used this before. You drive the entire OAuth flow inside a **Playwright MCP** browser, capture the access + refresh tokens, save them to `~/.config/myob/tokens.json`, and verify the connection with a live API ping. The user should never see the words "OAuth", "token", "client_id", "curl", "API", "JSON", or any file path. They should feel like they are having a conversation, and at the end their MYOB is connected.
@@ -63,27 +65,28 @@ If a step in this skill fails, follow the `if X fails, try Y` branch documented 
 
 ## ⚠️ Safety gate — run this BEFORE Phase 1 Step 1
 
-MYOB has two product lines and two account types that materially change the experience. The user must clarify which path they want before you touch anything.
+MYOB has two product lines that materially change the endpoint shape. The user must clarify which one they have before you touch anything.
 
 **Say this verbatim (or very close to it) and wait for the user's answer:**
 
-> "Before we start, two quick things:
+> "Before we start — quick check: MYOB makes two flavours of accounting software, and the connection works slightly differently for each.
 >
-> **1. Which MYOB product?** MYOB makes two flavours: **MYOB Business** (the cloud-first one most new accounts use, monthly subscription, plans called Lite / Pro / Solo) and **MYOB AccountRight** (the older desktop-and-cloud hybrid, plans called Plus / Premier). Which do you have? If you're not sure, sign in at my.myob.com and the product name is on your dashboard.
+> - **MYOB Business** is the cloud-first one most newer accounts use. Plans are called Lite, Pro, or Solo, with a monthly subscription.
+> - **MYOB AccountRight** is the older desktop-and-cloud hybrid. Plans are called Plus or Premier.
 >
-> **2. Real account or test account?** I can connect you to your real MYOB business data (best for actual work) or to MYOB's free shared developer sandbox (best for trying things out without touching real numbers). Which would you like to start with?
->
-> Just answer both — for example: 'MYOB Business, real account.'"
+> Which do you have? If you're not sure, sign in at my.myob.com and the product name appears at the top of your dashboard."
 
 **Handle the response:**
 
-- **MYOB Business + real account** → main path. Continue to Step 1. (Most common.)
-- **MYOB AccountRight + real account** → say: *"That works too — the connection's similar but the data lives in a slightly different shape. I'll set you up the same way and just adjust the endpoints. Let's go."* Continue to Step 1, but in Phase 2 use the AccountRight company file URI shape (`/accountright/<file-id>/...`) rather than the Business shape.
-- **Either product + sandbox** → say: *"Good call for getting comfortable first. The sandbox is shared with other developers so don't be surprised if you see test data from other people in there — your real account would be private. I'll wire you up to the sandbox now; when you're ready for the real thing, just say 'connect my real MYOB' and I'll swap it over."* Continue to Step 1 with the sandbox flag set.
+- **MYOB Business** → main path. Continue to Step 1. (Most common for accounts opened in the last few years.)
+- **MYOB AccountRight** → say: *"That works too — the connection's similar but the data lives in a slightly different shape. I'll set you up the same way and just adjust the endpoints. Let's go."* Continue to Step 1, but in Phase 2 use the AccountRight company file URI shape (`/accountright/<file-id>/...`) rather than the Business shape.
 - **User isn't sure which product they have** → say: *"No worries — easiest way: open my.myob.com in your browser and tell me what the dashboard says at the top. If it says 'MYOB Business' you're on Business; if it says 'AccountRight' you're on AccountRight."* Wait, then proceed.
+- **User says they only have MYOB Solo** → say: *"Solo is MYOB's mobile-first product, and it doesn't expose the same data through the connection I use. I can't connect Solo accounts yet — sorry. The workshop team is tracking this if it comes up enough."* Stop. (Solo uses a different API surface that this skill doesn't support.)
 - **User refuses to clarify** → say: *"No problem — we can pick this up another time. Just say 'connect my MYOB' whenever you're ready."* Do not proceed.
 
-Only proceed past this gate when the user has **explicitly confirmed both** product line and real-vs-sandbox.
+Only proceed past this gate when the user has **explicitly confirmed** the product line.
+
+> **Note for the skill author, not the user:** the workshop's shared developer credentials work against either product line — the only thing that changes is the company-file URI returned in Step 5 and the resource paths used in Phase 2. The user does not need to choose between "real account" and "sandbox" — they always authorize their own real MYOB account; the sandbox is a workshop-internal testing tool, not a per-user one.
 
 ---
 
@@ -92,7 +95,7 @@ Only proceed past this gate when the user has **explicitly confirmed both** prod
 The user is a non-technical business owner. Every message you send during Phase 1 must follow the rules in `my-assistant/CLAUDE.md`:
 
 - **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say OAuth, token, scope, refresh, Bearer, API, endpoint, JSON, environment variable, curl, terminal, CLI, MCP, client ID, redirect URI, callback, loopback, file path, or sandbox (use "test account") as a technical concept. If you must refer to a technical thing, name it plainly: "the connection key", "your account details", "MYOB's website".
+- **Plain English only.** No jargon. Never say OAuth, token, scope, refresh, Bearer, API, endpoint, JSON, environment variable, curl, terminal, CLI, MCP, client ID, redirect URI, callback, loopback, sandbox, or file path as technical concepts. If you must refer to a technical thing, name it plainly: "the connection key", "your account details", "MYOB's website".
 - **Tell them what is about to happen.** Before any action you take: *"I'm going to open MYOB's sign-in page now in a small browser window — sign in like normal when you see it."*
 - **React warmly.** Good: *"Got it — your MYOB is now connected to Acme Trading."* Bad: *"OAuth token exchange returned 200, tokens persisted to disk."*
 - **Never show error messages directly.** Translate. If something fails, say *"No problem — let me try a different way,"* then diagnose silently.
@@ -494,10 +497,12 @@ The MYOB connector **cannot** do (in v1):
 
 This is a v1 draft. Before merge, the following need to land:
 
-- [ ] **Workshop developer credentials registered** at developer.myob.com → distributed via `skills/myob-connector/.workshop-credentials` (gitignored). The skill reads `MYOB_CLIENT_ID` and `MYOB_CLIENT_SECRET` from this file in Phase 1.
+- [ ] **Workshop budget sign-off** — the connector requires the workshop org to subscribe to MYOB Developer Access at AUD $110/mo (≈$1,320/yr incl. GST). No free tier exists. Whoever owns workshop infrastructure budget needs to authorize before any further work. Bundles: 1× MYOB Business Pro live sub, 1× AccountRight live sub, shared sandbox file.
+- [ ] **Developer Program application submitted** at <https://apisupport.myob.com/hc/en-us/requests/new?ticket_form_id=6175906535311> using the workshop's business email + ABN. 1–5 business day approval.
+- [ ] **Workshop developer credentials registered** at developer.myob.com after approval → distributed via `skills/myob-connector/.workshop-credentials` (gitignored). The skill reads `MYOB_CLIENT_ID` and `MYOB_CLIENT_SECRET` from this file in Phase 1.
 - [ ] **Phase -1 self-install** — zip-based bootstrap so attendees can install this skill from a Downloads zip per Luke's 6-criterion bar.
-- [ ] **Live API verification on a real (non-sandbox) MYOB Business account** — confirms the OAuth flow against production.
-- [ ] **Live API verification on the free shared developer sandbox** — confirms the same flow works against sandbox so attendees can test without paying.
+- [ ] **Live API verification against the bundled MYOB Business Pro live subscription** — confirms the OAuth flow against a real (private, workshop-controlled) account. This is the canonical demo file.
+- [ ] **Live API verification against the shared developer sandbox** — confirms the same flow works against sandbox for workshop-internal testing without polluting the demo account. (Sandbox is shared with other developers — never use it for live attendee demos.)
 - [ ] **AccountRight company file URI shape verified** — Phase 2 endpoint reference is written for MYOB Business; AccountRight may need `/accountright/<file-id>/...` prefix instead of the `Uri` returned by the discover-company-files call.
 - [ ] **Cross-platform verification** — Phase 1 needs PowerShell-equivalent commands for native Windows users (currently bash-only, works on macOS/WSL).
 - [ ] **Idempotent re-run** — running Phase 1 twice in a row should detect existing valid tokens and skip; corrupted/expired tokens should trigger fresh auth without leaving the user confused.
