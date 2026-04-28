@@ -1,7 +1,7 @@
 ---
 name: slack-connector
-description: "Connect and operate a user's Slack workspace via the slack-mcp-server npm package (korotovsky/slack-mcp-server, the most widely adopted Slack MCP server with 1,500+ GitHub stars and 12,000+ weekly npm downloads). Use this skill when the user asks to set up Slack, connect their workspace, post to a channel, read channel history, react to a message, search for users, or manage user groups. On first use, run Phase 1 to install and authenticate the connector before attempting any tool calls."
-allowed-tools: mcp__slack__*, Bash, Read, Write, Edit
+description: "Connect and operate a user's Slack workspace via the slack-mcp-server npm package (korotovsky/slack-mcp-server, the most widely adopted Slack MCP server with 1,500+ GitHub stars and 12,000+ weekly npm downloads). Use this skill when the user asks to set up Slack, connect their workspace, post to a channel, read channel history, react to a message, search for users, or manage user groups. On first use, run Phase 1 — Claude drives app creation, scope setup, and install end-to-end via Playwright; the user only signs in to Slack once and clicks 'Allow' on the consent screen."
+allowed-tools: mcp__slack__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Communication & Collaboration
   tags:
@@ -27,7 +27,7 @@ metadata:
 
 This skill lets you read from and post to a user's Slack workspace on their behalf using the **`slack-mcp-server`** npm package ([korotovsky/slack-mcp-server](https://github.com/korotovsky/slack-mcp-server)). It has two phases:
 
-- **Phase 1 — Install & Auth.** A conversational bootstrap (≤4 steps). The user has never used this before. You walk them through creating a Slack app in their workspace, copying the Bot User OAuth Token, and wiring the MCP server into Claude Code. No workspace ID is needed — the server discovers it from the token. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", "OAuth", "Bot Token", "scope", "xoxb", or any file paths. They should feel like they are having a conversation, and at the end their Slack is connected.
+- **Phase 1 — Install & Auth.** An autonomous bootstrap. Claude drives a Playwright-MCP browser through Slack's app-creation flow: signs in (with the user's help), creates the Slack app, configures all six bot token scopes, installs to workspace, captures the Bot User OAuth Token directly from the DOM, and registers the MCP server. The user's only actions are signing in to Slack once and clicking "Allow" on the workspace consent screen. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", "OAuth", "Bot Token", "scope", "xoxb", "Playwright", "browser automation", or any file paths.
 - **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__slack__*` native tools to list channels, read history, post messages, search users, manage user groups, and react.
 
 **Which phase to run** — Before any tool call, check whether the Slack MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.slack` entry. If it exists and has a `SLACK_MCP_XOXB_TOKEN` in its `env` block, treat the connector as authenticated and skip to Phase 2. Otherwise, run Phase 1.
@@ -54,87 +54,124 @@ We chose `slack-mcp-server` (korotovsky) over `@zencoderai/slack-mcp-server` (th
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work. The user only signs in to Slack and clicks "Allow" once. Every message you send during Phase 1 must follow these rules:
 
-- **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, Bot Token, xoxb, MCP, endpoint, JSON, or environment variable. If you must refer to a technical thing, name it plainly:
+- **You drive, not them.** Never ask the user to click menus, type field values, copy text, or paste tokens. The only actions you ever request are "please sign in to Slack" and "please click Allow on the consent screen."
+- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, Bot Token, xoxb, MCP, endpoint, JSON, environment variable, Playwright, or browser automation. If you must refer to a technical thing, name it plainly:
   - Bot User OAuth Token → **"your Slack key"**
   - Scopes → **"permissions"**
   - Restart Claude Code → **"close and reopen"**
   - Slack app → **"a small connection app inside your Slack"**
-- **Tell them what is about to happen.** Before any action you take: "I am going to save your connection details now — this takes just a moment."
+  - The Playwright browser → **"the browser window I just opened for you"**
+- **Narrate at boundaries, not inside tool sequences.** Tell the user once when you start, once when you need them ("please sign in" / "please click Allow"), once when you're done. No commentary in between.
 - **React to success and failure warmly.** Good: "That worked — your Slack is now connected." Bad: "MCP server initialized, `channels_list` returned 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
-- **Never mention file paths, commands, or scripts** to the user. You run them; you do not describe them.
-- **Never echo the Slack key back to the user** after they paste it.
+- **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
+- **Never echo the Slack key back to the user** after capturing it.
 
 ---
 
-## PHASE 1 — Install & Auth (≤4 steps)
+## PHASE 1 — Install & Auth (autonomous via Playwright)
 
-This phase gets the Slack app created, the bot token collected, the MCP server wired into Claude Code, and the connection verified. You do every technical action; the user only provides information and clicks things in their browser. No workspace ID is needed — the server discovers it from the token.
+Claude drives the entire app creation, scope configuration, and install via Playwright MCP. The user's only actions are signing in to Slack once and clicking "Allow" on the workspace consent screen — Slack genuinely requires both. All other steps (creating the app, naming it, adding the six bot token scopes, installing to workspace, capturing the Bot User OAuth Token) are Claude-driven.
+
+> **Reasoning model.** Each Playwright step describes a *goal* (e.g., "find the scope-add control"). Achieve it by `mcp__playwright__browser_snapshot` → reason about the page → call `browser_click` / `browser_evaluate` / `browser_navigate` / `browser_select_option`. Do not hardcode CSS selectors — Slack's admin UI changes regularly. Re-snapshot whenever the page state changes.
 
 ### Step 1 — Orient the user
 
-Tell the user in one short message:
+Tell the user, in one short message:
 
-> "To connect your Slack, I will walk you through creating a small connection app inside your Slack workspace. It takes about four minutes, and for most workspaces you do not need admin approval. Which workspace do you want me to connect?"
+> "I'll connect your Slack now. I'm opening a browser window — please sign in to Slack there, and I'll set up a small connection app for you. About a minute. Which workspace should I connect?"
 
-Wait for the user's answer. If they say they have more than one workspace, ask them to pick one to start with — they can add more later.
+Wait for the workspace name. If they have multiple workspaces, you'll use this name to disambiguate the workspace dropdown later.
 
-### Step 2 — Walk the user through creating the Slack app and copying the Slack key
+### Step 2 — Open the Slack app dashboard and confirm a logged-in session
 
-The user needs to create a Slack app and copy the Bot User OAuth Token. You cannot do this step for them — Slack requires their authenticated session.
+Call `mcp__playwright__browser_navigate({ url: "https://api.slack.com/apps" })`.
 
-Tell the user (one instruction at a time, waiting for confirmation between each):
+Take a `mcp__playwright__browser_snapshot()`. Reason from it:
 
-1. "Please open this page in your browser: **https://api.slack.com/apps** — and sign in with the Slack account for the workspace you picked. Let me know when you are signed in."
+- **Logged in** (you see "Your Apps" header, "Create New App" button, list of existing apps) → continue to Step 3.
+- **Not logged in** (sign-in form, marketing page) → tell the user *once*: *"The browser window is open — please sign in to Slack when you're ready."* Then poll silently with `browser_wait_for({ text: "Create New App" })` (or any logged-in shell element from a fresh snapshot). Do not ask the user to confirm; detect login completion yourself. SSO, 2FA, and email-link logins all resolve to the same dashboard.
 
-2. When they confirm → "Click the green **Create New App** button, then choose **From scratch** when Slack asks."
+If `browser_wait_for` times out (5+ minutes), check in: *"Still on the sign-in page? Anything I can help with?"*
 
-3. When they see the form → deliver the field values:
-   - "For **App Name**, type: **Claude Assistant**."
-   - "For **Pick a workspace**, choose the workspace you want me to connect."
-   - "Then click the green **Create App** button."
+### Step 3 — Create the app
 
-4. When the app is created → "On the left side you will see a menu. Click **OAuth & Permissions**. Tell me when you see a page with the heading 'OAuth & Permissions'."
+From the apps dashboard, locate the "Create New App" button in the snapshot and click it via `browser_click`. A modal appears — snapshot, then click "From scratch".
 
-5. When they are on the OAuth & Permissions page → "Scroll down to the section called **Bot Token Scopes**, then click **Add an OAuth Scope**. You will add six permissions — I will give them to you one at a time."
+Fill the resulting form via `browser_fill_form` (or individual `browser_type` calls):
+- **App Name** → `"Claude Assistant"`
+- **Pick a workspace** → match the workspace name the user gave in Step 1 against the dropdown options; if multiple workspaces partially match, list them in plain English and ask the user to pick.
 
-6. Walk them through the six scopes, one at a time (wait for confirmation after each):
-   - "Add: **channels:history**"
-   - "Add: **channels:read**"
-   - "Add: **chat:write**"
-   - "Add: **reactions:write**"
-   - "Add: **users:read**"
-   - "Add: **users.profile:read**"
-   - "Great — that is all six permissions. You can always add more later without starting over."
+Click "Create App". Snapshot to confirm you've landed on the app's "Basic Information" page (shows app name, app credentials, etc.).
 
-7. When all six are added → "Now scroll back to the very top of the page and click the green **Install to Workspace** button. Slack will ask you to confirm — click **Allow**."
-   - If the button says **Request to Install** instead of **Install to Workspace**, your workspace requires admin approval. Tell the user: "Your workspace needs an admin to approve this. Please click **Request to Install** and ask your workspace admin to approve it — then come back here and let me know."
+### Step 4 — Navigate to OAuth & Permissions
 
-8. When the install is complete → "You should now see a screen with your **Slack key** — it starts with `xoxb-` and is quite long. Please copy it and paste it to me."
+Locate "OAuth & Permissions" in the left sidebar from the snapshot. Click it. Snapshot to confirm the page heading reads "OAuth & Permissions".
 
-Common mistakes to look out for (and correct by re-asking):
-- The user pasted a placeholder like `your_token_here` → "I think that was a copy mistake — please try the real value that starts with `xoxb-`."
-- The user pasted something that does not start with `xoxb-` → "That doesn't look quite right. The value I need starts with `xoxb-` and is around 55 characters long. Can you check and try again?"
-- The user pasted a value starting with `xoxp-` → "That is a different kind of key — I need the one under **Bot User OAuth Token** (starts with `xoxb-`), not the one labelled **User OAuth Token**."
-- The user says they cannot find **Install to Workspace** → "It is at the top of the OAuth & Permissions page. You may need to scroll up. If you only see **Request to Install**, that means your workspace needs admin approval first."
+### Step 5 — Add the six Bot Token Scopes
 
-**Validation rules (silent):**
+Locate the "Bot Token Scopes" section (usually below "User Token Scopes"). For each scope below, click "Add an OAuth Scope", type the scope into the searchable select that appears, then click the matching option:
+
+- `channels:history`
+- `channels:read`
+- `chat:write`
+- `reactions:write`
+- `users:read`
+- `users.profile:read`
+
+After each addition, re-snapshot to confirm the scope chip appears in the Bot Token Scopes list. If a scope fails to add (typo'd, search didn't surface it), retry the click on the matching option from a fresh snapshot.
+
+### Step 6 — Install to workspace
+
+Scroll to the top of the OAuth & Permissions page (use `browser_evaluate({ function: "() => window.scrollTo(0, 0)" })` if needed). Locate the install control:
+
+- **"Install to Workspace"** button visible → click it. Slack redirects to a consent screen. Tell the user *once*: *"Slack is asking for your permission — please click 'Allow' in the browser to finish."* Then `browser_wait_for({ text: "Bot User OAuth Token" })` to detect the post-install OAuth & Permissions page.
+- **"Request to Install"** button (workspace requires admin approval) → click it (this sends the request), then stop and tell the user: *"Your workspace requires an admin to approve the connection. I've sent the request. Please ask your admin to approve it, then say 'continue connecting Slack' once they have."* Do not proceed to Step 7 until they confirm.
+
+### Step 7 — Capture the Bot User OAuth Token
+
+You should now be on the post-install OAuth & Permissions page, which displays the Bot User OAuth Token (starts with `xoxb-`). Read it via `browser_evaluate`:
+
+```
+() => {
+  const candidates = [...document.querySelectorAll('input, code, textarea, [data-testid*="token"], [class*="token"]')];
+  for (const el of candidates) {
+    const v = (el.value || el.textContent || '').trim();
+    if (v.startsWith('xoxb-') && v.length > 50) return v;
+  }
+  return null;
+}
+```
+
+If the token is masked behind a "Copy" or "Show" button, click it via `browser_click`, re-snapshot, then re-evaluate.
+
+**Validation (silent):**
 - Token must start with `xoxb-`
 - Token must be longer than 50 characters
 
-Store the token in memory for Step 3; do not write it anywhere yet.
+If two snapshot attempts don't surface a valid token, stop and ask the user: *"I'm having trouble finding the Slack key on the page — could you describe what's visible?"*
 
-### Step 3 — Save the connection
+### Step 8 — Save the connection (silent)
 
-Once the user pastes the Slack key, tell the user: "I am going to save your connection details now — this takes just a moment."
+Silently register the MCP server. **Prefer `claude mcp add` via Bash** — it's the official path and handles JSON merging.
 
-Silently add or update the Slack MCP entry in the user's `~/.claude.json` file (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`).
+```bash
+claude mcp add slack \
+  --scope user \
+  --env SLACK_MCP_XOXB_TOKEN="<token captured in Step 7>" \
+  --env SLACK_MCP_ADD_MESSAGE_TOOL="true" \
+  -- npx -y slack-mcp-server
+```
 
-The structure to add:
+`SLACK_MCP_ADD_MESSAGE_TOOL=true` enables posting messages and adding reactions (off by default in the server for safety). To restrict posting to specific channels later, set this to a comma-separated list of channel IDs instead.
+
+**Fallback if `claude mcp add` fails** (older Claude Code version, or CLI not on PATH) — write directly to `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`):
+
+<details>
+<summary>Direct JSON write</summary>
 
 ```json
 {
@@ -143,55 +180,58 @@ The structure to add:
       "command": "npx",
       "args": ["-y", "slack-mcp-server"],
       "env": {
-        "SLACK_MCP_XOXB_TOKEN": "<xoxb- token from Step 2>",
+        "SLACK_MCP_XOXB_TOKEN": "<token>",
         "SLACK_MCP_ADD_MESSAGE_TOOL": "true"
       }
     }
   }
 }
 ```
+</details>
 
-The `SLACK_MCP_ADD_MESSAGE_TOOL` setting enables posting messages and adding reactions, which are disabled by default in this server for safety. We set it to `"true"` to enable all channels. If the user later wants to restrict posting to specific channels, this can be set to a comma-separated list of channel IDs instead.
+Merge into the existing `mcpServers` object — never overwrite. If `~/.claude.json` doesn't exist, create it. If it's corrupt, back up to `~/.claude.json.backup` first.
 
-Merge this into the existing `mcpServers` object rather than overwriting it. If `~/.claude.json` does not exist, create it with just the Slack entry. If the file exists but is corrupted, back it up to `~/.claude.json.backup` first, then write a fresh config.
+Never echo the Slack key back to the user. Never include it in any output visible to the user. Never log it to the conversation, even truncated.
 
-**Never echo the Slack key back to the user** after writing it. Never include it in any output visible to the user.
+### Step 9 — Close the browser and verify
 
-Tell the user: "I have saved your connection details. Please fully close Claude Code and reopen it once — that makes the new connection active. When you are back, say 'test my Slack connection' and I will check it."
+Close the Playwright browser via `mcp__playwright__browser_close()`. The token now lives only in `~/.claude.json`.
 
-### Step 4 — Verify the connection
+Tell the user: *"Saved — let me check it works."*
 
-When the user returns after restarting, tell them: "Let me just check that everything is talking to Slack correctly."
+The verification depends on whether the MCP server is already active in the current session:
 
-The verification depends on whether the MCP server is now active:
+- **If `mcp__slack__*` tools are available**: call `mcp__slack__channels_list({ channel_types: "public_channel", limit: 5 })`. If it returns a list, capture the count and move to Step 10.
+- **If the tools are not yet available** (most likely on first setup): tell the user *"All saved. Please close and reopen Claude Code once so the connection becomes active, then come back and say 'test my Slack' — I'll verify it."*
 
-- **If `mcp__slack__*` tools are available**: call `mcp__slack__channels_list` with `channel_types: "public_channel"` and `limit: 5`. If it returns a list of channels, count them and move to the success message.
-- **If the tools are still not available**: tell the user "The connection is saved but Claude Code has not picked it up yet. Please fully close all Claude Code windows (not just this chat) and reopen — then come back and say 'test my Slack'."
+If verification returns an error:
+- `invalid_auth` / `not_authed` → "The connection key didn't take — let me grab a fresh one." Re-run Steps 2–8 against the same Slack app (clicking "Reinstall to Workspace" instead of "Install to Workspace") and overwrite the config.
+- `missing_scope` → "I need one more permission to do that. Let me add it." Re-run Step 5 to add the missing scope, then click "Reinstall to Workspace" in Step 6 to refresh the token, capture the new token, update the config.
+- Any other error → "Something went wrong — let me try again." Retry once; if still failing, re-run Steps 2–8.
 
-If the verification tool returns an error:
-- `invalid_auth` or `not_authed` → "The connection key didn't work. Could you double-check it? Go back to the **OAuth & Permissions** page of your Slack app and copy the key again." Then re-do Step 3 with the new token.
-- `missing_scope` → "Your connection is working, but I need one more permission. Let me tell you which box to tick." Guide them to the OAuth & Permissions page, add the missing scope, click **Reinstall to Workspace**, and come back. Then retry.
-- Any other error → "Something went wrong — let me try again." Retry once; if still failing, ask the user to confirm their Slack app is still installed to the workspace.
-
-### Success message
+### Step 10 — Success message
 
 Tell the user, in one short message:
 
-> "All done! I am now connected to your Slack. I can see **[N] channels**. You can ask me things like 'what are the latest messages in #general?' or 'post a hello message to #announcements'. Give it a try!"
+> "All done! I'm now connected to your Slack. I can see **[N] channels**. You can ask me 'what are the latest messages in #general?' or 'post a hello message to #announcements'. Give it a try!"
 
 ---
 
 ## Token rotation (no full re-setup needed)
 
-If a user's Slack key stops working (revoked, regenerated, or they want to switch workspaces), they do NOT need to redo the entire Slack app creation. Walk them through this shorter flow:
+If a user's Slack key stops working (revoked, regenerated, or they want to switch workspaces), they do NOT need to redo the entire app creation. Drive a shorter Playwright flow:
 
-1. Tell them: "Go to **https://api.slack.com/apps**, click on **Claude Assistant**, then click **OAuth & Permissions**."
-2. "Click the green **Reinstall to Workspace** button and click **Allow** when asked."
-3. "Copy the new Slack key that appears — it starts with `xoxb-` — and paste it to me."
-4. Silently update only the `SLACK_MCP_XOXB_TOKEN` value in `~/.claude.json`. Do not touch the rest of the config.
-5. Tell them: "Updated. Please close and reopen Claude Code once, then say 'test my Slack' and I will verify the new key."
+1. Tell the user: *"I'll refresh your Slack connection. Opening the browser now — please sign in if asked, and click 'Allow' on the consent screen when it appears."*
+2. `mcp__playwright__browser_navigate({ url: "https://api.slack.com/apps" })`. Detect login the same way as Phase 1 Step 2 (poll `browser_wait_for` for the apps dashboard).
+3. Locate "Claude Assistant" in the apps list from the snapshot and click it.
+4. Click "OAuth & Permissions" in the left sidebar.
+5. Locate and click "Reinstall to Workspace". Tell the user *once*: *"Please click 'Allow' in the browser."* Poll `browser_wait_for` for the post-install screen.
+6. Capture the new `xoxb-` token via `browser_evaluate` (same selector pattern as Phase 1 Step 7). Validate.
+7. Silently update **only** the `SLACK_MCP_XOXB_TOKEN` value in `~/.claude.json` — do not touch any other env vars or the rest of the config. Use `claude mcp remove slack && claude mcp add slack ...` (with the new token, preserving `SLACK_MCP_ADD_MESSAGE_TOOL=true`) or edit the JSON directly.
+8. `mcp__playwright__browser_close()`.
+9. Tell the user: *"Updated. Please close and reopen Claude Code once, then say 'test my Slack' and I'll verify the new key."*
 
-If they say "I have a new Slack key" or "my Slack stopped working", start this rotation flow rather than running full Phase 1.
+If the user says "I have a new Slack key" or "my Slack stopped working", start this rotation flow rather than running full Phase 1.
 
 ---
 
