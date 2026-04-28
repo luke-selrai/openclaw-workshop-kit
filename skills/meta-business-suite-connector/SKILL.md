@@ -1,7 +1,7 @@
 ---
 name: meta-business-suite-connector
-description: "Read and publish Instagram Business and Threads content on behalf of the user via the @mikusnuz/meta-mcp server. Handles Instagram publishing (photos, videos, carousels, Reels, stories), media management, comments and replies, profile and account insights, hashtag search, mentions, and DMs. Also handles Threads publishing (text, image, video, carousels, polls, link attachments), replies, search, profile, and post insights. Plus Meta platform token management (exchange short-lived tokens for long-lived ones, refresh, debug). Use this skill when the user asks about their Instagram Business, Threads, scheduling or publishing posts, Reels, stories, comments, DMs on Instagram, post analytics, hashtag research, or when they say 'connect my Instagram', 'install the Meta Business Suite connector', 'help me set up Instagram', 'connect Threads', or 'help me post to Instagram'. On the first use of any Instagram or Threads feature, run Phase 1 to wire the MCP server into Claude Code before attempting any tool calls. Does NOT cover Meta Ads (use lukeselr/meta-ads-mcp-setup for that) or Facebook Page organic posting (separate connector, not yet built)."
-allowed-tools: mcp__meta__*, Bash, Read, Write, Edit
+description: "Connect the user's Instagram Business and Threads to Claude Code so Claude can read, publish, and manage content on their behalf via the @mikusnuz/meta-mcp server. Drives the entire setup autonomously through the Meta Developer Portal + Graph API Explorer in a Playwright MCP browser: creates the Meta Developer App, captures the App ID and App secret from the DOM, drives Graph API Explorer to mint the access token, exchanges short-lived for long-lived via curl, and writes ~/.claude.json directly. The only human moments are the user logging in to Facebook and ticking permission boxes in Meta's OAuth dialog. Phase 2 covers Instagram publishing (photos, videos, carousels, Reels, stories), media management, comments and replies, profile and account insights, hashtag search, mentions, DMs; Threads publishing (text, image, video, carousels, polls, link attachments), replies, search, profile, post insights; plus Meta platform token management. Use this skill when the user says 'connect my Instagram', 'install the Meta Business Suite connector', 'help me set up Instagram', 'connect Threads', or 'help me post to Instagram'. Does NOT cover Meta Ads (use lukeselr/meta-ads-mcp-setup for that) or Facebook Page organic posting (separate connector, not yet built)."
+allowed-tools: mcp__meta__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
   tags:
@@ -18,6 +18,10 @@ metadata:
       reason: Generate the image/video/Reel cover, then publish through this skill
     - skill: ad-creative
       reason: Draft the post copy and creative concept, then publish through this skill
+    - skill: telegram-connector
+      reason: Same Playwright-MCP-driven autonomous-install pattern. Reference for the rules + cleanup branches.
+    - skill: playwright-skill
+      reason: The Playwright MCP browser is how this skill drives Meta's developer portal and Graph API Explorer.
 ---
 
 # Meta Business Suite Connector
@@ -26,7 +30,7 @@ metadata:
 
 This skill lets you read and publish a user's **Instagram Business** and **Threads** content on their behalf using the **community [`@mikusnuz/meta-mcp`](https://github.com/mikusnuz/meta-mcp)** server (npm-published, MIT-licensed, MCP SDK v1.26+, Graph API v25.0). It has two phases:
 
-- **Phase 1 — Install & Connect.** A conversational bootstrap (≤6 steps). The user has never used this before. You walk them through preparing their Meta accounts, creating a Meta Developer App, generating a long-lived access token, and wiring the MCP server into Claude Code. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", "env var", "Graph API", or any file paths. They should feel like they are having a conversation, and at the end their Instagram is connected.
+- **Phase 1 — Install & Connect (autonomous).** Claude drives the entire Meta Developer Portal + Graph API Explorer flow inside a Playwright MCP browser. The user does exactly TWO things: (1) log in to Facebook in the Playwright window with the account that owns their Page, (2) tick the permission boxes in Meta's OAuth consent dialog. Everything else — creating the App, capturing the App ID and App secret from the DOM, generating the access token, exchanging short-lived for long-lived via curl, finding the linked IG Business Account ID, writing `~/.claude.json` — is autonomous. The user never copies, never pastes, never opens a tab themselves, never reads a token aloud, never types into chat anything other than confirmations.
 - **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__meta__*` native tools to read and publish. The server exposes **57 tools** across Instagram (33), Threads (18), and Meta platform token management (6). All 57 are documented in the Phase 2 tables below.
 
 **Which phase to run** — Before any tool call, check whether the Meta MCP server is already configured. Read `~/.claude.json` (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.meta` entry with `INSTAGRAM_ACCESS_TOKEN` and `INSTAGRAM_USER_ID` (or, if the user only wants Threads, `THREADS_ACCESS_TOKEN` and `THREADS_USER_ID`) in its `env` block. If the relevant pair exists and is non-empty, treat the connector as configured and skip to Phase 2. Otherwise, run Phase 1.
@@ -73,7 +77,7 @@ Wait for the answer.
 
 > "**3.** Will you also want to post to **Threads**? (Threads is separate from Instagram for tokens, but I can set both up in one go if you want.)"
 
-Wait for the answer. Remember it for Step 4 of Phase 1.
+Wait for the answer. Remember it for Step 5 of Phase 1 (the Threads use-case selection happens at app-creation time).
 
 Only proceed past Phase 0 when the user has a Business or Creator IG account linked to a Facebook Page (or has confirmed Threads-only setup).
 
@@ -104,6 +108,54 @@ Only proceed past this gate when the user has explicitly confirmed they're okay 
 
 ---
 
+## Golden rule — Claude drives Meta's developer surfaces for EVERY action
+
+**The default path for every Meta-side action is the Playwright MCP browser.** Once Phase 1 Step 4 logs the Playwright window into Facebook (the user enters their FB credentials), that window IS the user's Meta-developer client for the rest of the flow. Claude uses it for:
+
+- Step 5: developers.facebook.com/apps to create the Meta Developer App, then App Settings → Basic to read the App ID and App secret from the DOM (the user does only the show-app-secret password challenge).
+- Step 6: developers.facebook.com/tools/explorer/ to drive the Graph API Explorer, click Generate Access Token, and read the resulting short-lived token from the DOM (the user does only the OAuth permissions tick + Continue).
+- Step 7 (optional): same flow again with Threads scopes.
+
+These all happen in the same Playwright window, driven by `mcp__playwright__browser_*` (or `mcp__plugin_playwright_playwright__browser_*`) tools. Same Facebook account, same browser session — the App ID and tokens that Claude reads are exactly the same values the user would see if they were doing this manually.
+
+**Do NOT, at any point in Phase 1, ask the user to:**
+
+- Open developers.facebook.com themselves (after the login in Step 4)
+- Click Create App, fill the create-app form, or click Add Product
+- Read the App ID or App secret aloud or paste it back to Claude
+- Open Graph API Explorer themselves
+- Read the access token aloud or paste it back to Claude
+- Open any other browser tab manually
+
+If you find yourself about to type any of those, stop. The Playwright window can do all of them.
+
+The **REST-Direct Fallback** section at the bottom of this file is the contingency for when the Playwright MCP browser cannot be used at all (extension not installed, non-recoverable launch failure after two attempts). It is NOT the path to use because manual instructions feel simpler — they don't, they make the user do extra work and they put long-lived tokens in chat history.
+
+---
+
+## Autonomy rule — Claude does the work, the user does not paste tokens
+
+Meta's developer surfaces (Developer Portal + Graph API Explorer) are entirely web-driven — there is no slash-command surface for the user to invoke even if they wanted to. Everything happens via Claude's tools:
+
+- `~/.claude.json` `mcpServers.meta` block — written via `Write` (instead of any user-paste of `/configure ...`)
+- App ID, App secret, short-lived and long-lived tokens — read via `browser_evaluate` against the relevant DOM nodes (instead of "copy and paste these values back to me")
+- Token exchange (short-lived → 60-day long-lived) — performed via Bash `curl` against `graph.facebook.com/v25.0/oauth/access_token`
+- Page-to-Instagram-Business-Account lookup — performed via Bash `curl` against `graph.facebook.com/v25.0/me/accounts` and `<PAGE_ID>?fields=instagram_business_account`
+
+Same end result, no paste required. Tokens land in `~/.claude.json` without ever appearing in chat output, on the user's clipboard, or in any tool-call return value.
+
+The only things the user types across the entire flow are: their Facebook login credentials in the FB login form (which goes directly to Facebook, not to Claude — Claude never sees the password) and clicks on the OAuth permissions consent dialog (which goes directly to Meta, not to Claude).
+
+If you find yourself about to type "paste this into the chat", stop. Either run it via Bash, write the file directly, or note that this is a true exception and explain why.
+
+---
+
+## No-deviation rule
+
+If a step in this skill fails, follow the documented `if X fails, try Y` branch for that step. Do not improvise with `curl https://graph.facebook.com/...` outside the documented endpoints, do not edit the user's Facebook account settings, do not invent shortcuts. If you hit an undocumented failure, tell the user exactly what failed in plain English and stop. Do not silently pivot.
+
+---
+
 ## Communication rules for Phase 1
 
 The user is a non-technical business owner. Every message you send during Phase 1 must follow the rules in `my-assistant/CLAUDE.md`:
@@ -119,122 +171,344 @@ The user is a non-technical business owner. Every message you send during Phase 
 
 ---
 
-## PHASE 1 — Install & Connect (≤6 steps)
+## PHASE 1 — Install & Connect (autonomous)
 
-This phase gets the Meta Developer App created, the long-lived access token generated, the MCP server wired into Claude Code, and the connection verified. You do every technical action; the user only clicks things in their browser and pastes a few values.
+**Run Steps 1 through 9 in order, all in this one Claude Code session.** Step 4 opens developers.facebook.com in the Playwright MCP browser and waits for the user's Facebook login. Step 5 drives the App-creation flow autonomously inside that browser, including reading the App ID and App secret from the DOM. Step 6 drives Graph API Explorer autonomously to mint the access token (the user only ticks OAuth permissions). Step 7 (optional, conditional on Phase 0 Q3) does the same for Threads. Step 8 writes `~/.claude.json` with backup + read-back validation. Step 9 verifies. The REST-Direct Fallback section at the bottom is only for when Step 4 fails twice in a row — do not start there.
+
+**Resume check.** If the user is starting a new conversation but `~/.claude.json` already has an `mcpServers.meta` entry with non-empty `INSTAGRAM_ACCESS_TOKEN` + `INSTAGRAM_USER_ID` (or `THREADS_ACCESS_TOKEN` + `THREADS_USER_ID` for Threads-only), the connector was at least partially configured by an earlier run. Ask: *"Looks like you started this earlier. Want me to pick up where you left off, or start completely fresh?"*
+
+- **Pick up** → skip to **Step 9** (verify). If verify fails, fall back to Step 6 with a token rotation.
+- **Fresh** → wipe the existing `mcpServers.meta` block (preserving every other `mcpServers` entry), then start at Step 1. The old long-lived token still exists in the user's Meta security settings until it expires; if they want to revoke it manually, guide them to **https://www.facebook.com/settings?tab=business_tools** at the end.
+
+---
 
 ### Step 1 — Orient the user
 
 Tell the user in one short message:
 
-> "Great, let's connect your Instagram. I'll walk you through creating a small connection in Meta's developer area, then I'll save it on your computer and check everything is talking. The Meta part takes about five minutes."
+> "Great, let's connect your Instagram. I'll open Meta's developer area in a browser window. You'll log in once, tick a few permission boxes when Meta asks, and I'll handle the rest. The whole thing takes about three minutes."
 
-### Step 2 — Walk the user through creating a Meta Developer App
+### Step 2 — Detect OS, shell, and Node version
 
-The user needs to create a Meta Developer App and add the Instagram Graph API product. You cannot do this for them — Meta requires their authenticated session.
+Silently run:
 
-Tell the user, one instruction at a time, waiting for confirmation between each:
+```bash
+uname -s           # darwin = Mac, linux = Linux
+echo $SHELL        # /bin/zsh, /bin/bash, etc.
+node --version     # required: 18.0.0 or higher
+```
 
-1. "Please open this page in your browser: **https://developers.facebook.com/apps** — and sign in with the Facebook account that owns your Facebook Page. Let me know when you are signed in."
+On Windows (if `uname` fails), the user is in PowerShell or Command Prompt. The OS detection is for path-resolving `~/.claude.json` (`%USERPROFILE%\.claude.json` on Windows; `$HOME/.claude.json` on Mac/Linux).
 
-2. When they confirm → "Click the green **Create app** button (top right). Meta will ask you a few questions to set up the app."
+**Node version handling:**
 
-3. When they're on the create-app form → deliver the field values:
-   - "For **App name**, type: **Claude Assistant**."
-   - "For **App contact email**, use your own email."
-   - "For **Use case**, choose: **Other**. Then click Next."
-   - "For **App type**, choose: **Business**. Then click Next."
-   - "For **Business portfolio**, pick the one linked to your Facebook Page (or skip if Meta lets you). Then click **Create app**."
+- **Node >= 18** → continue.
+- **Node < 18** (or `command not found`) → tell the user: *"You'll need a slightly newer version of Node.js. Want me to install it for you, or you can install it yourself first?"* If yes, drive `nvm install --lts` (Mac/Linux with nvm) or guide them to https://nodejs.org. After install, ask them to restart Claude Code and tell you ready, then re-verify.
 
-4. When they confirm the app was created → "You should now be on your app's dashboard. On the left side, find **App settings**, click **Basic**, and you'll see two values near the top: **App ID** and **App secret** (you'll need to click 'Show' next to App secret and confirm your password). Please copy the **App ID** and paste it to me."
+### Step 3 — Confirm Playwright MCP is available
 
-5. When they paste the App ID → "Thanks. Now click 'Show' next to **App secret**, copy the long string, and paste it to me. Don't worry about remembering it, I'll save it for you and never show it back."
+Silently check whether `mcp__playwright__browser_navigate` (or `mcp__plugin_playwright_playwright__browser_navigate`) is in the available tool surface. If yes → Step 4.
 
-6. When they paste the App secret → "Last app step: on the left sidebar, click **Add product** (or 'Products') and add **Instagram Graph API**. Click 'Set up' next to it. Tell me when Instagram Graph API shows up in your sidebar."
+If the Playwright MCP server is not registered, install it autonomously via Bash. The canonical command (per `skills/first-run-setup/SKILL.md`):
 
-### Step 3 — Generate the long-lived access token
+```bash
+claude mcp add playwright npx @playwright/mcp@latest --scope user
+```
 
-This is the trickiest part for non-technical users. We use Meta's Graph API Explorer because it lets the user generate a real token without writing any code.
+If that errors with `Cannot find module @playwright/mcp` or similar, fall back:
 
-Tell the user, one instruction at a time:
+```bash
+npm install -g @playwright/mcp
+claude mcp add playwright @playwright/mcp --scope user
+```
 
-1. "Now open this page in a new tab: **https://developers.facebook.com/tools/explorer/**. Tell me when it loads."
+Tell the user: *"Almost ready. Please close this window completely and open a fresh one, then tell me 'ready'."* Wait for them, then re-verify the tool surface.
 
-2. When they confirm → "At the top right, you'll see an **Application** dropdown. Click it and select **Claude Assistant** (the app you just made)."
+If the server still doesn't show up after restart, fall back to **REST-Direct Fallback**.
 
-3. When they confirm → "Just below that, click **Generate Access Token** and sign in with the Facebook account that owns your Page. A permissions dialog will appear."
+### Step 4 — Open developers.facebook.com in the Playwright MCP browser
 
-4. When they see the permissions dialog → "Tick all of these permissions (you'll find them in the list, scroll if needed):
-   - **instagram_basic**
-   - **instagram_content_publish**
-   - **instagram_manage_comments**
-   - **instagram_manage_insights**
-   - **instagram_manage_messages** (only if you want me to read DMs, skip if you're keeping that off)
-   - **pages_show_list**
-   - **pages_read_engagement**
-   
-   Then click **Continue as [your name]** and approve."
+Tell the user: *"I'm going to open Meta's developer area now. You'll need to log in to Facebook with the account that owns your Page. After that I'll handle everything."*
 
-   > *(If the user chose to drop a scope at the safety gate, omit the matching permission(s) from this list. Posting needs `instagram_content_publish`; comment moderation needs `instagram_manage_comments`; DMs need `instagram_manage_messages`.)*
+**Pre-flight cleanup.** A previous Playwright Chrome instance with the same user-data-dir can hold a singleton lock. Try the navigation first; if it errors with `SingletonLock`, `process is already running`, `Failed to launch the browser process`, `EADDRINUSE`, or `lock file already exists`, run the cleanup branch then retry once:
 
-   > **Auth-flow note (Claude-facing).** This skill uses the **Facebook-Login flow** (the user signs into Graph API Explorer with the FB account that owns the Page). Under that flow, the scope names listed above are the correct ones. If a user is later moved to the **Instagram-Login flow** (a separate Meta product where IG users sign in directly without a linked FB Page), the scope names change: `instagram_manage_messages` becomes `instagram_business_manage_messages`, and `instagram_manage_insights` becomes `instagram_business_manage_insights`. This skill does not currently cover the IG-Login path; if a user reports they have no FB Page, return to Phase 0 question 2 rather than substituting scope names.
+- **Mac:**
+  ```bash
+  pkill -9 -f "(Google Chrome|Chromium|Brave Browser|Microsoft Edge).*Playwright" 2>/dev/null
+  rm -f "$HOME/Library/Application Support/Google/Chrome/SingletonLock"
+  rm -f "$HOME/Library/Application Support/Chromium/SingletonLock"
+  rm -f "$HOME/Library/Application Support/BraveSoftware/Brave-Browser/SingletonLock"
+  rm -f "$HOME/Library/Application Support/Microsoft Edge/SingletonLock"
+  ```
+- **Linux:**
+  ```bash
+  pkill -9 -f "(chrome|chromium|brave).*Playwright" 2>/dev/null
+  rm -f "$HOME/.config/google-chrome/SingletonLock"
+  rm -f "$HOME/.config/chromium/SingletonLock"
+  rm -f "$HOME/.config/BraveSoftware/Brave-Browser/SingletonLock"
+  ```
+- **Windows (PowerShell, run via `powershell.exe -Command`):** scope to Playwright-launched processes only:
+  ```powershell
+  Get-CimInstance Win32_Process -Filter "Name='chrome.exe' OR Name='chromium.exe' OR Name='brave.exe' OR Name='msedge.exe'" | Where-Object { $_.CommandLine -like '*Playwright*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+  ```
 
-5. When they confirm → "Back in Graph API Explorer, you should now see a long string in the **Access Token** field. Copy that whole string and paste it to me. (This is a short-lived token. I'll upgrade it to a long-lived one in the next step. Don't worry, I'll handle that part.)"
+Do not run cleanup pre-emptively — only after a launch failure, and only once.
 
-6. When they paste the short-lived token → silently call the Meta token-exchange endpoint to upgrade it to a long-lived (60-day) token. Use this `curl`-equivalent (run via `Bash`):
+**Navigate.** Use `mcp__playwright__browser_navigate` (or `mcp__plugin_playwright_playwright__browser_navigate`) to `https://developers.facebook.com/apps`.
+
+**Wait for login.** Use `browser_snapshot` to confirm the page rendered. If the user is not signed in, the page redirects to `facebook.com/login` and shows email + password fields.
+
+Tell the user: *"A Facebook login screen has opened. Please sign in with the Facebook account that owns the Page linked to your Instagram. I'll wait, just tell me 'done' when you're in."*
+
+**Wait for login.** After the user confirms, take a fresh snapshot. The Apps dashboard should be visible (header reads "Apps", left sidebar with My Apps / Create App buttons). If still on the login screen after 30 seconds, ask the user if they hit any issues and re-take the snapshot. If 2FA was triggered, give the user time to complete it.
+
+If login fails repeatedly (more than two retries), or the user reports they cannot get past Facebook's two-factor protection, fall back to **REST-Direct Fallback**.
+
+### Step 5 — Drive the Meta Developer App creation autonomously
+
+Once the user is logged into developers.facebook.com, Claude does the entire create-app flow in the Playwright window. The user does not click anything until the show-app-secret password challenge in 5C.
+
+#### Step 5A — Create the App (with use cases selected up-front)
+
+1. Click the green **Create app** button (top right). Selector: a button with text matching `/create app/i` near the top header. If the page already shows an existing "Claude Assistant" app from a previous run, ask the user *"You already have a Claude Assistant app from before. It might already have the right setup, or it might be from an older flow. Want me to use that one, or make a fresh one? Fresh is safer if you set it up before September 2024 because Meta renamed some permissions since then."* On reuse → skip to 5C with the existing app, but flag in a Claude-facing note that the existing token may have stale `business_*` scope names that need regenerating in Step 6. On fresh → first **show the user what's about to break:** *"Before I delete the old app, heads-up: any other tools you connected to it (Zapier, third-party schedulers, etc.) will break too. Sure you want to delete?"* If they confirm, click into the existing app, click Settings → Advanced → Delete app, confirm, then return to the Apps list.
+
+2. Wait for the create-app form. Fill the fields via `browser_type` / `browser_select` / `browser_fill_form`:
+   - **App display name** (or **App name**): `Claude Assistant`
+   - **App contact email**: the user's email (ask once: *"What email do you want me to use as the contact email for the app? It's just for Meta to reach you about app issues."*). Note Meta occasionally reorders these fields between UI revisions; if the form has a different order, fill whichever appears next, the values are the same.
+   - Click **Next** when the form moves to the use-case selector.
+   - **Use cases** screen: this is where Meta wires up the Instagram + Threads integration **at app-creation time** (post-2024 UI; "Add product" later is no longer the path). Tick:
+     - **Other** (gives access to the standard Graph API surface and the Instagram product).
+     - **Access Threads API** (only if the user said yes to Threads in Phase 0 Q3, otherwise leave unticked).
+   - Click **Next**.
+   - **App type**: `Business`. Click **Next**.
+   - **Business portfolio**: select the one linked to the user's Facebook Page (or click `Don't connect a business portfolio yet` / equivalent if Meta lets you skip).
+   - Click **Create app**.
+
+3. Wait for the app dashboard to load. Confirm by snapshot — the page title reads "Claude Assistant" and the left sidebar shows App settings, Use cases, etc. The Instagram and (if selected) Threads use cases should already be wired up.
+
+#### Step 5B — Confirm Instagram product is wired
+
+1. Click **Use cases** in the left sidebar (post-2024 UI replaced "Add product" for most flows).
+2. Locate the **Instagram** card (note: Meta renamed this from "Instagram Graph API" in 2024, the UI now reads simply "Instagram"). Confirm it's listed as Active. If not, click its **Customize** button and complete any pending setup.
+
+> **Claude-facing note.** If Step 5A used the older "Add product" path on a UI revision Meta hasn't fully migrated, the same Instagram card lives under **Add product** instead of **Use cases**. Both paths converge to the same product wired-up state. Snapshot first to determine which sidebar entry exists, then click the live one.
+
+#### Step 5C — Read App ID and App secret from the DOM (with mask-race guard)
+
+1. Click **App settings** → **Basic** in the left sidebar.
+2. Wait for the page to render via `browser_wait_for` against an element containing the literal text "App ID".
+3. Read the App ID from the DOM via `browser_evaluate`. Use a **label-anchored** selector to survive Meta's React refactors:
+
+   ```javascript
+   () => {
+     const labels = [...document.querySelectorAll('label, span, div')];
+     const lbl = labels.find(el => el.textContent.trim() === 'App ID');
+     if (!lbl) return null;
+     let sib = lbl.parentElement;
+     for (let i = 0; i < 5 && sib; i++) {
+       const input = sib.querySelector('input[readonly], input[type="text"], input[type="number"]');
+       if (input?.value && /^\d{10,20}$/.test(input.value)) return input.value;
+       const codeEl = sib.querySelector('code, [class*="App"], [class*="readOnly"]');
+       if (codeEl?.textContent && /^\d{10,20}$/.test(codeEl.textContent.trim())) return codeEl.textContent.trim();
+       sib = sib.nextElementSibling || sib.parentElement;
+     }
+     return null;
+   }
    ```
-   curl -s "https://graph.facebook.com/v25.0/oauth/access_token?grant_type=fb_exchange_token&client_id=<APP_ID>&client_secret=<APP_SECRET>&fb_exchange_token=<SHORT_LIVED_TOKEN>"
+
+   App IDs are 13–20 digit numeric strings. If the read returns null, take a snapshot and surface to the user.
+
+4. The **App secret** is hidden behind a **Show** button. Click the **Show** button adjacent to the "App secret" label.
+
+5. Meta will prompt the user to re-enter their Facebook password to reveal the App secret. **This is the only Step 5 user touchpoint.** Tell the user: *"Meta is asking you to confirm your Facebook password to reveal the app secret. Please go ahead and enter it. I'll wait."*
+
+6. Wait for the user to confirm. **Now the mask-race guard.** Do NOT snapshot immediately — between user-confirms-password and Meta-server-side-verification, the DOM may briefly show the masked value `••••••••` (32 dots). Use `browser_wait_for` with a predicate polling for the unmasked 32-char hex value:
+
+   ```javascript
+   () => {
+     const labels = [...document.querySelectorAll('label, span, div')];
+     const lbl = labels.find(el => el.textContent.trim() === 'App secret');
+     if (!lbl) return false;
+     let sib = lbl.parentElement;
+     for (let i = 0; i < 5 && sib; i++) {
+       const input = sib.querySelector('input[type="text"], input[readonly]');
+       if (input?.value && /^[0-9a-f]{32}$/.test(input.value)) return true;
+       const codeEl = sib.querySelector('code, [class*="readOnly"]');
+       if (codeEl?.textContent && /^[0-9a-f]{32}$/.test(codeEl.textContent.trim())) return true;
+       sib = sib.nextElementSibling || sib.parentElement;
+     }
+     return false;
+   }
    ```
-   Parse the JSON, capture `access_token`. This is the long-lived token.
 
-   **Common mistakes to handle:**
-   - **`{"error":{"code":190,...}}` — token invalid or expired** → ask the user to redo Step 3 from part 3 (the short-lived token expires in ~1 hour).
-   - **Response contains `OAuthException` with `Error validating application` or `Invalid OAuth access token signature`** → ask the user to recopy the App secret from Step 2 part 5; the secret in the curl call did not match the one Meta has on file.
+   Poll every 200ms with a 10s timeout. On timeout, ask the user *"Hmm, the secret is still hidden. Could you try clicking 'Show' again?"* and retry once. After two timeouts, stop with a clear diagnostic.
 
-7. When the long-lived token is in hand → call:
-   ```
-   curl -s "https://graph.facebook.com/v25.0/me/accounts?access_token=<LONG_LIVED_TOKEN>"
-   ```
-   This returns the list of Pages the user manages. Find the one with the Instagram Business account. Then call:
-   ```
-   curl -s "https://graph.facebook.com/v25.0/<PAGE_ID>?fields=instagram_business_account&access_token=<LONG_LIVED_TOKEN>"
-   ```
-   Capture the Instagram Business Account ID from the response.
+7. Once the wait predicate returns true, read the App secret using the same label-anchored selector as App ID but with the `[0-9a-f]{32}` regex. Capture App ID and App secret as in-memory variables (NOT echoed back to the user).
 
-   **Common mistakes to handle:**
-   - **No Pages returned** → the user signed into Graph API Explorer with the wrong Facebook account. Ask them to redo Step 3 part 3 with the account that admins their Page.
-   - **`instagram_business_account` is null** → the Instagram account is not linked to that Page. Loop back to Phase 0 question 2.
-   - **Multiple Pages with IG accounts** → ask the user *"You manage [N] Pages with Instagram. Which one should I connect: [list names]?"* Use their answer.
+**If the show-app-secret password challenge fails (Meta returns "Wrong password"):** tell them: *"That didn't go through, want to try the password again?"* Retry up to 3 times. If they still can't reveal the secret, stop the skill and tell them to run `forgot password` on Facebook first.
 
-### Step 4 — (Optional) Generate a Threads token
+### Step 6 — Drive Graph API Explorer to mint the access token
 
-Only run this step if the user said yes to Threads in Phase 0 question 3. Otherwise skip to Step 5.
+Stay in the same Playwright window. Claude opens Graph API Explorer in a new tab to keep the App dashboard's session alive.
 
-Threads has a separate token flow because it uses a different API surface.
+1. **Open a new tab** in the Playwright window via `browser_tabs` (the @playwright/mcp server exposes a `browser_tabs` tool that supports list / switch / new / close — verify by calling it without arguments to see the action surface). If `browser_tabs` is unavailable, fall back to `browser_navigate` in the existing tab — Meta's dev portal state is server-side, so navigating away does not lose progress.
 
-Tell the user, one instruction at a time:
+2. **Navigate** to `https://developers.facebook.com/tools/explorer/`.
 
-1. "For Threads, we need a separate connection because Threads is technically its own app. Open this in a new tab: **https://developers.facebook.com/apps**, same as before."
+3. **Wait for page render** via `browser_wait_for` against the literal text "Graph API Explorer" or the Application dropdown.
 
-2. "Find your **Claude Assistant** app, open it, then click **Add product** in the sidebar and add **Threads API**."
+4. **Select the app.** Click the **Application** dropdown (top right). From the dropdown options, click `Claude Assistant`. `browser_wait_for` until the dropdown's visible text reads `Claude Assistant`.
 
-3. When they confirm Threads API is added → "Open Graph API Explorer again at **https://developers.facebook.com/tools/explorer/**. In the **Application** dropdown, your app should still be selected. Click **Generate Access Token** again and tick these permissions: **threads_basic**, **threads_content_publish**, **threads_manage_replies**, **threads_read_replies**, **threads_manage_insights**, **threads_keyword_search**, **threads_delete**. Then approve and copy the new token."
+5. **Click Generate Access Token.** Selector: button with text matching `/generate access token/i` (Meta's label has shifted between "Generate Access Token" and "Get User Access Token" across UI revisions). Just below the Application dropdown.
 
-   > *(Drop `threads_keyword_search` if the user does not want public-post search; drop `threads_delete` if they don't want delete authority. The `threads_*` tools that need each scope are noted in the Phase 2 tables.)*
+6. **Handle the popup window.** Meta's Login Dialog opens in a **separate browser window**, not an in-page modal. The autonomous-tick approach won't work because `browser_click` calls fire on the active tab, and after the popup opens, the active tab is the Graph API Explorer (not the popup).
 
-4. When they paste the short-lived Threads token → silently exchange it for a long-lived one using the same `fb_exchange_token` endpoint as Step 3 part 6.
+   The reliable path is to **hand the OAuth approval to the user**:
 
-5. Capture the Threads user ID by calling:
-   ```
-   curl -s "https://graph.threads.net/v1.0/me?fields=id,username&access_token=<LONG_LIVED_THREADS_TOKEN>"
-   ```
-   The `id` field is the Threads user ID.
+   - Confirm the popup opened (snapshot the existing tab; if the tab list now has 2 tabs OR the page focus shifted, the popup is up).
+   - Tell the user: *"Meta has just opened a permission window. Please tick all of the following permissions in that window, then click Continue as [your name] to approve. I'll wait. Tell me 'done' once the window closes."*
+   - List the required scopes (and which to omit per Phase 0 / safety-gate user choices):
+     - `instagram_basic`
+     - `instagram_content_publish` (omit if user dropped publishing)
+     - `instagram_manage_comments` (omit if user dropped comment moderation)
+     - `instagram_manage_insights`
+     - `instagram_manage_messages` (omit if user dropped DM access)
+     - `pages_show_list`
+     - `pages_read_engagement`
+   - **Tester role note (Claude-facing).** Meta's permissions reference says these scopes require **App Review** before they work in Live mode. In Development mode (where workshop attendees stay), they only work for users listed under the app's **Roles → Testers**. The user who created the app is automatically App Admin (which counts as Tester). If they later want a teammate to use the same connector, the teammate must be added at developers.facebook.com → Roles → Testers and accept the invite. Without that, scope grants succeed but tool calls return error code 200 / permission-denied.
 
-### Step 5 — Save the credentials
+   > **Auth-flow note (Claude-facing).** This skill uses the **Facebook-Login flow**. Under that flow, the scope names above are correct. The **Instagram-Login flow** (a separate Meta product) renames `instagram_manage_messages` → `instagram_business_manage_messages` and `instagram_manage_insights` → `instagram_business_manage_insights`. The Sept 2024 changelog also deprecated the older `business_basic` / `business_content_publish` family with a Jan 27, 2025 cut-off; if a user reuses an app from before Sept 2024 (Step 5A reuse branch), regenerate the token here to pick up the renamed scopes.
 
-Once you have the long-lived Instagram access token + Instagram Business Account ID (and optionally the Threads token + Threads user ID), silently add or update the Meta MCP entry in the user's `~/.claude.json` file (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`).
+7. **Wait for user confirmation.** When the user says done, snapshot the Graph API Explorer tab. The Access Token field now contains a long string.
 
-The structure to add:
+8. **Read the short-lived token from the DOM** via `browser_evaluate`. Use multiple selectors for resilience:
+
+    ```javascript
+    () => {
+      const sels = [
+        '[data-testid="access-token"] textarea',
+        'textarea[name="access_token"]',
+        'input[name="access_token"]',
+        'textarea[placeholder*="access token" i]',
+        'textarea[aria-label*="access token" i]',
+      ];
+      for (const s of sels) {
+        const el = document.querySelector(s);
+        if (el?.value) return el.value.trim();
+      }
+      // Last-ditch: any textarea on the page with a Bearer-token-shaped value
+      for (const ta of document.querySelectorAll('textarea, input')) {
+        if (ta.value && ta.value.length > 100 && /^EAA/.test(ta.value)) return ta.value.trim();
+      }
+      return null;
+    }
+    ```
+
+    (Meta short-lived user-access tokens currently start with `EAA` followed by a base64-like body.)
+
+9. **Exchange short-lived for long-lived (60-day) token via Bash, using POST + `--data-urlencode` to keep the App secret out of process argv and shell history:**
+
+    ```bash
+    # Disable history capture for this curl
+    set +o history 2>/dev/null
+    HISTFILE=/dev/null
+    curl -s -X POST "https://graph.facebook.com/v25.0/oauth/access_token" \
+      --data-urlencode "grant_type=fb_exchange_token" \
+      --data-urlencode "client_id=$APP_ID" \
+      --data-urlencode "client_secret=$APP_SECRET" \
+      --data-urlencode "fb_exchange_token=$SHORT_LIVED_TOKEN"
+    ```
+
+    Pass `APP_ID`, `APP_SECRET`, `SHORT_LIVED_TOKEN` as Bash environment variables (set in the same Bash call) rather than interpolating into the command string.
+
+    Parse the JSON response, capture `access_token`. This is the long-lived token.
+
+    **Common mistakes to handle:**
+    - **Response is not valid JSON** (Meta sometimes returns an HTML error page during outages) → capture the first 500 chars of the response and surface to the user: *"Meta returned something unexpected. Want me to retry, or stop?"*
+    - **Response is JSON but `access_token` is missing** → look for `error.code` and `error.message`. Common codes:
+      - **`190`** — token invalid or expired → redo Step 6 part 5 (the short-lived token expires in ~1 hour).
+      - **`OAuthException` + "Error validating application"** or **"Invalid OAuth access token signature"** → re-read the App secret from the DOM (Step 5C). The value may have been read while still masked (the C5 mask-race) or with whitespace.
+
+10. **Find the Instagram Business Account ID via Bash, with pagination for users with >25 Pages:**
+
+    ```bash
+    # First page (max 100 per page)
+    curl -s "https://graph.facebook.com/v25.0/me/accounts?limit=100&access_token=$LONG_LIVED_TOKEN"
+    ```
+
+    If the response includes `paging.next`, follow that URL to fetch additional pages until exhausted. Concatenate all `data` arrays.
+
+    For each Page in the combined list, call:
+
+    ```bash
+    curl -s "https://graph.facebook.com/v25.0/$PAGE_ID?fields=instagram_business_account&access_token=$LONG_LIVED_TOKEN"
+    ```
+
+    Capture the Instagram Business Account ID from any Page that returns one.
+
+    **Common mistakes to handle:**
+    - **No Pages returned (across all pages)** → the user signed into Facebook with the wrong account in Step 4. Ask them to log out via the Playwright window, log back in with the Page-admin account, and re-run from Step 5C.
+    - **`instagram_business_account` is null on every Page** → the Instagram account is not linked to any Page on this user's account. Loop back to Phase 0 question 2.
+    - **Multiple Pages with IG accounts** → ask the user *"You manage [N] Pages with Instagram. Which one should I connect: [list names]?"* Use their answer.
+
+### Step 7 — (Optional) Mint the Threads access token
+
+Only run this step if the user said yes to Threads in Phase 0 question 3. Otherwise skip to Step 8.
+
+Because the Threads use case was selected at app-creation time (Step 5A), the Threads API is already wired into the app. We just need a Threads-scoped token alongside the Instagram one.
+
+1. **In the same Playwright window**, navigate to `https://developers.facebook.com/tools/explorer/`. Confirm `Claude Assistant` is selected in the Application dropdown.
+
+2. **Click Generate Access Token** again. A new OAuth permissions popup opens.
+
+3. **Hand the OAuth approval to the user** (same pattern as Step 6 part 6 — Meta opens a popup window, autonomous tick is unreliable across the popup boundary). Tell them: *"Meta's permission window just opened again. This time it's for Threads. Please tick all of the following permissions in that window, then click Continue. Tell me 'done' once the window closes."* List the Threads scopes (omit per user choice):
+   - `threads_basic`
+   - `threads_content_publish`
+   - `threads_manage_replies`
+   - `threads_read_replies`
+   - `threads_manage_insights`
+   - `threads_keyword_search` (omit if user does not want public-post search)
+   - `threads_delete` (omit if user does not want delete authority)
+
+4. **Read the short-lived Threads token from the DOM** (same selector pattern as Step 6 part 8 — Threads user-access tokens also start with `THAA` or `EAA` depending on the Meta API surface used).
+
+5. **Exchange short-lived for long-lived via the same POST endpoint as Step 6 part 9.** The same Meta `fb_exchange_token` endpoint accepts Threads tokens minted from a Threads-use-case-enabled app.
+
+6. **Capture the Threads user ID via Bash:**
+
+    ```bash
+    curl -s "https://graph.threads.net/v1.0/me?fields=id,username&access_token=$LONG_LIVED_THREADS_TOKEN"
+    ```
+
+    The `id` field is the Threads user ID. Capture as `THREADS_USER_ID`.
+
+**If Step 7 fails because the Threads use case is missing on the app** (the user reused an old app from Step 5A that didn't include Threads): tell the user *"This app wasn't set up for Threads. I can either add it now (it's a one-click toggle in Use cases on your app dashboard), or I can stop and we'll come back to Threads later. What would you like?"* On add-now → drive **Use cases** in the left sidebar of the app dashboard, toggle on **Access Threads API**, then return to Step 7 part 1. On stop → skip to Step 8 with Instagram only.
+
+### Step 8 — Save the credentials with backup + read-back validation
+
+**App-secret persistence — ask before writing it.** `META_APP_SECRET` is only required by the four `meta_*` token-management tools (`meta_exchange_token`, `meta_refresh_token`, `meta_debug_token`, `meta_subscribe_webhook`). The 33 IG tools and 18 Threads tools work without it. Persisting the App secret long-term increases the blast radius of a `~/.claude.json` leak — token + App secret = full account takeover, vs token alone = 60 days of damage that the user can revoke from Meta security.
+
+Ask the user: *"One last security choice. The connection key plus a separate 'app secret' is what I need if you ever want me to refresh the connection automatically. Most users never need to do that. When the connection expires in 60 days, you can come back to me and we'll mint a fresh one. The safer default is for me NOT to save the app secret on your computer. Want me to skip saving it (recommended), or save it for the auto-refresh convenience?"*
+
+- **Skip (recommended)** → omit `META_APP_SECRET` from the JSON write. Note in a Claude-facing memory that this user will see clear errors if they try to call `meta_*` tools, and the skill should respond by asking them to paste the App secret on demand for that one operation.
+- **Save** → include `META_APP_SECRET` as documented below.
+
+**Tell the user before writing:** *"I'm about to save your connection details. Please make sure Claude Code itself is closed in any other windows. If it's open elsewhere it might be writing to the same file at the same time. Tell me when you've checked."*
+
+Wait for confirmation. This avoids the harness-vs-skill write race that can corrupt `~/.claude.json`.
+
+**Always back up before write.** Snapshot the current file to `~/.claude.json.backup-<UTC-timestamp>` regardless of whether parsing will succeed:
+
+```bash
+cp -p "$HOME/.claude.json" "$HOME/.claude.json.backup-$(date -u +%Y%m%dT%H%M%SZ)" 2>/dev/null
+```
+
+(On Windows, run via the PowerShell tool directly, not interpolated through Bash:
+`Copy-Item "$env:USERPROFILE\.claude.json" "$env:USERPROFILE\.claude.json.backup-$(Get-Date -Format 'yyyyMMddTHHmmssZ')"`. Skip if file does not exist.)
+
+Then read the existing file (use `Read`). Parse as JSON. If the file does not exist, the JSON to write is just the Meta entry. **If it exists but cannot be parsed, STOP. Do not write.** Tell the user: *"Your settings file looks corrupted. I can rebuild it from scratch, but you'd lose any other connections you had set up (like Xero, HubSpot, etc.) and need to reinstall those. I've saved a backup of the corrupted version. Want me to rebuild, or stop here so you can recover the file manually first?"* Wait for explicit consent before writing.
+
+If parseable, merge into the existing `mcpServers` object. **Default (App secret skipped):**
 
 ```json
 {
@@ -243,50 +517,65 @@ The structure to add:
       "command": "npx",
       "args": ["-y", "@mikusnuz/meta-mcp@latest"],
       "env": {
-        "INSTAGRAM_ACCESS_TOKEN": "<long-lived IG token from Step 3>",
-        "INSTAGRAM_USER_ID": "<IG Business Account ID from Step 3>",
-        "META_APP_ID": "<App ID from Step 2>",
-        "META_APP_SECRET": "<App secret from Step 2>"
+        "INSTAGRAM_ACCESS_TOKEN": "<long-lived IG token from Step 6>",
+        "INSTAGRAM_USER_ID": "<IG Business Account ID from Step 6>",
+        "META_APP_ID": "<App ID from Step 5C>"
       }
     }
   }
 }
 ```
 
-If the user opted into Threads, also include:
+**If user opted to save App secret**, add `"META_APP_SECRET": "<App secret from Step 5C>"` to the `env` block.
+
+If the user opted into Threads (Step 7), also include in `env`:
 
 ```json
-        "THREADS_ACCESS_TOKEN": "<long-lived Threads token from Step 4>",
-        "THREADS_USER_ID": "<Threads user ID from Step 4>"
+        "THREADS_ACCESS_TOKEN": "<long-lived Threads token from Step 7>",
+        "THREADS_USER_ID": "<Threads user ID from Step 7>"
 ```
 
 **Rules:**
-- Merge into the existing `mcpServers` object rather than overwriting it. Preserve every other `mcpServers` entry the user already has.
-- If `~/.claude.json` does not exist, create it with just the Meta entry.
-- **If the file exists but cannot be parsed as JSON, STOP. Do not write.** Back it up to `~/.claude.json.backup` first, then tell the user in plain English: *"Your settings file looks corrupted. I can rebuild it from scratch, but you'll lose any other connections you had set up (like Xero, HubSpot, etc.) and need to reinstall those. I've saved a backup at `~/.claude.json.backup` either way. Want me to rebuild, or stop here so you can recover the file manually first?"* Wait for explicit confirmation before writing the fresh config. **Never silently destroy the user's existing config.**
-- Never echo any access token, App ID, or App secret back to the user after writing them. Never include them in any output visible to the user.
-- File permissions: on Mac/Linux, ensure `~/.claude.json` is mode `600` (user-read-write only). On Windows, the default user-profile ACL is sufficient.
+- Merge into the existing `mcpServers` object rather than overwriting it. Preserve every other entry.
+- Never echo any access token, App ID, or App secret back to the user after writing them.
+- File permissions: on Mac/Linux, `chmod 600 $HOME/.claude.json`. On Windows, default user-profile ACL is sufficient.
 
-Tell the user in one short message:
+**After write, read back and validate.** Re-read `~/.claude.json` with `Read`, parse as JSON, confirm:
+1. Parse succeeds.
+2. `mcpServers.meta` exists.
+3. `mcpServers.meta.env.INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID`, `META_APP_ID`, `META_APP_SECRET` (and Threads pair if applicable) are all present and non-empty.
+4. Every other `mcpServers.*` entry that was present before the write is still present (compare against the pre-write parse).
 
-> "I've saved your connection details. One more step: you'll need to close Claude Code and open it again so it picks up the new connection. Do that now, and tell me when you're back."
+If any of (1)-(4) fails, **do not** instruct the user to restart yet. Restore from the most recent `~/.claude.json.backup-<timestamp>` and retry the merge once. After two failures, stop and tell the user the connection write is unstable, with the backup path.
 
-### Step 6 — Verify the connection
+Tell the user: *"I've saved the connection. One more step. Please close Claude Code completely and open it again, then tell me you're back. This is so it picks up the new connection."*
 
-Wait for the user to restart. When they return, tell them: *"Welcome back. Let me just check that everything is talking to Instagram."*
+### Step 9 — Verify the connection
 
-Call the `mcp__meta__ig_get_profile` tool (no arguments). Handle the response:
+Wait for the user to restart. When they return, tell them: *"Welcome back. Let me check that everything is talking."*
 
-- **Tool returns profile info with username** → Capture the username. Tell the user:
-  > "All done! I'm now connected to your Instagram **@[username]**. You can ask me things like 'show me my recent posts', 'post this photo to Instagram', 'what's the engagement on my last Reel', or 'reply to that comment'. Give it a try!"
+Branch the verify call by which tokens were written:
 
-  If Threads was also configured, also call `mcp__meta__threads_get_profile` and confirm Threads is alive in the same message.
+- If `INSTAGRAM_ACCESS_TOKEN` is in `~/.claude.json` → call `mcp__meta__ig_get_profile` (no arguments).
+- If `THREADS_ACCESS_TOKEN` is in `~/.claude.json` → call `mcp__meta__threads_get_profile` (no arguments).
+- If both → call both, in the order written.
 
-- **Tool returns `Invalid OAuth access token` or `190` error code** → "Hmm, the connection key didn't work — let me take it again." Silently go back to Step 3 and regenerate the short-lived token + re-exchange. Rewrite `~/.claude.json` with the fresh values, ask them to restart Claude Code, and try Step 6 again.
+Handle the response (apply to whichever calls succeeded):
 
-- **Tool returns `Permissions error` or `200` error code (insufficient permissions)** → "Your connection is working, but I need one or two extra permissions. Let me show you which boxes to tick." Guide the user back to Graph API Explorer (Step 3 part 3), regenerate with the missing permission ticked, re-exchange for a long-lived token, rewrite `~/.claude.json`, and re-verify. **Restart of Claude Code IS needed** for new tokens — unlike Xero's scope additions which apply server-side without env changes, Meta's tokens are env-var-injected at MCP server boot, so any token rewrite requires a Claude Code restart to pick up the new env.
+- **Tool returns profile info with username** → Capture the username. Tell the user the appropriate one of:
+  > "All done. I'm now connected to your Instagram **@[username]**. You can ask me things like 'show me my recent posts', 'post this photo to Instagram', 'what's the engagement on my last Reel', or 'reply to that comment'. Give it a try."
+  >
+  > "All done. I'm now connected to your Threads **@[username]**. You can ask me things like 'show me my recent threads', 'post this to Threads', or 'how is my Threads doing'. Give it a try."
 
-- **Tool is not yet available (`mcp__meta__*` tools not discoverable)** → "Looks like Claude Code didn't pick up the new connection yet. Please make sure you fully closed it (not just the window) and opened it again, then let me know." Repeat Step 5's restart instruction.
+  If both Instagram and Threads were configured, combine the two confirmations in one message.
+
+- **Tool returns `Invalid OAuth access token` or `190` error code** → "Hmm, the connection key didn't work, let me take it again." Note that the user's restart in Step 8 closed the Playwright window and ended the Facebook login session, so re-running from Step 6 is not enough — re-run from **Step 4** (re-open the Playwright window, ask the user to log in to Facebook again, re-mint the token via Step 6, re-write `~/.claude.json` via Step 8, restart Claude Code, retry verify).
+
+- **Tool returns `Permissions error` or `200` error code (insufficient permissions)** → "Your connection is working, but I need one or two extra permissions. Let me redo the token with the right boxes ticked." Same restart caveat: the Playwright session is dead, so re-run from **Step 4** with the Facebook login → Step 6 with the missing scope ticked → Step 8 rewrite → Claude Code restart → re-verify. **Restart of Claude Code IS needed** for new tokens — Meta's tokens are env-var-injected at MCP server boot, so any token rewrite requires a Claude Code restart to pick up the new env.
+
+- **Tool returns `permission denied` (error code 10)** → if `META_APP_SECRET` was skipped in Step 8 and the user is asking me to call a `meta_*` token tool, the runtime will fail because the secret isn't loaded. Tell the user: *"This particular tool needs the app secret you chose not to save earlier. Want me to add it temporarily, or skip this and use a different approach?"* On add-temporarily → drive Step 4 + Step 5C to re-read the App secret from the DOM, write it to `~/.claude.json`, restart, retry. On skip → suggest the equivalent action via a non-`meta_*` tool if available.
+
+- **Tool is not yet available (`mcp__meta__*` tools not discoverable)** → "Looks like Claude Code didn't pick up the new connection yet. Please make sure you fully closed it (not just the window) and opened it again, then let me know." Repeat Step 8's restart instruction.
 
 - **Any other error** → "Something's not quite right, let me try once more." Retry the tool call once. If it still fails, tell the user in plain English what you saw (translated, never raw errors), and ask if they want to retry or stop.
 
