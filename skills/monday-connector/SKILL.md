@@ -1,7 +1,7 @@
 ---
 name: monday-connector
-description: "Connect and operate monday.com via the official @mondaydotcomorg/monday-api-mcp server. Use this skill when the user asks to set up monday.com, connect their account, or interact with boards, items, groups, columns, updates, users, teams, or WorkForms. On first use, run Phase 1 to install and authenticate the connector before attempting any tool calls."
-allowed-tools: mcp__monday__*, Bash, Read, Write, Edit
+description: "Connect and operate monday.com via the official @mondaydotcomorg/monday-api-mcp server. Use this skill when the user asks to set up monday.com, connect their account, or interact with boards, items, groups, columns, updates, users, teams, or WorkForms. On first use, run Phase 1 — Claude drives the browser end-to-end via Playwright; the user only signs in to monday.com once."
+allowed-tools: mcp__monday__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Project Management
   tags:
@@ -27,7 +27,7 @@ metadata:
 
 This skill lets you read and update a user's monday.com account on their behalf using the **official first-party `@mondaydotcomorg/monday-api-mcp`** server (from [mondaycom/mcp](https://github.com/mondaycom/mcp)). It has two phases:
 
-- **Phase 1 — Install & Auth.** A conversational bootstrap (≤5 steps). The user has never used this before. You walk them through minting a Personal API Token inside monday.com, collecting it, and wiring the MCP server into Claude Code. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", or any file paths. They should feel like they are having a conversation, and at the end their monday.com is connected.
+- **Phase 1 — Install & Auth.** An autonomous bootstrap. Claude opens monday.com in a Playwright-driven browser, waits for the user to sign in, navigates to the Personal API Token page, mints/reveals the token, reads it directly from the DOM, writes the MCP config, and verifies — without ever asking the user to copy, paste, or navigate menus themselves. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", or any file paths. They feel like they are having a conversation; their only action is logging in to monday.com once.
 - **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__monday__*` native tools to read and update monday.com data.
 
 **Which phase to run** — Before any tool call, check whether the monday.com MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.monday` entry. If it exists and has a `MONDAY_TOKEN` in its `env` block, treat the connector as authenticated and skip to Phase 2. Otherwise, run Phase 1.
@@ -42,56 +42,96 @@ This skill lets you read and update a user's monday.com account on their behalf 
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work, the user only signs in to monday.com when prompted. Every message you send during Phase 1 must follow these rules:
 
-- **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, GraphQL, or environment variable. If you must refer to a technical thing, name it plainly: "a connection key", "a small setting on your computer".
-- **Tell them what is about to happen.** Before any action you take: "I am going to save your connection details now — this takes just a moment."
+- **You drive, not them.** Never ask the user to click menus, copy text, or paste values. The only action you ever request is "please sign in to the browser window I just opened."
+- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, GraphQL, Playwright, browser automation, or environment variable. The browser window you open is "a browser window I just opened for you" or "the connection page" — not "Playwright" or "Chromium".
+- **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening monday.com for you now"), once when you need them ("please sign in"), once when you're done ("your monday.com is connected"). No commentary in between.
 - **React to success and failure warmly.** Good: "That worked — your monday.com is now connected." Bad: "MCP server initialized with 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
-- **Never mention file paths, commands, or scripts** to the user. You run them; you do not describe them.
+- **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
 
 ---
 
-## PHASE 1 — Install & Auth (≤5 steps)
+## PHASE 1 — Install & Auth (autonomous via Playwright)
 
-This phase gets the Personal API Token minted, the token collected, the MCP server wired into Claude Code, and the connection verified. You do every technical action; the user only provides information and clicks things in their browser.
+Claude drives the user's browser end-to-end via Playwright MCP. The user's only role is to sign in to monday.com when prompted (and approve 2FA if their account requires it). Claude handles every other step — navigation, token reveal, capture, config write, verify.
+
+> **Reasoning model.** Each Playwright step describes a *goal* (e.g., "find the token control"). Achieve it by taking a `browser_snapshot`, reasoning about what's on the page, and calling the appropriate `browser_click` / `browser_evaluate` / `browser_navigate`. Do not hardcode CSS selectors — monday.com's UI changes. Re-snapshot whenever the page state changes.
 
 ### Step 1 — Orient the user
 
-Tell the user in one short message:
+Tell the user, in one short message:
 
-> "To connect your monday.com, I need you to grab a free connection key from inside your monday.com account. This takes about two minutes. I will tell you exactly what to click, one step at a time."
+> "I'll connect your monday.com now. I'm opening a browser window for you — please sign in there when it appears, and I'll handle the rest. Should take about a minute."
 
-### Step 2 — Walk the user through minting a Personal API Token
+### Step 2 — Open monday.com and confirm a logged-in session
 
-The user needs to copy a Personal API Token from monday.com. You cannot do this step for them — monday.com requires their authenticated session.
+Call `mcp__playwright__browser_navigate({ url: "https://monday.com" })`.
 
-Tell the user (one instruction at a time, waiting for confirmation between each):
+Take a `mcp__playwright__browser_snapshot()`. Reason from the snapshot:
 
-1. "Please open monday.com in your browser and sign in. Let me know when you are signed in."
+- **Logged in** (you see a workspace shell — sidebar, board list, profile avatar, or workspace switcher) → continue to Step 3.
+- **Not logged in** (sign-in form, marketing landing page, "Get started" CTA) → tell the user *once*: *"The browser window is open — please sign in to monday.com when you're ready."* Then poll silently: call `mcp__playwright__browser_wait_for({ text: "Boards" })` (or wait for any post-login shell element from the snapshot — workspace switcher, "Inbox", "My work", etc.) with a generous timeout. Do **not** ask the user to confirm when they're done — detect the logged-in shell from the snapshot yourself. 2FA, password resets, and SSO redirects will all resolve to the same workspace shell.
 
-2. When they confirm → "Click your **profile picture** in the bottom-left corner of the screen. A menu will pop up. Let me know when you see it."
+If `browser_wait_for` times out (5+ minutes), then — and only then — check in with the user: *"Still on the sign-in page? Anything I can help with?"*
 
-3. When they see the menu → "Click **Developers**. A new page will open with a few options. Tell me when you're there."
-   - If the user says they can't see "Developers" → "No problem. In the same menu, look for **Administration** first, then click **Connections** → **API**. Let me know what you see."
+If after login the snapshot still looks like a marketing page, navigate explicitly to `https://auth.monday.com/auth/login_redirect` and re-snapshot.
 
-4. When they're on the Developers page → "On the left side, click **My Access Tokens**. You will see a long key. Please copy it and paste it to me."
-   - If they don't see one → "Click the **Show** button (or **Generate**) to reveal it, then copy it."
+### Step 3 — Capture the user's monday workspace subdomain
 
-Common mistakes to look out for (and correct by re-asking):
-- The user pasted a placeholder like `your_token_here` → ask again: "I think that was a copy mistake — please try the real value. It's a long string of letters and numbers."
-- The user pasted something clearly too short (under 40 characters) → "That doesn't look like the full key. Can you go back and copy it all? It's quite long."
-- The user says they can't find **Developers** in the profile menu → "No problem — I'll send you a direct link to the Developers page." Then provide a clickable link rather than a raw path.
+Once logged in, the URL will be `https://<workspace>.monday.com/...`. Read it via:
 
-### Step 3 — Save the connection
+```
+mcp__playwright__browser_evaluate({ function: "() => window.location.host" })
+```
 
-Once the user pastes the Personal API Token, silently add or update the monday MCP entry in the user's `~/.claude.json` file (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`).
+The host returns `<workspace>.monday.com` — save the `<workspace>` slug for the next step. If the host is bare `monday.com` (still on the marketing/redirect page), click any board or workspace tile from the snapshot to enter the workspace, then re-read the host.
+
+### Step 4 — Open the Personal API Token page and capture the token
+
+Navigate directly: `mcp__playwright__browser_navigate({ url: "https://<workspace>.monday.com/admin/integrations/api" })`. This is the deep-link path and is more reliable than walking the profile menu.
+
+Take a snapshot. The page will show the Personal API Token in one of these states:
+
+- **Already revealed** — a long string is visible in a textarea or code block. Read it directly with `browser_evaluate` (e.g., `() => document.querySelector('textarea, code, [data-testid*="token"]')?.textContent?.trim()` — adapt the selector based on what the snapshot shows).
+- **Masked behind a Show / Reveal / Copy button** — click the button via `browser_click`, re-snapshot, then read.
+- **No token yet** — click the **Generate** / **Create new token** button, re-snapshot, then read.
+
+A valid Personal API Token is a JWT-style string: ~200+ characters, three base64url segments separated by two `.` separators. Validate locally before saving — if the captured string is shorter than 40 chars or doesn't match the JWT shape, re-snapshot and try again.
+
+If two snapshot attempts don't yield a valid token, stop and tell the user: *"I'm having trouble finding the connection key on the page — could you tell me what's on screen?"* Use their description to locate the right control.
+
+### Step 5 — Save the connection (silent)
+
+Silently register the MCP server. **Prefer `claude mcp add` via Bash** — it's the official CLI path, handles JSON merging correctly, and avoids touching `~/.claude.json` directly.
 
 **Pick one of two transports.** Default to **Local (npx)** unless the user has had trouble with Node.js or has specifically asked for the hosted option.
 
 **Option A — Local (default)** — runs the MCP server on the user's machine via `npx`. Requires Node.js 20+.
+
+```bash
+claude mcp add monday \
+  --scope user \
+  --env MONDAY_TOKEN="<token captured in Step 4>" \
+  -- npx -y @mondaydotcomorg/monday-api-mcp@latest
+```
+
+**Option B — Hosted** — monday.com's first-party hosted MCP endpoint. No Node.js required, more reliable for non-technical users. Use this as a fallback if the user hits `npx` or Node.js errors, or simply prefers not to run anything locally.
+
+```bash
+claude mcp add monday \
+  --scope user \
+  --transport http \
+  --header "Authorization: Bearer <token captured in Step 4>" \
+  -- https://mcp.monday.com/mcp
+```
+
+**Fallback if `claude mcp add` fails** (older Claude Code version, or CLI not on PATH) — write directly to `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) using the equivalent JSON shape:
+
+<details>
+<summary>Direct JSON write — Local</summary>
 
 ```json
 {
@@ -99,30 +139,29 @@ Once the user pastes the Personal API Token, silently add or update the monday M
     "monday": {
       "command": "npx",
       "args": ["-y", "@mondaydotcomorg/monday-api-mcp@latest"],
-      "env": {
-        "MONDAY_TOKEN": "<token from Step 2>"
-      }
+      "env": { "MONDAY_TOKEN": "<token>" }
     }
   }
 }
 ```
+</details>
 
-**Option B — Hosted** — monday.com's first-party hosted MCP endpoint. No Node.js required, more reliable for non-technical users. Use this as a fallback if the user hits `npx` or Node.js errors, or simply prefers not to run anything locally.
+<details>
+<summary>Direct JSON write — Hosted</summary>
 
 ```json
 {
   "mcpServers": {
     "monday": {
       "url": "https://mcp.monday.com/mcp",
-      "headers": {
-        "Authorization": "Bearer <token from Step 2>"
-      }
+      "headers": { "Authorization": "Bearer <token>" }
     }
   }
 }
 ```
+</details>
 
-Merge your chosen option into the existing `mcpServers` object rather than overwriting it. If `~/.claude.json` does not exist, create it with just the monday entry. If the file exists but is corrupted, back it up to `~/.claude.json.backup` first, then write a fresh config.
+Merge into the existing `mcpServers` object — never overwrite. If `~/.claude.json` doesn't exist, create it. If it's corrupt, back up to `~/.claude.json.backup` first.
 
 **Optional flags** (Local transport only — hosted doesn't accept CLI flags):
 - `"--read-only"` — locks the connector to read-only operations. Recommended for first-time users or shared machines.
@@ -130,30 +169,30 @@ Merge your chosen option into the existing `mcpServers` object rather than overw
 
 > ⚠️ **`--read-only` and `--enable-dynamic-api-tools` are mutually exclusive.** Dynamic API Tools require full API access and will not work in read-only mode. Pick one or the other — never both. If the user asks for both, pick read-only and tell them they can re-enable Dynamic Tools later when they're comfortable with write access.
 
-Never echo the access token back to the user after writing it. Never include it in any output visible to the user.
+Never echo the access token back to the user. Never include it in any output visible to the user. Never log it to the conversation, even truncated.
 
-Tell the user: "I have saved your connection details. Let me verify everything is working."
+### Step 6 — Close the browser and verify
 
-### Step 4 — Verify the connection
+Close the Playwright browser via `mcp__playwright__browser_close()`. The token now lives only in `~/.claude.json`.
 
-Tell the user: "Let me just check that everything is talking to monday.com correctly."
+Tell the user: *"I've saved your connection — let me check it works."*
 
 The verification depends on whether the MCP server is already active in the current session:
 
-- **If `mcp__monday__*` tools are available** (the MCP server was already running or has reloaded): call `mcp__monday__list_users_and_teams` (or, if Dynamic API Tools are enabled, run `all_monday_api` with `query { me { id name email } }`). If it returns the user's name, capture it and move to Step 5.
-- **If the tools are not yet available** (most likely on first setup, since the MCP config was just written): tell the user "I have saved everything. Please restart Claude Code once so the connection becomes active, then say 'test my monday connection' and I will verify it."
+- **If `mcp__monday__*` tools are available** (the MCP server was already running or has reloaded): call `mcp__monday__list_users_and_teams` (or, if Dynamic API Tools are enabled, run `all_monday_api` with `query { me { id name email } }`). If it returns the user's name, capture it and move to Step 7.
+- **If the tools are not yet available** (most likely on first setup, since the MCP config was just written): tell the user *"All saved. Please restart Claude Code once so the connection becomes active, then say 'test my monday connection' and I'll verify it."*
 
 If the verification tool returns an error:
-- `401 Unauthorized` or `Invalid token` → "The connection key didn't work. Could you double-check it in monday.com? Go back to the Developers page and copy the token again." Then re-do Step 3 with the new token.
-- `403 Forbidden` → "Your connection is working, but your user doesn't have permission for that action inside monday.com. An admin may need to adjust your access."
-- `ComplexityException` → Rare on verification, but if it happens just retry once with a smaller query.
-- Any other error → "Something went wrong — let me try again." Retry once; if still failing, ask the user to re-check their token is active.
+- `401 Unauthorized` or `Invalid token` → "The connection key didn't take — let me grab a fresh one." Re-run Steps 2–5 to mint a new token and overwrite the config.
+- `403 Forbidden` → "Your connection is working, but your monday.com user doesn't have permission for that action. An admin may need to adjust your access."
+- `ComplexityException` → Rare on verification; retry once with a smaller query.
+- Any other error → "Something went wrong — let me try again." Retry once; if still failing, re-run Steps 2–5.
 
-### Step 5 — Success message
+### Step 7 — Success message
 
 Tell the user, in one short message:
 
-> "All done! I am now connected to your monday.com account as **[user name if available]**. You can ask me things like 'show me my boards' or 'create an item on the Sales board'. Give it a try!"
+> "All done! I'm now connected to your monday.com account as **[user name if available]**. You can ask me things like 'show me my boards' or 'create an item on the Sales board'. Give it a try!"
 
 ---
 
