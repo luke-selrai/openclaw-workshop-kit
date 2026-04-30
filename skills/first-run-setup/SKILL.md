@@ -25,12 +25,13 @@ Check the user-level Claude skills folder — `.claude/skills/` inside the user'
 - If it has skill directories inside it → "Your skills are ready." Move to Step 2.
 - If empty or missing → "It looks like your skills did not copy correctly. Let me fix that."
   1. Check if the workshop kit's skills folder exists at `workshop-kit/skills/` inside the user's home folder.
-  2. If yes → copy all skill folders (but not `SKILLS-LIST.md`) from the workshop kit's `skills/` folder into the user-level Claude skills folder.
-  3. If no → re-download the workshop kit into the user's home folder, then copy the skills:
-     - **Mac and Linux:** `git clone https://github.com/selrai-company/claude-workshop-kit.git "$HOME/workshop-kit"`
-     - **Windows (PowerShell):** `git clone https://github.com/selrai-company/claude-workshop-kit.git "$HOME\workshop-kit"`
-
-  Use the correct copy command for the user's operating system — `cp -R` on Mac/Linux, `Copy-Item -Recurse` (or `xcopy /E /I`) on Windows.
+  2. If yes → copy all skill folders (but not `SKILLS-LIST.md`) from the workshop kit's `skills/` folder into the user-level Claude skills folder. Use the correct copy command for the user's operating system — `cp -R` on Mac/Linux, `Copy-Item -Recurse` (or `xcopy /E /I`) on Windows.
+  3. If no → the workshop kit folder is missing and must be re-installed from the original `.zip` file. Do **not** attempt to download it from GitHub — the repository is private and `git clone` will fail. Instead:
+     - Look for the workshop kit zip in the user's Downloads folder. The file name will be either a long random string of letters, numbers, and dashes (for example `bfdc1600-797b-42d3-9803-1a9260dc1e94.zip`) or `claude-workshop-kit-main.zip`. If nothing matching is in Downloads, also check the Desktop. Once you find one, just use it — do not ask the user to confirm the filename.
+     - Extract it into the user's home folder, and rename the extracted top-level folder (which starts with `selrai-company-claude-workshop-kit-` or `claude-workshop-kit-`) to `workshop-kit` so the final path is `$HOME/workshop-kit`. Leave the original `.zip` file where it is.
+     - After extracting, sanity-check that both `workshop-kit/my-assistant/CLAUDE.md` and `workshop-kit/skills/` exist inside the user's home folder. If either is missing, the zip you picked was the wrong one — stop, tell the user what you found, and ask them where the correct workshop kit zip is saved.
+     - Once the workshop kit is in place, copy the skill folders into `.claude/skills/` as in step 2 above.
+     - If no zip can be found anywhere, stop and tell the user: "I cannot find the workshop kit zip on your computer. Please contact Luke at luke@selrai.com.au to get a fresh copy sent to you, then ask me to re-run setup once it is in your Downloads folder."
 
 ### Step 2 — Detect Operating System
 
