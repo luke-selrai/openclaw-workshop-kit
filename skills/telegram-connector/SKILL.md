@@ -438,7 +438,7 @@ Ask: *"Want me to set up a shortcut so you can just type `claude-tg` next time, 
 
 If yes, ask one more question: *"When you're driving Claude from your phone over Telegram, you can't tap an 'allow' button on your laptop, so permission prompts will stall things. I can skip those prompts when running via Telegram so commands go through unprompted. Your Telegram allowlist still controls who can talk to your bot. Skip prompts? (Recommended for solo use.)"*
 
-**Build the shortcut as an executable script, not a shell alias.** Aliases in `~/.zshrc` don't load in non-interactive shells, VS Code's integrated terminal, or already-open windows — that's fragile. A script in a directory that's already on PATH is reliable.
+**Build the shortcut as an executable script, not a shell alias.** Aliases in `~/.zshrc` don't load in non-interactive shells, Claude Desktop's or VS Code's integrated terminals, or already-open windows — that's fragile. A script in a directory that's already on PATH is reliable.
 
 Pick a target directory in this priority order:
 

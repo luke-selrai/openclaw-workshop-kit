@@ -224,7 +224,7 @@ The user's only terminal action across this entire setup is one word: `claude-wa
 
 **Do NOT use `osascript`, `gnome-terminal`, `Start-Process`, or any auto-open-terminal trick.** The user opens their own terminal and types `claude-wa` deliberately; auto-opening is flaky and confusing.
 
-Build an executable in `~/.local/bin/claude-wa`. A script in a PATH directory beats a `.zshrc` alias because aliases don't load in non-interactive shells, VS Code's integrated terminal, or already-open windows.
+Build an executable in `~/.local/bin/claude-wa`. A script in a PATH directory beats a `.zshrc` alias because aliases don't load in non-interactive shells, Claude Desktop's or VS Code's integrated terminals, or already-open windows.
 
 `$WS_KIT` was resolved in Step 4. Reuse that exact value:
 
