@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# voice-transcribe — wrap whisper.cpp + ffmpeg behind a single CLI.
+#
+# Installed at /usr/local/bin/voice-transcribe by the voice-transcription
+# skill's install.sh. Use it directly from any terminal, or invoke via Claude
+# (Claude can run it through the Bash tool and capture stdout).
+#
+# Usage:
+#   voice-transcribe <audio-file>                      # uses default model (base.en)
+#   WHISPER_MODEL=small.en voice-transcribe <audio>    # override at call time
+#
+# Accepts any audio format ffmpeg can decode (.oga/.ogg/.mp3/.m4a/.wav/.webm/.opus).
+# Prints the transcribed text to stdout. Exits non-zero on any error.
+
+set -euo pipefail
+
+INPUT="${1:?usage: voice-transcribe <audio-file>}"
+[[ -r "$INPUT" ]] || { echo "ERROR: cannot read $INPUT" >&2; exit 2; }
+
+MODEL_NAME="${WHISPER_MODEL:-base.en}"
+
+# whisper.cpp lives at /opt/whisper.cpp on Linux, ~/whisper.cpp on macOS.
+# Pick whichever exists.
+if [[ -d /opt/whisper.cpp ]]; then
+  WHISPER_DIR=/opt/whisper.cpp
+elif [[ -d "$HOME/whisper.cpp" ]]; then
+  WHISPER_DIR="$HOME/whisper.cpp"
+else
+  echo "ERROR: whisper.cpp not found at /opt/whisper.cpp or ~/whisper.cpp." >&2
+  echo "       Run the voice-transcription skill's install.sh first." >&2
+  exit 2
+fi
+
+WHISPER_BIN="$WHISPER_DIR/build/bin/whisper-cli"
+MODEL_PATH="$WHISPER_DIR/models/ggml-${MODEL_NAME}.bin"
+
+[[ -x "$WHISPER_BIN" ]] || { echo "ERROR: $WHISPER_BIN missing — run install.sh" >&2; exit 2; }
+[[ -f "$MODEL_PATH"  ]] || { echo "ERROR: model $MODEL_PATH missing — run install.sh --model $MODEL_NAME" >&2; exit 2; }
+
+TMP=$(mktemp -d -t voice-transcribe-XXXXXX)
+trap 'rm -rf "$TMP"' EXIT
+
+# Convert to whisper.cpp's preferred format: 16 kHz mono WAV.
+ffmpeg -loglevel error -y -i "$INPUT" -ar 16000 -ac 1 "$TMP/audio.wav" 2>"$TMP/ff.err" || {
+  echo "ERROR: ffmpeg failed on $INPUT:" >&2
+  cat "$TMP/ff.err" >&2
+  exit 3
+}
+
+# Transcribe. --no-timestamps removes the [00:00 --> 00:05] markers; --no-prints
+# silences the progress logging. Anything left on stdout is the transcript.
+"$WHISPER_BIN" \
+  -m "$MODEL_PATH" \
+  -f "$TMP/audio.wav" \
+  --no-timestamps \
+  --no-prints \
+  2>/dev/null \
+  | sed 's/^[[:space:]]*//; s/[[:space:]]*$//'

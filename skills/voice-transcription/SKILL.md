@@ -1,108 +1,158 @@
 ---
 name: voice-transcription
-description: Self-hosted speech-to-text via whisper.cpp + ffmpeg. Synchronised from the canonical implementation at https://github.com/selrai-company/rodolfo-cloudkit-research/tree/main/skills/voice-transcription. Use to add voice-message support to any chat channel (Telegram/Discord/Slack), or to transcribe local audio files. Default model `base.en` (~150 MB; ~250 MB RAM during inference; ~real-time on a t4g.small ARM VM).
+description: "Transcribe local audio files into text using a self-hosted Whisper model — no audio leaves the user's machine, no API key, no per-minute cost. Use this skill when the user asks to transcribe a voice memo, dictate notes from an interview recording, get text out of an `.m4a` / `.mp3` / `.ogg` / `.oga` / `.wav` / `.webm` audio file, or says things like 'transcribe this for me', 'turn this voice note into text', 'I have a recording I need typed up', or 'install Whisper'. On first use, walk the user through the one-time install (whisper.cpp + ffmpeg + a Whisper model). After install, they can run `voice-transcribe <audio-file>` from a terminal or ask Claude to transcribe a path."
+allowed-tools: Bash, Read, Write, Edit
+metadata:
+  category: Productivity & Integrations
+  tags:
+    - whisper
+    - speech-to-text
+    - transcription
+    - audio
+    - self-hosted
+    - voice
+  pairs-with:
+    - skill: superpowers:systematic-debugging
+      reason: Use for troubleshooting whisper.cpp build or model-download failures
+    - skill: first-run-setup
+      reason: Same one-time-setup-then-use pattern; aimed at non-technical users
 ---
 
-# voice-transcription
+# Voice Transcription
 
-> **Canonical source:** [`selrai-company/rodolfo-cloudkit-research/skills/voice-transcription/`](https://github.com/selrai-company/rodolfo-cloudkit-research/tree/main/skills/voice-transcription)
-> Future improvements should land there first and be backported. This file is a synchronised copy.
+## Overview
 
-## When to enable
+This skill installs a self-hosted speech-to-text tool on the user's laptop using **whisper.cpp** (the C++ port of OpenAI's Whisper model). After install, a single command turns audio files into text — locally, no internet round-trip, no API costs.
 
-- Team members want to talk to the bot from a phone (faster than typing on a small keyboard)
-- Voice memos as a quicker capture mechanism for thoughts/notes ("ask orchestrator: what was that idea I left on Tuesday?")
-- Privacy-sensitive contexts where audio cannot be uploaded to a third-party API
+It has **one phase**: the install walkthrough. After install, the user runs `voice-transcribe <audio-file>` from any terminal, or asks Claude to transcribe a path. There's no MCP server, no Phase 2 — just a CLI tool the user (or any Claude session) can invoke whenever audio needs to become text.
 
-Don't enable if:
-- VM has <2 GB RAM AND you also want medium/large models. base.en fits in <300 MB resident; medium needs ~1.5 GB.
-- You only need to handle text. Adding whisper.cpp + ffmpeg + 150 MB model is wasted disk if voice isn't used.
+**Which platforms** — macOS and Linux are first-class. Windows users should run this from WSL2 (Windows Subsystem for Linux) since whisper.cpp's build relies on standard POSIX tooling (`bash`, `cmake`, `apt` or `brew`).
 
-## Architecture
+### What this skill does
 
-```
-[Telegram voice note]
-  ↓ getFile API
-[handler.py downloads .oga file to /tmp]
-  ↓ /usr/local/bin/cloudkit-transcribe <audio>
-[ffmpeg → 16kHz mono WAV] → [whisper-cli + ggml-base.en.bin] → stdout: transcript
-  ↓
-[handler.py uses transcript as the prompt for claude]
-```
+- Installs the build dependencies (`cmake`, `ffmpeg`, `git`, a C++ compiler)
+- Clones and builds whisper.cpp into `/opt/whisper.cpp` (Linux) or `~/whisper.cpp` (macOS, since `/opt` typically isn't writable on Mac)
+- Downloads a Whisper model (default: `base.en` — ~150 MB, English-only, good accuracy, real-time-ish on most laptops)
+- Installs a small CLI wrapper at `/usr/local/bin/voice-transcribe` so the user can call it from anywhere
 
-`cloudkit-transcribe` is a thin shell wrapper. Inputs any audio format ffmpeg understands (.oga / .ogg / .mp3 / .m4a / .wav / .webm / .opus). Outputs plain text on stdout.
+### What this skill does NOT do
 
-## Whisper model choices
+- **Doesn't send audio to OpenAI, Anthropic, or any cloud API.** Everything runs on-device.
+- **Doesn't do TTS (text-to-speech).** That's a different toolchain entirely.
+- **Doesn't transcribe in real time** as audio is being recorded. It works on existing audio files.
+- **Doesn't perform speaker diarisation** ("Speaker 1 said... Speaker 2 said..."). Single-speaker model.
+- **Doesn't translate** — it transcribes audio in its source language. (For multilingual content, swap the model: use `base` instead of `base.en`.)
 
-| Model | Disk | RAM (inference) | Speed (t4g.small) | Accuracy |
-|---|---|---|---|---|
-| `tiny.en` | ~75 MB | ~125 MB | very fast | ok-ish |
-| `base.en` (default) | ~150 MB | ~250 MB | ~real-time | good |
-| `small.en` | ~470 MB | ~600 MB | 0.5x real-time | very good |
-| `medium.en` | ~1.5 GB | ~1.7 GB | 0.2x real-time | excellent |
+## When to trigger
 
-For a 2 GB VM running Postgres + Claude bursts, `base.en` is the sweet spot. Switch to `small.en` if you have headroom and care about accuracy on accented speech.
+- "Transcribe this voice note for me"
+- "I have an interview recording I need typed up"
+- "Get the text out of this `.m4a` / `.mp3` / `.ogg` / `.wav` / `.webm`"
+- "Install Whisper on my laptop"
+- "Set up local speech-to-text"
 
-The install script accepts `--model <name>` (defaults to `base.en`). Multiple models can coexist; `cloudkit-transcribe` uses the one named in `~/.cloudkit/voice.env` (or `WHISPER_MODEL` env, or the install-time default).
+Do NOT trigger for:
+- Live dictation while the user speaks (this skill works on existing files only)
+- TTS / making the computer talk (different skill)
+- Translation between languages (different toolchain)
 
-## What this skill provisions
+## Phase 1 — Install (first-run only)
 
-```
-/opt/whisper.cpp/                      # built-from-source, ARM-NEON
-  ├── build/bin/whisper-cli
-  └── models/ggml-base.en.bin          # ~150 MB (or whichever --model was chosen)
-/usr/local/bin/cloudkit-transcribe     # the wrapper script
-```
+Skip this phase if `voice-transcribe` is already on `PATH` (run `which voice-transcribe`; if a path comes back, the user already installed it — go to "Use" below).
 
-Plus apt packages: `build-essential`, `cmake`, `ffmpeg`, `git`. Total disk overhead: ~250 MB.
+### Step 1 — Confirm platform
 
-## Usage
+Detect the user's OS:
 
-### From the channel handler (Telegram path, automated)
+- **macOS** (Darwin) → use Homebrew. If `brew` isn't installed, point them at https://brew.sh and stop.
+- **Linux** (Ubuntu/Debian) → use `apt`. The user will need `sudo` once.
+- **Windows** → tell them: "Whisper's build needs Linux-style tooling. Open WSL2 (the Ubuntu app from the Microsoft Store), then run this skill again from there. Your Windows files are reachable from WSL at `/mnt/c/...`."
 
-The `channel-setup` v0 handler detects `msg["voice"]` and calls the wrapper. No user-facing intervention required.
+### Step 2 — Run the installer
 
-### Standalone (CLI testing)
+From inside the kit:
 
 ```bash
-cloudkit-transcribe /tmp/somefile.ogg
-# → "Hey, I was thinking about the Acme deal..."
+cd ~/workshop-kit/skills/voice-transcription   # or wherever they cloned the kit
+./install.sh                                   # macOS — runs as the user
+sudo ./install.sh                              # Linux — needs root for /opt + apt
 ```
 
-### Different model (if installed)
+The installer:
+1. Installs `cmake`, `ffmpeg`, `git`, and a C++ compiler (apt on Linux, brew on macOS).
+2. Clones whisper.cpp.
+3. Builds it (cmake; takes 2–5 minutes on a typical laptop).
+4. Downloads the `base.en` model (~150 MB) into the build dir.
+5. Installs the `voice-transcribe` wrapper at `/usr/local/bin/`.
+6. Runs a 2-second sine-wave smoke test (Whisper outputs `(eerie music)` or similar — that's expected for pure tones, not a bug).
+
+Pick a different model with `--model`:
 
 ```bash
-WHISPER_MODEL=small.en cloudkit-transcribe /tmp/somefile.ogg
+./install.sh --model small.en      # ~470 MB, more accurate, slower
+./install.sh --model tiny.en       # ~75 MB, less accurate, fastest
+./install.sh --model medium.en     # ~1.5 GB, near-state-of-the-art, slowest
+./install.sh --model base          # ~150 MB, multilingual (no .en suffix)
 ```
 
-## Pitfalls
+### Step 3 — Verify
 
-- **Empty audio / pure tones** — whisper.cpp returns descriptive guesses (`(soft music)`, `(eerie tones)`) rather than blank. The handler should accept these gracefully; for a strictly-empty input, treat the response as "no speech detected" and reply with a hint instead of feeding to Claude.
-- **Long audio (>5 min)** — base.en transcription is real-time-ish on t4g.small; a 5-minute voice note takes ~5 minutes wall-clock. The handler's CLAUDE_TIMEOUT applies AFTER transcription, so total budget = transcribe time + claude time. Bump `CLAUDE_TIMEOUT` if users send long notes.
-- **Multilingual users** — `base.en` is English-only. For mixed-language teams, swap to `base` (no `.en` suffix; multilingual). Trades a small accuracy hit on English for any-language coverage.
-- **Telegram voice notes are .oga (Ogg Opus)** — ffmpeg handles these natively. If you ever see "no decoder for opus", the apt-installed ffmpeg is missing libopus; fix with `apt install ffmpeg libavcodec-extra`.
-- **Audio uploads from non-microphone sources** — Telegram message types: `voice` (microphone-recorded ogg), `audio` (uploaded files like .mp3), `video_note` (round videos with audio). v0 handles `voice` only; `audio` + `video_note` are roadmap (same wrapper, different download path).
+```bash
+which voice-transcribe                 # → /usr/local/bin/voice-transcribe
+voice-transcribe --help                # (the wrapper prints its usage line)
+```
 
-## What this skill does NOT do
+If `voice-transcribe` isn't found, the user's `PATH` likely doesn't include `/usr/local/bin/`. Tell them to open a fresh terminal (most shells re-read PATH on new sessions).
 
-- **Doesn't do TTS (text-to-speech)** — that's a separate skill (Coqui TTS, Piper, or 11labs API).
-- **Doesn't do speaker diarisation** — single speaker assumed.
-- **Doesn't translate** — `cloudkit-transcribe` only transcribes. For translate-then-transcribe, swap whisper-cli args.
-- **Doesn't auto-improve over time** — whisper.cpp is a static model. If you need fine-tuning, that's a different toolchain entirely.
-- **Doesn't cache transcripts** — every call re-transcribes. For idempotency, the channel handler could hash audio and check Postgres first; not implemented in v0.
+## Use (everyday)
 
-## Roadmap
+Once installed, the wrapper accepts any audio format ffmpeg understands:
 
-- **Voice-out / TTS** — once we have voice-in working, the natural follow-on is TTS replies for hands-free use
-- **`audio` + `video_note` Telegram message types** — handler hooks for non-voice audio uploads
-- **Discord voice channels** — Discord's voice protocol is different; needs the Discord adapter from `channel-setup` to also handle voice channels
-- **Caching** — content-hash → transcript map in Postgres so repeated audio doesn't re-transcribe
-- **Live transcription** (streaming whisper) — for "hold to talk" interfaces with real-time feedback
-- **Larger models on larger VMs** — `medium.en`/`large-v3` are dramatically better; the cost is 4-8 GB RAM and longer inference. Recommend bumping VM tier before installing.
+```bash
+voice-transcribe ~/Downloads/voice-memo.m4a
+voice-transcribe interview.mp3
+voice-transcribe team-call.webm > transcript.txt
+```
 
+It prints the transcribed text to stdout. Pipe it, redirect it, copy it — whatever the user needs.
 
-## Related
+To pick a different model at call time (without reinstalling):
 
-- **Canonical source**: [selrai-company/rodolfo-cloudkit-research/skills/voice-transcription/](https://github.com/selrai-company/rodolfo-cloudkit-research/tree/main/skills/voice-transcription)
-- [whisper.cpp](https://github.com/ggerganov/whisper.cpp) — upstream
-- [Whisper paper / models](https://github.com/openai/whisper) — OpenAI's original; whisper.cpp is the C++ port we use
+```bash
+WHISPER_MODEL=small.en voice-transcribe ~/Downloads/quiet-recording.m4a
+```
+
+For Claude to transcribe a file the user mentions, run the wrapper via the Bash tool and capture stdout.
+
+## What can go wrong
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `voice-transcribe: command not found` | `/usr/local/bin/` not on `PATH`, or installer didn't complete | Open a fresh terminal; re-run `which voice-transcribe`. If still missing, re-run `./install.sh`. |
+| Empty transcription on an audio with clear speech | Wrong language for the model (e.g. Spanish through `base.en`) | Re-install with `--model base` (multilingual) or `--model small`. Or set `WHISPER_MODEL=base` at call time. |
+| `(eerie music)` or other phantom output | Whisper falls back to descriptive guesses on near-silent audio | Check the audio actually has speech: `ffplay <file>` or open in QuickTime / VLC. |
+| `apt-get install` fails on Linux: `libavcodec-extra` missing | Some Ubuntu minimal images strip codecs | `sudo apt install ffmpeg libavcodec-extra` then re-run installer. |
+| Build fails on macOS: `xcrun: error: invalid active developer path` | Xcode Command Line Tools not installed | `xcode-select --install`, then re-run installer. |
+| Long-running installer hangs at "Build whisper.cpp" | cmake compiling on slower laptops takes 5+ min, especially first run | Wait. The build is single-threaded by default; it will finish. Subsequent installs are no-ops if the binary already exists. |
+| User on Windows running `./install.sh` directly | Windows shell can't run bash + cmake/apt-style installs | "You're on Windows — open WSL2 (Ubuntu from the Microsoft Store), then re-run this from inside it." |
+
+## Uninstall
+
+```bash
+sudo rm -f /usr/local/bin/voice-transcribe   # (no sudo on macOS if installed without it)
+sudo rm -rf /opt/whisper.cpp                 # Linux
+rm -rf ~/whisper.cpp                          # macOS
+# Don't auto-remove apt/brew packages — they may be used by other things.
+```
+
+## Tone for the user
+
+Plain English on first install. The user has likely never heard of "whisper.cpp", "ffmpeg", "cmake", or "MCP". You're installing a thing that lets them say "transcribe this" and get text. Use those words when explaining what's happening:
+
+- ❌ "I'll clone whisper.cpp from GitHub, build it with CMake, and download the ggml-base.en.bin model weights."
+- ✅ "I'm going to install a transcription tool on your laptop. It runs locally — no audio gets sent to anyone. The whole install takes about 5 minutes; most of that's the build step. I'll let you know when it's ready."
+
+Once it's working:
+
+- ❌ "Run `voice-transcribe /path/to/audio` to invoke whisper-cli on a 16kHz-resampled WAV."
+- ✅ "All set. To transcribe an audio file, just say 'transcribe this voice memo' and tell me the path — or run `voice-transcribe <filename>` in a terminal. It'll print the text right back to you."
