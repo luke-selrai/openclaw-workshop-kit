@@ -32,7 +32,7 @@ metadata:
 
 This skill lets you read and update a user's Atlassian Cloud workspace on their behalf — Jira, Confluence, and Compass — using the **official first-party Atlassian Rovo Remote MCP server** hosted at `https://mcp.atlassian.com/v1/mcp` (see [atlassian/atlassian-mcp-server](https://github.com/atlassian/atlassian-mcp-server)). It has two phases:
 
-- **Phase 1 — Install & Auth (autonomous).** Claude drives the entire OAuth 2.1 dance inside a Playwright MCP browser. Discovery, dynamic client registration, PKCE/S256, CSRF state, the consent flow, the workspace/site picker, the local-loopback callback, and the token exchange are all handled autonomously by Claude via Bash + Playwright. The user does exactly THREE things: (1) sign in to Atlassian in the Playwright window, (2) click **Allow** on Atlassian's consent screen, (3) click **Allow** on the small permission box Claude Code shows when it saves the connection key to your settings. Everything else — discovery, registration, generating cryptographic challenges, capturing the callback, exchanging the code for a token, refreshing the token when it expires — happens silently. The user never copies, never pastes, never opens a tab themselves, never reads a token aloud, never types into chat anything other than confirmations.
+- **Phase 1 — Install & Auth (autonomous).** Claude drives the entire OAuth 2.1 dance inside a Playwright MCP browser. Discovery, dynamic client registration, PKCE/S256, CSRF state, the consent flow, the **Allow click on Atlassian's consent screen** (`browser_click`-driven), the workspace/site picker, the local-loopback callback, and the token exchange are all handled autonomously by Claude via Bash + Playwright. **The user's only manual moment is signing in to Atlassian inside the Playwright browser window.** Everything else — including the Allow click and the workspace pick — is driven by Claude; the user only sees a one-line summary in chat narrating what is being authorised. The `~/.claude.json` file-write permission is pre-granted by the workshop's `first-run-setup` SKILL (see **Workshop pre-flight** below) so no permission popup interrupts the flow. The user never copies, never pastes, never opens a tab themselves, never reads a token aloud, never types into chat anything other than confirmations.
 - **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__atlassian__*` native tools to read and update Jira and Confluence data.
 
 **Which phase to run** — Before any tool call, check whether the Atlassian MCP server is already configured. Read `~/.claude.json` (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.atlassian` entry with both a `url` of `https://mcp.atlassian.com/v1/mcp` AND a `headers.Authorization` value starting with `Bearer `. If both are present, treat the connector as authenticated and skip to Phase 2 (verify with a tool call before assuming the access token is still valid — if it 401s, run the **Token refresh flow** below before falling back to a full Phase 1).
@@ -49,6 +49,34 @@ This skill lets you read and update a user's Atlassian Cloud workspace on their 
 ### Why a hand-rolled OAuth flow
 
 The merged autonomous reference connectors in this repo (`monday-connector`, `slack-connector`) extract their tokens from a third-party DOM (a Personal API Token page, an OAuth app's "Bot User OAuth Token" field). Atlassian's Rovo Remote MCP is hosted: there is no token to copy from a DOM, only an OAuth 2.1 + PKCE + Dynamic Client Registration flow between an OAuth client and `mcp.atlassian.com`. To stay autonomous the skill plays the role of the OAuth client itself — discover, register, generate PKCE, drive the consent flow inside Playwright, capture the code on a local loopback listener, exchange the code, and write the resulting bearer to `~/.claude.json`.
+
+---
+
+## Workshop pre-flight (one-time setup, before this skill runs)
+
+This skill writes a connector entry into `~/.claude.json`. Claude Code's runtime guards `~/.claude/` and `~/.claude.json` behind a hardcoded permission gate (verified live on PRs #157 / #158 — the SDK's `bypassPermissions` mode does NOT cover this guardrail). To keep Phase 1 fully hands-off, the workshop's `first-run-setup` skill pre-grants the necessary `Write` permission so the bearer-header save proceeds silently.
+
+**If the user has already run `first-run-setup`, no action is needed here — Phase 1 will write the config without surfacing a popup.**
+
+If `first-run-setup` has not been run (e.g. the user is invoking this skill standalone outside a workshop), add the following entry to `~/.claude/settings.json` (user scope) or `<project>/.claude/settings.local.json` (project scope) **once**, before invoking this skill:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Write(~/.claude.json)",
+      "Edit(~/.claude.json)",
+      "Write(~/.claude/atlassian-client.json)",
+      "Write(~/.claude/atlassian-refresh.json)",
+      "Edit(~/.claude/atlassian-refresh.json)"
+    ]
+  }
+}
+```
+
+These five entries are the entire surface this skill writes to. With them in place, the user's only manual touchpoint during Phase 1 is signing in to Atlassian inside the Playwright window.
+
+If, despite the pre-flight, a permission popup does fire (e.g. the user is on an older Claude Code version that does not honour the allow-list, or a corporate policy overrides), the user clicks **Allow** once on the popup and the skill continues without retry — no Phase 1 step needs to re-run.
 
 ---
 
@@ -347,13 +375,43 @@ Surface this cleanly and exit:
 
 Cancel the listener (`kill $LISTENER_PID 2>/dev/null`), close the browser (`mcp__playwright__browser_close()`), delete the temp listener directory, and stop. Do not retry — the block is org-policy, not transient.
 
-### Step 10 — Capture the user's Allow click + the callback
+### Step 10 — Auto-click Allow on the consent screen + capture the callback
 
-Tell the user:
+Once Step 9 confirms we're on the consent page (and any site picker has been resolved), Claude clicks the **Allow** button via Playwright. The user does not click anything in the browser at this step — the skill narrates what is being authorised before clicking, so the user has visibility, but the touch itself is automated.
 
-> "Atlassian is showing the permissions screen now — please click **Allow** so I can finish connecting."
+#### 10a — Read the scope summary from the snapshot
 
-After they click Allow, Atlassian redirects the Playwright tab to `http://127.0.0.1:<PORT>/callback?code=…&state=…`. The Node listener captures the query parameters, writes them to `$LISTENER_OUT`, and renders the success page; the listener process exits ~250ms later.
+Take a fresh `browser_snapshot` of the consent page. Atlassian's consent UI lists the scopes in human-readable form (e.g. "Read your Jira tickets", "Update Confluence pages"). Extract the scope-list block via `browser_evaluate` so the chat narration matches what the user actually sees on screen:
+
+```javascript
+() => {
+  const items = [...document.querySelectorAll('li, [role="listitem"]')]
+    .map(el => (el.textContent || '').trim())
+    .filter(t => t.length > 4 && t.length < 120);
+  return items.slice(0, 12);
+}
+```
+
+#### 10b — Narrate then click Allow
+
+Tell the user, in one short message (use the scopes captured in 10a):
+
+> "Atlassian is showing the permissions screen — it's asking to: \<3 to 5 of the scope items, deduplicated\>. Clicking **Allow** now."
+
+Then locate the Allow button from the snapshot — match by accessibility role + name (case-insensitive, allow `Allow` / `Authorize` / `Authorise` / `Grant access`):
+
+```
+mcp__playwright__browser_click({
+  target: <ref of the button matching role:button, name:/^(allow|authori[sz]e|grant access)/i>,
+  element: "Allow button on the Atlassian consent screen"
+})
+```
+
+If no Allow button can be located in the snapshot (UI shifted, embedded iframe, or unexpected layout), fall back to a one-time user-click prompt: *"I couldn't find the Allow button automatically — please click **Allow** in the browser window."* This is the only situation in Phase 1 where the user touches the browser beyond signing in.
+
+#### 10c — Capture the callback
+
+After the click (or the user's manual fallback click), Atlassian redirects the Playwright tab to `http://127.0.0.1:<PORT>/callback?code=…&state=…`. The Node listener captures the query parameters, writes them to `$LISTENER_OUT`, and renders the success page; the listener process exits ~250ms later.
 
 Wait silently for the listener to finish, with a 10-minute hard timeout to defend against a "user clicked the link in a different browser" race where the callback never lands on the Playwright window:
 
@@ -381,13 +439,13 @@ CB_ERROR_DESCRIPTION=$(grep '^ERROR_DESCRIPTION=' "$LISTENER_OUT" | cut -d= -f2-
 
 If `CB_CODE` and `CB_ERROR` are both empty after the timeout, the callback never landed — most commonly because the user signed in from a different browser than the Playwright window. Tell them: *"Looks like the Allow click landed in a different browser. Let me start fresh — I'll open the connection page again."* Then re-run from Step 3.
 
-#### 10a — Validate `state` (CSRF protection)
+#### 10d — Validate `state` (CSRF protection)
 
 If `CB_STATE` does not exactly equal `STATE` from Step 5 → abort. Possible CSRF / interception attempt. Tell the user *once*: *"Something didn't look right with the connection — let me start over."* Re-run Phase 1 from Step 3 with fresh PKCE + state.
 
-#### 10b — Detect denial / error
+#### 10e — Detect denial / error
 
-If `CB_ERROR` is non-empty (e.g. `access_denied`) → the user cancelled. Tell them: *"Looks like you cancelled the permissions screen — no problem. Want me to try again?"* If yes, re-run from Step 7 (same client, same listener — re-bind a new listener if the previous one already exited).
+If `CB_ERROR` is non-empty (e.g. `access_denied`) → the user cancelled (only possible via the manual-click fallback in 10b — the auto-click path does not produce this). Tell them: *"Looks like you cancelled the permissions screen — no problem. Want me to try again?"* If yes, re-run from Step 7 (same client, fresh listener).
 
 If `CB_CODE` is empty *and* `CB_ERROR` is also empty → the listener received a malformed callback. Re-run from Step 3.
 
@@ -419,15 +477,11 @@ If the exchange returns an error:
 - `invalid_request` → check that `redirect_uri` exactly matches what was registered (literal `http://127.0.0.1:<port>/callback`).
 - Any other error → tell the user *"Atlassian didn't accept the connection — let me try the whole thing again."* Re-run from Step 3.
 
-### Step 12 — Write the bearer header to `~/.claude.json` + persist refresh artifacts
+### Step 12 — Write the bearer header to `~/.claude.json` + persist refresh artifacts (silent)
 
-#### 12a — Tell the user about the permission popup, then write `~/.claude.json`
+#### 12a — Write `~/.claude.json` silently
 
-Claude Code's runtime guards `~/.claude/` and `~/.claude.json` with a hardcoded permission gate that the SDK's `bypassPermissions` mode does NOT cover (verified live on PR #157/#158). When Claude writes the bearer header to `~/.claude.json`, the user **will** see a small "allow access to ~/.claude.json" popup. Acknowledge it before the write so the popup is expected, not surprising:
-
-> Tell the user: *"One last thing — you'll see a small permission box pop up asking me to save your connection key. Please click **Allow**."*
-
-Then perform the merge using a canonical Node-based snippet (Node is already required per Phase 0; this avoids `jq` and the `Edit` tool's exact-string-match limits when other servers already exist in the config):
+The **Workshop pre-flight** section above documents the `permissions.allow` entries that let this write proceed without a popup. Assuming pre-flight is done, perform the merge using a canonical Node-based snippet (Node is already required per Phase 0; this avoids `jq` and the `Edit` tool's exact-string-match limits when other servers already exist in the config):
 
 ```bash
 AT_TOKEN="<access_token from Step 11>" node -e '
