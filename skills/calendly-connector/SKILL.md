@@ -1,7 +1,7 @@
 ---
 name: calendly-connector
-description: "Connect and operate Calendly via the official first-party Calendly MCP server (https://mcp.calendly.com). Use this skill when the user asks to set up Calendly, connect their scheduling account, or interact with event types, availability, meetings, or scheduling links. On first use, run Phase 1 to install and authenticate the connector before attempting any tool calls."
-allowed-tools: mcp__calendly__*, Bash, Read, Write, Edit
+description: "Connect and operate Calendly via the official first-party Calendly MCP server (https://mcp.calendly.com). Phase 1 is a 6-step Playwright-driven install: register the server with `claude mcp add`, open Claude Code's OAuth start URL inside the Playwright MCP browser, detect login state and prompt sign-in only if needed, auto-click Allow on the consent screen, auto-detect the callback via `browser_wait_for`, then verify with a `mcp__calendly__*` smoke call. Calendly is OAuth-only with Dynamic Client Registration (RFC 7591) — there is no app to create and no token to paste, so the user's only manual moments are signing in to Calendly inside the Playwright window and clicking Allow. Use this skill when the user asks to set up Calendly, connect their scheduling account, or interact with event types, availability, meetings, or scheduling links."
+allowed-tools: mcp__calendly__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Scheduling & Booking
   tags:
@@ -12,14 +12,24 @@ metadata:
     - booking
     - mcp
   pairs-with:
+    - skill: linear-connector
+      reason: Sibling hosted OAuth-only MCP connector with DCR — the canonical 6-step Playwright-driven install pattern this skill mirrors.
+    - skill: jotform-connector
+      reason: Sibling hosted OAuth-only MCP connector — identical install pattern.
+    - skill: monday-connector
+      reason: Sibling Playwright-driven autonomous connector — reference for snapshot-and-reason model.
+    - skill: slack-connector
+      reason: Sibling Playwright-driven autonomous connector — reference for the autonomous-install rules.
     - skill: email-composer
-      reason: Draft follow-ups tied to upcoming or cancelled Calendly meetings
+      reason: Draft follow-ups tied to upcoming or cancelled Calendly meetings.
     - skill: google-workspace-connector
-      reason: Cross-reference Calendly meetings against Google Calendar availability
+      reason: Cross-reference Calendly meetings against Google Calendar availability.
     - skill: n8n-workflow-patterns
-      reason: Build automations triggered by new Calendly bookings
+      reason: Build automations triggered by new Calendly bookings.
+    - skill: playwright-skill
+      reason: The Playwright MCP browser is how this skill drives the Calendly consent flow.
     - skill: superpowers:systematic-debugging
-      reason: Use for troubleshooting Calendly auth or API errors
+      reason: Use for troubleshooting Calendly auth or API errors.
 ---
 
 # Calendly Connector
@@ -28,101 +38,245 @@ metadata:
 
 This skill lets you read and update a user's Calendly account on their behalf using the **official first-party Calendly MCP server** hosted at `https://mcp.calendly.com` (announced [March 2026](https://calendly.com/blog/mcp-server); docs at [developer.calendly.com/calendly-mcp-server](https://developer.calendly.com/calendly-mcp-server)). It has two phases:
 
-- **Phase 1 — Install & Auth.** A conversational bootstrap (≤4 steps). The user has never used this before. You wire the hosted MCP server into Claude Code and walk the user through a one-click browser sign-in to Calendly. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", "OAuth", or any file paths. They should feel like they are having a conversation, and at the end their Calendly is connected.
+- **Phase 1 — Install & Auth (autonomous, 6 steps).** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen, auto-detects the callback via `browser_wait_for`, then verifies with a `mcp__calendly__*` smoke call. The user's only manual moments are signing in to Calendly inside the Playwright window and clicking Allow on the consent screen. Token storage is handled by Claude Code's MCP runtime — there is no manual `~/.claude.json` token write.
 - **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__calendly__*` native tools to read and update Calendly data.
 
-**Which phase to run** — Before any tool call, check whether the Calendly MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.calendly` entry. If it exists, treat the connector as configured and skip to Phase 2 (verify with a tool call before assuming the OAuth session is still valid). Otherwise, run Phase 1.
+**Which phase to run** — Before any tool call, check whether the Calendly MCP server is already configured. Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.calendly` entry. If present, attempt a verification tool call (Phase 1 Step 6). If it succeeds, the connector is ready — skip to Phase 2. If it 401s, walk Phase 1 from Step 3 to re-trigger the OAuth flow (the registration is already in place).
 
 ### What this skill does NOT use
 
-- **Calendly personal access tokens or API keys** — the Calendly MCP server uses OAuth 2.1 with Dynamic Client Registration (RFC 7591). Clients self-register at runtime; there is no pre-registered app, no client secret to copy, and no personal access token to paste. Do not ask the user for any key.
-- **A self-hosted Calendly MCP server** — Calendly publishes the hosted endpoint at `https://mcp.calendly.com` as the only deployment. Self-hosting is not supported.
-- **Direct Calendly REST API calls** — all reads and writes go through the MCP server, not direct HTTP calls to the Calendly Public API.
-- **The "Calendly connector for Claude" Desktop entry** — that is a Claude Desktop feature, not available in Claude Code. In Code we wire the MCP URL directly per Phase 1.
+- **Calendly personal access tokens or API keys.** The Calendly MCP server is OAuth-only with Dynamic Client Registration (RFC 7591). There is no pre-registered app, no client secret, and no personal access token to paste. Do not ask the user for any key.
+- **A self-hosted Calendly MCP server.** Calendly publishes the hosted endpoint at `https://mcp.calendly.com` as the only deployment. Self-hosting is not supported.
+- **Direct Calendly REST API calls.** All reads and writes go through the MCP server, not direct HTTP calls to the Calendly Public API.
+- **The "Calendly connector for Claude" Desktop entry.** That is a Claude Desktop feature, not available in Claude Code. In Code we wire the MCP URL directly per Phase 1.
+- **A custom OAuth client (DCR replication, custom PKCE, loopback listener).** Claude Code's MCP runtime owns the OAuth dance natively; we do not register our own client, run our own callback listener, or store OAuth tokens manually. The skill's job is to choreograph Playwright + Claude Code's native OAuth handler — not to replicate OAuth.
+
+### How auth works under the hood
+
+The Calendly MCP server is a hosted OAuth 2.1 server (verified live 2026-04-30 against `mcp.calendly.com/.well-known/oauth-protected-resource`): the protected-resource document declares `authorization_servers: ["https://calendly.com/"]`, `scopes_supported: ["mcp:scheduling:write", "mcp:scheduling:read"]`, and `bearer_methods_supported: ["header"]`. The MCP transport endpoint `https://mcp.calendly.com` returns `401 WWW-Authenticate: Bearer ... resource_metadata=https://mcp.calendly.com/.well-known/oauth-protected-resource`. The authorization server itself is `calendly.com` (not `mcp.calendly.com`) — its discovery document at `calendly.com/.well-known/oauth-authorization-server` advertises `authorization_endpoint = https://calendly.com/oauth/authorize`, `token_endpoint = https://calendly.com/oauth/token`, `registration_endpoint = https://calendly.com/oauth/register`, `code_challenge_methods_supported = ["plain","S256"]`, and public-client `none` auth method (RFC 7591 DCR).
+
+From the SKILL's perspective this is a standard OAuth 2.1 + PKCE flow at `calendly.com` — Claude Code's MCP runtime drives it natively. The skill only opens the start URL inside Playwright, auto-clicks Allow, and waits for the callback.
 
 ---
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work, the user only signs in to Calendly in the Playwright window and clicks Allow. Every message you send during Phase 1 must follow these rules:
 
-- **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, REST, or environment variable. If you must refer to a technical thing, name it plainly: "a small setting on your computer", "a sign-in window".
-- **Tell them what is about to happen.** Before any action you take: "I am going to save your connection details now — this takes just a moment."
-- **React to success and failure warmly.** Good: "That worked — your Calendly is now connected." Bad: "MCP server initialized with 200 OK."
+- **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only actions you ever request are: "please sign in to the browser window I just opened" and "please click Allow on the screen Calendly just showed you."
+- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, DCR, PKCE, scope, token, MCP, endpoint, JSON, REST, environment variable, Playwright, browser automation, redirect URI, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page" — not "Playwright" or "Chromium". If you must name a technical concept, plainly:
+  - access token / bearer → **"your connection key"**
+  - Allow / consent → **"the Allow button"**
+  - close and reopen Claude Code → **"close and reopen the chat"**
+- **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening Calendly for you now"), once when you need them ("please sign in", "please click Allow"), once when you're done ("your Calendly is now connected"). No commentary in between snapshots, clicks, or evaluates.
+- **React to success and failure warmly.** Good: "That worked — your Calendly is now connected." Bad: "Token exchange returned 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
-- **Never mention file paths, commands, or scripts** to the user. You run them; you do not describe them.
+- **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
 
 ---
 
-## PHASE 1 — Install & Auth (≤4 steps)
+## Phase 0 — Pre-flight (silent)
 
-This phase wires the hosted Calendly MCP server into Claude Code and walks the user through the one-time browser sign-in. You do every technical action; the user only signs in to Calendly once in their browser.
+### 0.1 — Resume check
+
+Read `~/.claude.json` via Node (cross-platform safe — Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile):
+
+```bash
+node -e "
+const fs = require('fs');
+const path = require('path');
+const p = path.join(require('os').homedir(), '.claude.json');
+if (!fs.existsSync(p)) { console.log('NOT_CONFIGURED'); process.exit(0); }
+const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+const av = (j.mcpServers || {}).calendly;
+console.log(av ? 'REGISTERED' : 'NOT_CONFIGURED');
+"
+```
+
+- `REGISTERED` → try Phase 1 Step 6 (verify) first. If it succeeds, the connector is already active — surface a friendly message and stop. If 401, walk Phase 1 from Step 3.
+- `NOT_CONFIGURED` → run full Phase 1 from Step 1.
+
+### 0.2 — Tooling check (silent)
+
+Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the `first-run-setup` skill. If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest` (the `--` separator keeps Claude Code from consuming `npx` as an `add` flag), ask the user to close and reopen the chat, then retry.
+
+---
+
+## PHASE 1 — Install & Auth (6 steps, autonomous via Playwright)
 
 ### Step 1 — Orient the user
 
-Tell the user in one short message:
+Tell the user, in one short message:
 
-> "To connect your Calendly, I am going to set up the connection on your computer, then ask you to sign in to Calendly once in your browser. The whole thing takes about a minute. Ready?"
+> "I'll connect your Calendly now. I'm opening a browser window for you. Please sign in there when it appears, and I'll handle the rest. Should take about a minute."
 
-### Step 2 — Save the connection
+### Step 2 — Register the MCP server with `claude mcp add`
 
-Once the user says they're ready, silently add or update the calendly MCP entry in the user's `~/.claude.json` file (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`).
+Silently register the hosted Calendly MCP server in the user's config:
 
-The Calendly MCP server is **hosted only** — there is no local transport option. Use this exact entry:
+```bash
+claude mcp add calendly https://mcp.calendly.com --transport http --scope user
+```
 
-```json
-{
-  "mcpServers": {
-    "calendly": {
-      "url": "https://mcp.calendly.com"
+This writes the server entry to `~/.claude.json` and lets Claude Code's MCP runtime own the OAuth dance from here forward.
+
+**Fallback if `claude mcp add` errors** (older Claude Code version, CLI not on PATH, or unexpected output) — write the entry directly to `~/.claude.json` via the Node merge pattern. The rename is inside Node so the swap is atomic on every platform (Mac / Linux / Windows Git Bash) and does not run if the JSON write fails:
+
+```bash
+node -e '
+  const fs = require("fs"), path = require("path"), home = require("os").homedir();
+  const cfg = path.join(home, ".claude.json");
+  let j = {};
+  if (fs.existsSync(cfg)) {
+    try { j = JSON.parse(fs.readFileSync(cfg, "utf8")); }
+    catch (e) {
+      const backup = cfg + ".backup-" + Date.now();
+      fs.copyFileSync(cfg, backup);
+      console.error("CONFIG_BACKUP=" + backup);
+      j = {};
     }
   }
+  j.mcpServers = j.mcpServers || {};
+  j.mcpServers.calendly = { type: "http", url: "https://mcp.calendly.com" };
+  const tmp = cfg + ".tmp";
+  fs.writeFileSync(tmp, JSON.stringify(j, null, 2));
+  fs.renameSync(tmp, cfg);
+'
+```
+
+If the merge stderr emits `CONFIG_BACKUP=`, the existing config was unreadable and Claude has just made a backup. Surface this to the user once: *"Your settings file was unreadable, so I made a safe backup before saving."*
+
+### Step 3 — Open Claude Code's OAuth start URL inside Playwright
+
+When Claude Code's MCP runtime first contacts an unauthenticated hosted server, it emits an OAuth start URL for the user to visit. Capture that URL and open it inside the Playwright MCP browser instead of the user's default browser.
+
+**How to obtain the OAuth start URL.** Claude Code 2.x does not publish a stable scriptable subcommand to mint the URL on demand — the supported way is to let the runtime emit it as part of the 401 challenge when an unauthenticated tool call is made. Two paths, in order of preference:
+
+1. **401-challenge capture (primary).** Invoke any `mcp__calendly__*` tool. Claude Code surfaces the OAuth start URL alongside the 401. Per the live discovery document, the canonical authorize URL is `https://calendly.com/oauth/authorize?...` (with `client_id`, `redirect_uri`, `response_type=code`, `code_challenge`, `code_challenge_method=S256`, `state`, and a `scope` of `mcp:scheduling:read` / `mcp:scheduling:write`). Capture the first matching URL from the surfacing.
+
+2. **`claude mcp` subcommand (best-effort).** Some Claude Code builds expose an `authenticate` or equivalent subcommand. Probe with `claude mcp --help` and parse for an authenticate-style verb; if present, run it and capture stdout/stderr. If absent, fall back to path 1. Either way, the URL pattern to grep for is broad enough to catch both Calendly's own host and any wrapping shape:
+
+```bash
+# Adjust the input source to whatever you have available (subcommand stderr, tool surfacing, etc.)
+AUTH_URL=$(echo "$INPUT" | grep -oE 'https://(mcp\.calendly\.com|calendly\.com/oauth)/[^[:space:]]+' | head -1)
+echo "AUTH_URL=$AUTH_URL"
+```
+
+Then drive Playwright to that URL:
+
+```
+mcp__playwright__browser_navigate({ url: <AUTH_URL> })
+```
+
+Take a `mcp__playwright__browser_snapshot()`. Reason from the snapshot:
+
+- **Logged in + consent UI visible** (you see Calendly's app-permission screen with an Allow / Authorize button and the Claude Code app name) → continue to Step 4.
+- **Not logged in** (Calendly sign-in form, "Continue with Google/Microsoft", magic-link prompt, or SSO redirect) → tell the user, *once*: *"Please sign in to your Calendly account in the browser window I just opened. On the next screen you'll see an **Allow** button — click it once you're there."* Then `mcp__playwright__browser_wait_for` polling for consent text (`"would like access"` / `"requesting access"` / `"Allow"` / `"Authorize"`). Generous timeout (5 minutes); no nagging. After a long timeout, check in once: *"Still on the sign-in page? Anything I can help with?"*
+- **Wrong account signed in** (the user has multiple Calendly accounts and the session is on the wrong one) → tell them: *"Looks like you're signed in to a different Calendly account than you meant. Please sign out and sign back in with the right account, then I'll continue."*
+
+### Step 4 — Auto-click Allow + auto-detect callback
+
+#### 4a — Narrate, click Allow
+
+Snapshot the consent page. Extract human-readable scope items via `browser_evaluate`:
+
+```javascript
+() => {
+  const items = [...document.querySelectorAll('li, [role="listitem"]')]
+    .map(el => (el.textContent || '').trim())
+    .filter(t => t.length > 4 && t.length < 120);
+  return { scopes: items.slice(0, 12) };
 }
 ```
 
-Merge into the existing `mcpServers` object rather than overwriting it. If `~/.claude.json` does not exist, create it with just the calendly entry. If the file exists but is corrupted, back it up to `~/.claude.json.backup` first, then write a fresh config.
+Surface a one-line summary so the user has visibility into what's being authorised (3-5 representative scopes deduplicated):
 
-Tell the user: "I have saved the connection. Now I just need you to sign in to your Calendly once."
+> "Calendly is showing the permissions screen — it's asking to: \<scope 1\>, \<scope 2\>, \<scope 3\>. Clicking **Allow** now."
 
-### Step 3 — Walk the user through the browser sign-in
+Then locate the Allow button by accessibility role + name (case-insensitive, allow `Allow` / `Accept` / `Authorize` / `Authorise` / `Grant access`):
 
-The first time the Calendly MCP server is contacted, Claude Code will open a browser window asking the user to sign in to Calendly and approve the connection. You cannot do this for them — Calendly requires their authenticated session.
+```
+mcp__playwright__browser_click({
+  target: <ref of the button matching role:button, name:/^(allow|accept|authori[sz]e|grant access)/i>,
+  element: "Allow button on the Calendly consent screen"
+})
+```
 
-Tell the user (one instruction at a time, waiting for confirmation between each):
+If the Allow button cannot be located in the snapshot (UI shifted, embedded iframe, unexpected layout), fall back to a one-time user-click prompt: *"I couldn't find the Allow button automatically — please click **Allow** in the browser window."*
 
-1. "Please close and reopen Claude Code so the new connection becomes active. Let me know when you're back."
+#### 4b — Auto-detect callback completion
 
-2. When they confirm → "Now say to me: **'connect to my calendly now'**. A browser window will pop up asking you to sign in to Calendly. Tell me when you see it."
+Calendly redirects to Claude Code's localhost callback (Claude Code's MCP runtime owns the listener). Wait for the redirect to complete via `browser_wait_for` on the post-redirect page text. The exact callback page text is not stable across Claude Code 2.x builds — poll for any of several plausible markers, and as a stronger signal also detect a URL change to `localhost`/`127.0.0.1` via a `browser_evaluate`:
 
-3. When they see the sign-in window → "Sign in with your Calendly email and password, then click **Allow** on the permission screen. Let me know when you're back here."
-   - If the user already signed in to Calendly recently → "You may not need to type a password — Calendly might just show the **Allow** screen straight away. That's fine, just click **Allow**."
-   - If the user can't see the browser window → "Check behind your other windows — sometimes it opens in the background. If you really can't find it, tell me and I'll try again."
+```
+mcp__playwright__browser_wait_for({
+  text: "you can close this tab" OR "connection complete" OR "successfully authenticated" OR "authentication successful",
+  time: 300
+})
+```
 
-Common mistakes to look out for (and correct by re-asking):
-- The user closes the browser window without clicking **Allow** → "No problem — let me try once more. I'll trigger the sign-in again, just click **Allow** when it pops up this time."
-- The user signs in to the wrong Calendly account → "I think you might have signed in with a different email than you meant to. In your browser, sign out of Calendly, then tell me 'try again' and I'll re-trigger the sign-in."
-- The user reports a "this site can't be reached" page → "Sounds like a network hiccup. Is your internet working? Once you confirm, I'll try once more."
+If the text wait does not match, run a follow-up `browser_evaluate` to check whether the URL has changed to a localhost callback — this is the more reliable signal that the OAuth flow has handed back the code:
 
-When the user confirms they clicked **Allow**, immediately move to Step 4.
+```javascript
+() => /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/)/.test(window.location.href)
+```
 
-### Step 4 — Verify the connection
+If either succeeds, treat the callback as complete and skip to **Step 6**. If neither succeeds within 5 minutes, check in *once* with the user. Do not nag.
 
-Tell the user: "Let me just check that everything is talking to Calendly correctly."
+If the user clicks **Cancel** or **Deny** instead of **Allow**, Calendly redirects back without a code. Tell them: *"Looks like you declined the permission — no problem. Want me to try again?"* If yes, re-navigate to the OAuth start URL and re-run Step 4.
 
-Call `mcp__calendly__users-get_current_user` (no arguments). If it returns the user's profile, the connection works. Move to the success message.
+### Step 5 — Detect plan/admin restriction interstitial (rare)
 
-If the verification tool returns an error:
-- `401 Unauthorized` / `Not authenticated` → "The sign-in didn't quite stick. Let me trigger it once more for you." Re-do Step 3.
-- `403 Forbidden` → "Your connection is working, but your Calendly account doesn't have permission for that action. Your Calendly plan may not include it."
-- `429 Rate limited` → "Calendly is asking us to slow down for a moment — let me try again in a few seconds." Wait 10s, retry.
-- Tools not available in current session → "I have saved everything. Please restart Claude Code once so the connection becomes active, then say 'test my Calendly connection' and I will verify it."
-- Any other error → "Something went wrong — let me try again." Retry once; if still failing, ask the user to re-do the sign-in (Step 3).
+Some Calendly accounts (older trials, suspended seats, or workspaces with admin-managed integration policies) may render an interstitial after the Allow click that blocks the connection rather than redirecting to the callback. This is distinct from a normal consent flow — the Allow button completes but Calendly shows an "approval required" / "plan does not include" page instead of redirecting.
 
-### Step 5 — Success message
+Detect via `browser_evaluate` against the post-Allow snapshot:
 
-Tell the user, in one short message:
+```javascript
+() => {
+  const text = document.body?.innerText || '';
+  const markers = [
+    /administrator (must |approve|approval)/i,
+    /admin (consent|approval) (required|needed)/i,
+    /your (organization |organisation |org )?admin/i,
+    /awaiting approval/i,
+    /requires admin/i,
+    /your (calendly )?plan does not (include|allow)/i,
+    /upgrade .* plan/i,
+  ];
+  return markers.some(re => re.test(text));
+}
+```
+
+If the function returns `true`, surface cleanly and exit:
+
+> "Calendly is telling me your account or workspace administrator needs to allow this connection first. Once that's sorted, come back and say *'connect to my Calendly'* and I'll finish setting up."
+
+If the function returns `false`, the consent flow completed normally — proceed to Step 6.
+
+### Step 6 — Close the browser + verify
+
+Close Playwright (if not already closed):
+
+```
+mcp__playwright__browser_close()
+```
+
+Tell the user: *"I've saved your connection — let me check it works."*
+
+Verify by calling a canonical Calendly read-only smoke tool. Tool names aren't always discoverable up-front — discover at runtime by listing the `mcp__calendly__*` tools available in the current session and pick a safe read-only one (e.g. `users-get_current_user` with no arguments). If it returns a result, the connection works.
+
+The verification depends on whether the MCP server is already active in the current session:
+
+- **Tools available + call returns a profile** → capture the user's name / email / timezone, surface a success message including the user's name.
+- **Tools not yet available** (most likely on first setup, since the MCP config was just written and Claude Code hasn't reloaded the tool surface) → tell the user *"All saved. Please close and reopen the chat once, then say 'test my Calendly' and I'll verify the new connection."*
+- **Call returns 401 / `invalid_token`** → walk Phase 1 from Step 3 once. If still failing, surface the user-facing error and stop.
+- **Call returns 403** → "Your connection is working, but your Calendly account doesn't have permission for that action — your plan may not include it." Stop here.
+- **`429 Rate limited`** → "Calendly is asking me to slow down — let me wait a moment and try again." Wait 10 seconds, retry once.
+
+### Success message
+
+Tell the user, in one short message (include the live name from the smoke call if available):
 
 > "All done! Your Calendly is now connected. You can ask me things like 'what meetings do I have this week?', 'show me my event types', or 'create a one-time booking link for a 30-minute intro call'. Give it a try!"
 
@@ -211,7 +365,7 @@ The official MCP server exposes tools with the prefix `mcp__calendly__`. Tool na
 | `routing_forms-list_routing_form_submissions` | List submissions to a routing form | User asks "show me leads from this week's routing form" |
 | `routing_forms-get_routing_form_submission` | Get one submission | Drilling into a single lead |
 
-> **Note:** Tool names are from the official Calendly supported-tools list. If a tool name does not resolve, list the available tools with the `mcp__calendly__` prefix to discover the current naming. Calendly may add or rename tools as the server evolves.
+> **If a tool name in the table above does not resolve**, list the available `mcp__calendly__*` tools in the current session, match by description to the category you need, and use the actual name. Never guess — list first, then call.
 
 ---
 
@@ -220,6 +374,7 @@ The official MCP server exposes tools with the prefix `mcp__calendly__`. Tool na
 | What the user says | Tool to use |
 |---|---|
 | "Connect my Calendly" / "Help me set up Calendly" | **Run Phase 1** |
+| "My Calendly stopped working" / "I'm getting auth errors" | Walk Phase 1 from Step 3 (Claude Code re-runs the OAuth dance) |
 | "What meetings do I have this week?" | `meetings-list_events` (filter by date range) |
 | "Show me my booking links" / "List my event types" | `event_types-list_event_types` |
 | "When am I free for a 30-min intro next week?" | `event_types-list_event_types` (find the 30-min one) → `event_types-list_event_type_available_times` |
@@ -242,13 +397,13 @@ When a Calendly tool call fails, diagnose and respond in plain English. Never sh
 
 | Error | What to say | How to fix |
 |---|---|---|
-| 401 Unauthorized / Not authenticated | "Your Calendly sign-in has expired — let me reconnect you." | Re-trigger the OAuth flow (Phase 1, Step 3) |
+| 401 Unauthorized / Not authenticated | "Your Calendly sign-in has expired — let me reconnect you." | Walk Phase 1 from Step 3; Claude Code re-runs OAuth |
 | 403 Forbidden / insufficient scope | "Your Calendly plan doesn't include that action, or your role on the team doesn't allow it." | No fix in the connector — user talks to their Calendly admin or upgrades plan (e.g. Teams for routing forms) |
 | 404 Not Found (event / event type) | "I couldn't find that — let me list your events again." | Use `meetings-list_events` or `event_types-list_event_types` to refresh |
 | 429 Rate limited | "Calendly is asking me to slow down. I will wait a moment and try again." | Wait 10 seconds and retry once |
 | 400 Invalid request | "The details I tried to send didn't match what Calendly expected — let me try again." | Re-fetch the event type / event UUID, retry once |
-| MCP server not running | "The Calendly connection isn't active yet. Please restart Claude Code so it picks up the new settings." | User restarts Claude Code |
-| Any other API error | "Something went wrong with Calendly — let me try again." | Retry once; if still failing, re-do the sign-in |
+| MCP server not running | "The Calendly connection isn't active yet. Please close and reopen the chat so it picks up the new settings." | User closes and reopens Claude Code |
+| Any other API error | "Something went wrong with Calendly — let me try again." | Retry once; if still failing, walk Phase 1 from Step 3 |
 
 ---
 
@@ -291,9 +446,13 @@ The Calendly MCP connector **cannot** do (needs the Calendly UI or other tools):
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
-- **jotform-connector**: Sibling hosted-MCP connector — same conversational install pattern, different platform
+- **first-run-setup**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **linear-connector**: Sibling hosted OAuth-only MCP connector with DCR — the canonical 6-step Playwright-driven install pattern this skill mirrors
+- **jotform-connector**: Sibling hosted OAuth-only MCP connector — identical install pattern
+- **monday-connector**: Sibling Playwright-driven autonomous connector — reference for snapshot-and-reason model
+- **slack-connector**: Sibling Playwright-driven autonomous connector — reference for autonomous-install rules
 - **google-workspace-connector**: Cross-reference Calendly meetings with the user's Google Calendar
 - **email-composer**: Draft follow-ups tied to upcoming or cancelled Calendly bookings
 - **n8n-workflow-patterns**: Build automations triggered by new Calendly bookings once the connector is live
+- **playwright-skill**: The Playwright MCP browser is how this skill drives the Calendly consent flow
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Calendly auth or API errors
