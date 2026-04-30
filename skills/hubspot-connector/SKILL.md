@@ -1,7 +1,7 @@
 ---
 name: hubspot-connector
-description: "Connect and operate HubSpot CRM via the official @hubspot/mcp-server. Use this skill when the user asks to set up HubSpot, connect their CRM, or interact with contacts, companies, deals, tickets, notes, tasks, associations, properties, custom objects, or workflows. On first use, run Phase 1 to install and authenticate the connector before attempting any tool calls."
-allowed-tools: mcp__hubspot__*, Bash, Read, Write, Edit
+description: "Connect and operate HubSpot CRM via the official @hubspot/mcp-server. Drives the entire setup autonomously through app.hubspot.com/private-apps/ in a Playwright MCP browser: opens the Create-a-private-app form, fills the name, walks the Scopes tab to tick the required CRM scopes, clicks Create app, and reads the Private App access token directly from the DOM. The only human moment is the user signing in to HubSpot once. Use this skill when the user asks to set up HubSpot, connect their CRM, or interact with contacts, companies, deals, tickets, notes, tasks, associations, properties, custom objects, or workflows. On first use, run Phase 1 to install and authenticate the connector before attempting any tool calls."
+allowed-tools: mcp__hubspot__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: CRM & Marketing
   tags:
@@ -27,7 +27,7 @@ metadata:
 
 This skill lets you read and update a user's HubSpot CRM data on their behalf using the **official first-party `@hubspot/mcp-server`** (npm, beta). It has two phases:
 
-- **Phase 1 — Install & Auth.** A conversational bootstrap (≤5 steps). The user has never used this before. You walk them through creating a Private App in HubSpot, collecting the access token, and wiring the MCP server into Claude Code. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", or any file paths. They should feel like they are having a conversation, and at the end their HubSpot is connected.
+- **Phase 1 — Install & Auth (autonomous).** Claude drives the entire `app.hubspot.com/private-apps/` flow inside a Playwright MCP browser. The user does exactly one thing: sign in to HubSpot in the Playwright window. Everything else — clicking *Create a private app*, filling the name and description, walking the *Scopes* tab to tick the required CRM scopes, clicking *Create app*, reading the Private App access token from the DOM, writing `~/.claude.json` — is autonomous. The user never copies, never pastes, never opens a tab themselves, never reads a token aloud, never types into chat anything other than confirmations.
 - **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__hubspot__*` native tools to read and update CRM data.
 
 **Which phase to run** — Before any tool call, check whether the HubSpot MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.hubspot` entry. If it exists and has a `PRIVATE_APP_ACCESS_TOKEN` in its `env` block, treat the connector as authenticated and skip to Phase 2. Otherwise, run Phase 1.
@@ -42,62 +42,135 @@ This skill lets you read and update a user's HubSpot CRM data on their behalf us
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work, the user only signs in to HubSpot once. Every message you send during Phase 1 must follow these rules:
 
-- **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, or environment variable. If you must refer to a technical thing, name it plainly: "a connection key", "a small setting on your computer".
-- **Tell them what is about to happen.** Before any action you take: "I am going to save your connection details now — this takes just a moment."
+- **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only action you ever request is "please sign in to the browser window I just opened."
+- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, environment variable, Playwright, browser automation, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page" — not "Playwright" or "Chromium". If you must name a technical concept, plainly:
+  - Private App access token → **"your HubSpot key"**
+  - Scopes → **"permissions"**
+  - Restart Claude Code → **"close and reopen"**
+  - Private App → **"a small connection app inside your HubSpot"**
+- **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening HubSpot for you now"), once when you need them ("please sign in"), once when you're done ("your HubSpot is now connected"). No commentary in between.
 - **React to success and failure warmly.** Good: "That worked — your HubSpot is now connected." Bad: "MCP server initialized with 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
-- **Never mention file paths, commands, or scripts** to the user. You run them; you do not describe them.
+- **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
+- **No fabricated UI assertions.** Don't reference button colours ("the orange button") or specific positioning ("top-right corner") — verify from the live snapshot. HubSpot's admin UI changes frequently.
+- **Never echo the HubSpot key** back to the user. Never include it in any output visible to the user.
 
 ---
 
-## PHASE 1 — Install & Auth (≤5 steps)
+## PHASE 1 — Install & Auth (autonomous via Playwright)
 
-This phase gets the Private App created, the access token collected, the MCP server wired into Claude Code, and the connection verified. You do every technical action; the user only provides information and clicks things in their browser.
+Claude drives the user's browser end-to-end via Playwright MCP. The user's only role is signing in to HubSpot when prompted. Claude handles every other step — navigation, form fills, scope ticks, app creation, token capture, config write, verify.
+
+> **Reasoning model.** Each Playwright step describes a *goal* (e.g., "find the scope checkbox for `crm.objects.contacts.read`"). Achieve it via `mcp__playwright__browser_snapshot` → reason about the page → call `browser_click` / `browser_evaluate` / `browser_navigate` / `browser_fill_form` / `browser_type`. Do not hardcode CSS selectors or button colours — HubSpot's admin UI changes regularly. Re-snapshot whenever the page state changes.
 
 ### Step 1 — Orient the user
 
-Tell the user in one short message:
+Tell the user, in one short message:
 
-> "To connect your HubSpot, I need you to create a free connection key inside your HubSpot account. This takes about three minutes. I will tell you exactly what to click, one step at a time."
+> "I'll connect your HubSpot now. I'm opening a browser window — please sign in to HubSpot there, and I'll set up a small connection app for you. About a minute."
 
-### Step 2 — Walk the user through creating a Private App
+If the user has mentioned a specific portal/account name, remember it for the disambiguation in Step 2.
 
-The user needs to create a Private App in HubSpot and copy the access token. You cannot do this step for them — HubSpot requires their authenticated session.
+### Step 2 — Open the Private Apps page and confirm a logged-in session
 
-Tell the user (one instruction at a time, waiting for confirmation between each):
+Call `mcp__playwright__browser_navigate({ url: "https://app.hubspot.com/private-apps/" })`.
 
-1. "Please open this page in your browser: **https://app.hubspot.com/private-apps/** — and sign in with your HubSpot account. Let me know when you are signed in."
-   - If the user has multiple portals, they may need to select one first. If they mention this, say: "Pick the account you want me to work with, then let me know."
+Take a `mcp__playwright__browser_snapshot()`. Reason from it:
 
-2. When they confirm → "Now click the orange **Create a private app** button. A form will appear. Tell me when you see it."
+- **Logged in to a single portal** (you see the Private Apps list, "Create a private app" control, or HubSpot navigation chrome) → continue to Step 3.
+- **Not logged in** → tell the user *once*: *"The browser window is open — please sign in to HubSpot when you're ready."* Poll silently with `mcp__playwright__browser_wait_for({ text: "Create a private app" })` (or any post-login HubSpot shell element from a fresh snapshot). Do not ask the user to confirm; detect login completion yourself. SSO, 2FA, and email verification all resolve to the same Private Apps page.
+- **Portal selector / multi-account picker** (HubSpot shows a list of portals to pick) → snapshot the portal options. If the user named a specific portal, match it against the list and click that option. Otherwise list the visible portal names plainly and ask the user to pick one.
 
-3. When they see the form → deliver the field values:
-   - "For **Name**, type: **Claude Assistant**."
-   - "For **Description**, you can type: **AI assistant connection** — or leave it blank."
-   - "Now click the **Scopes** tab at the top of the form."
+If `browser_wait_for` times out (5+ minutes), check in: *"Still on the sign-in page? Anything I can help with?"*
 
-4. When they are on the Scopes tab → guide them through selecting scopes. Start with read-only for safety:
-   - "Under **CRM**, tick these boxes: **crm.objects.contacts.read**, **crm.objects.companies.read**, **crm.objects.deals.read**, and **crm.schemas.contacts.read**."
-   - "If you also want me to create or update records for you, also tick: **crm.objects.contacts.write**, **crm.objects.companies.write**, and **crm.objects.deals.write**."
-   - "You can always add more permissions later without starting over."
-   - "When you have ticked the boxes, click the orange **Create app** button in the top right. Then click **Continue creating** if HubSpot asks you to confirm."
+### Step 3 — Open the Create-a-private-app form
 
-5. When they confirm → "You should now see a screen with your **access token** — it starts with `pat-`. Please copy it and paste it to me."
+From the Private Apps page, locate the create-app control in the snapshot (label is typically "Create a private app" — verify from the snapshot, do not assume colour or position) and click it via `browser_click`. Snapshot to confirm a creation form appears with a Basic Info or Name field.
 
-Common mistakes to look out for (and correct by re-asking):
-- The user pasted a placeholder like `your_token_here` → ask again: "I think that was a copy mistake — please try the real value that starts with `pat-`."
-- The user pasted something that does not start with `pat-` → "That doesn't look quite right. The value I need starts with `pat-` and is quite long. Can you check and try again?"
-- The user says they cannot find the Scopes tab → "It is a tab at the top of the form, next to **Basic Info**. Click on it and you should see a list of permissions."
+### Step 4 — Fill Basic Info
 
-### Step 3 — Save the connection
+Fill the form via `browser_fill_form` (or individual `browser_type` calls):
+- **Name** → `"Claude Assistant"`
+- **Description** → `"AI assistant connection"` (skip if the field isn't present)
 
-Once the user pastes the access token, silently add or update the HubSpot MCP entry in the user's `~/.claude.json` file (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`).
+If the form has a logo/image upload, leave it blank.
 
-The structure to add:
+### Step 5 — Configure scopes on the Scopes tab
+
+Locate the "Scopes" tab in the snapshot (commonly adjacent to "Basic Info"). Click it. Snapshot to confirm a scope list appears.
+
+Tick the following scope checkboxes. Re-snapshot after each tick to confirm the checkbox state changed.
+
+**CRM read scopes** (always — read-only baseline):
+- `crm.objects.contacts.read`
+- `crm.objects.companies.read`
+- `crm.objects.deals.read`
+- `crm.objects.tickets.read`
+- `crm.schemas.contacts.read`
+
+**CRM write scopes** (default — full functionality, skip only if user explicitly asked for read-only mode):
+- `crm.objects.contacts.write`
+- `crm.objects.companies.write`
+- `crm.objects.deals.write`
+- `crm.objects.tickets.write`
+
+The HubSpot scope list is grouped by category (CRM, Settings, etc.) and may use collapsed sections, search, or pagination. Strategy:
+
+- If a scope checkbox is visible in the snapshot → click it.
+- If not visible → look for a search/filter input on the page. If present, type the scope name into it via `browser_type` to filter the list, then click the matching checkbox.
+- If no search → look for a collapsed CRM category header and click it to expand, then snapshot again and click the checkboxes.
+
+Verify silently: re-snapshot and confirm all selected scopes are ticked before proceeding.
+
+### Step 6 — Create the app
+
+Locate the "Create app" button in the snapshot. Click it.
+
+If HubSpot shows a confirmation modal ("Continue creating", "Yes, create", or similar), snapshot the modal and click the affirmative option.
+
+Poll `mcp__playwright__browser_wait_for({ text: "access token" })` (or any post-creation indicator like "Show token", "Copy", or the masked token preview).
+
+### Step 7 — Capture the access token
+
+The post-creation screen displays the Private App access token (starts with `pat-`). Read it via `browser_evaluate`:
+
+```
+() => {
+  const candidates = [...document.querySelectorAll('input, code, textarea, [data-testid*="token"], [class*="token"]')];
+  for (const el of candidates) {
+    const v = (el.value || el.textContent || '').trim();
+    if (v.startsWith('pat-') && v.length > 30) return v;
+  }
+  return null;
+}
+```
+
+If the token is masked behind a "Show", "Reveal", or "Copy" button, click it via `browser_click`, re-snapshot, then re-evaluate.
+
+**Validation (silent):**
+- Token must start with `pat-`
+- Token must be longer than 30 characters
+
+If two snapshot attempts don't surface a valid token, stop and ask the user: *"I'm having trouble finding the connection key on the page — could you describe what's visible?"*
+
+### Step 8 — Save the connection (silent)
+
+Silently register the MCP server. **Prefer `claude mcp add` via Bash** — it's the official path and handles JSON merging.
+
+```bash
+claude mcp add hubspot \
+  --scope user \
+  --env PRIVATE_APP_ACCESS_TOKEN="<token captured in Step 7>" \
+  -- npx -y @hubspot/mcp-server
+```
+
+**Fallback if `claude mcp add` fails** (older Claude Code version, or CLI not on PATH) — write directly to `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`):
+
+<details>
+<summary>Direct JSON write</summary>
 
 ```json
 {
@@ -105,39 +178,38 @@ The structure to add:
     "hubspot": {
       "command": "npx",
       "args": ["-y", "@hubspot/mcp-server"],
-      "env": {
-        "PRIVATE_APP_ACCESS_TOKEN": "<token from Step 2>"
-      }
+      "env": { "PRIVATE_APP_ACCESS_TOKEN": "<token>" }
     }
   }
 }
 ```
+</details>
 
-Merge this into the existing `mcpServers` object rather than overwriting it. If `~/.claude.json` does not exist, create it with just the HubSpot entry. If the file exists but is corrupted, back it up to `~/.claude.json.backup` first, then write a fresh config.
+Merge into the existing `mcpServers` object — never overwrite. If `~/.claude.json` doesn't exist, create it. If it's corrupt, back up to `~/.claude.json.backup` first.
 
-Never echo the access token back to the user after writing it. Never include it in any output visible to the user.
+Never echo the access token back to the user. Never include it in any output visible to the user. Never log it to the conversation, even truncated.
 
-Tell the user: "I have saved your connection details. Let me verify everything is working."
+### Step 9 — Close the browser and verify
 
-### Step 4 — Verify the connection
+Close the Playwright browser via `mcp__playwright__browser_close()`. The token now lives only in `~/.claude.json`.
 
-Tell the user: "Let me just check that everything is talking to HubSpot correctly."
+Tell the user: *"Saved — let me check it works."*
 
 The verification depends on whether the MCP server is already active in the current session:
 
-- **If `mcp__hubspot__*` tools are available** (i.e., the MCP server was already running or has reloaded): call `mcp__hubspot__hubspot-get-user-details` (or the equivalent user/account info tool). If it returns the portal name, capture it and move to Step 5.
-- **If the tools are not yet available** (most likely on first setup, since the MCP config was just written): tell the user "I have saved everything. Please restart Claude Code once so the connection becomes active, then say 'test my HubSpot connection' and I will verify it."
+- **If `mcp__hubspot__*` tools are available**: call `mcp__hubspot__hubspot-get-user-details`. If it returns the portal name, capture and move to Step 10.
+- **If the tools are not yet available** (most likely on first setup): tell the user *"All saved. Please close and reopen Claude Code once so the connection becomes active, then say 'test my HubSpot' and I'll verify it."*
 
-If the verification tool returns an error:
-- `401 Unauthorized` or `Invalid token` → "The connection key didn't work. Could you double-check it in HubSpot? Go back to the Private App page and copy the token again." Then re-do Step 3 with the new token.
-- `403 Forbidden` or `Missing scope` → "Your connection is working, but I need an extra permission for that action. Let me tell you which box to tick." Guide them to the Private App's Scopes tab to add the missing scope, then tell them to click **Save** and come back.
-- Any other error → "Something went wrong — let me try again." Retry once; if still failing, ask the user to re-check their Private App is active.
+If verification returns an error:
+- `401 Unauthorized` / `Invalid token` → "The connection key didn't take — let me grab a fresh one." Re-run Steps 2–8 against the existing Claude Assistant Private App: navigate to its Auth tab, click "Rotate" / "Regenerate", capture the new token, update the config.
+- `403 Forbidden` / `Missing scope` → "I need one more permission to do that. Let me add it." Drive Playwright back to the existing Private App's Scopes tab, tick the missing scope, click Save (HubSpot doesn't issue a new token on scope edit), then retry the failing tool call.
+- Any other error → "Something went wrong — let me try again." Retry once; if still failing, re-run Steps 2–8.
 
-### Step 5 — Success message
+### Step 10 — Success message
 
 Tell the user, in one short message:
 
-> "All done! I am now connected to your HubSpot account **[portal name if available]**. You can ask me things like 'show me my recent contacts' or 'list my open deals'. Give it a try!"
+> "All done! I'm now connected to your HubSpot account **[portal name if available]**. You can ask me things like 'show me my recent contacts' or 'list my open deals'. Give it a try!"
 
 ---
 
