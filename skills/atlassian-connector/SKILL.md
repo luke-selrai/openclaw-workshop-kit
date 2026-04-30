@@ -45,6 +45,20 @@ This skill lets you read and update a user's Atlassian Cloud workspace on their 
 - **The community `sooperset/mcp-atlassian` Python package.** Versions before 0.17.0 carry CVE-2026-27825 (unauthenticated RCE via path traversal in Confluence attachment download) and CVE-2026-27826 (SSRF). Not the official server we configure. If the user already has it installed, advise removal as part of setup.
 - **A custom OAuth client.** Claude Code's MCP runtime owns the OAuth dance; we do not register our own client, run our own callback listener, or store tokens manually.
 
+### How auth works under the hood
+
+`mcp.atlassian.com/v1/mcp` is a **bridge / proxy OAuth server** (verified empirically 2026-04-30). The flow has three visible stages:
+
+1. **Pre-login client-approval at `mcp.atlassian.com/v1/authorize`** — shows the third-party client's name + which Atlassian apps it wants (Jira / Confluence / Compass checkboxes) + Approve / Cancel. This is the bridge confirming the user wants to grant the third-party client access.
+2. **Sign-in at `id.atlassian.com/login`** — Atlassian's central identity provider, after Approve.
+3. **Final scope consent at `api.atlassian.com/oauth2/authorize/server/consent`** — Atlassian's central OAuth runs through using its OWN pre-registered MCP application (`pVrZtjGOkBrahLr0ge4iVlstqGVRJfi3`) and an EXPANDED scope set. The bridge encodes the third-party client's original `redirect_uri` inside its `state` parameter so it can return to it after this flow completes.
+
+Practical implications surfaced in the SKILL:
+
+- **Auto-click Approve on stage 1** (the `mcp.atlassian.com/v1/authorize` page) is the canonical pattern — same as auto-Allow on the final consent of stage 3.
+- **The user lands on Atlassian's central login first**, not on the third-party consent screen — flip the original "logged in vs not logged in" branching accordingly.
+- **Some Atlassian accounts have no Jira/Confluence site access at all** and hit a hard "Access denied" screen at stage 3 instead of the usual Allow button. Different from the admin-allowlist-required failure mode — needs separate detection in Step 4.
+
 ---
 
 ## Communication rules for Phase 1
@@ -157,14 +171,34 @@ Then drive Playwright to that URL:
 mcp__playwright__browser_navigate({ url: <AUTH_URL> })
 ```
 
-Take a `mcp__playwright__browser_snapshot()`. Reason from the snapshot:
+Take a `mcp__playwright__browser_snapshot()`. Reason from the snapshot — Atlassian's flow has three visible stages, the page first lands on stage 1:
 
-- **Logged in** (you see Atlassian's consent UI — "wants to access your Atlassian account" with Allow / Cancel buttons) → continue to Step 4.
-- **Not logged in** (sign-in form, Atlassian logo + email/password fields, or SSO redirect) → tell the user, *once*: *"Please sign in to your Atlassian account in the browser window I just opened — I'll wait."* Then `mcp__playwright__browser_wait_for` polling for the consent text (`"wants to access"`) or the workspace-picker text (`"Choose a site"`). Generous timeout (5 minutes); no nagging. After a long timeout, check in once: *"Still on the sign-in page? Anything I can help with?"*
+#### 3a — Stage 1: pre-login client-approval (`mcp.atlassian.com/v1/authorize`)
 
-### Step 4 — Workspace picker + auto-click Allow + auto-detect callback
+The page heading reads "Atlassian Rovo MCP server" with a subheading like "\<client_name\> is requesting access" and a paragraph "If you approve, you will be redirected to Atlassian to complete authentication." The Apps section shows Jira / Confluence / Compass checkboxes (Jira and Confluence checked by default; Compass off). Two buttons: **Approve** and **Cancel**.
 
-Once past sign-in, snapshot the consent page and branch:
+Auto-click Approve (no user input — same shape as the final Allow click in Step 4):
+
+```
+mcp__playwright__browser_click({
+  target: <ref of the button matching role:button, name:/^Approve$/i>,
+  element: "Approve button on the Atlassian Rovo MCP pre-login consent screen"
+})
+```
+
+After click, Atlassian redirects to stage 2.
+
+#### 3b — Stage 2: sign-in (`id.atlassian.com/login`)
+
+Snapshot. If the user is already logged in to Atlassian (cookies in the Playwright profile), Atlassian skips this stage and goes straight to stage 3 — proceed to Step 4.
+
+If not logged in, tell the user *once*: *"Please sign in to your Atlassian account in the browser window I just opened — I'll wait."* Then `mcp__playwright__browser_wait_for` polling for either the workspace-picker text (`"Choose a site"`), the final consent text (`"is requesting access to"`), the access-denied text (`"This app requires access to a Jira"`), or a clear admin-approval interstitial. Generous timeout (5 minutes); no nagging. After a long timeout, check in once: *"Still on the sign-in page? Anything I can help with?"*
+
+The user may complete sign-in via password, 2FA, SSO, or magic link — all paths converge to stage 3.
+
+### Step 4 — Workspace picker / failure-mode detection / auto-click Allow / auto-detect callback
+
+Stage 3 of the bridge flow lands on `api.atlassian.com/oauth2/authorize/server/consent`. Snapshot the page and branch:
 
 #### 4a — Site picker (multi-site users)
 
@@ -175,13 +209,38 @@ If the snapshot shows a workspace/site picker (text like "Choose a site to grant
 
 If the user changes their mind later ("switch my Atlassian workspace"), re-run Phase 1 from Step 3 — Atlassian re-prompts the picker on a fresh consent flow.
 
-#### 4b — Admin-approval-required interstitial
+#### 4b — Failure mode 1: admin-approval-required interstitial
 
-If the snapshot shows phrasing like *"Your administrator must approve this app"*, *"This app requires admin consent"*, or *"Site administrator approval required"*, surface cleanly and exit:
+If the snapshot shows phrasing like *"Your administrator must approve this app"*, *"This app requires admin consent"*, *"Site administrator approval required"*, or *"awaiting approval"*, surface cleanly and exit:
 
 > "Atlassian is telling me your organisation needs an administrator to approve this connection first. Your Atlassian admin can enable it from **Manage your organization → Marketplace and third-party apps**. Once they approve, come back and say *'connect to my Atlassian'* and I'll finish setting up."
 
 Close the browser, do not retry — the block is org-policy.
+
+#### 4b2 — Failure mode 2: account has no Jira/Confluence site access
+
+Distinct from the admin-allowlist case. Atlassian shows an **"Access denied"** heading with a paragraph like *"This app requires access to a Jira & Confluence & User identity site which you don't have or don't have the permission to access."* This means the signed-in account is not provisioned to any site with the requested apps — common for fresh Atlassian accounts that have never joined a workspace, personal accounts that have no site, or org members not yet granted Jira/Confluence permissions.
+
+Detect via `browser_evaluate` against the snapshot:
+
+```javascript
+() => {
+  const text = document.body?.innerText || '';
+  const markers = [
+    /access denied/i,
+    /requires access to .* (jira|confluence|user identity site)/i,
+    /you don.t have or don.t have the permission/i,
+    /to create a site/i,  // Atlassian links to atlassian.com to create a site
+  ];
+  return markers.filter(re => re.test(text)).length >= 2; // require 2 matches to avoid false positives
+}
+```
+
+If `true`, surface cleanly and exit:
+
+> "Atlassian is telling me your account doesn't have access to any Jira or Confluence site yet. To use this connector you need access to at least one Atlassian workspace with Jira or Confluence on it. If you're new to Atlassian, you can create a free workspace at **atlassian.com**. If you should have access through your organisation, an admin needs to add you to the workspace first."
+
+Close the browser, do not retry — the user needs to acquire site access before continuing.
 
 #### 4c — Read scope summary, narrate, click Allow
 
