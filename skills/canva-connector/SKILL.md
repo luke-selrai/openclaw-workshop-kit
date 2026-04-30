@@ -1,7 +1,7 @@
 ---
 name: canva-connector
-description: "Connect and operate Canva via the official first-party Canva MCP server (https://mcp.canva.com/mcp). Use this skill when the user asks to set up Canva, connect their account, search or export designs, generate AI designs, add or read comments, manage folders, resize designs, or edit design content. On first use run Phase 1 to configure the MCP server and authenticate before attempting tool calls."
-allowed-tools: mcp__canva__*, Bash, Read, Write, Edit
+description: "Connect and operate Canva via the official first-party Canva MCP server (https://mcp.canva.com/mcp). Phase 1 is a 6-step Playwright-driven install: register the server with `claude mcp add`, open Claude Code's OAuth start URL inside the Playwright MCP browser, detect login state and prompt sign-in only if needed, auto-click Allow on the consent screen, auto-detect the callback via `browser_wait_for`, surface the Enterprise administrator-approval-required interstitial cleanly if it appears, then verify with a `mcp__canva__*` smoke call. The user's only manual moment is signing in to Canva inside the Playwright window. Use this skill when the user asks to set up Canva, connect their account, search or export designs, generate AI designs, add or read comments, manage folders, resize designs, or edit design content."
+allowed-tools: mcp__canva__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
   tags:
@@ -14,13 +14,17 @@ metadata:
     - mcp
   pairs-with:
     - skill: airtable-connector
-      reason: Pair structured data (Airtable) with Canva designs — generate one design per row
+      reason: Pair structured data (Airtable rows) with Canva designs — generate one design per row
     - skill: jotform-connector
       reason: Sibling hosted OAuth-only MCP connector — identical install pattern
     - skill: ad-creative
       reason: Generate ad copy variations then render them as Canva designs
     - skill: social-content
       reason: Turn social posts into Canva-ready visuals and resize for each platform
+    - skill: atlassian-connector
+      reason: Same Playwright-driven autonomous Phase 1 pattern (no Enterprise allowlist branch)
+    - skill: playwright-skill
+      reason: The Playwright MCP browser is how this skill drives the Canva consent flow
     - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting Canva auth or API errors
 ---
@@ -31,109 +35,241 @@ metadata:
 
 This skill lets you read and update a user's Canva account on their behalf using the **official first-party Canva MCP server** hosted at `https://mcp.canva.com/mcp`. It has two phases:
 
-- **Phase 1 — Install & Auth.** A conversational bootstrap (≤4 steps). The user has never used this before. You wire the hosted MCP server into Claude Code and walk the user through a one-click browser sign-in to Canva. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", "OAuth", or any file paths. They should feel like they are having a conversation, and at the end their Canva is connected.
-- **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__canva__*` native tools to read and update Canva data.
+- **Phase 1 — Install & Auth (autonomous, 6 steps).** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen, auto-detects the callback via `browser_wait_for`, surfaces the Enterprise administrator-approval-required interstitial cleanly when present. The user's only manual moment is signing in to Canva inside the Playwright window. Token storage is handled by Claude Code's MCP runtime — there is no manual `~/.claude.json` token write.
+- **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__canva__*` native tools to read and update Canva data. The hosted Canva MCP server provides **30 first-party tools** across 10 categories covering designs, assets, folders, comments, exports, AI generation, and a transactional editing flow.
 
-**Which phase to run** — Before any tool call, check whether the Canva MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.canva` entry. If it exists, treat the connector as configured and skip to Phase 2 (verify with a tool call before assuming the session is still valid). Otherwise, run Phase 1.
+**Which phase to run** — Before any tool call, check whether the Canva MCP server is already configured. Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.canva` entry. If present, attempt a verification tool call (Phase 1 Step 6). If it succeeds, the connector is ready — skip to Phase 2. If it 401s, walk through Phase 1 from Step 3 to re-trigger the OAuth flow (the registration is already in place).
 
 ### What this skill does NOT use
 
-- **Canva API keys or personal access tokens** — Canva MCP **requires OAuth for every user on first connect**. Bearer-token / API-key access to the MCP server is not supported. Do not ask the user for an API key.
-- **A self-hosted or community Canva MCP server** — Canva publishes the hosted endpoint at `https://mcp.canva.com/mcp` as the official first-party deployment. Always use the hosted URL.
-- **Direct Canva REST API calls (Canva Connect API)** — all reads and writes go through the MCP server, not direct HTTP calls.
-- **`.env` files** — nothing is stored in a local dotenv; the MCP config lives in `~/.claude.json`.
+- **Canva API keys or personal access tokens.** Canva MCP is OAuth-only; there is no Bearer-token / API-key path. Do not ask the user for an API key.
+- **A self-hosted or community Canva MCP server.** Canva publishes the hosted endpoint at `https://mcp.canva.com/mcp` as the official first-party deployment.
+- **Direct Canva REST API calls (Canva Connect API).** All reads and writes go through the MCP server.
+- **A custom OAuth client.** Claude Code's MCP runtime owns the OAuth dance; we do not register our own client, run our own callback listener, or store tokens manually.
 
 ### How auth works under the hood
 
-The hosted Canva MCP server uses OAuth 2.0 with PKCE and dynamic client registration. On first use, Claude Code opens a browser window, the user signs in to Canva, and the session is stored by Claude Code. No credentials are ever pasted. There is no fallback API-key path — if the browser sign-in fails (e.g. on a workspace where the admin restricts third-party app installs), the only option is to have the Canva workspace admin allowlist the Canva MCP app first.
+Canva's hosted MCP is a **bridge / proxy OAuth server** (verified empirically 2026-04-30): `mcp.canva.com/authorize` redirects users through Canva's central OAuth (`canva.com/api/oauth/authorize`) using Canva's pre-registered MCP application, then on a successful Allow it issues its own authorization code back to the registered client's redirect URI with the original PKCE/state preserved. From the SKILL's perspective this is a standard OAuth 2.1 + PKCE flow at `mcp.canva.com` — Claude Code's MCP runtime drives it natively.
+
+Two practical implications:
+
+- **The consent screen shows ~15 permissions** (the full set Canva's pre-registered MCP app declares: `profile:read`, `design:meta:read`, `design:content:read`, `design:content:write`, `folder:read`, `folder:write`, `brandtemplate:content:read`, `brandtemplate:meta:read`, `comment:read`, `comment:write`, `asset:read`, `asset:write`, `brandkit:read`, `help:answers:read`, `help:answers:write`). The bearer Canva mints back is **re-scoped down to what Claude Code's MCP runtime actually requested** — typically a subset suited to the active toolset. The user sees the worst-case set on the consent screen; the working set is narrower.
+- **Enterprise admin allowlisting is the only hard block.** If the user's Canva Enterprise admin has restricted third-party app installs, the consent flow surfaces an "administrator approval required" interstitial instead of completing. There is no API-key fallback.
 
 ---
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work, the user only signs in to Canva in the Playwright window. Every message you send during Phase 1 must follow these rules:
 
-- **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, URL, JSON, REST, or environment variable. If you must refer to a technical thing, name it plainly: "a small connection setting on your computer", "your Canva sign-in page".
-- **Tell them what is about to happen.** Before any action you take: "I am going to save your connection details now — this takes just a moment."
-- **React to success and failure warmly.** Good: "That worked — your Canva is now connected." Bad: "MCP server initialized with 200 OK."
+- **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only action you ever request is "please sign in to the browser window I just opened."
+- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, REST, environment variable, Playwright, browser automation, redirect URI, PKCE, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page" — not "Playwright" or "Chromium". If you must name a technical concept, plainly:
+  - access token / bearer → **"your connection key"**
+  - Allow / consent → **"the Allow button"**
+- **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening Canva for you now"), once when you need them ("please sign in"), once when you're done ("your Canva is now connected"). No commentary in between.
+- **React to success and failure warmly.** Good: "That worked — your Canva is now connected." Bad: "Token exchange returned 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
-- **Never mention file paths, commands, or scripts** to the user. You run them; you do not describe them.
+- **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
 
 ---
 
-## PHASE 1 — Install & Auth (≤4 steps)
+## Phase 0 — Pre-flight (silent)
 
-This phase wires the hosted Canva MCP server into Claude Code and walks the user through the one-time browser sign-in. You do every technical action; the user only signs in to Canva once in their browser.
+### 0.1 — Resume check
+
+Read `~/.claude.json` via Node (cross-platform safe — Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile):
+
+```bash
+node -e "
+const fs = require('fs');
+const path = require('path');
+const p = path.join(require('os').homedir(), '.claude.json');
+if (!fs.existsSync(p)) { console.log('NOT_CONFIGURED'); process.exit(0); }
+const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+const cv = (j.mcpServers || {}).canva;
+console.log(cv ? 'REGISTERED' : 'NOT_CONFIGURED');
+"
+```
+
+- `REGISTERED` → try Phase 1 Step 6 (verify) first. If it succeeds, the connector is already active — surface a friendly message and stop. If 401, walk Phase 1 from Step 3.
+- `NOT_CONFIGURED` → run full Phase 1 from Step 1.
+
+### 0.2 — Tooling check (silent)
+
+Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the `first-run-setup` skill. If Playwright MCP is missing, install autonomously with `claude mcp add playwright npx @playwright/mcp@latest --scope user`, ask the user to close and reopen the chat, then retry.
+
+---
+
+## PHASE 1 — Install & Auth (6 steps, autonomous via Playwright)
 
 ### Step 1 — Orient the user
 
-Tell the user in one short message:
+Tell the user, in one short message:
 
-> "To connect your Canva, I am going to set up the connection on your computer, then ask you to sign in to Canva once in your browser. The whole thing takes about a minute. There is no key to copy — Canva handles the sign-in for us. Ready?"
+> "I'll connect your Canva now. I'm opening a browser window for you. Please sign in there when it appears, and I'll handle the rest. Should take about a minute."
 
-### Step 2 — Save the connection
+### Step 2 — Register the MCP server with `claude mcp add`
 
-Once the user says they're ready, silently add or update the canva MCP entry in the user's `~/.claude.json` file (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`).
+Silently register the hosted Canva MCP server in the user's config:
 
-The Canva MCP server is **hosted only** — there is no local transport option and no API-key option. Use this exact entry:
+```bash
+claude mcp add canva https://mcp.canva.com/mcp --transport http --scope user
+```
 
-```json
-{
-  "mcpServers": {
-    "canva": {
-      "url": "https://mcp.canva.com/mcp"
+This writes the server entry to `~/.claude.json` and lets Claude Code's MCP runtime own the OAuth dance from here forward.
+
+**Fallback if `claude mcp add` errors** (older Claude Code version, CLI not on PATH, or unexpected output) — write the entry directly to `~/.claude.json` via the Node merge pattern:
+
+```bash
+node -e '
+  const fs = require("fs"), path = require("path"), home = require("os").homedir();
+  const cfg = path.join(home, ".claude.json");
+  let j = {};
+  if (fs.existsSync(cfg)) {
+    try { j = JSON.parse(fs.readFileSync(cfg, "utf8")); }
+    catch (e) {
+      const backup = cfg + ".backup-" + Date.now();
+      fs.copyFileSync(cfg, backup);
+      console.error("CONFIG_BACKUP=" + backup);
+      j = {};
     }
   }
+  j.mcpServers = j.mcpServers || {};
+  j.mcpServers.canva = { type: "http", url: "https://mcp.canva.com/mcp" };
+  fs.writeFileSync(cfg + ".tmp", JSON.stringify(j, null, 2));
+'
+mv ~/.claude.json.tmp ~/.claude.json
+```
+
+If the merge stderr emits `CONFIG_BACKUP=`, the existing config was unreadable and Claude has just made a backup. Surface this to the user once: *"Your settings file was unreadable, so I made a safe backup before saving."*
+
+### Step 3 — Open Claude Code's OAuth start URL inside Playwright
+
+When Claude Code's MCP runtime first contacts an unauthenticated hosted server, it emits an OAuth start URL for the user to visit. Capture that URL and open it inside the Playwright MCP browser instead of the user's default browser.
+
+The standard mechanism (Claude Code 2.x): trigger Claude Code's `/mcp` flow programmatically via the management subcommand. The URL is printed to stdout/stderr in the form `https://mcp.canva.com/authorize?...`. Capture it via:
+
+```bash
+AUTH_URL=$(claude mcp authenticate canva 2>&1 | grep -oE 'https://mcp\.canva\.com/[^[:space:]]+' | head -1)
+echo "AUTH_URL=$AUTH_URL"
+```
+
+If the `claude mcp authenticate` subcommand isn't available in the user's Claude Code version, fall back to invoking any `mcp__canva__*` tool (e.g. `search-designs`) — Claude Code will surface the OAuth start URL as part of its 401 challenge handling. Capture from that surfacing.
+
+Then drive Playwright to that URL:
+
+```
+mcp__playwright__browser_navigate({ url: <AUTH_URL> })
+```
+
+Take a `mcp__playwright__browser_snapshot()`. Reason from the snapshot:
+
+- **Logged in** (you see Canva's consent UI — "Canva AI Connector would like access to your Canva account" with a permissions list and Allow / Cancel buttons) → continue to Step 4.
+- **Not logged in** (Canva sign-in form, email/password fields, or SSO redirect) → tell the user, *once*: *"Please sign in to your Canva account in the browser window I just opened — I'll wait."* Then `mcp__playwright__browser_wait_for` polling for the consent text (`"would like access"`) or the admin interstitial text (`"administrator approval required"`). Generous timeout (5 minutes); no nagging. After a long timeout, check in once: *"Still on the sign-in page? Anything I can help with?"*
+
+> **Note on the consent screen surprise:** Canva's consent screen lists ~15 permissions (the full set Canva's pre-registered MCP app declares — `profile:read`, `design:meta:read`, `design:content:read/write`, `folder:read/write`, `brandtemplate:*`, `comment:read/write`, `asset:read/write`, `brandkit:read`, `help:answers:read/write`). The connection key Canva ultimately issues is re-scoped down to what Claude Code actually needs. The user is granting the worst-case set; the working set is narrower.
+
+### Step 4 — Auto-click Allow + auto-detect callback
+
+#### 4a — Read scope summary, narrate, click Allow
+
+Snapshot the consent page. Extract the human-readable scope items via `browser_evaluate`:
+
+```javascript
+() => {
+  const items = [...document.querySelectorAll('li, [role="listitem"]')]
+    .map(el => (el.textContent || '').trim())
+    .filter(t => t.length > 4 && t.length < 120);
+  return items.slice(0, 12);
 }
 ```
 
-Merge into the existing `mcpServers` object rather than overwriting it. If `~/.claude.json` does not exist, create it with just the canva entry. If the file exists but is corrupted, back it up to `~/.claude.json.backup` first, then write a fresh config.
+Tell the user, in one short message (3-5 representative items, deduplicated):
 
-Tell the user: "I have saved the connection. Now please close Claude Code completely and reopen it once, so it picks up the new setting. Let me know when you're back."
+> "Canva is showing the permissions screen — it's asking to: \<scope 1\>, \<scope 2\>, \<scope 3\>. Clicking **Allow** now."
 
-### Step 3 — Walk the user through the browser sign-in
+Then locate the Allow button by accessibility role + name (case-insensitive, allow `Allow` / `Authorize` / `Authorise` / `Grant access`):
 
-The first time the Canva MCP server is contacted after the restart, Claude Code will open a browser window asking the user to sign in to Canva and approve the connection. You cannot do this for them — Canva requires their authenticated session.
+```
+mcp__playwright__browser_click({
+  target: <ref of the button matching role:button, name:/^(allow|authori[sz]e|grant access)/i>,
+  element: "Allow button on the Canva consent screen"
+})
+```
 
-Tell the user (one instruction at a time, waiting for confirmation between each):
+If the Allow button cannot be located in the snapshot (UI shifted, embedded iframe, unexpected layout), fall back to a one-time user-click prompt: *"I couldn't find the Allow button automatically — please click **Allow** in the browser window."*
 
-1. "You should now be back in a fresh Claude Code session. Say to me: **'connect to my Canva now'**. A browser window will pop up asking you to sign in to Canva. Tell me when you see it."
+#### 4b — Auto-detect callback completion
 
-2. When they see the sign-in window → "Sign in with your Canva email and password, then click **Allow** on the permission screen. Let me know when you're back here."
-   - If the user already signed in to Canva recently → "You may not need to type a password — Canva might just show the **Allow** screen straight away. That's fine, just click **Allow**."
-   - If the user can't see the browser window → "Check behind your other windows — sometimes it opens in the background. If you really can't find it, tell me and I'll try again."
+Canva redirects to Claude Code's localhost callback (Claude Code's MCP runtime owns the listener). Wait for the redirect to complete via `browser_wait_for` on the post-redirect page text — Claude Code typically renders a "Connection complete, you can close this tab" page or similar. No "tell me when you're back" — detect from the snapshot:
 
-Common mistakes to look out for (and correct by re-asking):
+```
+mcp__playwright__browser_wait_for({
+  text: "you can close this tab" OR "connection complete" OR "successfully authenticated",
+  time: 600
+})
+```
 
-- The user closes the browser window without clicking **Allow** → "No problem — let me try once more. I'll trigger the sign-in again, just click **Allow** when it pops up this time."
-- The user signs in to the wrong Canva account (e.g. personal vs work) → "I think you might have signed in with a different email than you meant to. In your browser, sign out of Canva, then tell me 'try again' and I'll re-trigger the sign-in."
-- The user reports a "this site can't be reached" page → "Sounds like a network hiccup. Is your internet working? Once you confirm, I'll try once more."
-- The user reports their admin blocked the sign-in or they see an "administrator approval required" screen → see the Enterprise note at the bottom of this guide. There is no API-key fallback — their Canva workspace admin must allowlist the Canva MCP app.
+If the wait times out (5+ minutes), check in *once* with the user. Do not nag.
 
-When the user confirms they clicked **Allow**, immediately move to Step 4.
+### Step 5 — Detect Enterprise administrator-approval-required interstitial
 
-### Step 4 — Verify the connection
+After Step 4's Allow click — *or* in the rare case that an Enterprise admin has restricted third-party app installs and the consent flow never reached an Allow button — Canva may render an interstitial page like *"Your administrator must approve this app"*, *"This app requires admin consent"*, or *"Administrator approval required to install"*. This is a hard block — the user cannot proceed without their Canva Enterprise admin allowlisting the Canva MCP app for the workspace.
 
-Tell the user: "Let me just check that everything is talking to Canva correctly."
+Detect via `browser_evaluate` against the post-Allow snapshot:
 
-Call `mcp__canva__search-designs` with an empty query. If it returns a result (including an empty list — that's fine), the connection works. Move to the success message, including the live count.
+```javascript
+() => {
+  const text = document.body?.innerText || '';
+  const markers = [
+    /administrator (must |approve|approval)/i,
+    /admin (consent|approval) (required|needed)/i,
+    /workspace administrator/i,
+    /your admin/i,
+    /awaiting approval/i,
+  ];
+  return markers.some(re => re.test(text));
+}
+```
 
-If the verification tool returns an error:
+If the function returns `true`, surface cleanly and exit:
 
-- `401 Unauthorized` / `Not authenticated` → "The sign-in didn't quite stick. Let me trigger it once more for you." Re-do Step 3.
-- `403 Forbidden` → "Your connection is working, but your Canva user doesn't have permission for that action. An admin on your Canva workspace may need to adjust your access."
-- `429 Rate limited` → "Canva is asking us to slow down for a moment — let me try again in a few seconds." Wait 10s, retry.
-- Tools not available in current session → "I have saved everything. Please restart Claude Code once so the connection becomes active, then say 'test my Canva connection' and I will verify it."
-- Admin approval required → see the Enterprise note at the bottom. The user's Canva admin needs to allowlist the Canva MCP app before the sign-in will succeed.
-- Any other error → "Something went wrong — let me try again." Retry once; if still failing, ask the user to re-do the sign-in (Step 3).
+> "Canva is telling me your workspace administrator needs to allow this connection first. Your Canva Enterprise admin can allowlist the **Canva AI Connector** app in their admin console — once they do, come back and say *'connect to my Canva'* and I'll finish setting up. There isn't an alternative key-based path for Canva, so the admin step is the only way through."
 
-### Step 5 — Success message
+Close the browser, do not retry — the block is org-policy. There is **no API-key fallback** for Canva (unlike Airtable, which offers a PAT path).
 
-Tell the user, in one short message, and include the live design count from `search-designs` so the success feels real:
+If the function returns `false`, the consent flow completed normally — proceed to Step 6.
 
-> "All done! Your Canva is now connected — I can see **N designs**. You can ask me things like 'show me my latest designs', 'export my pitch deck as a PDF', 'generate a new social post about X', or 'add a comment to that design'. Give it a try!"
+### Step 6 — Close the browser + verify
+
+Close Playwright:
+
+```
+mcp__playwright__browser_close()
+```
+
+Tell the user: *"I've saved your connection — let me check it works."*
+
+Verify by calling a canonical Canva read-only smoke tool — `search-designs` with an empty query is the standard probe (returns the user's recent designs, including an empty list if the account is brand new):
+
+```
+mcp__canva__search-designs({ query: "" })
+```
+
+The verification depends on whether the MCP server is already active in the current session:
+
+- **Tools available + call returns design results (or an empty list)** → capture the count, surface a success message including the live count.
+- **Tools not yet available** (most likely on first setup, since the MCP config was just written and Claude Code hasn't reloaded the tool surface) → tell the user *"All saved. Please close and reopen the chat once, then say 'test my Canva' and I'll verify the new connection."*
+- **Call returns 401 / `invalid_token`** → walk Phase 1 from Step 3 once. If still failing, surface the user-facing error and stop.
+- **Call returns 403 / `plan_required`** → connection works but the user's plan doesn't grant access to that specific tool — explain plan gating and offer an alternative tool.
+- **Call returns 403 with admin-block messaging** → re-run Step 5's interstitial detection and surface the admin-allowlist guidance.
+
+### Success message
+
+Tell the user, in one short message (include the live design count if available):
+
+> "All done! Your Canva is now connected — I can see **\<N\> designs**. You can ask me things like 'show me my latest designs', 'export my pitch deck as a PDF', 'generate a new social post about X', or 'add a comment to that design'. Give it a try!"
 
 ---
 
@@ -252,6 +388,7 @@ Rules for editing transactions:
 | What the user says | Tool(s) to use |
 |---|---|
 | "Connect my Canva" / "Help me set up Canva" | **Run Phase 1** |
+| "My Canva stopped working" / "I'm getting auth errors" | Run Phase 1 from Step 3 (Claude Code re-runs the OAuth dance) |
 | "Show me my latest designs" | `search-designs` (empty or recency-sorted query) |
 | "Find my pitch deck" | `search-designs` (name match) |
 | "What pages are in this design?" | `get-design` → `get-design-pages` |
@@ -281,7 +418,7 @@ When a Canva tool call fails, diagnose and respond in plain English. Never show 
 
 | Error | What to say | How to fix |
 |---|---|---|
-| 401 Unauthorized / Not authenticated | "Your Canva sign-in has expired — let me reconnect you." | Re-trigger Phase 1 Step 3 |
+| 401 Unauthorized / Not authenticated | "Your Canva connection has expired — let me reconnect you." | Walk Phase 1 from Step 3 (Claude Code re-runs OAuth); retry the original tool call |
 | 403 Forbidden | "Your Canva user doesn't have permission for that. The design owner may need to share it with you, or your admin may need to grant access." | User talks to the design owner or workspace admin |
 | 403 `plan_required` (on `resize-design` or Enterprise tools) | "That feature needs a paid Canva plan. `resize-design` needs Pro or above; brand templates and autofill need Enterprise." | User upgrades their plan, or you suggest an alternative tool |
 | `license_required` on `export-design` | "This design uses premium Canva elements — exporting it needs a paid plan. On the Free plan, exports skip or fail if there are premium items." | User upgrades to Canva Pro, or removes the premium elements before export |
@@ -290,9 +427,9 @@ When a Canva tool call fails, diagnose and respond in plain English. Never show 
 | 429 Rate limited | "Canva is asking me to slow down. I'll wait a moment and try again." | Wait 10 seconds and retry once. Per-tool rate limits are listed in the Tool Reference above |
 | Editing transaction already open | "I had an edit session open — let me close that first, then retry." | Call `cancel-editing-transaction` on the stale session before starting a new one |
 | Editing transaction expired mid-edit | "The edit session timed out. Let me start fresh." | Re-open with `start-editing-transaction` and re-apply the operations |
-| MCP server not running | "The Canva connection isn't active yet. Please restart Claude Code so it picks up the new settings." | User restarts Claude Code |
-| Admin approval required (Enterprise) | "Your workspace administrator has restricted this sign-in. They need to allowlist the Canva MCP app for your workspace — once done, the sign-in will work for you and your team." | Canva workspace admin allowlists the MCP app; there is no API-key fallback |
-| Any other API error | "Something went wrong with Canva — let me try again." | Retry once; if still failing, re-do the sign-in |
+| MCP server not running | "The Canva connection isn't active yet. Please close and reopen the chat so it picks up the new settings." | User closes and reopens Claude Code |
+| Admin approval required (Enterprise) | "Your workspace administrator has restricted this connection. They need to allowlist the Canva AI Connector app for your workspace — once done, the sign-in will work for you and your team." | Canva workspace admin allowlists the MCP app; there is no API-key fallback |
+| Any other API error | "Something went wrong with Canva — let me try again." | Retry once; if still failing, walk Phase 1 from Step 3 |
 
 ---
 
@@ -317,21 +454,21 @@ The Canva MCP connector **cannot** do (needs the Canva UI or other tools):
 - **Delete** designs, assets, folders, or comments — none of the 30 tools supports deletion. Use the Canva UI to delete.
 - **Connect via API key** — Canva MCP is OAuth-only. No Bearer-token fallback.
 - **Bypass plan gating** — `resize-design` requires Pro+; brand templates and autofill require Enterprise. Calling them on lower plans returns `403`.
-- **Export premium elements on Free plans** — exports may fail with `license_required` if the design contains premium Canva content; the user must upgrade or remove those elements.
-- **Edit structurally without a transaction** — all content edits go through the 4-step transactional flow; there is no single-call "update design" tool.
+- **Export premium elements on Free plans** — exports may fail with `license_required` if the design contains premium Canva content.
+- **Edit structurally without a transaction** — all content edits go through the 4-step transactional flow.
 - **Access Canva Docs, Websites, or Print orders** via MCP — the current tool set is scoped to designs, assets, folders, comments, exports, and brand templates.
 - **Run more than one edit transaction on the same design at a time** — commit or cancel the first before opening another.
-- **Connect multiple Canva accounts simultaneously** — one browser session per `~/.claude.json` entry.
-- **Bypass Enterprise admin allowlisting** — if the admin blocks third-party app installs, the only option is for the admin to allowlist the Canva MCP app. There is no PAT fallback.
+- **Connect multiple Canva accounts simultaneously** — one connection per `~/.claude.json` entry.
+- **Bypass Enterprise admin allowlisting** — if the admin blocks third-party app installs, the only option is for the admin to allowlist the Canva AI Connector app. There is no PAT fallback.
 
 ---
 
 ## Enterprise note — admin allowlisting can block first connect
 
-On **Canva Enterprise workspaces**, the workspace administrator can restrict which third-party apps are allowed to connect via OAuth. If this is enforced, the browser sign-in will show an "administrator approval required" screen or silently fail. In that case:
+On **Canva Enterprise workspaces**, the workspace administrator can restrict which third-party apps are allowed to connect via OAuth. If this is enforced, the consent screen surfaces an "administrator approval required" interstitial (detected by Phase 1 Step 5).
 
-1. Unlike some other connectors (Airtable, for example), **there is no API-key fallback for Canva MCP** — OAuth is the only auth path supported by the hosted server.
-2. The user's Canva workspace admin needs to allowlist the Canva MCP app for the workspace. That is a one-time setup on the admin's side. Once allowlisted, other team members can connect normally via the browser.
+1. There is **no API-key fallback for Canva MCP** — OAuth is the only auth path supported by the hosted server.
+2. The user's Canva workspace admin needs to allowlist the **Canva AI Connector** app for the workspace. That is a one-time setup on the admin's side. Once allowlisted, other team members can connect normally.
 
 This mirrors the same shape as the Jotform "workspace admin must install first" limitation documented in `known-issues/JOTFORM-ADMIN-ONLY.md`.
 
@@ -350,16 +487,18 @@ This mirrors the same shape as the Jotform "workspace admin must install first" 
 - **One step at a time** — do not dump all data at once. Summarise first ("You have 84 designs; the most recent is 'Q2 Launch Deck' from yesterday"), then offer to show details.
 - **Pagination** — default to 25 designs or folder items per response unless the user asks for more. Offer to show more if there are additional pages.
 - **Rate limits vary by tool** — the Tool Reference above lists per-minute limits. Bulk operations (autofill batches, multi-design exports) should respect the tightest limit in the chain.
-- **Never log or echo credentials** — there is no user-visible token, but never paste the contents of `~/.claude.json` to the user either.
+- **Never log or echo connection details** — never paste the contents of `~/.claude.json` to the user.
 
 ---
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
-- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Canva auth or API errors
-- **airtable-connector**: Sibling hosted OAuth MCP connector — pair structured data (Airtable rows) with Canva autofill to generate one design per row
+- **first-run-setup**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **atlassian-connector**: Sibling Playwright-driven autonomous connector — same shape, no Enterprise allowlist branch
+- **airtable-connector**: Sibling hosted OAuth MCP connector — pair structured data with Canva autofill to generate one design per row
 - **jotform-connector**: Sibling hosted OAuth-only MCP connector — identical install pattern, no API-key fallback
 - **ad-creative**: Generate ad copy variations then render them as Canva designs with `autofill-design` (Enterprise) or `generate-design`
 - **social-content**: Turn social posts into Canva-ready visuals and `resize-design` across platforms (Pro+)
-- **canva-sdks/canva-claude-skills** (external repo, 24 stars): Canva publishes ready-made Claude Skills that layer on top of this connector — branded-presentation, design-translation, implement-feedback, presentation-time-fitting, resize-for-social-media, bulk-create, classroom-helper. Mention these when the user wants a higher-level workflow.
+- **playwright-skill**: The Playwright MCP browser is how this skill drives the Canva consent flow
+- **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Canva auth or API errors
+- **canva-sdks/canva-claude-skills** (external repo): Canva publishes ready-made Claude Skills that layer on top of this connector — branded-presentation, design-translation, implement-feedback, presentation-time-fitting, resize-for-social-media, bulk-create, classroom-helper. Mention these when the user wants a higher-level workflow.
