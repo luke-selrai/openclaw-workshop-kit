@@ -37,18 +37,11 @@ You almost certainly have one already. If not:
 
 ---
 
-### 3. GitHub Account
+### 3. GitHub Account — Not Required
 
-GitHub is where the workshop kit is stored. You need an account to download it.
+You do **not** need a GitHub account for the workshop. We will send you the workshop kit as a `.zip` file directly. There is nothing to download in advance.
 
-1. Go to: [github.com/signup](https://github.com/signup)
-2. Enter your email, choose a username and password
-3. Verify your email address (check your inbox)
-4. Done — the free plan is all you need
-
-> **What is GitHub?** It's like Google Drive for code and documents. Your workshop kit lives at `github.com/selrai-company/claude-workshop-kit` — free and public.
-
-✅ Done when: You can log in at [github.com](https://github.com)
+✅ Skip this step.
 
 ---
 
@@ -95,15 +88,11 @@ Your AI assistant can send you phone notifications when it finishes tasks or nee
 
 ---
 
-### 5. Workshop Kit — Download on the Day
+### 5. Workshop Kit — Sent to You on the Day
 
-You will run this command at the workshop. It downloads everything automatically:
+On the day of the workshop, we will send you a download link to a `.zip` file. Save it to your **Downloads** folder — your assistant will find it there and unpack it for you during setup.
 
-```bash
-git clone https://github.com/selrai-company/claude-workshop-kit.git ~/workshop-kit
-```
-
-No GitHub login required to download — the repo is public.
+You don't need to download anything in advance. Just keep an eye out for the message.
 
 ---
 
