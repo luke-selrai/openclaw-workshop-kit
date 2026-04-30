@@ -29,11 +29,11 @@ This skill connects a user's WhatsApp to Claude Code so they can message their a
 
 **The user only ever talks to ONE Claude Code session — this one.** Setup, install, pairing, verification all happen here. There is a second `claude` process running in another terminal (started with `--dangerously-load-development-channels`) but that is just the WhatsApp listener — a background server. The user pastes ONE word to start it, then leaves it alone. No two-session handoff, no resume flow, no "switch to the other window".
 
-**The user does exactly THREE things across the entire setup. Everything else is autonomous.**
+**The user does at most THREE things across the entire setup. Two are always required; one is conditional. Everything else is autonomous.**
 
-1. Scan a QR code with their phone to pair WhatsApp Web (Step 7).
-2. Type `claude-wa` in a fresh terminal to start the WhatsApp listener (Step 7). Claude creates the `claude-wa` shortcut autonomously before this. The user never types or pastes the long `claude --dangerously-load-development-channels …` form, and Claude does NOT auto-open a terminal via `osascript`, `gnome-terminal`, or `Start-Process`.
-3. Restart the host app (Claude Desktop or VS Code) if a prerequisite step (e.g. fresh Bun install) needs a fresh session to pick up new PATH entries.
+1. Scan a QR code with their phone to pair WhatsApp Web (Step 7) — **always**.
+2. Type `claude-wa` in a fresh terminal to start the WhatsApp listener (Step 7) — **always**. Claude creates the `claude-wa` shortcut autonomously before this. The user never types or pastes the long `claude --dangerously-load-development-channels …` form, and Claude does NOT auto-open a terminal via `osascript`, `gnome-terminal`, or `Start-Process`.
+3. Restart the host app (Claude Desktop or VS Code) — **only if** Step 3 had to install Bun or Node. Skipped entirely when a working dependency installer (`bun` or `npm`) is already present.
 
 That is the complete list. **The user does NOT search for the linking screen on their phone, does NOT paste the launch command, does NOT edit any config files for the allowlist.** Claude drives every install-side action; the user's phone only does what it has to do — scan the QR shown by the local QR page.
 
@@ -51,7 +51,7 @@ If you find yourself about to ask the user to "paste this into your terminal" wi
 
 - Scanning the QR code shown on the local QR page with their phone (Step 7).
 - Typing `claude-wa` in a fresh terminal once, to start the listener (Step 7).
-- Restarting the host app if Step 3 had to install Bun (Step 3).
+- Restarting the host app *only* if Step 3 had to install a dependency installer (Bun) into a fresh PATH (Step 3). Skipped when `npm` is already present.
 
 Everything else — detecting OS and shell, installing Bun, running `bun install` for the channel, writing the launch shortcut, ensuring PATH, killing stale listeners, polling for `creds.json` — Claude does via Bash and Write tools without asking the user to type or paste anything else.
 
@@ -137,56 +137,86 @@ Wait for confirmation on both. If they say no to (1), pause until they have What
 Silently run, in order:
 
 ```bash
-uname -s           # darwin = Mac, linux = Linux
+uname -s           # darwin = Mac, linux = Linux (covers WSL2 too)
 echo $SHELL        # /bin/zsh, /bin/bash, etc.
+grep -qi microsoft /proc/version 2>/dev/null && echo WSL2 || true
 ```
 
-On Windows (if the above fails), the user is almost certainly in PowerShell or Command Prompt. Ask them: *"Quick question. On your computer, when you open a black or blue text window to type commands, does the prompt start with `PS` or just `C:\...>`? Or are you not sure?"* Map their answer:
+The third line is the WSL2 detection. If it prints `WSL2`, the user is on Linux *inside Windows*. The POSIX install path applies (their `claude` runs in WSL), but Step 7's "fresh terminal" instruction must be specific: it has to be another WSL terminal, not a Windows-side cmd or PowerShell. Their `~/.local/bin/claude-wa` lives in the WSL filesystem, not on Windows PATH.
+
+On Windows native (if the `uname -s` line fails), the user is almost certainly in PowerShell or Command Prompt. Ask them: *"Quick question. On your computer, when you open a black or blue text window to type commands, does the prompt start with `PS` or just `C:\...>`? Or are you not sure?"* Map their answer:
 
 - Starts with `PS` → **PowerShell**
 - No `PS`, just `C:\...>` → **Command Prompt**
 - Not sure → default to **PowerShell** (it's the Windows default since Win10)
 
-Remember the detected OS. Step 5 needs it to write the right shortcut.
+Remember the detected OS (Mac, Linux, WSL2, Windows-native). Step 5 needs it to write the right shortcut and Step 7 needs it to give the right "fresh terminal" instruction.
 
-### Step 3 — Check the runtime stack
+### Step 3 — Check the dependency installer
 
-The WhatsApp channel server is a TypeScript program. Its `.mcp.json` runs it via `node` plus the `tsx` loader (already in `node_modules` after Step 4), and the upstream README also lists Bun as a supported alternative runtime + a fast dependency installer. Claude itself runs on Node, so Node is already present whenever this skill is loaded; Bun is the optional install we manage.
+The WhatsApp channel server is a TypeScript program. Its `.mcp.json` runs the listener via `node` plus the `tsx` loader (already in `node_modules` after Step 4). Claude itself runs on Node, so Node is always present whenever this skill is loaded; what we need is a working **dependency installer** to populate `node_modules/`. Either `bun` or `npm` is sufficient — Step 4 picks whichever is available.
 
-Tell the user: *"I'm going to check if a small helper tool is already on your computer. This takes a few seconds."*
+Silently check, in order:
 
-Silently run `bun --version`.
+```bash
+bun --version 2>/dev/null && INSTALLER=bun || (npm --version 2>/dev/null && INSTALLER=npm) || INSTALLER=
+```
 
-- **If it prints a version** → *"That's ready."* Go to Step 4. No restart needed.
-- **If the command is not found** → install Bun silently. This is where the third action in the user-action contract (restart the app) becomes mandatory because Step 4 will use Bun as the dependency installer and any future swap of `.mcp.json`'s runtime to Bun would also need it on PATH:
+- **`INSTALLER` is `bun` or `npm`** → *"That's ready."* Remember which one for Step 4. No restart needed. Skip to Step 4.
+- **`INSTALLER` is empty (neither found)** → install Bun silently. `npm` ships with every Node install but a few minimal Node packages omit it; Bun bundles its own runtime + installer in one binary, so it's the most reliable recovery path. This is where the third (conditional) action in the user-action contract becomes active:
 
-  - **Mac / Linux:** `curl -fsSL https://bun.sh/install | bash`
+  - **Mac / Linux / WSL2:** `curl -fsSL https://bun.sh/install | bash`
   - **Windows (PowerShell):** `powershell -c "irm bun.sh/install.ps1 | iex"`
 
   After install completes, tell the user:
 
-  *"I just installed the helper tool. There's one thing I need you to do before we keep going: fully quit and reopen the app you're using to talk to me, whether that's Claude Desktop or VS Code. Just closing the terminal isn't enough. The app inherits its environment from when it first launched, so the new tool won't be available until the whole app restarts. On Mac, that's Cmd+Q to quit, then reopen from the dock. After it's back open, come back to this conversation (it'll resume from where we left off) and say 'ready'."*
+  *"I just installed a small helper tool. There's one thing I need you to do before we keep going: fully quit and reopen the app you're using to talk to me, whether that's Claude Desktop or VS Code. Just closing the terminal isn't enough. The app inherits its environment from when it first launched, so the new tool won't be available until the whole app restarts. On Mac, that's Cmd+Q to quit, then reopen from the dock. After it's back open, come back to this conversation (it'll resume from where we left off) and say 'ready'."*
 
   **Why this matters:** the Step 7 listener launches in a terminal inside the user's app. That terminal inherits the app's PATH from launch time. If we install Bun now and don't restart, Step 4's `bun install` will work (it runs in this very Bash, not the user's terminal), but the user's terminal in Step 7 will still see the pre-install PATH. Restart at this point is cheap (the conversation resumes); skipping it leaves the user's future terminals with a stale PATH and creates confusing intermittent failures the next time they need a Bun-aware shell.
 
-  Wait for the user to confirm. Then re-verify with `bun --version`. If it still fails after the restart, apply the PATH fix guidance in `skills/first-run-setup/SKILL.md` ("Windows Snags Reference" section).
+  Wait for the user to confirm. Then re-verify with `bun --version`. If it still fails after the restart, apply the PATH fix guidance in `skills/first-run-setup/SKILL.md` ("Windows Snags Reference" section). Set `INSTALLER=bun` once verified.
 
 ### Step 4 — Install the WhatsApp channel's packages
 
 Tell the user: *"I'm installing the WhatsApp pieces now. About 30 seconds."*
 
-Silently run from the workshop-kit folder:
+Resolve the workshop-kit root robustly. Try git, then the conventional clone location, then `$PWD`. Validate the candidate has `whatsapp-channel/` underneath before accepting:
 
 ```bash
-WS_KIT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
-cd "$WS_KIT/whatsapp-channel" && bun install
+resolve_ws_kit() {
+  local c
+  c="$(git rev-parse --show-toplevel 2>/dev/null)"
+  [ -n "$c" ] && [ -d "$c/whatsapp-channel" ] && { echo "$c"; return 0; }
+  [ -d "$HOME/claude-workshop-kit/whatsapp-channel" ] && { echo "$HOME/claude-workshop-kit"; return 0; }
+  [ -d "$PWD/whatsapp-channel" ] && { echo "$PWD"; return 0; }
+  return 1
+}
+WS_KIT="$(resolve_ws_kit)" || {
+  echo "Cannot locate workshop-kit root with whatsapp-channel/ underneath." >&2
+  exit 1
+}
+```
+
+If the function exits non-zero, tell the user plainly: *"I couldn't find the workshop-kit folder on your computer. Where did you clone it to?"* and let them tell you a path; validate it has `whatsapp-channel/` under it; assign to `WS_KIT`. Do not invent a path.
+
+Then run the dependency install, picking the installer detected in Step 3:
+
+```bash
+cd "$WS_KIT/whatsapp-channel" || exit 1
+if [ "$INSTALLER" = "bun" ]; then
+  bun install
+elif [ "$INSTALLER" = "npm" ]; then
+  npm install
+else
+  echo "No installer available; this is a bug in Step 3." >&2; exit 1
+fi
 ```
 
 - **Success** → *"That's done."* Go to Step 5.
 - **Permissions error (`EACCES`, `EPERM`, `EBUSY`)** → translate: *"Your computer needs a small permission fix, give me a moment to sort it."* Apply guidance from `skills/first-run-setup/SKILL.md`, then retry.
 - **Network error** → *"Your network is blocking the install. This happens on company laptops. Could you try from a home connection, or ask your IT team?"*
 
-Remember `$WS_KIT` for Step 5.
+Remember `$WS_KIT` for Step 5 and Phase 2's allowlist mutation.
 
 ### Step 5 — Create the `claude-wa` shortcut autonomously
 
@@ -194,11 +224,14 @@ The user's only terminal action across this entire setup is one word: `claude-wa
 
 **Do NOT use `osascript`, `gnome-terminal`, `Start-Process`, or any auto-open-terminal trick.** The user opens their own terminal and types `claude-wa` deliberately; auto-opening is flaky and confusing.
 
-Build an executable in `~/.local/bin/claude-wa`. A script in a PATH directory beats a `.zshrc` alias because aliases don't load in non-interactive shells, VS Code's integrated terminal, or already-open windows:
+Build an executable in `~/.local/bin/claude-wa`. A script in a PATH directory beats a `.zshrc` alias because aliases don't load in non-interactive shells, VS Code's integrated terminal, or already-open windows.
+
+`$WS_KIT` was resolved in Step 4. Reuse that exact value:
 
 ```bash
-WS_KIT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
 mkdir -p ~/.local/bin
+# Heredoc is unquoted on purpose: $WS_KIT must interpolate now (so the
+# absolute path bakes in), \$@ must NOT (it's the runtime arg passthrough).
 cat > ~/.local/bin/claude-wa <<EOF
 #!/bin/sh
 cd "$WS_KIT/whatsapp-channel" || exit 1
@@ -222,9 +255,11 @@ fi
 
 Don't run `which claude-wa` in this Bash session to verify. The current shell's PATH was set at session start and won't see the new entry. The user's fresh terminal in Step 7 will pick it up. Verification is the user successfully running `claude-wa` in Step 7.
 
-**Why `WA_AUTO_OPEN_QR=1` is baked in:** the env var triggers the local QR page to open in the user's default browser on first run. After pairing, `creds.json` exists and the env var is harmless on subsequent runs (no QR page opens). Leaving it on permanently keeps the shortcut single-purpose.
+**Why `WA_AUTO_OPEN_QR=1` is baked in:** verified against `whatsapp-channel/src/index.ts` lines 42 and 402-408 — the listener consumes this env var and calls `start` (Windows) / `open` (Mac) / `xdg-open` (Linux) to launch the user's default browser at `http://127.0.0.1:8787` when a QR scan is needed. Without the env var, the listener still serves the QR page but does NOT auto-open the browser; the user would have to navigate manually. After pairing, `creds.json` exists, `needsQr` becomes false, and the auto-open is skipped on subsequent runs. Leaving the env var on permanently is correct.
 
-**Windows note:** if the user is on Windows, write `%USERPROFILE%\.local\bin\claude-wa.cmd` instead, with body:
+**WSL2 note:** if Step 2 detected WSL2, use the Mac/Linux path above (POSIX shell script in WSL filesystem). Do not use the Windows variant below. The user's "fresh terminal" in Step 7 must also be a WSL terminal.
+
+**Windows-native note:** if the user is on Windows-native (not WSL2), write `%USERPROFILE%\.local\bin\claude-wa.cmd` instead, with body:
 
 ```
 @echo off
@@ -233,24 +268,45 @@ set WA_AUTO_OPEN_QR=1
 claude --dangerously-load-development-channels server:whatsapp %*
 ```
 
-Add `%USERPROFILE%\.local\bin` to user PATH via `setx PATH "%PATH%;%USERPROFILE%\.local\bin"`.
+For the PATH update on Windows, **do NOT use `setx PATH "%PATH%;..."`**. `setx` truncates values at 1024 characters silently and `%PATH%` resolves to the combined machine + user PATH at invocation, so writing it back into the user PATH duplicates every machine entry into user space (cumulative on every run). Use the registry directly via PowerShell, reading the **user-only** PATH and appending only when not already present:
+
+```powershell
+$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+$newEntry = "$env:USERPROFILE\.local\bin"
+if (-not $userPath -or ($userPath -split ';' -notcontains $newEntry)) {
+  $updated = if ($userPath) { "$userPath;$newEntry" } else { $newEntry }
+  [Environment]::SetEnvironmentVariable('Path', $updated, 'User')
+}
+```
+
+New cmd / PowerShell windows inherit the user PATH on next launch.
 
 ### Step 6 — Kill any stale listener (silent, autonomous)
 
-Before asking the user to start a new listener, kill any pre-existing one. Two listeners polling the same WhatsApp Web session is always wrong (the Baileys session lock corrupts; the second listener will tear down the first):
+Before asking the user to start a new listener, kill any pre-existing one. Two listeners polling the same WhatsApp Web session is always wrong (the Baileys session lock corrupts; the second listener will tear down the first).
+
+The fingerprint we match on must be in argv. `.mcp.json` declares `"command": "node"` with args `--require ./node_modules/tsx/dist/preflight.cjs`, `--import ./node_modules/tsx/dist/loader.mjs`, `./src/index.ts`. Process argv preserves these literal strings (Node does NOT rewrite relative paths to absolute). Match across them:
 
 ```bash
-pkill -f "whatsapp-channel/src/index.ts" 2>/dev/null
+pkill -f "tsx/dist/loader.mjs.*src/index.ts" 2>/dev/null
 sleep 1
 ```
 
-This is silent. No need to mention it to the user. It either kills a stale process or does nothing.
+The regex spans both the `--import` arg and the script path, which together are unique enough on a workshop attendee's machine that no other process matches. This is silent. No need to mention it to the user. It either kills a stale process or does nothing.
 
 ### Step 7 — User starts the listener with the shortcut
 
-Tell the user, in one short message:
+Tell the user, in one short message. The wording depends on whether Step 2 detected WSL2 or Windows-native:
 
-*"WhatsApp is ready to link. The last thing I need you to do is start the listener in a fresh terminal. Open a brand-new terminal window (Cmd+N if Terminal is already open). Type this one word and press Enter:"*
+**Mac / Linux / WSL2:**
+
+*"WhatsApp is ready to link. The last thing I need you to do is start the listener in a fresh terminal. Open a brand-new terminal window (Cmd+N if Terminal is already open). On WSL2, this must be a WSL terminal, not Windows PowerShell or cmd. Type this one word and press Enter:"*
+
+**Windows-native (PowerShell / cmd):**
+
+*"WhatsApp is ready to link. The last thing I need you to do is start the listener in a fresh terminal. Open a brand-new PowerShell or cmd window. Type this one word and press Enter:"*
+
+Then in either case:
 
 ```
 claude-wa
@@ -270,12 +326,14 @@ Wait ~3 seconds after "scanned", then:
 
 ```bash
 sleep 3
-pgrep -fa "whatsapp-channel/src/index.ts" 2>&1
+pgrep -fa "tsx/dist/loader.mjs.*src/index.ts" 2>&1
 ```
+
+The matcher uses the same regex as Step 6: it spans the `--import` arg and the script path together, which together are unique enough on a workshop attendee's machine that no other process matches. Verified against `.mcp.json`.
 
 **Branches:**
 
-- **One process found, command line includes `node` (or `bun`) and the channel path** → listener is alive. Continue to Step 9.
+- **One process found, command line includes `node` (or `bun`) and the tsx loader path** → listener is alive. Continue to Step 9.
 
 - **No process found** → silent-spawn failure. Two most-likely causes, in order:
 
@@ -294,7 +352,7 @@ pgrep -fa "whatsapp-channel/src/index.ts" 2>&1
 - **Multiple processes found** → Step 6's pkill missed something. Kill all matches and ask user to re-run `claude-wa`:
 
   ```bash
-  pkill -9 -f "whatsapp-channel/src/index.ts"
+  pkill -9 -f "tsx/dist/loader.mjs.*src/index.ts"
   sleep 1
   ```
 
@@ -304,11 +362,23 @@ pgrep -fa "whatsapp-channel/src/index.ts" 2>&1
 
 ### Step 9 — Wait for the QR scan to complete pairing
 
-The Baileys listener writes `~/.claude/whatsapp-channel/auth/creds.json` once the user's phone successfully scans the QR and WhatsApp Web confirms the link. Poll for that file:
+The Baileys listener writes `~/.claude/whatsapp-channel/auth/creds.json` during the pair handshake. A simple `[ -s file ]` check is too loose: Baileys writes the noise-key fields BEFORE the user's phone confirms the link, so size-greater-than-zero can fire mid-handshake. Mirror the channel's own `hasCredentials` bar (`size > 1`) and additionally require `me.id` to be populated, which only happens after Baileys observes `connection: 'open'` (verified in `whatsapp-channel/src/session.ts` lines 36-39 and 191-258):
 
 ```bash
 for i in $(seq 1 30); do
-  if [ -s ~/.claude/whatsapp-channel/auth/creds.json ]; then
+  if python3 - <<'PYEOF' 2>/dev/null; then
+import json, sys, os
+p = os.path.expanduser('~/.claude/whatsapp-channel/auth/creds.json')
+if not os.path.exists(p): sys.exit(1)
+if os.path.getsize(p) <= 1: sys.exit(2)
+try:
+    with open(p) as f:
+        d = json.load(f)
+except json.JSONDecodeError:
+    sys.exit(3)  # mid-write
+if not d.get('me', {}).get('id'): sys.exit(4)
+sys.exit(0)
+PYEOF
     echo "PAIRED"
     break
   fi
@@ -316,7 +386,7 @@ for i in $(seq 1 30); do
 done
 ```
 
-30 iterations × 2-second sleep = 60-second total polling window.
+30 iterations × 2-second sleep = 60-second total polling window. The `try/except json.JSONDecodeError` defends against an atomic-write race where the file is non-empty but partially flushed.
 
 **Branches:**
 
@@ -367,9 +437,28 @@ When a user says "add +14155551234 to my WhatsApp allowlist", run:
 
 ```bash
 python3 - <<'PYEOF'
-import json, os
+import json, os, subprocess
 NEW_NUMBER = "+14155551234"  # substitute the real number
-ws_kit = os.popen("git rev-parse --show-toplevel 2>/dev/null").read().strip() or os.path.expanduser("~/workshop-kit")
+
+def resolve_ws_kit():
+    # 1. git rev-parse from current dir
+    try:
+        r = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, timeout=2)
+        c = r.stdout.strip()
+        if c and os.path.isdir(os.path.join(c, "whatsapp-channel")):
+            return c
+    except Exception:
+        pass
+    # 2. conventional clone location
+    c = os.path.expanduser("~/claude-workshop-kit")
+    if os.path.isdir(os.path.join(c, "whatsapp-channel")):
+        return c
+    # 3. cwd
+    if os.path.isdir(os.path.join(os.getcwd(), "whatsapp-channel")):
+        return os.getcwd()
+    raise SystemExit("Cannot locate workshop-kit root with whatsapp-channel/")
+
+ws_kit = resolve_ws_kit()
 path = os.path.join(ws_kit, "whatsapp-channel", ".mcp.json")
 with open(path) as f:
     data = json.load(f)
@@ -411,15 +500,17 @@ Tell the user, in one short message: *"The shortcut isn't picking up. Just for t
 
 Then send the appropriate one-line block for their shell, with `<WS_KIT>` substituted with the actual workshop-kit path resolved in Step 4:
 
-**Mac / Linux (bash, zsh):**
+**Mac / Linux / WSL2 (bash, zsh):**
 ```
-cd <WS_KIT>/whatsapp-channel && WA_AUTO_OPEN_QR=1 claude --dangerously-load-development-channels server:whatsapp
+cd "<WS_KIT>/whatsapp-channel" && WA_AUTO_OPEN_QR=1 claude --dangerously-load-development-channels server:whatsapp
 ```
 
-**Windows (PowerShell):**
+**Windows-native (PowerShell):**
 ```
-cd <WS_KIT>\whatsapp-channel; $env:WA_AUTO_OPEN_QR = "1"; claude --dangerously-load-development-channels server:whatsapp
+cd "<WS_KIT>\whatsapp-channel"; $env:WA_AUTO_OPEN_QR = "1"; claude --dangerously-load-development-channels server:whatsapp
 ```
+
+(Quoting matters: Windows usernames frequently contain spaces, e.g. `C:\Users\Gian Charlton\…`, and unquoted paths break `cd` on both shells.)
 
 After this works once, debug the PATH issue offline. The user shouldn't need to paste the long form a second time.
 
