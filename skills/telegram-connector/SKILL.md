@@ -1,6 +1,6 @@
 ---
 name: telegram-connector
-description: "Connect the user's Telegram to Claude Code so they can message their assistant from their phone. Drives the entire install + BotFather + pairing flow autonomously through Telegram Web in a Playwright MCP browser; the only human moment is the user scanning a QR code with their phone. Use this skill when the user says 'set up Telegram', 'connect my Telegram', 'install the Telegram plugin', 'install the Telegram channel', 'message Claude from my phone via Telegram', asks about BotFather, pairing codes, or the Telegram allowlist, AND when they return after relaunching Claude Code with --channels and say 'continue Telegram setup', 'I'm back', 'what's next', or anything similar that implies they're mid-flow."
+description: "Connect the user's Telegram to Claude Code so they can message their assistant from their phone. Drives the entire install + BotFather + pairing flow autonomously through Telegram Web in a Playwright MCP browser; the only human moments are the user scanning a QR code, pasting one launch command into a fresh terminal to start the bot listener, and messaging the bot once from their phone. Use this skill when the user says 'set up Telegram', 'connect my Telegram', 'install the Telegram plugin', 'install the Telegram channel', 'message Claude from my phone via Telegram', or asks about BotFather, pairing codes, or the Telegram allowlist."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Channels & Messaging
@@ -27,26 +27,42 @@ metadata:
 
 This skill connects a user's Telegram to Claude Code so they can message their assistant from anywhere. Once paired, the user texts their bot from their phone and the assistant replies as if it were a chat thread.
 
-The setup runs in two Claude Code sessions:
+**The user only ever talks to ONE Claude Code session — this one.** Setup, install, pairing, lockdown, verification all happen here. There is a second `claude` process running in another terminal (started with `--channels`) but that's just the bot listener — a background server. The user pastes ONE command to start it, then leaves it alone. No two-session handoff, no resume flow, no "switch to the other window".
 
-1. **Setup session** — installs the plugin, drives @BotFather inside a Playwright MCP browser, captures the bot token, saves it.
-2. **Channel session** — launched with `claude --channels plugin:telegram@claude-plugins-official`. This is the session that actually listens to Telegram. The user pairs their personal Telegram account here, then sends a test message to confirm the round-trip works.
+**The user does exactly THREE things across the entire setup. Everything else is autonomous.**
 
-The skill carries state across the restart via `~/.claude/channels/telegram/.handoff-state.json`, so the channel session greets the user proactively instead of forcing them to re-explain where they are.
+1. Scan a QR code with their phone to authenticate Telegram Web (Step 4).
+2. Type `claude-tg` in a fresh terminal to start the bot listener (Step 8). Claude creates the `claude-tg` shortcut autonomously before this — the user never types or pastes the long `claude --channels …` form, and Claude does NOT auto-open a terminal via `osascript` or anything similar.
+3. Restart Claude Code if a prerequisite step (e.g. fresh Bun install) needs a fresh session to pick up new PATH entries.
 
-**Which phase to run.** Phase 1 is for first-time setup or recovery from an interrupted setup. Phase 2 is day-to-day operation — adding/removing people from the allowlist, rotating tokens, troubleshooting.
+That is the complete list. **The user does NOT message the bot from their phone, does NOT paste a pairing code, does NOT verify anything manually.** After Step 4 the Playwright window is logged into Telegram Web AS the user — same Telegram account, same user_id. Claude drives every Telegram Web action from there: opening the bot's chat, clicking Start, sending `/start`, reading the 6-character pairing code from the bot's reply, sending a test message for verification, reading the bot's verification reply. To the listener, those messages look identical to messages the user would have sent from their phone, because they ARE the user (Telegram-Web-as-the-user is just the user on a different client).
+
+If you find yourself about to ask the user to "open Telegram on your phone and search for your bot" or "paste the code back to me", stop. That's the wrong path. Drive Telegram Web in the Playwright window instead. The phone is a Telegram authentication device, not a workflow step.
+
+**Which phase to run.** Phase 1 is first-time setup. Phase 2 is day-to-day operation — adding/removing people from the allowlist, rotating tokens, troubleshooting.
 
 ---
 
-## Golden rule — browser-driven by default, phone is a fallback only
+## Golden rule — Claude drives Telegram Web for EVERY Telegram action
 
-**The default path for this skill is the Playwright MCP browser.** Phase 1 Steps 4 and 5 open Telegram Web inside a Playwright window and drive @BotFather autonomously. The user's only manual action is scanning a QR code with their phone to authenticate Telegram Web. Everything else — searching for BotFather, clicking Start, sending `/newbot`, picking a name, picking a username, capturing the token — happens inside the Playwright window driven by Claude.
+**The default path for every Telegram-side action is the Playwright MCP browser.** Once Step 4 logs the Playwright window into Telegram Web (the user's QR scan), that window IS the user's Telegram client for the rest of the flow. Claude uses it for:
 
-**Do not skip to the Phone Fallback section unless Step 4 actually fails twice in a row.** Telling the user "open Telegram on your phone and search for @BotFather" before you have even attempted to open Telegram Web in Playwright is the wrong path. If you find yourself about to type that, stop and run Step 4 instead.
+- Step 5: BotFather chat (create the bot, capture the token).
+- Step 9: the user's new bot chat (click Start, send `/start`, read the pairing-code reply).
+- Step 11: the user's new bot chat again (send a verification message, read the assistant's reply).
 
-Every browser step uses `mcp__plugin_playwright_playwright__browser_*` tools. Never tell the user to open Telegram Web in their own Chrome/Safari, never launch `https://web.telegram.org` outside the Playwright MCP window.
+These all happen in the same Playwright window, driven by `mcp__plugin_playwright_playwright__browser_*` tools. Same Telegram account, same `user_id` Telegram sees on the wire — the listener cannot distinguish "Telegram Web driven by Claude" from "Telegram on the user's phone", because both are the user.
 
-If, after two genuine attempts, the Playwright MCP browser cannot be used (extension not installed, non-recoverable launch failure), then and only then fall back to **Phone Fallback** at the end of this file.
+**Do NOT, at any point in Phase 1, ask the user to:**
+- Open Telegram on their phone (after the QR scan in Step 4)
+- Search for, message, or interact with the bot from their phone
+- Paste a pairing code back to you
+- Send a verification message from their phone
+- Read the bot's reply on their phone
+
+If you find yourself about to type any of those, stop. The Playwright window can do all of them.
+
+The Phone Fallback section at the bottom of this file is the contingency for when the Playwright MCP browser cannot be used at all (extension not installed, non-recoverable launch failure after two attempts). It is NOT the path to use because phone instructions feel simpler — they don't, they make the user do extra work.
 
 ---
 
@@ -60,7 +76,7 @@ The plugin ships user-invocable skills for token save (`/telegram:configure`), p
 
 Same end result, no paste required. The channel server reads these files at boot and re-reads `access.json` on every inbound, so direct edits take effect without any plugin skill being invoked.
 
-The only command the user runs themselves is the channel-session launch in Step 8 (`claude --channels …`), because that starts a new process which the current Claude Code session cannot replace from inside itself. Even there, the skill attempts to auto-open a new terminal first.
+The only command the user runs themselves is the channel-session launch in Step 8 — they type `claude-tg` (one word) into a fresh terminal. The current Claude Code session cannot start that listener from inside itself (it'd lock up the Bash tool with a long-running interactive child), and auto-opening a terminal via `osascript` / `gnome-terminal` / `Start-Process` is explicitly banned in Step 8 because it's flaky and confusing. The user opens their own terminal deliberately and runs the one-word shortcut. That's the entire user-side terminal interaction across Phase 1.
 
 If you find yourself about to type "paste this into the chat", stop. Either run it via Bash, write the file directly, or note that this is a true exception and explain why.
 
@@ -77,55 +93,38 @@ If a step in this skill fails, follow the documented `if X fails, try Y` branch 
 The user is a non-technical business owner. Every message during Phase 1 follows these rules:
 
 - **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say Bun, npm, bash, zsh, PowerShell, CLI, MCP, env var, terminal, plugin registry, config file, contenteditable, selector. If you must refer to a technical thing, name it plainly: "a small helper tool", "the Telegram pieces", "the launch command", "your phone", "the browser window I'm using".
+- **Plain English only.** No jargon. Never say Bun, npm, bash, zsh, PowerShell, CLI, MCP, env var, plugin registry, config file, contenteditable, selector. The word "terminal" is acceptable (Step 8 unavoidably uses it) but explain "a brand-new terminal window" rather than just "terminal". For other technical things, name them plainly: "a small helper tool", "the Telegram pieces", "your phone", "the browser window I'm using".
 - **Tell them what is about to happen.** Before any action: "I'm going to open Telegram in a browser window now. This takes a few seconds."
 - **React warmly.** Good: "That worked. Telegram is linked." Bad: "Plugin install succeeded, 6-char pair code issued."
 - **Never show raw error messages.** Translate into plain English, then diagnose silently: "No problem, let me try a different way."
 - **Short messages.** Maximum 8 lines per message.
-- **Never show commands or paths.** You run them; you do not paste them into chat.
-- **Security: never repeat the bot token back to the user.** When @BotFather gives you the token in the Playwright window, save it via `/telegram:configure` and forget it. Do not log it, echo it back, or write it to any file you read later.
+- **Never show commands or paths**, with one carve-out: Step 8 Part C deliberately shows the user `claude-tg` because they have to type it. That's the only exception; do not show shell commands or file paths anywhere else.
+- **Security: never repeat the bot token back to the user.** Step 5's clipboard-transit pattern keeps the token out of any tool-call return value. Once `~/.claude/channels/telegram/.env` is written, the token's job is done — do not re-read that file, do not echo it, do not include it in any later message.
 
 ---
 
 ## PHASE 1 — Install & Pair
 
-**Run Steps 0 through 12 in order. Step 4 opens Telegram Web in the Playwright MCP browser; Step 5 drives @BotFather autonomously inside that browser. The Phone Fallback section at the bottom of this file is only for when Step 4 fails twice in a row — do not start there.**
+**Run Steps 1 through 11 in order, all in this one Claude Code session. Step 4 opens Telegram Web in the Playwright MCP browser; Step 5 drives @BotFather autonomously inside that browser. Step 8 creates the `claude-tg` shortcut and asks the user to run it in a fresh terminal — that one word is the only thing the user types in a terminal across the whole flow. The Phone Fallback section at the bottom of this file is only for when Step 4 fails twice in a row — do not start there.**
 
-### Step 0 — Resume check (run this first, every time)
+**Resume check.** If the user is starting a new conversation but `~/.claude/channels/telegram/.env` already exists with a `TELEGRAM_BOT_TOKEN` line, the bot was at least partially configured by an earlier run. Ask: *"Looks like you started this earlier. Want me to pick up from where you left off, or start completely fresh?"*
 
-**Before greeting, before describing what you'll do, before anything else** — check whether this is a resumed channel session. Read `~/.claude/channels/telegram/.handoff-state.json`. The file shape is:
-
-```json
-{
-  "phase": "awaiting_pair",
-  "botUsername": "harvey_assistant_bot",
-  "savedAt": 1714187600
-}
-```
-
-**Branches:**
-
-- **File present, `phase` is `awaiting_pair`, `savedAt` is within the last hour** → this is the channel session post-relaunch. The plugin is installed, the token is saved. Skip Steps 1 through 8 entirely.
-
-  Your **very first message** to the user must be the proactive greeting below — do not wait for them to say "I'm back" or anything specific. The launcher script (Step 8) seeded the system prompt with instructions to start immediately on any first message:
-
-  *"Welcome back. Your bot @\<botUsername\> is set up and ready to link. Open Telegram on your phone, search for @\<botUsername\>, tap Start, and send any message like 'hi'. The bot will reply with a 6-character code. Paste that code here and I'll finish the connection."*
-
-  Then jump to **Step 9 — Pair** and execute it as soon as the user pastes the code (no `/telegram:access pair` ask — direct file edit per Step 9's script).
-
-- **File present but `savedAt` is older than 1 hour** → previous setup was interrupted. Ask: *"It looks like there's a half-finished Telegram setup from earlier. Want me to pick up from where you left off, or start completely fresh?"* If continue, jump to Step 9. If fresh, delete the file and start at Step 1.
-
-- **File absent** → fresh setup. Continue to Step 1.
-
-Generic greetings are wrong here. If you find yourself saying "Hi! How can I help?" in a channel session that has a recent handoff-state file, you have failed Step 0.
+- **Pick up** → run **Step 8 Part B** (pkill any stale listener) first, then **Step 8 Part C** (have the user run `claude-tg`), then **Step 8 Part D** (mandatory health check). Do not assume any prior listener is alive — the user almost certainly closed that terminal. From Part D, continue normally.
+- **Fresh** → wipe all local state, then start at Step 1:
+  ```bash
+  pkill -f "claude-plugins-official/telegram" 2>/dev/null
+  rm -rf ~/.claude/channels/telegram/
+  rm -f ~/.local/bin/claude-tg
+  ```
+  Note this only wipes local state; the bot still exists in BotFather upstream. If the user wants the bot revoked too, drive Telegram Web in Playwright after Step 4 to send `/revoke` then `/deletebot` to BotFather.
 
 ### Step 1 — Prerequisite check
 
 Before any technical step, confirm the user has what they need. Send:
 
-*"Before we begin, two quick checks. Do you have your phone with you with the Telegram app installed and a Telegram account already set up? If you've never used Telegram, you'll need to install it and create an account first."*
+*"Before we begin, one quick check. Do you have your phone with you with the Telegram app installed and a Telegram account already signed in? You'll only need it once, to scan a QR code in a moment. If you've never used Telegram, you'll need to install it and sign in first."*
 
-Wait for "yes" before moving on. If they say no, pause the setup. Tell them to install Telegram on their phone, create an account, then come back. Do not try to work around this. Pairing requires their phone Telegram account.
+Wait for "yes" before moving on. If they say no, pause the setup until they've installed and signed in. Do not try to work around this — Telegram Web requires a QR scan from a logged-in Telegram client to authenticate, and the user's phone is the easiest one. (Once Telegram Web is logged in via Step 4, the phone is no longer needed for the rest of Phase 1 — Claude drives all Telegram-side actions through the Playwright window.)
 
 ### Step 2 — Detect OS and shell
 
@@ -144,14 +143,19 @@ Tell the user: *"I'm going to check if a small helper tool is already on your co
 
 Silently run `bun --version`.
 
-- If it prints a version → "That's ready" and go to Step 4.
-- If the command is not found → install Bun silently:
+- **If it prints a version** → "That's ready." Go to Step 4. No restart needed; the rest of Phase 1 will work.
+- **If the command is not found** → install Bun silently. This is where the third action in the user-action contract (restart the app) becomes mandatory:
+
   - **Mac / Linux:** `curl -fsSL https://bun.sh/install | bash`
   - **Windows (PowerShell):** `powershell -c "irm bun.sh/install.ps1 | iex"`
 
-After install, tell the user: *"Almost done with the helper tool. Please close this window completely and open a fresh one, then tell me 'ready'."* Wait for them, then re-verify.
+  After install completes, tell the user:
 
-If it still fails, apply the PATH fix guidance in `skills/first-run-setup/SKILL.md` ("Windows Snags Reference" section).
+  *"I just installed the helper tool. There's one thing I need you to do before we keep going: fully quit and reopen the app you're using to talk to me, whether that's Claude Desktop or VS Code. Just closing the terminal isn't enough. The app inherits its environment from when it first launched, so the new tool won't be available until the whole app restarts. On Mac, that's Cmd+Q to quit, then reopen from the dock. After it's back open, come back to this conversation (it'll resume from where we left off) and say 'ready'."*
+
+  **Why this matters:** the Step 8 listener launches in a terminal inside the user's app. That terminal inherits the app's PATH from launch time. If we don't restart now, Step 8's listener will silently fail to find `bun` and the channel MCP server won't spawn. The restart at this point is cheap (the conversation resumes); skipping it leads to a confusing failure 5 steps later.
+
+  Wait for the user to confirm. Then re-verify with `bun --version`. If it still fails after the restart, apply the PATH fix guidance in `skills/first-run-setup/SKILL.md` ("Windows Snags Reference" section).
 
 ### Step 4 — Open Telegram Web in the Playwright MCP browser
 
@@ -217,7 +221,11 @@ After sending the username, snapshot. BotFather either:
 - Replies with the bot token (success) — extract it
 - Replies "Sorry, this username is already taken" — try a variant (`<firstname>_assistant_bot2`, `<firstname>_ai_bot`, etc.) up to 3 times before asking the user
 
-**Capture the token.** The token appears in BotFather's reply, formatted like `123456789:AAH...`. Extract via `browser_evaluate`:
+**Capture the token — without ever returning it to Claude's transcript.** The naive approach is to extract the token via `browser_evaluate` and have Claude hold it in memory until Step 7. The problem: tool-call returns become part of the conversation transcript. A token returned from `browser_evaluate` is logged, even if Claude itself "doesn't echo it back" to the user. That's a leak.
+
+Instead, write the token directly to its final destination from inside the browser-evaluate via `fetch` to a local sidecar — but Playwright has no filesystem access. So use a two-step approach: copy to clipboard via JS, then read clipboard via shell. The token transits clipboard for less than a second and never appears in Claude's tool returns.
+
+Step 1, run this `browser_evaluate`:
 
 ```javascript
 () => {
@@ -225,11 +233,36 @@ After sending the username, snapshot. BotFather either:
   const last = messages[messages.length - 1];
   const text = last.innerText;
   const match = text.match(/\b\d{8,}:[A-Za-z0-9_-]{30,}\b/);
-  return match ? match[0] : null;
+  if (!match) return { found: false };
+  navigator.clipboard.writeText(match[0]);
+  // Return only metadata — never the token itself
+  return { found: true, length: match[0].length };
 }
 ```
 
-Hold the token in mind for Step 7. Do not echo it. Do not write it to any file other than via `/telegram:configure` in Step 7.
+Step 2, immediately read clipboard from Bash and write `.env` in one shot, never letting the token surface:
+
+```bash
+mkdir -p ~/.claude/channels/telegram
+pbpaste | awk 'NF { printf "TELEGRAM_BOT_TOKEN=%s\n", $0 }' > ~/.claude/channels/telegram/.env
+chmod 600 ~/.claude/channels/telegram/.env
+# Wipe clipboard so the token doesn't linger
+printf "" | pbcopy
+```
+
+(On Linux substitute `xclip -selection clipboard -o` for `pbpaste` and `xclip -selection clipboard` for `pbcopy`.)
+
+Verify the env file was written without echoing it:
+
+```bash
+test -s ~/.claude/channels/telegram/.env && grep -c "^TELEGRAM_BOT_TOKEN=" ~/.claude/channels/telegram/.env
+```
+
+Expect `1`. The token is now in `.env` (chmod 600) and out of clipboard. It was never in any tool-call return value.
+
+This captures and writes the token in one move; Step 7 is now just a sanity check.
+
+Remember the bot's username (the handle BotFather accepted in the `/newbot` exchange above, e.g. `harvey_assistant_bot` without the `@`). Keep it in conversation context — Step 9 needs it to navigate to the bot's chat.
 
 ### Step 6 — Install the Telegram plugin
 
@@ -253,127 +286,198 @@ Expect a line showing `telegram@claude-plugins-official` with a version. The plu
 - Permissions error (`EACCES`, `EPERM`) → translate: *"Your computer needs a small permission fix, give me a moment to sort it."* Apply guidance from `skills/first-run-setup/SKILL.md`, then retry.
 - Network error → *"Your network is blocking the install. This happens on company laptops. Could you try from a home connection?"*
 
-### Step 7 — Save the bot token + write handoff state
+### Step 7 — Confirm the token landed
 
-Save the token directly to the channel server's env file. Do NOT print the token in any reply to the user. Treat the token like a password: hold it in mind only long enough to write the file, then drop it.
-
-Silently run via Bash (substituting `<token>` with the actual value captured in Step 5 and `<botUsername>` with the bot's username from Step 5, no `@`):
+Step 5 already captured the token via clipboard and wrote it to `~/.claude/channels/telegram/.env` with chmod 600. Nothing more to do here except sanity-check and tell the user where we are.
 
 ```bash
-mkdir -p ~/.claude/channels/telegram
-# Token write — never echo $TOKEN
-TOKEN='<token>' bash -c 'printf "TELEGRAM_BOT_TOKEN=%s\n" "$TOKEN" > ~/.claude/channels/telegram/.env'
-chmod 600 ~/.claude/channels/telegram/.env
+test -s ~/.claude/channels/telegram/.env && grep -c "^TELEGRAM_BOT_TOKEN=" ~/.claude/channels/telegram/.env
+```
 
-# Handoff state write — read by Step 0 in the channel session
-cat > ~/.claude/channels/telegram/.handoff-state.json <<EOF
-{
-  "phase": "awaiting_pair",
-  "botUsername": "<botUsername>",
-  "savedAt": $(date +%s)
-}
+Expect `1`. If it's `0` or the file is missing, the clipboard read in Step 5 failed — try re-running Step 5's clipboard-read step. If still failing, fall back to extracting the token via `browser_evaluate` direct return (accepting the transcript leak as a tradeoff for getting unblocked) and write it via the older `printf` approach.
+
+Then say to the user: *"Token saved. Next, you'll start the bot's listener in a new terminal. I'll give you the exact command in a moment."*
+
+### Step 8 — Create the launch shortcut, then have the user start the bot listener
+
+The user's only terminal action across this entire setup is one word: `claude-tg`. To make that possible, Claude creates the `claude-tg` shortcut autonomously **before** asking the user to do anything in a terminal. The user never types or pastes the long `claude --channels …` form.
+
+**Do NOT use `osascript`, `gnome-terminal`, `Start-Process`, or any auto-open-terminal trick.** The user opens their own terminal and types `claude-tg` deliberately; auto-opening is flaky and confusing.
+
+#### Part A — Create the `claude-tg` shortcut autonomously
+
+Ask the user one question about permission prompts (this controls a flag baked into the shortcut):
+
+*"Quick question before I set up your shortcut. When you're driving me from your phone over Telegram, you can't tap an 'allow' button on your laptop, so permission prompts will stall things. I can build the shortcut so it skips permission prompts when you're running via Telegram. Your Telegram allowlist still controls who can talk to your bot, so it's safe for solo use. Skip prompts? (Recommended.)"*
+
+Capture the answer:
+- **Yes** → `FLAGS=" --dangerously-skip-permissions"`
+- **No** → `FLAGS=""`
+
+Then build the script. Use an executable in `~/.local/bin/claude-tg` (a script in a PATH directory beats a `.zshrc` alias — aliases don't load in non-interactive shells, VS Code's integrated terminal, or already-open windows):
+
+```bash
+mkdir -p ~/.local/bin
+cat > ~/.local/bin/claude-tg <<EOF
+#!/bin/sh
+exec claude --channels plugin:telegram@claude-plugins-official${FLAGS} "\$@"
 EOF
+chmod +x ~/.local/bin/claude-tg
 ```
 
-Verify the env file was written without echoing it. A safe check:
+Ensure `~/.local/bin/` is on PATH for fresh terminals — append to the user's shell rc only if not already present:
 
 ```bash
-test -s ~/.claude/channels/telegram/.env && echo "ok"
+# Detect shell rc (zsh first, fallback to bash)
+SHELL_RC=~/.zshrc
+[ ! -f "$SHELL_RC" ] && [ -f ~/.bash_profile ] && SHELL_RC=~/.bash_profile
+[ ! -f "$SHELL_RC" ] && [ -f ~/.bashrc ] && SHELL_RC=~/.bashrc
+[ ! -f "$SHELL_RC" ] && SHELL_RC=~/.zshrc && touch "$SHELL_RC"
+
+if ! grep -q '.local/bin' "$SHELL_RC"; then
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_RC"
+fi
 ```
 
-(Just confirms non-empty existence; does not print contents.)
+Don't run `which claude-tg` in this Bash session to verify — the current shell's PATH was set at session start and won't see the new entry. The user's fresh terminal in Part B will pick it up. Verification is the user successfully running `claude-tg` in Part B.
 
-Then say to the user: *"Token saved. Next, we'll open a fresh Claude session so Telegram turns on."*
+**Windows note:** if the user is on Windows, write `%USERPROFILE%\.local\bin\claude-tg.cmd` instead, with body `@echo off` then `claude --channels plugin:telegram@claude-plugins-official%FLAGS% %*`. Add `%USERPROFILE%\.local\bin` to user PATH via `setx PATH "%PATH%;%USERPROFILE%\.local\bin"`.
 
-### Step 8 — Open the channel session (auto-launch new terminal)
+#### Part B — Kill any stale listener (silent, autonomous)
 
-The channel session is a fresh `claude` process started with `--channels`. The current session can't replace itself; this is the one place a new process boundary is unavoidable. **It is NOT acceptable to ask the user to find a new terminal and paste a long command.** Auto-open the new terminal yourself.
-
-Tell the user: *"I'm opening a new Claude session for you with Telegram turned on. Watch your screen for it."*
-
-**Build the resume launcher.** This is a tiny shell script that starts the channel session with a system-prompt injection so the new Claude knows it's mid-pair before the user says anything:
+Before asking the user to start a new listener, kill any pre-existing one. Two listeners polling the same Telegram bot is always wrong (long-poll conflicts, duplicated messages):
 
 ```bash
-mkdir -p ~/.claude/channels/telegram
-cat > ~/.claude/channels/telegram/.resume-launcher.sh <<'LAUNCHER'
-#!/bin/bash
-RESUME_PROMPT='You are resuming a Telegram setup mid-flow. The previous Claude Code session installed the plugin and saved the bot token. Read ~/.claude/channels/telegram/.handoff-state.json for the bot username and timestamp, then immediately invoke the telegram-connector skill at Step 0 (resume check). On the user'"'"'s very first message — whatever it is — greet them proactively by their bot username and walk them through pairing. Do not wait for a specific trigger phrase. Do not produce a generic greeting.'
-exec claude --channels plugin:telegram@claude-plugins-official --append-system-prompt "$RESUME_PROMPT"
-LAUNCHER
-chmod +x ~/.claude/channels/telegram/.resume-launcher.sh
+pkill -f "claude-plugins-official/telegram" 2>/dev/null
+sleep 1
 ```
 
-**Open a new terminal that runs the launcher.** Branch by OS:
+This is silent — no need to mention it to the user. It either kills a stale process or does nothing.
 
-- **Mac:**
+#### Part C — User starts the listener with the shortcut
+
+Tell the user, in one short message:
+
+*"Telegram is ready to link. The last thing you need to do is start the bot's listener. It's a small program that runs in the background. Open a brand-new terminal window (Cmd+N if Terminal is already open). Type this one word and press Enter:"*
+
+```
+claude-tg
+```
+
+*"Leave that window alone after it loads. That's the listener running. Come back here and tell me 'started' when it's up."*
+
+Wait for the user to confirm.
+
+**Fallback only if `claude-tg` is not found in their fresh terminal** (PATH didn't propagate): tell them to paste `claude --channels plugin:telegram@claude-plugins-official` instead, just for this launch. Debug PATH later. Degraded path, not the default.
+
+#### Part D — MANDATORY: verify the listener actually spawned
+
+Once the user says "started", **do not proceed to Step 9 yet.** Verify the bun listener process actually exists. This is non-negotiable: in some Claude Code versions (notably 2.1.121), `--channels plugin:…` in interactive mode silently fails to spawn the channel MCP server. The Claude session looks fine, the prompt is responsive, but no Telegram listener is actually running. Pairing then fails with no feedback.
+
+Wait ~3 seconds after "started", then:
+
+```bash
+sleep 3
+pgrep -fa "claude-plugins-official/telegram" 2>&1
+```
+
+**Branches:**
+
+- **One process found, command line includes `bun` and the plugin path** → listener is alive. Tell the user *"Listener is up. Pairing now."* and proceed to Step 9.
+
+- **No process found** → silent-spawn failure. The most likely cause: the terminal the user ran `claude-tg` from inherited a stale environment from before Bun was installed (Step 3), so when `claude` tried to spawn the channel MCP server (which runs `bun run …`), `bun` wasn't on PATH and the spawn silently failed. The terminal looks fine because `claude` itself is on PATH; it's the bun child that's missing.
+
+  **This should have been prevented by Step 3's restart instruction.** If we're hitting it now, that restart either didn't happen or didn't take. Tell the user, plainly:
+
+  *"The listener started Claude but couldn't load the Telegram piece. The terminal you used picked up an old environment from before I installed the helper tool. The fix is to fully quit your Claude Desktop or VS Code app (whichever you're in), Cmd+Q on Mac (not just closing the terminal), and reopen it. Then come back here, say 'restarted', and I'll have you run `claude-tg` again in a fresh terminal."*
+
+  After the user says "restarted", run Part B again (kill any leftover stale listener) and Part C (have them run `claude-tg`), then re-run this Part D health check.
+
+  If after the full app restart `pgrep` STILL finds nothing, something deeper is wrong (Bun got uninstalled, plugin install corrupted, or a real Claude Code bug). At that point stop Phase 1 and walk the Troubleshooting table. **Do not improvise** — do not start a standalone `bun server.ts` outside Claude, it polls Telegram but has no Claude attached, which gives the user a worse half-broken experience (pair codes work but no message round-trip works) than a clean stop.
+
+- **Multiple processes found** → Part B's pkill missed something. Kill all matches and ask user to re-run `claude-tg`:
+
   ```bash
-  osascript -e 'tell application "Terminal" to do script "~/.claude/channels/telegram/.resume-launcher.sh"' \
-            -e 'tell application "Terminal" to activate'
-  ```
-  A new Terminal.app window should pop up with Claude starting. Confirm to the user: *"A new window should have just opened with the fresh Claude session. Switch to it to continue."* If the user reports nothing opened, fall through to the manual path below.
-
-- **Linux:**
-  ```bash
-  for term in gnome-terminal konsole xterm; do
-    if command -v "$term" >/dev/null 2>&1; then
-      "$term" -- bash -c '~/.claude/channels/telegram/.resume-launcher.sh; exec bash' &
-      break
-    fi
-  done
-  ```
-  If none of those terminals exist, fall through to manual.
-
-- **Windows:**
-  ```powershell
-  Start-Process powershell -ArgumentList "-NoExit", "-Command", "& '$HOME\.claude\channels\telegram\.resume-launcher.sh'"
+  pkill -9 -f "claude-plugins-official/telegram"
+  sleep 1
   ```
 
-- **Manual fallback (any OS, only if the auto-launch above genuinely failed):** tell the user: *"I couldn't open a new window automatically. Open a fresh terminal yourself, paste this one line, and press Enter:"* then paste:
-  ```
-  ~/.claude/channels/telegram/.resume-launcher.sh
-  ```
-  That is one short path, not the long `claude --channels …` flag string.
+  Then re-run Part C.
 
-After the new window is up, the current Claude Code session has nothing more to do for Phase 1. Tell the user: *"You can close this window once you've moved over to the new one."*
+**Why this gate matters:** without it, Steps 9-11 all run "successfully" (Claude drives Telegram Web, sends `/start`, sees no reply, times out, reports failure to the user) but the user has no idea WHY — looks like network issue or wrong code. The health check turns a silent failure into an honest one.
 
-Phase 1 continues in the channel session, which boots with the resume system-prompt and runs Step 0 against the handoff-state file on the user's first message.
+**Why one terminal action is unavoidable:** the listener is a child process of `claude`, an interactive program. The current Claude Code session can run shell commands via Bash, but a long-running interactive `claude --channels` would lock up the Bash tool until the listener exits. Spawning it via `nohup` or `&` is fragile (TTY allocation, stdin/stdout handling). A separate terminal window is the right primitive. The shortcut shrinks the user's typing to one word.
 
-### Step 9 — Pair the user's personal Telegram (channel session)
+### Step 9 — Pair the user's Telegram autonomously via the Playwright browser
 
-This step runs in the channel session. Step 0 has already greeted the user with their bot username and asked them to DM the bot.
+The Playwright window is still logged into Telegram Web as the user (from Step 4). The listener is running in the user's other terminal. Claude pairs by driving Telegram Web — opening the user's new bot, clicking Start, reading the 6-character pairing code from the bot's reply, then writing the pair op directly to `access.json`. **The user's phone is not involved.** Do not ask the user to message the bot from their phone, do not ask them to paste a code.
 
-Walk them through if Step 0 hasn't already covered this completely:
+Tell the user once: *"Pairing your account now. Hold tight, this takes about 10 seconds."*
 
-1. *"Open Telegram on your phone. Search for your bot by its username, @\<botUsername\>. Tap Start and send any message, something like 'hi'. The bot will reply with a 6-character code. Send me that code."*
+Then:
 
-2. When the user pastes the code, do the pair operation directly via file edits — **never** ask the user to run `/telegram:access pair <code>` themselves. Read the access state, find the pending entry, move the sender into `allowFrom`, write the approval signal:
+1. **Wait ~3 seconds** for the listener to fully boot (it just started in Step 8). A short `sleep 3` is fine.
+
+2. **Navigate to the user's bot in Telegram Web.** Take a fresh `mcp__plugin_playwright_playwright__browser_snapshot`. The Playwright window is currently on the BotFather chat from Step 5. Click the search input in the chat-list pane, type the bot's username from Step 5 (no `@`), wait for results, click the matching bot.
+
+   If search structure is unclear from the snapshot, fall back to direct navigation:
+   ```
+   mcp__plugin_playwright_playwright__browser_navigate to https://web.telegram.org/k/#@<botusername>
+   ```
+   That URL deep-links to the bot's chat inside the same Web app session.
+
+3. **Click Start (first-time chats only).** Snapshot. If a "START" button is visible at the bottom of the chat (Telegram shows this once for any bot the user has never messaged), click it. That sends `/start` automatically. If "START" isn't visible (chat already initiated), send `/start` via the contenteditable input pattern from Step 5:
+
+   ```javascript
+   () => {
+     const input = document.querySelector('.input-message-input');
+     input.focus();
+     document.execCommand('insertText', false, '/start');
+     const event = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true });
+     input.dispatchEvent(event);
+   }
+   ```
+
+4. **Wait for the bot's pairing-code reply.** The listener will see the inbound, generate a 6-character code, write it into `access.json`'s `pending`, and reply through Telegram with the code embedded in the message. Don't rely on a specific reply phrase — the listener's wording may change. Instead, snapshot the chat right after sending `/start` to record the message count, then poll `browser_snapshot` every 2 seconds for up to 30 seconds until a NEW bot message appears (count > snapshot count). The new message is the pairing reply. Alternative: poll `~/.claude/channels/telegram/access.json` for a non-empty `pending` object — that's the most reliable signal since the listener writes to `access.json` BEFORE replying via Telegram.
+
+5. **Read the code from `access.json` directly** — more reliable than parsing Telegram Web's rendered message text. The listener writes `pending[<code>]` to `access.json` before sending its Telegram reply, so the code is available in the file as soon as the reply lands:
 
    ```bash
-   CODE='<code>'
-   ACCESS_FILE=~/.claude/channels/telegram/access.json
-   APPROVED_DIR=~/.claude/channels/telegram/approved
+   python3 - <<'PYEOF'
+   import json, os, time
+   path = os.path.expanduser("~/.claude/channels/telegram/access.json")
+   for _ in range(15):
+       if os.path.exists(path):
+           with open(path) as f:
+               data = json.load(f)
+           pending = data.get("pending", {})
+           if pending:
+               # Take the most recently issued code (highest createdAt)
+               code = max(pending, key=lambda k: pending[k].get("createdAt", 0))
+               print(code)
+               break
+       time.sleep(2)
+   PYEOF
+   ```
 
-   # Read access.json (or default if missing)
-   if [ ! -f "$ACCESS_FILE" ]; then
-     echo '{"dmPolicy":"pairing","allowFrom":[],"groups":{},"pending":{}}' > "$ACCESS_FILE"
-   fi
+   Capture the printed code into `$CODE` for the next step.
 
-   # Use python or jq to mutate the JSON safely
+6. **Run the pair op against `access.json`** (same file mutation as before, no user input needed):
+
+   ```bash
+   CODE='<extracted-code>'
    python3 - <<PYEOF
    import json, os, sys, time
-   path = os.path.expanduser("$ACCESS_FILE")
+   path = os.path.expanduser("~/.claude/channels/telegram/access.json")
+   if not os.path.exists(path):
+       sys.exit(1)
    with open(path) as f:
        data = json.load(f)
    pending = data.get("pending", {})
    entry = pending.get("$CODE")
-   if not entry:
-       print("ERROR: code not in pending; user may have sent a stale code", file=sys.stderr)
-       sys.exit(2)
-   if entry.get("expiresAt", 0) < int(time.time() * 1000):
-       print("ERROR: code expired", file=sys.stderr)
-       sys.exit(3)
-   sender = entry["senderId"]
-   chat = entry["chatId"]
+   if not entry: sys.exit(2)
+   if entry.get("expiresAt", 0) < int(time.time() * 1000): sys.exit(3)
+   sender, chat = entry["senderId"], entry["chatId"]
    allow = data.get("allowFrom", [])
    if sender not in allow:
        allow.append(sender)
@@ -382,17 +486,18 @@ Walk them through if Step 0 hasn't already covered this completely:
    data["pending"] = pending
    with open(path, "w") as f:
        json.dump(data, f, indent=2)
-   approved_dir = os.path.expanduser("$APPROVED_DIR")
+   approved_dir = os.path.expanduser("~/.claude/channels/telegram/approved")
    os.makedirs(approved_dir, exist_ok=True)
    with open(os.path.join(approved_dir, sender), "w") as f:
        f.write(chat)
-   print("OK", sender)
    PYEOF
    ```
 
-3. If the script exits 2 or 3, tell the user the code didn't match or expired and ask them to message the bot again to get a fresh one. Re-run with the new code.
-
-4. On success, move to Step 10. The channel server will have already noticed the new file in `approved/` and sent the user a "you're approved" message on Telegram.
+7. **Branches by exit code:**
+   - **0 (success)** → tell the user *"Paired."* Continue to Step 10. (The listener polls `approved/` and sends a "you're in" confirmation via Telegram, which will appear in the Playwright window.)
+   - **1 (access.json missing)** → listener didn't boot. Ask the user to check the listener terminal window for errors and retry.
+   - **2 (code not in pending)** → snapshot extraction read the wrong text. Re-run extraction or send `/start` again to get a fresh code.
+   - **3 (expired)** → send `/start` again to get a fresh code, retry pair op.
 
 ### Step 10 — Lock down access
 
@@ -415,65 +520,32 @@ PYEOF
 
 Confirm: *"Done. Strangers can't trigger pairing on your bot now."*
 
-### Step 11 — Round-trip verification
+### Step 11 — Round-trip verification (autonomous via Playwright)
 
-The channel is paired and locked. Now confirm it actually works end-to-end before declaring success.
+Confirm the round-trip works by sending a real message from Telegram Web and reading the bot's reply — same Playwright window that just paired. **Do not ask the user to send a test message from their phone.**
 
-Tell the user: *"Last check. Send any quick message to your bot from your phone, like 'test'. I should see it come through here."*
+1. Tell the user: *"Last check. Sending a test message and reading the reply now."*
 
-Wait for the inbound message. The Telegram channel server delivers it to this Claude Code session as a normal user message. When it arrives:
+2. **Send a verification message** in the bot's chat (still focused in the Playwright window from Step 9):
 
-- If you see the message → reply through the channel: *"Got it. Telegram is fully working. Anything you send your bot from now on will land here, and I'll reply on your phone."* Then delete the handoff state file:
-  ```bash
-  rm -f ~/.claude/channels/telegram/.handoff-state.json
-  ```
-  Phase 1 is complete. Move to Step 12.
-- If nothing arrives within 60 seconds → ask: *"Did you send the message? If yes, let me check the connection."* Snapshot via `claude plugin list` and confirm the channel is enabled. Walk through the Troubleshooting table below before retrying.
+   ```javascript
+   () => {
+     const input = document.querySelector('.input-message-input');
+     input.focus();
+     document.execCommand('insertText', false, 'Verification: are you alive?');
+     const event = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true });
+     input.dispatchEvent(event);
+   }
+   ```
 
-### Step 12 — Offer a launch shortcut (recommended)
+3. **Wait for the assistant's reply.** The listener receives the inbound, dispatches it to the channel session's assistant, the assistant replies via the listener, and the reply appears in the Telegram Web chat. Use `mcp__plugin_playwright_playwright__browser_wait_for` for new content with a 60-second timeout, or poll `browser_snapshot` for a new message after the verification one.
 
-The user just typed `claude --channels plugin:telegram@claude-plugins-official`. That is brutal to type every time. Offer a shortcut.
+4. **Read the reply** with the same `.innerText` extraction pattern used in Step 9. Confirm it's not the listener's "you're paired" auto-confirmation (that may also appear around this time — distinguish by text or message order).
 
-Ask: *"Want me to set up a shortcut so you can just type `claude-tg` next time, instead of the long command?"*
-
-If yes, ask one more question: *"When you're driving Claude from your phone over Telegram, you can't tap an 'allow' button on your laptop, so permission prompts will stall things. I can skip those prompts when running via Telegram so commands go through unprompted. Your Telegram allowlist still controls who can talk to your bot. Skip prompts? (Recommended for solo use.)"*
-
-**Build the shortcut as an executable script, not a shell alias.** Aliases in `~/.zshrc` don't load in non-interactive shells, Claude Desktop's or VS Code's integrated terminals, or already-open windows — that's fragile. A script in a directory that's already on PATH is reliable.
-
-Pick a target directory in this priority order:
-
-1. `~/.local/bin/` if it exists and is on PATH (`echo $PATH | grep -q "$HOME/.local/bin"`)
-2. The directory containing the existing `claude` binary if it's user-owned (`dirname "$(which claude)"`)
-3. `~/.local/bin/` — create it and add to PATH if neither of the above worked
-
-Write the script (replace `<flags>` with ` --dangerously-skip-permissions` if user said yes, empty otherwise):
-
-```bash
-mkdir -p ~/.local/bin
-cat > ~/.local/bin/claude-tg <<'EOF'
-#!/bin/sh
-exec claude --channels plugin:telegram@claude-plugins-official<flags> "$@"
-EOF
-chmod +x ~/.local/bin/claude-tg
-```
-
-If `~/.local/bin/` was not already on PATH, append to the user's shell rc:
-
-```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-```
-
-(Substitute `~/.bashrc` for bash users; on Windows, write a `claude-tg.cmd` shim into a directory on PATH instead.)
-
-**Verify** by running `which claude-tg`. If it resolves, tell the user: *"Done. Next time you want to chat with me on Telegram, just open a terminal and type `claude-tg`."* If you added the PATH line to `.zshrc`, also say: *"You'll need to open a fresh terminal window for the shortcut to work. The current one won't see it yet."*
-
-If the script approach fails for any reason, fall back to a `.zshrc` alias and warn the user it may not work in every terminal:
-
-```bash
-echo "alias claude-tg='claude --channels plugin:telegram@claude-plugins-official<flags>'" >> ~/.zshrc
-```
-
-Phase 1 is now genuinely complete.
+5. **Branches:**
+   - **Sensible reply received** → tell the user: *"Telegram is fully working. Next time you want to chat with me on Telegram, just open a terminal and type `claude-tg`. That's the shortcut we set up earlier."* Phase 1 is complete.
+   - **Timeout / no reply within 60s** → check the listener terminal status. Most common cause is the listener crashed or the channel session has no model assigned. Walk the Troubleshooting table.
+   - **Reply contains an error message** → surface a plain-English version of the error to the user and walk Troubleshooting.
 
 ---
 
@@ -529,16 +601,40 @@ PYEOF
 
 **"Pair a second device."** — same as adding a person via pairing. Flip to pairing, ask the user to message the bot from the new device, run the pair script with the new code, flip back to allowlist.
 
-**"Rotate my bot token."** — ask the user to talk to BotFather again (browser path preferred — open the same Telegram Web BotFather chat in Playwright and send `/revoke`, follow prompts to issue a new token). Capture the new token via `browser_evaluate` regex extract, then write the env file directly:
+**"Rotate my bot token."** — drive Telegram Web in the Playwright window to BotFather. Send `/revoke`, BotFather lists the user's bots, click the relevant one, BotFather replies with a new token. Capture the new token using the same clipboard-transit pattern as Step 5 — never let the token surface in tool returns:
 
-```bash
-TOKEN='<new-token>' bash -c 'printf "TELEGRAM_BOT_TOKEN=%s\n" "$TOKEN" > ~/.claude/channels/telegram/.env'
-chmod 600 ~/.claude/channels/telegram/.env
+```javascript
+() => {
+  const messages = document.querySelectorAll('.message');
+  const last = messages[messages.length - 1];
+  const match = last.innerText.match(/\b\d{8,}:[A-Za-z0-9_-]{30,}\b/);
+  if (!match) return { found: false };
+  navigator.clipboard.writeText(match[0]);
+  return { found: true, length: match[0].length };
+}
 ```
 
-Tell the user the channel session needs a restart for the new token to take effect (the server reads `.env` at boot, not on every message). Offer to relaunch via the same osascript pattern from Step 8.
+```bash
+pbpaste | awk 'NF { printf "TELEGRAM_BOT_TOKEN=%s\n", $0 }' > ~/.claude/channels/telegram/.env
+chmod 600 ~/.claude/channels/telegram/.env
+printf "" | pbcopy
+```
+
+Tell the user the listener needs a restart for the new token to take effect (the server reads `.env` at boot, not on every message). Tell them: *"Close the listener terminal window, then open a fresh one and run `claude-tg`."*
 
 **"My shortcut stopped working / I'm in a new terminal and `claude-tg` isn't found."** — most common cause is a fresh terminal that hasn't sourced the updated PATH. Tell them: *"Open a brand-new terminal window (not the current one) and try again. If it still doesn't work, tell me and I'll check the shortcut."* If still broken, verify with `which claude-tg` and `ls -la ~/.local/bin/claude-tg`.
+
+**"Toggle skip-permissions on the shortcut."** — the `--dangerously-skip-permissions` flag is baked into `~/.local/bin/claude-tg` at creation time (Step 8 Part A). Flipping it later is a one-line edit:
+
+```bash
+# Add the flag (skip prompts when running via Telegram)
+sed -i.bak 's|plugin:telegram@claude-plugins-official\([^ ]*\) "\$@"|plugin:telegram@claude-plugins-official --dangerously-skip-permissions "$@"|' ~/.local/bin/claude-tg
+
+# Remove the flag (restore prompts)
+sed -i.bak 's| --dangerously-skip-permissions||' ~/.local/bin/claude-tg
+```
+
+Tell the user the change applies on the listener's next launch (kill the listener terminal, reopen, run `claude-tg`).
 
 **"What's currently allowed?"** — read and summarise:
 
@@ -554,11 +650,12 @@ Report it in plain English to the user, never as raw JSON.
 
 | Symptom | Likely cause | What you do |
 |---|---|---|
-| Bot doesn't respond when user messages it | Channel session not running (no `claude --channels` open) | Tell the user to open a terminal and run `claude-tg` (or the long form if no shortcut yet) |
+| `claude-tg` runs and shows a Claude prompt, but no bun listener process exists (`pgrep -f "claude-plugins-official/telegram"` returns nothing) | Stale-environment terminal — the user's Claude Desktop / VS Code app was launched BEFORE Bun was installed (Step 3), so the integrated terminal it spawned for `claude-tg` doesn't have `bun` on PATH. `claude` runs fine (globally installed) but the bun-based channel MCP server silently fails to spawn | Tell the user to fully quit (Cmd+Q on Mac) and reopen their Claude Desktop / VS Code app. The terminal inside it inherits the app's environment from launch time, so closing only the terminal isn't enough. After the restart, run `claude-tg` in a fresh terminal and re-check with `pgrep`. Step 3's restart instruction is the proactive prevention; this row is the recovery if Step 3 was skipped or didn't take |
+| Bot doesn't respond when user messages it | Channel listener not running (`claude-tg` window closed, or silent-spawn case above) | Run `pgrep -f "claude-plugins-official/telegram"` to confirm. If nothing: `claude-tg` again. If a process IS running and still no replies: check the listener terminal for errors |
 | `Bun not found` after install | PATH not refreshed | Tell user to close and reopen the terminal; if still broken, apply `skills/first-run-setup/SKILL.md` PATH fix |
-| Pairing code never appears in the bot's reply | Channel session not running with the `--channels` flag | Same fix as "bot doesn't respond" — re-launch with the flag (or `claude-tg`) |
-| Bot replies with pairing code but assistant doesn't reply after pairing | Pair step didn't complete (wrong code sent, code expired) | Ask the user to send a fresh message to the bot to get a new code, then re-run `/telegram:access pair <code>` |
-| `/telegram:configure` reports invalid token | Token corrupted during copy (extra whitespace, missing colon) | Ask the user to re-copy the full token; it has a colon in the middle and they need everything before and after it |
+| Pairing code never appears in the bot's reply (Telegram Web shows nothing back from the bot after `/start`) | Listener silent-spawn bug, OR listener crashed mid-poll | First check the listener: `pgrep -f "claude-plugins-official/telegram"`. If missing, walk row 1. If present, check the listener terminal for stack traces |
+| Bot replies with pairing code but assistant doesn't reply after pairing | Pair op didn't complete (Step 9's python3 mutation failed, or wrote to the wrong code) | Re-read `~/.claude/channels/telegram/access.json` to confirm the user's senderId is in `allowFrom` AND `~/.claude/channels/telegram/approved/<senderId>` exists. If either is missing, drive Telegram Web to send `/start` again and re-run Step 9's pair op against the new code |
+| Listener errors with "invalid token" or "401 Unauthorized" on startup | Token in `.env` corrupted (extra whitespace, missing colon, or clipboard read picked up the wrong text) | Verify with `grep "^TELEGRAM_BOT_TOKEN=" ~/.claude/channels/telegram/.env` and check the line contains a colon plus 30+ chars after. If wrong, drive Telegram Web back to BotFather, send `/token` to retrieve, re-run Step 5's clipboard-transit capture |
 | Photos sent to the bot aren't being read | User sent as compressed photo, not as file | Tell them to long-press the image in Telegram and choose "Send as File" for full quality |
 | Bot stops responding after token rotation | Channel session running with old token in memory | Restart Claude Code (or run `claude-tg` again) |
 | Telegram Web QR scan fails repeatedly | Phone clock skew, or scanning the wrong QR | Have the user check their phone's date/time is automatic; if still failing, fall back to Phone Fallback |
@@ -583,19 +680,26 @@ Walk the user through @BotFather one message at a time:
 
 1. *"On your phone, open Telegram and search for `@BotFather`. It has a blue checkmark next to its name. Tap it, then tap Start. Tell me when you've done that."*
 2. When they confirm: *"Now send `/newbot` to BotFather. It'll ask you two questions: a name (whatever you want, like 'My Assistant') and a username (must end in `bot`, for example `harvey_assistant_bot`). Go through those, then paste the whole token BotFather gives you back to me. It looks like a long string with a colon in the middle."*
-3. When they paste the token:
-   - Do NOT echo it back.
-   - Acknowledge plainly: *"Got it. Saving that now."*
-   - Hold it in mind only for Step 7. Do not write it to a file other than via `/telegram:configure`.
+3. When they paste the token, do NOT echo it back. Acknowledge plainly: *"Got it. Saving that now."* Then immediately write it to `.env` with the same shell pipeline pattern, holding the token only long enough to write the file:
 
-The rest of Phase 1 (Steps 6 onward) is unchanged.
+   ```bash
+   mkdir -p ~/.claude/channels/telegram
+   TOKEN='<token-from-user>' bash -c 'printf "TELEGRAM_BOT_TOKEN=%s\n" "$TOKEN" > ~/.claude/channels/telegram/.env'
+   chmod 600 ~/.claude/channels/telegram/.env
+   ```
+
+   This is a transcript leak (the token is in a tool-call argument), accepted as the cost of the phone path. Phone Fallback should be rare; if it happens, recommend the user rotate the token afterwards.
+
+**Phase 1 caveat for the phone path:** because Telegram Web is NOT logged in (Step 4 didn't run), Steps 9 and 11 cannot drive Telegram Web autonomously. The user has to message the bot from their phone to trigger pairing, paste the code back into chat, and send a verification message manually. This is the experience the main flow specifically avoids — that's why Phone Fallback is the contingency, not the default.
 
 ---
 
-## Reference — what lives where
+## Reference — what this skill owns on the user's machine
 
-- Plugin source: installed via `/plugin install telegram@claude-plugins-official` into the user's Claude Code plugin directory.
-- Bot token: stored by the plugin at `~/.claude/channels/telegram/.env` after `/telegram:configure`. Never written to any workshop-kit file.
-- Allowlist state: managed by the plugin via `/telegram:access` subcommands; file at `~/.claude/channels/telegram/access.json`.
-- Handoff state (this skill's only state): `~/.claude/channels/telegram/.handoff-state.json`. Written in Step 7, deleted in Step 11.
-- Launch shortcut: `~/.local/bin/claude-tg` (preferred) or a `.zshrc` alias (fallback).
+- **Plugin source:** installed by Step 6 via `claude plugin install telegram@claude-plugins-official` into `~/.claude/plugins/cache/claude-plugins-official/telegram/<version>/`. The plugin ships its own user-invocable skills (`/telegram:configure`, `/telegram:access`); this skill bypasses them and writes the same state files directly.
+- **Bot token:** `~/.claude/channels/telegram/.env`, written by Step 5 (or Phase 2 token rotation) via the clipboard-transit pattern. chmod 600. Read by the listener at boot.
+- **Allowlist + pairing state:** `~/.claude/channels/telegram/access.json`, written by Steps 9, 10, and Phase 2 access ops via direct python3 mutation. Re-read by the listener on every inbound, so direct edits take effect immediately.
+- **Approval signal:** `~/.claude/channels/telegram/approved/<senderId>` files, written by Step 9 with the user's chatId. The listener polls this directory and sends a "you're approved" Telegram reply when it sees a new file.
+- **Launch shortcut:** `~/.local/bin/claude-tg`, written by Step 8 Part A. Optionally bakes in `--dangerously-skip-permissions`. PATH export added to the user's shell rc if not already present.
+
+When cleaning up, the resume-check "fresh" path covers everything except the upstream BotFather state (the bot itself).
