@@ -229,7 +229,7 @@ Tell the user in one short message:
 
 > "Xero will ask you to confirm the small monthly charge to activate the connection — please follow Xero's prompts to add or confirm a payment method. I'll wait."
 
-`mcp__playwright__browser_wait_for` polling for the post-activation marker — the connection state should change to **Active**:
+Activation can be slow (the user may need to add a card, choose a billing region, confirm). Run `mcp__playwright__browser_wait_for` against the consent-redirect URL OR poll the page state with a generous outer timeout (10 minutes). Use this `browser_evaluate` as the polling check — repeated calls until it returns `true` or the outer timeout fires:
 
 ```javascript
 () => {
@@ -238,20 +238,29 @@ Tell the user in one short message:
 }
 ```
 
-Branch on what's rendered:
+The simplest portable shape is a `browser_wait_for` with `time: 600` against an "Active"-marker text on the page (Xero typically renders "Connection active" or "Active" near the Client ID once activated):
+
+```
+mcp__playwright__browser_wait_for({
+  text: "Generate a secret",
+  time: 600
+})
+```
+
+Branch on what's rendered after the wait completes (or fires early):
 
 - **Active state reached + Client ID visible** → proceed to Step 6.
 - **User says they cancelled / backed out** → say: *"No problem at all — we can stop here. Come back whenever you're ready and say 'connect my Xero' to pick this back up."* Do not proceed.
 - **"Payment method required" and the user has no card on file** → say: *"That's normal — Xero needs a card on file for this. Go ahead and add one when prompted; it's only charged for the connection, not a random hold."* Wait for completion.
-- **Timeout (10+ minutes)** → check in once: *"Still on the activation screen? Anything I can help with?"*
+- **Timeout (10 minutes elapsed)** → check in once: *"Still on the activation screen? Anything I can help with?"* — then retry the wait once.
 
 ### Step 6 — Auto-extract Client ID + Client Secret from the DOM
 
 Once the connection is Active, Client ID and the **Generate a secret** button appear on the app's page. Extract both autonomously — never paste either back into chat.
 
-#### 6a — Read Client ID
+#### 6a — Read Client ID via clipboard transit
 
-The function returns metadata only (length / found) — never the raw value into Claude's tool-call return. To capture the actual Client ID for later writing, copy it to clipboard via a `browser_evaluate`:
+`browser_evaluate` extracts the Client ID from the DOM and copies it to the OS clipboard. The function returns metadata only (length / found) — the raw value never enters the tool-call return:
 
 ```javascript
 () => {
@@ -260,14 +269,14 @@ The function returns metadata only (length / found) — never the raw value into
   const container = idLabel?.closest('div, dl, fieldset') || idLabel?.parentElement;
   const valueEl = container?.querySelector('[data-testid*="value" i], code, input, dd, span');
   const text = (valueEl?.value || valueEl?.textContent || '').trim();
-  // Xero Client IDs are 32-char alphanumeric strings
+  // Xero Client IDs are typically 32-char alphanumeric strings
   const match = text.match(/\b[A-Za-z0-9]{30,40}\b/);
   if (match) navigator.clipboard.writeText(match[0]);
   return { found: !!match, length: match ? match[0].length : 0 };
 }
 ```
 
-Then read clipboard from Bash and store in a temp env var for Step 7's write — without putting the value into a tool-call return. Use the cross-platform clipboard helper:
+Read the clipboard from Bash into a shell-local env var, validate length, **then wipe clipboard immediately** so the value doesn't sit in the system clipboard while Step 6b runs:
 
 ```bash
 case "$(uname -s 2>/dev/null)" in
@@ -277,6 +286,12 @@ case "$(uname -s 2>/dev/null)" in
   *) echo "UNKNOWN_PLATFORM" >&2 ;;
 esac
 [[ ${#XERO_CLIENT_ID} -ge 30 ]] || { echo "CLIENT_ID looked too short, retry"; exit 1; }
+# Wipe clipboard now — Client ID has reached the env var
+case "$(uname -s 2>/dev/null)" in
+  Darwin*)  printf "" | pbcopy ;;
+  Linux*)   printf "" | xclip -selection clipboard 2>/dev/null ;;
+  MINGW*|MSYS*|CYGWIN*) powershell.exe -NoProfile -Command "Set-Clipboard -Value ''" ;;
+esac
 ```
 
 #### 6b — Click "Generate a secret" + read the Secret from the modal
@@ -326,7 +341,16 @@ esac
 
 With both credentials captured in shell-local env vars, register the Xero MCP server entry. The credentials go directly into the registered server's `env` block; they never appear in chat or tool-call returns.
 
-Use the **JSON merge** path (atomic Node-side rename — works on every platform; `claude mcp env` syntax for setting per-server env vars varies across Claude Code 2.x versions, so the JSON merge is the most portable form):
+**Primary path** — `claude mcp add` with `--env` flags. The `--` separator hands off the rest of the command to the stdio server's argv:
+
+```bash
+claude mcp add xero --scope user \
+  --env XERO_CLIENT_ID="$XERO_CLIENT_ID" \
+  --env XERO_CLIENT_SECRET="$XERO_CLIENT_SECRET" \
+  -- npx -y "@xeroapi/xero-mcp-server@latest"
+```
+
+**Fallback if `claude mcp add --env` errors** (older Claude Code version, CLI not on PATH, or unexpected output) — write the entry directly to `~/.claude.json` via the Node merge pattern (atomic rename inside Node so the swap is atomic on every platform — Mac / Linux / Windows Git Bash — and does not run if the JSON write fails):
 
 ```bash
 node -e '
@@ -379,7 +403,7 @@ Verify by calling `mcp__xero__list-organisations` (returns a list of orgs the co
 
 - **Tools available + call returns the org list** → capture the count + the connected organisation's name. Proceed to Step 9 success message including the org name.
 - **Tools not yet available** (most likely on first setup, since the MCP config was just written and Claude Code hasn't reloaded the tool surface) → tell the user *"All saved. Please close and reopen the chat once, then say 'test my Xero' and I'll verify the new connection."*
-- **Call returns `invalid_client` or `unauthorized`** → "Hmm, the connection didn't take — let me try once more." Re-open Playwright, drive back to the app's page, and re-extract the Secret from a fresh **Generate a secret** click (the previous one may have copied incomplete). Rewrite the env, retry verification once.
+- **Call returns `invalid_client` or `unauthorized`** → the Secret may have been copied incomplete on the one-time-reveal modal. Tell the user: *"Hmm, the connection didn't take — let me try once more."* Re-open Playwright with `mcp__playwright__browser_navigate({ url: "https://developer.xero.com/app/manage" })`, navigate back to the Claude Assistant app's page, and **regenerate** the Secret (Xero allows this — old Secret is invalidated). Re-run Step 6b's extract + Step 7's write. Retry verification once.
 - **Call returns `403 Forbidden` or `insufficient_scope`** → "Your connection is working, but one or two extra permissions are needed. Let me sort that." Re-open Playwright, navigate back to the app's scope page, tick the missing scope (the error names it), submit. **No restart needed** for scope changes — they apply on the next API call.
 - **Any other error** → "Something's not quite right — let me try once more." Retry the smoke call once. If still failing, surface in plain English (translated, never raw) and ask the user if they want to retry or stop.
 
