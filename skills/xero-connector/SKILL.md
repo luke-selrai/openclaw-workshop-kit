@@ -138,8 +138,10 @@ mcp__playwright__browser_navigate({ url: "https://developer.xero.com/app/manage"
 
 Take a `mcp__playwright__browser_snapshot()`. Reason from the snapshot:
 
-- **Logged in** (you see the "My apps" / app-management page heading, a "New app" button, or the user's account chrome at the top) → continue to Step 3.
-- **Not logged in** (Xero sign-in form, "Sign in to Xero" heading, email/password fields, or an SSO redirect to a third-party identity provider) → tell the user, *once*: *"Please sign in to your Xero account in the browser window I just opened — I'll wait. Same Xero account that has access to the organisation you want me to connect."* Then `mcp__playwright__browser_wait_for` polling for the post-login signal — either the **New app** button text, the **My apps** heading, or `app/manage` in the URL via `browser_evaluate`. Generous timeout (5 minutes); no nagging. After a long timeout, check in once: *"Still on the sign-in page? Anything I can help with?"*
+- **Logged in** (you see the "My apps" / app-management page heading, a "New app" button, or the user's account chrome at the top, with `developer.xero.com/app/manage` in the URL) → continue to Step 3.
+- **Not logged in** (Xero login form — heading reads **"Log in to Xero"** verbatim, email + password textboxes + a **Log in** button, page is on `login.xero.com/identity/user/login`; OR an SSO redirect to a third-party identity provider) → tell the user, *once*: *"Please sign in to your Xero account in the browser window I just opened — I'll wait. Same Xero account that has access to the organisation you want me to connect."* Then `mcp__playwright__browser_wait_for` polling for the post-login signal — either the **New app** button text, the **My apps** heading, or `developer.xero.com/app/manage` in the URL via `browser_evaluate`. Generous timeout (5 minutes); no nagging. After a long timeout, check in once: *"Still on the sign-in page? Anything I can help with?"*
+
+> *Live verification 2026-05-01: `developer.xero.com/app/manage` redirects unauthenticated visitors to `login.xero.com/identity/user/login?ReturnUrl=...`. The login page heading is exactly "Log in to Xero" (h2). The post-login redirect URL pattern returns through `developer.xero.com/oidc/callback.html` and lands on `developer.xero.com/app/manage`. The URL-change check is the most reliable post-login signal.*
 
 The user may complete sign-in via password, 2FA, or SSO — all paths converge on the My apps page.
 
@@ -399,9 +401,9 @@ mcp__playwright__browser_close()
 
 Tell the user: *"I've saved your Xero connection — let me check it works."*
 
-Verify by calling `mcp__xero__list-organisations` (returns a list of orgs the connection has access to — the smoke call). The verification depends on whether the MCP server is already active in the current session:
+Verify by calling `mcp__xero__list-organisation-details` (no arguments — returns the connected organisation's name and details; the canonical smoke call. Verified live 2026-05-01 against `@xeroapi/xero-mcp-server@latest` v1.0.0 — 51 tools enumerated, `list-organisation-details` confirmed as the org-introspection tool). The verification depends on whether the MCP server is already active in the current session:
 
-- **Tools available + call returns the org list** → capture the count + the connected organisation's name. Proceed to Step 9 success message including the org name.
+- **Tools available + call returns the organisation details** → capture the organisation's name. Proceed to Step 9 success message including the org name.
 - **Tools not yet available** (most likely on first setup, since the MCP config was just written and Claude Code hasn't reloaded the tool surface) → tell the user *"All saved. Please close and reopen the chat once, then say 'test my Xero' and I'll verify the new connection."*
 - **Call returns `invalid_client` or `unauthorized`** → the Secret may have been copied incomplete on the one-time-reveal modal. Tell the user: *"Hmm, the connection didn't take — let me try once more."* Re-open Playwright with `mcp__playwright__browser_navigate({ url: "https://developer.xero.com/app/manage" })`, navigate back to the Claude Assistant app's page, and **regenerate** the Secret (Xero allows this — old Secret is invalidated). Re-run Step 6b's extract + Step 7's write. Retry verification once.
 - **Call returns `403 Forbidden` or `insufficient_scope`** → "Your connection is working, but one or two extra permissions are needed. Let me sort that." Re-open Playwright, navigate back to the app's scope page, tick the missing scope (the error names it), submit. **No restart needed** for scope changes — they apply on the next API call.
