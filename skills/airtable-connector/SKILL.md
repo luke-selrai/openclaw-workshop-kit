@@ -1,7 +1,7 @@
 ---
 name: airtable-connector
-description: "Connect and operate Airtable via the official first-party Airtable MCP server (https://mcp.airtable.com/mcp). Use this skill when the user asks to set up Airtable, connect their bases, list tables, read or create records, or update their database schema. On first use run Phase 1 to configure the MCP server and authenticate before attempting tool calls."
-allowed-tools: mcp__airtable__*, Bash, Read, Write, Edit
+description: "Connect and operate Airtable via the official first-party Airtable MCP server (https://mcp.airtable.com/mcp). Drives the entire setup autonomously through airtable.com/create/tokens in a Playwright MCP browser: clicks Create new token, fills the name, ticks the four required scope checkboxes, selects All current and future bases, clicks Create token, reads the Personal Access Token from the DOM, and registers the MCP server with the token as a Bearer header. The only human moment is signing in to Airtable once. Use this skill when the user asks to set up Airtable, connect their bases, list tables, read or create records, or update their database schema. On first use run Phase 1 to configure the MCP server and authenticate before attempting tool calls."
+allowed-tools: mcp__airtable__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
   tags:
@@ -31,7 +31,7 @@ metadata:
 
 This skill lets you read and update a user's Airtable account on their behalf using the **official first-party Airtable MCP server** hosted at `https://mcp.airtable.com/mcp`. It has two phases:
 
-- **Phase 1 — Install & Auth.** A conversational bootstrap (≤4 steps). The user has never used this before. You wire the hosted MCP server into Claude Code and walk the user through a one-click browser sign-in to Airtable. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", "OAuth", or any file paths. They should feel like they are having a conversation, and at the end their Airtable is connected.
+- **Phase 1 — Install & Auth (autonomous).** Claude drives the entire `airtable.com/create/tokens` flow inside a Playwright MCP browser. The user does exactly one thing: sign in to Airtable in the Playwright window. Everything else — clicking *Create new token*, filling the name, walking the scope list to tick the four required scope checkboxes, selecting "All current and future bases", clicking *Create token*, reading the Personal Access Token from the DOM, registering the MCP server with the token as a Bearer header — is autonomous. The user never copies, never pastes, never reads a token aloud, never opens a tab themselves. This works on Enterprise workspaces too (PAT bypasses the OAuth admin-allowlist).
 - **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__airtable__*` native tools to read and update Airtable data.
 
 **Which phase to run** — Before any tool call, check whether the Airtable MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.airtable` entry. If it exists, treat the connector as configured and skip to Phase 2 (verify with a tool call before assuming the session is still valid). Otherwise, run Phase 1.
@@ -44,153 +44,157 @@ This skill lets you read and update a user's Airtable account on their behalf us
 
 ### How auth works under the hood
 
-The hosted Airtable MCP server supports two authentication paths:
-
-- **OAuth (primary, recommended)** — on first use, Claude Code opens a browser window, the user signs in to Airtable, and the session is stored by Claude Code. No credentials are ever pasted. This is the default path.
-- **Personal Access Token (PAT, fallback)** — for users on Enterprise Airtable workspaces where an admin blocks OAuth app installs, fall back to a PAT generated at `https://airtable.com/create/tokens` with scopes: `data.records:read`, `data.records:write`, `schema.bases:read`, `schema.bases:write`. The PAT is passed in an `Authorization: Bearer <token>` header on the MCP config.
+The hosted Airtable MCP server accepts a Personal Access Token (PAT) passed in an `Authorization: Bearer <token>` header. Claude drives the entire token mint via Playwright at `https://airtable.com/create/tokens` — no copy/paste, no OAuth callback, no admin-allowlist friction. The required scopes are `data.records:read`, `data.records:write`, `schema.bases:read`, `schema.bases:write`. This works identically on Free, Pro, Team, Business, and Enterprise plans.
 
 ---
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work. The user only signs in to Airtable once. Every message you send during Phase 1 must follow these rules:
 
-- **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, PAT, Bearer, scope, token, tenant, MCP, endpoint, URL, JSON, REST, or environment variable. If you must refer to a technical thing, name it plainly: "a small connection setting on your computer", "your Airtable sign-in page", or (fallback path only) "your Airtable access key".
-- **Tell them what is about to happen.** Before any action you take: "I am going to save your connection details now — this takes just a moment."
+- **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only action you ever request is "please sign in to the browser window I just opened."
+- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, PAT, Bearer, scope, token, tenant, MCP, endpoint, URL, JSON, REST, environment variable, Playwright, browser automation, or DOM. If you must name a technical concept, plainly:
+  - Personal Access Token (PAT) → **"your Airtable access key"**
+  - Scopes / OAuth scopes → **"permissions"**
+  - Restart Claude Code → **"close and reopen"**
+  - The Playwright browser → **"the browser window I just opened for you"**
+- **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start, once when you need them ("please sign in" / "please click Allow"), once when you're done. No commentary in between.
 - **React to success and failure warmly.** Good: "That worked — your Airtable is now connected." Bad: "MCP server initialized with 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
-- **Never mention file paths, commands, or scripts** to the user. You run them; you do not describe them.
+- **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
+- **No fabricated UI assertions.** Don't reference button colours or specific positioning — verify from the live snapshot. Airtable's token UI changes occasionally.
+- **Never echo the access key** back to the user (PAT path). Never include it in any output visible to the user.
 
 ---
 
-## PHASE 1 — Install & Auth (≤4 steps)
+## PHASE 1 — Install & Auth (autonomous via Playwright)
 
-This phase wires the hosted Airtable MCP server into Claude Code and walks the user through the one-time browser sign-in. You do every technical action; the user only signs in to Airtable once in their browser.
+Claude drives the user's browser end-to-end via Playwright MCP. The user's only role is signing in to Airtable when prompted (and only the first time — the persistent Playwright profile keeps the session for future runs). Claude handles every other step — navigation, form fills, scope ticks, base-access selection, token capture from DOM, MCP registration, verify.
+
+> **Why PAT (not OAuth):** the Personal Access Token path works on every Airtable plan including Enterprise, gives identical tool access, and can be driven end-to-end via Playwright (OAuth's localhost callback would require either Claude Code's native launcher or invasive proxying — neither plays well with full autonomy). PAT is the cleaner single-path solution.
+
+> **Reasoning model.** Each Playwright step describes a *goal* (e.g., "find the data.records:read scope checkbox"). Achieve it via `mcp__playwright__browser_snapshot` → reason → `browser_click` / `browser_evaluate` / `browser_fill_form` / `browser_select_option` / `browser_type`. Match scope checkboxes by their visible labels, not by selector paths — Airtable's token UI changes.
 
 ### Step 1 — Orient the user
 
-Tell the user in one short message:
+Tell the user, in one short message:
 
-> "To connect your Airtable, I am going to set up the connection on your computer, then ask you to sign in to Airtable once in your browser. The whole thing takes about a minute. There is no key to copy — Airtable handles the sign-in for us. Ready?"
+> "I'll connect your Airtable now. I'm opening a browser window — please sign in to Airtable when it appears, and I'll do the rest. About a minute."
 
-If the user volunteers that they are on an **Enterprise Airtable workspace** or says their workspace admin restricts apps, tell them the browser path may be blocked and that you have a quick fallback using an access key. Do not pre-empt this otherwise — for most users the browser path just works.
+### Step 2 — Open the token page and confirm a logged-in session
 
-### Step 2 — Save the connection
+Call `mcp__playwright__browser_navigate({ url: "https://airtable.com/create/tokens" })`.
 
-Once the user says they're ready, silently add or update the airtable MCP entry in the user's `~/.claude.json` file (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`).
+Take a `mcp__playwright__browser_snapshot()`. Reason from it:
 
-The Airtable MCP server is **hosted only** — there is no local transport option. Use this exact entry:
+- **Logged in** (you see the token-management page with a "Create new token" button or the existing tokens list) → continue to Step C.
+- **Not logged in** (sign-in form, "Sign in to Airtable") → tell the user *once*: *"The browser window is open — please sign in to Airtable when you're ready."* Poll silently with `mcp__playwright__browser_wait_for({ text: "Create new token" })` (or any post-login token-page element). Do not ask the user to confirm; detect login completion yourself.
 
-```json
-{
-  "mcpServers": {
-    "airtable": {
-      "url": "https://mcp.airtable.com/mcp"
-    }
+If `browser_wait_for` times out (5+ minutes), check in: *"Still on the sign-in page? Anything I can help with?"*
+
+### Step 3 — Open the create-token form
+
+Locate the "Create new token" control in the snapshot. Click it via `browser_click`. Snapshot to confirm a creation form/page appears with a name field and scope list.
+
+### Step 4 — Fill the token name
+
+Locate the name input in the snapshot and type via `browser_type` or `browser_fill_form`:
+- **Name** → `"Claude Assistant"`
+
+### Step 5 — Tick the four required scopes
+
+Airtable's scope list is a series of checkboxes labelled by scope name. For each of the four scopes below, locate the matching checkbox from the snapshot (search for the scope text) and click via `browser_click`. Re-snapshot after each tick to confirm state changed.
+
+- `data.records:read`
+- `data.records:write`
+- `schema.bases:read`
+- `schema.bases:write`
+
+If the scope list is collapsed by category, click the category header to expand it before clicking checkboxes. If a scope checkbox isn't visible, look for a search/filter input and type the scope name into it to filter the list.
+
+### Step 6 — Select base access
+
+Locate the "Access" or "Add a base" section in the snapshot. Pick the broadest option:
+- Click **"All current and future bases in all workspaces"** if available (preferred — works for all bases the user has now or adds later).
+- Otherwise, look for an "Add base" / "Add all bases" control and click it.
+
+If neither is available and the user has only one workspace, select that workspace.
+
+### Step 7 — Create the token
+
+Locate the "Create token" submit button in the snapshot and click it via `browser_click`.
+
+If Airtable shows a confirmation modal, snapshot it and click the affirmative option.
+
+Poll `mcp__playwright__browser_wait_for({ text: "pat" })` (or wait for the token-reveal screen — typically shows a `pat...` value in a code block with a Copy button).
+
+### Step 8 — Capture the access token
+
+The post-creation screen displays the Personal Access Token (starts with `pat`). Read it via `browser_evaluate`:
+
+```
+() => {
+  const candidates = [...document.querySelectorAll('input, code, textarea, [data-testid*="token"], [class*="token"]')];
+  for (const el of candidates) {
+    const v = (el.value || el.textContent || '').trim();
+    if (v.startsWith('pat') && v.length > 30) return v;
   }
+  return null;
 }
 ```
 
-Merge into the existing `mcpServers` object rather than overwriting it. If `~/.claude.json` does not exist, create it with just the airtable entry. If the file exists but is corrupted, back it up to `~/.claude.json.backup` first, then write a fresh config.
+If the token is masked behind a "Copy" or "Show" button, click it via `browser_click`, re-snapshot, then re-evaluate.
 
-Tell the user: "I have saved the connection. Now please close Claude Code completely and reopen it once, so it picks up the new setting. Let me know when you're back."
+**Validation (silent):**
+- Token must start with `pat`
+- Token must be longer than 30 characters
 
-### Step 3 — Walk the user through the browser sign-in
+If two snapshot attempts don't surface a valid token, stop and ask the user: *"I'm having trouble finding the access key on the page — could you describe what's visible?"*
 
-The first time the Airtable MCP server is contacted after the restart, Claude Code will open a browser window asking the user to sign in to Airtable and approve the connection. You cannot do this for them — Airtable requires their authenticated session.
+### Step 9 — Save the connection (silent)
 
-Tell the user (one instruction at a time, waiting for confirmation between each):
+Silently register the MCP server with the PAT as a Bearer header. **Prefer `claude mcp add` via Bash**:
 
-1. "You should now be back in a fresh Claude Code session. Say to me: **'connect to my Airtable now'**. A browser window will pop up asking you to sign in to Airtable. Tell me when you see it."
+```bash
+claude mcp add airtable \
+  --scope user \
+  --transport http \
+  --header "Authorization: Bearer <token captured in Step H>" \
+  -- https://mcp.airtable.com/mcp
+```
 
-2. When they see the sign-in window → "Sign in with your Airtable email and password, then click **Allow** on the permission screen. Let me know when you're back here."
-   - If the user already signed in to Airtable recently → "You may not need to type a password — Airtable might just show the **Allow** screen straight away. That's fine, just click **Allow**."
-   - If the user can't see the browser window → "Check behind your other windows — sometimes it opens in the background. If you really can't find it, tell me and I'll try again."
+**Fallback if `claude mcp add` fails** — write directly to `~/.claude.json`:
 
-Common mistakes to look out for (and correct by re-asking):
-
-- The user closes the browser window without clicking **Allow** → "No problem — let me try once more. I'll trigger the sign-in again, just click **Allow** when it pops up this time."
-- The user signs in to the wrong Airtable account (e.g. personal vs work) → "I think you might have signed in with a different email than you meant to. In your browser, sign out of Airtable, then tell me 'try again' and I'll re-trigger the sign-in."
-- The user reports a "this site can't be reached" page → "Sounds like a network hiccup. Is your internet working? Once you confirm, I'll try once more."
-- The user reports their admin blocked the sign-in or they see an "administrator approval required" screen → switch to the **PAT fallback path** below.
-
-When the user confirms they clicked **Allow**, immediately move to Step 4.
-
-### Step 4 — Verify the connection
-
-Tell the user: "Let me just check that everything is talking to Airtable correctly."
-
-Call `mcp__airtable__list_bases`. If it returns a result (including an empty list — that's fine), the connection works. Move to the success message, including the live count.
-
-If the verification tool returns an error:
-
-- `401 Unauthorized` / `Not authenticated` → "The sign-in didn't quite stick. Let me trigger it once more for you." Re-do Step 3.
-- `403 Forbidden` → "Your connection is working, but your Airtable user doesn't have permission for that action. An admin on your Airtable workspace may need to adjust your access."
-- `429 Rate limited` → "Airtable is asking us to slow down for a moment — let me try again in a few seconds." Wait 10s, retry.
-- Tools not available in current session → "I have saved everything. Please restart Claude Code once so the connection becomes active, then say 'test my Airtable connection' and I will verify it."
-- Admin approval required → switch to the PAT fallback path below.
-- Any other error → "Something went wrong — let me try again." Retry once; if still failing, ask the user to re-do the sign-in (Step 3).
-
-### Step 5 — Success message
-
-Tell the user, in one short message, and include the live base count from `list_bases` so the success feels real:
-
-> "All done! Your Airtable is now connected — I can see **N bases**. You can ask me things like 'show me my bases', 'list the tables in my CRM base', 'show me the latest 10 records in the Leads table', or 'add a new record to the Contacts table'. Give it a try!"
-
----
-
-## PAT fallback path
-
-Use this path only when the browser sign-in is blocked — typically on **Enterprise Airtable workspaces** where an admin restricts third-party app installs, or when the user cannot complete the browser sign-in for any reason. Functionally it gives the user the same tool access as the browser path.
-
-### Step A — Explain and open the token page
-
-Tell the user: "No problem — we can connect it a different way using a personal access key instead. I will walk you through generating one. Ready?"
-
-Then: "Please open this page in your browser: **https://airtable.com/create/tokens** — and sign in if needed. Let me know when you're there."
-
-### Step B — Create the access key
-
-Tell the user (one instruction at a time, waiting for confirmation between each):
-
-1. "Click **Create new token**."
-2. "For the name, type: **Claude Assistant**."
-3. "Tick all four of these permission boxes: **data.records:read**, **data.records:write**, **schema.bases:read**, **schema.bases:write**."
-4. "Under **Access**, choose which of your Airtable bases you want to connect — either 'All current and future bases in all workspaces', or pick specific ones."
-5. "Click **Create token**. Airtable will show you a long value — please copy it and paste it to me. Don't worry about remembering it, I'll save it for you."
-
-Common mistakes:
-
-- The user pastes something very short (under 20 characters) → "That doesn't look quite right — the real value is much longer. Can you double-check and try again?"
-- The user skips one of the four permissions → when verification later fails with `403`, re-ask them to generate a fresh token with all four ticked.
-- The user restricts the token to a single base by mistake and then asks about another base → ask them to regenerate with the broader access they need, or list an additional base on the token.
-
-### Step C — Save the connection with the access key
-
-Silently write the PAT config to `~/.claude.json`, merging into the existing `mcpServers` object:
+<details>
+<summary>Direct JSON write</summary>
 
 ```json
 {
   "mcpServers": {
     "airtable": {
       "url": "https://mcp.airtable.com/mcp",
-      "headers": {
-        "Authorization": "Bearer <token the user pasted>"
-      }
+      "headers": { "Authorization": "Bearer <token>" }
     }
   }
 }
 ```
+</details>
 
-Never echo the token back to the user. Never include it in any user-visible output. Never paste the contents of `~/.claude.json` to the user.
+Merge into the existing `mcpServers` object — never overwrite. If `~/.claude.json` doesn't exist, create it. If corrupt, back up to `~/.claude.json.backup` first.
 
-Tell the user: "I have saved your access key. Please close Claude Code completely and reopen it once, then tell me when you're back."
+Never echo the access key back to the user. Never include it in any output visible to the user. Never paste the contents of `~/.claude.json` to the user.
 
-### Step D — Verify
+### Step 10 — Close the browser, verify, success message
 
-When they return, run the same `mcp__airtable__list_bases` check and deliver the same success message as the browser path. If `list_bases` returns `401` on the PAT path, the most likely causes are a typo'd token or a token missing one of the four required permissions — ask the user to generate a fresh one and paste it again.
+`mcp__playwright__browser_close()`.
+
+Tell the user: *"Saved — let me check it works."*
+
+- **If `mcp__airtable__*` tools are available**: call `mcp__airtable__list_bases`. If it returns a result (even empty), capture the count and use the same success message as the OAuth path.
+- **If tools not available**: *"All saved. Please close and reopen Claude Code once, then say 'test my Airtable' and I'll verify."*
+
+If verification returns `401`, the most likely causes are a partial token capture or a missing scope. Re-run Steps B–I to mint a fresh token with all four scopes ticked.
 
 ---
 
