@@ -50,7 +50,7 @@ This skill lets you read and update a user's Jotform account on their behalf usi
 
 ### How auth works under the hood
 
-The Jotform MCP server is a hosted OAuth 2.1 server. The MCP transport endpoint at `https://mcp.jotform.com` returns a `401 WWW-Authenticate: Bearer` challenge with a `resource_metadata` pointer to its protected-resource document; from there Claude Code's MCP runtime discovers the authorization server, performs PKCE, and handles the token exchange. From the SKILL's perspective this is a standard OAuth 2.1 + PKCE flow — Claude Code drives it natively. The skill only opens the start URL inside Playwright, auto-clicks Allow, and waits for the callback.
+The Jotform MCP server is a hosted OAuth 2.1 server. The transport endpoint at `https://mcp.jotform.com` returns a `401` for unauthenticated calls and publishes its OAuth metadata via the standard `/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server` documents (resource = `mcp.jotform.com`, authorization server = `oauth2.jotform.com`). Claude Code's MCP runtime fetches those documents on first contact, then performs PKCE against the auth server and handles the token exchange natively. From the SKILL's perspective this is a standard OAuth 2.1 + PKCE flow — Claude Code drives it natively. The skill only opens the start URL inside Playwright, auto-clicks Allow, and waits for the callback.
 
 ---
 
