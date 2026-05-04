@@ -121,7 +121,7 @@ DocuSign provides free **Developer Account** at `account-d.docusign.com` (sandbo
 | **Sandbox** (workshop default) | `account-d.docusign.com` | `https://mcp-d.docusign.com/v1/mcp` | `https://admindemo.docusign.com/api-integrator-key` |
 | **Production** | `account.docusign.com` | `https://mcp.docusign.com/v1/mcp` | `https://admin.docusign.com/api-integrator-key` |
 
-All four sandbox endpoints + both admin-portal URLs verified live 2026-05-04 via `curl` HEAD probes. Sandbox MCP metadata fetched at `https://mcp-d.docusign.com/.well-known/oauth-authorization-server`:
+All four sandbox endpoints + both admin-portal URLs verified live 2026-05-04. Sandbox MCP metadata fetched at `https://mcp-d.docusign.com/.well-known/oauth-authorization-server`:
 
 ```json
 {
@@ -133,7 +133,26 @@ All four sandbox endpoints + both admin-portal URLs verified live 2026-05-04 via
 }
 ```
 
+**Protocol-level OAuth-Bearer challenge confirmed** (verified live 2026-05-04). A `POST` against `https://mcp-d.docusign.com/v1/mcp` with `Authorization: Bearer bogus` returns:
+
+```http
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="https://mcp-d.docusign.com/v1/mcp", error="invalid_token"
+```
+
+This is the **RFC 6750 OAuth Bearer challenge shape** — the same shape `mcp.canva.com/v1/mcp` returns (`WWW-Authenticate: Bearer realm="OAuth", error="invalid_token"`). Identical bridge-OAuth pattern. This is the trigger Claude Code's MCP runtime needs to auto-emit the per-server `mcp__docusign__authenticate()` / `complete_authentication({callback_url})` tool pair (the post-#198 canonical pattern). The full handshake test (a valid bearer → `tools/list` → returned tool inventory) still requires a real Developer Account; only the OAuth-protected-MCP shape is verified at audit time.
+
 Sandbox + production share an identical 54-scope catalogue. Same Auth Code Grant + PKCE-S256 constraints. The two environments are logically separate accounts — Integration Keys created in `admindemo` only authenticate against `account-d`, and vice versa.
+
+## Sandbox → production migration (v2 concern, but document the trap)
+
+Sandbox and production are logically separate DocuSign accounts. Workshop attendees who build against the sandbox and later flip to production discover:
+
+- Their sandbox Integration Key is valid only on `account-d.docusign.com`. They must create a NEW Integration Key in `admin.docusign.com/api-integrator-key` (production portal).
+- The production app needs separate consent — going through the OAuth flow once on sandbox does not consent the production app.
+- `~/.claude.json` `mcpServers.docusign` entry must be updated: change `mcp-d.docusign.com` → `mcp.docusign.com`, and replace `DOCUSIGN_INTEGRATION_KEY` + `DOCUSIGN_SECRET` with production values.
+
+**SKILL implication**: support a `DOCUSIGN_ENV=production` switch in the SKILL's Phase 0 that drives the production portal + production MCP host instead of sandbox. Document the migration path in the SKILL's "Reconnect to production" section so attendees don't end up debugging a dead key.
 
 ---
 
@@ -150,18 +169,18 @@ Per the metadata, the flow is:
 
 Claude Code's MCP runtime should handle steps 3-5 natively given `--transport http` registration. PKCE S256 is the only supported challenge method — same as canva + atlassian. Per the post-[#198](https://github.com/selrai-company/claude-workshop-kit/issues/198) pattern, the SKILL acquires the auth URL via `mcp__docusign__authenticate()` (returned programmatically by Claude Code's MCP runtime) instead of constructing it manually or scraping a 401-challenge response. The callback URL is submitted via `mcp__docusign__complete_authentication({ callback_url })` rather than letting the runtime swallow it silently — this finalises auth in-session, no chat restart needed.
 
-## Default scope set (workshop minimum-permission)
+## Default scope set (workshop minimum-permission — provisional, verify at SKILL-build time)
 
 Sandbox metadata exposes 54 scopes. Triaged for the workshop's "send envelope, list envelopes, get signed status" canonical demo flow:
 
 | Tier | Scopes | Default in SKILL |
 | --- | --- | --- |
-| 1 — core eSign | `signature` | ✅ ticked (only required scope for the demo flow) |
+| 1 — core eSign (documented baseline) | `signature` | ✅ ticked — **provisional baseline; verify per-tool requirements when Phase 2 is enumerated against a live account** |
 | 2 — common eSign add-ons | `click.manage`, `webforms_manage`, `me_profile`, `account_read` | optional, commented-out toggle |
 | 3 — admin/niche | `user_read`, `group_read`, `notary_read`, `notary_write`, `room_forms` | off |
 | 4 — IAM/Navigator/AI/ops platform internals | 40+ scopes (`adm_*`, `act_*`, `cds_*`, `aow_*`, `spring_*`, `clause_*`, `models_*`, `dcf_*`, `ai_jobs_engine_*`, `iam_folders_*`, `audit_log_read`, etc.) | off (different product surfaces — IAM is separate from eSign) |
 
-Recommendation: Step 4's scope-tick form-fill should target Tier 1 only (`signature`). Mirrors xero V1 minimum-permission pattern (PR #191).
+**Caveat — Tier 1 scope claim is unverified.** `signature` is the documented baseline scope per DocuSign's eSignature REST API auth docs, and matches the xero V1 minimum-permission pattern (PR #191). It has NOT been live-tested against the SKILL's planned smoke call (`mcp__docusign__list-envelopes` or equivalent). DocuSign's scope model historically requires `signature impersonation` for some account-level flows and `extended` for refresh-token rotation; the per-tool minimum may differ from the per-API-surface minimum. **Action at SKILL build time**: before locking the scope set, authenticate with `signature` only and run the SKILL's planned smoke tools — if any return 403/insufficient_scope, escalate to Tier 2 or specifically add the missing scope. Document the actual minimum once verified.
 
 ---
 
