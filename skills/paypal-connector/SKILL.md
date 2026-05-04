@@ -1,7 +1,7 @@
 ---
 name: paypal-connector
-description: "Connect and operate PayPal via the official @paypal/mcp server. Use this skill when the user asks to set up PayPal, connect their account, or interact with invoices, payments, orders, refunds, disputes, subscriptions, products, shipment tracking, or transactions. On first use, run Phase 1 to install and authenticate the connector before attempting any tool calls."
-allowed-tools: mcp__paypal__*, Bash, Read, Write, Edit
+description: "Connect and operate PayPal via the official @paypal/mcp server. Drives the entire setup autonomously through developer.paypal.com/dashboard/applications in a Playwright MCP browser: switches to the chosen Live or Sandbox tab, clicks Create App, fills the app name, captures Client ID and Secret from the DOM after clicking Show, silently exchanges them for an access token, and writes ~/.claude.json. The only human moments are the user signing in to PayPal once and answering live-vs-sandbox. Use this skill when the user asks to set up PayPal, connect their account, or interact with invoices, payments, orders, refunds, disputes, subscriptions, products, shipment tracking, or transactions. On first use, run Phase 1 to install and authenticate the connector before attempting any tool calls."
+allowed-tools: mcp__paypal__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Payments & Billing
   tags:
@@ -30,7 +30,7 @@ metadata:
 
 This skill lets you read and update a user's PayPal account on their behalf using the **official first-party [`@paypal/mcp`](https://www.npmjs.com/package/@paypal/mcp)** (published by PayPal's SDK team, built on `@modelcontextprotocol/sdk`). It has two phases:
 
-- **Phase 1 — Install & Auth.** A conversational bootstrap (≤4 steps). The user has never used this before. You walk them through creating an app in the PayPal Developer Dashboard, generating an access token, and wiring the MCP server into Claude Code. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", "env var", or any file paths. They should feel like they are having a conversation, and at the end their PayPal is connected.
+- **Phase 1 — Install & Auth (autonomous).** Claude drives the entire `developer.paypal.com/dashboard/applications` flow inside a Playwright MCP browser. The user does exactly two things: sign in to PayPal in the Playwright window, and answer "live or sandbox?" when Claude asks. Everything else — switching to the matching tab, clicking *Create App*, filling the name and Merchant type, clicking *Show* on the Secret, capturing both Client ID and Secret from the DOM, exchanging them for an access token via PayPal's OAuth endpoint, persisting credentials to disk for future refreshes, writing `~/.claude.json` — is autonomous. The user never copies, never pastes, never reads a Client ID or Secret aloud, never opens a tab themselves.
 - **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__paypal__*` native tools to read and update PayPal data.
 
 **Which phase to run** — Before any tool call, check whether the PayPal MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.paypal` entry with `PAYPAL_ACCESS_TOKEN` in its `env` block. If it exists and is non-empty, treat the connector as configured and skip to Phase 2. Otherwise, run Phase 1.
@@ -55,95 +55,152 @@ The access token is obtained by exchanging the app's Client ID + Secret via PayP
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work, the user only signs in to PayPal and answers live-vs-sandbox once. Every message you send during Phase 1 must follow these rules:
 
-- **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, REST, or environment variable. If you must refer to a technical thing, name it plainly: "a connection key", "a small setting on your computer".
-- **Tell them what is about to happen.** Before any action you take: "I am going to save your connection details now — this takes just a moment."
+- **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only actions you ever request are: "please sign in to the browser window I just opened" and "live or sandbox?" The live-vs-sandbox question is the *one* unavoidable user input, because Claude cannot infer it from PayPal alone.
+- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, REST, environment variable, Playwright, browser automation, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page" — not "Playwright" or "Chromium". If you must name a technical concept, plainly:
+  - Client ID + Secret → **"your connection details"** (collectively)
+  - Access token → don't mention; the user never sees it
+  - Restart Claude Code → **"close and reopen"**
+- **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening PayPal for you now"), once when you need them ("please sign in", "live or sandbox?"), once when you're done ("your PayPal is now connected"). No commentary in between.
 - **React to success and failure warmly.** Good: "That worked — your PayPal is now connected." Bad: "MCP server initialized with 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
-- **Never mention file paths, commands, or scripts** to the user. You run them; you do not describe them.
+- **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
+- **No fabricated UI assertions.** Don't reference button colours ("the orange button") or specific positioning ("top-right corner") — verify from the live snapshot. PayPal's developer dashboard changes frequently.
+- **Never echo Client ID, Secret, or access token** back to the user. Never include any of them in any output visible to the user.
 
 ---
 
-## PHASE 1 — Install & Auth (≤4 steps)
+## PHASE 1 — Install & Auth (autonomous via Playwright)
 
-This phase gets the PayPal app created, the access token generated, the MCP server wired into Claude Code, and the connection verified. You do every technical action; the user only provides information and clicks things in their browser.
+Claude drives the user's browser end-to-end via Playwright MCP. The user's only roles are: (1) sign in to PayPal once, (2) answer "live or sandbox?" once. Claude handles every other step — environment tab switch, app creation, Client ID and Secret capture from DOM, OAuth token exchange, credentials persistence, config write, verify.
 
-### Step 1 — Orient the user and choose path
+> **Reasoning model.** Each Playwright step describes a *goal*. Achieve it via `mcp__playwright__browser_snapshot` → reason → `browser_click` / `browser_evaluate` / `browser_navigate` / `browser_fill_form` / `browser_select_option` / `browser_type`. Do not hardcode CSS selectors or button colours — PayPal's developer dashboard changes regularly. Re-snapshot whenever the page state changes.
 
-Tell the user in one short message:
+### Step 1 — Orient the user and choose environment
 
-> "To connect your PayPal, I need you to create a free connection key inside your PayPal Developer account. This takes about three minutes. I will tell you exactly what to click, one step at a time.
+Tell the user, in one short message:
+
+> "I'll connect your PayPal now. I'm opening a browser window — please sign in to PayPal there, and I'll set up the connection for you. About a minute.
 >
-> One quick question first — do you want to connect your **real PayPal account** (recommended), or would you prefer to start with a **practice sandbox** so you can try things out with fake data first?"
+> One quick question first — do you want to connect your **real PayPal account** (recommended), or start with a **practice sandbox** to try things with fake data?"
 
-**Handle the response:**
+Wait for the answer. Save the result as `environment ∈ {production, sandbox}`:
 
-- **User picks real account (or says "real", "live", "production")** → proceed to Step 2 with `PAYPAL_ENVIRONMENT` set to `PRODUCTION`. This is the default.
-- **User picks sandbox (or says "test", "practice", "sandbox")** → proceed to Step 2, but when you reach Step 3, set `PAYPAL_ENVIRONMENT` to `SANDBOX`. Tell them: *"Great — we'll use the practice sandbox. Everything works the same way, but none of your real PayPal data will be affected."* Make sure the user copies credentials from the **Sandbox** tab (not Live) in Step 2.
-- **User is unsure** → recommend the real account: *"I'd suggest the real account — you can always ask me to switch to sandbox later if you want to experiment. Shall we go with that?"*
+- "real", "live", "production", "yes" → `production` (default if unclear)
+- "test", "practice", "sandbox" → `sandbox`. Tell them: *"Great — practice sandbox it is. None of your real PayPal data will be affected."*
+- Unsure → recommend production: *"I'd suggest the real account — you can always switch to sandbox later. Shall we go with that?"*
 
-### Step 2 — Walk the user through creating an app and getting the credentials
+### Step 2 — Open the PayPal Developer Dashboard and confirm a logged-in session
 
-The user needs to create an app in the PayPal Developer Dashboard and copy the Client ID and Secret. You cannot do this step for them — PayPal requires their authenticated session.
+Call `mcp__playwright__browser_navigate({ url: "https://developer.paypal.com/dashboard/applications" })`.
 
-Tell the user (one instruction at a time, waiting for confirmation between each):
+Take a `mcp__playwright__browser_snapshot()`. Reason from it:
 
-1. "Please open this page in your browser: **https://developer.paypal.com/dashboard/applications** — and sign in with your PayPal account. Let me know when you are signed in."
-   - If the user has multiple accounts (personal vs business), say: "Use your PayPal **business** account — that's the one with access to invoices, payments, and orders."
+- **Logged in** (you see an apps list, a "Create App" control, the developer dashboard chrome, or environment tabs labelled "Live" / "Sandbox") → continue to Step 3.
+- **Not logged in** → tell the user *once*: *"The browser window is open — please sign in to PayPal when you're ready."* Poll silently with `mcp__playwright__browser_wait_for({ text: "Create App" })` (or any post-login dashboard element from a fresh snapshot). Do not ask the user to confirm; detect login completion yourself. SSO and 2FA all resolve to the same dashboard.
+- **Account type modal** (PayPal sometimes asks personal vs business on first developer login) → if a business option is available, click it. If only personal is available, tell the user: *"PayPal recommends a business account for invoicing and payments. Want to continue with personal anyway, or pause and upgrade first?"*
 
-2. When they confirm → "Now click the **Create App** button. A form will appear. Tell me when you see it."
+If `browser_wait_for` times out (5+ minutes), check in: *"Still on the sign-in page? Anything I can help with?"*
 
-3. When they see the form → deliver the field values:
-   - "For **App Name**, type: **Claude Assistant**."
-   - "For **App Type**, choose: **Merchant**."
-   - "Click the **Create App** button. Tell me when you see the app details page."
+### Step 3 — Switch to the matching environment tab
 
-4. When they confirm → "You should now see two values on this page: a **Client ID** and a **Secret**. You may need to click **Show** next to the Secret to reveal it. Please copy the **Client ID** and paste it to me."
+The dashboard shows two environment tabs (typically labelled "Live" and "Sandbox"). Locate the tab matching the `environment` chosen in Step 1 from the snapshot. Click it via `browser_click`. Re-snapshot to confirm the tab is active (the URL or app list will change; the active tab will visually indicate selection in the accessibility tree).
 
-5. When they paste the Client ID → "Thanks. Now copy the **Secret** and paste it to me — don't worry about remembering it, I'll save it for you."
+Identify *active* tab by examining the snapshot's role/state attributes (`aria-selected="true"`, `aria-current`, or similar) — never rely on visual position or colour.
 
-   **Important — Sandbox vs Live:** The PayPal Developer Dashboard shows both **Sandbox** and **Live** credentials. Make sure the user is copying from the tab that matches the path they chose in Step 1:
-   - **Real account path** → copy from the **Live** tab. If the values look like test strings, ask: "Are you copying from the **Live** tab? We want the Live credentials so I can work with your real PayPal data."
-   - **Sandbox path** → copy from the **Sandbox** tab. If they accidentally copy Live credentials, say: "Those look like your real account credentials — we want the **Sandbox** ones since you chose the practice path. Can you switch to the Sandbox tab and copy from there?"
+### Step 4 — Create the app
 
-Common mistakes to look out for (and correct by re-asking):
+Locate the "Create App" control in the snapshot of the active environment tab. Click it. Snapshot the resulting form.
 
-- The user pasted a placeholder like `your_client_id_here` → ask again: "I think that was a copy mistake — please try the real value from the page."
-- The user pasted something very short (under 10 characters) → "That doesn't look quite right — the real value is longer. Can you double-check and try again?"
-- The user says they can't find the Secret → "On the app details page, look for the word **Secret** with a **Show** link or button next to it. Click **Show** and the value will appear. If you need to generate one, there should be a **Generate** button."
+Fill the form:
+- **App Name** → `"Claude Assistant"` (via `browser_type` or `browser_fill_form`)
+- **App Type** → select **Merchant** (use `browser_click` on the Merchant radio/option, or `browser_select_option` if it's a dropdown)
 
-### Step 3 — Generate the access token and save the connection
+Click the form's submit button (typically labelled "Create App"). Snapshot to confirm you've landed on the app details page (Client ID will be visible).
 
-Once the user pastes the Client ID and Secret, you need to **silently generate an access token** using PayPal's OAuth 2.0 token endpoint, then save the config.
+If PayPal shows a confirmation/intermediate dialog, snapshot it and click the affirmative option.
 
-**Generate the access token** (the user never sees this):
+### Step 5 — Capture Client ID and Secret
+
+The app details page shows the Client ID inline and a Secret behind a "Show" / "Reveal" button.
+
+**Capture Client ID** via `browser_evaluate`:
+
+```
+() => {
+  // Look for inputs/codes whose label or aria-label mentions "Client ID"
+  const candidates = [...document.querySelectorAll('input, code, textarea, [data-testid*="client"], [class*="client-id"]')];
+  for (const el of candidates) {
+    const v = (el.value || el.textContent || '').trim();
+    if (v && v.length > 30 && /^[A-Za-z0-9_-]+$/.test(v)) return v;
+  }
+  return null;
+}
+```
+
+**Reveal the Secret**: locate the Show / Reveal control next to the Secret field from the snapshot, click it via `browser_click`, re-snapshot.
+
+**Capture Secret** via `browser_evaluate` using the same selector pattern, filtering for a value distinct from the Client ID and matching the Secret format (long alphanumeric string with hyphens/underscores).
+
+**Validation (silent):**
+- Both values must be longer than 30 characters
+- Both must match `^[A-Za-z0-9_-]+$`
+- Client ID and Secret must be different from each other
+
+If both values aren't surfaced after two snapshot rounds, stop and ask: *"I'm having trouble finding the connection details on the page — could you describe what's visible?"*
+
+### Step 6 — Exchange credentials for an access token (silent, Bash)
+
+Silently exchange Client ID + Secret for an access token via PayPal's OAuth 2.0 token endpoint. Pick the endpoint matching the `environment`:
+
+- production → `https://api-m.paypal.com/v1/oauth2/token`
+- sandbox → `https://api-m.sandbox.paypal.com/v1/oauth2/token`
+
+Run via Bash:
 
 ```bash
-# For PRODUCTION:
-curl -s -X POST "https://api-m.paypal.com/v1/oauth2/token" \
-  -u "<CLIENT_ID>:<SECRET>" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials"
-
-# For SANDBOX:
-curl -s -X POST "https://api-m.sandbox.paypal.com/v1/oauth2/token" \
+curl -sf -X POST "<endpoint>" \
   -u "<CLIENT_ID>:<SECRET>" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=client_credentials"
 ```
 
-The response contains an `access_token` field. Extract it silently.
+Parse the response JSON for `access_token`. If parsing fails or the field is missing:
+- HTTP `401` → "Those credentials didn't take — let me try grabbing fresh ones." Re-run Step 5 (re-reveal the Secret, re-capture). If still failing, re-run Steps 4–5.
+- Network error → tell the user *"I couldn't reach PayPal — let me try again."* Retry once.
 
-If the token request fails:
-- `401` → "Those credentials didn't work. Could you double-check the Client ID and Secret in PayPal? Make sure you're copying from the right tab." Re-ask for both values.
-- Network error → "I couldn't reach PayPal — is your internet working? Let me try again in a moment."
+### Step 7 — Persist credentials and register the MCP server
 
-Once you have the access token, silently add or update the PayPal MCP entry in the user's `~/.claude.json` file (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`).
+**Save Client ID + Secret + environment** to `~/.paypal-mcp-credentials.json` for future token refreshes (PayPal access tokens expire ~9 hours):
 
-The structure to add:
+```json
+{
+  "client_id": "<CLIENT_ID>",
+  "client_secret": "<SECRET>",
+  "environment": "production"
+}
+```
+
+(Use `"sandbox"` for sandbox.) Restrict permissions: `chmod 600` on Mac/Linux. On Windows, rely on home-dir ACLs.
+
+**Register the MCP server**. Prefer `claude mcp add` via Bash:
+
+```bash
+# production:
+claude mcp add paypal \
+  --scope user \
+  --env PAYPAL_ACCESS_TOKEN="<access token from Step 6>" \
+  -- npx -y @paypal/mcp --tools=all --paypal-environment=production
+
+# sandbox: replace --paypal-environment=production with --paypal-environment=sandbox
+```
+
+**Fallback if `claude mcp add` fails** (older Claude Code version, or CLI not on PATH) — write directly to `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`):
+
+<details>
+<summary>Direct JSON write</summary>
 
 ```json
 {
@@ -151,50 +208,44 @@ The structure to add:
     "paypal": {
       "command": "npx",
       "args": ["-y", "@paypal/mcp", "--tools=all", "--paypal-environment=production"],
-      "env": {
-        "PAYPAL_ACCESS_TOKEN": "<access token from OAuth exchange>"
-      }
+      "env": { "PAYPAL_ACCESS_TOKEN": "<access token>" }
     }
   }
 }
 ```
+</details>
 
-For sandbox, replace `--paypal-environment=production` with `--paypal-environment=sandbox`.
+Merge into the existing `mcpServers` object — never overwrite. If `~/.claude.json` doesn't exist, create it. If it's corrupt, back up to `~/.claude.json.backup` first.
 
-**Rules:**
-- Merge into the existing `mcpServers` object rather than overwriting it. Preserve every other `mcpServers` entry the user already has.
-- If `~/.claude.json` does not exist, create it with just the PayPal entry.
-- If the file exists but cannot be parsed as JSON, back it up to `~/.claude.json.backup` first, then write a fresh config with just the PayPal entry. Never silently lose the user's existing config.
-- Never echo the access token, Client ID, or Secret back to the user after writing them. Never include them in any output visible to the user.
-- **Also save the Client ID and Secret** to a local file at `~/.paypal-mcp-credentials.json` (with restricted permissions) so you can re-generate the access token later when it expires. Structure: `{"client_id": "...", "client_secret": "...", "environment": "production|sandbox"}`. Never show this file path or its contents to the user.
+Never echo the Client ID, Secret, or access token back to the user. Never include any of them in any output visible to the user. Never log them to the conversation, even truncated. Never describe the credentials file path.
 
-Tell the user in one short message:
+### Step 8 — Close the browser and verify
 
-> "I've saved your connection details. One more step — you'll need to close Claude Code and open it again so it picks up the new connection. Do that now, and tell me when you're back."
+Close the Playwright browser via `mcp__playwright__browser_close()`. Credentials now live only in `~/.claude.json` and `~/.paypal-mcp-credentials.json`.
 
-### Access token expiry
-
-PayPal access tokens expire (typically after ~9 hours). When a tool call returns `401 Unauthorized` during Phase 2, **silently re-generate the token** using the saved Client ID and Secret from `~/.paypal-mcp-credentials.json`, update `PAYPAL_ACCESS_TOKEN` in `~/.claude.json`, and ask the user to restart Claude Code. Tell them: *"Your PayPal connection needed a quick refresh — please close and reopen Claude Code, then try again."*
-
-### Step 4 — Verify the connection
-
-When the user returns after restarting, tell them: "Welcome back. Let me just check that everything is talking to PayPal correctly."
+Tell the user: *"Saved — let me check it works."*
 
 The verification depends on whether the MCP server is already active in the current session:
 
-- **If `mcp__paypal__*` tools are available**: call `mcp__paypal__list_invoices` or `mcp__paypal__list_transactions`. If it returns a result (including an empty list — that's fine), the connection works. Move to the success message.
-- **If the tools are not yet available** (most likely on first setup): tell the user "I have saved everything. Please restart Claude Code once so the connection becomes active, then say 'test my PayPal connection' and I will verify it."
+- **If `mcp__paypal__*` tools are available**: call `mcp__paypal__list_invoices` (or `list_transactions`). If it returns a result (including an empty list — that's fine), success. Move to Step 9.
+- **If the tools are not yet available** (most likely on first setup): tell the user *"All saved. Please close and reopen Claude Code once so the connection becomes active, then say 'test my PayPal' and I'll verify it."*
 
-If the verification tool returns an error:
-- `401 Unauthorized` or `Invalid credentials` → The access token may already be expired or the generation failed. Silently re-generate the token using the saved credentials. If re-generation also fails, ask the user to re-copy Client ID and Secret from PayPal.
-- `403 Forbidden` → "Your connection is working, but PayPal is saying your app doesn't have permission for that. Let me try a different check." Try another read-only tool.
-- Any other error → "Something went wrong — let me try again." Retry once; if still failing, ask the user to re-check their app is active.
+If verification returns an error:
+- `401 Unauthorized` / `Invalid credentials` → silently re-run Step 6 with the saved Client ID + Secret to refresh the access token, then update `PAYPAL_ACCESS_TOKEN` in `~/.claude.json`. If still failing, re-run Steps 2–7.
+- `403 Forbidden` → "Your PayPal app doesn't have permission for that. This may need a business account upgrade in PayPal."
+- Any other error → retry once; if still failing, re-run Phase 1.
 
-### Step 5 — Success message
+### Step 9 — Success message
 
 Tell the user, in one short message:
 
 > "All done! Your PayPal is now connected. You can ask me things like 'show me my recent invoices', 'create an invoice for a client', 'list my recent transactions', or 'check my disputes'. Give it a try!"
+
+---
+
+### Access token expiry (Phase 2)
+
+PayPal access tokens expire after ~9 hours. When a Phase 2 tool call returns `401 Unauthorized`, **silently** re-run Step 6 using the saved `client_id` + `client_secret` + `environment` from `~/.paypal-mcp-credentials.json`. Update `PAYPAL_ACCESS_TOKEN` in `~/.claude.json` (preserving every other field). Then tell the user: *"Your PayPal connection needed a quick refresh — please close and reopen Claude Code, then try again."* Never mention tokens, OAuth, or expiry to the user.
 
 ---
 
