@@ -1,7 +1,7 @@
 ---
 name: xero-connector
-description: "Read and update Xero accounting data on behalf of the user via the official @xeroapi/xero-mcp-server. Handles invoices (list, view, create, update), contacts (list, create, update), quotes, credit notes, items, manual journals, bank transactions, payments, tax rates, trial balance, profit and loss, balance sheet, aged receivables and payables, contact groups, tracking categories, and the connected organisation's details. Also handles NZ/UK payroll tools (employees, leave, timesheets). Use this skill when the user asks about their Xero, invoices, unpaid invoices, contacts, profit and loss, balance sheet, bank transactions, chart of accounts, payments, quotes, or when they say 'connect my Xero' or 'help me set up Xero'. On the first use of any Xero feature, run Phase 1 to set up the Custom Connection and wire the MCP server into Claude Code before attempting any tool calls."
-allowed-tools: mcp__xero__*, Bash, Read, Write, Edit
+description: "Read and update Xero accounting data on behalf of the user via the official @xeroapi/xero-mcp-server. Phase 1 is an autonomous Playwright-driven Custom Connection install: register the MCP server with `claude mcp add`, drive `developer.xero.com/app/manage` in the Playwright MCP browser, detect login state and prompt sign-in only if needed, autonomously create the Custom Connection (form fill + V1 scope tick + submit), let the user pick + authorise the org on Xero's consent screen, let the user complete the activation payment, then auto-extract Client ID + Secret from the DOM and write them to the registered server entry. The country/cost safety gate runs unchanged before any browser action. The user's only manual moments are signing in to Xero, picking + authorising the org on the consent screen, and confirming the activation payment. Handles invoices (list, view, create, update), contacts (list, create, update), quotes, credit notes, items, manual journals, bank transactions, payments, tax rates, trial balance, profit and loss, balance sheet, aged receivables and payables, contact groups, tracking categories, and the connected organisation's details. Also handles NZ/UK payroll tools (employees, leave, timesheets). Use this skill when the user asks about their Xero, invoices, unpaid invoices, contacts, profit and loss, balance sheet, bank transactions, chart of accounts, payments, quotes, or when they say 'connect my Xero' or 'help me set up Xero'."
+allowed-tools: mcp__xero__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
   tags:
@@ -12,12 +12,18 @@ metadata:
     - finance
     - mcp
   pairs-with:
-    - skill: superpowers:systematic-debugging
-      reason: Use for troubleshooting Xero Custom Connection or API errors
+    - skill: hubspot-connector
+      reason: Sibling Playwright-driven autonomous connector — admin-portal + DOM-extract pattern, same Client-ID-style credential model
+    - skill: monday-connector
+      reason: Sibling Playwright-driven autonomous connector — same admin-portal create-app-and-extract-token shape
+    - skill: slack-connector
+      reason: Sibling Playwright-driven autonomous connector — same multi-step app-create + scope-tick + token-extract flow
     - skill: quickbooks-connector
       reason: Sibling accounting connector — similar wrap-existing-tooling pattern for a different platform
-    - skill: hubspot-connector
-      reason: Same Client ID / Secret → ~/.claude.json pattern for a different first-party MCP server
+    - skill: playwright-skill
+      reason: The Playwright MCP browser is how this skill drives the Xero developer portal
+    - skill: superpowers:systematic-debugging
+      reason: Use for troubleshooting Xero Custom Connection or API errors
 ---
 
 # Xero Connector
@@ -26,7 +32,7 @@ metadata:
 
 This skill lets you read and update a user's Xero accounting data on their behalf using the **official first-party [`@xeroapi/xero-mcp-server`](https://github.com/XeroAPI/xero-mcp-server)** (maintained by Xero, published to npm). It has two phases:
 
-- **Phase 1 — Install & Connect.** A conversational bootstrap (≤5 steps). The user has never used this before. You walk them through creating a Custom Connection inside their Xero developer portal, collecting the Client ID and Client Secret, and wiring the MCP server into Claude Code. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", "env var", or any file paths. They should feel like they are having a conversation, and at the end their Xero is connected.
+- **Phase 1 — Install & Connect (autonomous, 9 steps after the safety gate).** Claude registers the hosted MCP server with `claude mcp add`, drives `developer.xero.com/app/manage` inside a Playwright MCP browser, detects login state, autonomously creates the Custom Connection (clicks New app, fills the form, picks the org, ticks the V1 scope set, submits), lets the user authorise the org on Xero's consent screen, lets the user complete the activation payment, then auto-extracts Client ID + Client Secret from the DOM and writes them into the registered server entry. The user's only manual moments are: (1) signing in to Xero, (2) picking + authorising the org on the consent screen, (3) confirming the activation payment. The country/cost safety gate runs unchanged before any browser action.
 - **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__xero__*` native tools to read and update Xero data. The official server exposes ~56 tools; this skill documents the ~25 most commonly used and notes where the rest live.
 
 **Which phase to run** — Before any tool call, check whether the Xero MCP server is already configured. Read `~/.claude.json` (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.xero` entry with `XERO_CLIENT_ID` and `XERO_CLIENT_SECRET` in its `env` block. If both exist and are non-empty, treat the connector as configured and skip to Phase 2. Otherwise, run Phase 1.
@@ -67,125 +73,347 @@ Only proceed past this gate when the user has **explicitly confirmed both** (reg
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message you send during Phase 1 must follow the rules in `my-assistant/CLAUDE.md`:
+The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work, the user only signs in to Xero, authorises the org on the consent screen, and confirms the activation payment. Every message you send during Phase 1 must follow the rules in `my-assistant/CLAUDE.md` plus these connector-specific rules:
 
+- **You drive, not them.** Never ask the user to click menus, fill forms, copy values, or paste anything. The only verbal asks across Phase 1 are: signing in to Xero (Step 2), picking + authorising the org on Xero's consent screen (Step 4), and completing the activation payment (Step 5).
 - **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, environment variable, client credentials, or custom connection as a technical concept. If you must refer to a technical thing, name it plainly: "a connection key", "a small setting on your computer", "the connection details".
+- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, environment variable, client credentials, custom connection (as a technical concept), Playwright, browser automation, redirect URI, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page" — not "Playwright" or "Chromium". If you must refer to a technical thing, name it plainly: "a connection key", "a small setting on your computer", "the connection details".
+- **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening Xero for you now"), once when you need them ("please sign in / authorise / confirm payment"), once when you're done ("your Xero is now connected"). No commentary in between.
 - **Tell them what is about to happen.** Before any action you take: "I'm going to save your connection details now — this takes just a moment."
 - **React warmly.** Good: "That worked — your Xero is now connected." Bad: "MCP server initialized with 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
-- **Never mention file paths, commands, or scripts** to the user. You run them; you do not describe them.
+- **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
+- **Never echo Client ID or Client Secret back to the user** after extracting them from the DOM. They are extracted, written to the registered server entry, and never surface in chat.
 
 ---
 
-## PHASE 1 — Install & Connect (≤5 steps)
+## Phase 0 — Pre-flight (silent)
 
-This phase gets the Xero Custom Connection created, the Client ID and Client Secret collected, the MCP server wired into Claude Code, and the connection verified. You do every technical action; the user only clicks things in their browser and pastes two values.
+### 0.1 — Resume check
+
+Read `~/.claude.json` via Node (cross-platform safe — Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile):
+
+```bash
+node -e "
+const fs = require('fs');
+const path = require('path');
+const p = path.join(require('os').homedir(), '.claude.json');
+if (!fs.existsSync(p)) { console.log('NOT_CONFIGURED'); process.exit(0); }
+const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+const xv = (j.mcpServers || {}).xero;
+const env = xv && xv.env || {};
+console.log(env.XERO_CLIENT_ID && env.XERO_CLIENT_SECRET ? 'CONFIGURED' : 'NOT_CONFIGURED');
+"
+```
+
+- `CONFIGURED` → try Phase 1 Step 8 (verify) first. If it succeeds, the connector is already active — surface a friendly message and stop. If 401, walk Phase 1 from Step 2 (the user may need a fresh Custom Connection).
+- `NOT_CONFIGURED` → run the safety gate above, then Phase 1 from Step 1.
+
+### 0.2 — Tooling check (silent)
+
+Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the `first-run-setup` skill. If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest`, ask the user to close and reopen the chat, then retry.
+
+---
+
+## PHASE 1 — Install & Connect (autonomous via Playwright, 9 numbered steps)
+
+This phase drives `developer.xero.com/app/manage` end-to-end inside the Playwright MCP browser. The user signs in once, picks + authorises the org on Xero's consent screen, and confirms the activation payment — that's it. Everything else (clicking New app, filling the form, ticking scopes, submitting, reading Client ID + Secret from the DOM, writing them into the registered server entry, verifying) is autonomous.
+
+The country/cost safety gate above runs FIRST and unchanged. Do not start Step 1 until the gate has been explicitly cleared.
 
 ### Step 1 — Orient the user
 
 Tell the user in one short message:
 
-> "Great — let's connect your Xero. I'll walk you through creating a small connection key inside Xero, then I'll save it on your computer and check everything is talking. The Xero part takes about three minutes."
+> "Great — let's connect your Xero. I'm opening the Xero developer page for you in a browser window. You'll need to sign in once, then on the next screens pick which Xero organisation to connect and confirm the small monthly charge — I'll handle the rest. About three minutes."
 
-### Step 2 — Walk the user through creating a Custom Connection
+### Step 2 — Open `developer.xero.com/app/manage` inside Playwright + handle login
 
-The user needs to create a Custom Connection inside Xero's developer portal and copy two values. You cannot do this step for them — Xero requires their authenticated session.
+Drive Playwright to the Xero developer portal:
 
-Tell the user, one instruction at a time, waiting for confirmation between each:
+```
+mcp__playwright__browser_navigate({ url: "https://developer.xero.com/app/manage" })
+```
 
-1. "Please open this page in your browser: **https://developer.xero.com/app/manage** — and sign in with your Xero account. Let me know when you are signed in."
+Take a `mcp__playwright__browser_snapshot()`. Reason from the snapshot:
 
-2. When they confirm → "Now click the **New app** button (top right). A form will appear. Tell me when you see it."
+- **Logged in** (you see the "My apps" / app-management page heading, a "New app" button, or the user's account chrome at the top, with `developer.xero.com/app/manage` in the URL) → continue to Step 3.
+- **Not logged in** (Xero login form — heading reads **"Log in to Xero"** verbatim, email + password textboxes + a **Log in** button, page is on `login.xero.com/identity/user/login`; OR an SSO redirect to a third-party identity provider) → tell the user, *once*: *"Please sign in to your Xero account in the browser window I just opened — I'll wait. Same Xero account that has access to the organisation you want me to connect."* Then `mcp__playwright__browser_wait_for` polling for the post-login signal — either the **New app** button text, the **My apps** heading, or `developer.xero.com/app/manage` in the URL via `browser_evaluate`. Generous timeout (5 minutes); no nagging. After a long timeout, check in once: *"Still on the sign-in page? Anything I can help with?"*
 
-3. When they see the form → deliver the field values:
-   - "For **App name**, type: **Claude Assistant**."
-   - "For **Integration type**, choose: **Custom connection**. (Not 'Web app', not 'Mobile or desktop app'.)"
-   - "For **Company or application URL**, you can paste any valid web address — your own business website is fine."
-   - "Tick the box to accept the terms, then click the blue **Create app** button. Tell me when you're on the new app's page."
+> *Live verification 2026-05-01: `developer.xero.com/app/manage` redirects unauthenticated visitors to `login.xero.com/identity/user/login?ReturnUrl=...`. The login page heading is exactly "Log in to Xero" (h2). The post-login redirect URL pattern returns through `developer.xero.com/oidc/callback.html` and lands on `developer.xero.com/app/manage`. The URL-change check is the most reliable post-login signal.*
 
-4. When they confirm → "Now I need you to pick which Xero organisation you want me to connect to — Custom connections link to one organisation at a time. On the app's page, you should see a dropdown to choose the organisation. Please pick the one you want me to work with."
+The user may complete sign-in via password, 2FA, or SSO — all paths converge on the My apps page.
 
-5. When they confirm → "Next, you'll see a list of permissions (scopes). Please tick all of these:
-   - **accounting.transactions**
-   - **accounting.contacts**
-   - **accounting.settings**
-   - **accounting.reports.read**
+### Step 3 — Create the Custom Connection autonomously
 
-   Then click **Save**. Tell me when the scopes are saved."
+Once on the My apps page, drive the New app form via Playwright. Each step describes a goal — re-snapshot after every action and reason about the rendered page rather than relying on hardcoded selectors. Xero's developer-portal UI may shift; the goal-based descriptions below remain valid.
 
-   > *(If the user mentions payroll or they're in NZ/UK and want payroll tools: also ask them to tick `payroll.employees`, `payroll.timesheets`, and `payroll.settings`. Otherwise skip payroll scopes — we can add them later.)*
+#### 3a — Click "New app"
 
-   > *Why this exact set: these are the V1 scopes the upstream `@xeroapi/xero-mcp-server` tries first. The server falls back to a granular V2 set automatically if Xero ever returns `invalid_scope` on V1 — no SKILL.md change needed when that happens. Source: `XeroAPI/xero-mcp-server/src/clients/xero-client.ts`.*
+Locate the New app control by accessibility role + name (a button or link with name matching `New app`). Click it. Snapshot to confirm a creation form appears.
 
-6. When they confirm → "Nearly there. Xero will now ask you to **activate** the connection, and this is where the small monthly charge kicks in. Go ahead and follow Xero's prompts to confirm your payment details and activate the connection. Tell me when Xero says the connection is active."
+#### 3b — Fill the form
 
-   Handle what they report:
-   - **They see a payment screen and complete it** → "Perfect, thank you." Continue.
-   - **They see "payment method required" and don't have one saved** → "That's normal — Xero needs a card on file for this. Go ahead and add one when prompted; it's only charged for the connection, not a random hold." Wait for completion.
-   - **They cancel or back out** → "No problem at all — we can stop here. Come back whenever you're ready and say 'connect my Xero' to pick this back up." Do not proceed.
+The form has these fields. Match each by the visible label in the snapshot, not by hardcoded selectors:
 
-7. When they confirm the connection is active → "Last Xero step: on the connection page you should now see your **Client ID** and a button to **Generate a secret**. Please copy the **Client ID** and paste it to me."
+- **App name**: type `Claude Assistant`
+- **Integration type**: select `Custom connection` (NOT "Web app", NOT "Mobile or desktop app")
+- **Company or application URL**: type `https://selrai.com.au` (any valid URL works — this default is safe and recognisable; the user's own business URL is also fine if known)
+- **Terms checkbox**: tick it
 
-8. When they paste the Client ID → "Thanks. Now click **Generate a secret** and a long string will appear. Please copy the **Client Secret** and paste it to me — and don't worry about remembering it, I'll save it for you."
+#### 3c — Pick the organisation
 
-**Common mistakes to look out for (and correct by re-asking):**
+Custom Connections bind to one Xero organisation. Locate the organisation picker (a dropdown/combobox with `data-testid` containing `organisation`/`organization`/`org`, or a select labelled accordingly). Extract the available options via `browser_evaluate`:
 
-- The user pasted a placeholder like `your_client_id_here` → ask again: "I think that was a copy mistake — please try again with the real value."
-- The user pasted something very short (under 20 characters) → "That doesn't look quite right — the real value is longer. Can you double-check and try again?"
-- The user chose **Web app** instead of **Custom connection** → "One small thing — the type needs to be **Custom connection**, not **Web app**. That's the one that works without a browser sign-in loop. You'll need to delete this app and create a new one. Sorry for the hassle — worth it, I promise."
-- The user says *"I don't see Custom connection as an option"* → "That usually means your Xero organisation is in a country where Custom Connections aren't offered yet. The supported countries are Australia, New Zealand, the UK, and the US. If your organisation is elsewhere, let's stop here and you can reach out to Luke at luke@selrai.com.au for the alternative path." Do not proceed.
-
-### Step 3 — Save the credentials
-
-Once the user pastes the Client ID and Client Secret, silently add or update the Xero MCP entry in the user's `~/.claude.json` file (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`).
-
-The structure to add:
-
-```json
-{
-  "mcpServers": {
-    "xero": {
-      "command": "npx",
-      "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
-      "env": {
-        "XERO_CLIENT_ID": "<client id from Step 2>",
-        "XERO_CLIENT_SECRET": "<client secret from Step 2>"
-      }
-    }
-  }
+```javascript
+() => {
+  const sel = document.querySelector('[role="combobox"], select, [data-testid*="org" i]');
+  if (!sel) return { picker: false, options: [] };
+  const opts = [...sel.querySelectorAll('option, [role="option"]')]
+    .map(o => (o.textContent || '').trim())
+    .filter(t => t.length > 0 && t.length < 80);
+  return { picker: true, current: (sel.textContent || sel.value || '').trim().slice(0, 80), options: opts };
 }
 ```
 
-**Rules:**
-- Merge into the existing `mcpServers` object rather than overwriting it. Preserve every other `mcpServers` entry the user already has.
-- If `~/.claude.json` does not exist, create it with just the Xero entry.
-- If the file exists but cannot be parsed as JSON, back it up to `~/.claude.json.backup` first, then write a fresh config with just the Xero entry. Never silently lose the user's existing config.
-- Never echo the Client ID or Client Secret back to the user after writing them. Never include them in any output visible to the user.
+If the user has more than one organisation, narrate the choice once: *"I see you have a few Xero organisations on this account: \<list\>. Which one should I connect?"* Wait for the user's choice, then select it in the picker. If they have only one, narrate the selection: *"You only have one organisation here — **\<name\>** — so I'll use that."*
+
+#### 3d — Tick the V1 scope set
+
+The scope checkboxes appear in the same form (or on the next page after submitting basic info — handle whichever Xero renders). Match by the visible scope name on the label. Tick exactly these:
+
+**Standard set (always tick):**
+- `accounting.transactions`
+- `accounting.contacts`
+- `accounting.settings`
+- `accounting.reports.read`
+
+**Payroll set (only if the user is in NZ/UK AND wants payroll tools — ask once before ticking):**
+- `payroll.employees`
+- `payroll.timesheets`
+- `payroll.settings`
+
+> *Why this exact set: these are the V1 scopes the upstream `@xeroapi/xero-mcp-server` tries first. The server falls back to a granular V2 set automatically if Xero ever returns `invalid_scope` on V1 — no SKILL.md change needed when that happens. Source: `XeroAPI/xero-mcp-server/src/clients/xero-client.ts`.*
+
+If you cannot find a checkbox for a scope name in the snapshot, take a fresh snapshot — Xero sometimes paginates scopes. If still not found, fall back: *"I couldn't find the checkbox for **\<scope\>** automatically — could you tick it for me? It should be on the same page."*
+
+#### 3e — Submit
+
+Click the **Create app** button. Snapshot to confirm Xero has accepted the form and shown the new app's page (an "Active connection" banner OR a "Connect" / "Authorise" button).
+
+### Step 4 — Authorise the org on Xero's consent screen
+
+Xero requires the user's authorisation on a consent screen before issuing credentials — this cannot be auto-clicked because it's the legal grant of org-level access.
+
+Locate the **Connect** (or **Authorise**) button on the new app's page and click it via Playwright. Xero opens a consent screen showing the requested scopes plus an org picker (if multi-org) and an Allow button.
 
 Tell the user in one short message:
 
-> "I've saved your connection details. One more step — you'll need to close Claude Code and open it again so it picks up the new connection. Do that now, and tell me when you're back."
+> "Xero is now showing me the permissions screen — please pick the right organisation if there's a picker and click **Allow** to authorise the connection. I'll wait."
 
-### Step 4 — User restarts Claude Code
+`mcp__playwright__browser_wait_for` polling for the redirect back to the developer portal — detect either:
 
-Wait for the user to restart. When they return, tell them: *"Welcome back. Let me just check that everything is talking to Xero."*
+- The text "Connection active" / "Active" on the app page, OR
+- The URL changing back to `developer.xero.com/app/manage/` via `browser_evaluate`
 
-### Step 5 — Verify the connection
+```javascript
+() => /developer\.xero\.com\/app\/manage/.test(window.location.href)
+```
 
-Call the `mcp__xero__list-organisation-details` tool (no arguments). Handle the response:
+Generous timeout (5 minutes). If the user closes or cancels the consent screen, surface cleanly: *"Looks like the authorisation didn't go through — want me to try again?"*
 
-- **Tool returns organisation name** → Capture it. Tell the user:
-  > "All done! I'm now connected to your Xero organisation **[organisation name]**. You can ask me things like 'show me my recent invoices', 'what's my profit and loss this year?', or 'find Acme Corp in my contacts'. Give it a try!"
+### Step 5 — User completes the activation payment
 
-- **Tool returns `invalid_client` or `unauthorized`** → "Hmm, the connection key didn't work — let me take them again." Silently go back to Step 2 Part 7 and ask the user to re-copy the Client ID and Secret (they may have copied incomplete strings). Rewrite `~/.claude.json` with the fresh values, ask them to restart Claude Code, and try Step 5 again.
+Custom Connections cost ≈$5 USD/month per connection. Xero may now prompt the user for payment confirmation (or it may have been confirmed during Step 4 if their account already has billing set up).
 
-- **Tool returns `403 Forbidden` or `insufficient scope`** → "Your connection is working, but I need one or two extra permissions. Let me show you which boxes to tick." Guide the user back to their Custom Connection page in Xero, have them tick the missing scope(s) based on the error (typically `accounting.transactions`, `accounting.reports.read`, or `accounting.contacts`), click **Save**, and then re-run Step 5. **No restart of Claude Code needed** for scope changes — they apply on the next API call.
+Tell the user in one short message:
 
-- **Tool is not yet available (`mcp__xero__*` tools not discoverable)** → "Looks like Claude Code didn't pick up the new connection yet. Please make sure you fully closed it (not just the window) and opened it again, then let me know." Repeat Step 4.
+> "Xero will ask you to confirm the small monthly charge to activate the connection — please follow Xero's prompts to add or confirm a payment method. I'll wait."
 
-- **Any other error** → "Something's not quite right — let me try once more." Retry the tool call once. If it still fails, tell the user in plain English what you saw (translated — never raw errors), and ask if they want to retry or stop.
+Activation can be slow (the user may need to add a card, choose a billing region, confirm). Run `mcp__playwright__browser_wait_for` against the consent-redirect URL OR poll the page state with a generous outer timeout (10 minutes). Use this `browser_evaluate` as the polling check — repeated calls until it returns `true` or the outer timeout fires:
+
+```javascript
+() => {
+  const text = document.body?.innerText || '';
+  return /\bActive\b/.test(text) && /\b(Client ID|Generate a secret)\b/i.test(text);
+}
+```
+
+The simplest portable shape is a `browser_wait_for` with `time: 600` against an "Active"-marker text on the page (Xero typically renders "Connection active" or "Active" near the Client ID once activated):
+
+```
+mcp__playwright__browser_wait_for({
+  text: "Generate a secret",
+  time: 600
+})
+```
+
+Branch on what's rendered after the wait completes (or fires early):
+
+- **Active state reached + Client ID visible** → proceed to Step 6.
+- **User says they cancelled / backed out** → say: *"No problem at all — we can stop here. Come back whenever you're ready and say 'connect my Xero' to pick this back up."* Do not proceed.
+- **"Payment method required" and the user has no card on file** → say: *"That's normal — Xero needs a card on file for this. Go ahead and add one when prompted; it's only charged for the connection, not a random hold."* Wait for completion.
+- **Timeout (10 minutes elapsed)** → check in once: *"Still on the activation screen? Anything I can help with?"* — then retry the wait once.
+
+### Step 6 — Auto-extract Client ID + Client Secret from the DOM
+
+Once the connection is Active, Client ID and the **Generate a secret** button appear on the app's page. Extract both autonomously — never paste either back into chat.
+
+#### 6a — Read Client ID via clipboard transit
+
+`browser_evaluate` extracts the Client ID from the DOM and copies it to the OS clipboard. The function returns metadata only (length / found) — the raw value never enters the tool-call return:
+
+```javascript
+() => {
+  const labels = [...document.querySelectorAll('label, dt, [data-testid*="client" i]')];
+  const idLabel = labels.find(el => /client.id/i.test(el.textContent || ''));
+  const container = idLabel?.closest('div, dl, fieldset') || idLabel?.parentElement;
+  const valueEl = container?.querySelector('[data-testid*="value" i], code, input, dd, span');
+  const text = (valueEl?.value || valueEl?.textContent || '').trim();
+  // Xero Client IDs are typically 32-char alphanumeric strings
+  const match = text.match(/\b[A-Za-z0-9]{30,40}\b/);
+  if (match) navigator.clipboard.writeText(match[0]);
+  return { found: !!match, length: match ? match[0].length : 0 };
+}
+```
+
+Read the clipboard from Bash into a shell-local env var, validate length, **then wipe clipboard immediately** so the value doesn't sit in the system clipboard while Step 6b runs:
+
+```bash
+case "$(uname -s 2>/dev/null)" in
+  Darwin*)  XERO_CLIENT_ID=$(pbpaste) ;;
+  Linux*)   XERO_CLIENT_ID=$(xclip -selection clipboard -o 2>/dev/null) ;;
+  MINGW*|MSYS*|CYGWIN*) XERO_CLIENT_ID=$(powershell.exe -NoProfile -Command "Get-Clipboard" | tr -d '\r') ;;
+  *) echo "UNKNOWN_PLATFORM" >&2 ;;
+esac
+[[ ${#XERO_CLIENT_ID} -ge 30 ]] || { echo "CLIENT_ID looked too short, retry"; exit 1; }
+# Wipe clipboard now — Client ID has reached the env var
+case "$(uname -s 2>/dev/null)" in
+  Darwin*)  printf "" | pbcopy ;;
+  Linux*)   printf "" | xclip -selection clipboard 2>/dev/null ;;
+  MINGW*|MSYS*|CYGWIN*) powershell.exe -NoProfile -Command "Set-Clipboard -Value ''" ;;
+esac
+```
+
+#### 6b — Click "Generate a secret" + read the Secret from the modal
+
+Locate the **Generate a secret** button (a button with name `Generate a secret` or similar) and click it. Xero opens a modal containing the Secret value — this is shown ONCE and cannot be retrieved later, so capture it on this snapshot.
+
+```javascript
+() => {
+  // After clicking "Generate a secret", a modal renders the Secret string
+  const candidates = [...document.querySelectorAll('[role="dialog"] code, [role="dialog"] input, [data-testid*="secret" i]')];
+  for (const el of candidates) {
+    const text = (el.value || el.textContent || '').trim();
+    const match = text.match(/\b[A-Za-z0-9_-]{40,80}\b/);
+    if (match) {
+      navigator.clipboard.writeText(match[0]);
+      return { found: true, length: match[0].length };
+    }
+  }
+  return { found: false };
+}
+```
+
+Then read the Secret from clipboard the same way as the Client ID (above). Validate length:
+
+```bash
+case "$(uname -s 2>/dev/null)" in
+  Darwin*)  XERO_CLIENT_SECRET=$(pbpaste) ;;
+  Linux*)   XERO_CLIENT_SECRET=$(xclip -selection clipboard -o 2>/dev/null) ;;
+  MINGW*|MSYS*|CYGWIN*) XERO_CLIENT_SECRET=$(powershell.exe -NoProfile -Command "Get-Clipboard" | tr -d '\r') ;;
+esac
+[[ ${#XERO_CLIENT_SECRET} -ge 40 ]] || { echo "SECRET looked too short, retry"; exit 1; }
+```
+
+If the modal doesn't render or the Secret can't be located, fall back: *"I couldn't read the connection key automatically — could you copy it from the modal and paste it to me?"* (Last resort only — autonomous extraction should succeed in normal cases.)
+
+**Wipe clipboard immediately after reading** so the Secret doesn't linger:
+
+```bash
+case "$(uname -s 2>/dev/null)" in
+  Darwin*)  printf "" | pbcopy ;;
+  Linux*)   printf "" | xclip -selection clipboard 2>/dev/null ;;
+  MINGW*|MSYS*|CYGWIN*) powershell.exe -NoProfile -Command "Set-Clipboard -Value ''" ;;
+esac
+```
+
+### Step 7 — Register the MCP server entry with the credentials
+
+With both credentials captured in shell-local env vars, register the Xero MCP server entry. The credentials go directly into the registered server's `env` block; they never appear in chat or tool-call returns.
+
+**Primary path** — `claude mcp add` with `--env` flags. The `--` separator hands off the rest of the command to the stdio server's argv:
+
+```bash
+claude mcp add xero --scope user \
+  --env XERO_CLIENT_ID="$XERO_CLIENT_ID" \
+  --env XERO_CLIENT_SECRET="$XERO_CLIENT_SECRET" \
+  -- npx -y "@xeroapi/xero-mcp-server@latest"
+```
+
+**Fallback if `claude mcp add --env` errors** (older Claude Code version, CLI not on PATH, or unexpected output) — write the entry directly to `~/.claude.json` via the Node merge pattern (atomic rename inside Node so the swap is atomic on every platform — Mac / Linux / Windows Git Bash — and does not run if the JSON write fails):
+
+```bash
+node -e '
+  const fs = require("fs"), path = require("path"), home = require("os").homedir();
+  const cfg = path.join(home, ".claude.json");
+  const cid = process.env.XERO_CLIENT_ID;
+  const sec = process.env.XERO_CLIENT_SECRET;
+  if (!cid || !sec) { console.error("MISSING_CREDS"); process.exit(1); }
+  let j = {};
+  if (fs.existsSync(cfg)) {
+    try { j = JSON.parse(fs.readFileSync(cfg, "utf8")); }
+    catch (e) {
+      const backup = cfg + ".backup-" + Date.now();
+      fs.copyFileSync(cfg, backup);
+      console.error("CONFIG_BACKUP=" + backup);
+      j = {};
+    }
+  }
+  j.mcpServers = j.mcpServers || {};
+  j.mcpServers.xero = {
+    command: "npx",
+    args: ["-y", "@xeroapi/xero-mcp-server@latest"],
+    env: { XERO_CLIENT_ID: cid, XERO_CLIENT_SECRET: sec },
+  };
+  const tmp = cfg + ".tmp";
+  fs.writeFileSync(tmp, JSON.stringify(j, null, 2));
+  fs.renameSync(tmp, cfg);
+'
+```
+
+If the merge stderr emits `CONFIG_BACKUP=`, the existing config was unreadable and Claude has just made a backup. Surface this to the user once: *"Your settings file was unreadable, so I made a safe backup before saving."*
+
+**Immediately unset the env vars** in the current shell so they don't linger:
+
+```bash
+unset XERO_CLIENT_ID XERO_CLIENT_SECRET
+```
+
+### Step 8 — Close the browser + verify
+
+Close Playwright:
+
+```
+mcp__playwright__browser_close()
+```
+
+Tell the user: *"I've saved your Xero connection — let me check it works."*
+
+Verify by calling `mcp__xero__list-organisation-details` (no arguments — returns the connected organisation's name and details; the canonical smoke call. Verified live 2026-05-01 against `@xeroapi/xero-mcp-server@latest` v1.0.0 — 51 tools enumerated, `list-organisation-details` confirmed as the org-introspection tool). The verification depends on whether the MCP server is already active in the current session:
+
+- **Tools available + call returns the organisation details** → capture the organisation's name. Proceed to Step 9 success message including the org name.
+- **Tools not yet available** (most likely on first setup, since the MCP config was just written and Claude Code hasn't reloaded the tool surface) → tell the user *"All saved. Please close and reopen the chat once, then say 'test my Xero' and I'll verify the new connection."*
+- **Call returns `invalid_client` or `unauthorized`** → the Secret may have been copied incomplete on the one-time-reveal modal. Tell the user: *"Hmm, the connection didn't take — let me try once more."* Re-open Playwright with `mcp__playwright__browser_navigate({ url: "https://developer.xero.com/app/manage" })`, navigate back to the Claude Assistant app's page, and **regenerate** the Secret (Xero allows this — old Secret is invalidated). Re-run Step 6b's extract + Step 7's write. Retry verification once.
+- **Call returns `403 Forbidden` or `insufficient_scope`** → "Your connection is working, but one or two extra permissions are needed. Let me sort that." Re-open Playwright, navigate back to the app's scope page, tick the missing scope (the error names it), submit. **No restart needed** for scope changes — they apply on the next API call.
+- **Any other error** → "Something's not quite right — let me try once more." Retry the smoke call once. If still failing, surface in plain English (translated, never raw) and ask the user if they want to retry or stop.
+
+### Step 9 — Success message
+
+Tell the user, in one short message (include the connected organisation name from Step 8's verification):
+
+> "All done! I'm now connected to your Xero organisation **\<organisation name\>**. You can ask me things like 'show me my recent invoices', 'what's my profit and loss this year?', or 'find Acme Corp in my contacts'. Give it a try!"
 
 ---
 
