@@ -10,7 +10,7 @@
 
 ## TL;DR
 
-**Winner: [`HagaiHen/facebook-mcp-server`](https://github.com/HagaiHen/facebook-mcp-server)** — 148 stars, MIT, last pushed 2026-04-23, **34 tools** covering posting (text + image), scheduling, comments (read / reply / hide / unhide / delete / bulk), insights (impressions / engagement / clicks / reactions / share count), DMs, and page info. Auth model is **`FACEBOOK_ACCESS_TOKEN` + `FACEBOOK_PAGE_ID` in env vars** — same Page Access Token shape Phase 1 of `meta-business-suite-connector` already mints via Graph API Explorer.
+**Winner: [`HagaiHen/facebook-mcp-server`](https://github.com/HagaiHen/facebook-mcp-server)** — 148 stars, MIT, last pushed 2026-04-23, **40 tools** covering posting (text + image), scheduling, comments (read / reply / hide / unhide / delete / bulk), insights (impressions / engagement / clicks / share count), per-reaction-type counts (like / love / wow / haha / sorry / anger), DMs, and page info. Auth model is **`FACEBOOK_ACCESS_TOKEN` + `FACEBOOK_PAGE_ID` in env vars** — same Page Access Token shape Phase 1 of `meta-business-suite-connector` already mints via Graph API Explorer.
 
 **Caveat.** It is **Python-only** (installed via `uv pip install -r requirements.txt`), not npm-published. Wiring it into the workshop-kit means **introducing the first Python-MCP-server install path in the workshop-kit's connector inventory.** This is a precedent shift, not a blocker — the install adds ~1 minute to Phase 0 (`curl -LsSf https://astral.sh/uv/install.sh | sh`) and the SKILL can wrap the rest autonomously. The Page Access Token + Page ID auth model maps cleanly onto Claude Code's `~/.claude.json` `env` block once `uvx` is present.
 
@@ -51,7 +51,7 @@
 | **Last activity** | 2025-10-17 (~6 months stale) | **2026-04-23 (last week)** |
 | **Repo created** | 2025-03-27 | 2025-05-08 |
 | **npm downloads (30d)** | 31 | n/a (not on npm) |
-| **MCP tool count** | 2 | **34** |
+| **MCP tool count** | 2 | **40** |
 | **Tool surface** | List pages + post to a page | Post (text + image), schedule, reply, comments (read/hide/unhide/delete/bulk), insights (impressions/engagement/clicks/reactions/share), DMs, page info |
 | **Auth model** | Meta Developer App: App ID + App Secret + Redirect URI + Upstash Redis token store | **`FACEBOOK_ACCESS_TOKEN` + `FACEBOOK_PAGE_ID` env vars** (long-lived Page Access Token) |
 | **OAuth flow at install** | Yes — full OAuth 2 with redirect URI | No — token minted once via Graph API Explorer |
@@ -67,7 +67,7 @@
 
 **What it is.** A Python MCP server (FastMCP-based) wrapping the Facebook Graph API for a single Facebook Page. Uses long-lived Page Access Tokens.
 
-**Tool inventory** (verified verbatim from the upstream README, 2026-05-01, 34 tools):
+**Tool inventory** (verified by counting `@mcp.tool` decorators in upstream `server.py`, 2026-05-04, **40 tools** — the upstream README lists 34, but `server.py` exposes 6 additional tools beyond the README):
 
 ```
 post_to_facebook
@@ -95,6 +95,7 @@ bulk_hide_comments
 bulk_unhide_comments
 
 get_number_of_likes
+get_post_insights
 get_post_impressions
 get_post_impressions_unique
 get_post_impressions_paid
@@ -102,6 +103,11 @@ get_post_impressions_organic
 get_post_engaged_users
 get_post_clicks
 get_post_reactions_like_total
+get_post_reactions_love_total
+get_post_reactions_wow_total
+get_post_reactions_haha_total
+get_post_reactions_sorry_total
+get_post_reactions_anger_total
 get_post_reactions_breakdown
 get_post_share_count
 
@@ -110,6 +116,8 @@ get_page_fan_count
 get_page_info
 ```
 
+(Tools listed in `server.py` but absent from the README: `get_post_insights` plus the 5 per-reaction-type counts `love/wow/haha/sorry/anger` — only `like` is in the README. Source-of-truth for the SKILL build is `server.py`'s `@mcp.tool` decorators, not the README.)
+
 **Auth requirements** (verbatim from upstream README):
 
 - `FACEBOOK_ACCESS_TOKEN` — page access token from [Graph API Explorer](https://developers.facebook.com/tools/explorer)
@@ -117,7 +125,7 @@ get_page_info
 
 Stored in a `.env` file in HagaiHen's repo, but the workshop-kit pattern would put them in `~/.claude.json` `mcpServers.facebook-page.env` instead — same as `meta-business-suite-connector`'s INSTAGRAM_ACCESS_TOKEN/INSTAGRAM_USER_ID pair.
 
-**Install path (upstream)**: `uv pip install -r requirements.txt`. The workshop-kit-friendly form is `uvx --from git+https://github.com/HagaiHen/facebook-mcp-server <entrypoint>` once `uv` is on the attendee's PATH.
+**Install path (upstream)**: `uv pip install -r requirements.txt`. The naive `uvx --from git+...` invocation **does not work** for this repo — verified live: HagaiHen has only `README.md` + `requirements.txt` + 4 `.py` files at root, **no `pyproject.toml` / `setup.py` / `setup.cfg`**. Without Python package metadata, `uvx --from` cannot resolve a buildable entrypoint. The workshop-kit-friendly form is **clone-and-run**: `git clone` to a stable path, install deps via `uv pip install -r requirements.txt` into a managed venv, then invoke `python server.py` with the env vars in scope. Phase 0 of the SKILL handles the clone + venv creation idempotently.
 
 **What's NOT covered** (gaps to surface in the SKILL):
 - **Video posting**: HagaiHen's `post_image_to_facebook` covers images only. Video posts would need either an upstream PR or a separate Graph API helper. Document as a known limitation.
@@ -158,7 +166,7 @@ Keywords on the npm package include `scraper`, `marketplace`, `facebook-pages` (
 
 ### 2. Which candidate should the SKILL wrap?
 
-**`HagaiHen/facebook-mcp-server`.** It is the only candidate that pairs (a) a non-trivial tool surface — 34 tools — with (b) a sane auth model — long-lived Page Access Token + Page ID env vars — and (c) recent maintenance — last commit 2026-04-23. Adoption signal (148 ⭐) corroborates real-world use.
+**`HagaiHen/facebook-mcp-server`.** It is the only candidate that pairs (a) a non-trivial tool surface — 40 tools — with (b) a sane auth model — long-lived Page Access Token + Page ID env vars — and (c) recent maintenance — last commit 2026-04-23. Adoption signal (148 ⭐) corroborates real-world use.
 
 The npm-installability gap is real but solvable in the SKILL's Phase 0:
 
@@ -180,7 +188,7 @@ The canonical autonomous-Playwright pattern from the Literal-Playwright sub-meth
 5. **Phase 1 Step 3** — Auto-fill the Graph API Explorer form: select the user's Meta App (or create one if missing — same shape as `meta-business-suite-connector`), tick the required permission scopes (`pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `pages_manage_engagement`, `pages_messaging`, `read_insights`), click **Generate Access Token**, accept the OAuth dialog autonomously.
 6. **Phase 1 Step 4** — Auto-extract the short-lived Page Access Token from the DOM. Exchange it for a long-lived Page Access Token via `curl https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token...` (60-day token, then renew indefinitely).
 7. **Phase 1 Step 5** — Auto-resolve the Page ID via `GET /me/accounts?fields=id,name,access_token` — the user picks the Page if multi-Page, narrate-and-pick if single-Page.
-8. **Phase 1 Step 6** — Register via `claude mcp add facebook-page --scope user --env FACEBOOK_ACCESS_TOKEN="$TOK" --env FACEBOOK_PAGE_ID="$PID" -- uvx --from git+https://github.com/HagaiHen/facebook-mcp-server <entrypoint>`. JSON merge fallback for older Claude Code.
+8. **Phase 1 Step 6** — Register via `claude mcp add facebook-page --scope user --env FACEBOOK_ACCESS_TOKEN="$TOK" --env FACEBOOK_PAGE_ID="$PID" -- python <CLONE_PATH>/server.py` where `<CLONE_PATH>` is the directory the SKILL's Phase 0 clones HagaiHen into (e.g. `~/.local/share/facebook-mcp-server`). The `uvx --from git+...` shape **does not work** because the upstream repo has no `pyproject.toml`/`setup.py`/`setup.cfg` (verified live 2026-05-04). JSON merge fallback for older Claude Code.
 9. **Phase 1 Step 7** — Smoke-verify with `mcp__facebook_page__get_page_info`. Surface the Page name in the success message.
 
 The token-extraction pattern + curl-based long-lived exchange is identical to PR #152's `meta-business-suite-connector`'s Step 4-7. The SKILL author can lift those steps directly.
@@ -189,9 +197,30 @@ The token-extraction pattern + curl-based long-lived exchange is identical to PR
 
 ## Open questions / forward-looking
 
-### Q1. Does HagaiHen's MCP server have a clean entrypoint for `uvx --from git+...`?
+### Q1. ANSWERED — `uvx --from git+...` does NOT work for HagaiHen
 
-The README documents `uv pip install -r requirements.txt` as the install but doesn't document a console_scripts entry point or a `__main__.py` invocation pattern. The SKILL build phase will need to verify by reading `pyproject.toml` and `requirements.txt` directly. If no clean entrypoint exists, the workaround is `git clone` + `uv run python -m facebook_mcp` (or whatever the actual module name is).
+Verified live 2026-05-04 against `https://api.github.com/repos/HagaiHen/facebook-mcp-server/contents/`. Root contents:
+
+```text
+.gitignore (22 bytes)
+LICENSE (1066 bytes)
+README.md (6547 bytes)
+config.py (278 bytes)
+facebook_api.py (4162 bytes)
+manager.py (7470 bytes)
+requirements.txt (27 bytes)
+server.py (9331 bytes)
+```
+
+**No `pyproject.toml`. No `setup.py`. No `setup.cfg`.** Without Python package metadata, `uvx --from` cannot resolve a buildable project. The naive invocation pattern that the original audit's Phase 1 Step 6 sketch used **will not work as written**.
+
+Three viable alternatives, in order of workshop-friendliness:
+
+1. **Clone + python server.py** (recommended). Phase 0 of the SKILL clones to `~/.local/share/facebook-mcp-server/`, runs `uv pip install -r requirements.txt` to populate a managed venv, then `claude mcp add facebook-page ... -- python <clone>/server.py`. Idempotent (skip clone if dir exists; pull latest on rerun if user opts in).
+2. **`uv run --with-requirements` with absolute path**. Once cloned, `uv run --with-requirements <clone>/requirements.txt python <clone>/server.py`. Avoids managing a separate venv but requires `uv` ≥ 0.4.x for `--with-requirements`.
+3. **Selr-published npm/pypi wrapper**. Selr forks HagaiHen, adds `pyproject.toml`, publishes to pypi as `selr-facebook-mcp` (or similar), then `uvx --from selr-facebook-mcp` works. Heavier maintenance burden (Q4 below).
+
+Recommend **path 1** for v1 — simplest, no fork, fully workshop-friendly with `uv` as a Phase 0 prereq. Path 3 is the cleanest long-term but adds Selr maintenance load that isn't justified yet.
 
 ### Q2. Long-lived Page Access Token expiry
 
@@ -229,7 +258,7 @@ The first two are pre-existing Meta-app artefacts from PR #152's QA pass. Should
 ## Out of scope
 
 - **Building the SKILL itself.** This audit closes Phase 0; the SKILL build is a follow-up PR.
-- **Live-MCP smoke test of HagaiHen's tool surface.** The 34-tool count comes from the upstream README. A live `npx`-equivalent smoke test (via `uvx`) requires `uv` installed locally and is more efficient to run during the SKILL build phase against a real Page.
+- **Live-MCP smoke test of HagaiHen's tool surface.** The 40-tool count comes from counting `@mcp.tool` decorators in upstream `server.py`. A live MCP-protocol handshake (init + tools/list) against a running instance is more efficient to run during the SKILL build phase against a real Page; the static decorator count is the audit-time evidence.
 - **App Review / approved permission scopes.** Meta requires App Review for `pages_manage_posts`, `pages_manage_engagement`, `pages_messaging` in production. Workshop attendees in development mode can use the same Meta App they used for `meta-business-suite-connector` (already approved or in-dev). Document the App Review path in the SKILL Phase 0 for non-developer-mode usage.
 - **Other Facebook surfaces** — Messenger Platform, Marketplace, Groups — out of scope. This audit is Page organic posting only.
 
