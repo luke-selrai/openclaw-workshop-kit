@@ -170,26 +170,22 @@ If the merge stderr emits `CONFIG_BACKUP=`, the existing config was unreadable a
 
 > **Do not write `https://mcp.atlassian.com/v1/sse`.** That endpoint sunsets 30 June 2026.
 
-### Step 3 — Open Claude Code's OAuth start URL inside Playwright
+### Step 3 — Acquire OAuth start URL via `mcp__atlassian__authenticate` and open it in Playwright
 
-When Claude Code's MCP runtime first contacts an unauthenticated hosted server, it emits an OAuth start URL for the user to visit. Capture that URL and open it inside the Playwright MCP browser instead of the user's default browser.
+When Claude Code registers a hosted MCP server that requires auth, its runtime exposes a **per-server pair of OAuth-bootstrap tools** in the deferred-tool surface:
 
-**How to obtain the OAuth start URL.** Claude Code 2.x does not publish a stable scriptable subcommand to mint the URL on demand — the supported way is to let the runtime emit it as part of the 401 challenge when an unauthenticated tool call is made. Two paths, in order of preference:
+- `mcp__atlassian__authenticate()` — no args, returns the OAuth authorization URL (Atlassian-shaped: `https://mcp.atlassian.com/v1/authorize?...`, or in some flows `cf.mcp.atlassian.com`).
+- `mcp__atlassian__complete_authentication({ callback_url })` — submits the post-redirect callback URL to finish the OAuth dance.
 
-1. **401-challenge capture (primary).** Invoke any `mcp__atlassian__*` tool. Claude Code surfaces the OAuth start URL alongside the 401, in the form `https://mcp.atlassian.com/v1/authorize?...` (or, in some flows, on the `cf.mcp.atlassian.com` host). Capture the first matching URL from the surfacing.
+These appear after `claude mcp add` registers the server and the tool surface refreshes. They are the supported programmatic OAuth-bootstrap path — not a `claude mcp` CLI subcommand.
 
-2. **`claude mcp` subcommand (best-effort).** Some Claude Code builds expose an `authenticate` or equivalent subcommand. Probe with `claude mcp --help` and parse for an authenticate-style verb; if present, run it and capture stdout/stderr. If absent, fall back to path 1. Either way, the URL pattern to grep for is broad — Claude Code may emit either `mcp.atlassian.com` or `cf.mcp.atlassian.com`:
+**Tool-availability precondition.** On the very first session after `claude mcp add atlassian ...`, the deferred-tool reconciliation may not have fired yet, so `mcp__atlassian__authenticate` may not be in the tool surface. If that's the case, ask the user *once*: *"I've added Atlassian. Please close and reopen the chat once, then say 'connect to my Atlassian' and I'll finish."* On resume, Phase 0's resume check sees the `mcpServers.atlassian` entry and routes back into Step 3 of this flow.
 
-```bash
-# Adjust the input source to whatever you have available (subcommand stderr, tool surfacing, etc.)
-AUTH_URL=$(echo "$INPUT" | grep -oE 'https://(cf\.)?mcp\.atlassian\.com/[^[:space:]]+' | head -1)
-echo "AUTH_URL=$AUTH_URL"
-```
-
-Then drive Playwright to that URL:
+**Mint the URL and open it:**
 
 ```
-mcp__playwright__browser_navigate({ url: <AUTH_URL> })
+{ authorization_url } = mcp__atlassian__authenticate()
+mcp__playwright__browser_navigate({ url: authorization_url })
 ```
 
 Take a `mcp__playwright__browser_snapshot()`. Atlassian's flow has three visible stages — the page first lands on stage 1.
@@ -332,24 +328,34 @@ mcp__playwright__browser_click({
 
 If the Allow button cannot be located in the snapshot (UI shifted, embedded iframe, unexpected layout), fall back to a one-time user-click prompt: *"I couldn't find the Allow button automatically — please click **Allow** in the browser window."*
 
-#### 4d — Auto-detect callback completion
+#### 4d — Capture callback URL + submit via `complete_authentication`
 
-Atlassian's bridge redirects to Claude Code's localhost callback (Claude Code's MCP runtime owns the listener). Wait for the redirect to complete via `browser_wait_for` on the post-redirect page text. The exact callback page text is not stable across Claude Code 2.x builds — poll for any of several plausible markers, and as a stronger signal also detect a URL change to `localhost`/`127.0.0.1` via a `browser_evaluate`:
+Atlassian's bridge redirects to Claude Code's localhost callback (`http://localhost:<port>/callback?code=...&state=...`). On remote sessions that page may fail to load, but the URL in the address bar is still valid — that's what `complete_authentication` needs.
+
+Wait for the redirect via a URL-pattern wait, then capture the full `window.location.href` **before** closing the browser (after close there is no page to read):
 
 ```
 mcp__playwright__browser_wait_for({
-  text: "you can close this tab" OR "connection complete" OR "successfully authenticated" OR "authentication successful",
+  // Generous timeout — the multi-stage Atlassian flow can take a minute.
   time: 300
+})
+
+callback_url = mcp__playwright__browser_evaluate({
+  function: "() => window.location.href"
 })
 ```
 
-If the text wait does not match, run a follow-up `browser_evaluate` to check whether the URL has changed to a localhost callback — this is the more reliable signal that the OAuth bridge has handed back the code:
+If `callback_url` does not look like a `localhost`/`127.0.0.1` callback (the user may still be mid-flow), poll once more with a short wait. If after 5 minutes there is still no callback, check in *once* with the user. Do not nag.
 
-```javascript
-() => /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/)/.test(window.location.href)
+Then submit the callback to Claude Code's MCP runtime to finish the OAuth dance:
+
+```
+mcp__atlassian__complete_authentication({ callback_url })
 ```
 
-If either succeeds, treat the callback as complete and proceed to Step 5. If neither succeeds within 5 minutes, check in *once* with the user. Do not nag.
+On success, the rest of the `mcp__atlassian__*` tools become available **in the same session** — no chat restart needed. Proceed to Step 5 for verification.
+
+**Failure handling.** If `complete_authentication` rejects the callback (state mismatch, expired code, malformed URL), surface a plain-English *"let me try once more"* and re-run from `mcp__atlassian__authenticate()`.
 
 ### Step 5 — Close the browser + verify
 
@@ -363,10 +369,9 @@ Tell the user: *"I've saved your connection — let me check it works."*
 
 Verify by calling a canonical Atlassian read-only smoke tool. Tool names aren't publicly documented and the set evolves — discover at runtime by listing the `mcp__atlassian__*` tools available in the current session and pick a safe read-only one (a "list accessible resources" / "list sites" / `getAccessibleAtlassianResources` shape, or a Jira issue search with no filters and a small `limit`). If it returns a result (including an empty list — that's fine), the connection works.
 
-The verification depends on whether the MCP server is already active in the current session:
+Because `complete_authentication` unblocks the rest of the `mcp__atlassian__*` surface in the same session, the smoke call should run immediately:
 
-- **Tools available + call returns a result (or empty list)** → capture any obvious counts (resources, projects, issues), surface a success message including a live count.
-- **Tools not yet available** (most likely on first setup, since the MCP config was just written and Claude Code hasn't reloaded the tool surface) → tell the user *"All saved. Please close and reopen the chat once, then say 'test my Atlassian' and I'll verify the new connection."*
+- **Call returns a result (or empty list)** → capture any obvious counts (resources, projects, issues), surface a success message including a live count.
 - **Call returns 401 / `invalid_token`** → walk Phase 1 from Step 3 once. If still failing, surface the user-facing error and stop.
 - **Call returns 403 with admin-block messaging** → re-run Step 5's interstitial detection and surface the admin-allowlist guidance.
 - **Wrong workspace visible** → tell the user *"Looks like we connected to a different workspace than you meant — say 'switch my Atlassian workspace' and I'll re-run the sign-in so you can pick the right one."*

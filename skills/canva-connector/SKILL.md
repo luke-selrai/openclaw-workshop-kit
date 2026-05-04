@@ -144,23 +144,22 @@ mv ~/.claude.json.tmp ~/.claude.json
 
 If the merge stderr emits `CONFIG_BACKUP=`, the existing config was unreadable and Claude has just made a backup. Surface this to the user once: *"Your settings file was unreadable, so I made a safe backup before saving."*
 
-### Step 3 — Open Claude Code's OAuth start URL inside Playwright
+### Step 3 — Acquire OAuth start URL via `mcp__canva__authenticate` and open it in Playwright
 
-When Claude Code's MCP runtime first contacts an unauthenticated hosted server, it emits an OAuth start URL for the user to visit. Capture that URL and open it inside the Playwright MCP browser instead of the user's default browser.
+When Claude Code registers a hosted MCP server that requires auth, its runtime exposes a **per-server pair of OAuth-bootstrap tools** in the deferred-tool surface:
 
-The standard mechanism (Claude Code 2.x): trigger Claude Code's `/mcp` flow programmatically via the management subcommand. The URL is printed to stdout/stderr in the form `https://mcp.canva.com/authorize?...`. Capture it via:
+- `mcp__canva__authenticate()` — no args, returns the OAuth authorization URL (Canva-shaped: `https://mcp.canva.com/authorize?...`).
+- `mcp__canva__complete_authentication({ callback_url })` — submits the post-redirect callback URL to finish the OAuth dance.
 
-```bash
-AUTH_URL=$(claude mcp authenticate canva 2>&1 | grep -oE 'https://mcp\.canva\.com/[^[:space:]]+' | head -1)
-echo "AUTH_URL=$AUTH_URL"
-```
+These appear after `claude mcp add` registers the server and the tool surface refreshes. They are the supported programmatic OAuth-bootstrap path — **not** a `claude mcp` CLI subcommand. Earlier versions of this SKILL invoked `claude mcp authenticate canva`; that verb does not exist on the `claude mcp` CLI in any shipped Claude Code build.
 
-If the `claude mcp authenticate` subcommand isn't available in the user's Claude Code version, fall back to invoking any `mcp__canva__*` tool (e.g. `search-designs`) — Claude Code will surface the OAuth start URL as part of its 401 challenge handling. Capture from that surfacing.
+**Tool-availability precondition.** On the very first session after `claude mcp add canva ...`, the deferred-tool reconciliation may not have fired yet, so `mcp__canva__authenticate` may not be in the tool surface. If that's the case, ask the user *once*: *"I've added Canva. Please close and reopen the chat once, then say 'connect to my Canva' and I'll finish."* On resume, Phase 0's resume check sees the `mcpServers.canva` entry and routes back into Step 3 of this flow.
 
-Then drive Playwright to that URL:
+**Mint the URL and open it:**
 
 ```
-mcp__playwright__browser_navigate({ url: <AUTH_URL> })
+{ authorization_url } = mcp__canva__authenticate()
+mcp__playwright__browser_navigate({ url: authorization_url })
 ```
 
 Take a `mcp__playwright__browser_snapshot()`. Reason from the snapshot:
@@ -200,18 +199,34 @@ mcp__playwright__browser_click({
 
 If the Allow button cannot be located in the snapshot (UI shifted, embedded iframe, unexpected layout), fall back to a one-time user-click prompt: *"I couldn't find the Allow button automatically — please click **Allow** in the browser window."*
 
-#### 4b — Auto-detect callback completion
+#### 4b — Capture callback URL + submit via `complete_authentication`
 
-Canva redirects to Claude Code's localhost callback (Claude Code's MCP runtime owns the listener). Wait for the redirect to complete via `browser_wait_for` on the post-redirect page text — Claude Code typically renders a "Connection complete, you can close this tab" page or similar. No "tell me when you're back" — detect from the snapshot:
+Canva redirects to Claude Code's localhost callback (`http://localhost:<port>/callback?code=...&state=...`). On remote sessions that page may fail to load, but the URL in the address bar is still valid — that's what `complete_authentication` needs.
+
+Wait for the redirect via a URL-pattern wait, then capture the full `window.location.href` **before** closing the browser (after close there is no page to read):
 
 ```
 mcp__playwright__browser_wait_for({
-  text: "you can close this tab" OR "connection complete" OR "successfully authenticated",
+  // Generous timeout — the long Canva permissions list can take a minute.
   time: 600
+})
+
+callback_url = mcp__playwright__browser_evaluate({
+  function: "() => window.location.href"
 })
 ```
 
-If the wait times out (5+ minutes), check in *once* with the user. Do not nag.
+If `callback_url` does not look like a `localhost`/`127.0.0.1` callback (the user may still be mid-flow), poll once more with a short wait. If after 5+ minutes there is still no callback, check in *once* with the user. Do not nag.
+
+Then submit the callback to Claude Code's MCP runtime to finish the OAuth dance:
+
+```
+mcp__canva__complete_authentication({ callback_url })
+```
+
+On success, the rest of the `mcp__canva__*` tools become available **in the same session** — no chat restart needed. Proceed to Step 6 for verification.
+
+**Failure handling.** If `complete_authentication` rejects the callback (state mismatch, expired code, malformed URL), surface a plain-English *"let me try once more"* and re-run from `mcp__canva__authenticate()`.
 
 ### Step 5 — Detect Enterprise administrator-approval-required interstitial
 
@@ -257,10 +272,9 @@ Verify by calling a canonical Canva read-only smoke tool — `search-designs` wi
 mcp__canva__search-designs({ query: "" })
 ```
 
-The verification depends on whether the MCP server is already active in the current session:
+Because `complete_authentication` unblocks the rest of the `mcp__canva__*` surface in the same session, the smoke call should run immediately:
 
-- **Tools available + call returns design results (or an empty list)** → capture the count, surface a success message including the live count.
-- **Tools not yet available** (most likely on first setup, since the MCP config was just written and Claude Code hasn't reloaded the tool surface) → tell the user *"All saved. Please close and reopen the chat once, then say 'test my Canva' and I'll verify the new connection."*
+- **Call returns design results (or an empty list)** → capture the count, surface a success message including the live count.
 - **Call returns 401 / `invalid_token`** → walk Phase 1 from Step 3 once. If still failing, surface the user-facing error and stop.
 - **Call returns 403 / `plan_required`** → connection works but the user's plan doesn't grant access to that specific tool — explain plan gating and offer an alternative tool.
 - **Call returns 403 with admin-block messaging** → re-run Step 5's interstitial detection and surface the admin-allowlist guidance.
