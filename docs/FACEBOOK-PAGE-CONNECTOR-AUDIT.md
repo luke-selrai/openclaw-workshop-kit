@@ -67,7 +67,7 @@
 
 **What it is.** A Python MCP server (FastMCP-based) wrapping the Facebook Graph API for a single Facebook Page. Uses long-lived Page Access Tokens.
 
-**Tool inventory** (verified by counting `@mcp.tool` decorators in upstream `server.py`, 2026-05-04, **40 tools** — the upstream README lists 34, but `server.py` exposes 6 additional tools beyond the README):
+**Tool inventory** (verified by counting `@mcp.tool` decorators in upstream `server.py` at HEAD `61b21285`, dated 2026-04-23, snapshot date 2026-05-04 — **40 tools**. The upstream README lists 34, but `server.py` exposes 6 additional tools beyond the README. **Re-verify if upstream HEAD is later than `61b21285` at SKILL build time** — tool count may drift):
 
 ```
 post_to_facebook
@@ -188,7 +188,7 @@ The canonical autonomous-Playwright pattern from the Literal-Playwright sub-meth
 5. **Phase 1 Step 3** — Auto-fill the Graph API Explorer form: select the user's Meta App (or create one if missing — same shape as `meta-business-suite-connector`), tick the required permission scopes (`pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `pages_manage_engagement`, `pages_messaging`, `read_insights`), click **Generate Access Token**, accept the OAuth dialog autonomously.
 6. **Phase 1 Step 4** — Auto-extract the short-lived Page Access Token from the DOM. Exchange it for a long-lived Page Access Token via `curl https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token...` (60-day token, then renew indefinitely).
 7. **Phase 1 Step 5** — Auto-resolve the Page ID via `GET /me/accounts?fields=id,name,access_token` — the user picks the Page if multi-Page, narrate-and-pick if single-Page.
-8. **Phase 1 Step 6** — Register via `claude mcp add facebook-page --scope user --env FACEBOOK_ACCESS_TOKEN="$TOK" --env FACEBOOK_PAGE_ID="$PID" -- python <CLONE_PATH>/server.py` where `<CLONE_PATH>` is the directory the SKILL's Phase 0 clones HagaiHen into (e.g. `~/.local/share/facebook-mcp-server`). The `uvx --from git+...` shape **does not work** because the upstream repo has no `pyproject.toml`/`setup.py`/`setup.cfg` (verified live 2026-05-04). JSON merge fallback for older Claude Code.
+8. **Phase 1 Step 6** — Register via `claude mcp add facebook-page --scope user --env FACEBOOK_ACCESS_TOKEN="$TOK" --env FACEBOOK_PAGE_ID="$PID" -- python <CLONE_PATH>/server.py`. **Cross-platform `<CLONE_PATH>` convention**: `~/workshop-kit/connectors/facebook-mcp-server/` (macOS / Linux / Git-Bash / WSL) — matches the existing zip-install path attendees already use per memory `project_workshop_kit_zip_install_2026_05_01.md`. Avoid `~/.local/share/...` (XDG Base Dir spec is Linux/macOS-only — Windows attendees end up with a literal `.local\share\` folder that doesn't honour Windows conventions). Pin to a specific upstream SHA at clone time (HEAD `61b21285` as of 2026-05-04) so downstream `tools/list` count is reproducible. The `uvx --from git+...` shape **does not work** because the upstream repo has no `pyproject.toml`/`setup.py`/`setup.cfg` (verified live 2026-05-04). JSON merge fallback for older Claude Code.
 9. **Phase 1 Step 7** — Smoke-verify with `mcp__facebook_page__get_page_info`. Surface the Page name in the success message.
 
 The token-extraction pattern + curl-based long-lived exchange is identical to PR #152's `meta-business-suite-connector`'s Step 4-7. The SKILL author can lift those steps directly.
@@ -216,7 +216,7 @@ server.py (9331 bytes)
 
 Three viable alternatives, in order of workshop-friendliness:
 
-1. **Clone + python server.py** (recommended). Phase 0 of the SKILL clones to `~/.local/share/facebook-mcp-server/`, runs `uv pip install -r requirements.txt` to populate a managed venv, then `claude mcp add facebook-page ... -- python <clone>/server.py`. Idempotent (skip clone if dir exists; pull latest on rerun if user opts in).
+1. **Clone + python server.py** (recommended). Phase 0 of the SKILL clones to `~/workshop-kit/connectors/facebook-mcp-server/` (matches existing workshop-kit zip-install convention — cross-platform), runs `uv pip install -r requirements.txt` to populate a managed venv, then `claude mcp add facebook-page ... -- python <clone>/server.py`. Idempotent (skip clone if dir exists; pull latest on rerun if user opts in). Pin to a specific commit SHA so the downstream tool count is reproducible (HEAD `61b21285` at 2026-05-04 had 40 `@mcp.tool` decorators).
 2. **`uv run --with-requirements` with absolute path**. Once cloned, `uv run --with-requirements <clone>/requirements.txt python <clone>/server.py`. Avoids managing a separate venv but requires `uv` ≥ 0.4.x for `--with-requirements`.
 3. **Selr-published npm/pypi wrapper**. Selr forks HagaiHen, adds `pyproject.toml`, publishes to pypi as `selr-facebook-mcp` (or similar), then `uvx --from selr-facebook-mcp` works. Heavier maintenance burden (Q4 below).
 
