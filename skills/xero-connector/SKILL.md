@@ -109,15 +109,15 @@ Tell the user, one instruction at a time, waiting for confirmation between each:
 
 5. When they confirm → "Next, you'll see a list of permissions (scopes). Please tick all of these:
    - **accounting.transactions**
-   - **accounting.reports.read**
-   - **accounting.journals.read**
-   - **accounting.settings**
    - **accounting.contacts**
-   - **accounting.attachments**
+   - **accounting.settings**
+   - **accounting.reports.read**
 
    Then click **Save**. Tell me when the scopes are saved."
 
-   > *(If the user mentions payroll or they're in NZ/UK and want payroll tools: also ask them to tick `payroll.employees`, `payroll.payruns`, `payroll.payslip`, `payroll.timesheets`, and `payroll.settings`. Otherwise skip payroll scopes — we can add them later.)*
+   > *(If the user mentions payroll or they're in NZ/UK and want payroll tools: also ask them to tick `payroll.employees`, `payroll.timesheets`, and `payroll.settings`. Otherwise skip payroll scopes — we can add them later.)*
+
+   > *Why this exact set: these are the V1 scopes the upstream `@xeroapi/xero-mcp-server` tries first. The server falls back to a granular V2 set automatically if Xero ever returns `invalid_scope` on V1 — no SKILL.md change needed when that happens. Source: `XeroAPI/xero-mcp-server/src/clients/xero-client.ts`.*
 
 6. When they confirm → "Nearly there. Xero will now ask you to **activate** the connection, and this is where the small monthly charge kicks in. Go ahead and follow Xero's prompts to confirm your payment details and activate the connection. Tell me when Xero says the connection is active."
 
