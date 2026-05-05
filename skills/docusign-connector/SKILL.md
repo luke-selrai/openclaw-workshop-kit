@@ -26,6 +26,8 @@ metadata:
 
 # DocuSign Connector (eSignature)
 
+> **⚠️ Status: BLOCKED pending empirical finding [#213](https://github.com/selrai-company/claude-workshop-kit/issues/213).** Live-test 2026-05-05 showed DocuSign's hosted MCP gateway at `mcp-d.docusign.com/v1/mcp` rejects Auth Code Grant access tokens with `401 Jwt payload is an invalid JSON`. The Phase 1 flow described below is correct in shape but does NOT currently complete because the bearer Claude Code's MCP runtime obtains via `mcp__docusign__authenticate()` is not the format the gateway accepts. See issue #213 for the empirical evidence + three forward paths (JWT Grant pivot / Selr-built shim / punt #148). This SKILL is preserved as-is for the design record; do NOT use it to drive a real install until the gateway-token mismatch is resolved.
+
 ## Overview
 
 This skill lets you read and update a user's DocuSign account on their behalf — envelopes, templates, recipients, and account settings — using the **official first-party DocuSign Remote MCP server** hosted at `https://mcp-d.docusign.com/v1/mcp` (sandbox) or `https://mcp.docusign.com/v1/mcp` (production). It has two phases:
