@@ -151,7 +151,7 @@ When Claude Code registers a hosted MCP server that requires auth, its runtime e
 - `mcp__canva__authenticate()` — no args, returns the OAuth authorization URL (Canva-shaped: `https://mcp.canva.com/authorize?...`).
 - `mcp__canva__complete_authentication({ callback_url })` — submits the post-redirect callback URL to finish the OAuth dance.
 
-These appear after `claude mcp add` registers the server and the tool surface refreshes. They are the supported programmatic OAuth-bootstrap path — **not** a `claude mcp` CLI subcommand. Earlier versions of this SKILL invoked `claude mcp authenticate canva`; that verb does not exist on the `claude mcp` CLI in any shipped Claude Code build.
+These appear after `claude mcp add` registers the server and the tool surface refreshes. They are the supported programmatic OAuth-bootstrap path — **not** a `claude mcp` CLI subcommand. Earlier versions of this SKILL invoked a non-existent `authenticate` verb on the `claude mcp` CLI; no such subcommand ships in any Claude Code build.
 
 **Tool-availability precondition.** On the very first session after `claude mcp add canva ...`, the deferred-tool reconciliation may not have fired yet, so `mcp__canva__authenticate` may not be in the tool surface. If that's the case, ask the user *once*: *"I've added Canva. Please close and reopen the chat once, then say 'connect to my Canva' and I'll finish."* On resume, Phase 0's resume check sees the `mcpServers.canva` entry and routes back into Step 3 of this flow.
 

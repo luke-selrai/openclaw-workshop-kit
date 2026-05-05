@@ -27,6 +27,66 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SKILLS_DIR = join(ROOT, "skills");
 const SKILLS_LIST = join(SKILLS_DIR, "SKILLS-LIST.md");
 
+// Anti-pattern rules applied to every skills/**/SKILL.md.
+// Both patterns are descriptively wrong and would mislead anyone authoring a
+// sibling connector by analogy. See issue #200 and PR #208 (closes #198).
+//
+// Allowlist entries are explicit — paths relative to repo root. Used only for
+// the audit tool's own regression fixtures. Production SKILLs must be fixed,
+// not allowlisted.
+const ANTI_PATTERN_ALLOWLIST = new Set([
+  "scripts/__fixtures__/anti-patterns.md",
+]);
+
+const ANTI_PATTERN_RULES = [
+  {
+    id: "www-authenticate-bearer",
+    regex: /WWW-Authenticate:\s*Bearer/i,
+    reason:
+      "claims auth discovery via 'WWW-Authenticate: Bearer' challenge. " +
+      "Hosted MCP servers use well-known OAuth discovery (/.well-known/oauth-protected-resource, " +
+      "/.well-known/oauth-authorization-server). See c06edab on PR #192 for the corrected " +
+      "description, or PR #208 (closes #198) for the broader rewrite.",
+  },
+  {
+    id: "claude-mcp-authenticate-cli",
+    regex: /claude\s+mcp\s+authenticate\b/,
+    reason:
+      "references 'claude mcp authenticate' as a CLI subcommand. No such verb exists in any " +
+      "shipped Claude Code build (confirmed against `claude mcp --help` in 2.1.123). " +
+      "Use the runtime-surfaced 'mcp__<server>__authenticate' tool instead. See PR #208 (closes #198).",
+  },
+];
+
+function scanSkillForAntiPatterns(absPath, relPath) {
+  const text = readFileSync(absPath, "utf8");
+  const lines = text.split(/\r?\n/);
+  const hits = [];
+  for (let i = 0; i < lines.length; i++) {
+    for (const rule of ANTI_PATTERN_RULES) {
+      if (rule.regex.test(lines[i])) {
+        hits.push({ rule: rule.id, line: i + 1, reason: rule.reason, relPath });
+      }
+    }
+  }
+  return hits;
+}
+
+function auditAntiPatterns() {
+  const skillDirs = readdirSync(SKILLS_DIR).filter((name) => {
+    const p = join(SKILLS_DIR, name);
+    return statSync(p).isDirectory() && existsSync(join(p, "SKILL.md"));
+  });
+  const allHits = [];
+  for (const name of skillDirs) {
+    const abs = join(SKILLS_DIR, name, "SKILL.md");
+    const rel = `skills/${name}/SKILL.md`;
+    if (ANTI_PATTERN_ALLOWLIST.has(rel)) continue;
+    allHits.push(...scanSkillForAntiPatterns(abs, rel));
+  }
+  return allHits;
+}
+
 const TARGET_FILES = [
   "README.md",
   "docs/skills/README.md",
@@ -191,7 +251,21 @@ function main() {
     }
   }
 
-  if (mode === "check" && fileDrift) {
+  // Anti-pattern scan — always runs in both modes; never auto-mutates.
+  const antiPatternHits = auditAntiPatterns();
+  if (antiPatternHits.length > 0) {
+    console.log("");
+    console.log(`❌ Anti-pattern hits (${antiPatternHits.length}):`);
+    for (const hit of antiPatternHits) {
+      console.log(`   ${hit.relPath}:${hit.line} [${hit.rule}]`);
+      console.log(`     ${hit.reason}`);
+    }
+  } else {
+    console.log("");
+    console.log("✓ No anti-pattern hits across skills/**/SKILL.md.");
+  }
+
+  if (mode === "check" && (fileDrift || antiPatternHits.length > 0)) {
     process.exit(1);
   }
 }
