@@ -1,7 +1,7 @@
 ---
 name: square-connector
-description: "Read and update Square data via the official Square MCP server. Handles payments, refunds, catalog items, inventory, orders, customers, invoices, checkout, bookings, loyalty, gift cards, locations, merchant info, labor, disputes, and payouts. Supports two connection modes: a real Square account via the hosted remote MCP server (mcp.squareup.com, browser sign-in, no token handling) and a sandbox/demo using the local square-mcp-server npm package with a sandbox access token. Use this skill when the user asks about their Square, Square payments, Square orders, Square catalog, Square inventory, Square customers, Square invoices, Square bookings, Square loyalty, Square gift cards, Square disputes, Square payouts, or when they say 'connect my Square' or 'help me set up Square'. On the first use of any Square feature, run Phase 1 to configure the MCP server and authenticate before attempting any tool calls. Note: the Square MCP server is currently in beta — flag this to the user during setup."
-allowed-tools: mcp__square__*, Bash, Read, Write, Edit
+description: "Read and update Square data via the official Square MCP server. Handles payments, refunds, catalog items, inventory, orders, customers, invoices, checkout, bookings, loyalty, gift cards, locations, merchant info, labor, disputes, and payouts. Supports two connection modes: a real Square account via the hosted remote MCP server (mcp.squareup.com, browser sign-in, no token handling) and a sandbox/demo using the local square-mcp-server npm package with a sandbox access token. Drives the entire setup autonomously through a Playwright MCP browser — for sandbox, walks developer.squareup.com to toggle Sandbox mode, open or create an app, reveal the Sandbox Access Token, and read it from the DOM; for the real account, drives the OAuth consent flow in the same Playwright window. The only human moments are signing in to Square and (real-account path) clicking Allow on the consent screen. Use this skill when the user asks about their Square, Square payments, Square orders, Square catalog, Square inventory, Square customers, Square invoices, Square bookings, Square loyalty, Square gift cards, Square disputes, Square payouts, or when they say 'connect my Square' or 'help me set up Square'. On the first use of any Square feature, run Phase 1 to configure the MCP server and authenticate before attempting any tool calls. Note: the Square MCP server is currently in beta — flag this to the user during setup."
+allowed-tools: mcp__square__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
   tags:
@@ -29,7 +29,7 @@ This skill lets you read and update a user's Square data on their behalf via the
 
 The skill has two phases:
 
-- **Phase 1 — Configure & Auth.** A conversational bootstrap. The user has never used this before. You ask one question — real Square account, or sandbox/demo? — and then do all the technical work silently. You edit `~/.claude.json`, ask the user to restart Claude Code, and (for real accounts) they sign in to Square in their browser once. No Client ID, no Client Secret, no redirect URI for the real-account path.
+- **Phase 1 — Install & Auth (autonomous via Playwright).** Claude drives the entire setup inside a Playwright MCP browser. On the **sandbox path**, Claude opens `developer.squareup.com/apps`, waits for the user to sign in, toggles the dashboard to Sandbox mode, opens (or creates) an app, clicks the eye icon on **Sandbox Access Token**, reads the token directly from the DOM, registers the MCP server, and verifies — without ever asking the user to copy, paste, or navigate menus themselves. On the **real-account path**, Claude registers the hosted MCP server, drives Square's OAuth URL in the same Playwright window, waits for the user to sign in and click **Allow**, then auto-detects the callback. The user's only actions are signing in to Square (both paths) and clicking **Allow** on the consent screen (real-account path). No Client ID, no Client Secret, no redirect URI on the real-account path.
 - **Phase 2 — Use Tools.** Once the MCP server is connected, you call **three meta-tools** — `get_service_info`, `get_type_info`, and `make_api_request` — to discover and execute any Square API call. The Square MCP does not expose static per-endpoint tools (unlike Xero); instead it exposes the whole Square API surface through this discovery pattern. This skill teaches you the pattern and shows example flows for the most common workshop prompts.
 
 **Beta notice.** The Square MCP server is currently in **beta**. Features and tool names may change without notice. This is worth telling the user once, warmly, during Phase 1 — not as a scary warning, but as a heads-up that if something misbehaves, it is usually Square's side and a retry fixes it.
@@ -42,33 +42,36 @@ mcp__square__get_service_info(service="merchants")
 
 - Tool returns a list of methods → the MCP server is live. Go to Phase 2.
 - Tool errors with "server not found" / "mcp__square__* not available" → the user has not configured it yet OR has not restarted Claude Code after the config was written. Run Phase 1 from the appropriate step.
-- Tool errors with an auth-related message → the remote MCP server's browser sign-in lapsed (real-account path) or the sandbox token is wrong/expired (sandbox path). Run Phase 1 from Step 3.
+- Tool errors with an auth-related message → the remote MCP server's browser sign-in lapsed (real-account path) or the sandbox token is wrong/expired (sandbox path). Re-run Phase 1 — the Playwright browser will reuse the existing session, so the user usually doesn't need to sign in again.
 
 ---
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message you send during Phase 1 must follow the rules in `my-assistant/CLAUDE.md` — in particular:
+The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work, the user only signs in to Square (and clicks **Allow** on the real-account consent screen). Every message you send during Phase 1 must follow these rules:
 
-- **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say MCP, server, npm, npx, JSON, config file, env var, token, OAuth, scope, endpoint, SSE, remote, stdio, redirect URI, or file paths. If you must refer to a technical thing, name it plainly: "the Square tool I need", "your browser", "a small setting on your computer".
-- **Tell them what is about to happen.** Before any action: "I am going to set up the Square connection on your computer — this takes about one minute."
+- **You drive, not them.** Never ask the user to click menus, copy text, scroll the developer dashboard, or paste values. The only actions you ever request are: "please sign in to the browser window I just opened" and (real-account path) "please click Allow on the screen Square just showed you."
+- **Plain English only.** No jargon. Never say MCP, server, npm, npx, bash, CLI, terminal, JSON, config file, env var, token, OAuth, scope, endpoint, SSE, remote, stdio, redirect URI, Playwright, browser automation, DOM, selector, or file paths. The browser window you open is "a browser window I just opened for you" or "the connection page" — not "Playwright" or "Chromium". If you must refer to a technical thing, name it plainly: "the Square tool I need", "your browser", "a small setting on your computer".
+- **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening Square for you now"), once when you need them ("please sign in", "please click Allow"), once when you're done ("your Square is now connected"). No commentary in between.
 - **React to success and failure warmly.** Good: "That worked — your Square is now connected." Bad: "MCP handshake failed at /sse."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem at all — let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
-- **Never mention file paths, commands, or scripts** to the user. You run them; you do not describe them.
+- **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
+- **Never echo the sandbox token** back to the user. Never include it in any output visible to the user.
 
 ---
 
-## PHASE 1 — Configure & Auth
+## PHASE 1 — Install & Auth (autonomous via Playwright)
 
-This phase asks which path the user wants, edits `~/.claude.json` with the correct MCP server block, asks the user to restart Claude Code, and verifies the connection on next use.
+Claude drives the user's browser end-to-end via Playwright MCP. The user's only roles are: (1) sign in to Square in the Playwright window when prompted, and (2) on the real-account path, click **Allow** on Square's consent screen. Claude handles every other step — navigation, sandbox-mode toggle, app open/create, token reveal, DOM read, MCP register, verify.
+
+> **Reasoning model.** Each Playwright step describes a *goal* (e.g., "find the Sandbox Access Token reveal control"). Achieve it by taking a `browser_snapshot`, reasoning about what's on the page, and calling the appropriate `browser_click` / `browser_type` / `browser_evaluate`. Do not hardcode CSS selectors — Square's developer dashboard UI changes. Re-snapshot whenever the page state changes.
 
 ### Step 1 — Ask which path the user wants
 
 Tell the user, in one short message:
 
-> "Quick question before we start. Do you want to connect your **real Square account** (your live business data, read-only unless you ask me to change something), or would you prefer a **practice demo** using Square's sandbox fake data? Both are safe — the real account path uses Square's official sign-in, so I never see your password."
+> "Quick question before we start. Do you want to connect your **real Square account** (your live business data, read-only unless you ask me to change something), or would you prefer a **practice demo** using Square's sandbox fake data? Both are safe — I'll handle the setup either way; you'll just sign in once."
 
 Also mention, warmly and once:
 
@@ -76,146 +79,225 @@ Also mention, warmly and once:
 
 Wait for the user to answer. Then:
 
-- **Real account** → Step 2A.
-- **Sandbox / demo / practice** → Step 2B.
+- **Real account** → Step 2 (Real-account branch below).
+- **Sandbox / demo / practice** → Step 2 (Sandbox branch below).
 - **Not sure** → "The real account is easier — no setup, just a browser sign-in. The sandbox is only useful if you want to experiment without touching real data. I'd suggest the real account unless you want to play around first."
 
-### Step 2A — Real account path (edit ~/.claude.json for the hosted remote MCP)
+---
 
-Tell the user: "Great. I am going to set up the Square connection now — about thirty seconds, and then I will ask you to restart Claude Code once."
+### Sandbox branch — Step 2: Open developer.squareup.com and confirm sign-in
 
-Silently:
+Tell the user, in one short message:
 
-1. Read `~/.claude.json` (it should exist — Claude Code creates it on first run). If it is missing, create it with `{}` as the starting content.
-2. Parse it as JSON.
-3. Ensure there is a top-level `mcpServers` object (create it if missing).
-4. Add (or replace, if a `square` entry already exists) this block under `mcpServers`:
+> "I'm opening a browser window for you — please sign in to Square in there when it appears, and I'll handle the rest."
 
-   ```json
-   "square": {
-     "command": "npx",
-     "args": ["mcp-remote", "https://mcp.squareup.com/sse"]
-   }
-   ```
+Call `mcp__playwright__browser_navigate({ url: "https://developer.squareup.com/apps" })`. Take a `mcp__playwright__browser_snapshot()` and reason from it:
 
-5. Write the file back, preserving all other existing keys and entries untouched. Use a safe write — read-modify-write, not overwrite.
+- **Logged in** (you see the Applications dashboard — a list of apps with **+ Create app** / **New application** controls, or an empty-state with the same control) → continue to Step 3.
+- **Not logged in** (sign-in form, "Sign in with Square" button, or the marketing landing page) → tell the user *once*: *"The browser window is open — please sign in to Square when you're ready."* Then poll silently with `mcp__playwright__browser_wait_for({ text: "Applications" })` (or wait for any post-login dashboard element you can see in the snapshot — the **+ Create app** button, the dashboard header, etc.) with a generous timeout. Do **not** ask the user to confirm when they're done — detect the logged-in dashboard from the snapshot yourself. SSO redirects, password resets, and 2FA all resolve back to the same dashboard.
 
-Here is the shape the relevant fragment should end up as (the rest of the file is preserved):
+If `browser_wait_for` times out (5+ minutes), then — and only then — check in with the user: *"Still on the sign-in page? Anything I can help with?"*
+
+### Sandbox branch — Step 3: Make sure the dashboard is in Sandbox mode
+
+Square's developer dashboard has a **Sandbox / Production** mode switch. The Sandbox Access Token only appears when the dashboard is in Sandbox mode.
+
+Take a fresh snapshot. Reason: is the mode toggle showing **Sandbox** or **Production**?
+
+- **Already on Sandbox** → continue to Step 4.
+- **On Production** → locate the mode toggle in the snapshot (usually a top-bar switch, segmented control, or sidebar selector labelled **Sandbox** / **Production**) and click **Sandbox** via `browser_click`. Re-snapshot to confirm the dashboard now shows Sandbox apps and labels.
+- **Toggle not visible** → it may be inside a profile/account menu. Snapshot the page, reason about likely entry points, and try one — re-snapshot after each click. If after two attempts you still cannot toggle to Sandbox, fall back to navigating directly to `https://developer.squareup.com/apps` again — the URL preserves mode in some sessions — and re-evaluate.
+
+### Sandbox branch — Step 4: Open or create a Sandbox application
+
+Take a fresh snapshot of the Applications list (in Sandbox mode).
+
+- **At least one Sandbox app already exists** → click the first one in the list via `browser_click`. Reuse is preferred over create — fewer clicks, less workspace clutter.
+- **No apps exist** → click **+ Create app** (or **Create your first application** / **New application**, whichever the snapshot shows) via `browser_click`. A modal or full-page form will ask for an app name. Type `Claude Assistant` into the App Name field via `browser_type`. If a checkbox or radio for "use this app for sandbox testing" appears, ensure it's checked via `browser_click`. Click **Create app** via `browser_click`.
+
+After either branch, Square redirects to the app's overview / credentials page. Take a fresh snapshot to confirm — you should see the app's name at the top, and a left-side or tabbed navigation that includes **Credentials** / **Sandbox** / **OAuth** sections.
+
+### Sandbox branch — Step 5: Reveal the Sandbox Access Token and read it from the page
+
+On the app page, locate the **Sandbox Access Token** field. Depending on the dashboard layout, it may be on the main credentials page, behind a **Credentials** tab/sidebar item, or under a **Sandbox** tab. Take a snapshot, reason about the layout, and click whichever entry surfaces the **Sandbox Access Token** label.
+
+The token is masked by default. Find the **eye icon** (or **Show** / **Reveal** button) next to **Sandbox Access Token** and click it via `browser_click`. Re-snapshot.
+
+> **Important.** The page also shows the **Sandbox Application ID** and (sometimes) a **Production Access Token**. Do not capture either of those. Match the label `Sandbox Access Token` (or `Access Token` clearly inside the Sandbox section) — never the Application ID, never anything labelled Production.
+
+Read the revealed token from the DOM via `browser_evaluate`. Adapt the selector based on what the snapshot shows; an example shape is:
+
+```javascript
+() => {
+  const labels = Array.from(document.querySelectorAll('label, dt, [data-testid], h3, h4, span'));
+  const labelEl = labels.find(el => /sandbox\s+access\s+token/i.test((el.textContent ?? '').trim()));
+  if (!labelEl) return null;
+  // Walk up to a reasonable container, then look for the visible value (input/textarea/code/pre).
+  const scope = labelEl.closest('section, div, li, tr, [class*="credential"], [class*="token"]') ?? labelEl.parentElement;
+  const valueEl = scope?.querySelector('input[type="text"], input[readonly], textarea, code, pre, [data-testid*="token-value"]');
+  return (valueEl?.value ?? valueEl?.textContent ?? '').trim() || null;
+}
+```
+
+**Validation rules (silent):**
+
+- Must look like a Square sandbox token: typically starts with `EAAA` and is 40+ characters of base64url-ish characters.
+- Must NOT match the Application ID shape (Application IDs typically start with `sandbox-sq0idb-` or `sq0idp-` and are visibly shorter than the access token).
+
+If two snapshot/read attempts don't yield a valid Sandbox Access Token, stop and tell the user, in one short message: *"I'm having trouble reading the test key off the page — could you tell me what you can see under the Credentials section?"* Use their description to locate the right control, then re-attempt the read with an adjusted selector.
+
+Hold the token in memory for Step 6. Never write it to chat.
+
+### Sandbox branch — Step 6: Save the connection (silent)
+
+Silently register the MCP server. **Prefer `claude mcp add` via Bash** — it's the official CLI path, handles JSON merging correctly, and avoids touching `~/.claude.json` directly.
+
+```bash
+claude mcp add square \
+  --scope user \
+  --env ACCESS_TOKEN="<token captured in Step 5>" \
+  --env SANDBOX="true" \
+  --env DISALLOW_WRITES="true" \
+  -- npx -y square-mcp-server start
+```
+
+`DISALLOW_WRITES=true` keeps the sandbox read-only for workshop safety. If the user later asks to create a test invoice or customer in the sandbox, you can offer to flip it to `false` after confirming — but default to read-only on first setup.
+
+**Fallback if `claude mcp add` fails** (older Claude Code version, or CLI not on PATH) — write directly to `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) using the equivalent JSON shape:
 
 ```json
 {
   "mcpServers": {
     "square": {
       "command": "npx",
-      "args": ["mcp-remote", "https://mcp.squareup.com/sse"]
+      "args": ["-y", "square-mcp-server", "start"],
+      "env": {
+        "ACCESS_TOKEN": "<token>",
+        "SANDBOX": "true",
+        "DISALLOW_WRITES": "true"
+      }
     }
   }
 }
 ```
 
-The `mcp-remote` helper is a small npm package that bridges Claude Code (which speaks stdio MCP) to Square's hosted remote MCP server (which speaks SSE). It is downloaded automatically by `npx` on first run — the user does not need to install anything manually, and they do **not** need Node.js installed separately. `npx` ships with Node, and Node is a dependency of Claude Code, so it is already on their machine.
+Read-modify-write — merge into the existing `mcpServers` object, never overwrite. If `~/.claude.json` doesn't exist, create it with `{}` first. If it's corrupt, back up to `~/.claude.json.backup` first.
 
-Then go to Step 3.
+**Never echo the access token back to the user.** Never include it in any output visible to the user. Never log it to the conversation, even truncated.
 
-### Step 2B — Sandbox path (edit ~/.claude.json for the local square-mcp-server)
+### Sandbox branch — Step 7: Close the browser and verify
 
-Tell the user, in one short message:
+Close the Playwright browser via `mcp__playwright__browser_close()`. The token now lives only in `~/.claude.json`.
 
-> "The practice sandbox needs one thing from you: a special test key from Square's developer site. This is free and takes about two minutes. I will walk you through it."
+Tell the user: *"I've saved your connection — let me check it works."*
 
-Then, one instruction per message:
+The verification depends on whether the MCP server is already active in the current session:
 
-1. "Please open https://developer.squareup.com/apps in your browser and sign in with any email address. Tell me when you are on the Applications page."
-2. "Click the **+** button (or **Create your first application** / **New application**) to create a new application. Give it any name — **Claude Assistant** is fine. Click **Create**. Tell me when you are on the new application's page."
-3. "On the app page, make sure you are on the **Sandbox** tab at the top of the page (not Production). Then click **Credentials** in the left menu."
-4. "You will see a field called **Sandbox Access Token**. Click the eye icon to reveal it, then copy the whole value and paste it to me. The Sandbox Application ID is a different value — we do not need that one, only the Access Token."
+- **If `mcp__square__*` tools are available** (the MCP server has reloaded): run the smoke call below. If it returns, capture the merchant/business name and continue to Step 8.
+- **If the tools are not yet available** (most likely on first setup, since the MCP config was just written): tell the user *"All saved. Please close and reopen Claude Code once, then say 'test my Square' and I'll verify the connection."* When they come back, retry the smoke call.
 
-When the user pastes the token:
-
-- If the value looks very short (under 40 characters), or looks like a placeholder, ask again: "That looks a little short to me — could you double-check you copied the Sandbox Access Token in full?"
-- If it looks right, silently:
-
-  1. Read `~/.claude.json` (create with `{}` if missing).
-  2. Ensure a top-level `mcpServers` object.
-  3. Add (or replace) this block under `mcpServers`:
-
-     ```json
-     "square": {
-       "command": "npx",
-       "args": ["square-mcp-server", "start"],
-       "env": {
-         "ACCESS_TOKEN": "<sandbox token from user>",
-         "SANDBOX": "true",
-         "DISALLOW_WRITES": "true"
-       }
-     }
-     ```
-
-  4. Substitute the actual pasted token for `<sandbox token from user>`.
-  5. Write the file back, preserving everything else.
-
-**Never echo the token back to the user after writing it.** Never include it in any output visible to the user.
-
-Note on `DISALLOW_WRITES`: the sandbox defaults to read-only for workshop safety. If the user later says "I want to create a test invoice in the sandbox", you can offer to flip `DISALLOW_WRITES` to `false` in `~/.claude.json` after confirming with them — but default to read-only for first-time setup.
-
-Then go to Step 3.
-
-### Step 3 — Restart Claude Code
-
-Tell the user, in one short message:
-
-> "All set. I need you to **fully close and re-open Claude Code** once so it picks up the new Square connection. When you are back, just say 'I'm back' and I will verify everything is working."
-
-This is the only moment in Phase 1 where the user has to do something technical, and it is just a restart. Do **not** try to hot-reload the MCP config — Claude Code only loads `~/.claude.json` on startup.
-
-When the user comes back ("I'm back", "done", "ready", etc.), go to Step 4.
-
-### Step 4 — Verify the connection
-
-Tell the user: "Let me just check the connection is live."
-
-Silently run a trivial meta-tool call via the Square MCP:
+Smoke call — fetch the practice merchant name:
 
 ```
-mcp__square__get_service_info(service="merchants")
+mcp__square__make_api_request(service="merchants", method="list", request={})
 ```
 
-- Returns a method list → the server is reachable. Continue.
-- Returns an error about the server not being found → either the user did not restart Claude Code (ask them to confirm they fully quit and reopened), or the `~/.claude.json` edit failed. Re-check the file, fix if needed, and ask for another restart.
-- Returns an auth error on the real-account path → the browser sign-in has not happened yet. On the real-account path, the *first* call to the Square remote MCP will automatically trigger a browser window asking the user to sign in to Square and consent. Tell the user: "Square is about to open a sign-in page in your browser. Please sign in to your Square account and click **Allow** or **Approve** — then come back and tell me you're done." Then retry the verify call.
-- Returns an auth error on the sandbox path → the pasted token was wrong. Say: "The test key from Square didn't work. Let's grab a fresh one." Go back to Step 2B.
-
-Once `get_service_info` succeeds, fetch the merchant's name for the success message. The Square MCP uses short method names (`list`, `get`, `create`, etc.) with the service passed separately — not `list_merchants` or `retrieve_merchant`:
-
-```
-mcp__square__make_api_request(
-  service="merchants",
-  method="list",
-  request={}
-)
-```
-
-Response shape: `{"merchant": [{"business_name": "...", "country": "...", "currency": "...", ...}]}`. Parse the first merchant's `business_name` for the success message.
-
-If the merchants call fails, try `locations` as a fallback — every Square account has at least one location:
+If `merchants.list` errors, fall back to `locations.list` — every Square account, sandbox or real, has at least one location:
 
 ```
 mcp__square__make_api_request(service="locations", method="list", request={})
 ```
 
-Use the first location's `name` or `business_name` for the success message.
+Use the first merchant's `business_name` (or, on fallback, the first location's `name`) for the success message.
 
-### Step 5 — Success message
+If verification returns an auth-shaped error (`UNAUTHORIZED` / `401`) the captured token was wrong or revoked. Tell the user: *"The test key didn't take — let me grab a fresh one,"* then re-run Sandbox Steps 2–6 (the Playwright browser will resume the existing session, so the user usually doesn't need to sign in again).
+
+### Sandbox branch — Step 8: Success message
+
+Tell the user, in one short message:
+
+> "All done. I'm now connected to your Square **practice sandbox** (account name **[business name]**). You can ask me to list payments, customers, catalog items, orders — the data is all fake but the tools all work the same. Let me know if you want me to switch to your real Square account later."
+
+Save to memory that the Square MCP is configured, the user chose the **sandbox** path, and the merchant name, so that on the next use you go straight to Phase 2.
+
+---
+
+### Real-account branch — Step 2: Save the connection (silent)
+
+Silently register the hosted Square MCP. **Prefer `claude mcp add` via Bash** — it merges `~/.claude.json` correctly.
+
+```bash
+claude mcp add square \
+  --scope user \
+  -- npx -y mcp-remote https://mcp.squareup.com/sse
+```
+
+The `mcp-remote` helper is a small npm package that bridges Claude Code (which speaks stdio MCP) to Square's hosted remote MCP server (which speaks SSE). It is downloaded automatically by `npx` on first run — the user does not need to install anything manually, and `npx` ships with Node, which is already a dependency of Claude Code.
+
+**Fallback if `claude mcp add` fails** — write directly to `~/.claude.json` using the equivalent JSON shape:
+
+```json
+{
+  "mcpServers": {
+    "square": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.squareup.com/sse"]
+    }
+  }
+}
+```
+
+Read-modify-write — merge into the existing `mcpServers` object, never overwrite.
+
+### Real-account branch — Step 3: Drive Square's OAuth in the Playwright window
+
+Tell the user, in one short message:
+
+> "I'm opening a browser window for you — please sign in to Square in there, then click **Allow** when Square asks. I'll handle the rest."
+
+Trigger the OAuth start. The hosted Square remote MCP issues an OAuth authorization URL on first use; the goal is to present that URL inside the Playwright browser instead of the user's system browser, so the same window can detect the post-Allow callback.
+
+> **Reasoning model.** The exact URL `mcp-remote` opens on first run depends on its current implementation (typically `https://mcp.squareup.com/oauth/authorize?...` with a localhost callback). Capture or reconstruct that URL — for example, by reading what `mcp-remote` prints to stderr on first connect, or by snapshotting whatever sign-in URL the MCP layer surfaces — and pass it to `browser_navigate`. Do **not** hardcode the URL into chat responses; resolve it from the live MCP startup output.
+
+Call `mcp__playwright__browser_navigate({ url: "<oauth start URL>" })`. Take a snapshot and reason from it:
+
+- **Square sign-in form** → tell the user *once*: *"The browser window is open — please sign in to Square when you're ready."* Then poll silently with `mcp__playwright__browser_wait_for` for the next step (consent screen text such as "wants access" or the **Allow** button label).
+- **Already signed in, on the consent screen** → tell the user, in one short message: *"Square just opened a permissions screen — please click **Allow** so I can finish connecting."* Then poll silently with `mcp__playwright__browser_wait_for({ text: "<post-callback marker>" })` — for example, the localhost callback page that `mcp-remote` serves usually displays a "you can close this window" / "authentication complete" message.
+- **Marketing / landing page** → re-trigger the OAuth start (the MCP server may need another connect attempt).
+
+Generous timeouts. Do **not** ask the user "tell me when you're done" — detect the post-Allow callback from the snapshot or `browser_wait_for` yourself. SSO redirects and 2FA all resolve back to the callback page.
+
+If the user clicks **Cancel** / **Deny** instead of **Allow**, the callback won't fire and the snapshot will show a Square error or stay on the consent page. Tell them: *"Looks like you cancelled the permissions — no problem. Want me to try again?"* If yes, re-trigger the OAuth start and re-navigate.
+
+### Real-account branch — Step 4: Close the browser and verify
+
+Close the Playwright browser via `mcp__playwright__browser_close()`. The OAuth tokens now live in `mcp-remote`'s local store.
+
+Tell the user: *"I've connected your Square — let me check it works."*
+
+Same as the sandbox branch: if `mcp__square__*` tools are available, run the smoke call below; otherwise tell the user to close and reopen Claude Code once, and verify when they come back.
+
+```
+mcp__square__get_service_info(service="merchants")
+```
+
+Then, for the merchant name:
+
+```
+mcp__square__make_api_request(service="merchants", method="list", request={})
+```
+
+Fall back to `locations.list` if `merchants.list` errors.
+
+If verification returns an auth-shaped error (`UNAUTHORIZED` / `401`), the OAuth flow didn't complete cleanly. Tell the user: *"The sign-in didn't take — let me try once more,"* then re-run Real-account Step 3.
+
+### Real-account branch — Step 5: Success message
 
 Tell the user, in one short message:
 
 > "All done. I am now connected to your Square account **[business name]**. You can ask me things like 'show me my recent Square payments', 'list my Square customers', 'what's in my Square catalog', or 'show me my Square orders from this week'."
 
-On the sandbox path, adjust:
-
-> "All done. I am now connected to your Square **practice sandbox**. You can ask me to list payments, customers, catalog items, orders — the data is all fake but the tools all work the same. Let me know if you want me to switch to your real Square account later."
-
-Save to memory that the Square MCP is configured, which path the user chose (real vs sandbox), and the merchant name, so that on the next use you go straight to Phase 2.
+Save to memory that the Square MCP is configured, the user chose the **real-account** path, and the merchant name, so that on the next use you go straight to Phase 2.
 
 ---
 
@@ -426,7 +508,7 @@ User says: *"Show me my Square invoices"*
 mcp__square__make_api_request(
   service="invoices",
   method="list",
-  request={"location_id": "<location_id from Phase 1 Step 4 fallback>"}
+  request={"location_id": "<location_id from Phase 1 verify-step fallback>"}
 )
 ```
 
@@ -545,13 +627,13 @@ The Square MCP beta returns errors as part of the `make_api_request` result. Eve
 
 | Error shape | What it means | How to respond |
 |---|---|---|
-| `"UNAUTHORIZED"` / `401` | Auth has lapsed. Real-account path: browser session expired. Sandbox path: token was revoked or wrong. | **Run Phase 1 from Step 3 (restart)**. Do not ask the user to run anything; you run it. |
+| `"UNAUTHORIZED"` / `401` | Auth has lapsed. Real-account path: browser session expired. Sandbox path: token was revoked or wrong. | **Re-run Phase 1 autonomously.** Open Playwright back to `developer.squareup.com/apps` (sandbox) or re-trigger the OAuth start (real-account); the existing browser session usually carries over so the user doesn't need to sign in again. Do not ask the user to run anything; you run it. |
 | `"NOT_FOUND"` / `404` | Resource not found (payment ID, customer ID, etc.) | Tell the user "I couldn't find [resource]. Let me list the recent ones so you can pick." Then run a list command. |
 | `"INVALID_REQUEST_ERROR"` / `400` | The `request` payload is malformed. | Call `get_type_info(type="<RequestType>")` to verify the schema, then rebuild. |
 | `"RATE_LIMITED"` / `429` | Hit the Square API rate limit. | Wait 30 seconds, retry once. Tell the user: "Square is asking me to slow down — let me wait a moment." |
-| `"FORBIDDEN"` / `403` | Missing scope / permission. Real account may not have granted all scopes during sign-in. | Tell the user: "Your Square sign-in doesn't include permission for that. Let me reconnect you with the right permissions." Run Phase 1 from Step 3. |
+| `"FORBIDDEN"` / `403` | Missing scope / permission. Real account may not have granted all scopes during sign-in. | Tell the user: "Your Square sign-in doesn't include permission for that. Let me reconnect you with the right permissions." Re-run Phase 1 (real-account branch) — driving the OAuth screen again surfaces a fresh consent prompt. |
 | `"INTERNAL_SERVER_ERROR"` / `500` | Square-side issue. Often transient, especially on the beta MCP server. | Retry once after 2 seconds. If still failing: "Square's side is having a moment. Want me to try again in a minute, or move on to something else?" |
-| `"MCP server not found"` / tool name not available | The MCP server isn't configured or Claude Code wasn't restarted. | Run Phase 1 from Step 2A or 2B (check `~/.claude.json`), then Step 3. |
+| `"MCP server not found"` / tool name not available | The MCP server isn't configured or Claude Code wasn't restarted after the config write. | Check `~/.claude.json` for an `mcpServers.square` entry. If present, ask the user to close and reopen Claude Code once. If absent, re-run Phase 1 from the start. |
 
 **Never show raw error codes or JSON to the user.** Translate into plain English, tell the user what you're doing next, and re-run or fall back to Phase 1 as appropriate.
 
@@ -585,7 +667,7 @@ The real-account path permissions are whatever the user granted during browser s
 - **Sandbox awareness** — when on the sandbox path, gently remind the user every so often that they are looking at practice data. Say "practice account" or "sandbox", not "fake".
 - **Beta awareness** — if something fails inexplicably and retries don't help, tell the user: "Square's connector is still in beta, so occasionally it gets confused. Would you like me to try a different approach, or shall we come back to this later?" — do not blame the user.
 - **Never log or echo the sandbox token** — if the user is on the sandbox path, the `ACCESS_TOKEN` env var in `~/.claude.json` must never appear in any output visible to the user. Do not quote the file contents back.
-- **Auth errors (401/UNAUTHORIZED)** → run Phase 1 from Step 3 (restart). You do the work; the user just restarts.
+- **Auth errors (401/UNAUTHORIZED)** → re-run Phase 1 autonomously via Playwright. The existing browser session usually carries the user's Square login over; if not, prompt them to sign in once more.
 
 ---
 
