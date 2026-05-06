@@ -429,15 +429,21 @@ shopify store execute \
 ```
 
 ### Adjust inventory quantity
+
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
   --allow-mutations \
-  --query 'mutation { inventoryAdjustQuantities(input: { reason: "correction", name: "available", changes: [{ delta: 10, inventoryItemId: "gid://shopify/InventoryItem/<ITEM_ID>", locationId: "gid://shopify/Location/<LOCATION_ID>" }] }) { inventoryAdjustmentGroup { reason changes(first: 5) { edges { node { name delta } } } } userErrors { field message } } }'
+  --query 'mutation { inventoryAdjustQuantities(input: { reason: "correction", name: "available", changes: [{ delta: 10, changeFromQuantity: null, inventoryItemId: "gid://shopify/InventoryItem/<ITEM_ID>", locationId: "gid://shopify/Location/<LOCATION_ID>" }] }) { inventoryAdjustmentGroup { reason changes(first: 5) { edges { node { name delta } } } } userErrors { field message } } }'
 ```
-> Always confirm inventory adjustments with the user before executing. Get the inventoryItemId from a product variant query and locationId from the locations query.
+
+> Always confirm inventory adjustments with the user before executing. Get the `inventoryItemId` from a product variant query and `locationId` from the locations query.
 >
-> **Valid `reason` values:** `correction`, `cycle_count_available`, `damaged`, `movement_created`, `movement_updated`, `other`, `received`, `reservation_created`, `reservation_deleted`, `reservation_updated`, `restock`, `safety_stock`, `shrinkage`. Any other string returns `userErrors: [{ field: "reason", message: "Invalid reason" }]`.
+> **`changeFromQuantity` is mandatory.** This is a compare-and-swap (CAS) safety check: pass the quantity you expect to find, or pass `null` to skip the check (only safe when your system is the source of truth). Without this field the mutation returns `INVALID_FIELD_ARGUMENTS — InventoryChangeInput must include the following argument: changeFromQuantity`. Reference: [Shopify CAS docs](https://shopify.dev/docs/apps/build/orders-fulfillment/inventory-management-apps/manage-quantities-states#compare-and-swap).
+>
+> **`@idempotent` directive may also be required** on the mutation (Shopify rolled this in for safer retries; the exact placement and `key` argument syntax differ across API versions — check the live error message and the Shopify directive docs). On stores enforcing it, the mutation returns `BAD_REQUEST — The @idempotent directive is required for this mutation but was not provided.`
+>
+> **Valid `reason` values:** `correction`, `cycle_count_available`, `damaged`, `movement_created`, `movement_updated`, `other`, `received`, `reservation_created`, `reservation_deleted`, `reservation_updated`, `restock`, `safety_stock`, `shrinkage`. Any other string returns `userErrors: [{ field: "reason", message: "Invalid reason" }]`. Note: validation runs *after* the schema check, so test plan items must use the modern shape above before `reason` is even reached.
 
 ### Check low stock items
 ```bash
