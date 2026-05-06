@@ -58,7 +58,7 @@ Full pre-workshop details: [`docs/install/`](docs/install/).
 2. In the file picker, click **Desktop** in the sidebar, click **New Folder**, name it `my-assistant`, and open it. The Code session opens in `~/Desktop/my-assistant/`.
 3. Copy the **bootstrap prompt** from the workshop Notion page and paste it into the Code session
 4. Claude handles everything — clones the kit from GitHub, copies skills, writes its instructions into your workspace
-5. When it finishes, type `/exit`, start a new Code session, and click `my-assistant` in the Recent list
+5. When it finishes, start a new Code session and click `my-assistant` in the Recent list
 6. Type `hi` — the onboarding agent greets you, asks about your business, and shows you what it can do
 
 Your assistant handles it all conversationally, one step at a time. No scripts to run, no commands to memorise.

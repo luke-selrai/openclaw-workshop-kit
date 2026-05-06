@@ -241,9 +241,9 @@ folder. Do not create a separate workspace anywhere else.
 
 DO THIS NEXT:
 
-1. Type /exit and press Enter to close this session.
-2. Click the folder icon at the top of Claude Desktop and start a new Code session.
-3. Click "my-assistant" in the Recent list (it will be there).
+1. Click the folder icon at the top of Claude Desktop and start a NEW Code session.
+2. In the file picker, click "my-assistant" in the Recent list (it will be at the top — Claude Desktop remembers it from this session).
+3. The new session opens with your assistant's instructions loaded.
 4. Type "hi" and press Enter.
 
 Your assistant will introduce itself and finish setup from there.
@@ -256,18 +256,19 @@ Talk to me like I am not technical. Plain English, one step at a time.
 
 ---
 
-## Step 6 — Reopen Your Workspace and Say Hello
+## Step 6 — Open a Fresh Code Session in Your Workspace and Say Hello
 
 After the install-complete block prints in Step 5:
 
-1. Type **/exit** and press Enter — this closes the bootstrap session.
-2. In **Claude Desktop**, click the folder icon at the top to start a **new Code session**.
-3. In the file picker, look for **my-assistant** in the **Recent** panel (it should be the most recent entry — Claude Desktop remembers it from the bootstrap session you just closed). Click it.
-4. The new Code session loads your workspace — you'll see `CLAUDE.md` in the file list on the left.
-5. Type **hi** in the chat and press Enter.
-6. Your assistant will introduce itself, check its tools, and start asking about your business.
+1. In **Claude Desktop**, click the folder icon at the top to start a **NEW Code session**. (You don't need to close the old one — just start a new one.)
+2. In the file picker, look for **my-assistant** in the **Recent** panel (it will be at the top — Claude Desktop remembers it from the bootstrap session). Click it.
+3. The new Code session loads your workspace — you'll see `CLAUDE.md` in the file list on the left.
+4. Type **hi** in the chat and press Enter.
+5. Your assistant will introduce itself, check its tools, and start asking about your business.
 
 > If `my-assistant` is NOT in Recent, click the folder icon, then in the picker click **Desktop** in the sidebar, then double-click **my-assistant**. Same destination.
+
+> **Why a new Code session?** The bootstrap session is still using the empty workspace it started with. Starting a new session re-reads the folder and picks up the `CLAUDE.md` your assistant just wrote.
 
 ---
 

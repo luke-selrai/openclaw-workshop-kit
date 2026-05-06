@@ -69,9 +69,9 @@ folder. Do not create a separate workspace anywhere else.
 
 DO THIS NEXT:
 
-1. Type /exit and press Enter to close this session.
-2. Click the folder icon at the top of Claude Desktop and start a new Code session.
-3. Click "my-assistant" in the Recent list (it will be there).
+1. Click the folder icon at the top of Claude Desktop and start a NEW Code session.
+2. In the file picker, click "my-assistant" in the Recent list (it will be at the top — Claude Desktop remembers it from this session).
+3. The new session opens with your assistant's instructions loaded.
 4. Type "hi" and press Enter.
 
 Your assistant will introduce itself and finish setup from there.
