@@ -69,12 +69,12 @@ folder. Do not create a separate workspace anywhere else.
 
 DO THIS NEXT:
 
-1. Click the folder icon at the top of Claude Desktop and start a NEW Code session.
-2. In the file picker, click "my-assistant" in the Recent list (it will be at the top — Claude Desktop remembers it from this session).
-3. The new session opens with your assistant's instructions loaded.
-4. Type "hi" and press Enter.
+1. Start a NEW Code session in Claude Desktop. You're already inside the "my-assistant" folder, so the new session will use the same folder automatically — you do not need to navigate anywhere.
+2. Type "hi" and press Enter.
 
 Your assistant will introduce itself and finish setup from there.
+
+(The reason for a NEW session: I just wrote your assistant's instructions into this folder, but THIS session was started before that file existed, so it does not see them yet. A fresh session reads them on startup.)
 =========================================
 
 Talk to me like I am not technical. Plain English, one step at a time.
