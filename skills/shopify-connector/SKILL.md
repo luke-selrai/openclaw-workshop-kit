@@ -59,17 +59,27 @@ Claude installs `@shopify/cli`, applies the `openURL` patch, and drives the two 
 shopify version
 ```
 
-If this returns a version (3.94+ recommended) AND `shopify store execute --store <known-store>.myshopify.com --query "{ shop { name } }"` returns shop data, the connector is already set up. Skip to Phase 2.
+If this returns `3.94.3` (or higher within the same major), proceed to the auth check. If `shopify` is missing, jump to Step 2.
 
-If `shopify` is missing OR the smoke query errors with auth, proceed to Step 2.
+**Auth check** (no store-subdomain known yet): inspect the CLI's persisted auth state. The CLI writes session details under `${XDG_CONFIG_HOME:-$HOME/.config}/@shopify/cli` on Unix and `%APPDATA%\@shopify\cli-nodejs\` on Windows. Probe via:
 
-### Step 2 — Verify Node 18+
+```bash
+shopify auth login --help >/dev/null 2>&1 && shopify organization list 2>&1 | head -3
+```
+
+If `organization list` returns an org table (not "you must log in"), the Partner-side auth from Step 4 is already done. Re-running Step 5 against a known store is still required if no token exists for that store yet — but the user's manual sign-in from Step 4 won't be needed again.
+
+If both checks pass and the user's intended store is already in the cached token list (visible via `shopify store list 2>/dev/null` if the command is available, otherwise via Playwright store discovery in Step 5a), the connector is set up. Skip to Phase 2.
+
+If anything's missing, proceed to Step 2.
+
+### Step 2 — Verify Node 20.10+
 
 ```bash
 node --version
 ```
 
-Needs v18 or higher. If missing or older, tell the user (in plain English): *"Before I install Shopify, you need Node.js 18 or newer. The fastest way is to install it from nodejs.org — pick the LTS version."* Wait for them to confirm install, then continue.
+Needs **v20.10.0 or higher** (`@shopify/cli@3.94.3` declares `engines.node >= 20.10.0`; older Node fails install with `EBADENGINE`). If missing or older, tell the user (in plain English): *"Before I install Shopify, you need Node.js 22 or newer. The fastest way is to install it from nodejs.org — pick the LTS version."* Wait for them to confirm install, then continue.
 
 ### Step 3 — Install `@shopify/cli` and apply the autonomy patch
 
@@ -83,12 +93,16 @@ npm install -g @shopify/cli@3.94.3
 
 > **Note.** `@shopify/theme` is bundled inside `@shopify/cli` since v3.59.0; don't install it separately. On macOS/Linux, if the install errors with `EACCES`, retry with `sudo npm install -g @shopify/cli@3.94.3`, or change npm's prefix to a user-writable path: `npm config set prefix ~/.npm-global` then add `~/.npm-global/bin` to PATH.
 
-**3b. Refresh PATH (Windows only, if needed):**
+**3b. Refresh PATH if needed:**
 
 ```bash
-# Mac/Linux: usually no action needed; npm global bin is on PATH.
-# Windows (Git Bash): if `shopify version` errors after install, refresh PATH:
-export PATH="$(npm prefix -g)/bin:$PATH"
+# Mac/Linux: usually no action needed; npm global bin is on PATH at $(npm prefix -g)/bin.
+#   If `shopify version` still errors:
+#     export PATH="$(npm prefix -g)/bin:$PATH"
+#
+# Windows (Git Bash): the binary lives AT the npm prefix root (no /bin subdir).
+#   If `shopify version` errors after install:
+#     export PATH="$(npm prefix -g):$PATH"
 ```
 
 Verify:
@@ -100,20 +114,30 @@ shopify version
 **3c. Apply the autonomy patch.** This forces the CLI to print the OAuth URL to stdout instead of silently auto-opening the OS default browser, so Step 5 can drive Playwright autonomously. Claude runs:
 
 ```bash
-# Resolve the global node_modules root (works for npm; falls back through pm aliases).
+# Resolve the global node_modules root (works for npm-installed @shopify/cli).
 GLOBAL_ROOT="$(npm root -g)"
 CLI_BUNDLE="${GLOBAL_ROOT}/@shopify/cli/dist/index.js"
-test -f "$CLI_BUNDLE" || { echo "CLI bundle not found at $CLI_BUNDLE — confirm @shopify/cli was installed with npm globally."; exit 1; }
+test -f "$CLI_BUNDLE" || { echo "CLI bundle not found at $CLI_BUNDLE — confirm @shopify/cli was installed with npm globally (Yarn/pnpm/Volta installs land elsewhere)."; exit 1; }
 
-# Precondition: the openURL:<symbol> site must appear exactly once. The symbol is minifier-assigned and changes per build (today's bundle has 'openURL:v0', tomorrow's might be 'openURL:o3'). Anchor on the regex, not the literal.
-HITS="$(grep -cE 'openURL:[A-Za-z_$][A-Za-z0-9_$]*' "$CLI_BUNDLE")"
-[ "$HITS" = "1" ] || { echo "Expected exactly one openURL:<sym> site, found $HITS — bundle layout drifted; abort."; exit 1; }
+# Idempotency: already patched? Skip cleanly.
+if grep -qF 'openURL:async()=>!1' "$CLI_BUNDLE"; then
+  echo "Already patched. Skipping."
+  shopify version >/dev/null 2>&1 || { echo "Patched bundle no longer parses; rolling back from $CLI_BUNDLE.bak."; cp "$CLI_BUNDLE.bak" "$CLI_BUNDLE"; exit 1; }
+else
+  # Precondition: the openURL:<symbol> site must appear exactly once. The symbol is minifier-assigned and changes per build (today's bundle has 'openURL:v0', tomorrow's might be 'openURL:o3'). Anchor on the regex, not the literal.
+  HITS="$(grep -cE 'openURL:[A-Za-z_$][A-Za-z0-9_$]*' "$CLI_BUNDLE")"
+  [ "$HITS" = "1" ] || { echo "Expected exactly one openURL:<sym> site, found $HITS — bundle layout drifted; abort."; exit 1; }
 
-# Backup, patch, verify.
-cp "$CLI_BUNDLE" "$CLI_BUNDLE.bak"
-sed -E 's/openURL:[A-Za-z_$][A-Za-z0-9_$]*/openURL:async()=>!1/' "$CLI_BUNDLE.bak" > "$CLI_BUNDLE"
-grep -c "openURL:async()=>!1" "$CLI_BUNDLE"   # expect 1
-shopify version >/dev/null 2>&1 || { echo "Patched bundle no longer parses; rolling back."; cp "$CLI_BUNDLE.bak" "$CLI_BUNDLE"; exit 1; }
+  # Back up only if no .bak exists yet (preserves the original-vanilla bundle across multi-session re-runs).
+  [ -f "$CLI_BUNDLE.bak" ] || cp "$CLI_BUNDLE" "$CLI_BUNDLE.bak"
+
+  # Atomic-replace patch via tempfile + mv (avoids half-written-file corruption on interrupt).
+  sed -E 's/openURL:[A-Za-z_$][A-Za-z0-9_$]*/openURL:async()=>!1/' "$CLI_BUNDLE.bak" > "$CLI_BUNDLE.tmp"
+  mv "$CLI_BUNDLE.tmp" "$CLI_BUNDLE"
+
+  grep -qF 'openURL:async()=>!1' "$CLI_BUNDLE" || { echo "Patch did not apply; rolling back."; cp "$CLI_BUNDLE.bak" "$CLI_BUNDLE"; exit 1; }
+  shopify version >/dev/null 2>&1 || { echo "Patched bundle no longer parses; rolling back."; cp "$CLI_BUNDLE.bak" "$CLI_BUNDLE"; exit 1; }
+fi
 ```
 
 If the precondition fails (`HITS != 1`) or the patched bundle errors on `shopify version`, **do not fall back to asking the user to paste URLs** — that violates the autonomous-connector lock. Instead, restore the backup, tell the user warmly that the install needs a tooling update, and stop. The next session retry, or a fresh `npm install -g @shopify/cli` followed by Step 3c, often clears it.
@@ -134,7 +158,7 @@ Start `shopify auth login` as a background process so Claude can poll its stdout
 Bash(command: "shopify auth login", run_in_background: true, description: "Start Shopify CLI Partner login in background")
 ```
 
-After ~3 seconds, read the background output and extract the activation URL with a regex. The CLI's stdout looks like:
+This returns a `bash_id` for the background task. **Poll the task's stdout** via `BashOutput(bash_id: "<id>")` repeatedly until the activation URL is emitted (typically 1-3 seconds, but up to 30s on slow disks / corporate AV / Defender-scanning installs). Stop polling once the regex below matches; abort with a clean error if 30s elapses without a match. The CLI's stdout looks like:
 
 ```
 User verification code: PWGR-KFNZ
@@ -155,7 +179,7 @@ mcp__playwright__browser_navigate({ url: "<captured-activation-url>" })
 
 Take a `browser_snapshot`. Reason about state:
 
-- **Sign-in form visible** → tell the user *once*: *"The browser window is open — please sign in when you're ready."* Then poll silently with `mcp__playwright__browser_wait_for({ text: "Authentication succeeded" })` on a 5-minute timeout. SSO redirects, password resets, and 2FA all resolve back to the same success page.
+- **Sign-in form visible** → tell the user *once*: *"The browser window is open — please sign in when you're ready."* Then poll the **CLI background task's stdout** for the success line (`✔ Logged in.`) via `BashOutput(bash_id: "<id>")` rather than `browser_wait_for`. The CLI's stdout is locale-stable; the browser success-page text varies by user locale (German "Authentifizierung erfolgreich", Japanese "認証に成功しました", etc.). Use a 15-minute timeout (first-time 2FA setup commonly takes 8-12 minutes). SSO redirects, password resets, and 2FA all resolve back to the same CLI success line.
 - **Account picker** ("Choose an account to continue to Shopify CLI") → click the user's developer account via `browser_click`.
 - **Security-settings nudge** ("Review your security settings") → click **Confirm** or **Remind me next time** to dismiss; this is a periodic prompt, not a real auth step.
 
@@ -177,20 +201,26 @@ If exactly one **active** store is listed, use that subdomain. If multiple activ
 
 If the only listed store is `Inactive` / `Trial expired`, tell the user plainly: *"The Shopify store I'd connect to is currently inactive — you'd need to subscribe (Shopify charges $1/mo for the first 3 months on Basic) or use a different store. Want to do that, or shall I stop here?"* Do not auth against an expired store; admin is locked behind the plan picker and OAuth scope-approval will never load.
 
-**5b. Free callback port 13387.** A killed prior `shopify store auth` (Ctrl+C, terminal close, etc.) can leave a process bound to `127.0.0.1:13387`. The next attempt fails with `Port 13387 is already in use.` Preflight:
+**5b. Free callback port 13387.** A killed prior `shopify store auth` (Ctrl+C, terminal close, etc.) can leave a process bound to `127.0.0.1:13387` (or `[::1]:13387` on dual-stack systems). The next attempt fails with `Port 13387 is already in use.` Preflight:
 
 ```bash
-# Cross-platform check; fall through cleanly on platforms missing one of the tools.
+# Cross-platform port-13387 owner-PID lookup. Tries lsof → ss (modern Linux) → netstat (Windows + older Linux).
+STALE_PID=""
 if command -v lsof >/dev/null 2>&1; then
-  STALE_PID="$(lsof -ti :13387 2>/dev/null || true)"
+  STALE_PID="$(lsof -ti :13387 2>/dev/null | head -1 || true)"
+elif command -v ss >/dev/null 2>&1; then
+  # ss output: ...,pid=<n>,...
+  STALE_PID="$(ss -tlnp 2>/dev/null | awk '$4 ~ /:13387$/' | grep -oE 'pid=[0-9]+' | head -1 | cut -d= -f2)"
 elif command -v netstat >/dev/null 2>&1; then
-  STALE_PID="$(netstat -ano 2>/dev/null | awk '/127\.0\.0\.1:13387/ && /LISTENING/ {print $NF}' | head -1)"
-else
-  STALE_PID=""
+  # Match port in column 2 (works for 127.0.0.1:13387 AND [::1]:13387 AND 0.0.0.0:13387).
+  # Locale-tolerant: don't require literal LISTENING (localized on non-EN Windows).
+  STALE_PID="$(netstat -ano 2>/dev/null | awk '$2 ~ /:13387$/ {print $NF}' | grep -E '^[0-9]+$' | head -1)"
 fi
-if [ -n "$STALE_PID" ]; then
+
+if [ -n "$STALE_PID" ] && [ "$STALE_PID" -gt 0 ] 2>/dev/null; then
   if command -v taskkill >/dev/null 2>&1; then
-    taskkill //F //PID "$STALE_PID" 2>/dev/null || true
+    # Git Bash auto-translates // to / for Windows tools; PowerShell users invoke directly with /F /PID.
+    taskkill //F //PID "$STALE_PID" 2>/dev/null || taskkill /F /PID "$STALE_PID" 2>/dev/null || true
   else
     kill -9 "$STALE_PID" 2>/dev/null || true
   fi
@@ -203,14 +233,14 @@ fi
 Bash(command: "shopify store auth --store <subdomain>.myshopify.com --scopes read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_inventory,write_inventory,read_locations", run_in_background: true, description: "Start Shopify store auth in background")
 ```
 
-Because of the Step 3c patch, the CLI now prints (after ~2 seconds):
+Because of the Step 3c patch, the CLI now prints (typically within 1-3s):
 
 ```
 Browser did not open automatically. Open this URL manually:
 https://<subdomain>.myshopify.com/admin/oauth/authorize?client_id=...&scope=...&redirect_uri=http://127.0.0.1:13387/auth/callback&state=...&response_type=code&code_challenge=...&code_challenge_method=S256
 ```
 
-After ~3 seconds, read the background output and extract the OAuth URL via regex:
+Poll `BashOutput(bash_id: "<id>")` until the URL appears (up to 30s for slow boxes); abort cleanly if it doesn't. Extract via regex:
 
 ```
 /https:\/\/[^\/\s]+\.myshopify\.com\/admin\/oauth\/authorize\?[^\s]+/
@@ -222,14 +252,19 @@ After ~3 seconds, read the background output and extract the OAuth URL via regex
 mcp__playwright__browser_navigate({ url: "<captured-oauth-url>" })
 ```
 
-Take a `browser_snapshot`. The primary-action button is either **Install** (first-time auth, page title `<store name> · Install app · Shopify`) or **Update** (re-auth on an already-installed app with new scopes, page title `<store name> · Update data access · Shopify`). Click whichever the snapshot shows via `browser_click`. Shopify redirects to `http://127.0.0.1:13387/auth/callback?code=...&state=...`, the CLI's localhost listener captures the code, exchanges it for an access token, stores it locally, and exits with:
+Take a `browser_snapshot`. The primary-action button is one of:
+- **Install** — first-time auth, page title `<store name> · Install app · Shopify`
+- **Update** — re-auth on an already-installed app with new scopes, page title `<store name> · Update data access · Shopify`
+- **Continue** / **Review and accept** — Shopify Plus + EU-DSA stores sometimes show a "Review permissions" interstitial before the final Install button
+
+Click the primary action via `browser_click`. After clicking, `browser_snapshot` again — if the URL is still on `/admin/oauth/authorize` or `/admin/apps/review`, click the next primary button. Loop up to 3 times. Once the page redirects to `http://127.0.0.1:13387/auth/callback?code=...&state=...`, the CLI's localhost listener captures the code, exchanges it for an access token, stores it locally, and exits with:
 
 ```
 ✔ Logged in.
 ✔ Authenticated as <user-email> against <subdomain>.myshopify.com.
 ```
 
-> **Token storage.** The access token persists in the CLI's local config (`~/.config/shopify` on Unix, `%APPDATA%\Shopify CLI\` on Windows). Subsequent `shopify store execute` calls reuse it; no further auth needed unless scopes change or the token expires.
+> **Token storage.** The access token persists in the CLI's `conf` cache: `~/.config/@shopify/cli/` (Unix, XDG-respecting) or `%APPDATA%\@shopify\cli-nodejs\` (Windows). Subsequent `shopify store execute` calls reuse the token; no further auth needed unless scopes change or the token expires.
 
 ### Step 6 — Verify (binary smoke gate)
 
@@ -260,8 +295,9 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
-  --query '{ products(first: 10, query: "title:*sneaker*") { edges { node { id title status totalInventory } } } }'
+  --query '{ products(first: 10, query: "title:sneaker*") { edges { node { id title status totalInventory } } } }'
 ```
+> **Search syntax:** trailing wildcards only. `title:sneaker*` matches anything starting with "sneaker"; leading wildcards (`title:*sneaker*`) silently return zero results.
 
 ### Get a single product
 ```bash
@@ -317,7 +353,7 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
-  --query '{ order(id: "gid://shopify/Order/<ORDER_ID>") { id name createdAt displayFinancialStatus displayFulfillmentStatus totalPriceSet { shopMoney { amount currencyCode } } customer { displayName email } lineItems(first: 20) { edges { node { title quantity originalUnitPriceSet { shopMoney { amount } } variant { sku } } } } shippingAddress { address1 city province country zip } } }'
+  --query '{ order(id: "gid://shopify/Order/<ORDER_ID>") { id name createdAt displayFinancialStatus displayFulfillmentStatus totalPriceSet { shopMoney { amount currencyCode } } customer { displayName defaultEmailAddress { emailAddress } } lineItems(first: 20) { edges { node { title quantity originalUnitPriceSet { shopMoney { amount } } variant { sku } } } } shippingAddress { address1 city province country zip } } }'
 ```
 
 ### Search orders by date range
@@ -331,27 +367,36 @@ shopify store execute \
 
 ## Part 4 — Customers
 
-> **Field shape note.** Modern Admin API uses `numberOfOrders` (Int) and `amountSpent { amount currencyCode }` (MoneyV2). The legacy `ordersCount` and `totalSpent` fields were removed.
+> **Field shape note (modern Admin API):**
+> - `numberOfOrders` (UnsignedInt64; JSON-encoded as a string for values >2^53) — replaces deprecated `ordersCount`.
+> - `amountSpent { amount currencyCode }` (MoneyV2) — replaces deprecated `totalSpent` (which returned a bare string).
+> - `defaultEmailAddress { emailAddress marketingState }` — replaces deprecated `email` field.
+> - `defaultPhoneNumber { phoneNumber marketingState }` — replaces deprecated `phone` field.
+> - `addressesV2(first: N) { edges { node { ... } } }` (a connection) — replaces deprecated `addresses` plain list.
+>
+> The legacy field names still resolve on older API versions but are removed from the latest schema. Use the modern shapes for forward compatibility.
 
 ### List customers
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
-  --query "{ customers(first: 10) { edges { node { id displayName email phone numberOfOrders amountSpent { amount currencyCode } createdAt } } } }"
+  --query "{ customers(first: 10) { edges { node { id displayName defaultEmailAddress { emailAddress } defaultPhoneNumber { phoneNumber } numberOfOrders amountSpent { amount currencyCode } createdAt } } } }"
 ```
 
 ### Search customers
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
-  --query '{ customers(first: 10, query: "email:*@example.com") { edges { node { id displayName email numberOfOrders amountSpent { amount currencyCode } } } } }'
+  --query '{ customers(first: 10, query: "email:*example.com") { edges { node { id displayName defaultEmailAddress { emailAddress } numberOfOrders amountSpent { amount currencyCode } } } } }'
 ```
+
+> **Search syntax:** Shopify's search supports **trailing** wildcards only (`email:*example.com`, `title:sneaker*`). Leading wildcards (`*sneaker*`, `*@example.com`) are not supported and silently return zero results.
 
 ### Get a single customer
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
-  --query '{ customer(id: "gid://shopify/Customer/<CUSTOMER_ID>") { id displayName email phone numberOfOrders amountSpent { amount currencyCode } createdAt addresses { address1 city province country zip } orders(first: 5) { edges { node { id name totalPriceSet { shopMoney { amount } } } } } } }'
+  --query '{ customer(id: "gid://shopify/Customer/<CUSTOMER_ID>") { id displayName defaultEmailAddress { emailAddress } defaultPhoneNumber { phoneNumber } numberOfOrders amountSpent { amount currencyCode } createdAt addressesV2(first: 5) { edges { node { address1 city province country zip } } } orders(first: 5) { edges { node { id name totalPriceSet { shopMoney { amount } } } } } } }'
 ```
 
 ### Create a customer
@@ -359,9 +404,11 @@ shopify store execute \
 shopify store execute \
   --store <subdomain>.myshopify.com \
   --allow-mutations \
-  --query 'mutation { customerCreate(input: { firstName: "Jane", lastName: "Doe", email: "jane@example.com", phone: "+61400000000", addresses: [{ address1: "123 Main St", city: "Sydney", province: "NSW", country: "AU", zip: "2000" }] }) { customer { id displayName email } userErrors { field message } } }'
+  --query 'mutation { customerCreate(input: { firstName: "Jane", lastName: "Doe", email: "jane@example.com", phone: "+61400000000" }) { customer { id displayName defaultEmailAddress { emailAddress } } userErrors { field message } } }'
 ```
 > Always confirm customer details with the user before creating.
+>
+> **Address note:** `customerCreate` input no longer accepts an `addresses` array. To add an address after creating the customer, run `customerAddressCreate` separately, or use the user's `customerUpdate` to set `defaultAddress`. Address inputs use `countryCode` (CountryCode enum, e.g. `AU`) and `provinceCode` (e.g. `"NSW"`) — the legacy string `country`/`province` input fields were removed.
 
 ---
 
