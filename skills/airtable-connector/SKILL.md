@@ -27,6 +27,8 @@ metadata:
 
 # Airtable Connector
 
+> **Install pattern:** Hosted-bearer-PAT — see [skills/CLAUDE.md](../CLAUDE.md) for the canonical reference (monday-connector).
+
 ## Overview
 
 This skill lets you read and update a user's Airtable account on their behalf using the **official first-party Airtable MCP server** hosted at `https://mcp.airtable.com/mcp`. It has two phases:

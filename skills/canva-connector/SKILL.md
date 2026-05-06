@@ -31,6 +31,8 @@ metadata:
 
 # Canva Connector
 
+> **Install pattern:** Hosted-OAuth — see [skills/CLAUDE.md](../CLAUDE.md) for the canonical reference (linear-connector).
+
 ## Overview
 
 This skill lets you read and update a user's Canva account on their behalf using the **official first-party Canva MCP server** hosted at `https://mcp.canva.com/mcp`. It has two phases:

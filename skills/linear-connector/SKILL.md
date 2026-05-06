@@ -32,6 +32,8 @@ metadata:
 
 # Linear Connector
 
+> **Install pattern:** Hosted-OAuth — this SKILL is the canonical reference. See [skills/CLAUDE.md](../CLAUDE.md) for the cross-pattern overview.
+
 ## Overview
 
 This skill lets you read and update a user's Linear workspace on their behalf using the **official first-party Linear MCP server** hosted at `https://mcp.linear.app/mcp` (see [linear.app/changelog/2025-05-01-mcp](https://linear.app/changelog/2025-05-01-mcp) and [linear.app/docs/mcp](https://linear.app/docs/mcp)). It has two phases:

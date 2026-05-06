@@ -23,6 +23,8 @@ metadata:
 
 # monday.com Connector
 
+> **Install pattern:** Hosted-bearer-PAT — this SKILL is the canonical reference. See [skills/CLAUDE.md](../CLAUDE.md) for the cross-pattern overview.
+
 ## Overview
 
 This skill lets you read and update a user's monday.com account on their behalf using the **official first-party `@mondaydotcomorg/monday-api-mcp`** server (from [mondaycom/mcp](https://github.com/mondaycom/mcp)). It has two phases:

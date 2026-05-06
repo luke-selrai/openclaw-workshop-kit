@@ -23,6 +23,8 @@ metadata:
 
 # Telegram Connector
 
+> **Install pattern:** Plugin-marketplace — this SKILL is the canonical reference. See [skills/CLAUDE.md](../CLAUDE.md) for the cross-pattern overview.
+
 ## Overview
 
 This skill connects a user's Telegram to Claude Code so they can message their assistant from anywhere. Once paired, the user texts their bot from their phone and the assistant replies as if it were a chat thread.

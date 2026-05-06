@@ -34,6 +34,8 @@ metadata:
 
 # Calendly Connector
 
+> **Install pattern:** Hosted-OAuth — see [skills/CLAUDE.md](../CLAUDE.md) for the canonical reference (linear-connector).
+
 ## Overview
 
 This skill lets you read and update a user's Calendly account on their behalf using the **official first-party Calendly MCP server** hosted at `https://mcp.calendly.com` (announced [March 2026](https://calendly.com/blog/mcp-server); docs at [developer.calendly.com/calendly-mcp-server](https://developer.calendly.com/calendly-mcp-server)). It has two phases:
