@@ -3,7 +3,7 @@
 
 <!-- Last shrunk 2026-04-08. Target: <200 lines. Cold-path content lives in skills/ and docs/ — do not re-inline it here. -->
 
-<!-- Path conventions: every file path in this document is relative to the user's home folder. workshop-kit/docs/FOO.md means $HOME/workshop-kit/docs/FOO.md on Mac and Linux, and C:\Users\<username>\workshop-kit\docs\FOO.md on Windows. The bootstrap places workshop-kit/ and my-assistant/ as siblings inside the user's home folder on all platforms. When reading files, resolve paths relative to $HOME (or %USERPROFILE% on Windows) — never hardcode an absolute path or a username. -->
+<!-- Path conventions: most file paths in this document are relative to the user's home folder. workshop-kit/docs/FOO.md means $HOME/workshop-kit/docs/FOO.md on Mac and Linux, and C:\Users\<username>\workshop-kit\docs\FOO.md on Windows. The kit lives at $HOME/workshop-kit/ on all platforms. The user's WORKSPACE — where this CLAUDE.md sits — lives at $HOME/Desktop/my-assistant/ (the Desktop is universally findable in any file picker). When reading files, resolve paths relative to $HOME (or %USERPROFILE% on Windows) — never hardcode an absolute path or a username. -->
 
 ---
 
@@ -69,6 +69,24 @@ After using Playwright to take a screenshot, describe what you see in plain Engl
 
 ---
 
+## ⚠️ FIRST MESSAGE PROTOCOL — RUN THIS BEFORE ANY OTHER RESPONSE
+
+Before you reply to ANYTHING the user types — even a one-word "hi" or "hello" — check whether the file `.first-run-pending` exists in this folder (the workspace, which is `$HOME/Desktop/my-assistant/`).
+
+- If `.first-run-pending` EXISTS → you MUST run `first-run-setup` end to end immediately. Do NOT greet generically. Do NOT skip. Do NOT ask the user if they want setup. Read `workshop-kit/skills/first-run-setup/SKILL.md` (in the user's home folder) and follow it from Phase 1 through Phase 4. The skill itself deletes `.first-run-pending` at the end.
+- If `.first-run-pending` does NOT exist → setup is already done. Greet the user by name (memory will have it) and continue normally.
+
+This check is non-negotiable and runs on every first-message-of-a-new-session that comes in while `.first-run-pending` exists. The state file is the single source of truth for "setup not yet done" — do not try to infer setup state from memory contents alone.
+
+How to check (use the right command for the OS):
+
+- Mac/Linux: `test -f ./.first-run-pending && echo PENDING`
+- Windows PowerShell: `Test-Path .\.first-run-pending`
+
+If the check shows the file exists, immediately read `~/workshop-kit/skills/first-run-setup/SKILL.md` and execute it.
+
+---
+
 ## Memory — Start of Every Session
 
 Claude's native `/memory` system tracks who the user is, their business, preferences, and setup state automatically across every conversation. You do not read or write memory files manually — there is no `my-assistant/memory/` folder, no `USER.md`, no `SETUP.md`. Auto-memory handles it all.
@@ -80,11 +98,9 @@ Claude's native `/memory` system tracks who the user is, their business, prefere
 
 ---
 
-## First-Time Setup
+## Layered Kits — This Folder is Your Assistant's Home
 
-If this is a brand-new install and you have no memory of this user yet — no name, no business, nothing — read `workshop-kit/skills/first-run-setup/SKILL.md` (in the user's home folder) and follow it end to end. That skill handles: skill verification, OS detection, Node.js install, the 7 onboarding questions, Claude CLI install, and Playwright connection.
-
-If you already know who the user is from memory, skip setup entirely and greet them by name.
+This folder (`$HOME/Desktop/my-assistant/`) is the assistant's permanent home. As the user installs additional Selr workshop kits today (agents, ads, connectors, and so on), they paste new bootstrap prompts here, run new commands here, and add new connectors from here. The user does not need to switch folders for any of it. If the user asks "where do I run this?" or "do I need to open a different folder?", the answer is always: stay here.
 
 ---
 
@@ -157,10 +173,12 @@ Then:
 
 ## File Locations
 
-All paths below are relative to the user's home folder. On Mac and Linux that is `$HOME` (e.g. `/Users/jane/`); on Windows that is `%USERPROFILE%` (e.g. `C:\Users\jane\`). Never hardcode a username or absolute path.
+Paths use `$HOME` on Mac/Linux (e.g. `/Users/jane/`) and `%USERPROFILE%` on Windows (e.g. `C:\Users\jane\`). Never hardcode a username or absolute path.
 
+- This file (workspace): `Desktop/my-assistant/CLAUDE.md`
+- First-run state file: `Desktop/my-assistant/.first-run-pending` (deleted by first-run-setup when done)
 - Skills: `.claude/skills/`
+- Kit source: `workshop-kit/`
 - Workshop docs: `workshop-kit/docs/`
 - Full skill catalogue: `workshop-kit/docs/skills/README.md`
 - First-run setup: `workshop-kit/skills/first-run-setup/SKILL.md`
-- This file: `my-assistant/CLAUDE.md`

@@ -176,11 +176,24 @@ You should see a version number like `1.x.x`.
 
 ---
 
-## Step 5 — Paste the Setup Prompt
+## Step 5 — Open Your Workspace Folder, Then Paste the Setup Prompt
+
+You will create your assistant's workspace folder on your **Desktop** (so you can always find it), open Claude Code in that folder, then paste the setup prompt.
+
+### Step 5a — Create the workspace folder and open it
 
 1. In **Claude Desktop**, start a **new Code session**
-2. **Copy the entire prompt below** and paste it into the chat
-3. Press **Enter** and follow what Claude tells you
+2. The file picker will open. In the left sidebar, click **Desktop**
+3. Click the **New Folder** button at the top (Mac) or right-click in the empty area and choose **New → Folder** (Windows)
+4. Name the new folder exactly: **my-assistant**
+5. Click **Open** (or **Select Folder** on Windows) so the Code session opens IN that folder
+
+You should now have a Code session running at `~/Desktop/my-assistant/`. The chat panel is empty and waiting for input.
+
+### Step 5b — Paste the setup prompt
+
+1. **Copy the entire prompt below** and paste it into the chat
+2. Press **Enter** and follow what Claude tells you
 
 ### The Setup Prompt — Copy Everything Below
 
@@ -190,66 +203,71 @@ I am setting up my Claude Code AI Business Assistant with Selr AI.
 Do these steps one at a time, telling me what you are doing in plain English.
 Use the correct commands for my operating system (detect whether I am on Mac or Windows).
 
-1. Find the workshop kit zip. Look in my Downloads folder for the most recently
-   downloaded .zip whose name is either:
-     - a long random string of letters, numbers, and dashes — for example
-       "bfdc1600-797b-42d3-9803-1a9260dc1e94.zip"
-     - or "claude-workshop-kit-main.zip"
-   If nothing matching is in Downloads, also check my Desktop. Once you find
-   one, just use it — do not ask me to confirm the filename.
+The Code session you are running in right now is open at my workspace folder
+(~/Desktop/my-assistant/). All of the file drops below go INTO this current
+folder. Do not create a separate workspace anywhere else.
 
-2. Extract that zip into my home folder. The zip should contain a single
-   top-level folder whose name starts with either
-   "selrai-company-claude-workshop-kit-" or "claude-workshop-kit-".
-   Rename that folder to "workshop-kit" so the final path is exactly
-   ~/workshop-kit. Leave the original .zip file where it is — do not delete it.
-   If ~/workshop-kit already exists, pause and ask me before overwriting it.
+1. Clone the workshop kit from GitHub into my home folder:
 
-   After extracting, sanity-check that BOTH ~/workshop-kit/my-assistant/CLAUDE.md
-   and ~/workshop-kit/skills/ exist. If either is missing, the zip you picked
-   was the wrong one — stop, tell me what you found, and ask me where the
-   correct workshop kit zip is saved.
+   git clone https://github.com/selrai-company/claude-workshop-kit.git ~/workshop-kit
 
-3. Create a folder called "my-assistant" in my home directory.
+   (On Windows in PowerShell or Git Bash, the same command works — ~ resolves
+   to my home folder.) If ~/workshop-kit already exists, pause and ask me
+   before overwriting it.
 
-4. Copy this file from the extracted workshop-kit into my-assistant:
-   - workshop-kit/my-assistant/CLAUDE.md → my-assistant/CLAUDE.md
+   After cloning, sanity-check that BOTH ~/workshop-kit/my-assistant/CLAUDE.md
+   and ~/workshop-kit/skills/ exist. If either is missing, the clone did not
+   work — stop, tell me what happened, and ask me to retry.
 
-5. Install all skills: copy every folder from workshop-kit/skills/
+2. Copy the assistant's instructions file into my current folder:
+     - ~/workshop-kit/my-assistant/CLAUDE.md → ./CLAUDE.md
+   (./CLAUDE.md means the current folder, which is ~/Desktop/my-assistant/.)
+
+3. Create a small marker file in my current folder so the assistant knows to
+   run first-run setup the next time I say hello:
+     - touch ./.first-run-pending
+   (On Windows PowerShell: New-Item -ItemType File -Path .\.first-run-pending)
+
+4. Install all skills: copy every folder from ~/workshop-kit/skills/
    into ~/.claude/skills/ (create the skills directory if it does not exist).
    Do not copy SKILLS-LIST.md — only the folders.
 
-6. When everything is done, tell me to start a new Code session in Claude
-   Desktop and click the folder icon at the top to point it at my
-   "my-assistant" folder:
-   - Mac: ~/my-assistant
-   - Windows: C:\Users\[my username]\my-assistant
+5. When everything is done, print this exact block to me, formatted as shown
+   (separator lines included), with no extra paragraphs after it:
+
+=========================================
+ ✅ INSTALL COMPLETE
+=========================================
+
+DO THIS NEXT:
+
+1. Start a NEW Code session in Claude Desktop. You're already inside the "my-assistant" folder, so the new session will use the same folder automatically — you do not need to navigate anywhere.
+2. Type "hi" and press Enter.
+
+Your assistant will introduce itself and finish setup from there.
+
+(The reason for a NEW session: I just wrote your assistant's instructions into this folder, but THIS session was started before that file existed, so it does not see them yet. A fresh session reads them on startup.)
+=========================================
 
 Talk to me like I am not technical. Plain English, one step at a time.
 ```
 
-**What happens next:** Claude will download your tools, install <!-- skills-audit:total -->120<!-- /skills-audit:total --> skills, and set up your workspace. This takes 1–2 minutes. When it is done, it will tell you to open a new folder.
+**What happens next:** Claude clones the kit, installs all <!-- skills-audit:total -->120<!-- /skills-audit:total --> skills, and writes its instructions into your `my-assistant` folder. This takes 1–2 minutes. When it finishes, it prints the **INSTALL COMPLETE** block — follow it.
 
 ---
 
-## Step 6 — Open Your Workspace
+## Step 6 — Start a New Code Session and Say Hello
 
-After Claude finishes the setup above, it will tell you to open your workspace folder. Here is how:
+After the install-complete block prints in Step 5, you're already inside `~/Desktop/my-assistant/`. You don't need to navigate anywhere — you just need a fresh Code session so Claude Desktop re-reads the folder and picks up the new `CLAUDE.md` your assistant just wrote.
 
-1. In **Claude Desktop**, start a **new Code session**
-2. At the top of the Code session there is a **folder icon**. Click it.
-3. Navigate to your **my-assistant** folder:
-   - **Mac:** `~/my-assistant` (your home folder → my-assistant)
-   - **Windows:** `C:\Users\[your username]\my-assistant`
-4. Click **Open**
+1. In **Claude Desktop**, start a **new Code session**. The new session uses the same `my-assistant` folder you're already in — you don't need to pick a folder again.
+2. The new Code session loads your workspace — you'll see `CLAUDE.md` in the file list on the left.
+3. Type **hi** in the chat and press Enter.
+4. Your assistant will introduce itself, check its tools, and start asking about your business.
 
-**Then:**
+> **If Claude Desktop does ask you to pick a folder when you start the new session**, just click `my-assistant` in the Recent list — it'll be at the top.
 
-1. Claude Desktop will load your workspace — you'll see `CLAUDE.md` in the file list on the left
-2. Type **hello** in the chat and press Enter
-3. Your assistant will introduce itself, check its tools, and start asking about your business
-
-> No keyboard shortcut needed — the folder icon does the whole job.
+> **Why a new Code session at all?** The bootstrap session was started before any `CLAUDE.md` existed in this folder, so it does not see the assistant's instructions yet. Starting a new session re-reads the folder and picks them up.
 
 ---
 

@@ -15,7 +15,7 @@ Tick these off:
 - [ ] Workshop kit downloaded (handled by the bootstrap prompt)
 - [ ] Skills installed (check `~/.claude/skills/`)
 - [ ] Playwright (browser automation) connected
-- [ ] `~/my-assistant/` folder opened in Claude Desktop via the folder icon
+- [ ] `~/Desktop/my-assistant/` folder created (via Desktop in the file picker → New Folder) and opened in Claude Desktop
 - [ ] Google Workspace connected (Gmail + Calendar) (optional — if you got to it)
 - [ ] Onboarding completed (told your assistant about your business)
 - [ ] Tested a first task with your assistant

@@ -82,7 +82,7 @@ This means your workspace is pointing at the wrong folder. Fix it by:
 
 1. In Claude Desktop, start a new Code session
 2. At the top of the session there's a folder icon — click it
-3. Navigate to your home folder, then pick `my-assistant`
+3. In the file picker, click **Desktop** in the sidebar, then double-click `my-assistant` (or pick it from the **Recent** list)
 4. Claude will automatically pick up the CLAUDE.md file
 
 ---
@@ -129,7 +129,7 @@ You can also type `/memory` in a Code session to see exactly what Claude has sto
 
 ### "I already did onboarding but Claude is asking me again"
 
-This is normal if your Code session is pointing at a different folder. In Claude Desktop, start a new Code session, click the folder icon, and pick `~/my-assistant/`. That's where your assistant's instructions (`CLAUDE.md`) live. Memory itself is managed by Claude and follows you across sessions.
+This is normal if your Code session is pointing at a different folder. In Claude Desktop, start a new Code session, click the folder icon, and pick `~/Desktop/my-assistant/`. That's where your assistant's instructions (`CLAUDE.md`) live. Memory itself is managed by Claude and follows you across sessions.
 
 ---
 
@@ -299,7 +299,7 @@ Your assistant will check all the key parts of your setup and tell you exactly w
 
 ### "I forgot how to start my assistant"
 
-Open **Claude Desktop** → start a new **Code session** → click the **folder icon** and pick `~/my-assistant/`. Your assistant loads automatically. Bookmark this guide or write it on a sticky note!
+Open **Claude Desktop** → start a new **Code session** → click the **folder icon** and pick `~/Desktop/my-assistant/`. Your assistant loads automatically. Bookmark this guide or write it on a sticky note!
 
 ---
 
@@ -309,7 +309,7 @@ Try restarting from scratch:
 
 1. Close Claude Desktop completely
 2. Reopen Claude Desktop
-3. Start a new Code session and click the folder icon → pick `~/my-assistant/`
+3. Start a new Code session and click the folder icon → pick `~/Desktop/my-assistant/`
 4. Tell your assistant: *"I had a problem. Can you check that everything is working correctly?"*
 
 Most issues are fixed by a fresh restart.

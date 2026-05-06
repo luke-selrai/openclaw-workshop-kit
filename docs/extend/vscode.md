@@ -66,8 +66,8 @@ Same as the main flow. Install Node.js from [nodejs.org](https://nodejs.org), th
 
 ### Step 7 — Open your workspace
 
-1. **Mac:** Cmd+Shift+P → "Open Folder" → `~/my-assistant`
-2. **Windows:** Ctrl+Shift+P → "Open Folder" → `C:\Users\[you]\my-assistant`
+1. **Mac:** Cmd+Shift+P → "Open Folder" → `~/Desktop/my-assistant`
+2. **Windows:** Ctrl+Shift+P → "Open Folder" → `C:\Users\[you]\Desktop\my-assistant`
 3. Click the Claude icon in the sidebar again
 4. Say **hello** and let the onboarding agent take over
 
@@ -83,7 +83,7 @@ Same as the main flow. Install Node.js from [nodejs.org](https://nodejs.org), th
 | Sign-in | Inside Claude Desktop | Inside the VS Code extension |
 | Admin-restart fixes (Windows) | Right-click Claude Desktop → Run as Administrator | Right-click VS Code → Run as Administrator |
 
-Everything else is the same: skills live at `~/.claude/skills/`, workspace at `~/my-assistant/`, connector guides work identically, MCP installs work identically.
+Everything else is the same: skills live at `~/.claude/skills/`, workspace at `~/Desktop/my-assistant/`, connector guides work identically, MCP installs work identically.
 
 ---
 
