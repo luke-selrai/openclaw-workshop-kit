@@ -1,0 +1,24 @@
+{
+  "id": 136878099,
+  "title": "YouTube to Airtable Anonym",
+  "description": "## \ud83e\uddf0 Setup Instructions\n1. Clone this template into your n8n workspace.\n2. Open the Get YouTube Sources node and configure your Airtable credentials.\n3. In the Get video transcript node:\n   - Enter your X-RapidAPI-Key under headers.\n   - The API endpoint is pre-configured.\n4. Connect your LLM credentials to the Extract detailed summary node.\n\n5. (Optional) Adjust the summarization prompt in the LangChain node to better suit your tone.\n6. Set your preferred schedule in the Trigger node.",
+  "category": "ops-monitoring",
+  "services_required": [
+    "httpRequest",
+    "scheduleTrigger",
+    "airtable"
+  ],
+  "node_count": 13,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/1109_Code_Schedule_Automation_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ops-monitoring",
+    "czlonkowski-backfill"
+  ]
+}

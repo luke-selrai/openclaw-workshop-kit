@@ -1,0 +1,27 @@
+{
+  "id": 130019825,
+  "title": "Stripe Workflow",
+  "description": "n8n workflow: Stripe Workflow. 11 nodes wired together. Uses: stripe, pipedrive, functionItem, itemLists, httpRequest. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Functionitem/0246_Functionitem_Pipedrive_Create_Scheduled.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "crm-sync",
+  "services_required": [
+    "stripe",
+    "pipedrive",
+    "functionItem",
+    "itemLists",
+    "httpRequest",
+    "cron"
+  ],
+  "node_count": 11,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Functionitem/0246_Functionitem_Pipedrive_Create_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "crm-sync",
+    "czlonkowski-backfill"
+  ]
+}

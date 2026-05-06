@@ -1,0 +1,25 @@
+{
+  "id": 124426275,
+  "title": "Set Workflow",
+  "description": "## Simplest n8n Workflow Backup \u2013 Automating Your Data Security in Google Drive",
+  "category": "ops-monitoring",
+  "services_required": [
+    "scheduleTrigger",
+    "n8n",
+    "googleDrive",
+    "stopAndError"
+  ],
+  "node_count": 7,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0781_Code_Schedule_Export_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ops-monitoring",
+    "czlonkowski-backfill"
+  ]
+}

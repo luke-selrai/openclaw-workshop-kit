@@ -1,0 +1,24 @@
+{
+  "id": 110477372,
+  "title": "Set Workflow",
+  "description": "# Setup\n### 1/ Add Your credentials\n[Youtube]({{ $env.WEBHOOK_URL }}\n\n### 2/ Define in the config node the delimiter and the text you want to add to all your videos. \n\n# \ud83d\udc47",
+  "category": "social-media",
+  "services_required": [
+    "youTube",
+    "manualTrigger",
+    "stopAndError"
+  ],
+  "node_count": 10,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/0477_Manual_Youtube_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "social-media",
+    "czlonkowski-backfill"
+  ]
+}

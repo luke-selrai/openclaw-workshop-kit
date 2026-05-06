@@ -1,0 +1,24 @@
+{
+  "id": 106708202,
+  "title": "Stickynote Workflow",
+  "description": "### Test the workflow with this email!\n\n#### How?\n1. Send this email to the Gmail box you set up in your credentials.\n2. Click on Test workflow\n\n### Email\n**Email Subject:** Inbound Order PO45231 \u2013 Expected Delivery on 2025-03-27\n\n**Email Body:** \nDear LogiGreen Team,\n\nPlease find below the details of the upcoming inbound order.\n\nPurchase Order: PO45231\nExpected Delivery Date: 27/03/2025\n\nOrder Lines:\n\nSKU: HERM-SHOE-001 \u2014 Qty: 120\n\nSKU: HERM-BAG-032 \u2014 Qty: 45\n\nSKU: HERM-WATCH-105 \u2014 Qty: 30\n\nSKU: HERM-SCARF-018 \u2014 Qty: 80\n\nLet us know if you need any additional details.\n\nBest regards,\nSophie Lambert\nAdmin Assistant \u2013 Hermas Logistics\n\ud83d\udcde +33 1 23 45 67 89 78 84\n\u2709\ufe0f sophie.lambert@hermas.com",
+  "category": "email-automation",
+  "services_required": [
+    "googleSheets",
+    "gmailTrigger",
+    "stopAndError"
+  ],
+  "node_count": 13,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Googlesheets/0814_GoogleSheets_Gmail_Send_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

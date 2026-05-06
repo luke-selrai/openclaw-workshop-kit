@@ -1,0 +1,25 @@
+{
+  "id": 175119495,
+  "title": "INSEE Enrichment for Agile CRM",
+  "description": "### \ud83d\udc68\u200d\ud83c\udfa4 Setup\n1. Add your **Agile CRM** credentials\n2. Link each AgileCRM node to the correct **Agile CRM** credentials\n3. Add your **INSEE** API Key to the **\"Set Insee API Key\"** node\n4. Make sure the **Custom Fields** for the **companies** are set as below (Admin Settings):\n   - Label : \"SIREN\", Type : \"Text Field\", Description \"N\u00b0 de SIREN\"\n   - Label : \"RO\", Type : \"Number\", Description \"Locks entry from update\"\n5. Click on **Test Workflow** to make sure everything is working\n6. Configure schedule if needed and don't forget to change status to **Active**",
+  "category": "ops-monitoring",
+  "services_required": [
+    "manualTrigger",
+    "httpRequest",
+    "scheduleTrigger",
+    "agileCrm"
+  ],
+  "node_count": 14,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/1460_Code_Schedule_Automation_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ops-monitoring",
+    "czlonkowski-backfill"
+  ]
+}

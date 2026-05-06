@@ -1,0 +1,21 @@
+{
+  "id": 6631,
+  "title": "Hotel guest journey automation with Gmail & Google Sheets",
+  "description": "**Automate your entire guest communication journey from booking to post-stay with personalized welcome emails, review requests, and daily operational reports.** Perfect for hotels, B&Bs, and short-term rental properties looking to enhance guest experience while reducing manual work and improving operational efficiency.\n\n## How it works\n\n1. **Pre-arrival welcome emails** - Automatically sends personalized welcome emails 1-2 days before guest check-in with reservation details, hotel amenities, and contact information\n2. **Post-stay review requests** - Sends automated review request emails 24 hours after checkout with Google Reviews links and return guest discount codes  \n3. **Daily staff reports** - Generates comprehensive arrival/departure reports every morning at 6 AM for front desk, housekeeping, and management teams\n4. **Smart tracking** - Prevents duplicate emails by automatically updating tracking status in your Google Sheets database\n5. **Professional templates** - Uses responsive HTML email templates that work across all devices and email clients\n\n## Set up steps\n\n1. **Connect Google Sheets** - Link your hotel reservation spreadsheet (must include columns for guest details, check-in/out dates, and email tracking)\n2. **Configure Gmail account** - Set up Gmail credentials for sending automated emails\n3. **Customize hotel information** - Update hotel name, contact details, and branding in the \"Edit Fields\" nodes\n4. **Set staff email addresses** - Configure recipient addresses for daily operational reports\n5. **Adjust timing** - Modify schedule triggers if you want different timing for emails and reports (currently set to every 6 hours for guest emails and 6 AM daily for staff reports)\n\n**Time investment:** ~30 minutes for initial setup, then fully automated operation.",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 7,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/6631",
+  "source": "n8n.io",
+  "matched_keyword": "hotel",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "hotel"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/8 nodes typed (12%)"
+}

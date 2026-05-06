@@ -1,0 +1,26 @@
+{
+  "id": 105540821,
+  "title": "Manualtrigger Workflow",
+  "description": "## Explanation \nwe will send the problematic sites to both the Redis node and the Merge node. \n\nThe Redis node does a get request to see if a key exists matching the Network name in Meraki. If so it will respond with the Network name, If not it will respond with \"null\" \n\nthe n8n nodes view \"null\" as no data (which isn't exactly wrong as it literally is no data) but the next node will just say the input is blank so I've added the JS node to look at the output and respond if an alert does or doesn't exist based on the response of the Redis node. \n\nThis time we Merge looking at the NetworkName and keep all non-matching. The reason for this is because if they match, that means the key in the database exists, meaning we've already sent a message that the site is having issues. \n\nWe send the tickets forth that don't match and we will send a teams message that will notify of a Network passing the threshold for issues. I've included the Network URL and re-written the message to include a hyperlink that way the alert can be used to take you straight to the problematic site. \n\nFinally we log the site in the database with a TTL of 3h, this way if the error has not been fixed in 3h we will get another message.",
+  "category": "data-sync",
+  "services_required": [
+    "manualTrigger",
+    "httpRequest",
+    "scheduleTrigger",
+    "redis",
+    "microsoftTeams"
+  ],
+  "node_count": 23,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Redis/0387_Redis_Code_Create_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "data-sync",
+    "czlonkowski-backfill"
+  ]
+}

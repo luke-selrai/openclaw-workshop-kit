@@ -1,0 +1,19 @@
+{
+  "id": 14267,
+  "title": "Send AI job application auto-replies with Gmail, OpenAI GPT-4o and SMTP",
+  "description": "This workflow automatically replies to job applications received via email using AI.\n\nIt monitors a Gmail inbox for incoming job application emails, filters relevant messages, and uses an AI agent to generate professional and personalized responses.\n\nThe workflow then sends the reply back to the applicant using SMTP.\n\nKey Features:\n- Detects job application emails automatically\n- Uses AI to generate professional HR responses\n- Structured output parsing for reliable responses\n- Sends replies using your company email\n- Fully automated hiring response system\n\nPerfect for HR teams, startups, and recruiters who want to automate candidate communication.",
+  "category": "email-automation",
+  "services_required": [],
+  "node_count": 9,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/14267",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/10 nodes typed (10%)"
+}

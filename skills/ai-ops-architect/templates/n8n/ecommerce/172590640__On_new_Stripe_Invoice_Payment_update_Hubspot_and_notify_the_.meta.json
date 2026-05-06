@@ -1,0 +1,25 @@
+{
+  "id": 172590640,
+  "title": "On new Stripe Invoice Payment update Hubspot and notify the team in Slack",
+  "description": "n8n workflow: On new Stripe Invoice Payment update Hubspot and notify the team in Slack. 9 nodes wired together. Uses: stripeTrigger, hubspot, slack, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Slack/0008_Slack_Stripe_Create_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "ecommerce",
+  "services_required": [
+    "stripeTrigger",
+    "hubspot",
+    "slack",
+    "stopAndError"
+  ],
+  "node_count": 9,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Slack/0008_Slack_Stripe_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ecommerce",
+    "czlonkowski-backfill"
+  ]
+}

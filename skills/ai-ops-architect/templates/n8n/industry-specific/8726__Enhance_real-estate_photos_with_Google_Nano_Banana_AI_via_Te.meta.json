@@ -1,0 +1,21 @@
+{
+  "id": 8726,
+  "title": "Enhance real-estate photos with Google Nano Banana AI via Telegram bot",
+  "description": "**\ud83e\udd16 Telegram Image Editor with Nano Banana**\n\nSend an image to your Telegram bot, and this workflow will automatically enhance it with Google\u2019s Nano Banana (via Wavespeed API), then return the polished version back to the same chat\u2014seamlessly.\n\n\ud83d\udc49 Watch step-by-step video tutorials of workflows like these on www.youtube.com/@automatewithmarc\n\n**What it does**\n\n- Listens on Telegram for incoming photo messages\n- Downloads the file sent by the user\n- Uploads it to Google Drive (temporary storage for processing)\n- Sends the image to Nano Banana API with a real-estate style cleanup + enhancement prompt\n- Polls until the job is complete (handles async processing)\n- Returns the edited image back to the same Telegram chat\n\n**Perfect for**\n\nReal-estate agents previewing polished property photos instantly\n\nSocial media managers editing on-the-fly from Telegram\n\nAnyone who wants \u201csend \u2192 cleaned \u2192 returned\u201d image flow without manual edits\n\nApps & Services\n\nTelegram Bot API (Trigger + Send/Receive files)\n\nGoogle Drive (Temporary file storage)\n\nWavespeed / Google Nano Banana (AI-powered image editing)\n\n**Setup**\n\nConnect your Telegram Bot API token in n8n.\n\nAdd your Wavespeed API key for Nano Banana.\n\nLink your Google Drive account (temporary storage).\n\nDeploy the workflow and send a test photo to your Telegram bot.\n\n**Customization**\n\nAdjust the Nano Banana prompt for different styles (e.g., ecommerce cleanup, portrait retouching, color correction).\n\nReplace Google Drive with another storage service if preferred.\n\nAdd logging to Google Sheets or Airtable to track edits.",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 7,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/8726",
+  "source": "n8n.io",
+  "matched_keyword": "real-estate",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "real-estate"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/8 nodes typed (12%)"
+}

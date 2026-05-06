@@ -1,0 +1,24 @@
+{
+  "id": 199779175,
+  "title": "Create a table, and insert and update data in the table in Snowflake",
+  "description": "n8n workflow: Create a table, and insert and update data in the table in Snowflake. 7 nodes wired together. Uses: manualTrigger, snowflake, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Manual/0219_Manual_Snowflake_Create_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "data-sync",
+  "services_required": [
+    "manualTrigger",
+    "snowflake",
+    "stopAndError"
+  ],
+  "node_count": 7,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/0219_Manual_Snowflake_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "data-sync",
+    "czlonkowski-backfill"
+  ]
+}

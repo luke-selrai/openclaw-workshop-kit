@@ -1,0 +1,2093 @@
+{
+  "id": 14666,
+  "name": "Manage Google Calendar and Gmail from Telegram with a Claude AI assistant",
+  "views": 215,
+  "recentViews": 21,
+  "totalViews": 215,
+  "createdAt": "2026-04-03T07:08:29.639Z",
+  "description": "## Telegram AI Personal Assistant \u2014 Calendar & Email Manager\n\nThis workflow turns a Telegram bot into a fully functional personal AI assistant capable of handling your schedule and inbox through natural conversation. Send it a text message, record a voice note, or snap a photo \u2014 it understands all three and responds intelligently.\n\nThe assistant is powered by Claude Haiku (via OpenRouter) and comes with a built-in 30-message memory buffer, so it remembers context across a conversation just like a real assistant would. It has full read/write access to Google Calendar and Gmail, meaning it can book meetings, check your availability, send emails, reply to threads, and clean up your inbox \u2014 all from a single Telegram chat.\n\n---\n\n### What this workflow does\n\n**Multi-modal input handling**\n- Text messages are processed directly\n- Voice notes are downloaded from Telegram and transcribed using OpenAI Whisper\n- Photos are downloaded and analyzed using GPT-4o vision, with any caption included as additional context\n\nAll three input types are normalized into a unified context object before reaching the agent, so the AI always receives clean, structured input regardless of how the user communicated.\n\n**Authorization layer**\nOnly the allowlisted Telegram User ID can interact with the assistant. Any unauthorized message receives an instant rejection and the workflow stops \u2014 no agent calls are made.\n\n**AI agent with tools**\nThe LangChain agent receives the full context and decides autonomously whether to reply conversationally or invoke one of the connected tools. It uses the current date/time from n8n to handle scheduling requests accurately.\n\nGoogle Calendar tools: check availability, create events, list upcoming events, fetch a specific event, update event details, delete events.\n\nGmail tools: send new emails, search the inbox, read a specific email, reply to a thread, delete messages.\n\n**Persistent memory**\nEach user's conversation is tracked using a sliding window of the last 30 messages, keyed by their Telegram User ID. The assistant remembers what was said earlier in the same session without needing reminders.\n\n---\n\n### Example use cases\n\n- \"What do I have on Thursday?\" \u2192 fetches and summarizes calendar events\n- \"Schedule a call with Ahmed tomorrow at 3pm\" \u2192 creates a calendar event\n- \"Any emails from the client today?\" \u2192 searches Gmail and summarizes results\n- \"Reply to John's last email and say I'll confirm by Friday\" \u2192 reads the thread and sends a reply\n- [sends a photo of a meeting invite] \u2192 extracts details from the image and creates a calendar event\n\n---\n\n### Setup instructions\n\n1. **Telegram API** \u2014 create a bot via @BotFather and connect the token to the Telegram Trigger node and both send nodes.\n2. **OpenAI API** \u2014 required for Whisper voice transcription and GPT-4o image analysis.\n3. **OpenRouter API** \u2014 used to run Claude Haiku as the agent's language model. You can swap this for any OpenRouter-compatible model.\n4. **Google Calendar OAuth2** \u2014 authorize your Google account and update the calendar ID (currently set to an example address) in all six calendar tool nodes.\n5. **Gmail OAuth2** \u2014 authorize your Gmail account in all five Gmail tool nodes.\n6. **User authorization** \u2014 open the `If` node and replace the placeholder value with your own Telegram numeric User ID. You can find this by messaging @userinfobot on Telegram.\n\n---\n\n### Customization tips\n\n- To support multiple authorized users, replace the `If` node with a list-based check or a Code node that checks against an array of allowed IDs.\n- To change the AI model, swap the OpenRouter Chat Model node \u2014 the agent prompt and all tools remain fully compatible.\n- To adjust memory length, change the `contextWindowLength` value in the Simple Memory node (currently 30 messages).\n- To modify the assistant's personality or add new instructions, edit the system prompt inside the MainAgent node.\n- Additional tools (e.g. Notion, Slack, Airtable) can be connected to the MainAgent node as sub-nodes without changing any other part of the workflow.",
+  "workflow": {
+    "meta": {
+      "instanceId": "e1eef5e1412dcf0e23d4c05b49f66082196799f5ce2f4935cf97798e6efac7c7",
+      "templateCredsSetupCompleted": true
+    },
+    "nodes": [
+      {
+        "id": "312eb46b-8c4f-4729-ad6c-9f8e843f60b4",
+        "name": "Switch",
+        "type": "n8n-nodes-base.switch",
+        "position": [
+          -352,
+          240
+        ],
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "outputKey": "Audio Note",
+                "conditions": {
+                  "options": {
+                    "version": 2,
+                    "leftValue": "",
+                    "caseSensitive": true,
+                    "typeValidation": "strict"
+                  },
+                  "combinator": "and",
+                  "conditions": [
+                    {
+                      "id": "288c76ae-4fd4-4efb-a327-e30ea6211def",
+                      "operator": {
+                        "type": "string",
+                        "operation": "exists",
+                        "singleValue": true
+                      },
+                      "leftValue": "={{ $json.message.voice.file_id }}",
+                      "rightValue": ""
+                    }
+                  ]
+                },
+                "renameOutput": true
+              },
+              {
+                "outputKey": "Text Note",
+                "conditions": {
+                  "options": {
+                    "version": 2,
+                    "leftValue": "",
+                    "caseSensitive": true,
+                    "typeValidation": "strict"
+                  },
+                  "combinator": "and",
+                  "conditions": [
+                    {
+                      "id": "dae1af87-0f05-4e87-8f1d-17a6e6215500",
+                      "operator": {
+                        "type": "string",
+                        "operation": "exists",
+                        "singleValue": true
+                      },
+                      "leftValue": "={{ $json.message.text }}",
+                      "rightValue": ""
+                    }
+                  ]
+                },
+                "renameOutput": true
+              },
+              {
+                "outputKey": "Image",
+                "conditions": {
+                  "options": {
+                    "version": 2,
+                    "leftValue": "",
+                    "caseSensitive": true,
+                    "typeValidation": "strict"
+                  },
+                  "combinator": "and",
+                  "conditions": [
+                    {
+                      "id": "c34693fb-9a52-4541-b65f-0e0abcbfad7d",
+                      "operator": {
+                        "type": "array",
+                        "operation": "exists",
+                        "singleValue": true
+                      },
+                      "leftValue": "={{ $json.message.photo }}",
+                      "rightValue": ""
+                    }
+                  ]
+                },
+                "renameOutput": true
+              }
+            ]
+          },
+          "options": {}
+        },
+        "typeVersion": 3.2
+      },
+      {
+        "id": "4895a7e6-65f2-458c-a896-1877f939cfd9",
+        "name": "Get Audio",
+        "type": "n8n-nodes-base.telegram",
+        "position": [
+          0,
+          0
+        ],
+        "webhookId": "38de1cb7-29e5-4cef-9d4e-58f3737bcfbb",
+        "parameters": {
+          "fileId": "={{ $json.message.voice.file_id }}",
+          "resource": "file",
+          "additionalFields": {}
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "credential-id",
+            "name": "SleepIslamicHistory"
+          }
+        },
+        "typeVersion": 1.2
+      },
+      {
+        "id": "56577bb7-fb55-4d14-8143-dc282d34426e",
+        "name": "OpenAI",
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "position": [
+          224,
+          0
+        ],
+        "parameters": {
+          "options": {},
+          "resource": "audio",
+          "operation": "transcribe"
+        },
+        "credentials": {
+          "openAiApi": {
+            "id": "credential-id",
+            "name": "edotrova_api_key"
+          }
+        },
+        "typeVersion": 1.8
+      },
+      {
+        "id": "e1f972b1-f297-49fa-8148-d748530d246a",
+        "name": "Edit Fields",
+        "type": "n8n-nodes-base.set",
+        "position": [
+          96,
+          208
+        ],
+        "parameters": {
+          "options": {},
+          "assignments": {
+            "assignments": [
+              {
+                "id": "dad594c7-d8a7-4838-aa7f-d8712cede719",
+                "name": "Instructions",
+                "type": "string",
+                "value": "={{ $('Telegram Trigger').item.json.message.text }}"
+              }
+            ]
+          }
+        },
+        "typeVersion": 3.4,
+        "alwaysOutputData": true
+      },
+      {
+        "id": "f146a9cc-4766-4071-bd59-b561eee10369",
+        "name": "Telegram2",
+        "type": "n8n-nodes-base.telegram",
+        "position": [
+          -48,
+          416
+        ],
+        "webhookId": "1c869de7-1766-4b83-8a89-07f646bbfc07",
+        "parameters": {
+          "fileId": "={{ $json.message.photo[2].file_id }}",
+          "resource": "file",
+          "additionalFields": {}
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "credential-id",
+            "name": "SleepIslamicHistory"
+          }
+        },
+        "typeVersion": 1.2
+      },
+      {
+        "id": "f3b2ec3f-65fe-43d4-ba9b-5f3abc6796da",
+        "name": "Merge",
+        "type": "n8n-nodes-base.merge",
+        "position": [
+          800,
+          224
+        ],
+        "parameters": {
+          "numberInputs": 3
+        },
+        "typeVersion": 3.2,
+        "alwaysOutputData": false
+      },
+      {
+        "id": "f5eda5d7-d0cf-4306-834f-f8f2831f7cce",
+        "name": "Send a text message1",
+        "type": "n8n-nodes-base.telegram",
+        "position": [
+          -496,
+          96
+        ],
+        "webhookId": "d02f02ff-0ddf-4e07-b4ad-fe0e2c18f168",
+        "parameters": {
+          "text": "=Authorization Failed - You don't have access to Agent",
+          "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+          "additionalFields": {
+            "parse_mode": "HTML",
+            "appendAttribution": false
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "credential-id",
+            "name": "SleepIslamicHistory"
+          }
+        },
+        "typeVersion": 1.2
+      },
+      {
+        "id": "5e43bc40-d760-45fc-b8dd-e27093688d87",
+        "name": "If",
+        "type": "n8n-nodes-base.if",
+        "position": [
+          -720,
+          240
+        ],
+        "parameters": {
+          "options": {},
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "loose"
+            },
+            "combinator": "and",
+            "conditions": [
+              {
+                "id": "bbe31798-cc6b-4748-91e0-4b2f4deb8ba2",
+                "operator": {
+                  "name": "filter.operator.equals",
+                  "type": "string",
+                  "operation": "equals"
+                },
+                "leftValue": "={{ $json.authorized }}",
+                "rightValue": "false"
+              }
+            ]
+          },
+          "looseTypeValidation": true
+        },
+        "typeVersion": 2.2
+      },
+      {
+        "id": "8652cfbf-de8c-478a-af5d-5127cbad91c7",
+        "name": "Analyze image",
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "position": [
+          144,
+          416
+        ],
+        "parameters": {
+          "text": "Explain the image",
+          "modelId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "chatgpt-4o-latest",
+            "cachedResultName": "CHATGPT-4O-LATEST"
+          },
+          "options": {},
+          "resource": "image",
+          "inputType": "base64",
+          "operation": "analyze"
+        },
+        "credentials": {
+          "openAiApi": {
+            "id": "credential-id",
+            "name": "edotrova_api_key"
+          }
+        },
+        "typeVersion": 2
+      },
+      {
+        "id": "4738dd4f-a586-4a3d-b5e9-b317aff35f11",
+        "name": "Input",
+        "type": "n8n-nodes-base.set",
+        "position": [
+          992,
+          240
+        ],
+        "parameters": {
+          "options": {},
+          "assignments": {
+            "assignments": [
+              {
+                "id": "1dce36ae-a5b2-4544-b59b-989f76c3556e",
+                "name": "text_message",
+                "type": "string",
+                "value": "={{ $json.Instructions || $json.text}}"
+              },
+              {
+                "id": "d2c6e965-6dbf-4a78-94d2-5afe79d2c5a4",
+                "name": "image_description",
+                "type": "string",
+                "value": "={{ $json.Analysis }}"
+              },
+              {
+                "id": "acd1c0c8-b419-44c6-bcf3-cdf6316d8c2a",
+                "name": "caption",
+                "type": "string",
+                "value": "={{ $json.caption }}"
+              }
+            ]
+          }
+        },
+        "typeVersion": 3.4
+      },
+      {
+        "id": "f7f2136b-4a6a-4e67-a41f-37891c04d5f9",
+        "name": "fields",
+        "type": "n8n-nodes-base.set",
+        "position": [
+          336,
+          416
+        ],
+        "parameters": {
+          "options": {},
+          "assignments": {
+            "assignments": [
+              {
+                "id": "72a170c7-5e46-4ab2-a903-9e022367a1ba",
+                "name": "Analysis",
+                "type": "string",
+                "value": "={{ $json['0'].content[0].text }}"
+              },
+              {
+                "id": "b0cf48f9-ee17-442b-ab7b-48e1f3081317",
+                "name": "caption",
+                "type": "string",
+                "value": "={{ $('Telegram Trigger').item.json.message.caption }}"
+              }
+            ]
+          }
+        },
+        "typeVersion": 3.4
+      },
+      {
+        "id": "96a0dcbf-f6d0-4a10-866c-0b086d035014",
+        "name": "MainAgent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "position": [
+          1296,
+          240
+        ],
+        "parameters": {
+          "text": "={{\n  [\n    $json.text_message ? `Input Message:\\n${$json.text_message}\\n` : '',\n    $json.image_description ? `Image Descriptions:\\n${$json.image_description}\\n` : '',\n    $json.caption ? `Image Caption:\\n${$json.caption}` : ''\n  ]\n  .filter(Boolean)\n  .join(\"\\n\")\n}}\n",
+          "options": {
+            "systemMessage": "=# ROLE\nYou are a friendly, professional, and knowledgeable **Personal Assistant dedicated exclusively to Casonova Brook**. Your primary goal is to handle Casonova's day-to-day administrative tasks, manage their schedule, and process communications efficiently.\n\n# TONE & STYLE\nYour language must be smooth, conversational, and highly personalized, making Casonova feel like they are talking to a helpful human expert. Always speak in **English**.\n\n# CONVERSATION FLOW RULES\n\n## 1. Initial Greeting (Start)\nIf Casonova starts the conversation with a simple greeting (e.g., \"Hi,\" \"Hello,\" \"Hey\"), respond ONLY with this exact phrasing:\n\"Hello, Casonova. How can I help you today?\"\n\n## 2. General Query Handling\nFor general, non-tool-related questions, provide **short, straightforward, human-like responses.**\n\n## 3. Communication & Scheduling Workflow (CRITICAL - Tool Use)\nYou have access to **Calendar** and **Gmail** tools. The current date/time is: {{ $now }}.\n\nWhen a request involves one of your tools, follow these steps strictly:\n\n### A. Calendar Management\nYou have the ability to Create, Read, Update, and Delete events.\n- **Checking Schedule:** Use `GetManyEvents` to check availability or summarize the day.\n- **Scheduling/Reminders:**\n    1. If asked to set a reminder or meeting, ask for essential details (Title, Date, Time) if missing.\n    2. If no duration is given, assume **1 hour** for meetings and **15 minutes** for simple reminders.\n    3. Use `createEvent`.\n    4. Confirm briefly: \"I've added [Event Title] to your calendar.\"\n- **Modifying Events:** If asked to move, change, or cancel a meeting, use `UpdateEvent` or `DeleteEvent` respectively.\n\n### B. Email Management\nYou have the ability to Send, Search, Read, Reply, and Delete emails.\n- **Sending Mail:** Confirm the recipient and subject. Use `sendMessage`.\n- **Checking Mail:** Use `getEmails` to find specific threads or summarize the inbox.\n- **Replying:** If asked to reply to a specific email context, use `replyEmail`.\n- **Deleting:** If asked to remove an email (e.g., spam), use `deleteEmail`.\n\n## IMPORTANT\n- **Output in Plain text, no markdown.**\n- **Give short answers. No long paragraphs. Be concise.**\n- Maintain a human-like flow. Do not use complex technical jargon unless necessary, and do not mention \"AI,\" \"System Prompt,\" or \"Nodes.\"\n- When a task require tool call. Don't respond with direct json. No internal tool call message should be shown to user. Just the result"
+          },
+          "promptType": "define"
+        },
+        "typeVersion": 3
+      },
+      {
+        "id": "0610280d-3f9a-4423-abf8-d37bc705011a",
+        "name": "OpenRouter Chat Model1",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+        "position": [
+          992,
+          480
+        ],
+        "parameters": {
+          "model": "anthropic/claude-haiku-4.5",
+          "options": {}
+        },
+        "credentials": {
+          "openRouterApi": {
+            "id": "credential-id",
+            "name": "edotrova-api-key"
+          }
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "7487c1cf-9dc3-4068-8b5a-dc16548a47b2",
+        "name": "Send a text message",
+        "type": "n8n-nodes-base.telegram",
+        "position": [
+          1888,
+          240
+        ],
+        "webhookId": "d02f02ff-0ddf-4e07-b4ad-fe0e2c18f168",
+        "parameters": {
+          "text": "={{ $json.output }}",
+          "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+          "additionalFields": {
+            "parse_mode": "Markdown",
+            "appendAttribution": false
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "credential-id",
+            "name": "SleepIslamicHistory"
+          }
+        },
+        "typeVersion": 1.2
+      },
+      {
+        "id": "991aab11-6aee-4727-9712-53a6a22d3eec",
+        "name": "Simple Memory",
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "position": [
+          1136,
+          480
+        ],
+        "parameters": {
+          "sessionKey": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+          "sessionIdType": "customKey",
+          "contextWindowLength": 30
+        },
+        "typeVersion": 1.3
+      },
+      {
+        "id": "9a8d937d-6d32-4b09-8274-a8ef865f2f65",
+        "name": "createEvent",
+        "type": "n8n-nodes-base.googleCalendarTool",
+        "position": [
+          944,
+          1264
+        ],
+        "parameters": {
+          "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+          "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+          "calendar": {
+            "__rl": true,
+            "mode": "list",
+            "value": "user@example.com",
+            "cachedResultName": "user@example.com"
+          },
+          "additionalFields": {
+            "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}",
+            "attendees": [
+              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', `email of the attendes`, 'string') }}"
+            ],
+            "sendUpdates": "all"
+          }
+        },
+        "credentials": {
+          "googleCalendarOAuth2Api": {
+            "id": "credential-id",
+            "name": "GuruWalaCalender"
+          }
+        },
+        "typeVersion": 1.3
+      },
+      {
+        "id": "477ab16c-9672-4113-bf47-8d4c2d697e26",
+        "name": "GetManyEvents",
+        "type": "n8n-nodes-base.googleCalendarTool",
+        "position": [
+          1088,
+          1264
+        ],
+        "parameters": {
+          "options": {},
+          "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+          "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+          "calendar": {
+            "__rl": true,
+            "mode": "list",
+            "value": "user@example.com",
+            "cachedResultName": "user@example.com"
+          },
+          "operation": "getAll",
+          "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}"
+        },
+        "credentials": {
+          "googleCalendarOAuth2Api": {
+            "id": "credential-id",
+            "name": "GuruWalaCalender"
+          }
+        },
+        "typeVersion": 1.3
+      },
+      {
+        "id": "6d947190-eb68-42ee-babc-f041d145ad56",
+        "name": "GetEvent",
+        "type": "n8n-nodes-base.googleCalendarTool",
+        "position": [
+          1216,
+          1264
+        ],
+        "parameters": {
+          "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+          "options": {},
+          "calendar": {
+            "__rl": true,
+            "mode": "list",
+            "value": "user@example.com",
+            "cachedResultName": "user@example.com"
+          },
+          "operation": "get"
+        },
+        "credentials": {
+          "googleCalendarOAuth2Api": {
+            "id": "credential-id",
+            "name": "GuruWalaCalender"
+          }
+        },
+        "typeVersion": 1.3
+      },
+      {
+        "id": "94285ec6-43d4-4d39-ba5b-8f22b8bb7237",
+        "name": "DeleteEvent",
+        "type": "n8n-nodes-base.googleCalendarTool",
+        "position": [
+          1328,
+          1264
+        ],
+        "parameters": {
+          "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+          "options": {
+            "sendUpdates": "all"
+          },
+          "calendar": {
+            "__rl": true,
+            "mode": "list",
+            "value": "user@example.com",
+            "cachedResultName": "user@example.com"
+          },
+          "operation": "delete"
+        },
+        "credentials": {
+          "googleCalendarOAuth2Api": {
+            "id": "credential-id",
+            "name": "GuruWalaCalender"
+          }
+        },
+        "typeVersion": 1.3
+      },
+      {
+        "id": "3d30d5d6-505f-456f-885f-ee4f642d58c0",
+        "name": "Availability",
+        "type": "n8n-nodes-base.googleCalendarTool",
+        "position": [
+          704,
+          1264
+        ],
+        "parameters": {
+          "options": {},
+          "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End_Time', ``, 'string') }}",
+          "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start_Time', ``, 'string') }}",
+          "calendar": {
+            "__rl": true,
+            "mode": "list",
+            "value": "user@example.com",
+            "cachedResultName": "user@example.com"
+          },
+          "resource": "calendar"
+        },
+        "credentials": {
+          "googleCalendarOAuth2Api": {
+            "id": "credential-id",
+            "name": "GuruWalaCalender"
+          }
+        },
+        "typeVersion": 1.3
+      },
+      {
+        "id": "b52280fe-1a1f-4d95-a81b-2df9cdf6f715",
+        "name": "UpdateEvent",
+        "type": "n8n-nodes-base.googleCalendarTool",
+        "position": [
+          816,
+          1264
+        ],
+        "parameters": {
+          "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+          "calendar": {
+            "__rl": true,
+            "mode": "list",
+            "value": "user@example.com",
+            "cachedResultName": "user@example.com"
+          },
+          "operation": "update",
+          "updateFields": {
+            "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+          }
+        },
+        "credentials": {
+          "googleCalendarOAuth2Api": {
+            "id": "credential-id",
+            "name": "GuruWalaCalender"
+          }
+        },
+        "typeVersion": 1.3
+      },
+      {
+        "id": "f98ac27a-6ff5-4af2-9e60-bf2e369ed5da",
+        "name": "Telegram Trigger",
+        "type": "n8n-nodes-base.telegramTrigger",
+        "position": [
+          -976,
+          240
+        ],
+        "webhookId": "32ef3e01-7144-4553-bde0-92116920be3e",
+        "parameters": {
+          "updates": [
+            "message"
+          ],
+          "additionalFields": {}
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "credential-id",
+            "name": "SleepIslamicHistory"
+          }
+        },
+        "typeVersion": 1.2
+      },
+      {
+        "id": "593b2407-7454-4fa0-9530-b2ece5b29665",
+        "name": "sendMessage",
+        "type": "n8n-nodes-base.gmailTool",
+        "position": [
+          1552,
+          1280
+        ],
+        "webhookId": "1d59941b-bd5a-4ee2-ae52-a1caa24f11a5",
+        "parameters": {
+          "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+          "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+          "options": {
+            "replyTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Send_Replies_To', `If we want to send reply`, 'string') }}",
+            "appendAttribution": false
+          },
+          "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+          "emailType": "text"
+        },
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "credential-id",
+            "name": "GuruGmail"
+          }
+        },
+        "typeVersion": 2.1
+      },
+      {
+        "id": "1a6ee0d1-36fd-48cf-9f94-5fd9a30a2734",
+        "name": "getEmails",
+        "type": "n8n-nodes-base.gmailTool",
+        "position": [
+          1712,
+          1280
+        ],
+        "webhookId": "1d59941b-bd5a-4ee2-ae52-a1caa24f11a5",
+        "parameters": {
+          "filters": {
+            "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search', `search for the emails`, 'string') }}",
+            "sender": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sender', `If there is any specific sender`, 'string') }}",
+            "receivedAfter": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Received_After', `Email received after specific email`, 'string') }}",
+            "includeSpamTrash": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Include_Spam_and_Trash', ``, 'boolean') }}"
+          },
+          "operation": "getAll"
+        },
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "credential-id",
+            "name": "GuruGmail"
+          }
+        },
+        "typeVersion": 2.1
+      },
+      {
+        "id": "59dca69e-e17e-4f47-ad1a-1d8ef3111ced",
+        "name": "getEmail",
+        "type": "n8n-nodes-base.gmailTool",
+        "position": [
+          1856,
+          1280
+        ],
+        "webhookId": "1d59941b-bd5a-4ee2-ae52-a1caa24f11a5",
+        "parameters": {
+          "simple": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify', ``, 'boolean') }}",
+          "options": {},
+          "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', `Specific email id`, 'string') }}",
+          "operation": "get"
+        },
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "credential-id",
+            "name": "GuruGmail"
+          }
+        },
+        "typeVersion": 2.1
+      },
+      {
+        "id": "21bfce5d-e7f0-4747-8b64-57b2d4b21d05",
+        "name": "replyEmail",
+        "type": "n8n-nodes-base.gmailTool",
+        "position": [
+          2000,
+          1264
+        ],
+        "webhookId": "1d59941b-bd5a-4ee2-ae52-a1caa24f11a5",
+        "parameters": {
+          "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+          "options": {
+            "appendAttribution": false,
+            "replyToSenderOnly": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Reply_to_Sender_Only', ``, 'boolean') }}"
+          },
+          "emailType": "text",
+          "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+          "operation": "reply"
+        },
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "credential-id",
+            "name": "GuruGmail"
+          }
+        },
+        "typeVersion": 2.1
+      },
+      {
+        "id": "17a6d35b-bbc6-4cea-a112-f2ad0d098f0f",
+        "name": "deleteEmail",
+        "type": "n8n-nodes-base.gmailTool",
+        "position": [
+          2144,
+          1264
+        ],
+        "webhookId": "1d59941b-bd5a-4ee2-ae52-a1caa24f11a5",
+        "parameters": {
+          "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+          "operation": "delete"
+        },
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "credential-id",
+            "name": "GuruGmail"
+          }
+        },
+        "typeVersion": 2.1
+      },
+      {
+        "id": "f5efb397-e21e-48cc-b92a-715d07617f54",
+        "name": "Sticky Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -1664,
+          -48
+        ],
+        "parameters": {
+          "width": 624,
+          "height": 672,
+          "content": "## \ud83e\udd16 Telegram AI Personal Assistant\n\nA personal AI assistant that lives in your Telegram. Send it a text, voice note, or photo \u2014 it understands all three. It can manage your Google Calendar and Gmail on your behalf, powered by Claude Haiku via OpenRouter.\n\n### How it works\n1. A message arrives on Telegram and is checked against an authorized User ID.\n2. A Switch node routes the input: voice notes are transcribed via OpenAI Whisper, images are analyzed via GPT-4o, and text passes through directly.\n3. All three branches merge into a single context object fed to the AI agent.\n4. The agent (Claude Haiku + 30-message memory buffer) decides whether to reply conversationally or call a tool.\n5. The response is sent back to the user on Telegram.\n\n### Setup\n1. **Telegram API** \u2014 connect your bot token to the Telegram Trigger and all send nodes.\n2. **OpenAI API** \u2014 used for Whisper transcription and GPT-4o image analysis.\n3. **OpenRouter API** \u2014 used to run Claude Haiku as the agent's language model.\n4. **Google Calendar OAuth2** \u2014 connect and set your calendar ID in all calendar tool nodes.\n5. **Gmail OAuth2** \u2014 connect your Gmail account to all Gmail tool nodes.\n6. In the `If` node, replace the placeholder with your own Telegram numeric User ID to restrict access."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "d4a3fd18-d1fe-41ad-b267-2ca830f5656c",
+        "name": "Sticky Note1",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -144,
+          -160
+        ],
+        "parameters": {
+          "width": 560,
+          "content": "##  Data Conversion\nThis section , convert audio or image to text for llm to process."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "ca98ccce-0181-4c72-b8c0-7325a30fce04",
+        "name": "Sticky Note2",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          1184,
+          48
+        ],
+        "parameters": {
+          "width": 480,
+          "height": 304,
+          "content": "## \ud83e\udde0 AI Agent\n\nClaude Haiku processes the unified input with a 30-message memory buffer.\nReplies conversationally or calls a tool depending on the request."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "0d1b9e7d-a0a1-4063-9d21-087594417ee3",
+        "name": "Sticky Note3",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          960,
+          1440
+        ],
+        "parameters": {
+          "width": 1008,
+          "content": "## \ud83d\udd27 Agent Tools\n\nGoogle Calendar \u2014 create, read, update, delete events, check availability.\nGmail \u2014 send, search, read, reply, and delete emails."
+        },
+        "typeVersion": 1
+      }
+    ],
+    "pinData": {},
+    "connections": {
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Send a text message1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Input": {
+        "main": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge": {
+        "main": [
+          [
+            {
+              "node": "Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [
+            {
+              "node": "Get Audio",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Telegram2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "fields": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 2
+            }
+          ]
+        ]
+      },
+      "GetEvent": {
+        "ai_tool": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getEmail": {
+        "ai_tool": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Audio": {
+        "main": [
+          [
+            {
+              "node": "OpenAI",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "MainAgent": {
+        "main": [
+          [
+            {
+              "node": "Send a text message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Telegram2": {
+        "main": [
+          [
+            {
+              "node": "Analyze image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getEmails": {
+        "ai_tool": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "replyEmail": {
+        "ai_tool": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "DeleteEvent": {
+        "ai_tool": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "UpdateEvent": {
+        "ai_tool": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "createEvent": {
+        "ai_tool": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "deleteEmail": {
+        "ai_tool": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "sendMessage": {
+        "ai_tool": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Availability": {
+        "ai_tool": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Analyze image": {
+        "main": [
+          [
+            {
+              "node": "fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GetManyEvents": {
+        "ai_tool": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Simple Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Telegram Trigger": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenRouter Chat Model1": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "MainAgent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    }
+  },
+  "lastUpdatedBy": 1,
+  "workflowInfo": {
+    "nodeCount": 31,
+    "nodeTypes": {
+      "n8n-nodes-base.if": {
+        "count": 1
+      },
+      "n8n-nodes-base.set": {
+        "count": 3
+      },
+      "n8n-nodes-base.merge": {
+        "count": 1
+      },
+      "n8n-nodes-base.switch": {
+        "count": 1
+      },
+      "n8n-nodes-base.telegram": {
+        "count": 4
+      },
+      "n8n-nodes-base.gmailTool": {
+        "count": 5
+      },
+      "n8n-nodes-base.stickyNote": {
+        "count": 4
+      },
+      "@n8n/n8n-nodes-langchain.agent": {
+        "count": 1
+      },
+      "n8n-nodes-base.telegramTrigger": {
+        "count": 1
+      },
+      "@n8n/n8n-nodes-langchain.openAi": {
+        "count": 2
+      },
+      "n8n-nodes-base.googleCalendarTool": {
+        "count": 6
+      },
+      "@n8n/n8n-nodes-langchain.lmChatOpenRouter": {
+        "count": 1
+      },
+      "@n8n/n8n-nodes-langchain.memoryBufferWindow": {
+        "count": 1
+      }
+    }
+  },
+  "status": "published",
+  "readyToDemo": null,
+  "user": {
+    "name": "Ghufran Barcha",
+    "username": "ghufranbarcha",
+    "bio": "AI Engineer with experties in n8n automation.",
+    "verified": false,
+    "links": [
+      ""
+    ],
+    "avatar": "https://gravatar.com/avatar/4453955b8535fe29e843e9d1c8460609a6df74f4dbec900c83ded6061b99c33d?r=pg&d=retro&size=200"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Manage Google Calendar and Gmail from Telegram with a Claude AI assistant\n\n**Purpose**: ## Telegram AI Personal Assistant \u2014 Calendar & Email Manager\n\nThis workflow turns a Telegram bot into a fully functional personal AI assistant capable of handling your schedule and inbox through natural conversation. Send it a text message, record a voice note, or snap a photo \u2014 it understands all three and responds intelligently.\n\nThe assistant is powered by Claude Haiku (via OpenRouter) and comes with a built-in 30-message memory buffer, so it remembers context across a conversation just like a real assistant would. It has full read/write access to Google Calendar and Gmail, meaning it can book meetings, check your availability, send emails, reply to threads, and clean up your inbox \u2014 all from a single Telegram chat.\n\n---\n\n### What this workflow does\n\n**Multi-modal input handling**\n- Text messages are processed directly\n- Voice notes are downloaded from Telegram and transcribed using OpenAI Whisper\n- Photos are downloaded and analyzed using GPT-4o vision, with any caption included as additional context\n\nAll three input types are normalized into a unified context object before reaching the agent, so the AI always receives clean, structured input regardless of how the user communicated.\n\n**Authorization layer**\nOnly the allowlisted Telegram User ID can interact with the assistant. Any unauthorized message receives an instant rejection and the workflow stops \u2014 no agent calls are made.\n\n**AI agent with tools**\nThe LangChain agent receives the full context and decides autonomously whether to reply conversationally or invoke one of the connected tools. It uses the current date/time from n8n to handle scheduling requests accurately.\n\nGoogle Calendar tools: check availability, create events, list upcoming events, fetch a specific event, update event details, delete events.\n\nGmail tools: send new emails, search the inbox, read a specific email, reply to a thread, delete messages.\n\n**Persistent memory**\nEach user's conversation is tracked using a sliding window of the last 30 messages, keyed by their Telegram User ID. The assistant remembers what was said earlier in the same session without needing reminders.\n\n---\n\n### Example use cases\n\n- \"What do I have on Thursday?\" \u2192 fetches and summarizes calendar events\n- \"Schedule a call with Ahmed tomorrow at 3pm\" \u2192 creates a calendar event\n- \"Any emails from the client today?\" \u2192 searches Gmail and summarizes results\n- \"Reply to John's last email and say I'll confirm by Friday\" \u2192 reads the thread and sends a reply\n- [sends a photo of a meeting invite] \u2192 extracts details from the image and creates a calendar event\n\n---\n\n### Setup instructions\n\n1. **Telegram API** \u2014 create a bot via @BotFather and connect the token to the Telegram Trigger node and both send nodes.\n2. **OpenAI API** \u2014 required for Whisper voice transcription and GPT-4o image analysis.\n3. **OpenRouter API** \u2014 used to run Claude Haiku as the agent's language model. You can swap this for any OpenRouter-compatible model.\n4. **Google Calendar OAuth2** \u2014 authorize your Google account and update the calendar ID (currently set to an example address) in all six calendar tool nodes.\n5. **Gmail OAuth2** \u2014 authorize your Gmail account in all five Gmail tool nodes.\n6. **User authorization** \u2014 open the `If` node and replace the placeholder value with your own Telegram numeric User ID. You can find this by messaging @userinfobot on Telegram.\n\n---\n\n### Customization tips\n\n- To support multiple authorized users, replace the `If` node with a list-based check or a Code node that checks against an array of allowed IDs.\n- To change the AI model, swap the OpenRouter Chat Model node \u2014 the agent prompt and all tools remain fully compatible.\n- To adjust memory length, change the `contextWindowLength` value in the Simple Memory node (currently 30 messages).\n- To modify the assistant's personality or add new instructions, edit the system prompt inside the MainAgent node.\n- Additional tools (e.g. Notion, Slack, Airtable) can be connected to the MainAgent node as sub-nodes without changing any other part of the workflow.\n\n**Services needed**: \n\n**Difficulty**: 5min-config\n\n**Estimated value**: varies \u2014 check workflow\n\n**Setup**:\n1. Configure credentials for the services above\n2. Update any hardcoded IDs / URLs\n3. Test with sample data before activating\n\n_Source: https://n8n.io/workflows/14666_\n_Curated by ai-ops-architect on 2026-05-05_",
+        "height": 480,
+        "width": 480
+      },
+      "name": "\ud83d\udccb Setup Guide (delete after configuring)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "ai-ops-sticky-header"
+    },
+    {
+      "id": 20,
+      "icon": "fa:map-signs",
+      "name": "n8n-nodes-base.if",
+      "codex": {
+        "data": {
+          "alias": [
+            "Router",
+            "Filter",
+            "Condition",
+            "Logic",
+            "Boolean",
+            "Branch"
+          ],
+          "details": "The IF node can be used to implement binary conditional logic in your workflow. You can set up one-to-many conditions to evaluate each item of data being inputted into the node. That data will either evaluate to TRUE or FALSE and route out of the node accordingly.\n\nThis node has multiple types of conditions: Bool, String, Number, and Date & Time.",
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/learn-to-automate-your-factorys-incident-reporting-a-step-by-step-guide/",
+                "icon": "\ud83c\udfed",
+                "label": "Learn to Automate Your Factory's Incident Reporting: A Step by Step Guide"
+              },
+              {
+                "url": "https://n8n.io/blog/2021-the-year-to-automate-the-new-you-with-n8n/",
+                "icon": "\u2600\ufe0f",
+                "label": "2021: The Year to Automate the New You with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/why-business-process-automation-with-n8n-can-change-your-daily-life/",
+                "icon": "\ud83e\uddec",
+                "label": "Why business process automation with n8n can change your daily life"
+              },
+              {
+                "url": "https://n8n.io/blog/create-a-toxic-language-detector-for-telegram/",
+                "icon": "\ud83e\udd2c",
+                "label": "Create a toxic language detector for Telegram in 4 step"
+              },
+              {
+                "url": "https://n8n.io/blog/no-code-ecommerce-workflow-automations/",
+                "icon": "store",
+                "label": "6 e-commerce workflows to power up your Shopify s"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-build-a-low-code-self-hosted-url-shortener/",
+                "icon": "\ud83d\udd17",
+                "label": "How to build a low-code, self-hosted URL shortener in 3 steps"
+              },
+              {
+                "url": "https://n8n.io/blog/automate-your-data-processing-pipeline-in-9-steps-with-n8n/",
+                "icon": "\u2699\ufe0f",
+                "label": "Automate your data processing pipeline in 9 steps"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-get-started-with-crm-automation-and-no-code-workflow-ideas/",
+                "icon": "\ud83d\udc65",
+                "label": "How to get started with CRM automation (with 3 no-code workflow ideas"
+              },
+              {
+                "url": "https://n8n.io/blog/5-tasks-you-can-automate-with-notion-api/",
+                "icon": "\u26a1\ufe0f",
+                "label": "5 tasks you can automate with the new Notion API "
+              },
+              {
+                "url": "https://n8n.io/blog/automate-google-apps-for-productivity/",
+                "icon": "\ud83d\udca1",
+                "label": "15 Google apps you can combine and automate to increase productivity"
+              },
+              {
+                "url": "https://n8n.io/blog/automation-for-maintainers-of-open-source-projects/",
+                "icon": "\ud83c\udff7\ufe0f",
+                "label": "How to automatically manage contributions to open-source projects"
+              },
+              {
+                "url": "https://n8n.io/blog/how-uproc-scraped-a-multi-page-website-with-a-low-code-workflow/",
+                "icon": " \ud83d\udd78\ufe0f",
+                "label": "How uProc scraped a multi-page website with a low-code workflow"
+              },
+              {
+                "url": "https://n8n.io/blog/5-workflow-automations-for-mattermost-that-we-love-at-n8n/",
+                "icon": "\ud83e\udd16",
+                "label": "5 workflow automations for Mattermost that we love at n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/why-this-product-manager-loves-workflow-automation-with-n8n/",
+                "icon": "\ud83e\udde0",
+                "label": "Why this Product Manager loves workflow automation with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/sending-automated-congratulations-with-google-sheets-twilio-and-n8n/",
+                "icon": "\ud83d\ude4c",
+                "label": "Sending Automated Congratulations with Google Sheets, Twilio, and n8n "
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-set-up-a-ci-cd-pipeline-with-no-code/",
+                "icon": "\ud83c\udfa1",
+                "label": "How to set up a no-code CI/CD pipeline with GitHub and TravisCI"
+              },
+              {
+                "url": "https://n8n.io/blog/benefits-of-automation-and-n8n-an-interview-with-hubspots-hugh-durkin/",
+                "icon": "\ud83c\udf96",
+                "label": "Benefits of automation and n8n: An interview with HubSpot's Hugh Durkin"
+              },
+              {
+                "url": "https://n8n.io/blog/aws-workflow-automation/",
+                "label": "7 no-code workflow automations for Amazon Web Services"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.if/"
+              }
+            ]
+          },
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Flow"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "If",
+        "color": "#408000"
+      },
+      "iconData": {
+        "icon": "map-signs",
+        "type": "icon"
+      },
+      "displayName": "If",
+      "typeVersion": 2,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "icon": "file:merge.svg",
+      "name": "n8n-nodes-base.merge",
+      "codex": {
+        "data": {
+          "alias": [
+            "Join",
+            "Concatenate",
+            "Wait"
+          ],
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/how-to-sync-data-between-two-systems/",
+                "icon": "\ud83c\udfec",
+                "label": "How to synchronize data between two systems (one-way vs. two-way sync"
+              },
+              {
+                "url": "https://n8n.io/blog/supercharging-your-conference-registration-process-with-n8n/",
+                "icon": "\ud83c\udfab",
+                "label": "Supercharging your conference registration process with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/migrating-community-metrics-to-orbit-using-n8n/",
+                "icon": "\ud83d\udcc8",
+                "label": "Migrating Community Metrics to Orbit using n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/build-your-own-virtual-assistant-with-n8n-a-step-by-step-guide/",
+                "icon": "\ud83d\udc66",
+                "label": "Build your own virtual assistant with n8n: A step by step guide"
+              },
+              {
+                "url": "https://n8n.io/blog/sending-automated-congratulations-with-google-sheets-twilio-and-n8n/",
+                "icon": "\ud83d\ude4c",
+                "label": "Sending Automated Congratulations with Google Sheets, Twilio, and n8n "
+              },
+              {
+                "url": "https://n8n.io/blog/aws-workflow-automation/",
+                "label": "7 no-code workflow automations for Amazon Web Services"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.merge/"
+              }
+            ]
+          },
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Flow",
+              "Data Transformation"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "Merge"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF8xMTc3XzUxOCkiPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTAgNDhDMCAyMS40OTAzIDIxLjQ5MDMgMCA0OCAwSDExMkMxMzguNTEgMCAxNjAgMjEuNDkwMyAxNjAgNDhWNTZIMTk2LjI1MkMyNDAuNDM1IDU2IDI3Ni4yNTIgOTEuODE3MiAyNzYuMjUyIDEzNlYxOTJDMjc2LjI1MiAyMTQuMDkxIDI5NC4xNjEgMjMyIDMxNi4yNTIgMjMySDM1MlYyMjRDMzUyIDE5Ny40OSAzNzMuNDkgMTc2IDQwMCAxNzZINDY0QzQ5MC41MSAxNzYgNTEyIDE5Ny40OSA1MTIgMjI0VjI4OEM1MTIgMzE0LjUxIDQ5MC41MSAzMzYgNDY0IDMzNkg0MDBDMzczLjQ5IDMzNiAzNTIgMzE0LjUxIDM1MiAyODhWMjgwSDMxNi4yNTJDMjk0LjE2MSAyODAgMjc2LjI1MiAyOTcuOTA5IDI3Ni4yNTIgMzIwVjM3NkMyNzYuMjUyIDQyMC4xODMgMjQwLjQzNSA0NTYgMTk2LjI1MiA0NTZIMTYwVjQ2NEMxNjAgNDkwLjUxIDEzOC41MSA1MTIgMTEyIDUxMkg0OEMyMS40OTAzIDUxMiAwIDQ5MC41MSAwIDQ2NFY0MDBDMCAzNzMuNDkgMjEuNDkwMyAzNTIgNDggMzUySDExMkMxMzguNTEgMzUyIDE2MCAzNzMuNDkgMTYwIDQwMFY0MDhIMTk2LjI1MkMyMTMuOTI1IDQwOCAyMjguMjUyIDM5My42NzMgMjI4LjI1MiAzNzZWMzIwQzIyOC4yNTIgMjk0Ljc4NCAyMzguODU5IDI3Mi4wNDQgMjU1Ljg1MyAyNTZDMjM4Ljg1OSAyMzkuOTU2IDIyOC4yNTIgMjE3LjIxNiAyMjguMjUyIDE5MlYxMzZDMjI4LjI1MiAxMTguMzI3IDIxMy45MjUgMTA0IDE5Ni4yNTIgMTA0SDE2MFYxMTJDMTYwIDEzOC41MSAxMzguNTEgMTYwIDExMiAxNjBINDhDMjEuNDkwMyAxNjAgMCAxMzguNTEgMCAxMTJWNDhaTTEwNCA0OEMxMDguNDE4IDQ4IDExMiA1MS41ODE3IDExMiA1NlYxMDRDMTEyIDEwOC40MTggMTA4LjQxOCAxMTIgMTA0IDExMkg1NkM1MS41ODE3IDExMiA0OCAxMDguNDE4IDQ4IDEwNFY1NkM0OCA1MS41ODE3IDUxLjU4MTcgNDggNTYgNDhIMTA0Wk00NTYgMjI0QzQ2MC40MTggMjI0IDQ2NCAyMjcuNTgyIDQ2NCAyMzJWMjgwQzQ2NCAyODQuNDE4IDQ2MC40MTggMjg4IDQ1NiAyODhINDA4QzQwMy41ODIgMjg4IDQwMCAyODQuNDE4IDQwMCAyODBWMjMyQzQwMCAyMjcuNTgyIDQwMy41ODIgMjI0IDQwOCAyMjRINDU2Wk0xMTIgNDA4QzExMiA0MDMuNTgyIDEwOC40MTggNDAwIDEwNCA0MDBINTZDNTEuNTgxNyA0MDAgNDggNDAzLjU4MiA0OCA0MDhWNDU2QzQ4IDQ2MC40MTggNTEuNTgxNyA0NjQgNTYgNDY0SDEwNEMxMDguNDE4IDQ2NCAxMTIgNDYwLjQxOCAxMTIgNDU2VjQwOFoiIGZpbGw9IiM1NEI4QzkiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF8xMTc3XzUxOCI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo="
+      },
+      "displayName": "Merge",
+      "typeVersion": 3,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "icon": "fa:pen",
+      "name": "n8n-nodes-base.set",
+      "codex": {
+        "data": {
+          "alias": [
+            "Set",
+            "JS",
+            "JSON",
+            "Filter",
+            "Transform",
+            "Map"
+          ],
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/learn-to-automate-your-factorys-incident-reporting-a-step-by-step-guide/",
+                "icon": "\ud83c\udfed",
+                "label": "Learn to Automate Your Factory's Incident Reporting: A Step by Step Guide"
+              },
+              {
+                "url": "https://n8n.io/blog/2021-the-year-to-automate-the-new-you-with-n8n/",
+                "icon": "\u2600\ufe0f",
+                "label": "2021: The Year to Automate the New You with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/automatically-pulling-and-visualizing-data-with-n8n/",
+                "icon": "\ud83d\udcc8",
+                "label": "Automatically pulling and visualizing data with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/database-monitoring-and-alerting-with-n8n/",
+                "icon": "\ud83d\udce1",
+                "label": "Database Monitoring and Alerting with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/automatically-adding-expense-receipts-to-google-sheets-with-telegram-mindee-twilio-and-n8n/",
+                "icon": "\ud83e\uddfe",
+                "label": "Automatically Adding Expense Receipts to Google Sheets with Telegram, Mindee, Twilio, and n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/no-code-ecommerce-workflow-automations/",
+                "icon": "store",
+                "label": "6 e-commerce workflows to power up your Shopify s"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-build-a-low-code-self-hosted-url-shortener/",
+                "icon": "\ud83d\udd17",
+                "label": "How to build a low-code, self-hosted URL shortener in 3 steps"
+              },
+              {
+                "url": "https://n8n.io/blog/automate-your-data-processing-pipeline-in-9-steps-with-n8n/",
+                "icon": "\u2699\ufe0f",
+                "label": "Automate your data processing pipeline in 9 steps"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-get-started-with-crm-automation-and-no-code-workflow-ideas/",
+                "icon": "\ud83d\udc65",
+                "label": "How to get started with CRM automation (with 3 no-code workflow ideas"
+              },
+              {
+                "url": "https://n8n.io/blog/5-tasks-you-can-automate-with-notion-api/",
+                "icon": "\u26a1\ufe0f",
+                "label": "5 tasks you can automate with the new Notion API "
+              },
+              {
+                "url": "https://n8n.io/blog/automate-google-apps-for-productivity/",
+                "icon": "\ud83d\udca1",
+                "label": "15 Google apps you can combine and automate to increase productivity"
+              },
+              {
+                "url": "https://n8n.io/blog/how-uproc-scraped-a-multi-page-website-with-a-low-code-workflow/",
+                "icon": " \ud83d\udd78\ufe0f",
+                "label": "How uProc scraped a multi-page website with a low-code workflow"
+              },
+              {
+                "url": "https://n8n.io/blog/building-an-expense-tracking-app-in-10-minutes/",
+                "icon": "\ud83d\udcf1",
+                "label": "Building an expense tracking app in 10 minutes"
+              },
+              {
+                "url": "https://n8n.io/blog/the-ultimate-guide-to-automate-your-video-collaboration-with-whereby-mattermost-and-n8n/",
+                "icon": "\ud83d\udcf9",
+                "label": "The ultimate guide to automate your video collaboration with Whereby, Mattermost, and n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/5-workflow-automations-for-mattermost-that-we-love-at-n8n/",
+                "icon": "\ud83e\udd16",
+                "label": "5 workflow automations for Mattermost that we love at n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/learn-to-build-powerful-api-endpoints-using-webhooks/",
+                "icon": "\ud83e\uddf0",
+                "label": "Learn to Build Powerful API Endpoints Using Webhooks"
+              },
+              {
+                "url": "https://n8n.io/blog/how-a-membership-development-manager-automates-his-work-and-investments/",
+                "icon": "\ud83d\udcc8",
+                "label": "How a Membership Development Manager automates his work and investments"
+              },
+              {
+                "url": "https://n8n.io/blog/a-low-code-bitcoin-ticker-built-with-questdb-and-n8n-io/",
+                "icon": "\ud83d\udcc8",
+                "label": "A low-code bitcoin ticker built with QuestDB and n8n.io"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-set-up-a-ci-cd-pipeline-with-no-code/",
+                "icon": "\ud83c\udfa1",
+                "label": "How to set up a no-code CI/CD pipeline with GitHub and TravisCI"
+              },
+              {
+                "url": "https://n8n.io/blog/benefits-of-automation-and-n8n-an-interview-with-hubspots-hugh-durkin/",
+                "icon": "\ud83c\udf96",
+                "label": "Benefits of automation and n8n: An interview with HubSpot's Hugh Durkin"
+              },
+              {
+                "url": "https://n8n.io/blog/how-goomer-automated-their-operations-with-over-200-n8n-workflows/",
+                "icon": "\ud83d\udef5",
+                "label": "How Goomer automated their operations with over 200 n8n workflows"
+              },
+              {
+                "url": "https://n8n.io/blog/aws-workflow-automation/",
+                "label": "7 no-code workflow automations for Amazon Web Services"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.set/"
+              }
+            ]
+          },
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Data Transformation"
+            ]
+          }
+        }
+      },
+      "group": "[\"input\"]",
+      "defaults": {
+        "name": "Edit Fields"
+      },
+      "iconData": {
+        "icon": "pen",
+        "type": "icon"
+      },
+      "displayName": "Edit Fields (Set)",
+      "typeVersion": 3,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "icon": "file:telegram.svg",
+      "name": "n8n-nodes-base.telegram",
+      "codex": {
+        "data": {
+          "alias": [
+            "human",
+            "form",
+            "wait",
+            "hitl",
+            "approval"
+          ],
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/why-business-process-automation-with-n8n-can-change-your-daily-life/",
+                "icon": "\ud83e\uddec",
+                "label": "Why business process automation with n8n can change your daily life"
+              },
+              {
+                "url": "https://n8n.io/blog/create-a-toxic-language-detector-for-telegram/",
+                "icon": "\ud83e\udd2c",
+                "label": "Create a toxic language detector for Telegram in 4 step"
+              },
+              {
+                "url": "https://n8n.io/blog/automatically-adding-expense-receipts-to-google-sheets-with-telegram-mindee-twilio-and-n8n/",
+                "icon": "\ud83e\uddfe",
+                "label": "Automatically Adding Expense Receipts to Google Sheets with Telegram, Mindee, Twilio, and n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/no-code-ecommerce-workflow-automations/",
+                "icon": "store",
+                "label": "6 e-commerce workflows to power up your Shopify s"
+              },
+              {
+                "url": "https://n8n.io/blog/world-poetry-day-workflow/",
+                "icon": "\ud83d\udcdc",
+                "label": "Celebrating World Poetry Day with a daily poem in Telegram"
+              },
+              {
+                "url": "https://n8n.io/blog/using-automation-to-boost-productivity-in-the-workplace/",
+                "icon": "\ud83d\udcaa",
+                "label": "Using Automation to Boost Productivity in the Workplace"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-set-up-a-ci-cd-pipeline-with-no-code/",
+                "icon": "\ud83c\udfa1",
+                "label": "How to set up a no-code CI/CD pipeline with GitHub and TravisCI"
+              },
+              {
+                "url": "https://n8n.io/blog/creating-scheduled-text-affirmations-with-n8n/",
+                "icon": "\ud83e\udd1f",
+                "label": "Creating scheduled text affirmations with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/creating-telegram-bots-with-n8n-a-no-code-platform/",
+                "icon": "\ud83d\udcac",
+                "label": "Creating Telegram Bots with n8n, a No-Code Platform"
+              },
+              {
+                "url": "https://n8n.io/blog/aws-workflow-automation/",
+                "label": "7 no-code workflow automations for Amazon Web Services"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.telegram/"
+              }
+            ],
+            "credentialDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/credentials/telegram/"
+              }
+            ]
+          },
+          "categories": [
+            "Communication",
+            "HITL"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "HITL": [
+              "Human in the Loop"
+            ]
+          }
+        }
+      },
+      "group": "[\"output\"]",
+      "defaults": {
+        "name": "Telegram"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBmaWxsPSIjZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiB2aWV3Qm94PSIwIDAgNjYgNjYiPjx1c2UgeGxpbms6aHJlZj0iI2EiIHg9Ii41IiB5PSIuNSIvPjxzeW1ib2wgaWQ9ImEiIG92ZXJmbG93PSJ2aXNpYmxlIj48ZyBmaWxsLXJ1bGU9Im5vbnplcm8iIHN0cm9rZT0ibm9uZSI+PHBhdGggZmlsbD0iIzM3YWVlMiIgZD0iTTAgMzJjMCAxNy42NzMgMTQuMzI3IDMyIDMyIDMyczMyLTE0LjMyNyAzMi0zMlM0OS42NzMgMCAzMiAwIDAgMTQuMzI3IDAgMzIiLz48cGF0aCBmaWxsPSIjYzhkYWVhIiBkPSJtMjEuNjYxIDM0LjMzOCAzLjc5NyAxMC41MDhzLjQ3NS45ODMuOTgzLjk4MyA4LjA2OC03Ljg2NCA4LjA2OC03Ljg2NGw4LjQwNy0xNi4yMzctMjEuMTE5IDkuODk4eiIvPjxwYXRoIGZpbGw9IiNhOWM2ZDgiIGQ9Im0yNi42OTUgMzcuMDM0LS43MjkgNy43NDZzLS4zMDUgMi4zNzMgMi4wNjggMGw0LjY0NC00LjIwMyIvPjxwYXRoIGQ9Im0yMS43MyAzNC43MTItNy44MDktMi41NDVzLS45MzItLjM3OC0uNjMzLTEuMjM3Yy4wNjItLjE3Ny4xODYtLjMyOC41NTktLjU4OCAxLjczMS0xLjIwNiAzMi4wMjgtMTIuMDk2IDMyLjAyOC0xMi4wOTZzLjg1Ni0uMjg4IDEuMzYxLS4wOTdjLjIzMS4wODguMzc4LjE4Ny41MDMuNTQ4LjA0NS4xMzIuMDcxLjQxMS4wNjguNjg5LS4wMDMuMjAxLS4wMjcuMzg2LS4wNDUuNjc4LS4xODQgMi45NzgtNS43MDYgMjUuMTk4LTUuNzA2IDI1LjE5OHMtLjMzIDEuMy0xLjUxNCAxLjM0NWMtLjQzMi4wMTYtLjk1Ni0uMDcxLTEuNTgyLS42MS0yLjMyMy0xLjk5OC0xMC4zNTItNy4zOTQtMTIuMTI2LTguNThhLjM0LjM0IDAgMCAxLS4xNDYtLjIzOWMtLjAyNS0uMTI1LjEwOC0uMjguMTA4LS4yOHMxMy45OC0xMi40MjcgMTQuMzUyLTEzLjczMWMuMDI5LS4xMDEtLjA3OS0uMTUxLS4yMjYtLjEwNy0uOTI5LjM0Mi0xNy4wMjUgMTAuNTA2LTE4LjgwMSAxMS42MjktLjEwNC4wNjYtLjM5NS4wMjMtLjM5NS4wMjMiLz48L2c+PC9zeW1ib2w+PC9zdmc+"
+      },
+      "displayName": "Telegram",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 6,
+          "name": "Communication"
+        },
+        {
+          "id": 28,
+          "name": "HITL"
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "icon": "file:telegram.svg",
+      "name": "n8n-nodes-base.telegramTrigger",
+      "codex": {
+        "data": {
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/create-a-toxic-language-detector-for-telegram/",
+                "icon": "\ud83e\udd2c",
+                "label": "Create a toxic language detector for Telegram in 4 step"
+              },
+              {
+                "url": "https://n8n.io/blog/automatically-adding-expense-receipts-to-google-sheets-with-telegram-mindee-twilio-and-n8n/",
+                "icon": "\ud83e\uddfe",
+                "label": "Automatically Adding Expense Receipts to Google Sheets with Telegram, Mindee, Twilio, and n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-set-up-a-ci-cd-pipeline-with-no-code/",
+                "icon": "\ud83c\udfa1",
+                "label": "How to set up a no-code CI/CD pipeline with GitHub and TravisCI"
+              },
+              {
+                "url": "https://n8n.io/blog/creating-telegram-bots-with-n8n-a-no-code-platform/",
+                "icon": "\ud83d\udcac",
+                "label": "Creating Telegram Bots with n8n, a No-Code Platform"
+              },
+              {
+                "url": "https://n8n.io/blog/aws-workflow-automation/",
+                "label": "7 no-code workflow automations for Amazon Web Services"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/trigger-nodes/n8n-nodes-base.telegramtrigger/"
+              }
+            ],
+            "credentialDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/credentials/telegram/"
+              }
+            ]
+          },
+          "categories": [
+            "Communication"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0"
+        }
+      },
+      "group": "[\"trigger\"]",
+      "defaults": {
+        "name": "Telegram Trigger"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBmaWxsPSIjZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiB2aWV3Qm94PSIwIDAgNjYgNjYiPjx1c2UgeGxpbms6aHJlZj0iI2EiIHg9Ii41IiB5PSIuNSIvPjxzeW1ib2wgaWQ9ImEiIG92ZXJmbG93PSJ2aXNpYmxlIj48ZyBmaWxsLXJ1bGU9Im5vbnplcm8iIHN0cm9rZT0ibm9uZSI+PHBhdGggZmlsbD0iIzM3YWVlMiIgZD0iTTAgMzJjMCAxNy42NzMgMTQuMzI3IDMyIDMyIDMyczMyLTE0LjMyNyAzMi0zMlM0OS42NzMgMCAzMiAwIDAgMTQuMzI3IDAgMzIiLz48cGF0aCBmaWxsPSIjYzhkYWVhIiBkPSJtMjEuNjYxIDM0LjMzOCAzLjc5NyAxMC41MDhzLjQ3NS45ODMuOTgzLjk4MyA4LjA2OC03Ljg2NCA4LjA2OC03Ljg2NGw4LjQwNy0xNi4yMzctMjEuMTE5IDkuODk4eiIvPjxwYXRoIGZpbGw9IiNhOWM2ZDgiIGQ9Im0yNi42OTUgMzcuMDM0LS43MjkgNy43NDZzLS4zMDUgMi4zNzMgMi4wNjggMGw0LjY0NC00LjIwMyIvPjxwYXRoIGQ9Im0yMS43MyAzNC43MTItNy44MDktMi41NDVzLS45MzItLjM3OC0uNjMzLTEuMjM3Yy4wNjItLjE3Ny4xODYtLjMyOC41NTktLjU4OCAxLjczMS0xLjIwNiAzMi4wMjgtMTIuMDk2IDMyLjAyOC0xMi4wOTZzLjg1Ni0uMjg4IDEuMzYxLS4wOTdjLjIzMS4wODguMzc4LjE4Ny41MDMuNTQ4LjA0NS4xMzIuMDcxLjQxMS4wNjguNjg5LS4wMDMuMjAxLS4wMjcuMzg2LS4wNDUuNjc4LS4xODQgMi45NzgtNS43MDYgMjUuMTk4LTUuNzA2IDI1LjE5OHMtLjMzIDEuMy0xLjUxNCAxLjM0NWMtLjQzMi4wMTYtLjk1Ni0uMDcxLTEuNTgyLS42MS0yLjMyMy0xLjk5OC0xMC4zNTItNy4zOTQtMTIuMTI2LTguNThhLjM0LjM0IDAgMCAxLS4xNDYtLjIzOWMtLjAyNS0uMTI1LjEwOC0uMjguMTA4LS4yOHMxMy45OC0xMi40MjcgMTQuMzUyLTEzLjczMWMuMDI5LS4xMDEtLjA3OS0uMTUxLS4yMjYtLjEwNy0uOTI5LjM0Mi0xNy4wMjUgMTAuNTA2LTE4LjgwMSAxMS42MjktLjEwNC4wNjYtLjM5NS4wMjMtLjM5NS4wMjMiLz48L2c+PC9zeW1ib2w+PC9zdmc+"
+      },
+      "displayName": "Telegram Trigger",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 6,
+          "name": "Communication"
+        }
+      ]
+    },
+    {
+      "id": 112,
+      "icon": "fa:map-signs",
+      "name": "n8n-nodes-base.switch",
+      "codex": {
+        "data": {
+          "alias": [
+            "Router",
+            "If",
+            "Path",
+            "Filter",
+            "Condition",
+            "Logic",
+            "Branch",
+            "Case"
+          ],
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/2021-the-year-to-automate-the-new-you-with-n8n/",
+                "icon": "\u2600\ufe0f",
+                "label": "2021: The Year to Automate the New You with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-get-started-with-crm-automation-and-no-code-workflow-ideas/",
+                "icon": "\ud83d\udc65",
+                "label": "How to get started with CRM automation (with 3 no-code workflow ideas"
+              },
+              {
+                "url": "https://n8n.io/blog/build-your-own-virtual-assistant-with-n8n-a-step-by-step-guide/",
+                "icon": "\ud83d\udc66",
+                "label": "Build your own virtual assistant with n8n: A step by step guide"
+              },
+              {
+                "url": "https://n8n.io/blog/automation-for-maintainers-of-open-source-projects/",
+                "icon": "\ud83c\udff7\ufe0f",
+                "label": "How to automatically manage contributions to open-source projects"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.switch/"
+              }
+            ]
+          },
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Flow"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "Switch",
+        "color": "#506000"
+      },
+      "iconData": {
+        "icon": "map-signs",
+        "type": "icon"
+      },
+      "displayName": "Switch",
+      "typeVersion": 3,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 565,
+      "icon": "fa:sticky-note",
+      "name": "n8n-nodes-base.stickyNote",
+      "codex": {
+        "data": {
+          "alias": [
+            "Comments",
+            "Notes",
+            "Sticky"
+          ],
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Helpers"
+            ]
+          }
+        }
+      },
+      "group": "[\"input\"]",
+      "defaults": {
+        "name": "Sticky Note",
+        "color": "#FFD233"
+      },
+      "iconData": {
+        "icon": "sticky-note",
+        "type": "icon"
+      },
+      "displayName": "Sticky Note",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 1119,
+      "icon": "fa:robot",
+      "name": "@n8n/n8n-nodes-langchain.agent",
+      "codex": {
+        "data": {
+          "alias": [
+            "LangChain",
+            "Chat",
+            "Conversational",
+            "Plan and Execute",
+            "ReAct",
+            "Tools"
+          ],
+          "resources": {
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.agent/"
+              }
+            ]
+          },
+          "categories": [
+            "AI",
+            "Langchain"
+          ],
+          "subcategories": {
+            "AI": [
+              "Agents",
+              "Root Nodes"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "AI Agent",
+        "color": "#404040"
+      },
+      "iconData": {
+        "icon": "robot",
+        "type": "icon"
+      },
+      "displayName": "AI Agent",
+      "typeVersion": 3,
+      "nodeCategories": [
+        {
+          "id": 25,
+          "name": "AI"
+        },
+        {
+          "id": 26,
+          "name": "Langchain"
+        }
+      ]
+    },
+    {
+      "id": 1163,
+      "icon": "fa:database",
+      "name": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "codex": {
+        "data": {
+          "resources": {
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.memorybufferwindow/"
+              }
+            ]
+          },
+          "categories": [
+            "AI",
+            "Langchain"
+          ],
+          "subcategories": {
+            "AI": [
+              "Memory"
+            ],
+            "Memory": [
+              "For beginners"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "Simple Memory"
+      },
+      "iconData": {
+        "icon": "database",
+        "type": "icon"
+      },
+      "displayName": "Simple Memory",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 25,
+          "name": "AI"
+        },
+        {
+          "id": 26,
+          "name": "Langchain"
+        }
+      ]
+    },
+    {
+      "id": 1250,
+      "icon": "file:openAi.svg",
+      "name": "@n8n/n8n-nodes-langchain.openAi",
+      "codex": {
+        "data": {
+          "alias": [
+            "LangChain",
+            "ChatGPT",
+            "Sora",
+            "DallE",
+            "whisper",
+            "audio",
+            "transcribe",
+            "tts",
+            "assistant"
+          ],
+          "resources": {
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-langchain.openai/"
+              }
+            ]
+          },
+          "categories": [
+            "AI",
+            "Langchain"
+          ],
+          "subcategories": {
+            "AI": [
+              "Agents",
+              "Miscellaneous",
+              "Root Nodes"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "OpenAI"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTM2Ljg2NzEgMTYuMzcxOEMzNy43NzQ2IDEzLjY0OCAzNy40NjIxIDEwLjY2NDIgMzYuMDEwOCA4LjE4NjYxQzMzLjgyODIgNC4zODY1MyAyOS40NDA3IDIuNDMxNDkgMjUuMTU1NiAzLjM1MTUxQzIzLjI0OTMgMS4yMDM5NiAyMC41MTA1IC0wLjAxNzMxNDggMTcuNjM5MiAwLjAwMDE4NTUzM0MxMy4yNTkxIC0wLjAwOTgxNDY4IDkuMzcyNzMgMi44MTAyNSA4LjAyNTIgNi45Nzc4M0M1LjIxMTM5IDcuNTU0MSAyLjc4MjU4IDkuMzE1MzggMS4zNjEzIDExLjgxMTdDLTAuODM3NDkzIDE1LjYwMTggLTAuMzM2MjMyIDIwLjM3OTQgMi42MDEzMyAyMy42Mjk0QzEuNjkzODEgMjYuMzUzMiAyLjAwNjMyIDI5LjMzNzEgMy40NTc2IDMxLjgxNDZDNS42NDAxNSAzNS42MTQ3IDEwLjAyNzcgMzcuNTY5NyAxNC4zMTI4IDM2LjY0OTdDMTYuMjE3OSAzOC43OTczIDE4Ljk1NzkgNDAuMDE4NSAyMS44MjkyIDM5Ljk5OThDMjYuMjExOCA0MC4wMTEgMzAuMDk5NCAzNy4xODg1IDMxLjQ0NjkgMzMuMDE3MUMzNC4yNjA4IDMyLjQ0MDkgMzYuNjg5NiAzMC42Nzk2IDM4LjExMDggMjguMTgzM0M0MC4zMDcxIDI0LjM5MzIgMzkuODA0NiAxOS42MTk0IDM2Ljg2ODMgMTYuMzY5M0wzNi44NjcxIDE2LjM3MThaTTIxLjgzMTcgMzcuMzg2QzIwLjA3OCAzNy4zODg1IDE4LjM3OTIgMzYuNzc0NyAxNy4wMzI5IDM1LjY1MDlDMTcuMDk0MSAzNS42MTg1IDE3LjIwMDQgMzUuNTU5NyAxNy4yNjkxIDM1LjUxNzJMMjUuMjM0MyAzMC45MTcxQzI1LjY0MTggMzAuNjg1OCAyNS44OTE4IDMwLjI1MjEgMjUuODg5MyAyOS43ODMzVjE4LjU1NDNMMjkuMjU1NiAyMC40OTgxQzI5LjI5MTkgMjAuNTE1NiAyOS4zMTU3IDIwLjU1MDYgMjkuMzIwNyAyMC41OTA2VjI5Ljg4OTZDMjkuMzE1NyAzNC4wMjQ3IDI1Ljk2NjggMzcuMzc3MiAyMS44MzE3IDM3LjM4NlpNNS43MjY0IDMwLjUwNzFDNC44NDc2MyAyOC45ODk2IDQuNTMxMzcgMjcuMjEwOCA0LjgzMjYzIDI1LjQ4NDVDNC44OTEzOCAyNS41MTk1IDQuOTk1MTMgMjUuNTgzMiA1LjA2ODg4IDI1LjYyNTdMMTMuMDM0MSAzMC4yMjU4QzEzLjQzNzggMzAuNDYyMSAxMy45Mzc4IDMwLjQ2MjEgMTQuMzQyOCAzMC4yMjU4TDI0LjA2NjggMjQuNjEwN1YyOC40OTgzQzI0LjA2OTMgMjguNTM4MyAyNC4wNTA1IDI4LjU3NyAyNC4wMTkzIDI4LjYwMkwxNS45Njc5IDMzLjI1MDlDMTIuMzgxNSAzNS4zMTU5IDcuODAxNDQgMzQuMDg4NCA1LjcyNzY1IDMwLjUwNzFINS43MjY0Wk0zLjYzMDEgMTMuMTIwNUM0LjUwNTEyIDExLjYwMDQgNS44ODY0IDEwLjQzNzkgNy41MzE0NCA5LjgzNDE1QzcuNTMxNDQgOS45MDI5IDcuNTI3NjkgMTAuMDI0MSA3LjUyNzY5IDEwLjEwOTJWMTkuMzEwNkM3LjUyNTE5IDE5Ljc3ODEgNy43NzUxOSAyMC4yMTE5IDguMTgxNDUgMjAuNDQzMUwxNy45MDU0IDI2LjA1N0wxNC41MzkxIDI4LjAwMDhDMTQuNTA1MyAyOC4wMjMzIDE0LjQ2MjggMjguMDI3IDE0LjQyNTMgMjguMDEwOEw2LjM3MjY2IDIzLjM1ODJDMi43OTM4MyAyMS4yODU2IDEuNTY2MzEgMTYuNzA2OCAzLjYyODg1IDEzLjEyMTdMMy42MzAxIDEzLjEyMDVaTTMxLjI4ODIgMTkuNTU2OUwyMS41NjQyIDEzLjk0MTdMMjQuOTMwNiAxMS45OTkyQzI0Ljk2NDMgMTEuOTc2NyAyNS4wMDY4IDExLjk3MjkgMjUuMDQ0MyAxMS45ODkyTDMzLjA5NyAxNi42MzhDMzYuNjgyMSAxOC43MDkzIDM3LjkxMDggMjMuMjk1NyAzNS44Mzk1IDI2Ljg4MDhDMzQuOTYzMyAyOC4zOTgzIDMzLjU4MzIgMjkuNTYwOCAzMS45Mzk1IDMwLjE2NThWMjAuNjg5NEMzMS45NDMyIDIwLjIyMTkgMzEuNjk0NSAxOS43ODk0IDMxLjI4OTQgMTkuNTU2OUgzMS4yODgyWk0zNC42MzgzIDE0LjUxNDJDMzQuNTc5NSAxNC40NzggMzQuNDc1OCAxNC40MTU1IDM0LjQwMiAxNC4zNzNMMjYuNDM2OCA5Ljc3Mjg5QzI2LjAzMzEgOS41MzY2NCAyNS41MzMxIDkuNTM2NjQgMjUuMTI4MSA5Ljc3Mjg5TDE1LjQwNDEgMTUuMzg4VjExLjUwMDRDMTUuNDAxNiAxMS40NjA0IDE1LjQyMDQgMTEuNDIxNyAxNS40NTE2IDExLjM5NjdMMjMuNTAzIDYuNzUxNThDMjcuMDg5NCA0LjY4Mjc5IDMxLjY3NDUgNS45MTQwNiAzMy43NDIgOS41MDE2NEMzNC42MTU4IDExLjAxNjcgMzQuOTMyIDEyLjc5MDUgMzQuNjM1OCAxNC41MTQySDM0LjYzODNaTTEzLjU3NDEgMjEuNDQzMUwxMC4yMDY1IDE5LjQ5OTRDMTAuMTcwMiAxOS40ODE5IDEwLjE0NjUgMTkuNDQ2OCAxMC4xNDE1IDE5LjQwNjhWMTAuMTA3OUMxMC4xNDQgNS45Njc4MSAxMy41MDI4IDIuNjEyNzQgMTcuNjQyOSAyLjYxNTI0QzE5LjM5NDIgMi42MTUyNCAyMS4wODkyIDMuMjMwMjUgMjIuNDM1NSA0LjM1MDI4QzIyLjM3NDMgNC4zODI3OCAyMi4yNjkzIDQuNDQxNTMgMjIuMTk5MiA0LjQ4NDAzTDE0LjIzNDEgOS4wODQxM0MxMy44MjY2IDkuMzE1MzggMTMuNTc2NiA5Ljc0Nzg5IDEzLjU3OTEgMTAuMjE2N0wxMy41NzQxIDIxLjQ0MDZWMjEuNDQzMVpNMTUuNDAyOSAxNy41MDA2TDE5LjczNDIgMTQuOTk5M0wyNC4wNjU1IDE3LjQ5OTNWMjIuNTAwN0wxOS43MzQyIDI1LjAwMDdMMTUuNDAyOSAyMi41MDA3VjE3LjUwMDZaIiBmaWxsPSJibGFjayIvPgo8L3N2Zz4K"
+      },
+      "displayName": "OpenAI",
+      "typeVersion": 2,
+      "nodeCategories": [
+        {
+          "id": 25,
+          "name": "AI"
+        },
+        {
+          "id": 26,
+          "name": "Langchain"
+        }
+      ]
+    },
+    {
+      "id": 1281,
+      "icon": "file:openrouter.svg",
+      "name": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "codex": {
+        "data": {
+          "resources": {
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.lmchatopenrouter/"
+              }
+            ]
+          },
+          "categories": [
+            "AI",
+            "Langchain"
+          ],
+          "subcategories": {
+            "AI": [
+              "Language Models",
+              "Root Nodes"
+            ],
+            "Language Models": [
+              "Chat Models (Recommended)"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "OpenRouter Chat Model"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjOTRBM0I4IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDI0IDI0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0aXRsZT5PcGVuUm91dGVyPC90aXRsZT48cGF0aCBkPSJNMTYuODA0IDEuOTU3bDcuMjIgNC4xMDV2LjA4N0wxNi43MyAxMC4yMWwuMDE3LTIuMTE3LS44MjEtLjAzYy0xLjA1OS0uMDI4LTEuNjExLjAwMi0yLjI2OC4xMS0xLjA2NC4xNzUtMi4wMzguNTc3LTMuMTQ3IDEuMzUyTDguMzQ1IDExLjAzYy0uMjg0LjE5NS0uNDk1LjMzNi0uNjguNDU1bC0uNTE1LjMyMi0uMzk3LjIzNC4zODUuMjMuNTMuMzM4Yy40NzYuMzE0IDEuMTcuNzk2IDIuNzAxIDEuODY2IDEuMTEuNzc1IDIuMDgzIDEuMTc3IDMuMTQ3IDEuMzUybC4zLjA0NWMuNjk0LjA5MSAxLjM3NS4wOTQgMi44MjUuMDMzbC4wMjItMi4xNTkgNy4yMiA0LjEwNXYuMDg3TDE2LjU4OSAyMmwuMDE0LTEuODYyLS42MzUuMDIyYy0xLjM4Ni4wNDItMi4xMzcuMDAyLTMuMTM4LS4xNjItMS42OTQtLjI4LTMuMjYtLjkyNi00Ljg4MS0yLjA1OWwtMi4xNTgtMS41YTIxLjk5NyAyMS45OTcgMCAwMC0uNzU1LS40OThsLS40NjctLjI4YTU1LjkyNyA1NS45MjcgMCAwMC0uNzYtLjQzQzIuOTA4IDE0LjczLjU2MyAxNC4xMTYgMCAxNC4xMTZWOS44ODhsLjE0LjAwNGMuNTY0LS4wMDcgMi45MS0uNjIyIDMuODA5LTEuMTI0bDEuMDE2LS41OC40MzgtLjI3NGMuNDI4LS4yOCAxLjA3Mi0uNzI2IDIuNjg2LTEuODUzIDEuNjIxLTEuMTMzIDMuMTg2LTEuNzggNC44ODEtMi4wNTkgMS4xNTItLjE5IDEuOTc0LS4yMTMgMy44MTQtLjEzOGwuMDItMS45MDd6Ij48L3BhdGg+PC9zdmc+Cg=="
+      },
+      "displayName": "OpenRouter Chat Model",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 25,
+          "name": "AI"
+        },
+        {
+          "id": 26,
+          "name": "Langchain"
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "id": 43,
+      "name": "Personal Productivity"
+    },
+    {
+      "id": 47,
+      "name": "AI Chatbot"
+    }
+  ],
+  "image": []
+}

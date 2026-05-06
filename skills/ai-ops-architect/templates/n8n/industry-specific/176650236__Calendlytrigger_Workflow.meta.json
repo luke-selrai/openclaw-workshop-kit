@@ -1,0 +1,24 @@
+{
+  "id": 176650236,
+  "title": "Calendlytrigger Workflow",
+  "description": "n8n workflow: Calendlytrigger Workflow. 3 nodes. Uses: calendlyTrigger, notion, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Calendly/0039_Calendly_Notion_Automate_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "industry-specific",
+  "services_required": [
+    "calendlyTrigger",
+    "notion",
+    "stopAndError"
+  ],
+  "node_count": 3,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski-r2",
+  "source_path": "workflows/Calendly/0039_Calendly_Notion_Automate_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "czlonkowski-backfill-r2"
+  ]
+}

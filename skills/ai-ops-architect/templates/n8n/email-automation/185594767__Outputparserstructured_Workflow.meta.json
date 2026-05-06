@@ -1,0 +1,25 @@
+{
+  "id": 185594767,
+  "title": "Outputparserstructured Workflow",
+  "description": "## Resume Screener from Gmail to Sheets\n\n### \ud83d\udcc3Before you get started, you'll need:\n- [n8n installation]({{ $env.WEBHOOK_URL }} \n- [OpenAI API Key]({{ $env.API_BASE_URL }}\n- Google Sheets API enabled in [Google Cloud Console]({{ $env.API_BASE_URL }}\n- Google Drive API enabled in [Google Cloud Console]({{ $env.API_BASE_URL }}\n- OAuth 2.0 Client ID and Client Secret from your [Google Cloud Console Credentials]({{ $env.API_BASE_URL }}",
+  "category": "email-automation",
+  "services_required": [
+    "extractFromFile",
+    "googleSheets",
+    "gmailTrigger",
+    "stopAndError"
+  ],
+  "node_count": 8,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Gmail/0852_Gmail_GoogleSheets_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

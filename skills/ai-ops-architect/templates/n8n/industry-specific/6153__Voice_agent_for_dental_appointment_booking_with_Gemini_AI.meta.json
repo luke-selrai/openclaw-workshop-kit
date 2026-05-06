@@ -1,0 +1,21 @@
+{
+  "id": 6153,
+  "title": "Voice agent for dental appointment booking with Gemini AI",
+  "description": "*This workflow contains community nodes that are only compatible with the self-hosted version of n8n.*\n\n# AI dental appointment booking with Google Calendar and Sheets\n\n## Who's it for\n\nThis workflow is perfect for dental practices, medical offices, and healthcare providers who want to automate their appointment scheduling process. It's ideal for practices that receive high volumes of appointment requests and want to reduce manual booking while maintaining accurate patient records.\n\n## What it does\n\nThis AI-powered voice agent handles complete appointment booking workflows for \"Pearly Whites Dental.\" When patients call or submit requests, the system:\n\n- Analyzes the request using Google Gemini AI to understand patient needs\n- Checks calendar availability in real-time via Google Calendar integration\n- Automatically finds and offers up to 2 available appointment slots when the preferred time isn't available\n- Books confirmed appointments directly to the practice calendar\n- Logs all patient information (name, insurance, concerns) to Google Sheets for record-keeping\n- Maintains conversation context across interactions for natural dialogue flow\n\nThe workflow operates in Central Time Zone and assumes standard business hours (8 AM - 5 PM, excluding lunch).\n\n## How it works\n\nThe system receives webhook requests containing patient interaction data. The AI agent processes this information and determines which tools to use based on the request type. For availability checks, it intelligently searches multiple time slots in 30-minute increments until finding suitable options. All appointments are automatically formatted as \"Dental Appointment | [Patient Name]\" and logged with complete patient details.\n\n## Requirements\n\n- Google Calendar API access with OAuth2 credentials\n- Google Sheets API access for patient data logging\n- Google Gemini API key for AI processing\n- Webhook endpoint for receiving requests\n- Pre-configured Google Calendar and Sheets document\n\n## How to set up\n\n1. **Configure Google Calendar credentials** in the calendar tool nodes\n2. **Set up Google Sheets integration** with your patient tracking spreadsheet\n3. **Add your Google Gemini API key** to the language model node\n4. **Update the calendar ID** in both calendar nodes to match your practice calendar\n5. **Modify the Google Sheets document ID** to point to your patient records sheet\n6. **Test the webhook endpoint** to ensure proper request processing\n\n## How to customize the workflow\n\n- **Adjust business hours** by modifying the availability checking logic in the system prompt\n- **Change appointment duration** by updating the end time calculation (currently set to 1 hour)\n- **Modify patient data fields** by updating the Google Sheets column mapping\n- **Update practice name** by changing \"Pearly Whites Dental\" references in the system prompt\n- **Customize response format** by adjusting the AI agent's instructions for different appointment types",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 7,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/6153",
+  "source": "n8n.io",
+  "matched_keyword": "dental",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "dental"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/8 nodes typed (12%)"
+}

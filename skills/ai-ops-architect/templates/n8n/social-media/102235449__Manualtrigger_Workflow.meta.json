@@ -1,0 +1,26 @@
+{
+  "id": 102235449,
+  "title": "Manualtrigger Workflow",
+  "description": "# Workflow Overview\n\n**Name:** Transform Gmail Newsletters into Insightful LinkedIn Posts Using OpenAI\n\n**Purpose:**  \n- **Filter Newsletters:** Use the Gmail node to process emails from a specific sender (e.g., `newsletter@example.com`).  \n- **Extract Key Items:** Leverage an OpenAI node to identify and summarize the top news items from each newsletter.  \n- **Generate Posts:** Automatically create concise, informative, and subtly humorous LinkedIn posts for each news item.  \n- **Publish:** Post the refined content to your LinkedIn account with the LinkedIn node.\n\n**Setup Steps:**  \n1. **Gmail Node:** Configure and rename to \"Filter Gmail Newsletter\" with the appropriate sender filter.  \n2. **OpenAI Nodes:** Ensure API credentials are set; customize prompt texts if desired.  \n3. **LinkedIn Node:** Rename to \"Post to LinkedIn\" and verify correct OAuth2 credentials.\n\n**Customization Tips:**  \n- Modify the OpenAI prompts to fine-tune the tone and structure of the LinkedIn posts.  \n- Add additional formatting (e.g., Function nodes) for post readability if needed.\n\n*This workflow turns your regular newsletters into engaging, ready-to-share LinkedIn insights in just a few simple steps!*",
+  "category": "social-media",
+  "services_required": [
+    "manualTrigger",
+    "gmail",
+    "splitOut",
+    "linkedIn",
+    "stopAndError"
+  ],
+  "node_count": 8,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Linkedin/0847_Linkedin_Splitout_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "social-media",
+    "czlonkowski-backfill"
+  ]
+}

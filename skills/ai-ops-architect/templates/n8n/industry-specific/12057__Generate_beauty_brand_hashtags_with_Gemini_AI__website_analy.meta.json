@@ -1,0 +1,21 @@
+{
+  "id": 12057,
+  "title": "Generate beauty brand hashtags with Gemini AI, website analysis and SerpAPI",
+  "description": "## Description\n\nThis n8n template generates high-quality, platform-ready hashtags for beauty and skincare brands by combining AI, live website analysis, and current social media trends. It is designed for marketers, agencies, and founders who want smarter hashtag strategies without manual research.\n\n## Use cases\n- Beauty & skincare brands building social media reach\n- Agencies managing multiple client accounts\n- Content teams creating Instagram, LinkedIn, or Facebook posts\n- Founders validating brand positioning through hashtags\n\n## What this template demonstrates\n- Form-based user input in n8n\n- Website scraping with HTTP Request\n- AI-driven brand analysis using Gemini\n- Structured AI outputs with output parsers\n- Live trend research using search tools\n- Automated storage in Google Sheets\n\n## How it works\nUsers submit brand details through a form. The workflow scrapes the brand\u2019s website, analyzes it with AI, generates tailored hashtags, enriches them with platform-specific trends, and stores the final result in Google Sheets.\n\n## How to use\n1. Activate the workflow  \n2. Open the form URL  \n3. Enter brand details and website URL  \n4. Submit the form  \n5. View generated hashtags in Google Sheets  \n\n## Requirements\n- Google Gemini API credentials  \n- Google Sheets account  \n- SerpAPI account for trend research  \n\n## Good to know\n- Website scraping is best suited for public, text-rich sites  \n- Hashtags are generated dynamically based on brand tone and audience  \n- You can reuse the Google Sheet as a hashtag library  \n\n## Customising this workflow\n- Change the number of hashtags generated\n- Modify the AI prompt for different industries\n- Add filters for banned or restricted hashtags\n- Extend the workflow to auto-post to social platforms",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 9,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/12057",
+  "source": "n8n.io",
+  "matched_keyword": "beauty",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "beauty"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/10 nodes typed (10%)"
+}

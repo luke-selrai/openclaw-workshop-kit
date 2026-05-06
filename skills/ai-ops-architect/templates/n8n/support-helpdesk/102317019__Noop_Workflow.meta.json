@@ -1,0 +1,24 @@
+{
+  "id": 102317019,
+  "title": "Noop Workflow",
+  "description": "# Enrich new Intercom users with contact details from ExactBuyer\n\n## This workflow aims to enrich new contacts in Intercom. The more relevant the Intercom profile, the more useful it is. Once active, this n8n workflow will update the social profiles, contact data (phone, email) as well as location data from ExactBuyer.",
+  "category": "support-helpdesk",
+  "services_required": [
+    "webhook",
+    "httpRequest",
+    "intercom"
+  ],
+  "node_count": 13,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski-r2",
+  "source_path": "workflows/Intercom/0413_Intercom_Code_Create_Webhook.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "support-helpdesk",
+    "czlonkowski-backfill-r2"
+  ]
+}

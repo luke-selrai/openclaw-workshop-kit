@@ -1,0 +1,25 @@
+{
+  "id": 130523344,
+  "title": "Qualify new leads in Google Sheets via OpenAI's GPT-4",
+  "description": "### 1. Create a Google Sheet document\n* This template uses Google Sheet document connected to Google Forms, but a standalone Sheet document will work too\n* Adapt initial trigger to your needs: check for new entries periodically or add a manual trigger\n\n[Link to the Google Sheet template]({{ $env.WEBHOOK_URL }}",
+  "category": "ai-agents",
+  "services_required": [
+    "googleSheets",
+    "openAi",
+    "googleSheetsTrigger",
+    "stopAndError"
+  ],
+  "node_count": 10,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski-r2",
+  "source_path": "workflows/Openai/1177_Openai_GoogleSheets_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ai-agents",
+    "czlonkowski-backfill-r2"
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Wise Workflow\n\n**Purpose**: n8n workflow: Wise Workflow. 6 nodes wired together. Uses: manualTrigger, wise, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Wise/1229_Wise_Automate.json). Configure credentials and any hardcoded IDs before activating.\n\n**Services needed**: manualTrigger, wise, stopAndError\n\n**Difficulty**: 5min-config\n\n**Setup**:\n1. Configure credentials for the services above\n2. Update any hardcoded IDs / URLs\n3. Test with sample data before activating\n\n_Source: https://github.com/Zie619/n8n-workflows_\n_Curated by ai-ops-architect on 2026-05-05_",
+        "height": 480,
+        "width": 480
+      },
+      "name": "Setup Guide (delete after configuring)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "ai-ops-sticky-header"
+    },
+    {
+      "id": "trigger-8ab54616",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        100
+      ],
+      "parameters": {}
+    },
+    {
+      "name": "Wise",
+      "type": "n8n-nodes-base.wise",
+      "position": [
+        470,
+        320
+      ],
+      "parameters": {
+        "amount": 500,
+        "resource": "quote",
+        "operation": "create",
+        "profileId": 16138858,
+        "sourceCurrency": "EUR",
+        "targetCurrency": "EUR",
+        "targetAccountId": 147767974
+      },
+      "credentials": {
+        "wiseApi": "Wise API Credentials"
+      },
+      "typeVersion": 1,
+      "id": "1b390d18-7316-4a9f-b182-3e73221674eb",
+      "notes": "This wise node performs automated tasks as part of the workflow."
+    },
+    {
+      "name": "Wise1",
+      "type": "n8n-nodes-base.wise",
+      "position": [
+        660,
+        320
+      ],
+      "parameters": {
+        "quoteId": "={{$json[\"id\"]}}",
+        "resource": "transfer",
+        "operation": "create",
+        "profileId": 16138858,
+        "targetAccountId": 147767974,
+        "additionalFields": {
+          "reference": "Thank you for the contribution"
+        }
+      },
+      "credentials": {
+        "wiseApi": "Wise API Credentials"
+      },
+      "typeVersion": 1,
+      "id": "3526d0fd-18ca-4d65-8526-57f50e6df0be",
+      "notes": "This wise node performs automated tasks as part of the workflow."
+    },
+    {
+      "name": "Wise2",
+      "type": "n8n-nodes-base.wise",
+      "position": [
+        870,
+        320
+      ],
+      "parameters": {
+        "resource": "transfer",
+        "operation": "execute",
+        "profileId": 16138858,
+        "transferId": "={{$json[\"id\"]}}"
+      },
+      "credentials": {
+        "wiseApi": "Wise API Credentials"
+      },
+      "typeVersion": 1,
+      "id": "d0b2c326-58f6-48ae-b25f-0acad83a4f6a",
+      "notes": "This wise node performs automated tasks as part of the workflow."
+    },
+    {
+      "name": "Wise3",
+      "type": "n8n-nodes-base.wise",
+      "position": [
+        1070,
+        320
+      ],
+      "parameters": {
+        "resource": "transfer",
+        "transferId": "={{$node[\"Wise1\"].json[\"id\"]}}"
+      },
+      "credentials": {
+        "wiseApi": "Wise API Credentials"
+      },
+      "typeVersion": 1,
+      "id": "cebd66f2-da9c-432a-a7a2-e276fe956c92",
+      "notes": "This wise node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "error-454a4cb5",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        400
+      ],
+      "parameters": {
+        "message": "Workflow execution error",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {},
+  "name": "Wise Workflow",
+  "active": false
+}

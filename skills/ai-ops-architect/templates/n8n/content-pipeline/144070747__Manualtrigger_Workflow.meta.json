@@ -1,0 +1,26 @@
+{
+  "id": 144070747,
+  "title": "Manualtrigger Workflow",
+  "description": "### Export WordPress Posts to CSV and Upload to Google Drive\n\nSteps:\n- Set your WordPress credentials in the \"Get WordPress Posts\" node\n- Set your Google Drive access in the Drive node\n- Click Test workflow",
+  "category": "content-pipeline",
+  "services_required": [
+    "manualTrigger",
+    "wordpress",
+    "convertToFile",
+    "googleDrive",
+    "stopAndError"
+  ],
+  "node_count": 8,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Wordpress/0721_Wordpress_Converttofile_Process_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "content-pipeline",
+    "czlonkowski-backfill"
+  ]
+}

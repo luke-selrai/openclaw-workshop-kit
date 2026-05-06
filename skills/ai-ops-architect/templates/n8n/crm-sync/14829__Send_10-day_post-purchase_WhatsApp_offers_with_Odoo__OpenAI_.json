@@ -1,0 +1,861 @@
+{
+  "id": 14829,
+  "name": "Send 10-day post-purchase WhatsApp offers with Odoo, OpenAI and Evolution API",
+  "views": 101,
+  "recentViews": 20,
+  "totalViews": 101,
+  "createdAt": "2026-04-06T16:41:11.533Z",
+  "description": "What Problem Does It Solve?\n\n* Generic, automated retention messages often feel like spam and fail to engage returning customers.\n* Manually tracking which customers ordered exactly 10 days ago to send them tailored offers is extremely time-consuming.\n* Sending bulk promotional WhatsApp messages too quickly can result in phone number bans.\n* This workflow solves these issues by:\n  - Automatically fetching customers from Odoo whose invoices are exactly 10 days old.\n  - Using an AI Agent (OpenAI) to generate a highly personalized, warm Egyptian Arabic message for each customer.\n  - Offering a targeted 10% extra discount to encourage repeat purchases via social media platforms.\n  - Implementing a 1-minute \"Wait\" mechanism between messages to protect your WhatsApp account from being flagged.\n\nHow to Configure It\n\n* Odoo Setup\n  - Connect your Odoo credentials in n8n.\n  - The workflow fetches invoices starting from April 2026. Adjust the date filter in the \"Fetch 10-Day Old Invoices\" node if needed.\n* OpenAI Setup\n  - Add your OpenAI API key to the \"Generate AI Message\" node.\n  - You can tweak the system prompt to match your specific brand voice or adjust the discount offer.\n* WhatsApp API Setup\n  - This workflow uses the Evolution API. Update the URL and \"apikey\" in the \"Send WhatsApp Discount\" node with your specific instance details.\n\nHow It Works\n\n* Every day at 10:01 AM, the schedule node triggers the workflow automatically.\n* It queries Odoo for all posted invoices exactly 10 days old and retrieves the corresponding customer contact details (Name and Phone).\n* It processes the customers one by one through a loop (Split In Batches).\n* For each customer, OpenAI generates a unique, friendly colloquial Arabic message calling them by their first name and offering a 10% discount.\n* The message explicitly directs the customer to claim the offer via social media messages, completely avoiding formal \"terms & conditions\" jargon.\n* The workflow sends the AI-generated text via WhatsApp and then pauses for 1 minute before processing the next customer.\n\nCustomization Ideas\n\n* Change the AI prompt to offer different discounts based on the total amount the customer spent in their last order.\n* Add a condition to skip customers who have already made a new purchase within the last 10 days.\n* Switch the AI model to Claude or Gemini depending on your preference for Arabic copywriting.\n\nFor more info [Contact Me](https://www.linkedin.com/in/khaledyasser01/)",
+  "workflow": {
+    "name": "AI-Powered WhatsApp Retargeting: Smart 10-Day Post-Purchase Offers",
+    "nodes": [
+      {
+        "id": "4e0e2d86-1f15-4689-8c9a-33a7d8ceb689",
+        "name": "Daily Check (10:01 AM)",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "position": [
+          -128,
+          48
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "triggerAtHour": 10,
+                "triggerAtMinute": 1
+              }
+            ]
+          }
+        },
+        "typeVersion": 1.3
+      },
+      {
+        "id": "275e2a92-1cf2-4b96-a0f7-9d569cb6b46c",
+        "name": "Fetch 10-Day Old Invoices",
+        "type": "n8n-nodes-base.odoo",
+        "position": [
+          96,
+          48
+        ],
+        "parameters": {
+          "options": {},
+          "resource": "custom",
+          "operation": "getAll",
+          "returnAll": true,
+          "filterRequest": {
+            "filter": [
+              {
+                "value": "={{ $today.minus({ days: 9 }).toFormat('yyyy-MM-dd') }}",
+                "fieldName": "date"
+              },
+              {
+                "value": "2026-04-01",
+                "operator": "greaterOrEqual",
+                "fieldName": "date"
+              }
+            ]
+          },
+          "customResource": "account.move"
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "092688c8-1565-4e7a-b27b-7bf9c3678da3",
+        "name": "Retrieve Customer Contact",
+        "type": "n8n-nodes-base.odoo",
+        "position": [
+          320,
+          48
+        ],
+        "parameters": {
+          "options": {},
+          "resource": "custom",
+          "operation": "get",
+          "customResource": "res.partner",
+          "customResourceId": "={{ $json.partner_id[0] }}"
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "533de3e1-fc10-423e-a67d-2ce5c3a8b453",
+        "name": "Send WhatsApp Discount",
+        "type": "n8n-nodes-base.httpRequest",
+        "onError": "continueRegularOutput",
+        "position": [
+          1120,
+          -32
+        ],
+        "parameters": {
+          "url": "YOUR_EVOLUTION_API_URL",
+          "method": "POST",
+          "options": {},
+          "jsonBody": "={\n  \"number\": \"{{ (() => { let num = ($('Retrieve Customer Contact').item.json.mobile || $('Retrieve Customer Contact').item.json.phone || '').toString().replace(/\\\\D/g, ''); if (num.startsWith('0')) { num = '20' + num.substring(1); } else if (num.startsWith('1')) { num = '20' + num; } return num; })() }}\",\n  \"text\": {{ JSON.stringify($json.output[0].content[0].text || \"\") }}\n}",
+          "sendBody": true,
+          "sendHeaders": true,
+          "specifyBody": "json",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "YOUR_EVOLUTION_API_KEY"
+              }
+            ]
+          }
+        },
+        "typeVersion": 4.3
+      },
+      {
+        "id": "8861ed16-41b9-424c-bd74-c61944c731e2",
+        "name": "Process Customers (One by One)",
+        "type": "n8n-nodes-base.splitInBatches",
+        "position": [
+          544,
+          48
+        ],
+        "parameters": {
+          "options": {}
+        },
+        "typeVersion": 3
+      },
+      {
+        "id": "c4c8ff4e-0cbc-44f5-ad19-c3bc40468c3a",
+        "name": "Generate AI Message",
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "position": [
+          768,
+          -32
+        ],
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4o-mini",
+            "cachedResultName": "GPT-4O-MINI"
+          },
+          "options": {},
+          "responses": {
+            "values": [
+              {
+                "role": "system",
+                "content": "You are an expert Egyptian marketing copywriter for \"XQ Pharma\", a personal care brand.\nYour task is to write a personalized WhatsApp message to a returning customer, offering them an EXTRA 10% discount valid for 48 hours.\n\nStrict Rules:\n1. Language & Tone: Extremely warm, friendly, and classy Egyptian colloquial Arabic (\u0627\u0644\u0639\u0627\u0645\u064a\u0629 \u0627\u0644\u0645\u0635\u0631\u064a\u0629).\n2. Offer Details (IMPORTANT): You MUST clearly state that this 10% is an ADDITIONAL discount (\u062e\u0635\u0645 \u0625\u0636\u0627\u0641\u064a) on top of the existing offers and discounts already available on the page.\n3. Length: Medium length, around 6 to 7 lines to allow for a richer, more engaging message.\n4. Emojis: Use emojis generously and naturally throughout the text to match the friendly tone.\n5. Call to Action (CRITICAL): The customer MUST be directed to contact the brand via Social Media pages (Facebook/Instagram messages) to claim the discount. Make it clear they should send a message to the \"Page\" (\u0627\u0644\u0635\u0641\u062d\u0629) to order.\n6. The Closing: Add a warm Egyptian closing phrase related to social media (e.g., \"\u0645\u0633\u062a\u0646\u064a\u064a\u0646 \u0631\u0633\u0627\u0644\u062a\u0643 \u0639\u0644\u0649 \u0631\u0633\u0627\u064a\u0644 \u0627\u0644\u0628\u064a\u062f\u062c\", \"\u0646\u0648\u0631\u0648\u0646\u0627 \u0639\u0644\u0649 \u0627\u0644\u0635\u0641\u062d\u0629 \u0639\u0634\u0627\u0646 \u062a\u0633\u062a\u0641\u064a\u062f\u0648\u0627 \u0628\u0627\u0644\u0639\u0631\u0636\", \"\u0641\u0631\u064a\u0642\u0646\u0627 \u0645\u0633\u062a\u0646\u064a\u0643 \u0639\u0644\u0649 \u0631\u0633\u0627\u064a\u0644 \u0627\u0644\u0635\u0641\u062d\u0629\").\n7. Forbidden Phrases: DO NOT use any legal or formal disclaimers like \"(\u062a\u0637\u0628\u0642 \u0627\u0644\u0634\u0631\u0648\u0637 \u0648\u0627\u0644\u0623\u062d\u0643\u0627\u0645)\" or anything similar. Keep it 100% casual and friendly.\n8. Output format: Output ONLY the final Arabic message text. Do not include any conversational filler."
+              },
+              {
+                "content": "=Write the discount message for this customer.\nCRITICAL INSTRUCTIONS FOR THE NAME: \n1. Greet them casually using \"\u0623\u0647\u0644\u0627\u064b \u064a\u0627\" or \"\u064a\u0627 \u0645\u0633\u0627\u0621 \u0627\u0644\u0641\u0644 \u064a\u0627\".\n2. Use ONLY their FIRST name (do not use the full name).\n3. If the name is in English, write it in correct and natural Arabic spelling (e.g., \"Omnea\" becomes \"\u0623\u0645\u0646\u064a\u0629\" not \"\u0623\u0645\u0648\u064a\u0646\u0629\").\n\nCustomer Name: {{ $json.name || '\u0639\u0645\u064a\u0644\u0646\u0627 \u0627\u0644\u0639\u0632\u064a\u0632' }}"
+              }
+            ]
+          },
+          "builtInTools": {}
+        },
+        "typeVersion": 2.1
+      },
+      {
+        "id": "2e819604-c8cf-4946-ad58-19e846521e82",
+        "name": "Wait 1 Mins (Anti-Ban)",
+        "type": "n8n-nodes-base.wait",
+        "position": [
+          1344,
+          48
+        ],
+        "parameters": {
+          "unit": "minutes",
+          "amount": 1
+        },
+        "typeVersion": 1.1
+      },
+      {
+        "id": "sticky-note-main",
+        "name": "Sticky Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -160,
+          -260
+        ],
+        "parameters": {
+          "width": 640,
+          "height": 260,
+          "content": "### How it works\nThis workflow automatically detects customers who made a purchase exactly 10 days ago, generates a highly personalized, natural-sounding Arabic promotional message using OpenAI, and sends it directly via WhatsApp. It includes an anti-ban loop to pace the messages.\n\n### Setup steps\n1. **Odoo:** Connect your credentials to fetch Invoices and Contacts.\n2. **OpenAI:** Add your API Key to the AI Node to generate the custom copywriting.\n3. **WhatsApp:** Update the HTTP Request node with your Evolution API credentials (or switch to your preferred WhatsApp provider node)."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "sticky-note-step1",
+        "name": "Sticky Note 1",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -160,
+          -20
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 580,
+          "height": 240,
+          "content": "## 1. Fetch Target Customers\nTriggers daily at 10:01 AM, searches Odoo for invoices that are exactly 10 days old, and retrieves the customer's name and phone number."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "sticky-note-step2",
+        "name": "Sticky Note 2",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          500,
+          -100
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 460,
+          "height": 280,
+          "content": "## 2. AI Copywriting & Loop\nProcesses the customers one by one. The AI Agent takes the customer's name and generates a personalized, colloquial Egyptian Arabic message offering an extra 10% discount."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "sticky-note-step3",
+        "name": "Sticky Note 3",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          1060,
+          -100
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 440,
+          "height": 280,
+          "content": "## 3. WhatsApp Sending & Anti-Ban\nSends the AI-generated message via Evolution API to the customer's WhatsApp, then pauses for 1 minute before sending the next message to prevent spam bans."
+        },
+        "typeVersion": 1
+      }
+    ],
+    "connections": {
+      "Generate AI Message": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp Discount",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Daily Check (10:01 AM)": {
+        "main": [
+          [
+            {
+              "node": "Fetch 10-Day Old Invoices",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send WhatsApp Discount": {
+        "main": [
+          [
+            {
+              "node": "Wait 1 Mins (Anti-Ban)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait 1 Mins (Anti-Ban)": {
+        "main": [
+          [
+            {
+              "node": "Process Customers (One by One)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch 10-Day Old Invoices": {
+        "main": [
+          [
+            {
+              "node": "Retrieve Customer Contact",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Retrieve Customer Contact": {
+        "main": [
+          [
+            {
+              "node": "Process Customers (One by One)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Process Customers (One by One)": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Generate AI Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    }
+  },
+  "lastUpdatedBy": 1,
+  "workflowInfo": {
+    "nodeCount": 11,
+    "nodeTypes": {
+      "n8n-nodes-base.odoo": {
+        "count": 2
+      },
+      "n8n-nodes-base.wait": {
+        "count": 1
+      },
+      "n8n-nodes-base.stickyNote": {
+        "count": 4
+      },
+      "n8n-nodes-base.httpRequest": {
+        "count": 1
+      },
+      "n8n-nodes-base.splitInBatches": {
+        "count": 1
+      },
+      "n8n-nodes-base.scheduleTrigger": {
+        "count": 1
+      },
+      "@n8n/n8n-nodes-langchain.openAi": {
+        "count": 1
+      }
+    }
+  },
+  "status": "published",
+  "readyToDemo": null,
+  "user": {
+    "name": "khaled yasser",
+    "username": "khaledyasser01",
+    "bio": "Odoo ERP Specialist (5+ Years) | MS Outlook & Microsoft Expert (9+ Years) | n8n Verified Creator | Ai Automation",
+    "verified": true,
+    "links": [
+      "https://www.linkedin.com/in/khaledyasser01/?skipRedirect=true"
+    ],
+    "avatar": "https://gravatar.com/avatar/b745dbe81ba146f51ad79e3500a918ab7ad1f5aa6fafc3c3a01a987fe7e1bfaa?r=pg&d=retro&size=200"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Send 10-day post-purchase WhatsApp offers with Odoo, OpenAI and Evolution API\n\n**Purpose**: What Problem Does It Solve?\n\n* Generic, automated retention messages often feel like spam and fail to engage returning customers.\n* Manually tracking which customers ordered exactly 10 days ago to send them tailored offers is extremely time-consuming.\n* Sending bulk promotional WhatsApp messages too quickly can result in phone number bans.\n* This workflow solves these issues by:\n  - Automatically fetching customers from Odoo whose invoices are exactly 10 days old.\n  - Using an AI Agent (OpenAI) to generate a highly personalized, warm Egyptian Arabic message for each customer.\n  - Offering a targeted 10% extra discount to encourage repeat purchases via social media platforms.\n  - Implementing a 1-minute \"Wait\" mechanism between messages to protect your WhatsApp account from being flagged.\n\nHow to Configure It\n\n* Odoo Setup\n  - Connect your Odoo credentials in n8n.\n  - The workflow fetches invoices starting from April 2026. Adjust the date filter in the \"Fetch 10-Day Old Invoices\" node if needed.\n* OpenAI Setup\n  - Add your OpenAI API key to the \"Generate AI Message\" node.\n  - You can tweak the system prompt to match your specific brand voice or adjust the discount offer.\n* WhatsApp API Setup\n  - This workflow uses the Evolution API. Update the URL and \"apikey\" in the \"Send WhatsApp Discount\" node with your specific instance details.\n\nHow It Works\n\n* Every day at 10:01 AM, the schedule node triggers the workflow automatically.\n* It queries Odoo for all posted invoices exactly 10 days old and retrieves the corresponding customer contact details (Name and Phone).\n* It processes the customers one by one through a loop (Split In Batches).\n* For each customer, OpenAI generates a unique, friendly colloquial Arabic message calling them by their first name and offering a 10% discount.\n* The message explicitly directs the customer to claim the offer via social media messages, completely avoiding formal \"terms & conditions\" jargon.\n* The workflow sends the AI-generated text via WhatsApp and then pauses for 1 minute before processing the next customer.\n\nCustomization Ideas\n\n* Change the AI prompt to offer different discounts based on the total amount the customer spent in their last order.\n* Add a condition to skip customers who have already made a new purchase within the last 10 days.\n* Switch the AI model to Claude or Gemini depending on your preference for Arabic copywriting.\n\nFor more info [Contact Me](https://www.linkedin.com/in/khaledyasser01/)\n\n**Services needed**: \n\n**Difficulty**: 5min-config\n\n**Estimated value**: varies \u2014 check workflow\n\n**Setup**:\n1. Configure credentials for the services above\n2. Update any hardcoded IDs / URLs\n3. Test with sample data before activating\n\n_Source: https://n8n.io/workflows/14829_\n_Curated by ai-ops-architect on 2026-05-05_",
+        "height": 480,
+        "width": 480
+      },
+      "name": "\ud83d\udccb Setup Guide (delete after configuring)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "ai-ops-sticky-header"
+    },
+    {
+      "id": 19,
+      "icon": "file:httprequest.svg",
+      "name": "n8n-nodes-base.httpRequest",
+      "codex": {
+        "data": {
+          "alias": [
+            "API",
+            "Request",
+            "URL",
+            "Build",
+            "cURL"
+          ],
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/2021-the-year-to-automate-the-new-you-with-n8n/",
+                "icon": "\u2600\ufe0f",
+                "label": "2021: The Year to Automate the New You with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/why-business-process-automation-with-n8n-can-change-your-daily-life/",
+                "icon": "\ud83e\uddec",
+                "label": "Why business process automation with n8n can change your daily life"
+              },
+              {
+                "url": "https://n8n.io/blog/automatically-pulling-and-visualizing-data-with-n8n/",
+                "icon": "\ud83d\udcc8",
+                "label": "Automatically pulling and visualizing data with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/learn-how-to-automatically-cross-post-your-content-with-n8n/",
+                "icon": "\u270d\ufe0f",
+                "label": "Learn how to automatically cross-post your content with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/automatically-adding-expense-receipts-to-google-sheets-with-telegram-mindee-twilio-and-n8n/",
+                "icon": "\ud83e\uddfe",
+                "label": "Automatically Adding Expense Receipts to Google Sheets with Telegram, Mindee, Twilio, and n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/running-n8n-on-ships-an-interview-with-maranics/",
+                "icon": "\ud83d\udef3",
+                "label": "Running n8n on ships: An interview with Maranics"
+              },
+              {
+                "url": "https://n8n.io/blog/what-are-apis-how-to-use-them-with-no-code/",
+                "icon": " \ud83e\udea2",
+                "label": "What are APIs and how to use them with no code"
+              },
+              {
+                "url": "https://n8n.io/blog/5-tasks-you-can-automate-with-notion-api/",
+                "icon": "\u26a1\ufe0f",
+                "label": "5 tasks you can automate with the new Notion API "
+              },
+              {
+                "url": "https://n8n.io/blog/world-poetry-day-workflow/",
+                "icon": "\ud83d\udcdc",
+                "label": "Celebrating World Poetry Day with a daily poem in Telegram"
+              },
+              {
+                "url": "https://n8n.io/blog/automate-google-apps-for-productivity/",
+                "icon": "\ud83d\udca1",
+                "label": "15 Google apps you can combine and automate to increase productivity"
+              },
+              {
+                "url": "https://n8n.io/blog/automate-designs-with-bannerbear-and-n8n/",
+                "icon": "\ud83c\udfa8",
+                "label": "Automate Designs with Bannerbear and n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/how-uproc-scraped-a-multi-page-website-with-a-low-code-workflow/",
+                "icon": " \ud83d\udd78\ufe0f",
+                "label": "How uProc scraped a multi-page website with a low-code workflow"
+              },
+              {
+                "url": "https://n8n.io/blog/building-an-expense-tracking-app-in-10-minutes/",
+                "icon": "\ud83d\udcf1",
+                "label": "Building an expense tracking app in 10 minutes"
+              },
+              {
+                "url": "https://n8n.io/blog/5-workflow-automations-for-mattermost-that-we-love-at-n8n/",
+                "icon": "\ud83e\udd16",
+                "label": "5 workflow automations for Mattermost that we love at n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-use-the-http-request-node-the-swiss-army-knife-for-workflow-automation/",
+                "icon": "\ud83e\uddf0",
+                "label": "How to use the HTTP Request Node - The Swiss Army Knife for Workflow Automation"
+              },
+              {
+                "url": "https://n8n.io/blog/learn-how-to-use-webhooks-with-mattermost-slash-commands/",
+                "icon": "\ud83e\udd84",
+                "label": "Learn how to use webhooks with Mattermost slash commands"
+              },
+              {
+                "url": "https://n8n.io/blog/how-a-membership-development-manager-automates-his-work-and-investments/",
+                "icon": "\ud83d\udcc8",
+                "label": "How a Membership Development Manager automates his work and investments"
+              },
+              {
+                "url": "https://n8n.io/blog/a-low-code-bitcoin-ticker-built-with-questdb-and-n8n-io/",
+                "icon": "\ud83d\udcc8",
+                "label": "A low-code bitcoin ticker built with QuestDB and n8n.io"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-set-up-a-ci-cd-pipeline-with-no-code/",
+                "icon": "\ud83c\udfa1",
+                "label": "How to set up a no-code CI/CD pipeline with GitHub and TravisCI"
+              },
+              {
+                "url": "https://n8n.io/blog/automations-for-activists/",
+                "icon": "\u2728",
+                "label": "How Common Knowledge use workflow automation for activism"
+              },
+              {
+                "url": "https://n8n.io/blog/creating-scheduled-text-affirmations-with-n8n/",
+                "icon": "\ud83e\udd1f",
+                "label": "Creating scheduled text affirmations with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/how-goomer-automated-their-operations-with-over-200-n8n-workflows/",
+                "icon": "\ud83d\udef5",
+                "label": "How Goomer automated their operations with over 200 n8n workflows"
+              },
+              {
+                "url": "https://n8n.io/blog/aws-workflow-automation/",
+                "label": "7 no-code workflow automations for Amazon Web Services"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest/"
+              }
+            ]
+          },
+          "categories": [
+            "Development",
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Helpers"
+            ]
+          }
+        }
+      },
+      "group": "[\"output\"]",
+      "defaults": {
+        "name": "HTTP Request",
+        "color": "#0004F5"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik00MCAyMEM0MCA4Ljk1MzE0IDMxLjA0NjkgMCAyMCAwQzguOTUzMTQgMCAwIDguOTUzMTQgMCAyMEMwIDMxLjA0NjkgOC45NTMxNCA0MCAyMCA0MEMzMS4wNDY5IDQwIDQwIDMxLjA0NjkgNDAgMjBaTTIwIDM2Ljk0NThDMTguODg1MiAzNi45NDU4IDE3LjEzNzggMzUuOTY3IDE1LjQ5OTggMzIuNjk4NUMxNC43OTY0IDMxLjI5MTggMTQuMTk2MSAyOS41NDMxIDEzLjc1MjYgMjcuNjg0N0gyNi4xODk4QzI1LjgwNDUgMjkuNTQwMyAyNS4yMDQ0IDMxLjI5MDEgMjQuNTAwMiAzMi42OTg1QzIyLjg2MjIgMzUuOTY3IDIxLjExNDggMzYuOTQ1OCAyMCAzNi45NDU4Wk0xMi45MDY0IDIwQzEyLjkwNjQgMjEuNjA5NyAxMy4wMDg3IDIzLjE2NCAxMy4yMDAzIDI0LjYzMDVIMjYuNzk5N0MyNi45OTEzIDIzLjE2NCAyNy4wOTM2IDIxLjYwOTcgMjcuMDkzNiAyMEMyNy4wOTM2IDE4LjM5MDMgMjYuOTkxMyAxNi44MzYgMjYuNzk5NyAxNS4zNjk1SDEzLjIwMDNDMTMuMDA4NyAxNi44MzYgMTIuOTA2NCAxOC4zOTAzIDEyLjkwNjQgMjBaTTIwIDMuMDU0MTlDMjEuMTE0OSAzLjA1NDE5IDIyLjg2MjIgNC4wMzA3OCAyNC41MDAxIDcuMzAwMzlDMjUuMjA2NiA4LjcxNDA4IDI1LjgwNzIgMTAuNDA2NyAyNi4xOTIgMTIuMzE1M0gxMy43NTAxQzE0LjE5MzMgMTAuNDA0NyAxNC43OTQyIDguNzEyNTQgMTUuNDk5OCA3LjMwMDY0QzE3LjEzNzcgNC4wMzA4MyAxOC44ODUxIDMuMDU0MTkgMjAgMy4wNTQxOVpNMzAuMTQ3OCAyMEMzMC4xNDc4IDE4LjQwOTkgMzAuMDU0MyAxNi44NjE3IDI5LjgyMjcgMTUuMzY5NUgzNi4zMDQyQzM2LjcyNTIgMTYuODQyIDM2Ljk0NTggMTguMzk2NCAzNi45NDU4IDIwQzM2Ljk0NTggMjEuNjAzNiAzNi43MjUyIDIzLjE1OCAzNi4zMDQyIDI0LjYzMDVIMjkuODIyN0MzMC4wNTQzIDIzLjEzODMgMzAuMTQ3OCAyMS41OTAxIDMwLjE0NzggMjBaTTI2LjI3NjcgNC4yNTUxMkMyNy42MzY1IDYuMzYwMTkgMjguNzExIDkuMTMyIDI5LjM3NzQgMTIuMzE1M0gzNS4xMDQ2QzMzLjI1MTEgOC42NjggMzAuMTA3IDUuNzgzNDYgMjYuMjc2NyA0LjI1NTEyWk0xMC42MjI2IDEyLjMxNTNINC44OTI5M0M2Ljc1MTQ3IDguNjY3ODQgOS44OTM1MSA1Ljc4MzQxIDEzLjcyMzIgNC4yNTUxM0MxMi4zNjM1IDYuMzYwMjEgMTEuMjg5IDkuMTMyMDEgMTAuNjIyNiAxMi4zMTUzWk0zLjA1NDE5IDIwQzMuMDU0MTkgMjEuNjAzIDMuMjc3NDMgMjMuMTU3NSAzLjY5NDg0IDI0LjYzMDVIMTAuMTIxN0M5Ljk0NjE5IDIzLjE0MiA5Ljg1MjIyIDIxLjU5NDMgOS44NTIyMiAyMEM5Ljg1MjIyIDE4LjQwNTcgOS45NDYxOSAxNi44NTggMTAuMTIxNyAxNS4zNjk1SDMuNjk0ODRDMy4yNzc0MyAxNi44NDI1IDMuMDU0MTkgMTguMzk3IDMuMDU0MTkgMjBaTTI2LjI3NjYgMzUuNzQyN0MyNy42MzY1IDMzLjYzOTMgMjguNzExIDMwLjg2OCAyOS4zNzc0IDI3LjY4NDdIMzUuMTA0NkMzMy4yNTEgMzEuMzMyMiAzMC4xMDY4IDM0LjIxNzkgMjYuMjc2NiAzNS43NDI3Wk0xMy43MjM0IDM1Ljc0MjdDOS44OTM2OSAzNC4yMTc5IDYuNzUxNTUgMzEuMzMyNCA0Ljg5MjkzIDI3LjY4NDdIMTAuNjIyNkMxMS4yODkgMzAuODY4IDEyLjM2MzUgMzMuNjM5MyAxMy43MjM0IDM1Ljc0MjdaIiBmaWxsPSIjM0E0MkU5Ii8+Cjwvc3ZnPgo="
+      },
+      "displayName": "HTTP Request",
+      "typeVersion": 4,
+      "nodeCategories": [
+        {
+          "id": 5,
+          "name": "Development"
+        },
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "icon": "fa:sync",
+      "name": "n8n-nodes-base.splitInBatches",
+      "codex": {
+        "data": {
+          "alias": [
+            "Loop",
+            "Concatenate",
+            "Batch",
+            "Split",
+            "Split In Batches"
+          ],
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/how-uproc-scraped-a-multi-page-website-with-a-low-code-workflow/",
+                "icon": " \ud83d\udd78\ufe0f",
+                "label": "How uProc scraped a multi-page website with a low-code workflow"
+              },
+              {
+                "url": "https://n8n.io/blog/benefits-of-automation-and-n8n-an-interview-with-hubspots-hugh-durkin/",
+                "icon": "\ud83c\udf96",
+                "label": "Benefits of automation and n8n: An interview with HubSpot's Hugh Durkin"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.splitinbatches/"
+              }
+            ]
+          },
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Flow"
+            ]
+          }
+        }
+      },
+      "group": "[\"organization\"]",
+      "defaults": {
+        "name": "Loop Over Items",
+        "color": "#007755"
+      },
+      "iconData": {
+        "icon": "sync",
+        "type": "icon"
+      },
+      "displayName": "Loop Over Items (Split in Batches)",
+      "typeVersion": 3,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 514,
+      "icon": "fa:pause-circle",
+      "name": "n8n-nodes-base.wait",
+      "codex": {
+        "data": {
+          "alias": [
+            "pause",
+            "sleep",
+            "delay",
+            "timeout"
+          ],
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/how-to-get-started-with-crm-automation-and-no-code-workflow-ideas/",
+                "icon": "\ud83d\udc65",
+                "label": "How to get started with CRM automation (with 3 no-code workflow ideas"
+              },
+              {
+                "url": "https://n8n.io/blog/aws-workflow-automation/",
+                "label": "7 no-code workflow automations for Amazon Web Services"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.wait/"
+              }
+            ]
+          },
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Helpers",
+              "Flow"
+            ]
+          }
+        }
+      },
+      "group": "[\"organization\"]",
+      "defaults": {
+        "name": "Wait",
+        "color": "#804050"
+      },
+      "iconData": {
+        "icon": "pause-circle",
+        "type": "icon"
+      },
+      "displayName": "Wait",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 559,
+      "icon": "file:odoo.svg",
+      "name": "n8n-nodes-base.odoo",
+      "codex": {
+        "data": {
+          "alias": [
+            "ERP"
+          ],
+          "resources": {
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.odoo/"
+              }
+            ],
+            "credentialDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/credentials/odoo/"
+              }
+            ]
+          },
+          "categories": [
+            "Data & Storage"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0"
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "Odoo"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIj48Y2lyY2xlIGN4PSI3NSIgY3k9Ijc1IiByPSI3Mi40IiBmaWxsPSIjOWM1Nzg5Ii8+PGNpcmNsZSBjeD0iNzUiIGN5PSI3NSIgcj0iNDIuNyIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg=="
+      },
+      "displayName": "Odoo",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 3,
+          "name": "Data & Storage"
+        }
+      ]
+    },
+    {
+      "id": 565,
+      "icon": "fa:sticky-note",
+      "name": "n8n-nodes-base.stickyNote",
+      "codex": {
+        "data": {
+          "alias": [
+            "Comments",
+            "Notes",
+            "Sticky"
+          ],
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Helpers"
+            ]
+          }
+        }
+      },
+      "group": "[\"input\"]",
+      "defaults": {
+        "name": "Sticky Note",
+        "color": "#FFD233"
+      },
+      "iconData": {
+        "icon": "sticky-note",
+        "type": "icon"
+      },
+      "displayName": "Sticky Note",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 839,
+      "icon": "fa:clock",
+      "name": "n8n-nodes-base.scheduleTrigger",
+      "codex": {
+        "data": {
+          "alias": [
+            "Time",
+            "Scheduler",
+            "Polling",
+            "Cron",
+            "Interval"
+          ],
+          "resources": {
+            "generic": [],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.scheduletrigger/"
+              }
+            ]
+          },
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0"
+        }
+      },
+      "group": "[\"trigger\",\"schedule\"]",
+      "defaults": {
+        "name": "Schedule Trigger",
+        "color": "#31C49F"
+      },
+      "iconData": {
+        "icon": "clock",
+        "type": "icon"
+      },
+      "displayName": "Schedule Trigger",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 1250,
+      "icon": "file:openAi.svg",
+      "name": "@n8n/n8n-nodes-langchain.openAi",
+      "codex": {
+        "data": {
+          "alias": [
+            "LangChain",
+            "ChatGPT",
+            "Sora",
+            "DallE",
+            "whisper",
+            "audio",
+            "transcribe",
+            "tts",
+            "assistant"
+          ],
+          "resources": {
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-langchain.openai/"
+              }
+            ]
+          },
+          "categories": [
+            "AI",
+            "Langchain"
+          ],
+          "subcategories": {
+            "AI": [
+              "Agents",
+              "Miscellaneous",
+              "Root Nodes"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "OpenAI"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTM2Ljg2NzEgMTYuMzcxOEMzNy43NzQ2IDEzLjY0OCAzNy40NjIxIDEwLjY2NDIgMzYuMDEwOCA4LjE4NjYxQzMzLjgyODIgNC4zODY1MyAyOS40NDA3IDIuNDMxNDkgMjUuMTU1NiAzLjM1MTUxQzIzLjI0OTMgMS4yMDM5NiAyMC41MTA1IC0wLjAxNzMxNDggMTcuNjM5MiAwLjAwMDE4NTUzM0MxMy4yNTkxIC0wLjAwOTgxNDY4IDkuMzcyNzMgMi44MTAyNSA4LjAyNTIgNi45Nzc4M0M1LjIxMTM5IDcuNTU0MSAyLjc4MjU4IDkuMzE1MzggMS4zNjEzIDExLjgxMTdDLTAuODM3NDkzIDE1LjYwMTggLTAuMzM2MjMyIDIwLjM3OTQgMi42MDEzMyAyMy42Mjk0QzEuNjkzODEgMjYuMzUzMiAyLjAwNjMyIDI5LjMzNzEgMy40NTc2IDMxLjgxNDZDNS42NDAxNSAzNS42MTQ3IDEwLjAyNzcgMzcuNTY5NyAxNC4zMTI4IDM2LjY0OTdDMTYuMjE3OSAzOC43OTczIDE4Ljk1NzkgNDAuMDE4NSAyMS44MjkyIDM5Ljk5OThDMjYuMjExOCA0MC4wMTEgMzAuMDk5NCAzNy4xODg1IDMxLjQ0NjkgMzMuMDE3MUMzNC4yNjA4IDMyLjQ0MDkgMzYuNjg5NiAzMC42Nzk2IDM4LjExMDggMjguMTgzM0M0MC4zMDcxIDI0LjM5MzIgMzkuODA0NiAxOS42MTk0IDM2Ljg2ODMgMTYuMzY5M0wzNi44NjcxIDE2LjM3MThaTTIxLjgzMTcgMzcuMzg2QzIwLjA3OCAzNy4zODg1IDE4LjM3OTIgMzYuNzc0NyAxNy4wMzI5IDM1LjY1MDlDMTcuMDk0MSAzNS42MTg1IDE3LjIwMDQgMzUuNTU5NyAxNy4yNjkxIDM1LjUxNzJMMjUuMjM0MyAzMC45MTcxQzI1LjY0MTggMzAuNjg1OCAyNS44OTE4IDMwLjI1MjEgMjUuODg5MyAyOS43ODMzVjE4LjU1NDNMMjkuMjU1NiAyMC40OTgxQzI5LjI5MTkgMjAuNTE1NiAyOS4zMTU3IDIwLjU1MDYgMjkuMzIwNyAyMC41OTA2VjI5Ljg4OTZDMjkuMzE1NyAzNC4wMjQ3IDI1Ljk2NjggMzcuMzc3MiAyMS44MzE3IDM3LjM4NlpNNS43MjY0IDMwLjUwNzFDNC44NDc2MyAyOC45ODk2IDQuNTMxMzcgMjcuMjEwOCA0LjgzMjYzIDI1LjQ4NDVDNC44OTEzOCAyNS41MTk1IDQuOTk1MTMgMjUuNTgzMiA1LjA2ODg4IDI1LjYyNTdMMTMuMDM0MSAzMC4yMjU4QzEzLjQzNzggMzAuNDYyMSAxMy45Mzc4IDMwLjQ2MjEgMTQuMzQyOCAzMC4yMjU4TDI0LjA2NjggMjQuNjEwN1YyOC40OTgzQzI0LjA2OTMgMjguNTM4MyAyNC4wNTA1IDI4LjU3NyAyNC4wMTkzIDI4LjYwMkwxNS45Njc5IDMzLjI1MDlDMTIuMzgxNSAzNS4zMTU5IDcuODAxNDQgMzQuMDg4NCA1LjcyNzY1IDMwLjUwNzFINS43MjY0Wk0zLjYzMDEgMTMuMTIwNUM0LjUwNTEyIDExLjYwMDQgNS44ODY0IDEwLjQzNzkgNy41MzE0NCA5LjgzNDE1QzcuNTMxNDQgOS45MDI5IDcuNTI3NjkgMTAuMDI0MSA3LjUyNzY5IDEwLjEwOTJWMTkuMzEwNkM3LjUyNTE5IDE5Ljc3ODEgNy43NzUxOSAyMC4yMTE5IDguMTgxNDUgMjAuNDQzMUwxNy45MDU0IDI2LjA1N0wxNC41MzkxIDI4LjAwMDhDMTQuNTA1MyAyOC4wMjMzIDE0LjQ2MjggMjguMDI3IDE0LjQyNTMgMjguMDEwOEw2LjM3MjY2IDIzLjM1ODJDMi43OTM4MyAyMS4yODU2IDEuNTY2MzEgMTYuNzA2OCAzLjYyODg1IDEzLjEyMTdMMy42MzAxIDEzLjEyMDVaTTMxLjI4ODIgMTkuNTU2OUwyMS41NjQyIDEzLjk0MTdMMjQuOTMwNiAxMS45OTkyQzI0Ljk2NDMgMTEuOTc2NyAyNS4wMDY4IDExLjk3MjkgMjUuMDQ0MyAxMS45ODkyTDMzLjA5NyAxNi42MzhDMzYuNjgyMSAxOC43MDkzIDM3LjkxMDggMjMuMjk1NyAzNS44Mzk1IDI2Ljg4MDhDMzQuOTYzMyAyOC4zOTgzIDMzLjU4MzIgMjkuNTYwOCAzMS45Mzk1IDMwLjE2NThWMjAuNjg5NEMzMS45NDMyIDIwLjIyMTkgMzEuNjk0NSAxOS43ODk0IDMxLjI4OTQgMTkuNTU2OUgzMS4yODgyWk0zNC42MzgzIDE0LjUxNDJDMzQuNTc5NSAxNC40NzggMzQuNDc1OCAxNC40MTU1IDM0LjQwMiAxNC4zNzNMMjYuNDM2OCA5Ljc3Mjg5QzI2LjAzMzEgOS41MzY2NCAyNS41MzMxIDkuNTM2NjQgMjUuMTI4MSA5Ljc3Mjg5TDE1LjQwNDEgMTUuMzg4VjExLjUwMDRDMTUuNDAxNiAxMS40NjA0IDE1LjQyMDQgMTEuNDIxNyAxNS40NTE2IDExLjM5NjdMMjMuNTAzIDYuNzUxNThDMjcuMDg5NCA0LjY4Mjc5IDMxLjY3NDUgNS45MTQwNiAzMy43NDIgOS41MDE2NEMzNC42MTU4IDExLjAxNjcgMzQuOTMyIDEyLjc5MDUgMzQuNjM1OCAxNC41MTQySDM0LjYzODNaTTEzLjU3NDEgMjEuNDQzMUwxMC4yMDY1IDE5LjQ5OTRDMTAuMTcwMiAxOS40ODE5IDEwLjE0NjUgMTkuNDQ2OCAxMC4xNDE1IDE5LjQwNjhWMTAuMTA3OUMxMC4xNDQgNS45Njc4MSAxMy41MDI4IDIuNjEyNzQgMTcuNjQyOSAyLjYxNTI0QzE5LjM5NDIgMi42MTUyNCAyMS4wODkyIDMuMjMwMjUgMjIuNDM1NSA0LjM1MDI4QzIyLjM3NDMgNC4zODI3OCAyMi4yNjkzIDQuNDQxNTMgMjIuMTk5MiA0LjQ4NDAzTDE0LjIzNDEgOS4wODQxM0MxMy44MjY2IDkuMzE1MzggMTMuNTc2NiA5Ljc0Nzg5IDEzLjU3OTEgMTAuMjE2N0wxMy41NzQxIDIxLjQ0MDZWMjEuNDQzMVpNMTUuNDAyOSAxNy41MDA2TDE5LjczNDIgMTQuOTk5M0wyNC4wNjU1IDE3LjQ5OTNWMjIuNTAwN0wxOS43MzQyIDI1LjAwMDdMMTUuNDAyOSAyMi41MDA3VjE3LjUwMDZaIiBmaWxsPSJibGFjayIvPgo8L3N2Zz4K"
+      },
+      "displayName": "OpenAI",
+      "typeVersion": 2,
+      "nodeCategories": [
+        {
+          "id": 25,
+          "name": "AI"
+        },
+        {
+          "id": 26,
+          "name": "Langchain"
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "id": 38,
+      "name": "Lead Nurturing"
+    },
+    {
+      "id": 47,
+      "name": "AI Chatbot"
+    }
+  ],
+  "image": []
+}

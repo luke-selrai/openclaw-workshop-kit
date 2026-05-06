@@ -1,0 +1,21 @@
+{
+  "id": 9796,
+  "title": "Automate invoice generation & email delivery with Jotform, Xero & GPT-4o-mini",
+  "description": "## Generate Invoices for Customers with Jotform, Xero and Slack\nThis workflow automates the entire process of receiving a product/service order, checking or creating a customer in **Xero**, generating an invoice, emailing it, and notifying the sales team for example (via **Slack**)  \u2014 all triggered by a form submission (via **Jotform**).\n\n## How It Works\n1. **Receive Submission**\n* Triggered when a user submits a form.\n* Collects data like customer details, selected product/service, etc.\n\n2. **Check If Customer Exists**\n* Searches Xero to determine if the customer already exists.\n* \u2705 **If Customer Exists:** **Update** customer details.\n* \u274c **If Customer Doesn\u2019t Exist:** **Create** a new customer in Xero.\n\n3. **Create The Invoice**\n* Generates a new invoice for the customer using the item selected.\n\n4. **Send The Invoice**\n* Automatically sends the invoice via email to the customer.\n\n5. **Notify The Team**\n* Notifies the sales team for example via Slack about the new invoice.\n\n## Who Can Benefit from This Workflow?\n* **Freelancers**\n* **Service Providers**\n* **Consultants & Coaches**\n* **Small Businesses**\n* **E-commerce or Custom Product Sellers**\n\n## Requirements\n- Jotform webhook setup, more info [here](https://www.jotform.com/help/245-how-to-setup-a-webhook-with-jotform/)\n- Xero credentials, more info [here](https://docs.n8n.io/integrations/builtin/credentials/xero)\n- Make sure that products/services values in Jotform are exactly the same as your item `Code` in your Xero account\n- Email setup, update email node (`Send email`)\n- LLM model credentials\n- Slack credentials, more info [here](https://docs.n8n.io/integrations/builtin/credentials/slack)",
+  "category": "finance-invoicing",
+  "services_required": [],
+  "node_count": 9,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/9796",
+  "source": "n8n.io",
+  "matched_keyword": "xero",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "finance-invoicing",
+    "xero"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/10 nodes typed (10%)"
+}

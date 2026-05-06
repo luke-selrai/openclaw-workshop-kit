@@ -1,0 +1,26 @@
+{
+  "id": 194096357,
+  "title": "Gmail Workflow",
+  "description": "n8n workflow: Gmail Workflow. 6 nodes wired together. Uses: manualTrigger, gmail, spreadsheetFile, moveBinaryData, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Gmail/0221_Gmail_Movebinarydata_Send.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "email-automation",
+  "services_required": [
+    "manualTrigger",
+    "gmail",
+    "spreadsheetFile",
+    "moveBinaryData",
+    "stopAndError"
+  ],
+  "node_count": 6,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Gmail/0221_Gmail_Movebinarydata_Send.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": 2807,
+  "title": "Create QuickBooks Online customers with sales receipts for new Stripe payments",
+  "description": "Streamline your accounting by automatically creating QuickBooks Online customers and sales receipts whenever a successful Stripe payment is processed. Ideal for businesses looking to reduce manual data entry and improve accounting efficiency.\n\n## How it works\n\n1. **Trigger**: The workflow is triggered when a new successful payment intent event is received from Stripe.\n2. **Retrieve Customer Data**: Fetches customer details from Stripe associated with the payment.\n3. **Check QuickBooks Customer**: Searches QuickBooks Online to see if the customer already exists using their email address.\n4. **Create or Use Existing Customer**: If the customer doesn't exist in QuickBooks, they are created; otherwise, the existing customer is used.\n5. **Generate Sales Receipt**: A sales receipt is created in QuickBooks Online with payment details, including item descriptions, amounts, and currency.\n\n## Set up steps\n\n1. **Connect Accounts**: Authenticate both your QuickBooks Online and Stripe accounts in n8n.\n2. **Webhook Setup**: Configure the Stripe webhook to send `payment_intent.succeeded` events to this workflow.\n3. **Test the Workflow**: Trigger a test payment in Stripe to validate the integration.\n4. **Customize Details**: Adjust item descriptions or other fields in the QuickBooks sales receipt JSON body as needed.\n\nThis workflow requires basic familiarity with n8n, but setup can be completed in under 15 minutes for most users.",
+  "category": "finance-invoicing",
+  "services_required": [],
+  "node_count": 6,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/2807",
+  "source": "n8n.io",
+  "matched_keyword": "stripe",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "finance-invoicing",
+    "stripe"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/7 nodes typed (14%)"
+}

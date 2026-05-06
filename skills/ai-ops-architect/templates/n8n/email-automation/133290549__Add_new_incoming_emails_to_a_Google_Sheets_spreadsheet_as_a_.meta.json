@@ -1,0 +1,24 @@
+{
+  "id": 133290549,
+  "title": "Add new incoming emails to a Google Sheets spreadsheet as a new row.",
+  "description": "## Description :\nThis n8n workflow automates the process of storing email details in a spreadsheet whenever a new email is received. It utilizes the Email Trigger node to detect incoming emails and then extracts the sender, subject, and email content, which are subsequently saved into a spreadsheet (e.g., Google Sheets or an Excel file). This ensures a structured record of emails for further processing, analysis, or reporting.\n\nYou can customize this workflow as per your requirements, such as adding additional columns in the spreadsheet to store more details or modifying it for different use cases, like lead tracking, customer inquiries, or automated email logging.",
+  "category": "email-automation",
+  "services_required": [
+    "gmailTrigger",
+    "googleSheets",
+    "stopAndError"
+  ],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Googlesheets/1833_GoogleSheets_Gmail_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": 14825,
+  "title": "Turn top Instagram reels into 7 new scripts using Apify, OpenAI, Claude and Google Sheets",
+  "description": "Automatically turn top performing Instagram reels into 7 new ready to use content scripts. This workflow scrapes high performing posts from a chosen Instagram profile, downloads and transcribes the reel audio, analyzes the transcript patterns with AI, and generates 7 fresh script ideas based on what is already working. The final scripts are written into a Google Doc with clean formatting and clear headings, so you can easily review, refine, and publish them. Ideal for creators, social media managers, and marketing teams looking to scale short form content production.",
+  "category": "lead-capture",
+  "services_required": [],
+  "node_count": 9,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/14825",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/10 nodes typed (10%)"
+}

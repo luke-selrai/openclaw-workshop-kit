@@ -1,0 +1,21 @@
+{
+  "id": 5936,
+  "title": "Personalized hotel reward emails for high-spenders with Salesforce, Gemini AI & Brevo",
+  "description": "This n8n workflow automatically detects high\u2011spending hotel guests after checkout and emails them a personalized, one\u2011time reward offer.\n\n---\n\n### **\ud83d\udd27 What it does**\n- Watches Salesforce `Guest__c` custom object for checkout updates.\n- Pulls guest spend data on optional paid amenities:\n  - Room Service\n  - Minibar\n  - Laundry\n  - Late Checkout\n  - Extra Bed\n  - Airport Transfer\n- Calculates total spend to identify VIP guests (\u2265 **$50**).\n- Uses AI to:\n  - Spot unused services.\n  - Randomly pick one unused service.\n  - Generate a realistic, short promo like:  \n    _\"Free late checkout on your next stay\"_\n- Parses AI output into JSON.\n- Sends a polished HTML email to the guest with their personalized offer.\n\n---\n\n### **\ud83d\udce6 Key nodes**\n- `Salesforce Trigger` \u2192 monitors new checkouts.\n- `Salesforce` \u2192 fetches detailed spend data.\n- `Function` \u2192 sums up total amenity spend.\n- `IF` \u2192 filters for VIP guests.\n- `LangChain LLM` + `Google Vertex AI` \u2192 drafts the offer text.\n- `Structured Output Parser` \u2192 cleans AI output.\n- `Brevo` \u2192 delivers branded email.\n\n---\n\n### **\ud83d\udcca Example output**\n&gt; _Subject:_ `John, We Have Something Special for Your Next Stay`  \n&gt; _Offer in email:_ `Enjoy a complimentary minibar selection on your next stay.`\n\n---\n\n### **\u2728 Why it matters**\nRewarding guests who already spend boosts loyalty and repeat bookings \u2014 without generic discounts. The offer feels personal, relevant, and exclusive.",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 9,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/5936",
+  "source": "n8n.io",
+  "matched_keyword": "hotel",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "hotel"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/10 nodes typed (10%)"
+}

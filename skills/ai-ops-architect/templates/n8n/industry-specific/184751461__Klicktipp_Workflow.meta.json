@@ -1,0 +1,25 @@
+{
+  "id": 184751461,
+  "title": "Klicktipp Workflow",
+  "description": "### Introduction\nThis workflow streamlines the integration between Calendly and KlickTipp, managing bookings and cancellations dynamically while ensuring accurate data transformation and seamless synchronization. Input data is validated and formatted to meet KlickTipp\u2019s API requirements, including handling guests, rescheduling, and cancellations.\n\n### Benefits\n- **Improved scheduling management**: Automatically processes bookings and cancellations in Calendly, saving time and reducing errors. Contacts are automatically imported into KlickTipp and can be used immediately, saving time and increasing the conversion rate.\n- **Automated processes**: Experts can start workflows directly, such as welcome emails or course admissions, reducing administrative effort.\n- **Error-free data management**: The template ensures precise data mapping, avoids manual corrections, and reinforces a professional appearance.\n\n### Key Features\n- **Calendly Trigger**: Captures booking and cancellation events, including invitee and guest details.\n- **Data Processing**: Validates and standardizes input fields:\n  - Converts dates to UNIX timestamps for API compatibility.\n  - Processes guests dynamically, splitting guest emails into individual records.\n  - Validates invitee email addresses to ensure accuracy.\n- **Subscriber Management in KlickTipp**: Adds or updates invitees and guests as subscribers in KlickTipp. Supports custom field mappings such as:\n  - Invitee information: Name, email, booking details.\n  - Event details: Start/end times, timezone, and guest emails.\n- **Error Handling**: Differentiates between cancellations and rescheduling, preventing redundant or incorrect updates.\n\n#### Setup Instructions\n1. Install the required nodes:\n   - Ensure the KlickTipp community node and its dependencies are installed.\n2. Authenticate your Calendly and KlickTipp accounts.\n3. Pre-create the following custom fields in KlickTipp to align with workflow requirements.\n4. Open each KlickTipp node and map the fields to align with your setup.\n\n![Screenshot Description]({{ $env.WEBHOOK_URL }}\n\n### Testing and Deployment\n1. Test the workflow by triggering a Calendly event.\n2. Verify that the invitee and guest data is updated accurately in KlickTipp.\n\n- **Customization**: Adjust field mappings within KlickTipp nodes to match your specific account setup.",
+  "category": "industry-specific",
+  "services_required": [
+    "n8n-nodes-klicktipp.klicktipp",
+    "splitOut",
+    "calendlyTrigger",
+    "stopAndError"
+  ],
+  "node_count": 20,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski-r2",
+  "source_path": "workflows/Calendly/0660_Calendly_Noop_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "czlonkowski-backfill-r2"
+  ]
+}

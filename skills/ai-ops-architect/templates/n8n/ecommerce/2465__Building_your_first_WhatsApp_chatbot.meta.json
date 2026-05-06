@@ -1,0 +1,19 @@
+{
+  "id": 2465,
+  "title": "Building your first WhatsApp chatbot",
+  "description": "This n8n template builds a simple WhatsApp chabot acting as a Sales Agent. The Agent is backed by a product catalog vector store to better answer user's questions.\n\nThis template is intended to help introduce n8n users interested in building with WhatsApp.\n\n## How it works\n* This template is in 2 parts: creating the product catalog vector store and building the WhatsApp AI chatbot.\n* A product brochure is imported via HTTP request node and its text contents extracted.\n* The text contents are then uploaded to the in-memory vector store to build a knowledgebase for the chatbot.\n* A WhatsApp trigger is used to capture messages from customers where non-text messages are filtered out.\n* The customer's message is sent to the AI Agent which queries the product catalogue using the vector store tool.\n* The Agent's response is sent back to the user via the WhatsApp node.\n\n## How to use\n\nOnce you've setup and configured your WhatsApp account and credentials\n* First, populate the vector store by clicking the \"Test Workflow\" button.\n* Next, activate the workflow to enable the WhatsApp chatbot.\n* Message your designated WhatsApp number and you should receive a message from the AI sales agent.\n* Tweak datasource and behaviour as required.\n\n## Requirements\n* WhatsApp Business Account\n* OpenAI for LLM\n\n## Customising this workflow\n\n* Upgrade the vector store to [Qdrant](https://qdrant.tech) for persistance and production use-cases.\n* Handle different WhatsApp message types for a more rich and engaging experience for customers.",
+  "category": "ecommerce",
+  "services_required": [],
+  "node_count": 15,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/2465",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ecommerce"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/16 nodes typed (6%)"
+}

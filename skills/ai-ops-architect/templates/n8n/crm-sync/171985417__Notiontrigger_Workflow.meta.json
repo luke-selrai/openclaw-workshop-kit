@@ -1,0 +1,26 @@
+{
+  "id": 171985417,
+  "title": "Notiontrigger Workflow",
+  "description": "n8n workflow: Notiontrigger Workflow. 6 nodes wired together. Uses: notionTrigger, clickUp, clickUpTrigger, notion, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Clickup/0282_Clickup_Notion_Update_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "crm-sync",
+  "services_required": [
+    "notionTrigger",
+    "clickUp",
+    "clickUpTrigger",
+    "notion",
+    "stopAndError"
+  ],
+  "node_count": 6,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Clickup/0282_Clickup_Notion_Update_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "crm-sync",
+    "czlonkowski-backfill"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": 13574,
+  "title": "Log workouts and get AI fitness analysis with a form, Google Gemini, Sheets, Slack, and Gmail",
+  "description": "## Who is this for\n\nGym-goers, runners, home workout enthusiasts, and personal trainers who want to track workouts without fiddling with complicated fitness apps. Just type what you did and let AI handle the rest.\n\n## What this workflow does\n\nFill in a simple web form with your workout in plain text \u2014 something like \"Bench press 60kg x10 x3, 5km run 28min, squats bodyweight x20 x4.\" Google Gemini AI parses each exercise, identifies the muscle groups worked, estimates calories burned, and rates the workout intensity. A code node validates the AI output and structures it into a clean record. Everything gets saved to a Google Sheet as a running training log. You receive a Slack notification and an email summary with personalized tips and a suggestion for your next session.\n\n## How to set up\n\n1. Create a Google Sheet with a \"Workouts\" tab and add column headers: Date, Workout, Duration, Feeling, Type, Exercises, Calories, Muscles, Intensity, Tips, Next Suggestion, Notes, Logged At\n2. Add your Google Sheets and Gmail credentials in n8n\n3. Get a free Gemini API key from Google AI Studio\n4. Connect Slack and set the channel ID in the Slack node\n5. Update the email address in the Gmail node\n6. Activate and bookmark the form URL\n\n## Requirements\n\n- Google Gemini API key (free tier available)\n- Google Sheets and Gmail credentials\n- Slack workspace with a connected app\n\n## How to customize\n\n- Edit the AI prompt to add sport-specific analysis (swimming, cycling, climbing)\n- Remove Slack or Gmail if you only need one notification channel\n- Add a weekly summary node that aggregates your training volume",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 8,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/13574",
+  "source": "n8n.io",
+  "matched_keyword": "fitness",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "fitness"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/9 nodes typed (11%)"
+}

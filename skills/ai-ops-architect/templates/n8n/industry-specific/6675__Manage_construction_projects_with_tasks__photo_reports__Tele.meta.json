@@ -1,0 +1,21 @@
+{
+  "id": 6675,
+  "title": "Manage construction projects with tasks, photo reports, Telegram & Google Sheets",
+  "description": "## How it works\nThis template helps project managers collect task updates and photo reports from field workers via Telegram and stores everything in a Google Sheet. It enables daily project reporting without paper or back-office overhead.\n\nHigh-level flow:\n\nWorkers receive daily tasks via Telegram\n\nThey respond with photo reports\n\nBot auto-saves replies (photos + status) to a Google Sheet\n\nThe system tracks task completion, adds timestamps, and maintains report history\n\n## Set up steps\n\ud83d\udd52 Estimated setup time: 15\u201330 min\nYou\u2019ll need:\n\nA Telegram bot (via BotFather)\n\nA connected Google Sheet (with specific column headers)\n\nA set of preconfigured tasks\n\n\ud83d\udc49 Detailed setup instructions and required table structure are documented in sticky notes inside the workflow.\n\n## Consulting and Training\nWe work with leading construction, engineering, consulting agencies and technology firms around the world to help them implement open data principles, automate CAD/BIM processing and build robust ETL pipelines.\n\nIf you would like to test this solution with your own data, or are interested in adapting the workflow to real project tasks, feel free to contact us.\n\n\n**Docs & Issues:**  \n  [Full Readme on GitHub](https://github.com/datadrivenconstruction/cad2data-Revit-IFC-DWG-DGN-pipeline-with-conversion-validation-qto)",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 10,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/6675",
+  "source": "n8n.io",
+  "matched_keyword": "construction",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "construction"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/11 nodes typed (9%)"
+}

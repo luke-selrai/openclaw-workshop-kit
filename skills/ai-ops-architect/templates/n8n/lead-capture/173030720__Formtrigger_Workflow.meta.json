@@ -1,0 +1,25 @@
+{
+  "id": 173030720,
+  "title": "Formtrigger Workflow",
+  "description": "## Try It Out!\n### This workflow does the following:\n* Uses an n8n form to capture an event to be announced.\n* Form includes imagery required for the event and this is sent to OpenAI Dalle-3 service to generate.\n* Event details as well as the ai-generated image is then sent to the BannerBear.com service where a template is used.\n* The final event poster is created and posted to X (formerly Twitter)\n\n### Need Help?\nJoin the [Discord]({{ $env.WEBHOOK_URL }} or ask in the [Forum]({{ $env.WEBHOOK_URL }}\n\nHappy Hacking!",
+  "category": "lead-capture",
+  "services_required": [
+    "formTrigger",
+    "httpRequest",
+    "bannerbear",
+    "discord"
+  ],
+  "node_count": 16,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Bannerbear/0525_Bannerbear_Discord_Create_Webhook.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture",
+    "czlonkowski-backfill"
+  ]
+}

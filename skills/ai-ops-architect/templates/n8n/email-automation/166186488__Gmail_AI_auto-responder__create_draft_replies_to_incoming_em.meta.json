@@ -1,0 +1,24 @@
+{
+  "id": 166186488,
+  "title": "Gmail AI auto-responder: create draft replies to incoming emails",
+  "description": "## ...as a Draft in the conversation",
+  "category": "email-automation",
+  "services_required": [
+    "gmailTrigger",
+    "gmail",
+    "stopAndError"
+  ],
+  "node_count": 13,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Gmail/1479_Gmail_Stickynote_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

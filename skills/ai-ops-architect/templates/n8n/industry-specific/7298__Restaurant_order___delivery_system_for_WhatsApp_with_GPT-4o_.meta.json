@@ -1,0 +1,21 @@
+{
+  "id": 7298,
+  "title": "Restaurant order & delivery system for WhatsApp with GPT-4o and Supabase",
+  "description": "## How it works\nThis workflow creates a complete AI-powered restaurant ordering system through WhatsApp. It receives customer messages, processes multimedia content (text, voice, images, PDFs, location), uses GPT-4 to understand customer intent and manage conversations, handles the complete ordering flow from menu selection to payment verification, and sends formatted orders to restaurant staff. The system maintains conversation memory, verifies payment receipts using OCR, and provides automated responses in multiple languages.\n\n## Who's it for\nRestaurant owners, food delivery services, and hospitality businesses looking to automate customer service and order management through WhatsApp without hiring additional staff.\n\n## Requirements\n- WhatsApp Business API account\n- OpenAI API key (GPT-4/GPT-4o access recommended)\n- Supabase account (for conversation memory and vector storage)\n- Google Drive account (for menu images and QR codes)\n- Google Maps API key (for location services)\n- Gemini API key (for PDF processing)\n\n## How to set up\n1. **Configure credentials** - Add your WhatsApp Business API, OpenAI, Supabase, Google Drive, and Gemini API credentials to n8n\n2. **Update phone numbers** - Replace `[PHONE_NUMBER]` placeholders with your actual restaurant and staff phone numbers\n3. **Customize restaurant details** - Replace `[RESTAURANT_NAME]`, `[RESTAURANT_OWNER_NAME]`, and `[BANK_ACCOUNT_NUMBER]` with your information\n4. **Upload menu images** - Add your menu images to Google Drive and update the file IDs\n5. **Set up Supabase** - Create tables for chat memory and upload your menu/restaurant information to the vector database\n6. **Configure AI prompts** - Update the restaurant information in the AI agent system messages\n7. **Test the workflow** - Send test messages to verify all integrations work\n\n## How to customize the workflow\n- **Menu management**: Update Google Drive file IDs to display your current menu images\n- **Payment verification**: Modify the receipt analysis logic to match your bank's receipt format\n- **Order formatting**: Customize the order confirmation template sent to kitchen staff\n- **AI personality**: Adjust the restaurant agent's tone and responses in the system prompts\n- **Languages**: The AI supports multiple languages - customize welcome messages for your target market\n- **Business hours**: Add time-based logic to handle orders outside operating hours\n- **Delivery zones**: Integrate with your delivery area logic using the location processing features",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 16,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/7298",
+  "source": "n8n.io",
+  "matched_keyword": "restaurant",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "restaurant"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/17 nodes typed (6%)"
+}

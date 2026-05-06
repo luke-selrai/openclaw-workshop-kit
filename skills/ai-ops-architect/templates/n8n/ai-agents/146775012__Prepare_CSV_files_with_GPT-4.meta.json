@@ -1,0 +1,29 @@
+{
+  "id": 146775012,
+  "title": "Prepare CSV files with GPT-4",
+  "description": "## This is a helper workflow to create 3 CSV files\n### Feel free to adapt as needed\n### Some mock data from GPT is pinned for convenience",
+  "category": "ai-agents",
+  "services_required": [
+    "manualTrigger",
+    "openAi",
+    "splitInBatches",
+    "itemLists",
+    "spreadsheetFile",
+    "writeBinaryFile",
+    "moveBinaryData",
+    "stopAndError"
+  ],
+  "node_count": 12,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/1102_Manual_Openai_Automation_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ai-agents",
+    "czlonkowski-backfill"
+  ]
+}

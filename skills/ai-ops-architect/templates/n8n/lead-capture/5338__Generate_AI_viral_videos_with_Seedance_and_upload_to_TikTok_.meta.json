@@ -1,0 +1,19 @@
+{
+  "id": 5338,
+  "title": "Generate AI viral videos with Seedance and upload to TikTok, YouTube & Instagram",
+  "description": "![Workflow Screenshot](https://www.dr-firas.com/seedanceII.png)\n\n# Generate AI videos with Seedance & Blotato, upload to TikTok, YouTube & Instagram\n\n### Who is this for?\n\nThis template is ideal for creators, content marketers, social media managers, and AI enthusiasts who want to automate the production of short-form, visually captivating videos for platforms like TikTok, YouTube Shorts, and Instagram Reels \u2014 all without manual editing or publishing.\n\n### What problem is this workflow solving?\n\nCreating engaging videos requires:\n- Generating creative ideas  \n- Writing detailed scene prompts  \n- Producing realistic video clips and sound effects  \n- Editing and stitching the final video  \n- Publishing across multiple platforms  \n\nThis workflow automates the entire process, saving hours of manual work and ensuring consistent, AI-driven content output ready for social distribution.\n\n### What this workflow does\n\nThis end-to-end AI video automation workflow:\n\n1. **Generates a creative idea** using OpenAI and LangChain  \n2. **Creates detailed video prompts** with Seedance AI  \n3. **Generates video clips** via Wavespeed AI  \n4. **Generates sound effects** with Fal AI  \n5. **Stitches the final video** using Fal AI\u2019s ffmpeg API  \n6. **Logs metadata and video links** to Google Sheets  \n7. **Uploads the video to Blotato**  \n8. **Auto-publishes to TikTok, YouTube, Instagram, and other platforms**\n\n### Setup\n\n1. Add your **OpenAI API key** in the LLM nodes  \n2. Set up **Seedance and Wavespeed AI credentials** for video prompt and clip generation  \n3. Add your **Fal AI API key** for sound and stitching steps  \n4. Connect your **Google Sheets account** for tracking ideas and outputs  \n5. Set your **Blotato API key** and fill in the platform account IDs in the `Assign Social Media IDs` node  \n6. Adjust the **Schedule Trigger** to control when the automation runs  \n\n### How to customize this workflow to your needs\n\n- **Change the AI prompts** to target your niche (e.g., ASMR, product videos, humor)  \n- **Add a Telegram or Slack step** for video preview before publishing  \n- **Tweak scene structure** or video duration to match your style  \n- **Disable platforms** you don\u2019t want by turning off specific HTTP Request nodes  \n- **Edit the sound generation prompts** for different moods or effects  \n\n\ud83d\udcc4 **Documentation**: [Notion Guide](https://automatisation.notion.site/Generate-AI-Videos-with-Seedance-Blotato-and-Upload-to-TikTok-YouTube-Instagram-version-II-21d3d6550fd980218096d84f31bfae2d?source=copy_link)\n\n---\n\n### Need help customizing?\nContact me for consulting and support : [Linkedin](https://www.linkedin.com/in/dr-firas/) / [Youtube](https:/https://www.youtube.com/@DRFIRASS)",
+  "category": "lead-capture",
+  "services_required": [],
+  "node_count": 11,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/5338",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/12 nodes typed (8%)"
+}

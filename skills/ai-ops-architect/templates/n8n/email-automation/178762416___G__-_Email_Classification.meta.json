@@ -1,0 +1,24 @@
+{
+  "id": 178762416,
+  "title": "(G) - Email Classification",
+  "description": "### 4) Agent instruction\n* Input the category name that you just created in gmail.\n* Description = Tell agent about how should it classify your email. Keywords can be useful to let your agent classify the email context.",
+  "category": "email-automation",
+  "services_required": [
+    "gmailTrigger",
+    "gmail",
+    "stopAndError"
+  ],
+  "node_count": 16,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Gmail/1914_Gmail_Stickynote_Send_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

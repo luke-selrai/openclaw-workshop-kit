@@ -1,0 +1,26 @@
+{
+  "id": 124194475,
+  "title": "Wordpress-to-csv",
+  "description": "n8n workflow: Wordpress-to-csv. 5 nodes wired together. Uses: manualTrigger, wordpress, spreadsheetFile, writeBinaryFile, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Manual/0359_Manual_Wordpress_Automation_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "content-pipeline",
+  "services_required": [
+    "manualTrigger",
+    "wordpress",
+    "spreadsheetFile",
+    "writeBinaryFile",
+    "stopAndError"
+  ],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/0359_Manual_Wordpress_Automation_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "content-pipeline",
+    "czlonkowski-backfill"
+  ]
+}

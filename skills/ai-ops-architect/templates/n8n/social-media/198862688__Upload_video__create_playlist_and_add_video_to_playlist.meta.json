@@ -1,0 +1,25 @@
+{
+  "id": 198862688,
+  "title": "Upload video, create playlist and add video to playlist",
+  "description": "n8n workflow: Upload video, create playlist and add video to playlist. 6 nodes wired together. Uses: manualTrigger, youTube, readBinaryFile, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Manual/0476_Manual_Youtube_Create_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "social-media",
+  "services_required": [
+    "manualTrigger",
+    "youTube",
+    "readBinaryFile",
+    "stopAndError"
+  ],
+  "node_count": 6,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/0476_Manual_Youtube_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "social-media",
+    "czlonkowski-backfill"
+  ]
+}

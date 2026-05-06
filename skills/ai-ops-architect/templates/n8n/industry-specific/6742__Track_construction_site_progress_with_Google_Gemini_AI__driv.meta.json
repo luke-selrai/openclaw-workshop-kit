@@ -1,0 +1,21 @@
+{
+  "id": 6742,
+  "title": "Track construction site progress with Google Gemini AI, drive photos and Sheets",
+  "description": "This automated n8n workflow leverages AI to monitor construction site progress using daily site photos, providing real-time updates and detailed tracking. The system analyzes images, generates progress summaries, and appends data to a Google Sheet for comprehensive project management.\n\n## Good to Know\n- Supports daily photo analysis for construction progress tracking\n- Utilizes Google Gemini AI for intelligent image processing and analysis\n- Includes memory to maintain context of ongoing construction updates\n- Automates data appending to Google Sheets for real-time tracking\n- Integrates with scheduled triggers for consistent daily updates\n\n## How It Works\n- **Schedule Trigger** - Initiates the workflow daily to check for new site photos\n- **List a file** - Retrieves the latest photos from the designated drive folder\n- **Tack All Images** - Passes each photo to the AI for individual analysis\n- **AI Analysis** - Processes images using Google Gemini to detect construction progress\n- **Append data to a sheet** - Updates a Google Sheet with the analyzed progress data\n- **Send email** - Notifies stakeholders with a daily progress update\n\n## How to Use\n- Import workflow into n8n\n- Configure Google Drive API for photo access\n- Set up Google Gemini AI model for image analysis\n- Configure Google Sheets API for data appending\n- Set up email notification settings\n- Test with sample photos and monitor updates\n- Adjust AI parameters for accuracy as needed\n\n## Requirements\n- Access to Google Drive API\n- Google Gemini AI model integration\n- Google Sheets API access\n- Email service configuration\n- Scheduled trigger setup in n8n\n\n### Sheet Columns:\n- **Date**\n- **Photo ID**\n- **Progress Summary**\n- **Status**\n- **Notes**\n\n## Customizing This Workflow\n- Modify AI prompts for specific construction milestones\n- Adjust photo analysis frequency based on project needs\n- Configure custom Google Sheet columns for additional data\n- Set up custom email templates for stakeholder updates\n- Integrate additional AI models for enhanced analysis",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 8,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/6742",
+  "source": "n8n.io",
+  "matched_keyword": "construction",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "construction"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/9 nodes typed (11%)"
+}

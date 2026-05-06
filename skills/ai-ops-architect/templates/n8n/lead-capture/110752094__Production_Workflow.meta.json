@@ -1,0 +1,25 @@
+{
+  "id": 110752094,
+  "title": "Production Workflow",
+  "description": "n8n workflow: Production Workflow. 5 nodes wired together. Uses: webhook, mindee, airtable, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Airtable/1120_Airtable_Mindee_Automate_Webhook.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "lead-capture",
+  "services_required": [
+    "webhook",
+    "mindee",
+    "airtable",
+    "stopAndError"
+  ],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Airtable/1120_Airtable_Mindee_Automate_Webhook.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture",
+    "czlonkowski-backfill"
+  ]
+}

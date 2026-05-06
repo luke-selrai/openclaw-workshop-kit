@@ -1,0 +1,24 @@
+{
+  "id": 138844319,
+  "title": "Manualtrigger Workflow",
+  "description": "n8n workflow: Manualtrigger Workflow. 3 nodes wired together. Uses: manualTrigger, wordpress, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Manual/1014_Manual_Wordpress_Automate_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "content-pipeline",
+  "services_required": [
+    "manualTrigger",
+    "wordpress",
+    "stopAndError"
+  ],
+  "node_count": 3,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/1014_Manual_Wordpress_Automate_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "content-pipeline",
+    "czlonkowski-backfill"
+  ]
+}

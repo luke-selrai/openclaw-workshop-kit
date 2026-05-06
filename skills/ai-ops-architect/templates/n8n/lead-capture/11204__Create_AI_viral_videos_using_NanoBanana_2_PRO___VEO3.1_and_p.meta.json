@@ -1,0 +1,19 @@
+{
+  "id": 11204,
+  "title": "Create AI viral videos using NanoBanana 2 PRO & VEO3.1 and publish via Blotato",
+  "description": "# \ud83d\udca5 Create AI Viral Videos using NanoBanana 2 PRO & VEO3.1 and Publish via Blotato\n\n![Workflow Overview](https://www.dr-firas.com/nanobananaPro.png)\n\n### Who is this for?\n\nThis template is for **content creators, marketers, agencies, and UGC studios** who want to turn a simple Telegram message into **AI-generated vertical videos**, automatically published across multiple social platforms using **[Blotato](https://blotato.com/?ref=firas)**.  \n\n---\n\n### What problem is this workflow solving? / Use case\n\nCreating short-form video ads usually requires:\n- Designing visuals\n- Writing hooks and captions\n- Generating or editing video\n- Manually uploading to TikTok, Instagram, YouTube, Facebook, LinkedIn, X, etc.\n\nThis workflow solves that by automating the full pipeline from **image + idea \u2192 edited image \u2192 AI video \u2192 multi-platform post**.\n\n---\n\n### What this workflow does\n\n1. **Create Image with NanoBanana 2 PRO**  \n   - User sends a photo + caption idea to a Telegram bot.  \n   - OpenAI Vision analyzes the reference image.  \n   - An LLM builds a UGC-style image prompt.  \n   - **NanoBanana 2 PRO** generates an enhanced, UGC-friendly image.  \n\n2. **Generate Video with VEO3.1**  \n   - An AI Agent structures a detailed Veo prompt (scene, camera, lighting, audio).  \n   - Prompt is optimized and sent to **VEO3.1 reference-to-video**.  \n   - The result is a **9:16, ~8s vertical video** downloaded back into n8n.\n\n3. **Publish with Blotato**  \n   - Video is uploaded to **Blotato**.  \n   - Posts are created for TikTok, Instagram, YouTube, Facebook, LinkedIn, and X using the AI-generated caption, title, and hashtags.  \n   - A final \u201cPublished\u201d message is sent on Telegram.\n\n---\n\n### Setup\n\n1. Create and configure:\n   - **Telegram bot** (token in `Set: Bot Token (Placeholder)` node).\n   - **OpenAI** credentials.\n   - **Fal.ai API key** (for NanoBanana 2 PRO + VEO3.1).\n   - **[Blotato](https://blotato.com/?ref=firas)** account + API credentials and connected social accounts.\n2. Import the template into n8n and update all credential references.\n3. Test by sending a product image + short idea to your Telegram bot.\n\n---\n\n### How to customize this workflow to your needs\n\n- Edit the **UGC image prompt system message** to change visual style (more cinematic, minimal, etc.).\n- Adjust the **VEO prompt optimizer** to tweak duration, mood, or camera movement.\n- Enable/disable specific **Blotato platforms** depending on where you want to publish.\n- Modify the caption/hashtag generation logic to match your brand tone, language, or niche.\n\n---\n### \ud83d\udc4b Need help or want to customize this?\n\ud83d\udce9 Contact: [LinkedIn](https://www.linkedin.com/in/dr-firas/)  \n\ud83d\udcfa YouTube: [@DRFIRASS](https://www.youtube.com/@DRFIRASS)  \n\ud83d\ude80 Workshops: [Mes Ateliers n8n](https://hotm.art/formation-n8n)\n\n---\n\ud83d\udcc4 **Documentation**: [Notion Guide](https://automatisation.notion.site/NonoBanan-PRO-2-2b53d6550fd981a5acbecf7cf50aeb3c?source=copy_link)\n### Need help customizing?\nContact me for consulting and support : [Linkedin](https://www.linkedin.com/in/dr-firas/) / [Youtube](https://www.youtube.com/channel/UCriIQI8uaoEro5FEnOpeidQ) / [\ud83d\ude80 Mes Ateliers n8n  ](https://hotm.art/formation-n8n)",
+  "category": "lead-capture",
+  "services_required": [],
+  "node_count": 13,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/11204",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/14 nodes typed (7%)"
+}

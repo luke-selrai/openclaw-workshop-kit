@@ -1,0 +1,19 @@
+{
+  "id": 3066,
+  "title": "\u2728\ud83e\udd16Automate Multi-Platform Social Media Content Creation with AI",
+  "description": "# Automate Multi-Platform Social Media Content Creation with AI\n\n## Who is this for?  \n**Social Media Managers** and **Digital Marketers** seeking to streamline content production across 7+ platforms (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, Threads, YouTube Shorts) using AI-powered automation.\n\n## What problem does this solve?  \nCreating platform-optimized content at scale while maintaining brand consistency across multiple channels, reducing manual work by 80% through AI generation and automated publishing.\n\n## What this workflow does  \n1. **AI Content Generation**:  \n   - Uses GPT-4/Gemini to create platform-specific posts  \n   - Automatically generates hashtags, CTAs, and emoji placement  \n   - Supports image/video suggestions and image creation using OpenAI or Pollinations.ai\n   - Uses SERP api to search for relavent content\n\n2. **Approval Workflow**:  \n   - Sends formatted HTML emails for human review  \n   - Implements double-approval system with Gmail integration  \n\n3. **Cross-Platform Publishing**:  \n   - One-click deployment to:  \n     - Instagram/Facebook (via Graph API)  \n     - X/Twitter (Official API)  \n     - LinkedIn (Sales Navigator integration)  \n\n## Setup  \n1. **Credentials**:  \n   - OpenAI API key  \n   - Google Gemini API  \n   - Social media platform tokens (X, LinkedIn, Facebook)  \n   - ImgBB for image hosting  \n   - Gmail\n   - SERP API\n   - Telegram\n\n2. **Configuration**:  \n   - Update all \"your-unique-id\" placeholders in API nodes  \n   - Set email recipients in Gmail nodes  \n   - Customize AI prompts \n\n3. **Customization**:  \n   - Adjust character limits per platform  \n   - Modify approval thresholds  \n   - Add/remove social platforms as needed  \n\n## How to customize  \n- **Content Style**: Edit prompt templates in the \"Social Media Content Factory\" agent node  \n- **Approval Process**: Modify email templates  \n- **Analytics**: Connect to Google Sheets for performance tracking  \n- **Image Generation**: Switch between Pollinations.ai/DALL-E/Midjourney",
+  "category": "email-automation",
+  "services_required": [],
+  "node_count": 20,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/3066",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/21 nodes typed (5%)"
+}

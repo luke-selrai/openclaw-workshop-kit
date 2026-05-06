@@ -1,0 +1,24 @@
+{
+  "id": 152875220,
+  "title": "Receive updates when a new activity gets created and tweet about it",
+  "description": "n8n workflow: Receive updates when a new activity gets created and tweet about it. 3 nodes wired together. Uses: stravaTrigger, twitter, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Twitter/1211_Twitter_Strava_Create_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "social-media",
+  "services_required": [
+    "stravaTrigger",
+    "twitter",
+    "stopAndError"
+  ],
+  "node_count": 3,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Twitter/1211_Twitter_Strava_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "social-media",
+    "czlonkowski-backfill"
+  ]
+}

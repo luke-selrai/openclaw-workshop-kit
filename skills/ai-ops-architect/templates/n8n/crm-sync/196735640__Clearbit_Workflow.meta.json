@@ -1,0 +1,25 @@
+{
+  "id": 196735640,
+  "title": "Clearbit Workflow",
+  "description": "n8n workflow: Clearbit Workflow. 5 nodes wired together. Uses: clearbit, hubspotTrigger, hubspot, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Hubspot/0115_HubSpot_Clearbit_Update_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "crm-sync",
+  "services_required": [
+    "clearbit",
+    "hubspotTrigger",
+    "hubspot",
+    "stopAndError"
+  ],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Hubspot/0115_HubSpot_Clearbit_Update_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "crm-sync",
+    "czlonkowski-backfill"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": 104131238,
+  "title": "Klicktipp Workflow",
+  "description": "### Introduction\nThis workflow facilitates seamless integration between Gravity Forms and KlickTipp, automating the process of handling customer feedback. By transforming raw form data into a format compatible with KlickTipp\u2019s API, it eliminates manual data entry and ensures accurate, consistent information. The workflow relies on community nodes and is available exclusively for self-hosted n8n environments.\n\n### Benefits\n- **Efficient feedback management**: Automatically processes Gravity Forms submissions, saving time and ensuring timely data handling.\n- **Automation of workflows**: Launch follow-up actions like sending thank-you emails or surveys without manual intervention.\n- **Improved data accuracy**: Validates and transforms input data, minimizing errors and maintaining a professional database.\n\n### Key Features\n- **Gravity Forms Trigger**: Captures new form submissions using a webhook, including user feedback and preferences.\n- **Data Processing and Transformation**:\n  - Converts phone numbers to numeric-only format with international prefixes.\n  - Transforms date fields (e.g., birthdays) into UNIX timestamps.\n  - Scales numerical responses like feedback ratings to match desired formats.\n- **Subscriber Management in KlickTipp**: Adds or updates participants as subscribers in KlickTipp. Includes custom field mappings and tags, such as:\n  - Personal details (e.g., name, email, phone number).\n  - Feedback specifics (e.g., webinar ratings, selected sessions).\n  - Structured answers from Gravity Forms responses.\n  - Contact segmentation: Creates new tags based on form submission if necessary and adds these dynamic tags as well as fixed tags to contacts.\n- **Error Handling**: Ensures invalid or missing data does not disrupt the workflow, providing fallback values where needed.\n\n### Setup Instructions\n1. Set up the Webhook and KlickTipp nodes in your n8n instance.\n2. Connect your Webhook to Gravity Forms and authenticate your KlickTipp account.\n3. Create the necessary custom fields to match the data structure\n4. Verify and customize field assignments in the workflow to align with your specific form and subscriber list setup.\n\n![Source example]({{ $env.WEBHOOK_URL }}\n\n### Testing and Deployment\n1. Test the workflow by submitting a form through Gravity Forms.\n2. Verify that the data is correctly processed and updated in KlickTipp.\n3. Simulate various scenarios (e.g., missing or invalid data) to ensure robust error handling.\n\n- **Customization**: Update field mappings within the KlickTipp nodes to ensure alignment with your specific account setup.",
+  "category": "lead-capture",
+  "services_required": [
+    "n8n-nodes-klicktipp.klicktipp",
+    "aggregate",
+    "splitOut",
+    "webhook"
+  ],
+  "node_count": 14,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Aggregate/0695_Aggregate_Stickynote_Create_Webhook.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture",
+    "czlonkowski-backfill"
+  ]
+}

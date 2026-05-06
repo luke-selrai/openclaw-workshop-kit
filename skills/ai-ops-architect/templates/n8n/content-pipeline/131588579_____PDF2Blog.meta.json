@@ -1,0 +1,25 @@
+{
+  "id": 131588579,
+  "title": "\ud83d\udcc4\ud83d\udee0\ufe0fPDF2Blog",
+  "description": "## Publish Draft Blog Post to Ghost",
+  "category": "content-pipeline",
+  "services_required": [
+    "formTrigger",
+    "extractFromFile",
+    "ghost",
+    "stopAndError"
+  ],
+  "node_count": 13,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/1837_Code_Ghost_Automation_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "content-pipeline",
+    "czlonkowski-backfill"
+  ]
+}

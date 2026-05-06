@@ -1,0 +1,21 @@
+{
+  "id": 11605,
+  "title": "Handle clinic WhatsApp support with GPT-4o-mini, Pinecone RAG and Gmail alerts",
+  "description": "# \ud83c\udfe5 Clinic WhatsApp Customer Service Bot\n\nThis workflow automates patient communication for medical clinics using the WhatsApp Business API. It supports appointment booking, rescheduling, service inquiries, follow-ups, and document submissions. The workflow includes AI capabilities, appointment management, human escalation logic, memory storage, and CRM synchronization.\n\n## Good to know\n\n- Supports text, voice notes, images, and document uploads.\n- Uses an AI agent powered by GPT-4o-mini with retrieval-augmented generation for accurate answers.\n- Includes sentiment and frustration detection to trigger human takeover.\n- Conversation history and lead details are stored for context and follow-up.\n- Appointment booking includes slot validation to reduce errors and conflicts.\n\n## How it works\n\n- The workflow receives WhatsApp messages through a webhook connection.\n- The AI agent processes the message and identifies the intent:\n  - \ud83d\udcc5 Appointment booking or rescheduling\n  - \u2753 Service or doctor inquiry\n  - \ud83d\udcce Document submission (e.g., lab results, insurance)\n  - \ud83e\udd1d Human support request\n- If the request is informational, the AI responds using GPT-4o-mini with RAG from Pinecone to ensure clinic-specific accuracy.\n- If the request relates to booking, the workflow:\n  - Checks availability in Data Tables\n  - Validates slot selection\n  - Confirms, updates, or cancels the appointment\n- If the user is confused, frustrated, or explicitly asks for a human, automation is paused and a staff member is notified.\n- Voice messages are transcribed using Whisper API and images are processed using Vision API.\n- All interactions are logged and synced to Google Sheets for CRM tracking.\n\n## Requirements\n\n- WhatsApp Business API access with active credentials\n- OpenAI API key for GPT-4o-mini, Whisper, and Vision models\n- Pinecone account for vector storage\n- Google Sheets and Gmail for logging and notifications\n- n8n instance (Cloud or self-hosted)\n- Data Tables enabled for memory, appointments, and lead management",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 22,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/11605",
+  "source": "n8n.io",
+  "matched_keyword": "clinic",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "clinic"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/23 nodes typed (4%)"
+}

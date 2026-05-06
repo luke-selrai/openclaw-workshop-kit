@@ -1,0 +1,70 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Publish post to a publication\n\n**Purpose**: n8n workflow: Publish post to a publication. 3 nodes wired together. Uses: manualTrigger, medium, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Manual/1139_Manual_Medium_Automation_Triggered.json). Configure credentials and any hardcoded IDs before activating.\n\n**Services needed**: manualTrigger, medium, stopAndError\n\n**Difficulty**: auto-deploy\n\n**Setup**:\n1. Configure credentials for the services above\n2. Update any hardcoded IDs / URLs\n3. Test with sample data before activating\n\n_Source: https://github.com/Zie619/n8n-workflows_\n_Curated by ai-ops-architect on 2026-05-05_",
+        "height": 480,
+        "width": 480
+      },
+      "name": "Setup Guide (delete after configuring)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "ai-ops-sticky-header"
+    },
+    {
+      "name": "On clicking 'execute'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {},
+      "typeVersion": 1,
+      "id": "6c0abc94-b172-4314-9be7-e31e07b17d5c",
+      "notes": "This manualTrigger node performs automated tasks as part of the workflow."
+    },
+    {
+      "name": "Medium",
+      "type": "n8n-nodes-base.medium",
+      "position": [
+        800,
+        300
+      ],
+      "parameters": {
+        "title": "",
+        "content": "",
+        "publication": true,
+        "contentFormat": "",
+        "publicationId": "",
+        "additionalFields": {}
+      },
+      "credentials": {
+        "mediumApi": "medium"
+      },
+      "typeVersion": 1,
+      "id": "3ab286a3-383f-4a48-86d4-c2594509c67c",
+      "notes": "This medium node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "error-650aa6c6",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        400
+      ],
+      "parameters": {
+        "message": "Workflow execution error",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {},
+  "name": "Publish post to a publication",
+  "active": false
+}

@@ -1,0 +1,67 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Manualtrigger Workflow\n\n**Purpose**: n8n workflow: Manualtrigger Workflow. 3 nodes wired together. Uses: manualTrigger, redis, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Manual/1025_Manual_Redis_Automate_Triggered.json). Configure credentials and any hardcoded IDs before activating.\n\n**Services needed**: manualTrigger, redis, stopAndError\n\n**Difficulty**: auto-deploy\n\n**Setup**:\n1. Configure credentials for the services above\n2. Update any hardcoded IDs / URLs\n3. Test with sample data before activating\n\n_Source: https://github.com/Zie619/n8n-workflows_\n_Curated by ai-ops-architect on 2026-05-05_",
+        "height": 480,
+        "width": 480
+      },
+      "name": "Setup Guide (delete after configuring)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "ai-ops-sticky-header"
+    },
+    {
+      "name": "On clicking 'execute'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        270,
+        320
+      ],
+      "parameters": {},
+      "typeVersion": 1,
+      "id": "da6a54b5-bd4a-4488-8212-5aa7ef0f9b38",
+      "notes": "This manualTrigger node performs automated tasks as part of the workflow."
+    },
+    {
+      "name": "Redis",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        470,
+        320
+      ],
+      "parameters": {
+        "key": "YOUR_CREDENTIAL_HERE",
+        "options": {},
+        "operation": "get"
+      },
+      "credentials": {
+        "redis": "redis-docker_creds"
+      },
+      "typeVersion": 1,
+      "id": "ca83510a-bf40-4139-88f1-1b1aae517bec",
+      "notes": "This redis node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "error-7af5628a",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        400
+      ],
+      "parameters": {
+        "message": "Workflow execution error",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {},
+  "name": "Manualtrigger Workflow",
+  "active": false
+}

@@ -1,0 +1,67 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Manualtrigger Workflow\n\n**Purpose**: n8n workflow: Manualtrigger Workflow. 3 nodes wired together. Uses: manualTrigger, xero, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Manual/1011_Manual_Xero_Automate_Triggered.json). Configure credentials and any hardcoded IDs before activating.\n\n**Services needed**: manualTrigger, xero, stopAndError\n\n**Difficulty**: auto-deploy\n\n**Setup**:\n1. Configure credentials for the services above\n2. Update any hardcoded IDs / URLs\n3. Test with sample data before activating\n\n_Source: https://github.com/Zie619/n8n-workflows_\n_Curated by ai-ops-architect on 2026-05-05_",
+        "height": 480,
+        "width": 480
+      },
+      "name": "Setup Guide (delete after configuring)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "ai-ops-sticky-header"
+    },
+    {
+      "name": "On clicking 'execute'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        250,
+        300
+      ],
+      "parameters": {},
+      "typeVersion": 1,
+      "id": "cd144f98-2202-44a0-9c28-ca0b6ad2bff0",
+      "notes": "This manualTrigger node performs automated tasks as part of the workflow."
+    },
+    {
+      "name": "Xero",
+      "type": "n8n-nodes-base.xero",
+      "position": [
+        450,
+        300
+      ],
+      "parameters": {
+        "options": {},
+        "operation": "getAll",
+        "organizationId": "ab7e9014-5d01-418f-a64c-dbb6bf5ba2ea"
+      },
+      "credentials": {
+        "xeroOAuth2Api": "n8n_xero"
+      },
+      "typeVersion": 1,
+      "id": "b8d9c71b-1cf0-407b-9897-0a5cc769598e",
+      "notes": "This xero node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "error-a09f1913",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        400
+      ],
+      "parameters": {
+        "message": "Workflow execution error",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {},
+  "name": "Manualtrigger Workflow",
+  "active": false
+}

@@ -1,0 +1,26 @@
+{
+  "id": 163316092,
+  "title": "Lmchatopenai Workflow",
+  "description": "## Try It Out!\n### This workflow demonstrates a simple approach to stagger an AI Agent's reply if users often send in a sequence of partial messages and in short bursts.\n\n* Twilio webhook receives user's messages which are recorded in a message stack powered by Redis.\n* The execution is immediately paused for 5 seconds and then another check is done against the message stack for the latest message.\n* The purpose of this check lets use know if the user is sending more messages or if they are waiting for a reply.\n* The execution is aborted if the latest message on the stack differs from the incoming message and continues if they are the same.\n* For the latter, the agent receives buffered messages and is able to respond to all in a single reply.",
+  "category": "data-sync",
+  "services_required": [
+    "redis",
+    "twilioTrigger",
+    "twilio",
+    "wait",
+    "stopAndError"
+  ],
+  "node_count": 19,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Wait/0542_Wait_Redis_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "data-sync",
+    "czlonkowski-backfill"
+  ]
+}

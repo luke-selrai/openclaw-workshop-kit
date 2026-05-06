@@ -1,0 +1,24 @@
+{
+  "id": 189631287,
+  "title": "Manualtrigger Workflow",
+  "description": "n8n workflow: Manualtrigger Workflow. 4 nodes wired together. Uses: manualTrigger, mongoDb, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Manual/0982_Manual_Mongodb_Automate_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "data-sync",
+  "services_required": [
+    "manualTrigger",
+    "mongoDb",
+    "stopAndError"
+  ],
+  "node_count": 4,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/0982_Manual_Mongodb_Automate_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "data-sync",
+    "czlonkowski-backfill"
+  ]
+}

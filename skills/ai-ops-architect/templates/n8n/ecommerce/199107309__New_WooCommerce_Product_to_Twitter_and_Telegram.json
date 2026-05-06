@@ -1,0 +1,100 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## New WooCommerce Product to Twitter and Telegram\n\n**Purpose**: n8n workflow: New WooCommerce Product to Twitter and Telegram. 4 nodes wired together. Uses: twitter, telegram, wooCommerceTrigger, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Twitter/1165_Twitter_Telegram_Create_Triggered.json). Configure credentials and any hardcoded IDs before activating.\n\n**Services needed**: twitter, telegram, wooCommerceTrigger, stopAndError\n\n**Difficulty**: auto-deploy\n\n**Setup**:\n1. Configure credentials for the services above\n2. Update any hardcoded IDs / URLs\n3. Test with sample data before activating\n\n_Source: https://github.com/Zie619/n8n-workflows_\n_Curated by ai-ops-architect on 2026-05-05_",
+        "height": 480,
+        "width": 480
+      },
+      "name": "Setup Guide (delete after configuring)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "ai-ops-sticky-header"
+    },
+    {
+      "name": "Twitter",
+      "type": "n8n-nodes-base.twitter",
+      "position": [
+        720,
+        300
+      ],
+      "parameters": {
+        "text": "=\u2728 New Product Announcement \u2728\nWe have just added {{$json[\"name\"]}}, Head to {{$json[\"permalink\"]}} to find out more.",
+        "additionalFields": {}
+      },
+      "credentials": {
+        "twitterOAuth1Api": {
+          "id": "{{ $credentials.twitterOAuth1Api.id }}",
+          "name": "joffcom"
+        }
+      },
+      "typeVersion": 1,
+      "id": "1e3d79e1-b86a-46db-9b9f-ffcd06ac0f3d",
+      "notes": "This twitter node performs automated tasks as part of the workflow."
+    },
+    {
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        720,
+        500
+      ],
+      "parameters": {
+        "text": "=\u2728 New Product Announcement \u2728\nWe have just added {{$json[\"name\"]}}, Head to {{$json[\"permalink\"]}} to find out more.",
+        "chatId": "123456",
+        "additionalFields": {}
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "{{ $credentials.telegramApi.id }}",
+          "name": "Telegram account"
+        }
+      },
+      "typeVersion": 1,
+      "id": "c9ee73e1-c267-4f3c-a590-385d4db26341",
+      "notes": "This telegram node performs automated tasks as part of the workflow."
+    },
+    {
+      "name": "WooCommerce Trigger",
+      "type": "n8n-nodes-base.wooCommerceTrigger",
+      "position": [
+        540,
+        400
+      ],
+      "webhookId": "ab7b134b-9b2d-4e0d-b496-1aee30db0808",
+      "parameters": {
+        "event": "product.created"
+      },
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "{{ $credentials.wooCommerceApi.id }}",
+          "name": "WooCommerce account"
+        }
+      },
+      "typeVersion": 1,
+      "id": "49cb5781-ba4c-455c-99d5-26aeac54480c",
+      "notes": "This wooCommerceTrigger node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "error-64dc9762",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        400
+      ],
+      "parameters": {
+        "message": "Workflow execution error",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {},
+  "name": "New WooCommerce Product to Twitter and Telegram",
+  "active": false
+}

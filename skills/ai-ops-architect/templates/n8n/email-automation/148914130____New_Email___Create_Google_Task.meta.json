@@ -1,0 +1,24 @@
+{
+  "id": 148914130,
+  "title": "\ud83d\udce6 New Email \u2794 Create Google Task",
+  "description": "## Required Setup:\nMake sure the Gmail label \"To-Do\" exists. (You can create it manually in Gmail settings if it doesn't.)\n\nConnect your Gmail and Google Tasks accounts via OAuth2 in n8n credentials.\n\nGrant necessary access scopes to read emails and manage tasks.",
+  "category": "email-automation",
+  "services_required": [
+    "gmailTrigger",
+    "googleTasks",
+    "stopAndError"
+  ],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Googletasks/2031_Googletasks_Gmail_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

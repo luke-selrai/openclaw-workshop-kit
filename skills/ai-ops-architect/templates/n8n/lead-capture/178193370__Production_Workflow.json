@@ -1,0 +1,98 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Production Workflow\n\n**Purpose**: n8n workflow: Production Workflow. 4 nodes wired together. Uses: asana, webhook, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Asana/1223_Asana_Webhook_Automate_Webhook.json). Configure credentials and any hardcoded IDs before activating.\n\n**Services needed**: asana, webhook, stopAndError\n\n**Difficulty**: auto-deploy\n\n**Setup**:\n1. Configure credentials for the services above\n2. Update any hardcoded IDs / URLs\n3. Test with sample data before activating\n\n_Source: https://github.com/Zie619/n8n-workflows_\n_Curated by ai-ops-architect on 2026-05-05_",
+        "height": 480,
+        "width": 480
+      },
+      "name": "Setup Guide (delete after configuring)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "ai-ops-sticky-header"
+    },
+    {
+      "name": "Asana",
+      "type": "n8n-nodes-base.asana",
+      "position": [
+        450,
+        500
+      ],
+      "parameters": {
+        "name": "={{$json[\"query\"][\"parameter\"]}}",
+        "workspace": "",
+        "authentication": "{{ $credentials.oAuth2 }}",
+        "otherProperties": {
+          "projects": [
+            ""
+          ]
+        }
+      },
+      "credentials": {
+        "asanaOAuth2Api": ""
+      },
+      "typeVersion": 1,
+      "id": "node-b610e42e"
+    },
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        250,
+        500
+      ],
+      "webhookId": "b43ae7e2-a058-4738-8d49-ac76db6e8166",
+      "parameters": {
+        "path": "asana",
+        "options": {
+          "responsePropertyName": "response"
+        },
+        "responseMode": "lastNode"
+      },
+      "typeVersion": 1,
+      "id": "node-a542ebdd"
+    },
+    {
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        650,
+        500
+      ],
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "response",
+              "value": "=Created Asana Task:  {{$json[\"permalink_url\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "typeVersion": 1,
+      "id": "node-9925f0ba"
+    },
+    {
+      "id": "error-aab22760",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        400
+      ],
+      "parameters": {
+        "message": "Workflow execution error",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {},
+  "name": "Production Workflow",
+  "active": false
+}

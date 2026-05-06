@@ -1,0 +1,25 @@
+{
+  "id": 167796922,
+  "title": "Cron Workflow",
+  "description": "n8n workflow: Cron Workflow. 4 nodes wired together. Uses: cron, hubspot, mailchimp, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Hubspot/0243_HubSpot_Mailchimp_Create_Scheduled.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "email-automation",
+  "services_required": [
+    "cron",
+    "hubspot",
+    "mailchimp",
+    "stopAndError"
+  ],
+  "node_count": 4,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Hubspot/0243_HubSpot_Mailchimp_Create_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

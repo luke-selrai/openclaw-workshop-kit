@@ -1,0 +1,25 @@
+{
+  "id": 118657087,
+  "title": "New tweets",
+  "description": "n8n workflow: New tweets. 8 nodes wired together. Uses: manualTrigger, twitter, airtable, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Manual/0005_Manual_Twitter_Create_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "social-media",
+  "services_required": [
+    "manualTrigger",
+    "twitter",
+    "airtable",
+    "stopAndError"
+  ],
+  "node_count": 8,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/0005_Manual_Twitter_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "social-media",
+    "czlonkowski-backfill"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": 1954,
+  "title": "AI agent chat",
+  "description": "This workflow employs OpenAI's language models and SerpAPI to create a responsive, intelligent conversational agent. It comes equipped with manual chat triggers and memory buffer capabilities to ensure seamless interactions.\n\nTo use this template, you need to be on n8n version 1.50.0 or later.",
+  "category": "ai-agents",
+  "services_required": [],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/1954",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ai-agents"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/6 nodes typed (17%)"
+}

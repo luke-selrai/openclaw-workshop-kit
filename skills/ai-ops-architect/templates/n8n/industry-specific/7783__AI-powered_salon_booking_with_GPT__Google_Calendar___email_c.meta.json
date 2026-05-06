@@ -1,0 +1,21 @@
+{
+  "id": 7783,
+  "title": "AI-powered salon booking with GPT, Google Calendar & email confirmations",
+  "description": "## Overview\n\n- This workflow is an **AI-powered Salon Booking Assistant** that automates hair, beauty, and spa appointment scheduling through a **Webhook trigger**.  \n- It interacts with the user in natural conversation, collects booking details (service type, stylist preference, date/time, and any special requests), finalizes the draft, and confirms the appointment by storing it in **Google Calendar** and sending an **email confirmation** \u2014 fully automated end-to-end.\n\n---\n\n## How It Works\n\n### 1. User Interaction\n- The workflow starts when a user submits a request via the **Webhook**.  \n- The AI agent asks step-by-step questions:  \n  - Type of service (haircut, facial, manicure, etc.)  \n  - Preferred stylist (optional)  \n  - Preferred date & time  \n  - Any additional notes (special treatments, products, etc.)  \n- Once details are gathered, it generates a draft appointment summary.\n\n### 2. Confirmation & Personal Details\n- The user reviews the draft and confirms.  \n- The assistant then asks for personal details (name, email, phone number).\n\n### 3. Booking & Notifications\n- After confirmation, the details are sent to **Google Calendar** to create an appointment.  \n- A **confirmation email** is sent to the user with all booking information.  \n- A final webhook response confirms that the appointment is successfully booked.\n\n---\n\n## How to Use\n- Triggered directly via a **Webhook URL** (can be embedded in your salon website or mobile app).  \n- Simply fill in the details, and the assistant will guide the user step by step until the booking is finalized.  \n- Once completed, the user receives both an **email confirmation** and an on-screen success message.\n\n---\n\n## Requirements\nTo use this workflow, you\u2019ll need:  \n- **n8n account** (self-hosted or cloud)  \n- **Webhook node** (for booking trigger)  \n- **OpenAI or OpenRouter API Key** (for AI-driven conversation)  \n- **Google Calendar API access** (to create appointments)  \n- **Gmail / SMTP credentials** (to send confirmation emails)",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 12,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/7783",
+  "source": "n8n.io",
+  "matched_keyword": "salon",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "salon"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/13 nodes typed (8%)"
+}

@@ -1,0 +1,28 @@
+{
+  "id": 193455926,
+  "title": "Summarize Google Sheets form feedback via OpenAI's GPT-4",
+  "description": "### 1. Create a Google Sheet document\n* This tutorial uses Google Sheet document connected to Google Forms, but a standalone Sheet document will work too\n* Adapt initial trigger to your needs: run manually or at some time intervals\n\n[Link to the Google Sheets template]({{ $env.WEBHOOK_URL }}",
+  "category": "ai-agents",
+  "services_required": [
+    "manualTrigger",
+    "googleSheets",
+    "aggregate",
+    "openAi",
+    "markdown",
+    "gmail",
+    "stopAndError"
+  ],
+  "node_count": 11,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/1543_Manual_Openai_Automation_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ai-agents",
+    "czlonkowski-backfill"
+  ]
+}

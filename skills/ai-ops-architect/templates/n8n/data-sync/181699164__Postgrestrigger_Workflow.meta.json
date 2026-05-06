@@ -1,0 +1,26 @@
+{
+  "id": 181699164,
+  "title": "Postgrestrigger Workflow",
+  "description": "## \ud83d\udc4b How to use this template\nThis template shows how to sync data from one service to another. In this example we're saving a new qualified lead to a Google Sheets file. Here's how you can test the template:\n\n1. Duplicate our [Google Sheets]({{ $env.WEBHOOK_URL }} file\n2. Double click the `Google Sheets` node and create a credential by signing in.\n3. Select the correct Google Sheets document and sheet.\n4. Click the `Execute Workflow` button and double click the nodes to see the input and output data\n\n### To customize it to you needs, just do the following:\n1. Enable or exchange the `Postgres trigger` with any service that fits your use case.\n2. Change the `Filter` to fit your needs\n3. Adjust the Google Sheets node as described above\n4. Disable or remove the `On clicking \"Execute Node\"` and `Code` node",
+  "category": "data-sync",
+  "services_required": [
+    "postgresTrigger",
+    "filter",
+    "manualTrigger",
+    "googleSheets",
+    "stopAndError"
+  ],
+  "node_count": 10,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0307_Code_Postgres_Automate_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "data-sync",
+    "czlonkowski-backfill"
+  ]
+}

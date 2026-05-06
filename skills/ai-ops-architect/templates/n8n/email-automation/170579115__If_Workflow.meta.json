@@ -1,0 +1,25 @@
+{
+  "id": 170579115,
+  "title": "If Workflow",
+  "description": "### 3. AI Agent write and sends an audit report to the send\nThis summarize the results of the analysis in an email sent as a reply to the sender.\n\n#### How to setup?\n- **Gmail Node:** set up your Gmail API credentials\n[Learn more about the Gmail Trigger Node]({{ $env.WEBHOOK_URL }}\n- **AI Agent with the Chat Model**:\n   1. Add a **chat model** with the required credentials *(Example: Open AI 4o-mini)*\n   2. Adapt the system prompt to the format of emails you want to send\n  [Learn more about the AI Agent Node]({{ $env.WEBHOOK_URL }}",
+  "category": "email-automation",
+  "services_required": [
+    "gmail",
+    "extractFromFile",
+    "gmailTrigger",
+    "stopAndError"
+  ],
+  "node_count": 15,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Extractfromfile/0828_Extractfromfile_Gmail_Send_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

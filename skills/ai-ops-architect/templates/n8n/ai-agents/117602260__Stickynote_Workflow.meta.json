@@ -1,0 +1,25 @@
+{
+  "id": 117602260,
+  "title": "Stickynote Workflow",
+  "description": "## Instructions\n1. Connect Google sheets\n2. Connect your OpenAi account (api key + org Id)\n3. Create a customer feedback form, use an existing one or use the one below as example. \nAll set!\n\n\n- Here is the example google sheet being used in this workflow: {{ $env.WEBHOOK_URL }} You can download it to your account.",
+  "category": "ai-agents",
+  "services_required": [
+    "googleSheets",
+    "openAi",
+    "formTrigger",
+    "stopAndError"
+  ],
+  "node_count": 10,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski-r2",
+  "source_path": "workflows/Openai/0334_Openai_Form_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ai-agents",
+    "czlonkowski-backfill-r2"
+  ]
+}

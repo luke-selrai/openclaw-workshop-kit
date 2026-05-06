@@ -1,0 +1,6 @@
+.state/
+*.log
+.DS_Store
+__pycache__/
+*.pyc
+SKILL.md.full

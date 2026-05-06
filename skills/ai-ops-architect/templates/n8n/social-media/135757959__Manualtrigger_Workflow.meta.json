@@ -1,0 +1,24 @@
+{
+  "id": 135757959,
+  "title": "Manualtrigger Workflow",
+  "description": "n8n workflow: Manualtrigger Workflow. 5 nodes wired together. Uses: manualTrigger, twitter, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Manual/0059_Manual_Twitter_Automate_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "social-media",
+  "services_required": [
+    "manualTrigger",
+    "twitter",
+    "stopAndError"
+  ],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/0059_Manual_Twitter_Automate_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "social-media",
+    "czlonkowski-backfill"
+  ]
+}

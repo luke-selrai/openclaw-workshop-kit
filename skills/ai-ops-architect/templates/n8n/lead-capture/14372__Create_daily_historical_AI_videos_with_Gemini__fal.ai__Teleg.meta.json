@@ -1,0 +1,19 @@
+{
+  "id": 14372,
+  "title": "Create daily historical AI videos with Gemini, fal.ai, Telegram and YouTube",
+  "description": "## Who\u2019s it for\nThis workflow is ideal for:\n- Content creators producing daily historical or educational videos  \n- YouTube automation enthusiasts building AI-driven channels  \n- Educators sharing engaging historical facts in short-form video format  \n- Anyone creating an automated AI video pipeline with human approval  \n\n## How it works\nThis workflow automates the full pipeline of generating and publishing historical videos:\n\n1. Triggers daily at 1 AM and initializes retry tracking (maximum 3 attempts)  \n2. Fetches historical events for the current date and selects one randomly  \n3. Uses Google Gemini to generate a cinematic text-to-video script  \n4. Sends the prompt to fal.ai (Hunyuan LoRA) to generate a short video  \n5. Polls the generation status every 30 seconds until the video is ready  \n6. Downloads the generated video and sends it to Telegram with context  \n7. Waits for manual approval via Telegram  \n8. If approved \u2192 uploads the video to YouTube and sends a confirmation message  \n9. If declined \u2192 retries with a new event (up to 3 attempts total)  \n\n## How to set up\n1. Import the workflow into n8n  \n2. Configure your Telegram credentials  \n3. Set your Telegram Chat ID using a variable or Set node (avoid hardcoding)  \n4. Configure HTTP Header Auth credentials for fal.ai (API key required)  \n5. Set up Google Gemini API credentials  \n6. Connect your YouTube account using OAuth2  \n7. (Optional) Adjust the schedule time in the trigger node  \n8. Activate the workflow  \n\n## Requirements\n- n8n (cloud or self-hosted)  \n- fal.ai account and API key (for video generation)  \n- Google Gemini API access  \n- YouTube account with upload permissions  \n- Telegram account for approval notifications  \n\n## How to customize the workflow\n- Adjust retry limits in the retry logic node  \n- Modify video parameters (resolution, frames, aspect ratio) in the fal.ai request  \n- Change the script style by editing the Gemini prompt  \n- Replace the historical events API with another content source  \n- Customize Telegram messages or approval flow",
+  "category": "lead-capture",
+  "services_required": [],
+  "node_count": 10,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/14372",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/11 nodes typed (9%)"
+}

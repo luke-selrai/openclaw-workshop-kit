@@ -1,0 +1,24 @@
+{
+  "id": 125958546,
+  "title": "Create a new user in Intercom",
+  "description": "n8n workflow: Create a new user in Intercom. 3 nodes wired together. Uses: manualTrigger, intercom, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Manual/1193_Manual_Intercom_Create_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "support-helpdesk",
+  "services_required": [
+    "manualTrigger",
+    "intercom",
+    "stopAndError"
+  ],
+  "node_count": 3,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/1193_Manual_Intercom_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "support-helpdesk",
+    "czlonkowski-backfill"
+  ]
+}

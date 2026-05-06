@@ -1,0 +1,24 @@
+{
+  "id": 109462698,
+  "title": "Autopilottrigger Workflow",
+  "description": "n8n workflow: Autopilottrigger Workflow. 4 nodes wired together. Uses: autopilotTrigger, airtable, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Autopilot/1228_Autopilot_Airtable_Automate_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "crm-sync",
+  "services_required": [
+    "autopilotTrigger",
+    "airtable",
+    "stopAndError"
+  ],
+  "node_count": 4,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Autopilot/1228_Autopilot_Airtable_Automate_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "crm-sync",
+    "czlonkowski-backfill"
+  ]
+}

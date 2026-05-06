@@ -1,0 +1,26 @@
+{
+  "id": 198543854,
+  "title": "If Workflow",
+  "description": "## Sync Stripe charges to HubSpot contacts\nThis workflow pushes Stripe charges to HubSpot contacts. It uses the Stripe API to get all charges and the HubSpot API to update the contacts. The workflow will create a new HubSpot property to store the total amount charged. If the property already exists, it will update the property.\n\n### How it works\n1. On a schedule, the first Stripe node gets all charges. The default schedule is once a day at midnight.\n2. Once the charges are returned, the second Stripe node gets extra customer information.\n3. Once the customer information is returned, `Merge data` node will merge the customer information with the charges so that the next node `Aggregate totals` can calculate the total amount charged per contact.\n4. Once we have the total amount charged per contact, the `Create or update customer` node will create a new HubSpot property to store the total amount charged. If the property already exists, it will update the property.\n\n\n\nWorkflow written by [David Sha]({{ $env.WEBHOOK_URL }}",
+  "category": "crm-sync",
+  "services_required": [
+    "stripe",
+    "scheduleTrigger",
+    "itemLists",
+    "hubspot",
+    "httpRequest"
+  ],
+  "node_count": 24,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0288_Code_Schedule_Create_Webhook.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "crm-sync",
+    "czlonkowski-backfill"
+  ]
+}

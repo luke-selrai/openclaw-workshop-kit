@@ -1,0 +1,19 @@
+{
+  "id": 14829,
+  "title": "Send 10-day post-purchase WhatsApp offers with Odoo, OpenAI and Evolution API",
+  "description": "What Problem Does It Solve?\n\n* Generic, automated retention messages often feel like spam and fail to engage returning customers.\n* Manually tracking which customers ordered exactly 10 days ago to send them tailored offers is extremely time-consuming.\n* Sending bulk promotional WhatsApp messages too quickly can result in phone number bans.\n* This workflow solves these issues by:\n  - Automatically fetching customers from Odoo whose invoices are exactly 10 days old.\n  - Using an AI Agent (OpenAI) to generate a highly personalized, warm Egyptian Arabic message for each customer.\n  - Offering a targeted 10% extra discount to encourage repeat purchases via social media platforms.\n  - Implementing a 1-minute \"Wait\" mechanism between messages to protect your WhatsApp account from being flagged.\n\nHow to Configure It\n\n* Odoo Setup\n  - Connect your Odoo credentials in n8n.\n  - The workflow fetches invoices starting from April 2026. Adjust the date filter in the \"Fetch 10-Day Old Invoices\" node if needed.\n* OpenAI Setup\n  - Add your OpenAI API key to the \"Generate AI Message\" node.\n  - You can tweak the system prompt to match your specific brand voice or adjust the discount offer.\n* WhatsApp API Setup\n  - This workflow uses the Evolution API. Update the URL and \"apikey\" in the \"Send WhatsApp Discount\" node with your specific instance details.\n\nHow It Works\n\n* Every day at 10:01 AM, the schedule node triggers the workflow automatically.\n* It queries Odoo for all posted invoices exactly 10 days old and retrieves the corresponding customer contact details (Name and Phone).\n* It processes the customers one by one through a loop (Split In Batches).\n* For each customer, OpenAI generates a unique, friendly colloquial Arabic message calling them by their first name and offering a 10% discount.\n* The message explicitly directs the customer to claim the offer via social media messages, completely avoiding formal \"terms & conditions\" jargon.\n* The workflow sends the AI-generated text via WhatsApp and then pauses for 1 minute before processing the next customer.\n\nCustomization Ideas\n\n* Change the AI prompt to offer different discounts based on the total amount the customer spent in their last order.\n* Add a condition to skip customers who have already made a new purchase within the last 10 days.\n* Switch the AI model to Claude or Gemini depending on your preference for Arabic copywriting.\n\nFor more info [Contact Me](https://www.linkedin.com/in/khaledyasser01/)",
+  "category": "crm-sync",
+  "services_required": [],
+  "node_count": 7,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/14829",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "crm-sync"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/8 nodes typed (12%)"
+}

@@ -1,0 +1,24 @@
+{
+  "id": 174127622,
+  "title": "Httprequest Workflow",
+  "description": "### Setup repos here to check releases for.\n\nAdd a new json object to the array setting the org and repo, these will be used by the following nodes",
+  "category": "ops-monitoring",
+  "services_required": [
+    "httpRequest",
+    "scheduleTrigger",
+    "slack"
+  ],
+  "node_count": 7,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0546_Code_Schedule_Create_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ops-monitoring",
+    "czlonkowski-backfill"
+  ]
+}

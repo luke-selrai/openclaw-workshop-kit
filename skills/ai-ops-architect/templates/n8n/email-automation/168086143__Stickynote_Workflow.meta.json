@@ -1,0 +1,25 @@
+{
+  "id": 168086143,
+  "title": "Stickynote Workflow",
+  "description": "## Check if incoming email is about appointment\nWe use LLM to check subject and body of the email and determine if it's an appointment request.",
+  "category": "email-automation",
+  "services_required": [
+    "gmail",
+    "gmailTrigger",
+    "googleCalendarTool",
+    "stopAndError"
+  ],
+  "node_count": 11,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Gmail/0319_Gmail_Googlecalendartool_Send_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

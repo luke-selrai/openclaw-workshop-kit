@@ -1,0 +1,24 @@
+{
+  "id": 117390556,
+  "title": "Set Workflow",
+  "description": "n8n workflow: Set Workflow. 10 nodes wired together. Uses: shopifyTrigger, zendesk, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Shopify/0268_Shopify_Zendesk_Create_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "ecommerce",
+  "services_required": [
+    "shopifyTrigger",
+    "zendesk",
+    "stopAndError"
+  ],
+  "node_count": 10,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Shopify/0268_Shopify_Zendesk_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ecommerce",
+    "czlonkowski-backfill"
+  ]
+}

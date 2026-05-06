@@ -1,0 +1,24 @@
+{
+  "id": 114998354,
+  "title": "Quickbooks Workflow",
+  "description": "n8n workflow: Quickbooks Workflow. 5 nodes. Uses: manualTrigger, quickbooks, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Quickbooks/1208_Quickbooks_Automate.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "finance-invoicing",
+  "services_required": [
+    "manualTrigger",
+    "quickbooks",
+    "stopAndError"
+  ],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski-r2",
+  "source_path": "workflows/Quickbooks/1208_Quickbooks_Automate.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "finance-invoicing",
+    "czlonkowski-backfill-r2"
+  ]
+}

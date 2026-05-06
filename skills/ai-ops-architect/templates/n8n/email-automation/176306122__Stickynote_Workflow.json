@@ -1,0 +1,413 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Stickynote Workflow\n\n**Purpose**: ## \u26a0\ufe0f Note\n\n1. Complete video guide for this workflow is available [on my YouTube]({{ $env.WEBHOOK_URL }} \n2. Remember to add your credentials and configure nodes (covered in the video guide).\n3. If you like this workflow, please subscribe to [my YouTube channel]({{ $env.WEBHOOK_URL }} and/or [my newsletter]({{ $env.WEBHOOK_URL }}\n\n**Thank you for your support!**\n\n**Services needed**: gmailTrigger, gmail, splitOut, aggregate, stopAndError\n\n**Difficulty**: 30min-custom\n\n**Setup**:\n1. Configure credentials for the services above\n2. Update any hardcoded IDs / URLs\n3. Test with sample data before activating\n\n_Source: https://github.com/Zie619/n8n-workflows_\n_Curated by ai-ops-architect on 2026-05-05_",
+        "height": 480,
+        "width": 480
+      },
+      "name": "Setup Guide (delete after configuring)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "ai-ops-sticky-header"
+    },
+    {
+      "id": "814e3849-1ae1-4124-bdfc-b72017e9d7c2",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "color": 4,
+        "width": 420.4803040774015,
+        "height": 240.57943708322733,
+        "content": "## Add AI labels to Gmail messages\nWith this workflow you can automatically set labels for your Gmail message according to its content. \n\nIn this workflow available are 3 labels: \"Partnership\", \"Inquiry\" and \"Notification\". Feel free to adjust labels according to your needs. \n\n**Please remember to set label names both in your Gmail account and workflow.**"
+      },
+      "typeVersion": 1,
+      "notes": "This stickyNote node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "e83fa311-b5ba-427e-a98e-573394b882dd",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        260
+      ],
+      "parameters": {
+        "width": 421.0932411886662,
+        "height": 257.42916378714597,
+        "content": "## \u26a0\ufe0f Note\n\n1. Complete video guide for this workflow is available [on my YouTube]({{ $env.WEBHOOK_URL }} \n2. Remember to add your credentials and configure nodes (covered in the video guide).\n3. If you like this workflow, please subscribe to [my YouTube channel]({{ $env.WEBHOOK_URL }} and/or [my newsletter]({{ $env.WEBHOOK_URL }}\n\n**Thank you for your support!**"
+      },
+      "typeVersion": 1,
+      "notes": "This stickyNote node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "4c20d029-750f-476b-9348-6e250ea64d52",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "width": 238.4602598584674,
+        "height": 348.5873725349161,
+        "content": "### Gmail Trigger\nReceive data from Gmail about new incoming message. \n\n\u26a0\ufe0f Set polling interval according to your needs."
+      },
+      "typeVersion": 1,
+      "notes": "This stickyNote node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "22923079-80ce-4495-b0f0-da7122195c56",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1160,
+        380
+      ],
+      "parameters": {
+        "width": 241.53974014153226,
+        "height": 319.3323098457962,
+        "content": "###\n\n\n\n\n\n\n\n\n\n\n### JSON schema\nEdit JSON schema and label names according to your needs.\n\n\u26a0\ufe0f **Label names in system prompt and JSON schema should be the same.**"
+      },
+      "typeVersion": 1,
+      "notes": "This stickyNote node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "40735a58-daaa-43ac-9658-706c3cf0cbba",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1900,
+        20
+      ],
+      "parameters": {
+        "width": 226.14233872620645,
+        "height": 347.0476323933831,
+        "content": "### Merge labels\nCombine labels retrieved from Gmail account and assigned by AI together."
+      },
+      "typeVersion": 1,
+      "notes": "This stickyNote node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "87e0f9e2-a2ff-46cf-896a-138b1bde2d0e",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2160,
+        20
+      ],
+      "parameters": {
+        "width": 452.48413953150185,
+        "height": 347.0476323933831,
+        "content": "### Aggregarte labels and add to message\nCreate array of label IDs and add to the desired email message in Gmail."
+      },
+      "typeVersion": 1,
+      "notes": "This stickyNote node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "1d533664-e5e8-4dc8-afac-bfc5996e4bf9",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        700,
+        0
+      ],
+      "parameters": {
+        "width": 238.4602598584674,
+        "height": 348.5873725349161,
+        "content": "### Get message content\nBased on Gmail message ID retrieve body content of the email and pass it to AI chain."
+      },
+      "typeVersion": 1,
+      "notes": "This stickyNote node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "e613ca64-50ae-4d7c-b0fc-15812dadcd68",
+      "name": "Sticky Note8",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        960,
+        0
+      ],
+      "parameters": {
+        "width": 378.57661273793565,
+        "height": 348.5873725349161,
+        "content": "### Assign labels\nLet the AI decide which labels suit the best content of the message.\n\n\u26a0\ufe0f **Remember to edit system prompt** - modify label names and instructions according to your needs."
+      },
+      "typeVersion": 1,
+      "notes": "This stickyNote node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "a2005e70-6774-45ce-b9c6-742786f49964",
+      "name": "Gmail trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "position": [
+        500,
+        180
+      ],
+      "parameters": {
+        "simple": false,
+        "filters": {},
+        "options": {},
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SPECSn66s6QHmld9",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 1.2,
+      "notes": "This gmailTrigger node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "4b6f7d21-6155-42b7-93ff-2f530df3692f",
+      "name": "Get message content",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        760,
+        180
+      ],
+      "webhookId": "b773894c-18c6-454d-9271-6de10be1b7c4",
+      "parameters": {
+        "messageId": "={{ $json.id }}",
+        "operation": "get"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SPECSn66s6QHmld9",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 2.1,
+      "notes": "This gmail node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "ad577660-d9f4-4031-ad16-7021a02bb18e",
+      "name": "Assign labels for message",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        1020,
+        180
+      ],
+      "parameters": {
+        "text": "={{ $('Gmail trigger').item.json.text }}",
+        "promptType": "define",
+        "hasOutputParser": true
+      },
+      "typeVersion": 1.5,
+      "notes": "This chainLlm node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "1e11d30f-4c73-4fd0-a365-aeb43bee4252",
+      "name": "OpenAI Chat",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        1000,
+        400
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "PrK67ozsBFqSIYG9",
+          "name": "OpenAi account"
+        }
+      },
+      "typeVersion": 1.2,
+      "notes": "This lmChatOpenAi node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "4a504b64-fb28-44fb-a80a-6f5e5c5a1949",
+      "name": "JSON Parser",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        1240,
+        400
+      ],
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"labels\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\",\n        \"enum\": [\"Inquiry\", \"Partnership\", \"Notification\"]\n      }\n    }\n  },\n  \"required\": [\"labels\"]\n}"
+      },
+      "typeVersion": 1.2,
+      "notes": "This outputParserStructured node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "f5ac1b01-0980-4ee4-b4f5-5057258eab70",
+      "name": "Set label values",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1400,
+        180
+      ],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "72d11a72-6693-447c-b7ca-4ba1a3579075",
+              "name": "labels",
+              "type": "array",
+              "value": "={{ $json.output.labels }}"
+            }
+          ]
+        }
+      },
+      "typeVersion": 3.4,
+      "notes": "This set node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "e368e343-728e-4e2f-a37f-5e203000d090",
+      "name": "Get all labels",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        1680,
+        60
+      ],
+      "webhookId": "dec6f574-f47c-4b5d-86b9-2b0f6c957145",
+      "parameters": {
+        "resource": "label",
+        "returnAll": true
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SPECSn66s6QHmld9",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 2.1,
+      "notes": "This gmail node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "48ce8351-5d04-4697-b68d-bb84286e0b2b",
+      "name": "Split out assigned labels",
+      "type": "n8n-nodes-base.splitOut",
+      "position": [
+        1680,
+        280
+      ],
+      "parameters": {
+        "options": {},
+        "fieldToSplitOut": "labels"
+      },
+      "typeVersion": 1,
+      "notes": "This splitOut node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "cc1aa3ac-7427-4761-aacd-caf16c64d7fb",
+      "name": "Merge corresponding labels",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        1960,
+        180
+      ],
+      "parameters": {
+        "mode": "combine",
+        "options": {},
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "name",
+              "field2": "labels"
+            }
+          ]
+        }
+      },
+      "typeVersion": 3.1,
+      "notes": "This merge node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "97fefda6-5936-42a7-a30a-8de4149aa445",
+      "name": "Aggregate label IDs",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [
+        2220,
+        180
+      ],
+      "parameters": {
+        "options": {},
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "id"
+            }
+          ]
+        }
+      },
+      "typeVersion": 1,
+      "notes": "This aggregate node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "7befd422-7243-43af-9b34-21c05a069013",
+      "name": "Add labels to message",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        2440,
+        180
+      ],
+      "webhookId": "4f345fc9-2afd-478b-be3b-d3d28f0fbc82",
+      "parameters": {
+        "labelIds": "={{ $json.id }}",
+        "messageId": "={{ $('Gmail trigger').item.json[\"id\"] }}",
+        "operation": "addLabels"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SPECSn66s6QHmld9",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 2.1,
+      "notes": "This gmail node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "error-ffa0a101",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        400
+      ],
+      "parameters": {
+        "message": "Workflow execution error",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "1e11d30f-4c73-4fd0-a365-aeb43bee4252": {
+      "main": [
+        [
+          {
+            "node": "error-handler-1e11d30f-4c73-4fd0-a365-aeb43bee4252-3376b17a",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "name": "Stickynote Workflow",
+  "active": false
+}

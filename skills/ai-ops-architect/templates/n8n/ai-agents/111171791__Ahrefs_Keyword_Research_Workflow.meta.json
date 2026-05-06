@@ -1,0 +1,24 @@
+{
+  "id": 111171791,
+  "title": "Ahrefs Keyword Research Workflow",
+  "description": "## Respose Formatter\nThe ai agent node to format responses will give you more room to decide how you want your summaries to be sent back to you. You can modify the system message to get your desired outcome. Otherwise, good luck building on top of this. I will give a detailed docs guide on the main n8n workflow page",
+  "category": "ai-agents",
+  "services_required": [
+    "manualTrigger",
+    "aggregate",
+    "httpRequest"
+  ],
+  "node_count": 15,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Aggregate/1576_Aggregate_Stickynote_Automate_Webhook.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ai-agents",
+    "czlonkowski-backfill"
+  ]
+}

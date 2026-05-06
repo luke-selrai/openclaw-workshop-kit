@@ -1,0 +1,8 @@
+{
+  "_meta": {
+    "type": "loader",
+    "canonical_source": "~/.claude/skills/managed-agents-setup/references/business-outcome-presets.json",
+    "note": "This file is a pointer. Code must read the canonical source. ai-ops-architect re-exports for convenience but never duplicates content.",
+    "updated": "2026-05-05"
+  }
+}

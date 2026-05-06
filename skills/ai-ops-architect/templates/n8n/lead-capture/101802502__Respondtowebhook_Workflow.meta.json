@@ -1,0 +1,24 @@
+{
+  "id": 101802502,
+  "title": "Respondtowebhook Workflow",
+  "description": "## Create new Clickup Tasks from Slack commands\nThis workflow aims to make it easy to create new tasks on Clickup from normal Slack messages using simple slack command. \n\nFor example We can have a slack command as \n\n/newTask Set task to update new contacts on CRM and assign them to the sales team\nThis will have an new task on Clickup with the same title and description on Clickup \n\nFor most teams, getting tasks from Slack to Clickup involves manually entering the new tasks into Clickup. What if we could do this with a simple slash command?\n\n## Step 1\nThe first step is to Create an endpoint URL for your slack command by creating an events API from the link [below] {{ $env.API_BASE_URL }}\n\n## STEP 2 \nNext step is defining the endpoint for your URL\nCreate a new webhook endpoint from your n8n with a POST and paste the endpoint URL to your event API. This will send all slash commands associated with the Slash to the desired endpoint\n\n\nOnce you have tested the webhook slash command is working with the webhook, create a new Clickup API that can be used to create new tasks in ClickUp\n\nThis workflow creates a new task with the start dates on Clikup that can be assigned to the respective team members\n\nMore details about the document setup can be found on this document [below]({{ $env.WEBHOOK_URL }}\n\n   ####  Happy Productivity",
+  "category": "lead-capture",
+  "services_required": [
+    "respondToWebhook",
+    "webhook",
+    "clickUp"
+  ],
+  "node_count": 6,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Clickup/0469_Clickup_Respondtowebhook_Create_Webhook.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture",
+    "czlonkowski-backfill"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": 182696816,
+  "title": "Zendesk Workflow",
+  "description": "## Sync Zendesk tickets to Slack threads\n### Setup\n1. Add your [Zendesk credential]({{ $env.WEBHOOK_URL }} to the `Get ticket` and `Update ticket` nodes.\n2. Add your [Slack credential]({{ $env.WEBHOOK_URL }} to `Create Thread` and `Create reply on existing thread` nodes.\n3. Open `Configure` node and change \"Slack channel\" value to your slack channel (like #zendesk-updates).\n4. Activate the workflow so it runs automatically each time a Zendesk ticket is created.",
+  "category": "lead-capture",
+  "services_required": [
+    "zendesk",
+    "webhook",
+    "slack"
+  ],
+  "node_count": 9,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0273_Code_Webhook_Create_Webhook.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture",
+    "czlonkowski-backfill"
+  ]
+}

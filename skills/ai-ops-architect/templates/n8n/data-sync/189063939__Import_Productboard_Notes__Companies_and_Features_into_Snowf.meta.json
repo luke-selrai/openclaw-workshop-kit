@@ -1,0 +1,27 @@
+{
+  "id": 189063939,
+  "title": "Import Productboard Notes, Companies and Features into Snowflake",
+  "description": "## Preview Slack Message\n:productboard: Weekly Update in :snowflake_logo: Completed\n27 new insights added in the last 7 days.\n88 insights remain unprocessed.\nYou can view the updated :metabase: dashboard below:\n<link metabase>",
+  "category": "data-sync",
+  "services_required": [
+    "httpRequest",
+    "splitOut",
+    "snowflake",
+    "splitInBatches",
+    "scheduleTrigger",
+    "slack"
+  ],
+  "node_count": 35,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Splitout/0643_Splitout_Snowflake_Import_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "data-sync",
+    "czlonkowski-backfill"
+  ]
+}

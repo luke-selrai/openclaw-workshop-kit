@@ -1,0 +1,27 @@
+{
+  "id": 174273887,
+  "title": "Ftp Workflow",
+  "description": "n8n workflow: Ftp Workflow. 7 nodes wired together. Uses: ftp, scheduleTrigger, mqtt, mqttTrigger, convertToFile. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Code/0553_Code_Schedule_Send_Scheduled.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "content-pipeline",
+  "services_required": [
+    "ftp",
+    "scheduleTrigger",
+    "mqtt",
+    "mqttTrigger",
+    "convertToFile",
+    "stopAndError"
+  ],
+  "node_count": 7,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0553_Code_Schedule_Send_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "content-pipeline",
+    "czlonkowski-backfill"
+  ]
+}

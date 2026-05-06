@@ -1,0 +1,19 @@
+{
+  "id": 8527,
+  "title": "Learn n8n basics in 3 easy steps \u2728",
+  "description": "New to n8n? This simple tutorial is the perfect way to get started. In just a few minutes, you\u2019ll build your first automation that runs on a schedule, fetches fresh data from the internet and delivers it straight to your inbox.\n\n### What you\u2019ll do\n\n1. **Run the workflow** to grab a random inspirational quote.\n2. **See how data flows** through each node as it moves from an API call to processing results.\n3. **Connect Gmail** and send the quote directly to your email.\n\n### What you\u2019ll learn\n\n* How to trigger workflows manually and on a schedule \u23f0\n* How to connect to external APIs and fetch data \ud83c\udf10\n* How to use the **Set** node to structure and map data \ud83d\udd27\n* How to connect Gmail to send the data \ud83d\udce9\n\n### Why it matters\n\nThis workflow shows you the n8n basics step by step - no code required. By the end, you\u2019ll know how to build, test, and share automations that run on their own, giving you the confidence to explore more advanced use cases. \ud83d\ude80",
+  "category": "email-automation",
+  "services_required": [],
+  "node_count": 6,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/8527",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/7 nodes typed (14%)"
+}

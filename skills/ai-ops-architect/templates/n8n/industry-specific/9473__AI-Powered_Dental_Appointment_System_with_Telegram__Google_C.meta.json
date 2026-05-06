@@ -1,0 +1,21 @@
+{
+  "id": 9473,
+  "title": "AI-Powered Dental Appointment System with Telegram, Google Calendar and Sheets",
+  "description": "## Overview\n\n- This workflow is an **AI-powered Dental Appointment Assistant** that automates appointment booking, rescheduling, and cancellations through **Telegram** or a **Webhook**.  \n- It uses intelligent agents to understand user intent, gather details, manage Google Calendar events, update records in Google Sheets, and send confirmation emails \u2014 creating a **fully automated and customizable booking system** suitable for **any business**, not just dental clinics.\n\n---\n\n## How It Works\n\n### 1. User Interaction  \n- The workflow can be triggered via **Telegram**, **Webhook**, and can easily be extended to **WhatsApp** or **Facebook Messenger**.  \n- The **Planning Agent** starts the conversation and collects essential details like:  \n  - Appointment type (book, update, or delete)  \n  - Date and time preference  \n  - Service type or reason for visit  \n  - Personal details (name, email, etc.)  \n- Based on the user\u2019s intent, it routes the conversation to the appropriate booking flow.\n\n### 2. Booking Flow  \n- The **Booking Agent** handles the actual scheduling logic.  \n- It interacts with **Google Calendar** to:  \n  - **Create new events** for fresh appointments  \n  - **Update existing events** for reschedules  \n  - **Delete events** for cancellations  \n- It ensures proper validation (availability, overlaps, etc.) before confirming any calendar changes.\n\n### 3. Post-Booking Actions  \n- Once the booking action is completed:  \n  - The **Mail and Sheet Entry Agent** updates the **Google Sheet** with user details such as:  \n    - Name  \n    - Email  \n    - Appointment date & time  \n    - Status (booked/updated/cancelled)  \n    - Short description of the appointment  \n  - Sends an **email confirmation** to the user (for all actions \u2014 create, update, or delete).  \n  - Sends a **final message** via Telegram (or chosen platform) confirming the status of the appointment.\n\n---\n\n## How to Use  \n- Trigger the workflow via **Telegram** or a **Webhook URL**.  \n- The AI assistant will guide the user step-by-step through booking, updating, or cancelling an appointment.  \n- Once confirmed, the system:  \n  - Updates Google Calendar automatically  \n  - Logs the appointment details in Google Sheets  \n  - Sends an email and chat confirmation message to the user  \n\n---\n\n## Requirements  \nTo deploy this workflow, you\u2019ll need:  \n- **n8n account** (self-hosted or cloud)  \n- **Telegram Bot Token**, or other chat integrations (WhatsApp / Facebook)  \n- **OpenAI or OpenRouter API Key** (for AI conversation agents)  \n- **Google Calendar API access** (to manage events)  \n- **Google Sheets API access** (to store booking records)  \n- **Gmail / SMTP credentials** (to send confirmation emails)",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 19,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/9473",
+  "source": "n8n.io",
+  "matched_keyword": "dental",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "dental"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/20 nodes typed (5%)"
+}

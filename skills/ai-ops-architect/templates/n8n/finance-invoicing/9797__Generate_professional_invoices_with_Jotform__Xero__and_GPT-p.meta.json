@@ -1,0 +1,21 @@
+{
+  "id": 9797,
+  "title": "Generate professional invoices with Jotform, Xero, and GPT-powered emails",
+  "description": "## Generate Invoices for Customers with Jotform, Xero and Gmail\nThis workflow automates the entire process of receiving a product/service order, checking or creating a customer in **Xero**, generating an invoice, and emailing it \u2014 all triggered by a form submission (via **Jotform**).\n\n## How It Works\n1. **Receive Submission**\n- Triggered when a user submits a form.\n- Collects data like customer details, selected product/service, etc.\n\n2. **Create/Update The Customer**\n- Creates/Updates the customer.\n\n3. **Create The Invoice**\n- Generates a new invoice for the customer using the item selected.\n\n4. **Send The Invoice**\n- Automatically sends the invoice via email to the customer.\n\n## Who Can Benefit from This Workflow?\n* **Freelancers**\n* **Service Providers**\n* **Consultants & Coaches**\n* **Small Businesses**\n* **E-commerce or Custom Product Sellers**\n\n## Requirements\n- Jotform webhook setup, more info [here](https://www.jotform.com/help/245-how-to-setup-a-webhook-with-jotform/)\n- Xero credentials, more info [here](https://docs.n8n.io/integrations/builtin/credentials/xero)\n- Make sure that products/services values in Jotform are exactly the same as your item `Code` in your Xero account\n- Email setup, update email node (`Send email`), more info about Gmail setup [here](https://docs.n8n.io/integrations/builtin/credentials/google)\n- LLM model credentials",
+  "category": "finance-invoicing",
+  "services_required": [],
+  "node_count": 7,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/9797",
+  "source": "n8n.io",
+  "matched_keyword": "xero",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "finance-invoicing",
+    "xero"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/8 nodes typed (12%)"
+}

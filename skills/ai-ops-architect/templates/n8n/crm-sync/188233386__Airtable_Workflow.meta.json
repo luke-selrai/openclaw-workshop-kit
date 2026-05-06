@@ -1,0 +1,25 @@
+{
+  "id": 188233386,
+  "title": "Airtable Workflow",
+  "description": "n8n workflow: Airtable Workflow. 5 nodes wired together. Uses: manualTrigger, airtable, lemlist, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Airtable/1220_Airtable_Lemlist_Automate.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "crm-sync",
+  "services_required": [
+    "manualTrigger",
+    "airtable",
+    "lemlist",
+    "stopAndError"
+  ],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Airtable/1220_Airtable_Lemlist_Automate.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "crm-sync",
+    "czlonkowski-backfill"
+  ]
+}

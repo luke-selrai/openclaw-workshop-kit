@@ -1,0 +1,40 @@
+{
+  "name": "managed-agents-setup",
+  "version": "1.1.0",
+  "description": "Zero-to-production Anthropic Managed Agents + Routines setup. Pairs with /ai-ops-architect (orchestrator) and /n8n (workflow runtime).",
+  "author": {
+    "name": "luke-selrai",
+    "email": "luke@selrgroup.com.au"
+  },
+  "homepage": "https://github.com/luke-selrai/managed-agents-setup",
+  "repository": "https://github.com/luke-selrai/managed-agents-setup.git",
+  "license": "UNLICENSED",
+  "keywords": [
+    "anthropic",
+    "managed-agents",
+    "routines",
+    "mcp",
+    "workshop",
+    "smb",
+    "ai-ops"
+  ],
+  "skills": "./skills",
+  "agents": "./agents",
+  "commands": "./commands",
+  "_meta": {
+    "depends_on_skills": ["ai-ops-architect"],
+    "depends_on_binaries": ["claude", "ant", "python3", "bash", "jq", "gh"],
+    "prereqs": {
+      "anthropic_account": true,
+      "claude_cli_authenticated": true
+    },
+    "phases": [
+      "0-preflight", "1-console", "2-install", "3-vault",
+      "4-env", "5-agent", "6-routine", "7-handoff"
+    ],
+    "publishing": {
+      "current": "private",
+      "workshop_release_gate": "quality-bar must pass before mirror to workshop org"
+    }
+  }
+}

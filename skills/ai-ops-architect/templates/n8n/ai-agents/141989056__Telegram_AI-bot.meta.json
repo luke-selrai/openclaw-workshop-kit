@@ -1,0 +1,25 @@
+{
+  "id": 141989056,
+  "title": "Telegram AI-bot",
+  "description": "## Chatbot mode by default\n### (when no command is provided)",
+  "category": "ai-agents",
+  "services_required": [
+    "telegramTrigger",
+    "openAi",
+    "telegram",
+    "stopAndError"
+  ],
+  "node_count": 17,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski-r2",
+  "source_path": "workflows/Openai/1685_Openai_Telegram_Automate_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ai-agents",
+    "czlonkowski-backfill-r2"
+  ]
+}

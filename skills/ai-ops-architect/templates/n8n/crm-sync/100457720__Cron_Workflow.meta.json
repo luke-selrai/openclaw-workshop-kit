@@ -1,0 +1,25 @@
+{
+  "id": 100457720,
+  "title": "Cron Workflow",
+  "description": "n8n workflow: Cron Workflow. 8 nodes wired together. Uses: cron, pipedrive, hubspot, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Hubspot/0129_HubSpot_Cron_Update_Scheduled.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "crm-sync",
+  "services_required": [
+    "cron",
+    "pipedrive",
+    "hubspot",
+    "stopAndError"
+  ],
+  "node_count": 8,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Hubspot/0129_HubSpot_Cron_Update_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "crm-sync",
+    "czlonkowski-backfill"
+  ]
+}

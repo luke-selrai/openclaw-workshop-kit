@@ -1,0 +1,25 @@
+{
+  "id": 162730517,
+  "title": "Gmail Workflow",
+  "description": "n8n workflow: Gmail Workflow. 5 nodes wired together. Uses: manualTrigger, gmail, googleDrive, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Gmail/0036_Gmail_GoogleDrive_Import.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "email-automation",
+  "services_required": [
+    "manualTrigger",
+    "gmail",
+    "googleDrive",
+    "stopAndError"
+  ],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Gmail/0036_Gmail_GoogleDrive_Import.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

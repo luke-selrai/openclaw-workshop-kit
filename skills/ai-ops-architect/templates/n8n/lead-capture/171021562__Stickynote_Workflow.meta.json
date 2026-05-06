@@ -1,0 +1,25 @@
+{
+  "id": 171021562,
+  "title": "Stickynote Workflow",
+  "description": "# \u26a0\ufe0f When and how to use this workflow\n\nIf you previously upgraded to n8n version `0.214.3`, some of your workflows might have accidentally been re-wired in the wrong way. This affected nodes which have more than 1 output, such as `If`, `Switch`, and `Compare Datasets`.\n\nThis workflow helps you identify potentially affected workflows and nodes that you should  check.\n\n**\u2757\ufe0fPlease ensure to run this workflow as the instance owner\u2757\ufe0f**\n\n1. Configure the \"Get all workflows\" node to use your n8n API key. (You can find/create your API key under \"Settings > n8n API\")\n2. If you have community nodes installed that have more than 1 output, add them to the constant `MULTI_OUTPUT_NODES` in the \"Parse potentially affected workflows\" code node.\n3. Activate the workflow\n4. Visit `{YOUR_INSTANCE_URL}/webhooks/affected-workflows` from your browser\n5. The report will list potentially affected workflows/nodes.\n    1. The square brackets after the workflow name list the potentially affected nodes\n    2. Inspect each reported workflow individually (you can click on a row to open it in a new tab)\n    3. **Verify that the correct outbound connectors are used to connect subsequent nodes.**",
+  "category": "lead-capture",
+  "services_required": [
+    "n8n",
+    "webhook",
+    "html",
+    "respondToWebhook"
+  ],
+  "node_count": 9,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0296_Code_Webhook_Create_Webhook.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture",
+    "czlonkowski-backfill"
+  ]
+}

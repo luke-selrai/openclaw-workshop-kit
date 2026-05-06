@@ -1,0 +1,26 @@
+{
+  "id": 131695774,
+  "title": "Backup workflows to git repository",
+  "description": "Check if there are any changes in the workflow",
+  "category": "content-pipeline",
+  "services_required": [
+    "github",
+    "n8n",
+    "splitInBatches",
+    "scheduleTrigger",
+    "stopAndError"
+  ],
+  "node_count": 18,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0628_Code_Schedule_Export_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "content-pipeline",
+    "czlonkowski-backfill"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "id": 190753483,
+  "title": "Chattrigger Workflow",
+  "description": "![n8n]({{ $env.WEBHOOK_URL }}\n## Embed your Vector Store\nTo provide data for your Vector store, you need to pass it in as JSON, and ensure it's setup correctly. This flow pulls the JSON file from Google Drive and extracts the JSON data and then passes it into the qdrant collection.",
+  "category": "ai-agents",
+  "services_required": [
+    "splitOut",
+    "extractFromFile",
+    "manualTrigger",
+    "splitInBatches",
+    "googleDrive",
+    "zendesk",
+    "stopAndError"
+  ],
+  "node_count": 27,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Splitout/0714_Splitout_Zendesk_Update_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ai-agents",
+    "czlonkowski-backfill"
+  ]
+}

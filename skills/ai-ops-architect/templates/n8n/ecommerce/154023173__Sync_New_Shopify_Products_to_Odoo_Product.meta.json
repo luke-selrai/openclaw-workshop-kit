@@ -1,0 +1,25 @@
+{
+  "id": 154023173,
+  "title": "Sync New Shopify Products to Odoo Product",
+  "description": "n8n workflow: Sync New Shopify Products to Odoo Product. 6 nodes wired together. Uses: odoo, filter, shopifyTrigger, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Shopify/0961_Shopify_Filter_Create_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "ecommerce",
+  "services_required": [
+    "odoo",
+    "filter",
+    "shopifyTrigger",
+    "stopAndError"
+  ],
+  "node_count": 6,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Shopify/0961_Shopify_Filter_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ecommerce",
+    "czlonkowski-backfill"
+  ]
+}

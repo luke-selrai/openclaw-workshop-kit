@@ -1,0 +1,24 @@
+{
+  "id": 165092744,
+  "title": "Ssh Workflow",
+  "description": "## VPS upgrade notify \nThis workflow will everyday check if server has upgradable packages and inform you by email if there is.",
+  "category": "ops-monitoring",
+  "services_required": [
+    "ssh",
+    "emailSend",
+    "scheduleTrigger"
+  ],
+  "node_count": 7,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0726_Code_Schedule_Update_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ops-monitoring",
+    "czlonkowski-backfill"
+  ]
+}

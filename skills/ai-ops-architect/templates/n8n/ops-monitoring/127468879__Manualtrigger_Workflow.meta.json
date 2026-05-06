@@ -1,0 +1,25 @@
+{
+  "id": 127468879,
+  "title": "Manualtrigger Workflow",
+  "description": "## Invite users to n8n from Google sheets\nThis workflow will get all Users from n8n and compare against the rows from Google sheets and create new users\n\nInvitation emails will be sent once the new users created\n\nYou can run the workflow on demand or by schedule\n\n## Spreadsheet template\n\nThe sheet columns are inspire from Squarespace newsletter block connection, but you can change the node to adapt new columns format\n\nClone the [sample sheet here]({{ $env.WEBHOOK_URL }}\n- Submitted On\t\n- Email Address\t\n- Name",
+  "category": "ops-monitoring",
+  "services_required": [
+    "manualTrigger",
+    "httpRequest",
+    "googleSheets",
+    "scheduleTrigger"
+  ],
+  "node_count": 11,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0794_Code_Schedule_Create_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ops-monitoring",
+    "czlonkowski-backfill"
+  ]
+}

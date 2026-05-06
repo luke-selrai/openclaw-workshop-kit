@@ -1,0 +1,25 @@
+{
+  "id": 191807596,
+  "title": "Email Summary Agent",
+  "description": "- Sends the summarized email report to recipients with a styled HTML layout.\n- Update the \"sendTo\" and \"ccList\" fields with the email addresses of your recipients.",
+  "category": "ops-monitoring",
+  "services_required": [
+    "scheduleTrigger",
+    "gmail",
+    "aggregate",
+    "stopAndError"
+  ],
+  "node_count": 10,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Aggregate/1430_Aggregate_Schedule_Send_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ops-monitoring",
+    "czlonkowski-backfill"
+  ]
+}

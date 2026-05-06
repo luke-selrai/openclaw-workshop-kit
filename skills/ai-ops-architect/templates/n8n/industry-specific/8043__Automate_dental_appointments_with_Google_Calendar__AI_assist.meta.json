@@ -1,0 +1,21 @@
+{
+  "id": 8043,
+  "title": "Automate dental appointments with Google Calendar, AI assistant & email notifications",
+  "description": "\ud83e\uddb7 Dental Clinic Appointment Booking System (n8n)\n\nThis project is an automated appointment booking system for a dental clinic, built using #n8n.\nIt helps streamline clinic operations by checking availability, creating events in Google Calendar, and sending email notifications to both the doctor and the patient.\n\n\u2728 Features\n\n\u2705 Check available slots before booking\n\n\u2705 Create event in Google Calendar after patient confirmation\n\n\u2705 Send email notification to the Doctor with appointment details\n\n\u2705 Send email confirmation to the Patient with their booking details\n\n\u2705 Unique Appointment ID generation for every booking\n\n\ud83d\ude80 Live Demo\nhttps://devsabirul.github.io/Dental-Clinic-Receptionist-N8n/\n\n\ud83d\udee0 Tech Used\n\nn8n.io (Automation Platform)\n\nGoogle Calendar API (Manage bookings)\n\nSMTP / Gmail (Send email notifications)\n\n\ud83d\udcc2 Workflow Setup\n\nImport Workflow JSON\n\nIn n8n, go to Workflows \u2192 Import from File.\n\nSet Credentials\n\nConfigure Google Calendar API Credentials in n8n.\n\nConfigure Email SMTP / Gmail Credentials for sending emails.\n\nUpdate Clinic Info\n\nReplace placeholder Doctor\u2019s email with the real email.\n\nCustomize messages (email subject, body).\n\n\ud83d\udce7 Example Email Sent\n\nTo Doctor:\n\nNew Appointment Booked\nPatient: John Doe\nPhone: +123456789\nEmail: john@example.com\nDate: 31st August 2025\nTime: 2:15 PM\nAppointment ID: APT-20250831-ABCD12\n\n\nTo Patient:\n\nHello John Doe,  \n\nYour appointment has been successfully booked.  \n\n\ud83d\udcc5 Date: 31st August 2025  \n\ud83d\udd52 Time: 2:15 PM  \n\ud83d\udccd Appointment ID: APT-20250831-ABCD12  \n\nThank you,  \nDental Clinic\n\n\ud83d\udccc Tags\n\n#n8n #automation #dentalclinic #calendar #appointment\n\n\ud83d\ude4c Author\n\n\ud83d\udc68\u200d\ud83d\udcbb Developed by MD Sabirul Islam",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 9,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/8043",
+  "source": "n8n.io",
+  "matched_keyword": "dental",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "dental"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/10 nodes typed (10%)"
+}

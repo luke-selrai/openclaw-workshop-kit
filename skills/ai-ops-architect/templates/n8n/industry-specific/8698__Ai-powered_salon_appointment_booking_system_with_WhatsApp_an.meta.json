@@ -1,0 +1,21 @@
+{
+  "id": 8698,
+  "title": "Ai-powered salon appointment booking system with WhatsApp and Google Sheets",
+  "description": "## \u2705 What problem does this workflow solve?\n\nSalon staff often spend hours juggling appointment calls, managing bookings manually, and keeping track of customer preferences. This workflow automates your **entire salon appointment system** via WhatsApp, delivering a **personalized and human-like booking experience** using AI, memory, and Google Sheets.\n\n---\n\n## \ud83d\udca1 Main Use Cases\n\n- \ud83d\udc81\u200d\u2640\ufe0f Offer **personalized stylist recommendations** by remembering customer preferences and past visits.\n- \ud83d\udcc5 Provide **real-time availability** and salon opening hour information.\n- \ud83d\udcdd **Book and update appointments** directly from customer chat.\n- \ud83d\udd01 Simplify appointment changes by recalling previous booking details.\n- \ud83e\udde0 Enable **context-aware, memory-driven conversations** across multiple interactions.\n\n---\n\n## \ud83e\udde0 How It Works \u2013 Step-by-Step\n\n### 1. \ud83d\udcf2 Chat Message Trigger\nThe workflow is triggered whenever a customer sends a message to your WhatsApp salon assistant.\n\n### 2. \ud83e\udde0 Memory Buffer for Context Management\nThe assistant uses a **Memory Buffer** to:\n- Recognize returning customers\n- Avoid repeating questions\n- Maintain conversation flow across multiple sessions\n\nThis enables a **seamless and intelligent dialogue** with each customer.\n\n### 3. \ud83d\udc87 Stylist & Service Lookup\nWhen the customer asks for stylist suggestions, available time slots, or services:\n- Extracts request details using AI\n- Queries a **Google Sheet** containing:\n  - Stylist availability\n  - Service types\n  - Salon opening hours\n- Returns **personalized recommendations** based on preferences and availability\n\n### 4. \u2705 Appointment Booking\n- Collects all necessary info:\n  - Date, time, selected service, stylist, contact info\n- Stores the appointment in **Google Sheets**\n- Sends a **confirmation message** to the customer in WhatsApp\n\n### 5. \ud83d\udd04 Modify or Cancel Bookings\n- Customers can update or cancel appointments\n- Bot **matches records by phone number**\n- Modifies or deletes the appointment in the sheet accordingly\n\n---\n\n## \ud83e\udde9 Integrations Used\n\n- **WhatsApp Integration** (via Twilio, Meta API, or other connector)\n- **OpenAI/GPT Model** for natural conversation flow and extraction\n- **Google Sheets** as a simple and effective appointment database\n- **Memory Buffer** for ongoing context across chats\n\n---\n\n## \ud83d\udc64 Who can use this?\n\nPerfect for:\n- \ud83d\udc87\u200d\u2640\ufe0f **Salons and barbershops**\n- \ud83d\udc85 **Spas and beauty centers**\n- \ud83e\uddd6\u200d\u2640\ufe0f **Wellness studios**\n- \ud83d\udee0 Developers building vertical AI assistants for SMBs\n\nIf you're looking to modernize your booking process and impress customers with an AI-powered, memory-enabled WhatsApp bot\u2014this workflow delivers.\n\n---\n\n## \ud83d\ude80 Benefits\n\n- \u23f0 Save time for your staff\n- \ud83e\udde0 Offer truly personalized experiences\n- \ud83d\udcf2 Book appointments 24/7 via WhatsApp\n- \ud83d\udccb Keep all records organized in Google Sheets\n- \ud83e\uddd8 Reduce human error and double bookings\n\n---\n\n## \ud83d\udce6 Ready to Launch?\n\nJust configure:\n- \u2705 Your WhatsApp number + webhook integration\n- \u2705 Google Sheet with stylist and service data\n- \u2705 OpenAI key for AI-powered conversation\n- \u2705 Memory Buffer to enable smart replies\n\nAnd your salon will be ready to offer **automated, intelligent booking**\u2014right from a simple WhatsApp chat.",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 6,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/8698",
+  "source": "n8n.io",
+  "matched_keyword": "salon",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "salon"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/7 nodes typed (14%)"
+}

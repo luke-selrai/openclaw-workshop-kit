@@ -1,0 +1,28 @@
+{
+  "id": 171425512,
+  "title": "Gmail to Vector Embeddings with PGVector and Ollama",
+  "description": "## Magic here \ud83e\ude84\n#### (not really, just statistics)\nE-mail is stored in a `emails_metadata` structured table, and also fed to the [`nomic-embed-text`]({{ $env.WEBHOOK_URL }} model to be stored in a `emails_embeddings` table as [vector embeddings]({{ $env.WEBHOOK_URL }} so similarity searches are possible.\n\nThe `email_id` field can be used to make the relation between the structured records and the vector embeddings, as it's stored in their metadata as `emails_metadata.id`.\nThis is also the case for `thread_id`.",
+  "category": "data-sync",
+  "services_required": [
+    "gmailTrigger",
+    "splitInBatches",
+    "splitOut",
+    "manualTrigger",
+    "postgres",
+    "gmail",
+    "stopAndError"
+  ],
+  "node_count": 21,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Splitout/1783_Splitout_Postgres_Automation_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "data-sync",
+    "czlonkowski-backfill"
+  ]
+}

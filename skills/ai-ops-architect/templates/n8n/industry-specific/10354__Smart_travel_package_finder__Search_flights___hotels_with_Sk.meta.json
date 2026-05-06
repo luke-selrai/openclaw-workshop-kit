@@ -1,0 +1,21 @@
+{
+  "id": 10354,
+  "title": "Smart travel package finder: Search flights & hotels with Skyscanner-Booking.com",
+  "description": "## Introduction\nAutomates travel itinerary creation by searching flights and hotels via APIs, then uses AI to generate personalized recommendations delivered as HTML emails through Gmail.\n## How It Works\nWebhook receives travel requests, searches Skyscanner and Booking.com APIs in parallel, merges results, uses AI to create optimized itineraries, formats as HTML email, sends via Gmail.\n## Workflow Template\nWebhook \u2192 Parse & Validate \u2192 Parallel Searches (Flights: Skyscanner | Hotels: Booking.com) \u2192 Merge Data \u2192 AI Generate Itinerary \u2192 Format HTML Email \u2192 Send Gmail \u2192 Webhook Response\n## Workflow Steps\n1. Trigger & Validate: Webhook receives request, extracts destination/dates/budget/preferences, validates data, converts to API parameters.\n2. Parallel Search: Skyscanner fetches flights with price/duration/airline. Booking.com retrieves hotels with ratings/pricing. Merge combines both into single JSON object.\n3. AI Generation: AI analyzes merged data, evaluates by price/duration/rating, creates itinerary with daily schedule, pairings, costs, and rankings.\n4. Delivery: Converts JSON to HTML email with tables and booking links. Gmail sends email. Webhook confirms success.\n## Setup Instructions\n1. API Configuration: Add Skyscanner and Booking.com API credentials in n8n.\n2. Gmail Setup: Configure OAuth2 authentication.\n3. Customization: Copy webhook URL, adjust validation rules, modify AI prompts and HTML template.\n## Prerequisites\n- Skyscanner API key\n- Booking.com API credentials\n- Gmail with OAuth2\n- n8n instance\n## Use Cases\n- Personal vacation planning\n- Business travel arrangements\n## Customization\n- Add APIs (Kiwi, Expedia)\n- Filter by budget, Modify email design\n## Benefits\n- Saves 2-3 hours per trip\n- Real-time pricing comparison",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 8,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/10354",
+  "source": "n8n.io",
+  "matched_keyword": "hotel",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "hotel"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/9 nodes typed (11%)"
+}

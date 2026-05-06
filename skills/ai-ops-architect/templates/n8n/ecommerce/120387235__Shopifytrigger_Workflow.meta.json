@@ -1,0 +1,24 @@
+{
+  "id": 120387235,
+  "title": "Shopifytrigger Workflow",
+  "description": "### Add more fields to Mautic\nBy default, the first name, last name and email are pushed to Mautic. If you require more fields, add it in the `Create contact` node.",
+  "category": "ecommerce",
+  "services_required": [
+    "shopifyTrigger",
+    "mautic",
+    "stopAndError"
+  ],
+  "node_count": 4,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Shopify/0278_Shopify_Mautic_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ecommerce",
+    "czlonkowski-backfill"
+  ]
+}

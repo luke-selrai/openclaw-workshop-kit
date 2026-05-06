@@ -1,0 +1,23 @@
+{
+  "id": 133213260,
+  "title": "Rapid ETL: HTTP -> Transform -> Deliver",
+  "description": "## Template: ETL R\u00e1pido (HTTP \u2192 Transform \u2192 Entregar)\n\n- Objetivo: Ingerir dados de uma API, transformar e enviar em lote.\n- Teste r\u00e1pido: execute manualmente no Editor.\n- Fonte demo: jsonplaceholder.typicode.com/posts.\n- Entrega demo: httpbin.org/post (eco).\n- Produ\u00e7\u00e3o: substitua 'Upsert Endpoint' pelo seu DB/API (Sheets, Postgres, etc.).",
+  "category": "data-sync",
+  "services_required": [
+    "manualTrigger",
+    "httpRequest"
+  ],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Templates/9002_Rapid_ETL_HTTP_Transform_Deliver_Manual.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "data-sync",
+    "czlonkowski-backfill"
+  ]
+}

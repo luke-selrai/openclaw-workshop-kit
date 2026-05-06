@@ -1,0 +1,21 @@
+{
+  "id": 3811,
+  "title": "Create and send multi-item PayPal invoices via email",
+  "description": "### Who Is This For?  \nSmall businesses, consultants, agencies\u2026 anyone who bills with PayPal.\n\n### What Problem Does It Solve?  \nAutomates itemized invoicing and delivery via PayPal\u2019s Invoicing API with support for an \u201cAdd more items?\u201d loop.\n\n### What This Workflow Does  \n1. Collects your PayPal credentials & invoice data via a form  \n2. Dynamically generates a timestamp + random 4 digit number for the invoice_number  \n3. Calls PayPal to create and then send the invoice  \n4. Supports endless line-items via a Switch + Merge loop.\n\n### Setup  \n1. Grab a PayPal REST App\u2019s Client ID & Secret.  \n2. Toggle \u201cLive or Test\u201d to point at production vs sandbox.  \n3. **PayPal Credentials**  \n   - If you select **Test**, this workflow points at PayPal\u2019s **sandbox** (`api-m.sandbox.paypal.com`) and **requires your sandbox** Client ID & Secret.  \n   - If you select **Live**, it points at PayPal\u2019s **production** endpoint (`api-m.paypal.com`) and **requires your live** Client ID & Secret.  \n4. (Optional) Customize your logo, currency, default notes.\n\n### How to Customize  \n\u2013 Change the currency dropdown  \n\u2013 Tweak the invoice-number format in the \u201cSet Invoice Number and Date\u201d code node  \n\u2013 Swap out or style the n8n Form nodes for your own UX",
+  "category": "finance-invoicing",
+  "services_required": [],
+  "node_count": 8,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/3811",
+  "source": "n8n.io",
+  "matched_keyword": "paypal",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "finance-invoicing",
+    "paypal"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/9 nodes typed (11%)"
+}

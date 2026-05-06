@@ -1,0 +1,25 @@
+{
+  "id": 104042239,
+  "title": "Httprequest Workflow",
+  "description": "## Set your Theads ID & Post Time\n\nChage the your with your Threads ID to get your posts / \u8acb\u5148\u900f\u904e\u4e0a\u65b9\u6559\u5b78\u7372\u53d6 Threads ID\n\nSet the time of the Post you wanna get / \u8a2d\u7f6e\u6293\u53d6\u7684\u8cbc\u6587\u6642\u9593\n\n[Check Facebook Docs Post API]({{ $env.WEBHOOK_URL }}\n\nsince is scrape the post after the date /\nsince \u70ba\u6293\u53d6\u65e5\u671f\u4e4b\u5f8c\u7684\u8cbc\u6587\n\nuntil is scrape the post before the date /\nuntil \u70ba\u6293\u53d6\u65e5\u671f\u4e4b\u524d\u7684\u8cbc\u6587\n\nsince can set\n\n{{ new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split('T')[0] }}\n\nit will scrape the post since one day ago",
+  "category": "ops-monitoring",
+  "services_required": [
+    "httpRequest",
+    "splitInBatches",
+    "notion",
+    "scheduleTrigger"
+  ],
+  "node_count": 27,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0706_Code_Schedule_Create_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ops-monitoring",
+    "czlonkowski-backfill"
+  ]
+}

@@ -1,0 +1,1865 @@
+{
+  "id": 14858,
+  "name": "Track nutrition and fitness via webhook with OpenAI, Google Sheets and Slack alerts",
+  "views": 0,
+  "recentViews": 0,
+  "totalViews": 0,
+  "createdAt": "2026-04-07T11:46:34.675Z",
+  "description": "# AI Nutrition Tracker with Webhook, OpenAI, Google Sheets & Slack Alerts\n\nThis workflow is an AI-powered nutrition and fitness tracking system built in **n8n**. It receives user input via webhook, analyzes food or activity using AI, updates daily calorie and protein intake in Google Sheets and sends alerts via Slack when limits or risks are detected. It also resets daily metrics automatically using a scheduled trigger.\n\n\n### Quick Start Guide (Fast Implementation)\n\n1. **Connect** your Google Sheets account with required columns.\n2. **Configure** OpenAI API credentials.\n3. **Set up** Slack integration for alerts.\n4. **Deploy** the Webhook node for receiving user input.\n5. **Enable** the Schedule Trigger for daily reset.\n6. **Test** by sending a sample message (food/activity) to the webhook.\n\n\n## What It Does\n\nThis workflow automates real-time nutrition tracking by processing user input such as food consumption or physical activities. When a user sends a message through a webhook, the system fetches their profile data from Google Sheets and validates their existence before continuing.\n\nThe input is then analyzed using an **AI model** that classifies it as food or activity. Based on this classification, it estimates calories, protein intake, calories burned and identifies potential health risks. The processed data is combined with existing user metrics to maintain an updated daily summary.\n\nAdditionally, the workflow monitors calorie thresholds and risk patterns. If a user exceeds their daily calorie target or shows unhealthy behavior patterns, alerts are sent to **Slack**. A scheduled process resets all users\u2019 daily metrics, ensuring accurate tracking for each new day.\n\n\n## Who\u2019s It For\n\n* Fitness app developers\n* Health and wellness platforms\n* Personal trainers and nutritionists\n* Automation engineers building health tracking systems\n* Businesses managing user diet and activity tracking\n\n\n## Requirements to Use This Workflow\n\n* **n8n instance** (self-hosted or cloud)\n* **Google Sheets account** with a structured sheet\n* **OpenAI API credentials**\n* **Slack workspace** with API access\n* Basic understanding of webhook usage\n\n\n### Required Google Sheets Columns:\n* `Name`\n* `Phone` (used as unique identifier)\n* `Goal`\n* `Daily_Calorie_Target`\n* `Consumed_Calories`\n* `Protein`\n* `Last_Meal`\n* `Status`\n* `Risk_Count`\n\n\n## How It Works & How To Set Up\n\n### Step 1: Configure Webhook\n\n* **Node:** Receive User Input\n* Set webhook path (e.g., `/diet-input`)\n* This endpoint will receive user messages (food/activity input).\n\n### Step 2: Connect Google Sheets\n\n* **Node:** Fetch User Data\n* Map `Phone` column with incoming webhook data (`body.phone`).\n* Ensure correct **Sheet ID** and **Sheet Name**.\n\n### Step 3: Validate User\n\n* **Node:** Validate User Exists\n* Ensures only valid users are processed.\n\n### Step 4: Configure AI Analysis\n\n* **Node:** AI Nutrition Analyzer  \n  Uses OpenAI model to:\n    * Detect input type (**FOOD / ACTIVITY**)\n    * Estimate calories & protein\n    * Detect risks\n    * Generate suggestions and replies\n* **Node:** AI Model (GPT)\n    * Ensure OpenAI credentials are properly connected.\n\n### Step 5: Process Data\n\n* **Node:** Process Nutrition Data  \n  Updates: **Total calories**, **Protein intake** and **Risk count**.\n* Handles both food intake and activity adjustments.\n\n### Step 6: Monitor Thresholds\n\n* **Node:** Check Calorie Threshold\n* Sends Slack alert if calorie limit is exceeded.\n\n### Step 7: Risk Detection\n\n* **Node:** Check Health Risk: Sends alert if any risk is detected.\n* **Node:** Check Critical Risk: Sends critical alert if risk count &gt;= 3.\n\n### Step 8: Respond to User\n\n* **Node:** Send API Response  \n  Returns: AI-generated reply, calories consumed and daily total.\n\n### Step 9: Update User Data\n\n* **Node:** Update User Data\n* Writes updated metrics back to Google Sheets.\n\n### Step 10: Daily Reset Automation\n\n* **Node:** Daily Reset Trigger\n* **Node:** Fetch All Users \u2192 Reset Daily Stats  \n  Resets: Calories = 0, Protein = 0, Risk Count = 0, Status = `NEW_DAY`.\n\n\n## How To Customize Nodes\n\n* **AI Prompt (AI Nutrition Analyzer):** Modify calorie logic, risk definitions or add new dietary rules.\n* **Calorie Threshold:** Change comparison logic based on different fitness goals.\n* **Slack Messages:** Customize alert messages and formatting.\n* **Google Sheets Mapping:** Add more fields like carbs, fats or water intake.\n* **Webhook Input Structure:** Adjust input format if integrating with mobile apps or chatbots.\n\n\n## Add-ons (Extend Functionality)\n\n* Add **WhatsApp/SMS** notifications for user alerts.\n* Integrate with mobile apps for real-time tracking.\n* Add **meal history logging**.\n* Include weekly/monthly analytics dashboards.\n* Add AI meal recommendations based on user goals.\n* Integrate **wearable data** (steps, workouts).\n\n\n## Use Case Examples\n\n* **Fitness App Backend:** Automatically track user diet and activity in real time.\n* **Personal Trainer Dashboard:** Monitor client calorie intake and risks.\n* **Corporate Wellness Programs:** Track employee health metrics and send alerts.\n* **Diet Coaching Automation:** Provide AI-based suggestions and feedback.\n* **Health Monitoring Systems:** Detect unhealthy patterns and escalate alerts.\n\n\n## Troubleshooting Guide\n\n| Issue | Possible Cause | Solution |\n| :--- | :--- | :--- |\n| **Webhook not receiving data** | Incorrect webhook URL | Verify webhook path and method |\n| **User not found** | Phone mismatch in Sheets | Ensure phone format matches input |\n| **AI response parsing fails** | Invalid JSON from AI | Adjust prompt to enforce strict JSON |\n| **Slack alerts not sent** | Incorrect Slack credentials | Reconnect Slack API |\n| **Data not updating in Sheets** | Column mapping issue | Verify matching column (Phone) |\n| **Calories not updating** | Parsing or logic issue | Check code node calculations |\n| **Daily reset not working** | Schedule trigger configuration | Verify interval settings |\n\n\n## Need Help?\n\nIf you need assistance setting up this workflow, customizing AI logic or building advanced automation features, our [n8n development team](https://www.weblineindia.com/hire-n8n-developers/) at **WeblineIndia** is here to help.\n\n**We specialize in:**\n\n* n8n workflow automation\n* AI-powered business solutions\n* Custom integrations and scaling systems\n\n\ud83d\udce9 [**Reach out to WeblineIndia**](https://www.weblineindia.com/contact-us.html) to accelerate your automation journey and build powerful, production-ready workflows tailored to your needs.",
+  "workflow": {
+    "id": "s4jgZO9U3unLVD9G",
+    "meta": {
+      "instanceId": "14e4c77104722ab186539dfea5182e419aecc83d85963fe13f6de862c875ebfa",
+      "templateCredsSetupCompleted": true
+    },
+    "name": "AI Fitness Coach",
+    "tags": [],
+    "nodes": [
+      {
+        "id": "8ca44c49-b922-4b49-b0b0-0485ebbe4284",
+        "name": "Sticky Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -336,
+          -928
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 752,
+          "height": 384,
+          "content": "## Reset Daily Nutrition Data\nThis section runs on a schedule to reset daily user metrics such as calories, protein and risk count. It ensures that each day starts fresh, allowing accurate daily tracking and preventing old data from affecting new calculations.\n"
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "f2de3585-6f46-4f65-83dc-9b7666d9c95d",
+        "name": "Receive User Input",
+        "type": "n8n-nodes-base.webhook",
+        "position": [
+          -224,
+          -224
+        ],
+        "webhookId": "c9f3cb41-0dd8-4875-a02f-847a142a3691",
+        "parameters": {
+          "path": "diet-input",
+          "options": {},
+          "responseMode": "responseNode"
+        },
+        "typeVersion": 2.1
+      },
+      {
+        "id": "81c70aca-5fe3-4677-a979-6fcd9c148f03",
+        "name": "Fetch User Data",
+        "type": "n8n-nodes-base.googleSheets",
+        "position": [
+          0,
+          -224
+        ],
+        "parameters": {
+          "options": {},
+          "filtersUI": {
+            "values": [
+              {
+                "lookupValue": "={{ $json.body.phone }}",
+                "lookupColumn": "Phone"
+              }
+            ]
+          },
+          "sheetName": {
+            "__rl": true,
+            "mode": "list",
+            "value": 1453522644,
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8/edit#gid=1453522644",
+            "cachedResultName": "Fittness tracker"
+          },
+          "documentId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8/edit?usp=drivesdk",
+            "cachedResultName": "LinkedIn Profile Monitor"
+          }
+        },
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "I1RrcnhaJ8CK8L6g",
+            "name": "Google Sheets account 42"
+          }
+        },
+        "typeVersion": 4.7
+      },
+      {
+        "id": "9590adbb-f114-4828-8563-f8498144147d",
+        "name": "Validate User Exists",
+        "type": "n8n-nodes-base.if",
+        "position": [
+          224,
+          -224
+        ],
+        "parameters": {
+          "options": {},
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "combinator": "and",
+            "conditions": [
+              {
+                "id": "4669e763-a21f-400f-b742-95dc12528632",
+                "operator": {
+                  "type": "object",
+                  "operation": "exists",
+                  "singleValue": true
+                },
+                "leftValue": "={{ $json }}",
+                "rightValue": ""
+              }
+            ]
+          }
+        },
+        "typeVersion": 2.2
+      },
+      {
+        "id": "9c594b08-7633-4573-96f8-e59344553ab0",
+        "name": "AI Nutrition Analyzer",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "position": [
+          640,
+          -240
+        ],
+        "parameters": {
+          "text": "=You are an advanced nutrition and fitness AI.\n\nUser Goal: {{ $json.Goal }}\nDaily Calorie Target: {{ $json.Daily_Calorie_Target }}\n\nUser Input:\n\"{{ $('Receive User Input').item.json.body.message }}\"\n\nTasks:\n1. Detect type:\n   - FOOD\n   - ACTIVITY\n   - UNKNOWN\n\n2. If FOOD:\n   - Estimate calories\n   - Estimate protein\n   - Detect meal type (breakfast/lunch/dinner/snack)\n\n3. If ACTIVITY:\n   - Estimate calories burned\n\n4. Detect risk:\n   - OVER_EATING\n   - LOW_PROTEIN\n   - UNHEALTHY\n   - NONE\n\nReturn STRICT JSON:\n\n{\n  \"type\": \"FOOD | ACTIVITY | UNKNOWN\",\n  \"calories\": number,\n  \"protein\": number,\n  \"calories_burned\": number,\n  \"meal_type\": \"breakfast | lunch | dinner | snack\",\n  \"risk\": \"NONE | OVER_EATING | LOW_PROTEIN | UNHEALTHY\",\n  \"suggestion\": \"short advice\",\n  \"reply\": \"friendly message\"\n}",
+          "options": {},
+          "promptType": "define"
+        },
+        "typeVersion": 3
+      },
+      {
+        "id": "22ba5100-ea1e-4ad2-bae3-0ac039d28178",
+        "name": "AI Model (GPT)",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "position": [
+          640,
+          16
+        ],
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "options": {}
+        },
+        "credentials": {
+          "openAiApi": {
+            "id": "ERYFwGU6ssapOmLu",
+            "name": "OpenAi account 36"
+          }
+        },
+        "typeVersion": 1.2
+      },
+      {
+        "id": "a070183a-fed2-40ee-a544-21dd44965d7f",
+        "name": "Process Nutrition Data",
+        "type": "n8n-nodes-base.code",
+        "position": [
+          1264,
+          -240
+        ],
+        "parameters": {
+          "jsCode": "const raw = $input.first().json.output;\n\nlet parsed;\n\ntry {\n  parsed = JSON.parse(raw);\n} catch (e) {\n  parsed = {\n    type: \"UNKNOWN\",\n    calories: 0,\n    protein: 0,\n    calories_burned: 0,\n    risk: \"NONE\",\n    suggestion: \"AI parsing failed\",\n    reply: \"Sorry, I couldn't understand. Try again.\"\n  };\n}\n\n// Get user data\nlet user = $('Fetch User Data').first().json;\n\nlet totalCalories = parseInt(user.Consumed_Calories || 0);\nlet protein = parseInt(user.Protein || 0);\nlet riskCount = parseInt(user.Risk_Count || 0);\n\n// FOOD\nif (parsed.type === \"FOOD\") {\n  totalCalories += parsed.calories;\n  protein += parsed.protein;\n}\n\n// ACTIVITY\nif (parsed.type === \"ACTIVITY\") {\n  totalCalories -= parsed.calories_burned;\n}\n\n// Risk tracking\nif (parsed.risk !== \"NONE\") {\n  riskCount += 1;\n}\n\nreturn [{\n  json: {\n    ...user,\n    ...parsed,\n    Consumed_Calories: totalCalories,\n    Protein: protein,\n    Risk_Count: riskCount,\n    message: $('Receive User Input').first().json.body.message\n  }\n}];"
+        },
+        "typeVersion": 2
+      },
+      {
+        "id": "580623d7-b0c8-4f1f-86ff-cab0f83d6af0",
+        "name": "Check Calorie Threshold",
+        "type": "n8n-nodes-base.if",
+        "position": [
+          1664,
+          -240
+        ],
+        "parameters": {
+          "options": {},
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "combinator": "and",
+            "conditions": [
+              {
+                "id": "45413895-62e1-478c-950d-71ccadc84e9b",
+                "operator": {
+                  "type": "number",
+                  "operation": "gt"
+                },
+                "leftValue": "={{ $json.Consumed_Calories }}",
+                "rightValue": "={{ $json.Daily_Calorie_Target }}"
+              }
+            ]
+          }
+        },
+        "typeVersion": 2.2
+      },
+      {
+        "id": "bb30bc6b-51e4-4398-841d-0c3bbe9cb0de",
+        "name": "Alert: Calorie Limit Exceeded",
+        "type": "n8n-nodes-base.slack",
+        "position": [
+          1904,
+          -256
+        ],
+        "webhookId": "0f239370-0375-4b21-94cb-4a18ddb6a9d4",
+        "parameters": {
+          "text": "=You have exceeded your daily calorie limit.  Consumed: {{ $('Process Nutrition Data').item.json.Consumed_Calories }} Target: {{ $('Process Nutrition Data').item.json.Daily_Calorie_Target }}\n{{ $('Process Nutrition Data').item.json.suggestion }}\n\n\n\nCalorie Limit Exceeded\n\nUser: {{$json.Name}}\nConsumed: {{$json.Consumed_Calories}}\nTarget: {{$json.Daily_Calorie_Target}}\n\n{{$json.suggestion}}",
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "C0ALTQD6L0H",
+            "cachedResultName": "feature-addition"
+          },
+          "otherOptions": {}
+        },
+        "credentials": {
+          "slackApi": {
+            "id": "dRQEMAne82jxjlmX",
+            "name": "Slack account 36"
+          }
+        },
+        "typeVersion": 2.3
+      },
+      {
+        "id": "d4ae622d-30a2-4951-88da-9b61d87358dd",
+        "name": "Check Health Risk",
+        "type": "n8n-nodes-base.if",
+        "position": [
+          2240,
+          -256
+        ],
+        "parameters": {
+          "options": {},
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "combinator": "and",
+            "conditions": [
+              {
+                "id": "108f7ab5-b30a-4429-9249-307575f2133a",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEquals"
+                },
+                "leftValue": "={{ $('Process Nutrition Data').item.json.risk }}",
+                "rightValue": "NONE"
+              }
+            ]
+          }
+        },
+        "typeVersion": 2.2
+      },
+      {
+        "id": "8db1d125-776d-47b9-b9b2-1385be931ca9",
+        "name": "Alert: Health Risk",
+        "type": "n8n-nodes-base.slack",
+        "position": [
+          2464,
+          -272
+        ],
+        "webhookId": "ce0fa33e-97df-4782-ac4a-29e8532c5753",
+        "parameters": {
+          "text": "=Health Risk Detected  User: {{ $('Process Nutrition Data').item.json.Name }} Risk: {{ $('Process Nutrition Data').item.json.risk }}  \n{{ $('Process Nutrition Data').item.json.suggestion }}",
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "C0ALCNTB03G",
+            "cachedResultName": "complain"
+          },
+          "otherOptions": {}
+        },
+        "credentials": {
+          "slackApi": {
+            "id": "dRQEMAne82jxjlmX",
+            "name": "Slack account 36"
+          }
+        },
+        "typeVersion": 2.3
+      },
+      {
+        "id": "08aa8c9d-1328-4171-933f-efc2b7360501",
+        "name": "Check Critical Risk",
+        "type": "n8n-nodes-base.if",
+        "position": [
+          2656,
+          -272
+        ],
+        "parameters": {
+          "options": {},
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "combinator": "and",
+            "conditions": [
+              {
+                "id": "b268556d-434b-44ff-a80a-e33a35bb0a9e",
+                "operator": {
+                  "type": "number",
+                  "operation": "gte"
+                },
+                "leftValue": "={{ $('Process Nutrition Data').item.json.Risk_Count }}",
+                "rightValue": 3
+              }
+            ]
+          }
+        },
+        "typeVersion": 2.2
+      },
+      {
+        "id": "e71441ea-e8cf-46dd-85b6-766030768c4f",
+        "name": "Alert: Critical Health Issue",
+        "type": "n8n-nodes-base.slack",
+        "position": [
+          2880,
+          -288
+        ],
+        "webhookId": "69b0ab42-1503-4977-b0d4-377a9d7695e9",
+        "parameters": {
+          "text": "=CRITICAL ALERT  User: {{ $('Process Nutrition Data').item.json.Name }} Multiple unhealthy patterns detected.  Immediate attention required.",
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "C0ALCNTB03G",
+            "cachedResultName": "complain"
+          },
+          "otherOptions": {}
+        },
+        "credentials": {
+          "slackApi": {
+            "id": "dRQEMAne82jxjlmX",
+            "name": "Slack account 36"
+          }
+        },
+        "typeVersion": 2.3
+      },
+      {
+        "id": "11837d64-a88a-4417-a66f-a17bed17f3e5",
+        "name": "Send API Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "position": [
+          3248,
+          -288
+        ],
+        "parameters": {
+          "options": {},
+          "respondWith": "json",
+          "responseBody": "={\n  \"message\": \"{{ $('Process Nutrition Data').item.json.reply }}\",\n  \"calories\": \"{{ $('Process Nutrition Data').item.json.calories }}\",\n  \"total_today\": \"{{ $('Process Nutrition Data').item.json.Consumed_Calories }}\"\n}"
+        },
+        "typeVersion": 1.4
+      },
+      {
+        "id": "81687bd8-0b7d-48af-b13e-2b01e5a24815",
+        "name": "Update User Data",
+        "type": "n8n-nodes-base.googleSheets",
+        "position": [
+          3456,
+          -288
+        ],
+        "parameters": {
+          "columns": {
+            "value": {
+              "Phone": "={{ $('Process Nutrition Data').item.json.Phone }}",
+              "Status": "={{ $('Process Nutrition Data').item.json.Status }}",
+              "Protein": "={{ $('Process Nutrition Data').item.json.Protein }}",
+              "Last_Meal": "={{ $('Process Nutrition Data').item.json.Last_Meal }}",
+              "Risk_Count": "={{ $('Process Nutrition Data').item.json.Risk_Count }}",
+              "Consumed_Calories": "={{ $('Process Nutrition Data').item.json.Consumed_Calories }}"
+            },
+            "schema": [
+              {
+                "id": "Name",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Name",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Phone",
+                "type": "string",
+                "display": true,
+                "removed": false,
+                "required": false,
+                "displayName": "Phone",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Goal",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Goal",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Daily_Calorie_Target",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Daily_Calorie_Target",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Consumed_Calories",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Consumed_Calories",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Protein",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Protein",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Last_Meal",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Last_Meal",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Status",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Status",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Risk_Count",
+                "type": "string",
+                "display": true,
+                "removed": false,
+                "required": false,
+                "displayName": "Risk_Count",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "row_number",
+                "type": "number",
+                "display": true,
+                "removed": true,
+                "readOnly": true,
+                "required": false,
+                "displayName": "row_number",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              }
+            ],
+            "mappingMode": "defineBelow",
+            "matchingColumns": [
+              "Phone"
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {},
+          "operation": "update",
+          "sheetName": {
+            "__rl": true,
+            "mode": "list",
+            "value": 1453522644,
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8/edit#gid=1453522644",
+            "cachedResultName": "Fittness tracker"
+          },
+          "documentId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8/edit?usp=drivesdk",
+            "cachedResultName": "LinkedIn Profile Monitor"
+          }
+        },
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "I1RrcnhaJ8CK8L6g",
+            "name": "Google Sheets account 42"
+          }
+        },
+        "typeVersion": 4.7
+      },
+      {
+        "id": "de83bc4d-5f9c-406b-9213-4961f78254b7",
+        "name": "Daily Reset Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "position": [
+          -272,
+          -752
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {}
+            ]
+          }
+        },
+        "typeVersion": 1.2
+      },
+      {
+        "id": "721cb82e-b9fd-43d5-9833-65afae2cac9d",
+        "name": "Fetch All Users",
+        "type": "n8n-nodes-base.googleSheets",
+        "position": [
+          -32,
+          -752
+        ],
+        "parameters": {
+          "options": {},
+          "sheetName": {
+            "__rl": true,
+            "mode": "list",
+            "value": 1453522644,
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8/edit#gid=1453522644",
+            "cachedResultName": "Fittness tracker"
+          },
+          "documentId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8/edit?usp=drivesdk",
+            "cachedResultName": "LinkedIn Profile Monitor"
+          }
+        },
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "I1RrcnhaJ8CK8L6g",
+            "name": "Google Sheets account 42"
+          }
+        },
+        "typeVersion": 4.7
+      },
+      {
+        "id": "320bfe58-fd06-47a9-a44c-1969a41df000",
+        "name": "Reset Daily Stats",
+        "type": "n8n-nodes-base.googleSheets",
+        "position": [
+          224,
+          -752
+        ],
+        "parameters": {
+          "columns": {
+            "value": {
+              "Phone": "={{ $json.Phone }}",
+              "Status": "NEW_DAY",
+              "Protein": "0",
+              "Risk_Count": "0",
+              "Consumed_Calories": "0"
+            },
+            "schema": [
+              {
+                "id": "Name",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Name",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Phone",
+                "type": "string",
+                "display": true,
+                "removed": false,
+                "required": false,
+                "displayName": "Phone",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Goal",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Goal",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Daily_Calorie_Target",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Daily_Calorie_Target",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Consumed_Calories",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Consumed_Calories",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Protein",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Protein",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Last_Meal",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Last_Meal",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Status",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Status",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Risk_Count",
+                "type": "string",
+                "display": true,
+                "required": false,
+                "displayName": "Risk_Count",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "row_number",
+                "type": "number",
+                "display": true,
+                "removed": true,
+                "readOnly": true,
+                "required": false,
+                "displayName": "row_number",
+                "defaultMatch": false,
+                "canBeUsedToMatch": true
+              }
+            ],
+            "mappingMode": "defineBelow",
+            "matchingColumns": [
+              "Phone"
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {},
+          "operation": "update",
+          "sheetName": {
+            "__rl": true,
+            "mode": "list",
+            "value": 1453522644,
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8/edit#gid=1453522644",
+            "cachedResultName": "Fittness tracker"
+          },
+          "documentId": {
+            "__rl": true,
+            "mode": "list",
+            "value": "1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b4XQG0yh1s3ZrnYTsKBlnSMNdlYzQt42zJ8DUneVTS8/edit?usp=drivesdk",
+            "cachedResultName": "LinkedIn Profile Monitor"
+          }
+        },
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "I1RrcnhaJ8CK8L6g",
+            "name": "Google Sheets account 42"
+          }
+        },
+        "typeVersion": 4.7
+      },
+      {
+        "id": "c5aba6cd-1b16-48b4-bca2-23a90b2e863d",
+        "name": "Sticky Note1",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -336,
+          -480
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 800,
+          "height": 640,
+          "content": "## Receive and Validate User Input\nThis section receives user input through a webhook and fetches corresponding user data from Google Sheets using the phone number. It validates whether the user exists before continuing. This ensures only registered users are processed, maintaining data accuracy and avoiding unnecessary AI processing."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "011a2612-3ae2-4c19-8e9d-bcf956492339",
+        "name": "Sticky Note2",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          528,
+          -480
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 512,
+          "height": 640,
+          "content": "## Analyze Food or Activity with AI\nThis section uses AI to analyze user input such as food or physical activity. It identifies whether the input is food or exercise, estimates calories and protein and detects potential health risks. This transforms raw user messages into structured nutritional insights for further processing."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "424c2b61-a4dc-4b7f-aa22-d4524e3c8cc6",
+        "name": "Sticky Note3",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          1104,
+          -480
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 416,
+          "height": 640,
+          "content": "## Calculate Calories and Update Metrics\nThis section processes AI output and combines it with existing user data. It updates total calories consumed, protein intake and risk count. It also adjusts calories based on activities. This step ensures accurate tracking of daily nutrition and health metrics for each user."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "5e4fc328-9dae-4b8d-8664-b141450357ef",
+        "name": "Sticky Note4",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          1584,
+          -480
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 496,
+          "height": 624,
+          "content": "## Monitor Daily Calorie Limit \nThis section checks whether the user has exceeded their daily calorie target. If the limit is crossed, a notification is sent to alert the user or team. This helps users stay within their calorie goals and maintain better dietary discipline."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "fc3ff4c7-1745-41b6-9c55-f8be80470bef",
+        "name": "Sticky Note5",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          2144,
+          -480
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 912,
+          "height": 624,
+          "content": "## Detect Health Risks and Escalate Alerts \nThis section evaluates potential health risks based on user behavior. If any risk is detected, a warning is sent. If repeated risks occur multiple times, the system escalates to a critical alert. This ensures proactive monitoring and timely intervention for unhealthy patterns."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "fd815dc0-4134-4276-9d7d-a29786178546",
+        "name": "Sticky Note6",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          3120,
+          -480
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 560,
+          "height": 624,
+          "content": "## Response & Data Storage \nThis section sends a response back to the user with insights such as calories consumed and suggestions. It also updates the user\u2019s data in Google Sheets, including calories, protein and risk count. This ensures data persistence and continuous tracking of user progress."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "d2e62464-5d84-4d52-8344-7c230df6c2c6",
+        "name": "Sticky Note7",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -336,
+          -1456
+        ],
+        "parameters": {
+          "width": 992,
+          "height": 480,
+          "content": "## Workflow Overview & Setup Guide \nThis workflow is an AI-powered fitness and nutrition tracking system that processes user input in real time. Users send messages through a webhook, such as food intake or physical activity. The system retrieves user data from Google Sheets and validates the user before proceeding.\n\nThe input is then analyzed using an AI model, which identifies whether it is food or activity and calculates calories, protein and potential health risks. This structured data is processed to update total daily consumption and health metrics.\n\nThe workflow checks if the user exceeds their daily calorie limit and sends alerts if necessary. It also detects unhealthy patterns and escalates alerts if risks occur repeatedly. All updates are stored in Google Sheets to maintain user history.\n\nAdditionally, a scheduled trigger resets daily metrics like calories and protein, ensuring fresh tracking every day.\n\nSetup steps:\n1. Connect Google Sheets with required columns (Phone, Calories, Protein, etc.)\n2. Configure OpenAI API credentials\n3. Set up Slack integration for alerts\n4. Deploy webhook for user input (e.g., from app or chatbot)\n5. Configure schedule trigger for daily reset\n\nThis system automates health tracking and provides real-time feedback efficiently."
+        },
+        "typeVersion": 1
+      }
+    ],
+    "active": false,
+    "pinData": {},
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "versionId": "00a567d3-7ce2-40a4-a465-4d77a2225bf8",
+    "connections": {
+      "AI Model (GPT)": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Nutrition Analyzer",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch All Users": {
+        "main": [
+          [
+            {
+              "node": "Reset Daily Stats",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch User Data": {
+        "main": [
+          [
+            {
+              "node": "Validate User Exists",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Health Risk": {
+        "main": [
+          [
+            {
+              "node": "Alert: Health Risk",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send API Response": {
+        "main": [
+          [
+            {
+              "node": "Update User Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alert: Health Risk": {
+        "main": [
+          [
+            {
+              "node": "Check Critical Risk",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Receive User Input": {
+        "main": [
+          [
+            {
+              "node": "Fetch User Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Critical Risk": {
+        "main": [
+          [
+            {
+              "node": "Alert: Critical Health Issue",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Daily Reset Trigger": {
+        "main": [
+          [
+            {
+              "node": "Fetch All Users",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate User Exists": {
+        "main": [
+          [
+            {
+              "node": "AI Nutrition Analyzer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Nutrition Analyzer": {
+        "main": [
+          [
+            {
+              "node": "Process Nutrition Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Process Nutrition Data": {
+        "main": [
+          [
+            {
+              "node": "Check Calorie Threshold",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Calorie Threshold": {
+        "main": [
+          [
+            {
+              "node": "Alert: Calorie Limit Exceeded",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alert: Critical Health Issue": {
+        "main": [
+          [
+            {
+              "node": "Send API Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alert: Calorie Limit Exceeded": {
+        "main": [
+          [
+            {
+              "node": "Check Health Risk",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    }
+  },
+  "lastUpdatedBy": 1,
+  "workflowInfo": {
+    "nodeCount": 25,
+    "nodeTypes": {
+      "n8n-nodes-base.if": {
+        "count": 4
+      },
+      "n8n-nodes-base.code": {
+        "count": 1
+      },
+      "n8n-nodes-base.slack": {
+        "count": 3
+      },
+      "n8n-nodes-base.webhook": {
+        "count": 1
+      },
+      "n8n-nodes-base.stickyNote": {
+        "count": 8
+      },
+      "n8n-nodes-base.googleSheets": {
+        "count": 4
+      },
+      "@n8n/n8n-nodes-langchain.agent": {
+        "count": 1
+      },
+      "n8n-nodes-base.scheduleTrigger": {
+        "count": 1
+      },
+      "n8n-nodes-base.respondToWebhook": {
+        "count": 1
+      },
+      "@n8n/n8n-nodes-langchain.lmChatOpenAi": {
+        "count": 1
+      }
+    }
+  },
+  "status": "published",
+  "readyToDemo": null,
+  "user": {
+    "name": "WeblineIndia",
+    "username": "weblineindia",
+    "bio": "A Leading Software Engineering, Consulting & Outsourcing Services Company in USA & India serving Clients Globally since 1999.",
+    "verified": true,
+    "links": [
+      "https://www.weblineindia.com/hire-n8n-developers/"
+    ],
+    "avatar": "https://gravatar.com/avatar/a229d43aefca4588581583c58bb37b4773aebbdf4c1fef86a08bb1d38eae91fa?r=pg&d=retro&size=200"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Track nutrition and fitness via webhook with OpenAI, Google Sheets and Slack alerts\n\n**Purpose**: # AI Nutrition Tracker with Webhook, OpenAI, Google Sheets & Slack Alerts\n\nThis workflow is an AI-powered nutrition and fitness tracking system built in **n8n**. It receives user input via webhook, analyzes food or activity using AI, updates daily calorie and protein intake in Google Sheets and sends alerts via Slack when limits or risks are detected. It also resets daily metrics automatically usi\n\n**Services needed**: \n\n**Difficulty**: 5min-config\n\n**Setup**:\n1. Configure credentials for the services above\n2. Update any hardcoded IDs / URLs\n3. Test with sample data before activating\n\n_Source: https://n8n.io/workflows/14858_\n_Curated by ai-ops-architect (targeted backfill) on 2026-05-05_",
+        "height": 480,
+        "width": 480
+      },
+      "name": "Setup Guide (delete after configuring)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "ai-ops-sticky-header"
+    },
+    {
+      "id": 18,
+      "icon": "file:googleSheets.svg",
+      "name": "n8n-nodes-base.googleSheets",
+      "codex": {
+        "data": {
+          "alias": [
+            "CSV",
+            "Sheet",
+            "Spreadsheet",
+            "GS"
+          ],
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/love-at-first-sight-ricardos-n8n-journey/",
+                "icon": "\u2764\ufe0f",
+                "label": "Love at first sight: Ricardo\u2019s n8n journey"
+              },
+              {
+                "url": "https://n8n.io/blog/why-business-process-automation-with-n8n-can-change-your-daily-life/",
+                "icon": "\ud83e\uddec",
+                "label": "Why business process automation with n8n can change your daily life"
+              },
+              {
+                "url": "https://n8n.io/blog/automatically-adding-expense-receipts-to-google-sheets-with-telegram-mindee-twilio-and-n8n/",
+                "icon": "\ud83e\uddfe",
+                "label": "Automatically Adding Expense Receipts to Google Sheets with Telegram, Mindee, Twilio, and n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/supercharging-your-conference-registration-process-with-n8n/",
+                "icon": "\ud83c\udfab",
+                "label": "Supercharging your conference registration process with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/creating-triggers-for-n8n-workflows-using-polling/",
+                "icon": "\u23f2",
+                "label": "Creating triggers for n8n workflows using polling"
+              },
+              {
+                "url": "https://n8n.io/blog/no-code-ecommerce-workflow-automations/",
+                "icon": "store",
+                "label": "6 e-commerce workflows to power up your Shopify s"
+              },
+              {
+                "url": "https://n8n.io/blog/migrating-community-metrics-to-orbit-using-n8n/",
+                "icon": "\ud83d\udcc8",
+                "label": "Migrating Community Metrics to Orbit using n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/automate-google-apps-for-productivity/",
+                "icon": "\ud83d\udca1",
+                "label": "15 Google apps you can combine and automate to increase productivity"
+              },
+              {
+                "url": "https://n8n.io/blog/your-business-doesnt-need-you-to-operate/",
+                "icon": " \ud83d\udda5\ufe0f",
+                "label": "Hey founders! Your business doesn't need you to operate"
+              },
+              {
+                "url": "https://n8n.io/blog/how-honest-burgers-use-automation-to-save-100k-per-year/",
+                "icon": "\ud83c\udf54",
+                "label": "How Honest Burgers Use Automation to Save $100k per year"
+              },
+              {
+                "url": "https://n8n.io/blog/how-a-digital-strategist-uses-n8n-for-online-marketing/",
+                "icon": "\ud83d\udcbb",
+                "label": "How a digital strategist uses n8n for online marketing"
+              },
+              {
+                "url": "https://n8n.io/blog/why-this-product-manager-loves-workflow-automation-with-n8n/",
+                "icon": "\ud83e\udde0",
+                "label": "Why this Product Manager loves workflow automation with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/sending-automated-congratulations-with-google-sheets-twilio-and-n8n/",
+                "icon": "\ud83d\ude4c",
+                "label": "Sending Automated Congratulations with Google Sheets, Twilio, and n8n "
+              },
+              {
+                "url": "https://n8n.io/blog/how-a-membership-development-manager-automates-his-work-and-investments/",
+                "icon": "\ud83d\udcc8",
+                "label": "How a Membership Development Manager automates his work and investments"
+              },
+              {
+                "url": "https://n8n.io/blog/aws-workflow-automation/",
+                "label": "7 no-code workflow automations for Amazon Web Services"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.googlesheets/"
+              }
+            ],
+            "credentialDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/credentials/google/oauth-single-service/"
+              }
+            ]
+          },
+          "categories": [
+            "Data & Storage",
+            "Productivity"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0"
+        }
+      },
+      "group": "[\"input\",\"output\"]",
+      "defaults": {
+        "name": "Google Sheets"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGZpbGw9IiMyOEI0NDYiIGQ9Ik0zNS42OSAxIDUyIDE3LjIyNXYzOS4wODdhMy42NyAzLjY3IDAgMCAxLTEuMDg0IDIuNjFBMy43IDMuNyAwIDAgMSA0OC4yOTMgNjBIMTIuNzA3YTMuNyAzLjcgMCAwIDEtMi42MjMtMS4wNzhBMy42NyAzLjY3IDAgMCAxIDkgNTYuMzEyVjQuNjg4YTMuNjcgMy42NyAwIDAgMSAxLjA4NC0yLjYxQTMuNyAzLjcgMCAwIDEgMTIuNzA3IDF6Ii8+PHBhdGggZmlsbD0iIzZBQ0U3QyIgZD0iTTM1LjY5IDEgNTIgMTcuMjI1SDM5LjM5N2MtMi4wNTQgMC0zLjcwNy0xLjgyOS0zLjcwNy0zLjg3MnoiLz48cGF0aCBmaWxsPSIjMjE5QjM4IiBkPSJNMzkuMjExIDE3LjIyNSA1MiAyMi40OHYtNS4yNTV6Ii8+PHBhdGggZmlsbD0iI0ZGRiIgZD0iTTIwLjEyIDMxLjk3NWMwLS44MTcuNjYyLTEuNDc1IDEuNDgzLTEuNDc1aDE3Ljc5NGMuODIxIDAgMS40ODIuNjU4IDEuNDgyIDEuNDc1djE1LjQ4N2MwIC44MTgtLjY2MSAxLjQ3NS0xLjQ4MiAxLjQ3NUgyMS42MDNhMS40NzYgMS40NzYgMCAwIDEtMS40ODItMS40NzRWMzEuOTc0em0yLjIyNSAxLjQ3NWg2LjY3MnYyLjIxMmgtNi42NzJ6bTAgNS4xNjJoNi42NzJ2Mi4yMTNoLTYuNjcyem0wIDUuMTYzaDYuNjcydjIuMjEyaC02LjY3MnptOS42MzgtMTAuMzI1aDYuNjcydjIuMjEyaC02LjY3MnptMCA1LjE2Mmg2LjY3MnYyLjIxM2gtNi42NzJ6bTAgNS4xNjNoNi42NzJ2Mi4yMTJoLTYuNjcyeiIvPjxwYXRoIGZpbGw9IiMyOEI0NDYiIGQ9Ik0zNC42OSAwIDUxIDE2LjIyNXYzOS4wODdhMy42NyAzLjY3IDAgMCAxLTEuMDg0IDIuNjFBMy43IDMuNyAwIDAgMSA0Ny4yOTMgNTlIMTEuNzA3YTMuNyAzLjcgMCAwIDEtMi42MjMtMS4wNzhBMy42NyAzLjY3IDAgMCAxIDggNTUuMzEyVjMuNjg4YTMuNjcgMy42NyAwIDAgMSAxLjA4NC0yLjYxQTMuNyAzLjcgMCAwIDEgMTEuNzA3IDB6Ii8+PHBhdGggZmlsbD0iIzZBQ0U3QyIgZD0iTTM0LjY5IDAgNTEgMTYuMjI1SDM4LjM5N2MtMi4wNTQgMC0zLjcwNy0xLjgyOS0zLjcwNy0zLjg3MnoiLz48cGF0aCBmaWxsPSIjMjE5QjM4IiBkPSJNMzguMjExIDE2LjIyNSA1MSAyMS40OHYtNS4yNTV6Ii8+PHBhdGggZmlsbD0iI0ZGRiIgZD0iTTE5LjEyIDMwLjk3NWMwLS44MTcuNjYyLTEuNDc1IDEuNDgzLTEuNDc1aDE3Ljc5NGMuODIxIDAgMS40ODIuNjU4IDEuNDgyIDEuNDc1djE1LjQ4N2MwIC44MTgtLjY2MSAxLjQ3NS0xLjQ4MiAxLjQ3NUgyMC42MDNhMS40NzYgMS40NzYgMCAwIDEtMS40ODItMS40NzRWMzAuOTc0em0yLjIyNSAxLjQ3NWg2LjY3MnYyLjIxMmgtNi42NzJ6bTAgNS4xNjJoNi42NzJ2Mi4yMTNoLTYuNjcyem0wIDUuMTYzaDYuNjcydjIuMjEyaC02LjY3MnptOS42MzgtMTAuMzI1aDYuNjcydjIuMjEyaC02LjY3MnptMCA1LjE2Mmg2LjY3MnYyLjIxM2gtNi42NzJ6bTAgNS4xNjNoNi42NzJ2Mi4yMTJoLTYuNjcyeiIvPjwvZz48L3N2Zz4="
+      },
+      "displayName": "Google Sheets",
+      "typeVersion": 5,
+      "nodeCategories": [
+        {
+          "id": 3,
+          "name": "Data & Storage"
+        },
+        {
+          "id": 4,
+          "name": "Productivity"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "icon": "fa:map-signs",
+      "name": "n8n-nodes-base.if",
+      "codex": {
+        "data": {
+          "alias": [
+            "Router",
+            "Filter",
+            "Condition",
+            "Logic",
+            "Boolean",
+            "Branch"
+          ],
+          "details": "The IF node can be used to implement binary conditional logic in your workflow. You can set up one-to-many conditions to evaluate each item of data being inputted into the node. That data will either evaluate to TRUE or FALSE and route out of the node accordingly.\n\nThis node has multiple types of conditions: Bool, String, Number, and Date & Time.",
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/learn-to-automate-your-factorys-incident-reporting-a-step-by-step-guide/",
+                "icon": "\ud83c\udfed",
+                "label": "Learn to Automate Your Factory's Incident Reporting: A Step by Step Guide"
+              },
+              {
+                "url": "https://n8n.io/blog/2021-the-year-to-automate-the-new-you-with-n8n/",
+                "icon": "\u2600\ufe0f",
+                "label": "2021: The Year to Automate the New You with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/why-business-process-automation-with-n8n-can-change-your-daily-life/",
+                "icon": "\ud83e\uddec",
+                "label": "Why business process automation with n8n can change your daily life"
+              },
+              {
+                "url": "https://n8n.io/blog/create-a-toxic-language-detector-for-telegram/",
+                "icon": "\ud83e\udd2c",
+                "label": "Create a toxic language detector for Telegram in 4 step"
+              },
+              {
+                "url": "https://n8n.io/blog/no-code-ecommerce-workflow-automations/",
+                "icon": "store",
+                "label": "6 e-commerce workflows to power up your Shopify s"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-build-a-low-code-self-hosted-url-shortener/",
+                "icon": "\ud83d\udd17",
+                "label": "How to build a low-code, self-hosted URL shortener in 3 steps"
+              },
+              {
+                "url": "https://n8n.io/blog/automate-your-data-processing-pipeline-in-9-steps-with-n8n/",
+                "icon": "\u2699\ufe0f",
+                "label": "Automate your data processing pipeline in 9 steps"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-get-started-with-crm-automation-and-no-code-workflow-ideas/",
+                "icon": "\ud83d\udc65",
+                "label": "How to get started with CRM automation (with 3 no-code workflow ideas"
+              },
+              {
+                "url": "https://n8n.io/blog/5-tasks-you-can-automate-with-notion-api/",
+                "icon": "\u26a1\ufe0f",
+                "label": "5 tasks you can automate with the new Notion API "
+              },
+              {
+                "url": "https://n8n.io/blog/automate-google-apps-for-productivity/",
+                "icon": "\ud83d\udca1",
+                "label": "15 Google apps you can combine and automate to increase productivity"
+              },
+              {
+                "url": "https://n8n.io/blog/automation-for-maintainers-of-open-source-projects/",
+                "icon": "\ud83c\udff7\ufe0f",
+                "label": "How to automatically manage contributions to open-source projects"
+              },
+              {
+                "url": "https://n8n.io/blog/how-uproc-scraped-a-multi-page-website-with-a-low-code-workflow/",
+                "icon": " \ud83d\udd78\ufe0f",
+                "label": "How uProc scraped a multi-page website with a low-code workflow"
+              },
+              {
+                "url": "https://n8n.io/blog/5-workflow-automations-for-mattermost-that-we-love-at-n8n/",
+                "icon": "\ud83e\udd16",
+                "label": "5 workflow automations for Mattermost that we love at n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/why-this-product-manager-loves-workflow-automation-with-n8n/",
+                "icon": "\ud83e\udde0",
+                "label": "Why this Product Manager loves workflow automation with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/sending-automated-congratulations-with-google-sheets-twilio-and-n8n/",
+                "icon": "\ud83d\ude4c",
+                "label": "Sending Automated Congratulations with Google Sheets, Twilio, and n8n "
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-set-up-a-ci-cd-pipeline-with-no-code/",
+                "icon": "\ud83c\udfa1",
+                "label": "How to set up a no-code CI/CD pipeline with GitHub and TravisCI"
+              },
+              {
+                "url": "https://n8n.io/blog/benefits-of-automation-and-n8n-an-interview-with-hubspots-hugh-durkin/",
+                "icon": "\ud83c\udf96",
+                "label": "Benefits of automation and n8n: An interview with HubSpot's Hugh Durkin"
+              },
+              {
+                "url": "https://n8n.io/blog/aws-workflow-automation/",
+                "label": "7 no-code workflow automations for Amazon Web Services"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.if/"
+              }
+            ]
+          },
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Flow"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "If",
+        "color": "#408000"
+      },
+      "iconData": {
+        "icon": "map-signs",
+        "type": "icon"
+      },
+      "displayName": "If",
+      "typeVersion": 2,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "icon": "file:slack.svg",
+      "name": "n8n-nodes-base.slack",
+      "codex": {
+        "data": {
+          "alias": [
+            "human",
+            "form",
+            "wait",
+            "hitl",
+            "approval"
+          ],
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/no-code-ecommerce-workflow-automations/",
+                "icon": "store",
+                "label": "6 e-commerce workflows to power up your Shopify s"
+              },
+              {
+                "url": "https://n8n.io/blog/automate-your-data-processing-pipeline-in-9-steps-with-n8n/",
+                "icon": "\u2699\ufe0f",
+                "label": "Automate your data processing pipeline in 9 steps"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-get-started-with-crm-automation-and-no-code-workflow-ideas/",
+                "icon": "\ud83d\udc65",
+                "label": "How to get started with CRM automation (with 3 no-code workflow ideas"
+              },
+              {
+                "url": "https://n8n.io/blog/5-tasks-you-can-automate-with-notion-api/",
+                "icon": "\u26a1\ufe0f",
+                "label": "5 tasks you can automate with the new Notion API "
+              },
+              {
+                "url": "https://n8n.io/blog/build-your-own-virtual-assistant-with-n8n-a-step-by-step-guide/",
+                "icon": "\ud83d\udc66",
+                "label": "Build your own virtual assistant with n8n: A step by step guide"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-automatically-give-kudos-to-contributors-with-github-slack-and-n8n/",
+                "icon": "\ud83d\udc4f",
+                "label": "How to automatically give kudos to contributors with GitHub, Slack, and n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/automations-for-activists/",
+                "icon": "\u2728",
+                "label": "How Common Knowledge use workflow automation for activism"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.slack/"
+              }
+            ],
+            "credentialDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/credentials/slack/"
+              }
+            ]
+          },
+          "categories": [
+            "Communication",
+            "HITL"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "HITL": [
+              "Human in the Loop"
+            ]
+          }
+        }
+      },
+      "group": "[\"output\"]",
+      "defaults": {
+        "name": "Slack"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBmaWxsPSIjZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiB2aWV3Qm94PSIwIDAgMTUwLjg1MiAxNTAuODUyIj48dXNlIHhsaW5rOmhyZWY9IiNhIiB4PSIuOTI2IiB5PSIuOTI2Ii8+PHN5bWJvbCBpZD0iYSIgb3ZlcmZsb3c9InZpc2libGUiPjxnIHN0cm9rZS13aWR0aD0iMS44NTIiPjxwYXRoIGZpbGw9IiNlMDFlNWEiIHN0cm9rZT0iI2UwMWU1YSIgZD0iTTQwLjc0MSA5My41NWMwLTguNzM1IDYuNjA3LTE1Ljc3MiAxNC44MTUtMTUuNzcyczE0LjgxNSA3LjAzNyAxNC44MTUgMTUuNzcydjM4LjgyNGMwIDguNzM3LTYuNjA3IDE1Ljc3NC0xNC44MTUgMTUuNzc0cy0xNC44MTUtNy4wMzctMTQuODE1LTE1Ljc3MnoiLz48cGF0aCBmaWxsPSIjZWNiMjJkIiBzdHJva2U9IiNlY2IyMmQiIGQ9Ik05My41NSAxMDcuNDA4Yy04LjczNSAwLTE1Ljc3Mi02LjYwNy0xNS43NzItMTQuODE1czcuMDM3LTE0LjgxNSAxNS43NzItMTQuODE1aDM4LjgyNmM4LjczNSAwIDE1Ljc3MiA2LjYwNyAxNS43NzIgMTQuODE1cy03LjAzNyAxNC44MTUtMTUuNzcyIDE0LjgxNXoiLz48cGF0aCBmaWxsPSIjMmZiNjdjIiBzdHJva2U9IiMyZmI2N2MiIGQ9Ik03Ny43NzggMTUuNzcyQzc3Ljc3OCA3LjAzNyA4NC4zODUgMCA5Mi41OTMgMHMxNC44MTUgNy4wMzcgMTQuODE1IDE1Ljc3MnYzOC44MjZjMCA4LjczNS02LjYwNyAxNS43NzItMTQuODE1IDE1Ljc3MnMtMTQuODE1LTcuMDM3LTE0LjgxNS0xNS43NzJ6Ii8+PHBhdGggZmlsbD0iIzM2YzVmMSIgc3Ryb2tlPSIjMzZjNWYxIiBkPSJNMTUuNzcyIDcwLjM3MUM3LjAzNyA3MC4zNzEgMCA2My43NjMgMCA1NS41NTZzNy4wMzctMTQuODE1IDE1Ljc3Mi0xNC44MTVoMzguODI2YzguNzM1IDAgMTUuNzcyIDYuNjA3IDE1Ljc3MiAxNC44MTVzLTcuMDM3IDE0LjgxNS0xNS43NzIgMTQuODE1eiIvPjxnIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiPjxwYXRoIGZpbGw9IiNlY2IyMmQiIHN0cm9rZT0iI2VjYjIyZCIgZD0iTTc3Ljc3OCAxMzMuMzMzYzAgOC4yMDggNi42MDcgMTQuODE1IDE0LjgxNSAxNC44MTVzMTQuODE1LTYuNjA3IDE0LjgxNS0xNC44MTUtNi42MDctMTQuODE1LTE0LjgxNS0xNC44MTVINzcuNzc4eiIvPjxwYXRoIGZpbGw9IiMyZmI2N2MiIHN0cm9rZT0iIzJmYjY3YyIgZD0iTTEzMy4zMzQgNzAuMzcxaC0xNC44MTVWNTUuNTU2YzAtOC4yMDcgNi42MDctMTQuODE1IDE0LjgxNS0xNC44MTVzMTQuODE1IDYuNjA3IDE0LjgxNSAxNC44MTUtNi42MDcgMTQuODE1LTE0LjgxNSAxNC44MTV6Ii8+PHBhdGggZmlsbD0iI2UwMWU1YSIgc3Ryb2tlPSIjZTAxZTVhIiBkPSJNMTQuODE1IDc3Ljc3OEgyOS42M3YxNC44MTVjMCA4LjIwNy02LjYwNyAxNC44MTUtMTQuODE1IDE0LjgxNVMwIDEwMC44IDAgOTIuNTkzczYuNjA3LTE0LjgxNSAxNC44MTUtMTQuODE1eiIvPjxwYXRoIGZpbGw9IiMzNmM1ZjEiIHN0cm9rZT0iIzM2YzVmMSIgZD0iTTcwLjM3MSAxNC44MTVWMjkuNjNINTUuNTU2Yy04LjIwNyAwLTE0LjgxNS02LjYwNy0xNC44MTUtMTQuODE1UzQ3LjM0OCAwIDU1LjU1NiAwczE0LjgxNSA2LjYwNyAxNC44MTUgMTQuODE1eiIvPjwvZz48L2c+PC9zeW1ib2w+PC9zdmc+"
+      },
+      "displayName": "Slack",
+      "typeVersion": 2,
+      "nodeCategories": [
+        {
+          "id": 6,
+          "name": "Communication"
+        },
+        {
+          "id": 28,
+          "name": "HITL"
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "icon": "file:webhook.svg",
+      "name": "n8n-nodes-base.webhook",
+      "codex": {
+        "data": {
+          "alias": [
+            "HTTP",
+            "API",
+            "Build",
+            "WH"
+          ],
+          "resources": {
+            "generic": [
+              {
+                "url": "https://n8n.io/blog/learn-how-to-automatically-cross-post-your-content-with-n8n/",
+                "icon": "\u270d\ufe0f",
+                "label": "Learn how to automatically cross-post your content with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/running-n8n-on-ships-an-interview-with-maranics/",
+                "icon": "\ud83d\udef3",
+                "label": "Running n8n on ships: An interview with Maranics"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-build-a-low-code-self-hosted-url-shortener/",
+                "icon": "\ud83d\udd17",
+                "label": "How to build a low-code, self-hosted URL shortener in 3 steps"
+              },
+              {
+                "url": "https://n8n.io/blog/what-are-apis-how-to-use-them-with-no-code/",
+                "icon": " \ud83e\udea2",
+                "label": "What are APIs and how to use them with no code"
+              },
+              {
+                "url": "https://n8n.io/blog/5-tasks-you-can-automate-with-notion-api/",
+                "icon": "\u26a1\ufe0f",
+                "label": "5 tasks you can automate with the new Notion API "
+              },
+              {
+                "url": "https://n8n.io/blog/how-a-digital-strategist-uses-n8n-for-online-marketing/",
+                "icon": "\ud83d\udcbb",
+                "label": "How a digital strategist uses n8n for online marketing"
+              },
+              {
+                "url": "https://n8n.io/blog/the-ultimate-guide-to-automate-your-video-collaboration-with-whereby-mattermost-and-n8n/",
+                "icon": "\ud83d\udcf9",
+                "label": "The ultimate guide to automate your video collaboration with Whereby, Mattermost, and n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/how-to-automatically-give-kudos-to-contributors-with-github-slack-and-n8n/",
+                "icon": "\ud83d\udc4f",
+                "label": "How to automatically give kudos to contributors with GitHub, Slack, and n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/5-workflow-automations-for-mattermost-that-we-love-at-n8n/",
+                "icon": "\ud83e\udd16",
+                "label": "5 workflow automations for Mattermost that we love at n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/why-this-product-manager-loves-workflow-automation-with-n8n/",
+                "icon": "\ud83e\udde0",
+                "label": "Why this Product Manager loves workflow automation with n8n"
+              },
+              {
+                "url": "https://n8n.io/blog/creating-custom-incident-response-workflows-with-n8n/",
+                "label": "How to automate every step of an incident response workflow"
+              },
+              {
+                "url": "https://n8n.io/blog/learn-to-build-powerful-api-endpoints-using-webhooks/",
+                "icon": "\ud83e\uddf0",
+                "label": "Learn to Build Powerful API Endpoints Using Webhooks"
+              },
+              {
+                "url": "https://n8n.io/blog/learn-how-to-use-webhooks-with-mattermost-slash-commands/",
+                "icon": "\ud83e\udd84",
+                "label": "Learn how to use webhooks with Mattermost slash commands"
+              },
+              {
+                "url": "https://n8n.io/blog/how-goomer-automated-their-operations-with-over-200-n8n-workflows/",
+                "icon": "\ud83d\udef5",
+                "label": "How Goomer automated their operations with over 200 n8n workflows"
+              }
+            ],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/"
+              }
+            ]
+          },
+          "categories": [
+            "Development",
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Helpers"
+            ]
+          }
+        }
+      },
+      "group": "[\"trigger\"]",
+      "defaults": {
+        "name": "Webhook"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCI+PHBhdGggZmlsbD0iIzM3NDc0ZiIgZD0iTTM1IDM3Yy0yLjIgMC00LTEuOC00LTRzMS44LTQgNC00IDQgMS44IDQgNC0xLjggNC00IDQiLz48cGF0aCBmaWxsPSIjMzc0NzRmIiBkPSJNMzUgNDNjLTMgMC01LjktMS40LTcuOC0zLjdsMy4xLTIuNWMxLjEgMS40IDIuOSAyLjMgNC43IDIuMyAzLjMgMCA2LTIuNyA2LTZzLTIuNy02LTYtNmMtMSAwLTIgLjMtMi45LjdsLTEuNyAxTDIzLjMgMTZsMy41LTEuOSA1LjMgOS40YzEtLjMgMi0uNSAzLS41IDUuNSAwIDEwIDQuNSAxMCAxMFM0MC41IDQzIDM1IDQzIi8+PHBhdGggZmlsbD0iIzM3NDc0ZiIgZD0iTTE0IDQzQzguNSA0MyA0IDM4LjUgNCAzM2MwLTQuNiAzLjEtOC41IDcuNS05LjdsMSAzLjlDOS45IDI3LjkgOCAzMC4zIDggMzNjMCAzLjMgMi43IDYgNiA2czYtMi43IDYtNnYtMmgxNXY0SDIzLjhjLS45IDQuNi01IDgtOS44IDgiLz48cGF0aCBmaWxsPSIjZTkxZTYzIiBkPSJNMTQgMzdjLTIuMiAwLTQtMS44LTQtNHMxLjgtNCA0LTQgNCAxLjggNCA0LTEuOCA0LTQgNCIvPjxwYXRoIGZpbGw9IiMzNzQ3NGYiIGQ9Ik0yNSAxOWMtMi4yIDAtNC0xLjgtNC00czEuOC00IDQtNCA0IDEuOCA0IDQtMS44IDQtNCA0Ii8+PHBhdGggZmlsbD0iI2U5MWU2MyIgZD0ibTE1LjcgMzQtMy40LTIgNS45LTkuN2MtMi0xLjktMy4yLTQuNS0zLjItNy4zIDAtNS41IDQuNS0xMCAxMC0xMHMxMCA0LjUgMTAgMTBjMCAuOS0uMSAxLjctLjMgMi41bC0zLjktMWMuMS0uNS4yLTEgLjItMS41IDAtMy4zLTIuNy02LTYtNnMtNiAyLjctNiA2YzAgMi4xIDEuMSA0IDIuOSA1LjFsMS43IDF6Ii8+PC9zdmc+"
+      },
+      "displayName": "Webhook",
+      "typeVersion": 2,
+      "nodeCategories": [
+        {
+          "id": 5,
+          "name": "Development"
+        },
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 535,
+      "icon": "file:webhook.svg",
+      "name": "n8n-nodes-base.respondToWebhook",
+      "codex": {
+        "data": {
+          "resources": {
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.respondtowebhook/"
+              }
+            ]
+          },
+          "categories": [
+            "Core Nodes",
+            "Utility"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Helpers"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "Respond to Webhook"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCI+PHBhdGggZmlsbD0iIzM3NDc0ZiIgZD0iTTM1IDM3Yy0yLjIgMC00LTEuOC00LTRzMS44LTQgNC00IDQgMS44IDQgNC0xLjggNC00IDQiLz48cGF0aCBmaWxsPSIjMzc0NzRmIiBkPSJNMzUgNDNjLTMgMC01LjktMS40LTcuOC0zLjdsMy4xLTIuNWMxLjEgMS40IDIuOSAyLjMgNC43IDIuMyAzLjMgMCA2LTIuNyA2LTZzLTIuNy02LTYtNmMtMSAwLTIgLjMtMi45LjdsLTEuNyAxTDIzLjMgMTZsMy41LTEuOSA1LjMgOS40YzEtLjMgMi0uNSAzLS41IDUuNSAwIDEwIDQuNSAxMCAxMFM0MC41IDQzIDM1IDQzIi8+PHBhdGggZmlsbD0iIzM3NDc0ZiIgZD0iTTE0IDQzQzguNSA0MyA0IDM4LjUgNCAzM2MwLTQuNiAzLjEtOC41IDcuNS05LjdsMSAzLjlDOS45IDI3LjkgOCAzMC4zIDggMzNjMCAzLjMgMi43IDYgNiA2czYtMi43IDYtNnYtMmgxNXY0SDIzLjhjLS45IDQuNi01IDgtOS44IDgiLz48cGF0aCBmaWxsPSIjZTkxZTYzIiBkPSJNMTQgMzdjLTIuMiAwLTQtMS44LTQtNHMxLjgtNCA0LTQgNCAxLjggNCA0LTEuOCA0LTQgNCIvPjxwYXRoIGZpbGw9IiMzNzQ3NGYiIGQ9Ik0yNSAxOWMtMi4yIDAtNC0xLjgtNC00czEuOC00IDQtNCA0IDEuOCA0IDQtMS44IDQtNCA0Ii8+PHBhdGggZmlsbD0iI2U5MWU2MyIgZD0ibTE1LjcgMzQtMy40LTIgNS45LTkuN2MtMi0xLjktMy4yLTQuNS0zLjItNy4zIDAtNS41IDQuNS0xMCAxMC0xMHMxMCA0LjUgMTAgMTBjMCAuOS0uMSAxLjctLjMgMi41bC0zLjktMWMuMS0uNS4yLTEgLjItMS41IDAtMy4zLTIuNy02LTYtNnMtNiAyLjctNiA2YzAgMi4xIDEuMSA0IDIuOSA1LjFsMS43IDF6Ii8+PC9zdmc+"
+      },
+      "displayName": "Respond to Webhook",
+      "typeVersion": 2,
+      "nodeCategories": [
+        {
+          "id": 7,
+          "name": "Utility"
+        },
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 565,
+      "icon": "fa:sticky-note",
+      "name": "n8n-nodes-base.stickyNote",
+      "codex": {
+        "data": {
+          "alias": [
+            "Comments",
+            "Notes",
+            "Sticky"
+          ],
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Helpers"
+            ]
+          }
+        }
+      },
+      "group": "[\"input\"]",
+      "defaults": {
+        "name": "Sticky Note",
+        "color": "#FFD233"
+      },
+      "iconData": {
+        "icon": "sticky-note",
+        "type": "icon"
+      },
+      "displayName": "Sticky Note",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 834,
+      "icon": "file:code.svg",
+      "name": "n8n-nodes-base.code",
+      "codex": {
+        "data": {
+          "alias": [
+            "cpde",
+            "Javascript",
+            "JS",
+            "Python",
+            "Script",
+            "Custom Code",
+            "Function"
+          ],
+          "details": "The Code node allows you to execute JavaScript in your workflow.",
+          "resources": {
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.code/"
+              }
+            ]
+          },
+          "categories": [
+            "Development",
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0",
+          "subcategories": {
+            "Core Nodes": [
+              "Helpers",
+              "Data Transformation"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "Code"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF8xMTcxXzQ0MSkiPgo8cGF0aCBkPSJNMTcwLjI4MyA0OEgxOTYuNUMyMDMuMTI3IDQ4IDIwOC41IDQyLjYyNzQgMjA4LjUgMzZWMTJDMjA4LjUgNS4zNzI1OCAyMDMuMTI3IDAgMTk2LjUgMEgxNzAuMjgzQzEyNi4xIDAgOTAuMjgzIDM1LjgxNzIgOTAuMjgzIDgwVjE3NkM5MC4yODMgMjA2LjkyOCA2NS4yMTA5IDIzMiAzNC4yODMgMjMySDIzQzE2LjM3MjYgMjMyIDExIDIzNy4zNzIgMTEgMjQ0VjI2OEMxMSAyNzQuNjI3IDE2LjM3MjQgMjgwIDIyLjk5OTYgMjgwTDM0LjI4MyAyODBDNjUuMjEwOSAyODAgOTAuMjgzIDMwNS4wNzIgOTAuMjgzIDMzNlY0NDBDOTAuMjgzIDQ3OS43NjQgMTIyLjUxOCA1MTIgMTYyLjI4MyA1MTJIMTk2LjVDMjAzLjEyNyA1MTIgMjA4LjUgNTA2LjYyNyAyMDguNSA1MDBWNDc2QzIwOC41IDQ2OS4zNzMgMjAzLjEyNyA0NjQgMTk2LjUgNDY0SDE2Mi4yODNDMTQ5LjAyOCA0NjQgMTM4LjI4MyA0NTMuMjU1IDEzOC4yODMgNDQwVjMzNkMxMzguMjgzIDMwOS4wMjIgMTI4LjAxMSAyODQuNDQzIDExMS4xNjQgMjY1Ljk2MUMxMDYuMTA5IDI2MC40MTYgMTA2LjEwOSAyNTEuNTg0IDExMS4xNjQgMjQ2LjAzOUMxMjguMDExIDIyNy41NTcgMTM4LjI4MyAyMDIuOTc4IDEzOC4yODMgMTc2VjgwQzEzOC4yODMgNjIuMzI2OSAxNTIuNjEgNDggMTcwLjI4MyA0OFoiIGZpbGw9IiNGRjk5MjIiLz4KPHBhdGggZD0iTTMwNSAzNkMzMDUgNDIuNjI3NCAzMTAuMzczIDQ4IDMxNyA0OEgzNDIuOTc5QzM2MC42NTIgNDggMzc0Ljk3OCA2Mi4zMjY5IDM3NC45NzggODBWMTc2QzM3NC45NzggMjAyLjk3OCAzODUuMjUxIDIyNy41NTcgNDAyLjA5OCAyNDYuMDM5QzQwNy4xNTMgMjUxLjU4NCA0MDcuMTUzIDI2MC40MTYgNDAyLjA5OCAyNjUuOTYxQzM4NS4yNTEgMjg0LjQ0MyAzNzQuOTc4IDMwOS4wMjIgMzc0Ljk3OCAzMzZWNDMyQzM3NC45NzggNDQ5LjY3MyAzNjAuNjUyIDQ2NCAzNDIuOTc5IDQ2NEgzMTdDMzEwLjM3MyA0NjQgMzA1IDQ2OS4zNzMgMzA1IDQ3NlY1MDBDMzA1IDUwNi42MjcgMzEwLjM3MyA1MTIgMzE3IDUxMkgzNDIuOTc5QzM4Ny4xNjEgNTEyIDQyMi45NzggNDc2LjE4MyA0MjIuOTc4IDQzMlYzMzZDNDIyLjk3OCAzMDUuMDcyIDQ0OC4wNTEgMjgwIDQ3OC45NzkgMjgwSDQ5MEM0OTYuNjI3IDI4MCA1MDIgMjc0LjYyOCA1MDIgMjY4VjI0NEM1MDIgMjM3LjM3MyA0OTYuNjI4IDIzMiA0OTAgMjMyTDQ3OC45NzkgMjMyQzQ0OC4wNTEgMjMyIDQyMi45NzggMjA2LjkyOCA0MjIuOTc4IDE3NlY4MEM0MjIuOTc4IDM1LjgxNzIgMzg3LjE2MSAwIDM0Mi45NzkgMEgzMTdDMzEwLjM3MyAwIDMwNSA1LjM3MjU4IDMwNSAxMlYzNloiIGZpbGw9IiNGRjk5MjIiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF8xMTcxXzQ0MSI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo="
+      },
+      "displayName": "Code",
+      "typeVersion": 2,
+      "nodeCategories": [
+        {
+          "id": 5,
+          "name": "Development"
+        },
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 839,
+      "icon": "fa:clock",
+      "name": "n8n-nodes-base.scheduleTrigger",
+      "codex": {
+        "data": {
+          "alias": [
+            "Time",
+            "Scheduler",
+            "Polling",
+            "Cron",
+            "Interval"
+          ],
+          "resources": {
+            "generic": [],
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.scheduletrigger/"
+              }
+            ]
+          },
+          "categories": [
+            "Core Nodes"
+          ],
+          "nodeVersion": "1.0",
+          "codexVersion": "1.0"
+        }
+      },
+      "group": "[\"trigger\",\"schedule\"]",
+      "defaults": {
+        "name": "Schedule Trigger",
+        "color": "#31C49F"
+      },
+      "iconData": {
+        "icon": "clock",
+        "type": "icon"
+      },
+      "displayName": "Schedule Trigger",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 9,
+          "name": "Core Nodes"
+        }
+      ]
+    },
+    {
+      "id": 1119,
+      "icon": "fa:robot",
+      "name": "@n8n/n8n-nodes-langchain.agent",
+      "codex": {
+        "data": {
+          "alias": [
+            "LangChain",
+            "Chat",
+            "Conversational",
+            "Plan and Execute",
+            "ReAct",
+            "Tools"
+          ],
+          "resources": {
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.agent/"
+              }
+            ]
+          },
+          "categories": [
+            "AI",
+            "Langchain"
+          ],
+          "subcategories": {
+            "AI": [
+              "Agents",
+              "Root Nodes"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "AI Agent",
+        "color": "#404040"
+      },
+      "iconData": {
+        "icon": "robot",
+        "type": "icon"
+      },
+      "displayName": "AI Agent",
+      "typeVersion": 3,
+      "nodeCategories": [
+        {
+          "id": 25,
+          "name": "AI"
+        },
+        {
+          "id": 26,
+          "name": "Langchain"
+        }
+      ]
+    },
+    {
+      "id": 1153,
+      "icon": "file:openAiLight.svg",
+      "name": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "codex": {
+        "data": {
+          "resources": {
+            "primaryDocumentation": [
+              {
+                "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.lmchatopenai/"
+              }
+            ]
+          },
+          "categories": [
+            "AI",
+            "Langchain"
+          ],
+          "subcategories": {
+            "AI": [
+              "Language Models",
+              "Root Nodes"
+            ],
+            "Language Models": [
+              "Chat Models (Recommended)"
+            ]
+          }
+        }
+      },
+      "group": "[\"transform\"]",
+      "defaults": {
+        "name": "OpenAI Chat Model"
+      },
+      "iconData": {
+        "type": "file",
+        "fileBuffer": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTM2Ljg2NzEgMTYuMzcxOEMzNy43NzQ2IDEzLjY0OCAzNy40NjIxIDEwLjY2NDIgMzYuMDEwOCA4LjE4NjYxQzMzLjgyODIgNC4zODY1MyAyOS40NDA3IDIuNDMxNDkgMjUuMTU1NiAzLjM1MTUxQzIzLjI0OTMgMS4yMDM5NiAyMC41MTA1IC0wLjAxNzMxNDggMTcuNjM5MiAwLjAwMDE4NTUzM0MxMy4yNTkxIC0wLjAwOTgxNDY4IDkuMzcyNzMgMi44MTAyNSA4LjAyNTIgNi45Nzc4M0M1LjIxMTM5IDcuNTU0MSAyLjc4MjU4IDkuMzE1MzggMS4zNjEzIDExLjgxMTdDLTAuODM3NDkzIDE1LjYwMTggLTAuMzM2MjMyIDIwLjM3OTQgMi42MDEzMyAyMy42Mjk0QzEuNjkzODEgMjYuMzUzMiAyLjAwNjMyIDI5LjMzNzEgMy40NTc2IDMxLjgxNDZDNS42NDAxNSAzNS42MTQ3IDEwLjAyNzcgMzcuNTY5NyAxNC4zMTI4IDM2LjY0OTdDMTYuMjE3OSAzOC43OTczIDE4Ljk1NzkgNDAuMDE4NSAyMS44MjkyIDM5Ljk5OThDMjYuMjExOCA0MC4wMTEgMzAuMDk5NCAzNy4xODg1IDMxLjQ0NjkgMzMuMDE3MUMzNC4yNjA4IDMyLjQ0MDkgMzYuNjg5NiAzMC42Nzk2IDM4LjExMDggMjguMTgzM0M0MC4zMDcxIDI0LjM5MzIgMzkuODA0NiAxOS42MTk0IDM2Ljg2ODMgMTYuMzY5M0wzNi44NjcxIDE2LjM3MThaTTIxLjgzMTcgMzcuMzg2QzIwLjA3OCAzNy4zODg1IDE4LjM3OTIgMzYuNzc0NyAxNy4wMzI5IDM1LjY1MDlDMTcuMDk0MSAzNS42MTg0IDE3LjIwMDQgMzUuNTU5NyAxNy4yNjkxIDM1LjUxNzJMMjUuMjM0MyAzMC45MTcxQzI1LjY0MTggMzAuNjg1OCAyNS44OTE4IDMwLjI1MjEgMjUuODg5MyAyOS43ODMzVjE4LjU1NDNMMjkuMjU1NyAyMC40OTgxQzI5LjI5MTkgMjAuNTE1NiAyOS4zMTU3IDIwLjU1MDYgMjkuMzIwNyAyMC41OTA2VjI5Ljg4OTZDMjkuMzE1NyAzNC4wMjQ3IDI1Ljk2NjggMzcuMzc3MiAyMS44MzE3IDM3LjM4NlpNNS43MjY0IDMwLjUwNzFDNC44NDc2MyAyOC45ODk2IDQuNTMxMzcgMjcuMjEwOCA0LjgzMjYzIDI1LjQ4NDVDNC44OTEzOCAyNS41MTk1IDQuOTk1MTMgMjUuNTgzMiA1LjA2ODg4IDI1LjYyNTdMMTMuMDM0MSAzMC4yMjU4QzEzLjQzNzggMzAuNDYyMSAxMy45Mzc4IDMwLjQ2MjEgMTQuMzQyOCAzMC4yMjU4TDI0LjA2NjggMjQuNjEwN1YyOC40OTgzQzI0LjA2OTMgMjguNTM4MyAyNC4wNTA1IDI4LjU3NyAyNC4wMTkzIDI4LjYwMkwxNS45Njc5IDMzLjI1MDlDMTIuMzgxNSAzNS4zMTU5IDcuODAxNDQgMzQuMDg4NCA1LjcyNzY1IDMwLjUwNzFINS43MjY0Wk0zLjYzMDEgMTMuMTIwNUM0LjUwNTEyIDExLjYwMDQgNS44ODY0IDEwLjQzNzkgNy41MzE0NCA5LjgzNDE1QzcuNTMxNDQgOS45MDI5IDcuNTI3NjkgMTAuMDI0MiA3LjUyNzY5IDEwLjEwOTJWMTkuMzEwNkM3LjUyNTE5IDE5Ljc3ODEgNy43NzUxOSAyMC4yMTE5IDguMTgxNDUgMjAuNDQzMUwxNy45MDU0IDI2LjA1N0wxNC41MzkxIDI4LjAwMDhDMTQuNTA1MyAyOC4wMjMzIDE0LjQ2MjggMjguMDI3IDE0LjQyNTMgMjguMDEwOEw2LjM3MjY2IDIzLjM1ODJDMi43OTM4MyAyMS4yODU2IDEuNTY2MzEgMTYuNzA2OCAzLjYyODg1IDEzLjEyMTdMMy42MzAxIDEzLjEyMDVaTTMxLjI4ODIgMTkuNTU2OUwyMS41NjQyIDEzLjk0MTdMMjQuOTMwNiAxMS45OTkyQzI0Ljk2NDMgMTEuOTc2NyAyNS4wMDY4IDExLjk3MjkgMjUuMDQ0MyAxMS45ODkyTDMzLjA5NyAxNi42MzhDMzYuNjgyMSAxOC43MDkzIDM3LjkxMDggMjMuMjk1NyAzNS44Mzk1IDI2Ljg4MDhDMzQuOTYzMyAyOC4zOTgzIDMzLjU4MzIgMjkuNTYwOCAzMS45Mzk1IDMwLjE2NThWMjAuNjg5NEMzMS45NDMyIDIwLjIyMTkgMzEuNjk0NSAxOS43ODk0IDMxLjI4OTQgMTkuNTU2OUgzMS4yODgyWk0zNC42MzgzIDE0LjUxNDJDMzQuNTc5NSAxNC40NzggMzQuNDc1OCAxNC40MTU1IDM0LjQwMiAxNC4zNzNMMjYuNDM2OCA5Ljc3Mjg5QzI2LjAzMzEgOS41MzY2NCAyNS41MzMxIDkuNTM2NjQgMjUuMTI4MSA5Ljc3Mjg5TDE1LjQwNDEgMTUuMzg4VjExLjUwMDRDMTUuNDAxNiAxMS40NjA0IDE1LjQyMDQgMTEuNDIxNyAxNS40NTE2IDExLjM5NjdMMjMuNTAzIDYuNzUxNThDMjcuMDg5NCA0LjY4Mjc5IDMxLjY3NDUgNS45MTQwNiAzMy43NDIgOS41MDE2NEMzNC42MTU4IDExLjAxNjcgMzQuOTMyIDEyLjc5MDUgMzQuNjM1OCAxNC41MTQySDM0LjYzODNaTTEzLjU3NDEgMjEuNDQzMUwxMC4yMDY1IDE5LjQ5OTRDMTAuMTcwMiAxOS40ODE5IDEwLjE0NjUgMTkuNDQ2OCAxMC4xNDE1IDE5LjQwNjhWMTAuMTA3OUMxMC4xNDQgNS45Njc4MSAxMy41MDI4IDIuNjEyNzQgMTcuNjQyOSAyLjYxNTI0QzE5LjM5NDIgMi42MTUyNCAyMS4wODkyIDMuMjMwMjUgMjIuNDM1NSA0LjM1MDI4QzIyLjM3NDMgNC4zODI3OCAyMi4yNjkzIDQuNDQxNTMgMjIuMTk5MiA0LjQ4NDAzTDE0LjIzNDEgOS4wODQxM0MxMy44MjY2IDkuMzE1MzggMTMuNTc2NiA5Ljc0Nzg5IDEzLjU3OTEgMTAuMjE2N0wxMy41NzQxIDIxLjQ0MDZWMjEuNDQzMVpNMTUuNDAyOSAxNy41MDA2TDE5LjczNDIgMTQuOTk5M0wyNC4wNjU1IDE3LjQ5OTNWMjIuNTAwN0wxOS43MzQyIDI1LjAwMDdMMTUuNDAyOSAyMi41MDA3VjE3LjUwMDZaIiBmaWxsPSIjN0Q3RDg3Ii8+Cjwvc3ZnPgo="
+      },
+      "displayName": "OpenAI Chat Model",
+      "typeVersion": 1,
+      "nodeCategories": [
+        {
+          "id": 25,
+          "name": "AI"
+        },
+        {
+          "id": 26,
+          "name": "Langchain"
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "id": 43,
+      "name": "Personal Productivity"
+    },
+    {
+      "id": 47,
+      "name": "AI Chatbot"
+    }
+  ],
+  "image": []
+}

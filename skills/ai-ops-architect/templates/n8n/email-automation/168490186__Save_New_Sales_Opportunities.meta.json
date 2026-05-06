@@ -1,0 +1,24 @@
+{
+  "id": 168490186,
+  "title": "Save New Sales Opportunities",
+  "description": "## Summarize emails and save them as notes on sales opportunity in Odoo\n\nSet up steps:\n* Configure Google Cloud credentials with Gmail access\n* Configure OpenAI credentials\n* Configure Odoo credentials",
+  "category": "email-automation",
+  "services_required": [
+    "gmailTrigger",
+    "odoo",
+    "stopAndError"
+  ],
+  "node_count": 6,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Gmail/1565_Gmail_Stickynote_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

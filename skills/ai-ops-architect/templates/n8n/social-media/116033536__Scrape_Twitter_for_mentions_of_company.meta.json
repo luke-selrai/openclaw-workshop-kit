@@ -1,0 +1,26 @@
+{
+  "id": 116033536,
+  "title": "Scrape Twitter for mentions of company",
+  "description": "n8n workflow: Scrape Twitter for mentions of company. 8 nodes wired together. Uses: cron, dateTime, twitter, slack, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Twitter/1212_Twitter_Slack_Automation_Scheduled.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "social-media",
+  "services_required": [
+    "cron",
+    "dateTime",
+    "twitter",
+    "slack",
+    "stopAndError"
+  ],
+  "node_count": 8,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Twitter/1212_Twitter_Slack_Automation_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "social-media",
+    "czlonkowski-backfill"
+  ]
+}

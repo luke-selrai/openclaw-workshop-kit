@@ -1,0 +1,21 @@
+{
+  "id": 7849,
+  "title": "Extract and process healthcare claims with VLM Run, Google Drive and Sheets",
+  "description": "**Automatically process healthcare claims into structured Google Sheets entries with VLM Run extraction**\n\n## What this workflow does\n\n* Monitors Google Drive for new files in a target folder\n* Downloads the file inside n8n for processing\n* Sends the file to VLM Run for AI transcription or analysis\n* Fetches extra details from the healthcare.claims-processing domain as JSON\n* Appends normalized fields to a Google Sheet as a new row\n\n## Setup\n\n**Prerequisites:** Google account, VLM Run API credentials, Google Sheets access, n8n. Install the verified VLM Run node by searching for VLM Run in the node list, then click Install. Once installed, you can start using it in your workflows.\n\n**Quick Setup:**\n\n1. Create the Drive folder you want to watch and copy its Folder ID\n2. Create a Google Sheet with headers like: timestamp, file\\_name, file\\_id, mime\\_type, size\\_bytes, uploader\\_email, form\\_type, carrier\\_name, patient\\_name, patient\\_birth\\_date, patient\\_sex, patient\\_address, insurance\\_type, insurance\\_id, insured\\_name, total\\_charge, amount\\_due, amount\\_paid, hospitalization\\_from, hospitalization\\_to, referring\\_physician\\_name, processing\\_notes, \u2026other claim fields as needed\n3. Configure Google Drive OAuth2 for the trigger and download nodes\n4. Add VLM Run API credentials from [https://app.vlm.run/dashboard](https://app.vlm.run/dashboard) to the VLM Run node\n5. Configure Google Sheets OAuth2 and set Spreadsheet ID and target sheet tab\n6. Test by uploading a sample file to the watched Drive folder and activate\n\n## Perfect for\n\n* Centralized intake of healthcare claim documents with instant AI summaries\n* Claims and operations teams collecting structured claim insights\n* Customer support attachments that need quick triage to a Sheet\n* Compliance and audit logs for claim documents\n\n## Key Benefits\n\n* End to end automation from Drive to Sheets\n* Accurate AI output via VLM Run with optional timestamps\n* Domain enrichment from healthcare.claims-processing JSON\n* Clean, searchable logs in Google Sheets\n* No manual steps after activation\n\n## How to customize\n\n**Extend by adding:**\n\n* OCR tuning and field validation for claim forms\n* Per type routing for PDFs, images, or scanned forms\n* Slack notifications on each new Sheet append\n* Keyword extraction and auto tagging for claim categories\n* Error branch that records failures to a second Sheet",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 4,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/7849",
+  "source": "n8n.io",
+  "matched_keyword": "healthcare",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "healthcare"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/5 nodes typed (20%)"
+}

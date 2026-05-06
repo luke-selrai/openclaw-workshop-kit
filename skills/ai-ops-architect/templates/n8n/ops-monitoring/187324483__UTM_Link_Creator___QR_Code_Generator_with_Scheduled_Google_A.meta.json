@@ -1,0 +1,27 @@
+{
+  "id": 187324483,
+  "title": "UTM Link Creator & QR Code Generator with Scheduled Google Analytics Reports",
+  "description": "Schedule a Google Analytics Reports with Medium/Source to track UTM link performance. Update the reporting fields to fit your business needs. You can track traffic, conversions and other engagement metrics.\n\n*Sample Google Report Metrics: Sessions. Update metrics as needed.",
+  "category": "ops-monitoring",
+  "services_required": [
+    "googleAnalyticsTool",
+    "manualTrigger",
+    "airtable",
+    "httpRequest",
+    "scheduleTrigger",
+    "gmail"
+  ],
+  "node_count": 14,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/1644_Code_Schedule_Automation_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ops-monitoring",
+    "czlonkowski-backfill"
+  ]
+}

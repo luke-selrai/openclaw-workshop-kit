@@ -1,0 +1,21 @@
+{
+  "id": 7323,
+  "title": "Restaurant reservation management with OpenAI GPT and Google Sheets",
+  "description": "![image.png](fileId:2068)\n\n# How it works\n- Receives chat messages from customers requesting table reservations.  \n- Uses an AI Agent with OpenAI Chat Model to understand and process requests.  \n- Checks table information, availability, and existing reservations from Google Sheets.  \n- Calculates guest counts and reservation timing using the Calculator node.  \n- Updates table availability and reservation records in real-time.  \n- Handles reservation changes, including updates and cancellations.\n\n# Set up steps\n- **Add credentials** for OpenAI (Chat Model) and Google Sheets.  \n- In the **AI Agent** node, link:\n  - Chat Model \u2192 **OpenAI Chat Model** node.  \n  - Memory \u2192 **Simple Memory** node.  \n  - Tools \u2192 Calculator and Google Sheets nodes for reservation data handling.  \n- Configure Google Sheets nodes:\n  - **Get Table Information** (read sheet)  \n  - **Get Table Availability** (read sheet)  \n  - **Get Table Reservations** (read sheet)  \n  - **Update Table Availability** (update sheet)  \n  - **Update Reservations** (append sheet)  \n  - **Cancel Reservations** (delete sheet)  \n- Ensure your sheets have consistent column names for table IDs, dates, times, and guest counts.  \n- Test by sending a reservation request through the **chat trigger** and verify updates in the Google Sheets.",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 6,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/7323",
+  "source": "n8n.io",
+  "matched_keyword": "restaurant",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "restaurant"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/7 nodes typed (14%)"
+}

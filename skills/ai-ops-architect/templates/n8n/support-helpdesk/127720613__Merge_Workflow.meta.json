@@ -1,0 +1,26 @@
+{
+  "id": 127720613,
+  "title": "Merge Workflow",
+  "description": "n8n workflow: Merge Workflow. 10 nodes. Uses: functionItem, hubspot, zendesk, cron, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Zendesk/0285_Zendesk_HubSpot_Create_Scheduled.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "support-helpdesk",
+  "services_required": [
+    "functionItem",
+    "hubspot",
+    "zendesk",
+    "cron",
+    "stopAndError"
+  ],
+  "node_count": 10,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski-r2",
+  "source_path": "workflows/Zendesk/0285_Zendesk_HubSpot_Create_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "support-helpdesk",
+    "czlonkowski-backfill-r2"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": 13687,
+  "title": "Predict construction delays with Claude, OpenWeather and Slack alerts",
+  "description": "This workflow monitors active construction projects in real time, ingests weather forecasts, supplier delivery statuses, and crew/resource availability, then uses Claude AI to predict delay risk, estimate schedule impact, and generate mitigation playbooks for project managers.\n\n### How it works\n\n1. **Trigger** \u2014 Webhook (on-demand) or daily schedule kick-off\n2. **Load Active Projects** \u2014 Pulls project list from your PM system (Procore / Airtable / Sheets)\n3. **Fetch Weather Forecast** \u2014 7-day forecast for each project site location\n4. **Fetch Supplier Status** \u2014 Checks open purchase orders and delivery ETAs\n5. **Fetch Resource Availability** \u2014 Crew headcount, equipment, subcontractor status\n6. **Combine Risk Data** \u2014 Merges all data streams per project\n7. **AI Delay Prediction** \u2014 Claude AI scores delay probability and generates mitigation plan\n8. **Severity Routing** \u2014 Routes CRITICAL/HIGH risk projects to immediate alert path\n9. **Notify Project Managers** \u2014 Slack alert with risk summary and action items\n10. **Update PM Dashboard** \u2014 Writes prediction back to Airtable / Google Sheets\n11. **Create Risk Ticket** \u2014 Opens Jira / Linear issue for HIGH+ risk projects\n12. **Send Daily Briefing** \u2014 Email digest of all at-risk projects\n\n### Setup Steps\n\n1. Import workflow into n8n\n2. Configure credentials:\n   - **Anthropic API** \u2014 Claude AI for delay prediction\n   - **OpenWeatherMap API** \u2014 Site weather forecasts\n   - **Airtable / Google Sheets** \u2014 Project & resource data\n   - **Procore API** \u2014 Schedule and RFI data (optional)\n   - **Slack OAuth** \u2014 Project manager alerts\n   - **Jira API** \u2014 Risk issue tracking\n   - **SendGrid / SMTP** \u2014 Daily email briefing\n3. Set your Airtable base ID and table names\n4. Configure Slack channel IDs per severity level\n5. Set your risk threshold (default: 60%) in the routing node\n6. Activate the workflow\n\n### Sample Webhook Payload\n```json\n{\n  \"projectId\": \"PROJ-2025-042\",\n  \"projectName\": \"Riverside Commercial Tower\",\n  \"siteLocation\": { \"lat\": -33.8688, \"lon\": 151.2093 },\n  \"plannedEndDate\": \"2025-11-15\",\n  \"currentPhase\": \"Structure\",\n  \"forceRefresh\": true\n}\n```\n\n### AI Prediction Criteria (Claude)\n- **Weather Risk** \u2014 Rain days, wind, temperature extremes blocking site work\n- **Supplier Risk** \u2014 Lead time slippage, back-orders, sole-source dependencies\n- **Resource Risk** \u2014 Labour shortages, equipment breakdown, subcontractor delays\n- **Schedule Slack** \u2014 Float remaining vs. risk exposure\n- **Phase Complexity** \u2014 Current phase sensitivity to external delays\n- **Historical Patterns** \u2014 Similar project delay patterns\n\n### Features\n- Multi-source real-time risk ingestion\n- AI-powered delay probability scoring (0\u2013100%)\n- Automated severity routing and escalation\n- Mitigation playbook generation per risk type\n- Google Sheets / Airtable dashboard sync\n- Daily briefing email and Slack digest\n\n---\n\n**Explore More Automation:**  \n[Contact us](https://www.oneclickitsolution.com/contact-us/) to design AI-powered lead nurturing, content engagement, and multi-platform reply workflows tailored to your growth strategy.",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 14,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/13687",
+  "source": "n8n.io",
+  "matched_keyword": "construction",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "construction"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/15 nodes typed (7%)"
+}

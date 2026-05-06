@@ -1,0 +1,27 @@
+{
+  "id": 119786074,
+  "title": "Googledrive Workflow",
+  "description": "# 1. Trigger Settings and Filters\n\n## Configure the interval to check for new emails and apply filters to process only some emails\n\n**For example**: To create a filter that applies a label to emails **with attachments** containing the words \"invoice\" or \"receipt,\" follow these steps:\n\n1. Open your Gmail and click on the burger menu button next to the search bar to open the search options.\n2. In the `Has the words` field type in 'invoice receipt'\n3. Check the `Has attachment` checkbox\n4. Click on the \"Create filter with this search\" option at the bottom of the search window.\n5. In the filter options, select the \"Apply the label\" option and choose or create a label for these emails.\n6. Click \"Create filter\" to save your new filter.",
+  "category": "email-automation",
+  "services_required": [
+    "googleDrive",
+    "gmailTrigger",
+    "gmail",
+    "splitInBatches",
+    "googleSheets",
+    "stopAndError"
+  ],
+  "node_count": 20,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Googlesheets/0837_GoogleSheets_Gmail_Create_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

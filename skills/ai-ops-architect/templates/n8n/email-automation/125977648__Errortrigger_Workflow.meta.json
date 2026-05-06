@@ -1,0 +1,24 @@
+{
+  "id": 125977648,
+  "title": "Errortrigger Workflow",
+  "description": "### \ud83d\udc68\u200d\ud83c\udfa4 Setup\n1. Add your Gmail creds\n2. Add your target email\n2. Add this error workflow to other workflows\n{{ $env.WEBHOOK_URL }}",
+  "category": "email-automation",
+  "services_required": [
+    "errorTrigger",
+    "gmail",
+    "stopAndError"
+  ],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Error/0456_Error_Gmail_Send_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "email-automation",
+    "czlonkowski-backfill"
+  ]
+}

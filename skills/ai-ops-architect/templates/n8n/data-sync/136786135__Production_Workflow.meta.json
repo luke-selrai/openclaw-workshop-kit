@@ -1,0 +1,26 @@
+{
+  "id": 136786135,
+  "title": "Production Workflow",
+  "description": "n8n workflow: Production Workflow. 8 nodes wired together. Uses: manualTrigger, awsRekognition, httpRequest, googleSheets, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Awsrekognition/0150_Awsrekognition_GoogleSheets_Automation_Webhook.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "data-sync",
+  "services_required": [
+    "manualTrigger",
+    "awsRekognition",
+    "httpRequest",
+    "googleSheets",
+    "stopAndError"
+  ],
+  "node_count": 8,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Awsrekognition/0150_Awsrekognition_GoogleSheets_Automation_Webhook.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "data-sync",
+    "czlonkowski-backfill"
+  ]
+}

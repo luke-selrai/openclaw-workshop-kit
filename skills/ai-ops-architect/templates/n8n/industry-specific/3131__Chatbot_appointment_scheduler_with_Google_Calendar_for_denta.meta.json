@@ -1,0 +1,21 @@
+{
+  "id": 3131,
+  "title": "Chatbot appointment scheduler with Google Calendar for dental assistant",
+  "description": "This workflow template is designed for dental assistants and anyone looking to automate appointment scheduling. It integrates Google Calendar for booking appointments and Google Sheets as a database to store patient information.\n\n# How It Works\n\nThe user interacts with the chatbot to schedule an appointment.\n\nThe chatbot collects necessary details and checks availability via Google Calendar.\nIf the requested time is available, the AI books the appointment.\n\nIf unavailable, the AI suggests alternative time slots.\n\nOnce booked, the AI logs the appointment details into Google Sheets for record-keeping.\n\n# Setup Instructions\n\n\ud83d\udccc Watch this \ud83c\udfa5 [Setup Video](https://youtu.be/FKCmGhdP8oE) for detailed instructions on running and customizing this workflow.\n\n### Step 1: Set Up Credentials\n\nOpenAI API Key (for chatbot functionality).\nGoogle Account (for Google Sheets & Google Calendar integration).\n\n### Step 2: Choose the Right Tools\n\nSelect the correct Google Calendar in the Google Calendar tool.\nChoose the appropriate Google Sheets file in the Google Sheets tool.\n\n### Step 3: Test \n\nRun a test to ensure everything works correctly.\nOnce tested.\n\n#### Example Templates\n\nBelow are sample Google Sheets template to help you get started.\n\n![Google sheets TMP.JPG](fileId:1002)",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 5,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/3131",
+  "source": "n8n.io",
+  "matched_keyword": "dental",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "dental"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/6 nodes typed (17%)"
+}

@@ -1,0 +1,27 @@
+{
+  "id": 107579608,
+  "title": "Scheduletrigger Workflow",
+  "description": "## \ud83d\udc4b How to use this template\nThis template shows how you can create reports on data in an app and share a summary in another app. Here's how to use it:\n\n1. Double click the `Slack` node and create a credential by signing in.\n2. Change the channel name in the `Slack` node to a channel you have in Slack.\n2. Click the `Execute Workflow` button and double click the nodes to see the input and output data\n\n### To customize it to you needs, just do the following:\n1. Enable or exchange the `Notion` node with any service that fits your use case.\n2. Change the `2. Filter and transform your data` section to fit your needs\n3. Adjust the Slack node or exchange it with any node that fits your use case\n4. Disable or remove the `Mock Data` node",
+  "category": "ops-monitoring",
+  "services_required": [
+    "scheduleTrigger",
+    "notion",
+    "slack",
+    "itemLists",
+    "filter",
+    "stopAndError"
+  ],
+  "node_count": 12,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0308_Code_Schedule_Automate_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ops-monitoring",
+    "czlonkowski-backfill"
+  ]
+}

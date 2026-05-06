@@ -1,0 +1,19 @@
+{
+  "id": 7639,
+  "title": "Talk to your Google Sheets using ChatGPT-5",
+  "description": "This n8n workflow template creates an intelligent data analysis chatbot that can answer questions about data stored in Google Sheets using OpenAI's GPT-5 Mini model. The system automatically analyzes your spreadsheet data and provides insights through natural language conversations.\n\n## What This Workflow Does\n\n- **Chat Interface**: Provides a conversational interface for asking questions about your data\n- **Smart Data Analysis**: Uses AI to understand column structures and data relationships\n- **Google Sheets Integration**: Connects directly to your Google Sheets data\n- **Memory Buffer**: Maintains conversation context for follow-up questions\n- **Automated Column Detection**: Automatically identifies and describes your data columns\n\n## \ud83d\ude80 Try It Out!\n\n---\n\n### 1. Set Up OpenAI Connection\n\n#### Get Your API Key\n1. Visit the [OpenAI API Keys](https://platform.openai.com/api-keys) page.\n2. Go to [OpenAI Billing](https://platform.openai.com/settings/organization/billing/overview).\n3. Add funds to your billing account.\n4. Copy your API key into your **OpenAI credentials** in n8n (or your chosen platform).\n\n---\n\n### 2. Prepare Your Google Sheet\n\n#### Connect Your Data in Google Sheets\n- Data must follow this format: [Sample Marketing Data](https://docs.google.com/spreadsheets/d/1UDWt0-Z9fHqwnSNfU3vvhSoYCFG6EG3E-ZewJC_CLq4/edit?gid=365710158#gid=365710158)\n- **First row** contains column names.\n- Data should be in **rows 2\u2013100**.\n- Log in using **OAuth**, then select your workbook and sheet.\n\n---\n\n### 3. Ask Questions of Your Data\n\nYou can ask natural language questions to analyze your marketing data, such as:\n- **Total spend** across all campaigns.\n- **Spend for Paid Search only**.\n- **Month-over-month changes** in ad spend.\n- **Top-performing campaigns** by conversion rate.\n- **Cost per lead** for each channel.\n\n---\n\n## \ud83d\udcec Need Help or Want to Customize This?\n\ud83d\udce7 [rbreen@ynteractive.com](mailto:rbreen@ynteractive.com)  \n\ud83d\udd17 [LinkedIn](https://www.linkedin.com/in/robert-breen-29429625/)\n\ud83d\udd17 [n8n Automation Experts](https://ynteractive.com/)",
+  "category": "lead-capture",
+  "services_required": [],
+  "node_count": 5,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/7639",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/6 nodes typed (17%)"
+}

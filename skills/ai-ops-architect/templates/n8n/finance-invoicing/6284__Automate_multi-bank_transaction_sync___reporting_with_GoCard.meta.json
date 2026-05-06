@@ -1,0 +1,21 @@
+{
+  "id": 6284,
+  "title": "Automate multi-bank transaction sync & reporting with GoCardless & Maybe Finance",
+  "description": "# \ud83c\udfe6 GoCardless \u21c4 Maybe Finance \u2014 Automatic Multi-Bank Sync & Weekly Overview \ud83d\udcb8\n\n### Who\u2019s it for \ud83e\udd14\nFreelancers, founders, households, and side-hustlers who work with several bank accounts but want **one, always-up-to-date budget** inside Maybe Finance\u2014no more CSV exports or copy-paste.\n\n---\n\n### How it works / What it does \u2699\ufe0f\n1. **Schedule Trigger** (cron) fires every Monday \ud83d\udcc5  \n   *(switch to Manual Trigger while testing)*  \n2. **Get access token** \u2014 fresh 24 h GoCardless token \ud83d\udd11  \n3. **Fetch transactions** for each account:  \n   - Revolut Pro  \n   - Revolut Personal  \n   - ABN AMRO  \n   *(add extra HTTP Request nodes for any other GoCardless-supported banks)*  \n4. **Extract booked** \u2014 keep only settled items \ud83d\uddc2\ufe0f  \n5. **Set transactions \u2026** \u2014 map every record to Maybe Finance\u2019s schema \ud83d\udcdd  \n6. **Merge all arrays** into one payload \ud83d\udd04  \n7. **Create transactions to Maybe** \u2014 POSTs each item via API \ud83d\ude80  \n8. **Resend Email** \u2014 sends you a \u201cWeekly transactions overview\u201d \ud83d\udce7\n\nAll done in a single run \u2014 your Maybe dashboard is refreshed and you get an inbox alert.\n\n---\n\n### How to set up \ud83d\udee0\ufe0f\n1. **Import** the template into n8n (cloud or self-hosted).  \n2. **Create credentials**  \n   - GoCardless `secret_id` & `secret_key`  \n   - Maybe Finance API key  \n   - (Optional) Resend API key for email notifications  \n3. **One-time GoCardless config** (run the blocks on the left):  \n   1. `/token/new/` \u2192 obtain token  \n   2. `/institutions` \u2192 find institution IDs  \n   3. `/agreements/enduser/` \u2192 create agreements  \n   4. `/requisitions/` \u2192 get the consent URL & finish bank login  \n   5. `/requisitions/{id}` \u2192 copy the GoCardless `account_id`s  \n4. **Create the same accounts in Maybe Finance** and run the HTTP GET request in the purple frame and copy their `account_id`s.  \n5. Open each **Set transactions \u2026** node and paste the correct Maybe `account_id`.  \n6. Adjust the **Schedule Trigger** (e.g. daily, monthly).  \n7. **Save & activate** \ud83c\udf89\n\n---\n\n### Requirements \ud83d\udccb\n- n8n 1.33 +  \n- GoCardless app (secret ID & key, live or sandbox)  \n- Maybe Finance account & API key  \n- (Optional) Resend account for email\n\n---\n\n### How to customize \u2728\n- **Include pending transactions**: change the Item Lists filter.  \n- **Add more banks**: duplicate the \u201cGet \u2026 transactions\u201d \u2192 \u201cExtract booked\u201d \u2192 \u201cSet transactions\u201d path and plug its output into the Merge node.  \n- **Different interval**: edit the cron rule in Schedule Trigger.  \n- **Disable emails**: just remove or deactivate the Resend node.  \n- **Send alerts to Slack / Teams**: branch after the Merge node and add a chat node.\n\nHappy budgeting! \ud83d\udcb0",
+  "category": "finance-invoicing",
+  "services_required": [],
+  "node_count": 6,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/6284",
+  "source": "n8n.io",
+  "matched_keyword": "gocardless",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "finance-invoicing",
+    "gocardless"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/7 nodes typed (14%)"
+}

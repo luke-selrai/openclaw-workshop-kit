@@ -1,0 +1,112 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## New WooCommerce product to Slack\n\n**Purpose**: n8n workflow: New WooCommerce product to Slack. 3 nodes wired together. Uses: wooCommerceTrigger, slack, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Woocommerce/1148_Woocommerce_Slack_Create_Triggered.json). Configure credentials and any hardcoded IDs before activating.\n\n**Services needed**: wooCommerceTrigger, slack, stopAndError\n\n**Difficulty**: auto-deploy\n\n**Setup**:\n1. Configure credentials for the services above\n2. Update any hardcoded IDs / URLs\n3. Test with sample data before activating\n\n_Source: https://github.com/Zie619/n8n-workflows_\n_Curated by ai-ops-architect on 2026-05-05_",
+        "height": 480,
+        "width": 480
+      },
+      "name": "Setup Guide (delete after configuring)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -400
+      ],
+      "id": "ai-ops-sticky-header"
+    },
+    {
+      "name": "Product Created",
+      "type": "n8n-nodes-base.wooCommerceTrigger",
+      "position": [
+        320,
+        500
+      ],
+      "webhookId": "267c4855-6227-4d33-867e-74600097473e",
+      "parameters": {
+        "event": "product.created"
+      },
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "{{ $credentials.wooCommerceApi.id }}",
+          "name": "WooCommerce account"
+        }
+      },
+      "typeVersion": 1,
+      "id": "44322593-b23f-4455-91e1-0ce2011ac41e",
+      "notes": "This wooCommerceTrigger node performs automated tasks as part of the workflow."
+    },
+    {
+      "name": "Send to Slack",
+      "type": "n8n-nodes-base.slack",
+      "position": [
+        540,
+        500
+      ],
+      "parameters": {
+        "text": ":new: A new product has been added! :new:",
+        "channel": "woo-commerce",
+        "blocksUi": {
+          "blocksValues": []
+        },
+        "attachments": [
+          {
+            "color": "#66FF00",
+            "fields": {
+              "item": [
+                {
+                  "short": false,
+                  "title": "Name",
+                  "value": "={{$json[\"name\"]}}"
+                },
+                {
+                  "short": true,
+                  "title": "Price",
+                  "value": "={{$json[\"regular_price\"]}}"
+                },
+                {
+                  "short": true,
+                  "title": "Sale Price",
+                  "value": "={{$json[\"sale_price\"]}}"
+                },
+                {
+                  "short": false,
+                  "title": "Link",
+                  "value": "={{$json[\"permalink\"]}}"
+                }
+              ]
+            },
+            "footer": "=Added: {{$json[\"date_created\"]}}"
+          }
+        ],
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "{{ $credentials.slackApi.id }}",
+          "name": "Slack Access Token"
+        }
+      },
+      "typeVersion": 1,
+      "id": "7c125a9f-1ea1-4b02-9da7-6fef1ab2dc55",
+      "notes": "This slack node performs automated tasks as part of the workflow."
+    },
+    {
+      "id": "error-feb7e29f",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        400
+      ],
+      "parameters": {
+        "message": "Workflow execution error",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {},
+  "name": "New WooCommerce product to Slack",
+  "active": false
+}

@@ -1,0 +1,29 @@
+{
+  "id": 199278188,
+  "title": "Social Media AI Agent - Telegram",
+  "description": "Automate the curation and sharing of trending GitHub discussions from Hacker News to Twitter and LinkedIn. This workflow leverages AI to generate engaging posts, streamlining your social media content creation and distribution.",
+  "category": "social-media",
+  "services_required": [
+    "httpRequest",
+    "markdown",
+    "filter",
+    "airtable",
+    "linkedIn",
+    "twitter",
+    "scheduleTrigger",
+    "telegram"
+  ],
+  "node_count": 26,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Linkedin/1280_Linkedin_Telegram_Automation_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "social-media",
+    "czlonkowski-backfill"
+  ]
+}

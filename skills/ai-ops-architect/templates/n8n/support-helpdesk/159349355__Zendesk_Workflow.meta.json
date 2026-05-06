@@ -1,0 +1,24 @@
+{
+  "id": 159349355,
+  "title": "Zendesk Workflow",
+  "description": "n8n workflow: Zendesk Workflow. 7 nodes. Uses: zendesk, asana, webhook. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Zendesk/0274_Zendesk_Asana_Create_Webhook.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "support-helpdesk",
+  "services_required": [
+    "zendesk",
+    "asana",
+    "webhook"
+  ],
+  "node_count": 7,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski-r2",
+  "source_path": "workflows/Zendesk/0274_Zendesk_Asana_Create_Webhook.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "support-helpdesk",
+    "czlonkowski-backfill-r2"
+  ]
+}

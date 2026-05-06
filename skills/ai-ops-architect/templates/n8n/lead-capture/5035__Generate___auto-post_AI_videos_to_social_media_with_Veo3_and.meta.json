@@ -1,0 +1,19 @@
+{
+  "id": 5035,
+  "title": "Generate & auto-post AI videos to social media with Veo3 and Blotato",
+  "description": "![Workflow Screenshot](https://www.dr-firas.com/Veo3_blotato2.png)\n\n# Automate video creation with Veo3 and auto-post to Instagram, TikTok via Blotato\n\n### Who is this for?\n\nThis template is ideal for content creators, social media managers, YouTubers, and digital marketers who want to generate high-quality videos daily using AI and distribute them effortlessly across multiple platforms.\n\nIt\u2019s perfect for anyone who wants to scale short-form content creation without video editing tools.\n\n### What problem is this workflow solving?\n\nCreating and distributing consistent video content requires:\n- Generating ideas\n- Writing scripts and prompts\n- Rendering videos\n- Manually posting to platforms\n\nThis workflow automates all of that. It transforms one prompt into a professional AI-generated video and publishes it automatically \u2014 saving time and increasing reach.\n\n### What this workflow does\n\n1. **Triggers daily** to generate a new idea with OpenAI (or your custom prompt).\n2. **Creates a video prompt** formatted specifically for Google Veo3.\n3. **Generates a cinematic video** using the Veo3 API.\n4. **Logs the video data** into a Google Sheet.\n5. **Retrieves the final video URL** once Veo3 finishes rendering.\n6. **Uploads the video to Blotato** for publishing.\n7. **Auto-posts** the video to Instagram, TikTok, YouTube, Facebook, LinkedIn, Threads, Twitter (X), Pinterest, and Bluesky.\n\n### Setup\n\n1. Add your **OpenAI API key** to the GPT-4.1 nodes.\n2. Connect your **Veo3 API credentials** in the video generation node.\n3. Link your **Google Sheets account** and use a sheet with columns: `Prompt`, `Video URL`, `Status`.\n4. Connect your **Blotato API key** and set your platform IDs in the `Assign Social Media IDs` node.\n5. Adjust the **Schedule Trigger** to your desired posting frequency.\n\n### How to customize this workflow to your needs\n\n- **Edit the AI prompt** to align with your niche (fitness, finance, education, etc.).\n- **Add your own branding overlays** using JSON2Video or similar tools.\n- **Change platform selection** by enabling/disabling specific HTTP Request nodes.\n- **Add a Telegram step** to preview the video before auto-posting.\n- **Track performance** by adding metrics columns in Google Sheets.\n\n\ud83d\udcc4 **Documentation**: [Notion Guide](https://automatisation.notion.site/Automate-video-creation-with-Veo3-and-auto-post-to-Instagram-TikTok-via-Blotato-2163d6550fd980768996f05afb2794ea)\n\n---\n\n### Need help customizing?\nContact me for consulting and support : [Linkedin](https://www.linkedin.com/in/dr-firas/) / [Youtube](https:/https://www.youtube.com/@DRFIRASS)",
+  "category": "lead-capture",
+  "services_required": [],
+  "node_count": 10,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/5035",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/11 nodes typed (9%)"
+}

@@ -1,0 +1,26 @@
+{
+  "id": 144186093,
+  "title": "If Workflow",
+  "description": "n8n workflow: If Workflow. 14 nodes. Uses: zendesk, hubspot, functionItem, cron, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Zendesk/0286_Zendesk_HubSpot_Create_Scheduled.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "support-helpdesk",
+  "services_required": [
+    "zendesk",
+    "hubspot",
+    "functionItem",
+    "cron",
+    "stopAndError"
+  ],
+  "node_count": 14,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski-r2",
+  "source_path": "workflows/Zendesk/0286_Zendesk_HubSpot_Create_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "support-helpdesk",
+    "czlonkowski-backfill-r2"
+  ]
+}

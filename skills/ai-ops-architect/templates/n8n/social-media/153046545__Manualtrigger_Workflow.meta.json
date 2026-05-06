@@ -1,0 +1,25 @@
+{
+  "id": 153046545,
+  "title": "Manualtrigger Workflow",
+  "description": "## What we learned\n- \ud83e\udeb6 **Writing prompts**: small changes in the type of prompt result in very different results. e.g. for Summarising OpenAI would use multiple sentences even if we asked it to use only 1. We got better results by following OpenAI's documentation.\n    - We could make OpenAI node easier to work with for new users by the node inputs being oriented not to sending parameters to api but by following [their suggestions]({{ $env.WEBHOOK_URL }} - e.g. have a field for expected output format rather than just for prompt.\n- \u2195\ufe0f **Changing the max_tokens parameter** drastically changes results - sometimes making it smaller even improves results (e.g. when you want a yes/no response in the OpenAI Classify node). In their [docs]({{ $env.WEBHOOK_URL }} they recommend using max_tokens>256 but [n8n by default]({{ $env.WEBHOOK_URL }} uses max_tokens=16. We should probably update this.",
+  "category": "social-media",
+  "services_required": [
+    "manualTrigger",
+    "reddit",
+    "openAi",
+    "stopAndError"
+  ],
+  "node_count": 16,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Manual/0297_Manual_Openai_Export_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "social-media",
+    "czlonkowski-backfill"
+  ]
+}

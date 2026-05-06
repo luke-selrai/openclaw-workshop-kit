@@ -1,0 +1,21 @@
+{
+  "id": 5428,
+  "title": "Qualify real estate leads automatically with OpenAI, Gmail & Airtable CRM",
+  "description": "\ud83e\udde0 How It Works\n1. This AI Agent automatically qualifies property buyer leads from form submissions.\n2. Form Submission Trigger\n3. When a user submits their details via a property inquiry form, the workflow is triggered.\n4. AI Lead Classification\n5. The buyer's input (budget, location, timeline, etc.) is analyzed by OpenAI to extract structured data and generate a lead score (0\u2013100).\n6. Lead Qualification Logic\n7. Leads with a score of 70 or above are marked as qualified, the rest are ignored or stored separately.\n8. Follow-Up Action\n9. Qualified leads trigger:\n10. Email notification to the agent\n11. Record creation in Airtable as CRM\n\n\u2699\ufe0f How to Set Up\n1. Form Setup\n2. Replace the form trigger with your preferred source (Typeform, Google Form, etc.)\n3. Make sure the form includes: Name, Email, Budget, Location, Timeline, Property Type\n4. Connect Your Credentials\n5. Add your OpenAI API key for the LLM node\n6. Connect your Gmail account for notifications\n7. Link your Airtable base and table to store qualified leads\n8. Customize Scoring Logic (Optional)\n9. You can tweak the prompt in the Information Extractor node to change how scoring works\n10. Test the Workflow\n11. Submit a test entry via the form\n12. Check if you receive an email and see the lead in Airtable\n13. Activate & Go Live\n14. Turn on the workflow and start qualifying real buyer leads in real time\n\nConnect with my linkedin: https://www.linkedin.com/in/bheta-dwiki-maranatha-15654b227/",
+  "category": "industry-specific",
+  "services_required": [],
+  "node_count": 8,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/5428",
+  "source": "n8n.io",
+  "matched_keyword": "real estate",
+  "license": "n8n.io community",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "industry-specific",
+    "real estate"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/9 nodes typed (11%)"
+}

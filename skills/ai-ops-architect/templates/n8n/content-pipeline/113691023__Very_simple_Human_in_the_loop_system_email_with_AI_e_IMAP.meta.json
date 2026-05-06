@@ -1,0 +1,25 @@
+{
+  "id": 113691023,
+  "title": "Very simple Human in the loop system email with AI e IMAP",
+  "description": "# How it works\nThis workflow automates the handling of incoming emails, summarizes their content, generates appropriate responses and validate it through send IMAP email with \"Human in the loop\" system. \n\nYou can quickly integrate Gmail and Outlook via the appropriate nodes",
+  "category": "content-pipeline",
+  "services_required": [
+    "manualTrigger",
+    "emailReadImap",
+    "markdown",
+    "emailSend"
+  ],
+  "node_count": 17,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Markdown/1571_Markdown_Stickynote_Send.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "content-pipeline",
+    "czlonkowski-backfill"
+  ]
+}

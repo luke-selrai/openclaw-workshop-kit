@@ -1,0 +1,26 @@
+{
+  "id": 108696905,
+  "title": "AI Email processing autoresponder with approval (Yes/No)",
+  "description": "# Main Flow\n\n## Preliminary step:\nCreate a vector database on Qdrant and tokenize the documents useful for generating a response\n\n\n## How it works\nThis workflow is designed to automate the process of handling incoming emails, summarizing their content, generating appropriate responses with RAG, and obtaining approval (YES/NO button) before sending replies.\n\nThis workflow is designed to handle general inquiries that come in via corporate email via IMAP and generate responses using RAG. You can quickly integrate Gmail and Outlook via the appropriate trigger nodes",
+  "category": "content-pipeline",
+  "services_required": [
+    "manualTrigger",
+    "emailReadImap",
+    "markdown",
+    "emailSend",
+    "gmail"
+  ],
+  "node_count": 18,
+  "opportunity_pattern": null,
+  "difficulty": "30min-custom",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Emailreadimap/1588_Emailreadimap_Markdown_Send.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "content-pipeline",
+    "czlonkowski-backfill"
+  ]
+}

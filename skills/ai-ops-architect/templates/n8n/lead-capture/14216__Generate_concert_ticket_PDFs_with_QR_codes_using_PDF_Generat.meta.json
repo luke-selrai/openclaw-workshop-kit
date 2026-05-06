@@ -1,0 +1,20 @@
+{
+  "id": 14216,
+  "title": "Generate concert ticket PDFs with QR codes using PDF Generator API",
+  "description": "Generate personalized concert ticket PDFs with QR codes using PDF Generator API, then email them to attendees, log sales to Google Sheets, and notify organizers via Slack \u2014 all triggered from a simple web form.\n\n## Who is this for\n\nEvent organizers, ticketing teams, and developers who need an automated pipeline to issue branded PDF concert tickets with unique QR codes for venue entry \u2014 without building a custom backend.\n\n## How it works\n\n1. An attendee fills out a **web form** with their name, email, event details, seat number, and ticket tier (General / VIP / Backstage).\n2. The workflow generates a unique ticket ID and prepares all data for the PDF template.\n3. **PDF Generator API** renders a personalized PDF ticket. The QR code is a native template component that encodes the ticket ID automatically.\n4. A styled **HTML confirmation email** with a download link is sent to the attendee via Gmail.\n5. The ticket details are logged to a **Google Sheets** spreadsheet for tracking and attendance management.\n6. A **Slack notification** alerts the event organizer with a summary of the newly issued ticket.\n\n## Set up\n\n1. **PDF Generator API** \u2014 Sign up at [pdfgeneratorapi.com](https://pdfgeneratorapi.com), create a ticket template with a QR Code component bound to `{{ ticket_id }}`, and note your template ID.\n2. **Template ID** \u2014 Open the \"Prepare Ticket Data\" Code node and replace the `TEMPLATE_ID` value with your own.\n3. **Credentials** \u2014 Connect your accounts in each node: PDF Generator API, Gmail, Google Sheets, and Slack.\n4. **Google Sheets** \u2014 Create a spreadsheet with columns: `Ticket ID`, `Attendee`, `Email`, `Event`, `Venue`, `Date`, `Seat`, `Tier`, `PDF URL`, `Issued At`. Set the spreadsheet ID in the \"Log Ticket Sale\" node.\n5. **Slack** \u2014 Choose a channel (e.g. `#tickets`) in the \"Notify Event Organizer\" node.\n\n## Requirements\n\n- [PDF Generator API](https://pdfgeneratorapi.com) account (free trial available)\n- Gmail account (OAuth)\n- Google Sheets account (OAuth)\n- Slack workspace (optional \u2014 remove the last node if not needed)\n\n## How to customize\n\n- **Output format** \u2014 The PDF node returns a hosted URL by default (valid 30 days). Switch to `File` output to attach the PDF directly to the email instead.\n- **Ticket tiers** \u2014 Add or rename tiers in the form node and update the tier mapping logic in the \"Prepare Ticket Data\" Code node.\n- **Email design** \u2014 Edit the \"Build Confirmation Email\" Code node to match your brand colors and layout.\n- **Remove Slack** \u2014 Simply delete the \"Notify Event Organizer\" node if you don't need organizer alerts.\n- **Add payment** \u2014 Insert a Stripe or payment node before the form confirmation to handle paid tickets.",
+  "category": "lead-capture",
+  "services_required": [],
+  "node_count": 6,
+  "opportunity_pattern": "stripe-payment-to-crm",
+  "difficulty": "5min-config",
+  "value": "varies \u2014 check workflow",
+  "source_url": "https://n8n.io/workflows/14216",
+  "license": "n8n.io community (Apache-2.0/MIT, see source page)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "lead-capture",
+    "stripe-payment-to-crm"
+  ],
+  "schema_only": true,
+  "lint_reason": "1/7 nodes typed (14%)"
+}

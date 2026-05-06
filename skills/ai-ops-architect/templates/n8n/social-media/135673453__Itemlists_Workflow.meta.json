@@ -1,0 +1,25 @@
+{
+  "id": 135673453,
+  "title": "Itemlists Workflow",
+  "description": "Create an account at piloterr.com to get your API key\n\nFeel free to delete the node that are not useful to you. For instance \"Serie B\" and \"Seed\" if you want only to scrape Serie A events",
+  "category": "social-media",
+  "services_required": [
+    "itemLists",
+    "httpRequest",
+    "googleSheets",
+    "scheduleTrigger"
+  ],
+  "node_count": 13,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Code/0397_Code_Schedule_Import_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "social-media",
+    "czlonkowski-backfill"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": 193787094,
+  "title": "Updating Shopify tags on Onfleet events",
+  "description": "n8n workflow: Updating Shopify tags on Onfleet events. 3 nodes wired together. Uses: onfleetTrigger, shopify, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Shopify/0185_Shopify_Onfleet_Automation_Triggered.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "ecommerce",
+  "services_required": [
+    "onfleetTrigger",
+    "shopify",
+    "stopAndError"
+  ],
+  "node_count": 3,
+  "opportunity_pattern": null,
+  "difficulty": "auto-deploy",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Shopify/0185_Shopify_Onfleet_Automation_Triggered.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "ecommerce",
+    "czlonkowski-backfill"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": 186356418,
+  "title": "Synchronize your Google Sheets with Postgres",
+  "description": "## Setup ##\nIn order to make this automation work for you, you need to make a few adjustments:\n\n1. Add your Postgres & Google Sheets Credentials to the respective Nodes\n\n2. Select the Sheet (Google Sheets) and the table (Postgres) you want to sync\n\n3. Update the Insert & Update Queries so that the data is updated in the table you also selected the rows from in the first step",
+  "category": "data-sync",
+  "services_required": [
+    "scheduleTrigger",
+    "compareDatasets",
+    "splitOut",
+    "googleSheets",
+    "postgres",
+    "stopAndError"
+  ],
+  "node_count": 11,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Splitout/1998_Splitout_Postgres_Sync_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "data-sync",
+    "czlonkowski-backfill"
+  ]
+}

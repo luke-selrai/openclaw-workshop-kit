@@ -1,0 +1,27 @@
+{
+  "id": 167257854,
+  "title": "Wordpress Workflow",
+  "description": "## Automating Posting content to WordPress and setting up the featured Image\nThis workflow aims to simplify the process by which we share content on Wordpress sites with n8n from airtable\n\n### Usage\n1. Get the content from AirTable. SInce we have this as a markdown, we will have to convert it to a html format to make it easier to publish and manage on WordPress\n2. Upload the blog post with the content, title and all other relevant information needed for an optimized blog\n3. Once the post is posted, we need to upload the image and set it as a features image for the blogs",
+  "category": "content-pipeline",
+  "services_required": [
+    "wordpress",
+    "httpRequest",
+    "airtable",
+    "filter",
+    "markdown",
+    "scheduleTrigger"
+  ],
+  "node_count": 13,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Wordpress/0502_Wordpress_Filter_Update_Scheduled.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "content-pipeline",
+    "czlonkowski-backfill"
+  ]
+}

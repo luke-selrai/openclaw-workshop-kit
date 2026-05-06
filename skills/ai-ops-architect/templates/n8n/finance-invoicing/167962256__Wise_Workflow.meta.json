@@ -1,0 +1,24 @@
+{
+  "id": 167962256,
+  "title": "Wise Workflow",
+  "description": "n8n workflow: Wise Workflow. 6 nodes wired together. Uses: manualTrigger, wise, stopAndError. Sourced from czlonkowski/Zie619 n8n-workflows community archive (workflows/Wise/1229_Wise_Automate.json). Configure credentials and any hardcoded IDs before activating.",
+  "category": "finance-invoicing",
+  "services_required": [
+    "manualTrigger",
+    "wise",
+    "stopAndError"
+  ],
+  "node_count": 6,
+  "opportunity_pattern": null,
+  "difficulty": "5min-config",
+  "value": "varies \u2014 see workflow",
+  "source_url": "https://github.com/Zie619/n8n-workflows",
+  "source": "czlonkowski",
+  "source_path": "workflows/Wise/1229_Wise_Automate.json",
+  "license": "MIT (Zie619/n8n-workflows)",
+  "curated_at": "2026-05-05",
+  "tags": [
+    "finance-invoicing",
+    "czlonkowski-backfill"
+  ]
+}
