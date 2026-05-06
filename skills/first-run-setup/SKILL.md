@@ -1,11 +1,11 @@
 ---
 name: first-run-setup
-description: First-run setup and onboarding for the AI Business Assistant. Use when there's no prior memory of this user (no name, no business), when skills are missing, when the user says "my setup is broken", "fix my install", or "re-run setup".
+description: First-run setup and onboarding for the AI Business Assistant. MUST be invoked on the user's first message of any new session whenever the file `~/Desktop/my-assistant/.first-run-pending` exists in the workspace — even if the user only said "hi" or "hello". Also invoke when the user explicitly says "my setup is broken", "fix my install", or "re-run setup". Deletes the `.first-run-pending` marker as its final action.
 ---
 
 # First Run Setup
 
-<!-- Path conventions: every file path in this skill is relative to the user's home folder. .claude/skills/ means $HOME/.claude/skills/ on Mac and Linux, and %USERPROFILE%\.claude\skills\ on Windows (Claude Code stores its user-level config in .claude inside the home folder on all platforms). workshop-kit/ and my-assistant/ are siblings inside the same home folder. When reading or copying files, always resolve paths relative to the user's home folder — never hardcode an absolute path or a username. Shell commands inside fenced bash blocks may use ~/ and $HOME natively (the shell expands them); shell commands inside fenced PowerShell blocks must use $HOME or $env:USERPROFILE. -->
+<!-- Path conventions: most file paths in this skill resolve relative to the user's home folder. .claude/skills/ means $HOME/.claude/skills/ on Mac and Linux, and %USERPROFILE%\.claude\skills\ on Windows. workshop-kit/ lives at $HOME/workshop-kit/. The user's WORKSPACE — where the .first-run-pending state file and the per-workspace CLAUDE.md sit — is at $HOME/Desktop/my-assistant/ on all platforms. When reading or copying files, always resolve paths relative to the user's home folder — never hardcode an absolute path or a username. Shell commands inside fenced bash blocks may use ~/ and $HOME natively (the shell expands them); shell commands inside fenced PowerShell blocks must use $HOME or $env:USERPROFILE. -->
 
 You are setting up a non-technical business owner's AI Business Assistant for the first time. Follow these phases in order. Do not skip steps. Do not add extra checks beyond what is listed here.
 
@@ -26,12 +26,11 @@ Check the user-level Claude skills folder — `.claude/skills/` inside the user'
 - If empty or missing → "It looks like your skills did not copy correctly. Let me fix that."
   1. Check if the workshop kit's skills folder exists at `workshop-kit/skills/` inside the user's home folder.
   2. If yes → copy all skill folders (but not `SKILLS-LIST.md`) from the workshop kit's `skills/` folder into the user-level Claude skills folder. Use the correct copy command for the user's operating system — `cp -R` on Mac/Linux, `Copy-Item -Recurse` (or `xcopy /E /I`) on Windows.
-  3. If no → the workshop kit folder is missing and must be re-installed from the original `.zip` file. Do **not** attempt to download it from GitHub — the repository is private and `git clone` will fail. Instead:
-     - Look for the workshop kit zip in the user's Downloads folder. The file name will be either a long random string of letters, numbers, and dashes (for example `bfdc1600-797b-42d3-9803-1a9260dc1e94.zip`) or `claude-workshop-kit-main.zip`. If nothing matching is in Downloads, also check the Desktop. Once you find one, just use it — do not ask the user to confirm the filename.
-     - Extract it into the user's home folder, and rename the extracted top-level folder (which starts with `selrai-company-claude-workshop-kit-` or `claude-workshop-kit-`) to `workshop-kit` so the final path is `$HOME/workshop-kit`. Leave the original `.zip` file where it is.
-     - After extracting, sanity-check that both `workshop-kit/my-assistant/CLAUDE.md` and `workshop-kit/skills/` exist inside the user's home folder. If either is missing, the zip you picked was the wrong one — stop, tell the user what you found, and ask them where the correct workshop kit zip is saved.
+  3. If no → the workshop kit folder is missing and must be re-cloned from GitHub. The repo is public:
+     - Run `git clone https://github.com/selrai-company/claude-workshop-kit.git ~/workshop-kit` (or the PowerShell equivalent on Windows — `~` resolves to home in PowerShell 6+, Git Bash, and zsh/bash).
+     - Sanity-check that both `workshop-kit/my-assistant/CLAUDE.md` and `workshop-kit/skills/` exist inside the user's home folder. If either is missing, the clone failed — stop, tell the user what happened, and ask them to retry.
      - Once the workshop kit is in place, copy the skill folders into `.claude/skills/` as in step 2 above.
-     - If no zip can be found anywhere, stop and tell the user: "I cannot find the workshop kit zip on your computer. Please contact Luke at luke@selrai.com.au to get a fresh copy sent to you, then ask me to re-run setup once it is in your Downloads folder."
+     - If `git clone` fails (e.g. `git: command not found` on Windows), the user needs Git for Windows installed first. Tell them: "I need Git installed before I can fetch the kit. On Windows, install it from https://git-scm.com/download/win, click through with the default settings, then fully quit and reopen Claude Desktop and tell me you're ready." On Mac, the first `git` invocation will trigger a popup to install the Xcode Command Line Tools — tell the user to click Install and wait 3–5 minutes, then retry.
 
 ### Step 2 — Detect Operating System
 
@@ -219,6 +218,15 @@ The `skills-discovery` skill already contains the full selection logic, opening 
 ### Step 3 — If they pick one
 
 When the user picks one of the 3 (by name or by number 1/2/3), run it immediately using the business context already in memory. Do not ask them to repeat anything they've already told you.
+
+### Step 4 — Mark setup complete (delete the state file)
+
+This is the FINAL action of first-run-setup. After Phase 4 has surfaced the shortlist (and regardless of whether the user has picked one yet — the shortlist itself counts as "setup is done"), delete the marker file at `$HOME/Desktop/my-assistant/.first-run-pending`. This is what stops `first-run-setup` from re-triggering on every future "hello".
+
+- Mac/Linux: `rm -f ~/Desktop/my-assistant/.first-run-pending`
+- Windows PowerShell: `Remove-Item -Path "$HOME\Desktop\my-assistant\.first-run-pending" -Force -ErrorAction SilentlyContinue`
+
+Do this silently — do not narrate it to the user. If the file is already gone (e.g. the user manually re-ran setup), the command above is a no-op.
 
 ---
 
