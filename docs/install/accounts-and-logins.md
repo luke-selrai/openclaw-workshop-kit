@@ -39,7 +39,7 @@ You almost certainly have one already. If not:
 
 ### 3. GitHub Account — Not Required
 
-You do **not** need a GitHub account for the workshop. We will send you the workshop kit as a `.zip` file directly. There is nothing to download in advance.
+You do **not** need a GitHub account for the workshop. The workshop kit lives in a public GitHub repository — your assistant clones it for you during setup using a single command. No sign-in, no token, no account needed.
 
 ✅ Skip this step.
 
@@ -88,11 +88,11 @@ Your AI assistant can send you phone notifications when it finishes tasks or nee
 
 ---
 
-### 5. Workshop Kit — Sent to You on the Day
+### 5. Workshop Kit — Cloned Live at the Workshop
 
-On the day of the workshop, we will send you a download link to a `.zip` file. Save it to your **Downloads** folder — your assistant will find it there and unpack it for you during setup.
+You don't need to download or save anything in advance. At the workshop, your assistant clones the kit directly from GitHub during setup — one command, takes a few seconds. The repository is public, so no sign-in is needed.
 
-You don't need to download anything in advance. Just keep an eye out for the message.
+> **Windows users:** make sure [Git for Windows](https://git-scm.com/download/win) is installed before the workshop (Priority 1, see below). On Mac, Git installs itself the first time it's needed — nothing to do in advance.
 
 ---
 
@@ -202,17 +202,16 @@ If you use CircleCI for testing or deployments and want your assistant to check 
 |---|---|---|---|
 | Google (Gmail) | Free | Before workshop | [accounts.google.com/signup](https://accounts.google.com/signup) |
 | Claude Max | $100 USD/mo | Before workshop | [claude.ai](https://claude.ai) |
-| GitHub | Free | Before workshop | [github.com/signup](https://github.com/signup) |
 | Telegram | Free | Before workshop (phone) | [telegram.org](https://telegram.org) |
 | WhatsApp | Free | Before workshop (phone) | [whatsapp.com](https://www.whatsapp.com) |
 | Notion | Free | After workshop | [notion.so](https://www.notion.so) |
 | GoHighLevel | $97-297 USD/mo | After workshop | [gohighlevel.com](https://www.gohighlevel.com) |
 | HubSpot | Free / paid | After workshop | [hubspot.com](https://www.hubspot.com) |
-| GitHub (connector) | Free | After workshop | Uses existing GitHub account |
+| GitHub (connector — optional) | Free | After workshop (only if you want to connect your own repos) | [github.com/signup](https://github.com/signup) |
 | Square | Free | After workshop | [squareup.com](https://squareup.com) |
 | CircleCI | Free tier | After workshop | [circleci.com](https://circleci.com) |
 
-**Before the workshop: 4 accounts (3 free + Claude Max)**
+**Before the workshop: 2 required accounts (Google free + Claude Max)** — plus a phone messaging app of your choice (Telegram or WhatsApp, both free).
 **Total pre-workshop cost: $100 USD/month (~$155 AUD)**
 
 ---
@@ -223,7 +222,6 @@ Before the workshop, make sure you have saved:
 
 - ✅ Google email address + password
 - ✅ Claude Max login (same as Google if you used "Continue with Google")
-- ✅ GitHub username + password
 - ✅ Telegram or WhatsApp installed on your phone
 
 A password manager (like 1Password or the built-in Apple/Google one) is the best place to save these.

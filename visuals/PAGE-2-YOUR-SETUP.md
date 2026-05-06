@@ -40,7 +40,7 @@ Think of your AI setup like a kitchen — you're the head chef, Claude is your s
 ### Claude Desktop
 The app where you work with your assistant. Three surfaces, one window:
 - **Chat panel** — natural conversation with your assistant
-- **Code session** — opens a folder on your computer (like `~/my-assistant/`) so the assistant can read and edit files
+- **Code session** — opens a folder on your computer (like `~/Desktop/my-assistant/`) so the assistant can read and edit files
 - **Built-in terminal** — lives at the bottom of a Code session. You paste commands here when the assistant asks. Most days you won't need it.
 
 Free. One download from [claude.ai/download](https://claude.ai/download). Replaces the old "VS Code + Claude Code extension" setup.
@@ -72,19 +72,20 @@ Claude's built-in memory that remembers everything you tell it across every conv
 ## Your File Structure
 
 ```
-YOUR COMPUTER
+YOUR COMPUTER (your home folder, plus Desktop)
 │
-├── my-assistant/
-│   ├── CLAUDE.md              ← Claude's instructions (loads every session)
-│   └── .mcp.json              ← Browser automation auto-connects on startup
+├── Desktop/
+│   └── my-assistant/                ← Your workspace (you open this in Claude Desktop)
+│       ├── CLAUDE.md                ← Claude's instructions (loads every session)
+│       └── .first-run-pending       ← Marker file — gone once setup is done
 │
-├── workshop-kit/
-│   ├── skills/                ← Your <!-- skills-audit:total -->120<!-- /skills-audit:total --> skill files
-│   └── docs/                  ← Guides and reference docs
+├── workshop-kit/                    ← Cloned from GitHub during install (out of sight)
+│   ├── skills/                      ← Source for the <!-- skills-audit:total -->120<!-- /skills-audit:total --> skill files
+│   └── docs/                        ← Guides and reference docs
 │
 └── .claude/
-    ├── skills/                ← Where Claude looks for your installed skills
-    └── (auto-memory)          ← Claude's own memory store (view with /memory)
+    ├── skills/                      ← Where Claude looks for your installed skills
+    └── (auto-memory)                ← Claude's own memory store (view with /memory)
 ```
 
 ---
@@ -117,7 +118,7 @@ If it learned something new → auto-memory captures it automatically
 
 ## The 3 Things You Will Ever Need
 
-1. **Start your AI assistant:** Open Claude Desktop → start a new Code session → click the folder icon and point it at `~/my-assistant/`
+1. **Start your AI assistant:** Open Claude Desktop → start a new Code session → click `my-assistant` in the Recent list (or click Desktop in the file picker → my-assistant)
 2. **Check what tools are connected:** In the assistant's chat, ask *"What tools do you have connected?"*
 3. **Install a new tool connection:** In the assistant's chat, ask *"Help me connect [tool name]"* — the assistant walks you through it
 
@@ -127,7 +128,7 @@ That is it. Claude handles everything else.
 
 ## The First Time You Open It
 
-When you open `~/my-assistant/` in Claude Desktop for the first time, your assistant will:
+When you open `~/Desktop/my-assistant/` in Claude Desktop for the first time, your assistant will:
 
 1. Greet you by name (once set up)
 2. Tell you what it remembers about your business
