@@ -300,7 +300,7 @@ shopify store execute \
   --version 2026-04 \
   --query '{ products(first: 10, query: "title:sneaker*") { edges { node { id title status totalInventory } } } }'
 ```
-> **Search syntax:** trailing wildcards only. `title:sneaker*` matches anything starting with "sneaker"; leading wildcards (`title:*sneaker*`) silently return zero results.
+> **Search syntax:** `title:sneaker*` (trailing) matches anything starting with "sneaker". See Part 4's wildcard note for the full placement rules across fields.
 
 ### Get a single product
 ```bash
@@ -403,7 +403,7 @@ shopify store execute \
   --query '{ customers(first: 10, query: "email:jane*") { edges { node { id displayName defaultEmailAddress { emailAddress } numberOfOrders amountSpent { amount currencyCode } } } } }'
 ```
 
-> **Search syntax:** Wildcard support is field-dependent. Most fields (`first_name:`, `last_name:`, `title:`) accept **trailing** wildcards only (`first_name:Jane*`, `title:sneaker*`); leading or middle placements silently return zero. Some indexed-substring fields like `email:` accept all placements (`email:*@example.com`, `email:*acme*` both return matches). When in doubt, prefer trailing: it's the only universally supported placement.
+> **Search syntax:** Wildcards behave differently across fields. **`email:`** is substring-indexed, so trailing, leading, and middle all work (`email:jane*`, `email:*@example.com`, `email:*acme*`). **Most other fields** (`first_name:`, `last_name:`, `title:`) are token-indexed: trailing wildcards always work (`first_name:Jane*`); leading wildcards (`first_name:*Jane`) only match when the search term is a complete token in the field's value; middle wildcards within a token (`first_name:*ane*`) silently return zero. Default to trailing, it's the most predictable placement across all fields.
 
 ### Get a single customer
 ```bash
