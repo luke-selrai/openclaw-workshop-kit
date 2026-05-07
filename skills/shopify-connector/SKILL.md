@@ -79,7 +79,7 @@ If anything's missing, proceed to Step 2.
 node --version
 ```
 
-Needs **v20.10.0 or higher** (`@shopify/cli@3.94.3` declares `engines.node >= 20.10.0`; older Node fails install with `EBADENGINE`). If missing or older, tell the user (in plain English): *"Before I install Shopify, you need Node.js 22 or newer. The fastest way is to install it from nodejs.org — pick the LTS version."* Wait for them to confirm install, then continue.
+Needs **v20.10.0 or higher** (`@shopify/cli@3.94.3` declares `engines.node >= 20.10.0`; older Node fails install with `EBADENGINE`). If missing or older, tell the user (in plain English): *"Before I install Shopify, you need Node.js 20.10 or newer. The fastest way is to install the most recent LTS from nodejs.org."* Wait for them to confirm install, then continue.
 
 ### Step 3 — Install `@shopify/cli` and apply the autonomy patch
 
@@ -91,7 +91,7 @@ npm install -g @shopify/cli@3.94.3
 
 > **Why pin?** The Step 3c patch anchors on a regex over the minified bundle. New CLI releases occasionally restructure the auth code path. Pinning `3.94.3` (verified against this SKILL on 2026-05-06) keeps the install reproducible across workshop dates. Bump deliberately when the SKILL is re-QA'd against a newer release.
 
-> **Note.** `@shopify/theme` is bundled inside `@shopify/cli` since v3.59.0; don't install it separately. On macOS/Linux, if the install errors with `EACCES`, retry with `sudo npm install -g @shopify/cli@3.94.3`, or change npm's prefix to a user-writable path: `npm config set prefix ~/.npm-global` then add `~/.npm-global/bin` to PATH.
+> **Note.** `@shopify/theme` is bundled inside `@shopify/cli` since v3.59.0; don't install it separately. On Ubuntu/WSL2 with the NodeSource Node package, `npm install -g` requires `sudo` because the global prefix is root-owned by default; on macOS via the official installer, `sudo` is also commonly needed. If the install errors with `EACCES`, retry with `sudo npm install -g @shopify/cli@3.94.3`, or change npm's prefix to a user-writable path: `npm config set prefix ~/.npm-global` then add `~/.npm-global/bin` to PATH.
 
 **3b. Refresh PATH if needed:**
 
@@ -183,7 +183,7 @@ Take a `browser_snapshot`. Reason about state:
 - **Account picker** ("Choose an account to continue to Shopify CLI") → click the user's developer account via `browser_click`.
 - **Security-settings nudge** ("Review your security settings") → click **Confirm** or **Remind me next time** to dismiss; this is a periodic prompt, not a real auth step.
 
-The `shopify auth login` background process will exit on its own once Shopify confirms activation. The CLI prints `✔ Logged in. ✔ Current account: <user-email>` to stdout. If the 5-minute wait times out, check in with the user *once* ("Still on the sign-in page? Anything I can help with?") before giving up.
+The `shopify auth login` background process will exit on its own once Shopify confirms activation. The CLI prints `✔ Logged in. ✔ Current account: <user-email>` to stdout. If 5 minutes elapse without progress, check in with the user *once* ("Still on the sign-in page? Anything I can help with?"); the 15-minute hard timeout from above still applies before giving up.
 
 ### Step 5 — Authenticate against the user's store (autonomous)
 
@@ -387,10 +387,10 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
-  --query '{ customers(first: 10, query: "email:*example.com") { edges { node { id displayName defaultEmailAddress { emailAddress } numberOfOrders amountSpent { amount currencyCode } } } } }'
+  --query '{ customers(first: 10, query: "email:jane*") { edges { node { id displayName defaultEmailAddress { emailAddress } numberOfOrders amountSpent { amount currencyCode } } } } }'
 ```
 
-> **Search syntax:** Shopify's search supports **trailing** wildcards only (`email:*example.com`, `title:sneaker*`). Leading wildcards (`*sneaker*`, `*@example.com`) are not supported and silently return zero results.
+> **Search syntax:** Shopify's search supports **trailing** wildcards only (`email:jane*`, `title:sneaker*` — wildcard at the end of the term). Leading or middle wildcards (`*sneaker*`, `*@example.com`) are not supported and silently return zero results.
 
 ### Get a single customer
 ```bash
@@ -408,7 +408,7 @@ shopify store execute \
 ```
 > Always confirm customer details with the user before creating.
 >
-> **Address note:** `customerCreate` input no longer accepts an `addresses` array. To add an address after creating the customer, run `customerAddressCreate` separately, or use the user's `customerUpdate` to set `defaultAddress`. Address inputs use `countryCode` (CountryCode enum, e.g. `AU`) and `provinceCode` (e.g. `"NSW"`) — the legacy string `country`/`province` input fields were removed.
+> **Address note:** `customerCreate` input still accepts an `addresses: [{ ... }]` array (marked deprecated but fully functional in 2025-01). The modern alternative is to create the customer first, then add or update addresses via `customerUpdate` with an `addresses` array. Address inputs use `countryCode` (CountryCode enum, e.g. `AU`) and `provinceCode` (e.g. `"NSW"`) — the legacy string `country`/`province` input fields were removed.
 
 ---
 
@@ -439,9 +439,7 @@ shopify store execute \
 
 > Always confirm inventory adjustments with the user before executing. Get the `inventoryItemId` from a product variant query and `locationId` from the locations query.
 >
-> **`changeFromQuantity` is mandatory.** This is a compare-and-swap (CAS) safety check: pass the quantity you expect to find, or pass `null` to skip the check (only safe when your system is the source of truth). Without this field the mutation returns `INVALID_FIELD_ARGUMENTS — InventoryChangeInput must include the following argument: changeFromQuantity`. Reference: [Shopify CAS docs](https://shopify.dev/docs/apps/build/orders-fulfillment/inventory-management-apps/manage-quantities-states#compare-and-swap).
->
-> **`@idempotent` directive may also be required** on the mutation (Shopify rolled this in for safer retries; the exact placement and `key` argument syntax differ across API versions — check the live error message and the Shopify directive docs). On stores enforcing it, the mutation returns `BAD_REQUEST — The @idempotent directive is required for this mutation but was not provided.`
+> **`changeFromQuantity` must be passed explicitly.** The schema types this field as optional (`Int`), but Shopify's mutation handler requires you to provide a value — pass `null` to skip the compare-and-swap check (only safe when your system is the source of truth), or pass the quantity you expect to find for a CAS-protected adjust. Omitting the field returns an error. Reference: [Shopify CAS docs](https://shopify.dev/docs/apps/build/orders-fulfillment/inventory-management-apps/manage-quantities-states#compare-and-swap).
 >
 > **Valid `reason` values:** `correction`, `cycle_count_available`, `damaged`, `movement_created`, `movement_updated`, `other`, `received`, `reservation_created`, `reservation_deleted`, `reservation_updated`, `restock`, `safety_stock`, `shrinkage`. Any other string returns `userErrors: [{ field: "reason", message: "Invalid reason" }]`. Note: validation runs *after* the schema check, so test plan items must use the modern shape above before `reason` is even reached.
 
@@ -486,7 +484,7 @@ shopify auth logout
 - **Use GraphQL IDs** — Shopify uses global IDs like `gid://shopify/Product/12345`. Always get IDs from list/search queries first.
 - **Pagination** — use `first: N` and `after: cursor` for paginated results. Default to 10 items unless the user asks for more.
 - **Rate limits** — Shopify's Admin API has a cost-based rate limit. Avoid requesting too many nested fields in a single query. If you hit a rate limit, wait and retry.
-- **Status values** — Products: ACTIVE, DRAFT, ARCHIVED. Orders financial: AUTHORIZED, PAID, PARTIALLY_PAID, PENDING, REFUNDED, VOIDED. Orders fulfillment: FULFILLED, UNFULFILLED, PARTIALLY_FULFILLED.
+- **Status values** — Products: `ACTIVE`, `DRAFT`, `ARCHIVED`. Orders financial: `AUTHORIZED`, `EXPIRED`, `PAID`, `PARTIALLY_PAID`, `PARTIALLY_REFUNDED`, `PENDING`, `REFUNDED`, `VOIDED`. Orders fulfillment: `FULFILLED`, `IN_PROGRESS`, `ON_HOLD`, `OPEN`, `PARTIALLY_FULFILLED`, `PENDING_FULFILLMENT`, `REQUEST_DECLINED`, `RESTOCKED`, `SCHEDULED`, `UNFULFILLED`. Full enum lists: [OrderDisplayFinancialStatus](https://shopify.dev/docs/api/admin-graphql/2025-01/enums/OrderDisplayFinancialStatus), [OrderDisplayFulfillmentStatus](https://shopify.dev/docs/api/admin-graphql/2025-01/enums/OrderDisplayFulfillmentStatus).
 - **Currency** — always display amounts with the currency code from the response.
 - **Auth errors** — if you get a 401 or "Unauthorized", re-run the Phase 1 Step 5 flow.
 - **Missing scopes** — if you get an `ACCESS_DENIED` scope error, re-run Step 5 with the missing scope added to the `--scopes` list. The default 9-scope set covers products, orders, customers, inventory, and locations read+write.
