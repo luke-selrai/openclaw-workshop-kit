@@ -271,6 +271,7 @@ Click the primary action via `browser_click`. After clicking, `browser_snapshot`
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query "{ shop { name myshopifyDomain } }"
 ```
 
@@ -288,6 +289,7 @@ All store operations use `shopify store execute` which runs Admin API GraphQL qu
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query "{ products(first: 10) { edges { node { id title status productType vendor totalInventory variants(first: 5) { edges { node { id title price sku inventoryQuantity } } } } } } }"
 ```
 
@@ -295,14 +297,16 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query '{ products(first: 10, query: "title:sneaker*") { edges { node { id title status totalInventory } } } }'
 ```
-> **Search syntax:** trailing wildcards only. `title:sneaker*` matches anything starting with "sneaker"; leading wildcards (`title:*sneaker*`) silently return zero results.
+> **Search syntax:** `title:sneaker*` (trailing) matches anything starting with "sneaker". See Part 4's wildcard note for the full placement rules across fields.
 
 ### Get a single product
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query '{ product(id: "gid://shopify/Product/<PRODUCT_ID>") { id title descriptionHtml status productType vendor tags totalInventory variants(first: 10) { edges { node { id title price sku inventoryQuantity } } } images(first: 5) { edges { node { url altText } } } } }'
 ```
 
@@ -310,6 +314,7 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --allow-mutations \
   --query 'mutation { productCreate(input: { title: "New Product", productType: "Shirts", vendor: "My Brand", descriptionHtml: "<p>Product description here</p>", tags: ["new", "summer"], status: DRAFT }) { product { id title } userErrors { field message } } }'
 ```
@@ -319,6 +324,7 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --allow-mutations \
   --query 'mutation { productUpdate(input: { id: "gid://shopify/Product/<PRODUCT_ID>", title: "Updated Product Title", status: ACTIVE }) { product { id title status } userErrors { field message } } }'
 ```
@@ -327,6 +333,7 @@ shopify store execute \
 > ```bash
 > shopify store execute \
 >   --store <subdomain>.myshopify.com \
+>   --version 2026-04 \
 >   --query-file ./query.graphql \
 >   --variables '{"id": "gid://shopify/Product/12345"}'
 > ```
@@ -339,6 +346,7 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query "{ orders(first: 10, sortKey: CREATED_AT, reverse: true) { edges { node { id name createdAt displayFinancialStatus displayFulfillmentStatus totalPriceSet { shopMoney { amount currencyCode } } customer { displayName email } } } } }"
 ```
 
@@ -346,6 +354,7 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query '{ orders(first: 10, query: "fulfillment_status:unfulfilled") { edges { node { id name createdAt displayFulfillmentStatus totalPriceSet { shopMoney { amount currencyCode } } customer { displayName } } } } }'
 ```
 
@@ -353,6 +362,7 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query '{ order(id: "gid://shopify/Order/<ORDER_ID>") { id name createdAt displayFinancialStatus displayFulfillmentStatus totalPriceSet { shopMoney { amount currencyCode } } customer { displayName defaultEmailAddress { emailAddress } } lineItems(first: 20) { edges { node { title quantity originalUnitPriceSet { shopMoney { amount } } variant { sku } } } } shippingAddress { address1 city province country zip } } }'
 ```
 
@@ -360,6 +370,7 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query '{ orders(first: 20, query: "created_at:>2026-04-01 created_at:<2026-04-08") { edges { node { id name createdAt totalPriceSet { shopMoney { amount currencyCode } } } } } }'
 ```
 
@@ -380,6 +391,7 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query "{ customers(first: 10) { edges { node { id displayName defaultEmailAddress { emailAddress } defaultPhoneNumber { phoneNumber } numberOfOrders amountSpent { amount currencyCode } createdAt } } } }"
 ```
 
@@ -387,15 +399,17 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query '{ customers(first: 10, query: "email:jane*") { edges { node { id displayName defaultEmailAddress { emailAddress } numberOfOrders amountSpent { amount currencyCode } } } } }'
 ```
 
-> **Search syntax:** Shopify's search supports **trailing** wildcards only (`email:jane*`, `title:sneaker*` — wildcard at the end of the term). Leading or middle wildcards (`*sneaker*`, `*@example.com`) are not supported and silently return zero results.
+> **Search syntax:** Wildcards behave differently across fields. **`email:`** is substring-indexed, so trailing, leading, and middle all work (`email:jane*`, `email:*@example.com`, `email:*acme*`). **Most other fields** (`first_name:`, `last_name:`, `title:`) are token-indexed: trailing wildcards always work (`first_name:Jane*`); leading wildcards (`first_name:*Jane`) only match when the search term is a complete token in the field's value; middle wildcards within a token (`first_name:*ane*`) silently return zero. Default to trailing, it's the most predictable placement across all fields.
 
 ### Get a single customer
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query '{ customer(id: "gid://shopify/Customer/<CUSTOMER_ID>") { id displayName defaultEmailAddress { emailAddress } defaultPhoneNumber { phoneNumber } numberOfOrders amountSpent { amount currencyCode } createdAt addressesV2(first: 5) { edges { node { address1 city province country zip } } } orders(first: 5) { edges { node { id name totalPriceSet { shopMoney { amount } } } } } } }'
 ```
 
@@ -403,12 +417,13 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --allow-mutations \
   --query 'mutation { customerCreate(input: { firstName: "Jane", lastName: "Doe", email: "jane@example.com", phone: "+61400000000" }) { customer { id displayName defaultEmailAddress { emailAddress } } userErrors { field message } } }'
 ```
 > Always confirm customer details with the user before creating.
 >
-> **Address note:** `customerCreate` input still accepts an `addresses: [{ ... }]` array (marked deprecated but fully functional in 2025-01). The modern alternative is to create the customer first, then add or update addresses via `customerUpdate` with an `addresses` array. Address inputs use `countryCode` (CountryCode enum, e.g. `AU`) and `provinceCode` (e.g. `"NSW"`) — the legacy string `country`/`province` input fields were removed.
+> **Address note:** `customerCreate` input still accepts an `addresses: [{ ... }]` array (marked deprecated but fully functional in 2026-04). The modern alternative is to create the customer first, then add or update addresses via `customerUpdate` with an `addresses` array. Address inputs use `countryCode` (CountryCode enum, e.g. `AU`) and `provinceCode` (e.g. `"NSW"`) — the legacy string `country`/`province` input fields were removed.
 
 ---
 
@@ -418,6 +433,7 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query '{ inventoryItem(id: "gid://shopify/InventoryItem/<ITEM_ID>") { id sku tracked inventoryLevels(first: 10) { edges { node { id quantities(names: ["available"]) { name quantity } location { name } } } } } }'
 ```
 
@@ -425,6 +441,7 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query "{ locations(first: 10) { edges { node { id name isActive address { address1 city province country } } } } }"
 ```
 
@@ -433,13 +450,14 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --allow-mutations \
   --query 'mutation { inventoryAdjustQuantities(input: { reason: "correction", name: "available", changes: [{ delta: 10, changeFromQuantity: null, inventoryItemId: "gid://shopify/InventoryItem/<ITEM_ID>", locationId: "gid://shopify/Location/<LOCATION_ID>" }] }) { inventoryAdjustmentGroup { reason changes(first: 5) { edges { node { name delta } } } } userErrors { field message } } }'
 ```
 
 > Always confirm inventory adjustments with the user before executing. Get the `inventoryItemId` from a product variant query and `locationId` from the locations query.
 >
-> **`changeFromQuantity` must be passed explicitly.** The schema types this field as optional (`Int`), but Shopify's mutation handler requires you to provide a value — pass `null` to skip the compare-and-swap check (only safe when your system is the source of truth), or pass the quantity you expect to find for a CAS-protected adjust. Omitting the field returns an error. Reference: [Shopify CAS docs](https://shopify.dev/docs/apps/build/orders-fulfillment/inventory-management-apps/manage-quantities-states#compare-and-swap).
+> **`changeFromQuantity` must be passed explicitly.** The schema types this field as optional (`Int`), but Shopify's mutation handler requires you to provide a value: pass `null` to skip the compare-and-swap check (only safe when your system is the source of truth), or pass the quantity you expect to find for a CAS-protected adjust. Omitting the field returns `INVALID_FIELD_ARGUMENTS - InventoryChangeInput must include the following argument: changeFromQuantity.` Reference: [Shopify CAS docs](https://shopify.dev/docs/apps/build/orders-fulfillment/inventory-management-apps/manage-quantities-states#compare-and-swap).
 >
 > **Valid `reason` values:** `correction`, `cycle_count_available`, `damaged`, `movement_created`, `movement_updated`, `other`, `received`, `reservation_created`, `reservation_deleted`, `reservation_updated`, `restock`, `safety_stock`, `shrinkage`. Any other string returns `userErrors: [{ field: "reason", message: "Invalid reason" }]`. Note: validation runs *after* the schema check, so test plan items must use the modern shape above before `reason` is even reached.
 
@@ -447,6 +465,7 @@ shopify store execute \
 ```bash
 shopify store execute \
   --store <subdomain>.myshopify.com \
+  --version 2026-04 \
   --query '{ products(first: 50, query: "inventory_total:<10") { edges { node { id title totalInventory variants(first: 5) { edges { node { title sku inventoryQuantity } } } } } } }'
 ```
 
@@ -471,7 +490,7 @@ To log out of the Partner/org account:
 shopify auth logout
 ```
 
-> **Direct curl fallback.** Shopify migrated new stores from the legacy "Custom apps" path (Settings → Apps → Develop apps) to **Dev Dashboard** (`dev.shopify.com/dashboard`). For new stores, the legacy Admin API token via Custom App is no longer available. Use the CLI flow above instead. If the user has a pre-existing legacy custom app on an older store, you can still call the Admin API via `curl -X POST https://<store>/admin/api/2025-01/graphql.json -H "X-Shopify-Access-Token: <token>"` with the legacy token, but do not document Custom App creation as a fresh-install path.
+> **Direct curl fallback.** Shopify migrated new stores from the legacy "Custom apps" path (Settings → Apps → Develop apps) to **Dev Dashboard** (`dev.shopify.com/dashboard`). For new stores, the legacy Admin API token via Custom App is no longer available. Use the CLI flow above instead. If the user has a pre-existing legacy custom app on an older store, you can still call the Admin API via `curl -X POST https://<store>/admin/api/2026-04/graphql.json -H "X-Shopify-Access-Token: <token>"` with the legacy token, but do not document Custom App creation as a fresh-install path.
 
 ---
 
@@ -484,7 +503,7 @@ shopify auth logout
 - **Use GraphQL IDs** — Shopify uses global IDs like `gid://shopify/Product/12345`. Always get IDs from list/search queries first.
 - **Pagination** — use `first: N` and `after: cursor` for paginated results. Default to 10 items unless the user asks for more.
 - **Rate limits** — Shopify's Admin API has a cost-based rate limit. Avoid requesting too many nested fields in a single query. If you hit a rate limit, wait and retry.
-- **Status values** — Products: `ACTIVE`, `DRAFT`, `ARCHIVED`. Orders financial: `AUTHORIZED`, `EXPIRED`, `PAID`, `PARTIALLY_PAID`, `PARTIALLY_REFUNDED`, `PENDING`, `REFUNDED`, `VOIDED`. Orders fulfillment: `FULFILLED`, `IN_PROGRESS`, `ON_HOLD`, `OPEN`, `PARTIALLY_FULFILLED`, `PENDING_FULFILLMENT`, `REQUEST_DECLINED`, `RESTOCKED`, `SCHEDULED`, `UNFULFILLED`. Full enum lists: [OrderDisplayFinancialStatus](https://shopify.dev/docs/api/admin-graphql/2025-01/enums/OrderDisplayFinancialStatus), [OrderDisplayFulfillmentStatus](https://shopify.dev/docs/api/admin-graphql/2025-01/enums/OrderDisplayFulfillmentStatus).
+- **Status values** — Products: `ACTIVE`, `DRAFT`, `ARCHIVED`. Orders financial: `AUTHORIZED`, `EXPIRED`, `PAID`, `PARTIALLY_PAID`, `PARTIALLY_REFUNDED`, `PENDING`, `REFUNDED`, `VOIDED`. Orders fulfillment: `FULFILLED`, `IN_PROGRESS`, `ON_HOLD`, `OPEN`, `PARTIALLY_FULFILLED`, `PENDING_FULFILLMENT`, `REQUEST_DECLINED`, `RESTOCKED`, `SCHEDULED`, `UNFULFILLED`. Full enum lists: [OrderDisplayFinancialStatus](https://shopify.dev/docs/api/admin-graphql/2026-04/enums/OrderDisplayFinancialStatus), [OrderDisplayFulfillmentStatus](https://shopify.dev/docs/api/admin-graphql/2026-04/enums/OrderDisplayFulfillmentStatus).
 - **Currency** — always display amounts with the currency code from the response.
 - **Auth errors** — if you get a 401 or "Unauthorized", re-run the Phase 1 Step 5 flow.
 - **Missing scopes** — if you get an `ACCESS_DENIED` scope error, re-run Step 5 with the missing scope added to the `--scopes` list. The default 9-scope set covers products, orders, customers, inventory, and locations read+write.
