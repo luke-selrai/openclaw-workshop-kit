@@ -33,7 +33,7 @@ metadata:
 This skill lets you read and update a user's Xero accounting data on their behalf using the **official first-party [`@xeroapi/xero-mcp-server`](https://github.com/XeroAPI/xero-mcp-server)** (maintained by Xero, published to npm). It has two phases:
 
 - **Phase 1 — Install & Connect (autonomous, 9 steps after the safety gate).** Claude registers the hosted MCP server with `claude mcp add`, drives `developer.xero.com/app/manage` inside a Playwright MCP browser, detects login state, autonomously creates the Custom Connection (clicks New app, fills the form, picks the org, ticks the V1 scope set, submits), lets the user authorise the org on Xero's consent screen, lets the user complete the activation payment, then auto-extracts Client ID + Client Secret from the DOM and writes them into the registered server entry. The user's only manual moments are: (1) signing in to Xero, (2) picking + authorising the org on the consent screen, (3) confirming the activation payment. The country/cost safety gate runs unchanged before any browser action.
-- **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__xero__*` native tools to read and update Xero data. The official server exposes ~56 tools; this skill documents the ~25 most commonly used and notes where the rest live.
+- **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__xero__*` native tools to read and update Xero data. The official server exposes 51 tools; this skill documents the ~25 most commonly used and notes where the rest live.
 
 **Which phase to run** — Before any tool call, check whether the Xero MCP server is already configured. Read `~/.claude.json` (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.xero` entry with `XERO_CLIENT_ID` and `XERO_CLIENT_SECRET` in its `env` block. If both exist and are non-empty, treat the connector as configured and skip to Phase 2. Otherwise, run Phase 1.
 
@@ -282,9 +282,9 @@ Read the clipboard from Bash into a shell-local env var, validate length, **then
 
 ```bash
 case "$(uname -s 2>/dev/null)" in
-  Darwin*)  XERO_CLIENT_ID=$(pbpaste) ;;
-  Linux*)   XERO_CLIENT_ID=$(xclip -selection clipboard -o 2>/dev/null) ;;
-  MINGW*|MSYS*|CYGWIN*) XERO_CLIENT_ID=$(powershell.exe -NoProfile -Command "Get-Clipboard" | tr -d '\r') ;;
+  Darwin*)  export XERO_CLIENT_ID=$(pbpaste) ;;
+  Linux*)   export XERO_CLIENT_ID=$(xclip -selection clipboard -o 2>/dev/null) ;;
+  MINGW*|MSYS*|CYGWIN*) export XERO_CLIENT_ID=$(powershell.exe -NoProfile -Command "Get-Clipboard" | tr -d '\r') ;;
   *) echo "UNKNOWN_PLATFORM" >&2 ;;
 esac
 [[ ${#XERO_CLIENT_ID} -ge 30 ]] || { echo "CLIENT_ID looked too short, retry"; exit 1; }
@@ -320,9 +320,9 @@ Then read the Secret from clipboard the same way as the Client ID (above). Valid
 
 ```bash
 case "$(uname -s 2>/dev/null)" in
-  Darwin*)  XERO_CLIENT_SECRET=$(pbpaste) ;;
-  Linux*)   XERO_CLIENT_SECRET=$(xclip -selection clipboard -o 2>/dev/null) ;;
-  MINGW*|MSYS*|CYGWIN*) XERO_CLIENT_SECRET=$(powershell.exe -NoProfile -Command "Get-Clipboard" | tr -d '\r') ;;
+  Darwin*)  export XERO_CLIENT_SECRET=$(pbpaste) ;;
+  Linux*)   export XERO_CLIENT_SECRET=$(xclip -selection clipboard -o 2>/dev/null) ;;
+  MINGW*|MSYS*|CYGWIN*) export XERO_CLIENT_SECRET=$(powershell.exe -NoProfile -Command "Get-Clipboard" | tr -d '\r') ;;
 esac
 [[ ${#XERO_CLIENT_SECRET} -ge 40 ]] || { echo "SECRET looked too short, retry"; exit 1; }
 ```
@@ -401,7 +401,7 @@ mcp__playwright__browser_close()
 
 Tell the user: *"I've saved your Xero connection — let me check it works."*
 
-Verify by calling `mcp__xero__list-organisation-details` (no arguments — returns the connected organisation's name and details; the canonical smoke call. Verified live 2026-05-01 against `@xeroapi/xero-mcp-server@latest` v1.0.0 — 51 tools enumerated, `list-organisation-details` confirmed as the org-introspection tool). The verification depends on whether the MCP server is already active in the current session:
+Verify by calling `mcp__xero__list-organisation-details` (no arguments — returns the connected organisation's name and details; the canonical smoke call. Verified live 2026-05-07 against `@xeroapi/xero-mcp-server@0.0.16` — 51 tools enumerated, `list-organisation-details` confirmed as the org-introspection tool). The verification depends on whether the MCP server is already active in the current session:
 
 - **Tools available + call returns the organisation details** → capture the organisation's name. Proceed to Step 9 success message including the org name.
 - **Tools not yet available** (most likely on first setup, since the MCP config was just written and Claude Code hasn't reloaded the tool surface) → tell the user *"All saved. Please close and reopen the chat once, then say 'test my Xero' and I'll verify the new connection."*
@@ -419,7 +419,7 @@ Tell the user, in one short message (include the connected organisation name fro
 
 ## PHASE 2 — Use Tools
 
-Once the connector is configured, use the `mcp__xero__*` MCP tools below to answer questions and make changes in Xero. The `@xeroapi/xero-mcp-server` exposes **~56 tools total**; this reference covers the ~25 most commonly used and notes where the rest live.
+Once the connector is configured, use the `mcp__xero__*` MCP tools below to answer questions and make changes in Xero. The `@xeroapi/xero-mcp-server` exposes **51 tools total**; this reference covers the ~25 most commonly used and notes where the rest live.
 
 **Tool naming convention:** The official server uses hyphen-separated names (e.g. `list-invoices`), not the underscored `xero_*` names from the old custom server. In Claude Code they appear as `mcp__xero__list-invoices`, `mcp__xero__create-invoice`, etc.
 
