@@ -28,6 +28,8 @@ metadata:
 
 # Atlassian Connector (Jira + Confluence)
 
+> **Install pattern:** Hosted-OAuth — see [skills/CLAUDE.md](../CLAUDE.md) for the canonical reference (linear-connector).
+
 ## Overview
 
 This skill lets you read and update a user's Atlassian Cloud workspace on their behalf — Jira, Confluence, and Compass — using the **official first-party Atlassian Remote MCP server** hosted at `https://mcp.atlassian.com/v1/mcp`. It has two phases:

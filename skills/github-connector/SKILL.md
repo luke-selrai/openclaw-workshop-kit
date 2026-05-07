@@ -25,6 +25,8 @@ metadata:
 
 # GitHub Connector
 
+> **Install pattern:** Hosted-bearer-PAT — see [skills/CLAUDE.md](../CLAUDE.md) for the canonical reference (monday-connector).
+
 ## Overview
 
 This skill lets you read and update a user's GitHub account on their behalf using the **official first-party GitHub remote MCP server** hosted by GitHub at `https://api.githubcopilot.com/mcp`. It has two phases:

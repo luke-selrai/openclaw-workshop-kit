@@ -23,6 +23,8 @@ metadata:
 
 # iMessage Connector
 
+> **Install pattern:** Plugin-marketplace — see [skills/CLAUDE.md](../CLAUDE.md) for the canonical reference (telegram-connector).
+
 ## Overview
 
 This skill lets you connect a user's iMessage to Claude Code so they can text their assistant from their iPhone, iPad, or Mac. Unlike Telegram and WhatsApp, iMessage reads the user's **existing Messages app** — no bot, no token, no separate account. Self-chat works immediately; adding other contacts is done via the plugin's allowlist.

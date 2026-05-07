@@ -21,6 +21,8 @@ metadata:
 
 # Notion Connector
 
+> **Install pattern:** Plugin-marketplace — see [skills/CLAUDE.md](../CLAUDE.md) for the canonical reference (telegram-connector).
+
 ## Overview
 
 This skill connects a user's Notion workspace to Claude Code by installing the **official Claude Code Notion plugin** (authored jointly by Anthropic and Notion) from the plugin marketplace. It has **one phase**: the autonomous install + browser-OAuth walkthrough.
