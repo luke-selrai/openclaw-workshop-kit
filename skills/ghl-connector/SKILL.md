@@ -72,7 +72,7 @@ If any of these are missing, walk the user through the four-step install summari
 
 ## Available Tools
 
-The HighLevel MCP server exposes **36 tools** grouped into nine resource areas. Exact tool names surface as `mcp__ghl__*` at runtime — use the descriptions below to pick the right one.
+The HighLevel MCP server exposes about **207 tools** across 20+ resource areas (verified live 2026-05-07 against `https://services.leadconnectorhq.com/mcp/`). Exact tool names surface as `mcp__ghl__ghl_*` at runtime. The nine areas below cover the most common workshop operations; for everything else (invoices, estimates, custom objects, shipping, etc.), see **Additional resource areas** at the end of this section, the Prompt-to-Tool Mapping below, or tab-complete on `mcp__ghl__ghl_` in the tool selector.
 
 ### Contacts (6 tools)
 
@@ -112,7 +112,7 @@ User: "Find jane@example.com and tag her as VIP"
 | `get_messages` | Fetch the message history for a conversation |
 | `send_message` | Send a new message (SMS/Email/GMB/etc.) into a conversation |
 
-**Use when:** Reading conversation history or sending a reply. For outbound SMS where the user wants to review before sending, **draft via Playwright instead** (see Fallback section) so the Send click stays with the user.
+**Use when:** Reading conversation history or sending a reply. For outbound SMS, use `mcp__ghl__ghl_send_sms` — it requires `confirmAction: true`, so confirm the body and recipient with the user before passing the flag. For outbound email use `mcp__ghl__ghl_send_email_message` (same `confirmAction: true` gate). Only fall back to Playwright if the user wants a UI-driven draft they can edit before sending.
 
 ### Opportunities & Pipelines (4 tools)
 
@@ -143,7 +143,7 @@ User: "Move the Acme Co deal to Proposal Sent"
 
 **Use when:** "What's on the calendar tomorrow?", "Did anyone leave notes on the 3 PM discovery call?", etc.
 
-> **Booking creation is not in the MCP surface.** If the user wants to create or cancel a booking, fall back to Playwright.
+> **Booking CRUD is in the MCP surface.** Use `mcp__ghl__ghl_create_appointment`, `mcp__ghl__ghl_update_appointment`, and `mcp__ghl__ghl_delete_appointment` (the delete tool requires `confirmAction: true`). For blocking time on a calendar without booking a contact, use `mcp__ghl__ghl_create_blocked_slot`. Only fall back to Playwright if the user wants UI-driven calendar manipulation.
 
 ### Payments (2 tools)
 
@@ -199,6 +199,12 @@ User: "Move the Acme Co deal to Proposal Sent"
 
 **Use when:** Scheduling content across the user's connected social channels.
 
+### Additional resource areas
+
+The MCP also exposes full or partial coverage for: **invoices** (CRUD + schedules + templates + record-payment + void + send + text2pay), **estimates** (CRUD + templates + send), **subscriptions** (read + list), **transactions** (read + list), **orders + fulfillments** (read + create), **products + collections** (CRUD), **shipping zones + rates** (CRUD), **coupons** (CRUD), **custom objects** (schemas + records, CRUD), **associations + relations** (CRUD), **media library** (search + upload + delete), **surveys** (read + submissions), **workflows + campaigns** (read + add/remove contact), **bulk operations** (bulk-update-contacts, bulk-delete-social-media-posts), **verification** (`verify_email`), and **payment config** (late-fee, store-settings, payment-integrations, custom-payment-providers).
+
+For these, tab-complete `mcp__ghl__ghl_<verb>_<resource>` to discover the right tool name, or browse the live MCP endpoint at `https://services.leadconnectorhq.com/mcp/` for the canonical reference. Common patterns: `get_*` / `get_*s` for read, `create_*` for create, `update_*` for patch, `delete_*` (with `confirmAction: true`) for destructive ops, `search_*` for filtered list, `send_*` (with `confirmAction: true`) for outbound messaging, `upsert_*` for create-or-update.
+
 ---
 
 ## Prompt-to-Tool Mapping
@@ -223,14 +229,12 @@ User: "Move the Acme Co deal to Proposal Sent"
 
 ## Playwright Fallback (UI-only surfaces)
 
-Use [playwright-skill](../playwright-skill/SKILL.md) **only** for the narrow set of operations the 36 MCP tools do not cover:
+Use [playwright-skill](../playwright-skill/SKILL.md) **only** for the narrow set of operations the MCP does not cover:
 
 | Task | Why MCP doesn't cover it | Playwright approach |
 |---|---|---|
-| **Send an SMS** where the user wants to review before send | MCP's `send_message` sends immediately; there's no "draft and stop" primitive | Open the contact's conversation view, type the body, **leave the window for the user to click Send** — never auto-click |
-| **Create or cancel a calendar booking** | MCP exposes read-only calendar tools | Open the calendar, book or cancel, confirm with the user first |
 | **Edit the visual workflow builder** | Not in the API | Open the workflow, let the user edit live |
-| **Full email campaign authoring** (builder UI) | MCP has `create_email_template` but not the full campaign builder | Open the campaign builder and hand control back |
+| **Full email campaign authoring** (builder UI) | MCP has `create_email_template` and `create_email_campaign` for header-level campaign creation but not the full visual builder | Open the campaign builder and hand control back |
 
 **Rules for Playwright fallback:**
 - Reuse the saved storage state at `~/.claude/state/ghl-storage.json`. If missing or expired (you land on the login page), run a one-time login script first.
