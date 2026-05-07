@@ -1,7 +1,7 @@
 ---
 name: github-connector
-description: "Connect and operate GitHub via the official GitHub remote MCP server. Use this skill when the user asks to set up GitHub, connect their GitHub account, or interact with repositories, issues, pull requests, commits, branches, releases, Actions workflows, or code search. On first use, run Phase 1 to install and authenticate the connector before attempting any tool calls."
-allowed-tools: mcp__github__*, Bash, Read, Write, Edit
+description: "Connect and operate GitHub via the official GitHub remote MCP server (https://api.githubcopilot.com/mcp). Drives the entire setup autonomously through github.com/settings/personal-access-tokens/new in a Playwright MCP browser: fills the token name, picks expiration, ticks Repository permissions to match the user's read-only or read-and-write choice, clicks Generate token, reads the fine-grained Personal Access Token from the DOM, and registers the MCP server with the token as a Bearer header. The only human moments are signing in to GitHub once and any 2FA challenge their account requires. Use this skill when the user asks to set up GitHub, connect their GitHub account, or interact with repositories, issues, pull requests, commits, branches, releases, Actions workflows, or code search. On first use run Phase 1 to configure the MCP server and authenticate before attempting tool calls."
+allowed-tools: mcp__github__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Developer Tools & Integrations
   tags:
@@ -13,12 +13,10 @@ metadata:
     - actions
     - mcp
   pairs-with:
-    - skill: xero-connector
-      reason: Sibling connector — same "walk the user through one-time setup in plain English" flow
-    - skill: quickbooks-connector
-      reason: Sibling connector — same conversational-bootstrap pattern
-    - skill: square-connector
-      reason: Sibling connector — same Phase 1/Phase 2 structure
+    - skill: airtable-connector
+      reason: Sibling Pattern-2 connector — same autonomous Playwright PAT-mint shape
+    - skill: monday-connector
+      reason: Canonical Pattern-2 reference — same hosted-bearer-PAT install pattern
     - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting GitHub auth or API errors
 ---
@@ -31,107 +29,158 @@ metadata:
 
 This skill lets you read and update a user's GitHub account on their behalf using the **official first-party GitHub remote MCP server** hosted by GitHub at `https://api.githubcopilot.com/mcp`. It has two phases:
 
-- **Phase 1 — Install & Auth.** A conversational bootstrap (≤5 steps). The user has never used this before. You walk them through creating a Personal Access Token in GitHub, collecting it, and wiring the GitHub MCP server into Claude Code. The user should never see the words "MCP", "PAT", "token", "HTTP", "Bearer", "scope", "API", "JSON", "terminal", or any file paths. They should feel like they are having a conversation, and at the end their GitHub is connected.
+- **Phase 1 — Install & Auth (autonomous).** Claude drives the entire `github.com/settings/personal-access-tokens/new` flow inside a Playwright MCP browser. The user does at most two things: sign in to GitHub once when prompted, and complete any 2FA challenge their account requires. Everything else — filling the token name, picking expiration, picking Repository access, walking the Repository permissions list to set Contents / Issues / Pull requests to the correct level, clicking *Generate token*, reading the fine-grained Personal Access Token from the DOM, registering the MCP server with the token as a Bearer header — is autonomous. The user never copies, never pastes, never reads a token aloud, never opens a tab themselves.
 - **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__github__*` native tools to read and update GitHub data.
 
-**Which phase to run** — Before any tool call, check whether the GitHub MCP server is already configured. Run `claude mcp list` (silently) and look for a `github` entry, or read `~/.claude.json` (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.github` entry with a `url` containing `api.githubcopilot.com`. If it exists, treat the connector as authenticated and skip to Phase 2. Otherwise, run Phase 1.
+**Which phase to run** — Before any tool call, check whether the GitHub MCP server is already configured. Read `~/.claude.json` (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.github` entry with a `url` containing `api.githubcopilot.com` and `headers.Authorization`. If it exists, treat the connector as configured and skip to Phase 2 (verify with one tool call before assuming the session is still valid). Otherwise, run Phase 1.
 
 ### What this skill does NOT use
 
 - **`gh` CLI** — the GitHub CLI is a separate tool for terminal users. It is not an MCP server and cannot be driven by Claude directly in the Phase 2 tool-call style. Do not install it.
 - **`@modelcontextprotocol/server-github`** — this old npm package is **deprecated as of April 2025**. Do not use it. Use the official remote server at `api.githubcopilot.com/mcp`.
 - **Docker / `ghcr.io/github/github-mcp-server`** — the local container version is supported by GitHub but requires Docker Desktop to be installed and running. Skip it unless the user has a specific reason to run locally (GitHub Enterprise Server, offline environment, etc.). The remote server is strictly simpler.
-- **OAuth flow with Client ID / Client Secret / redirect URI** — GitHub supports OAuth for hosts that have a registered GitHub App, but Claude Code does not have one. We use a Personal Access Token (PAT) passed as a Bearer header, which is universally supported.
+- **OAuth flow with Client ID / Client Secret / redirect URI** — GitHub supports OAuth for hosts that have a registered GitHub App, but Claude Code does not have one. We use a fine-grained Personal Access Token (PAT) passed as a Bearer header, which is universally supported.
 - **GitHub Enterprise Server** — deferred. GHES does not support the remote server; it needs the local Docker version with a `--gh-host` flag. Out of scope for this version.
+
+### How auth works under the hood
+
+The hosted GitHub MCP server accepts a fine-grained Personal Access Token (PAT) passed in an `Authorization: Bearer <token>` header. Claude drives the entire token mint via Playwright at `https://github.com/settings/personal-access-tokens/new` — no copy/paste in the happy path, no OAuth callback. This works on personal accounts, organisations the user has access to, and GitHub Free / Pro / Team / Enterprise Cloud plans.
 
 ---
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner or a developer who does not want to think about configuration. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner or a developer who does not want to think about configuration. Phase 1 is autonomous — Claude does the work. The user only signs in to GitHub once (and answers 2FA if challenged). Every message you send during Phase 1 must follow these rules:
 
-- **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say MCP, PAT, token, Bearer, HTTP, API, scope, OAuth, terminal, command, bash, CLI, config file, JSON, endpoint, or environment variable. If you must refer to a technical thing, name it plainly: "a GitHub access key", "a small setting on your computer".
-- **Say "GitHub access key" instead of "token" or "PAT".** Say "permissions" instead of "scopes". Say "close Claude Code and open it again" instead of "restart".
-- **Tell them what is about to happen.** Before any action you take: "I am going to save your connection details now — this takes just a moment."
+- **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values in the happy path. The only actions you ever request are "please sign in to the browser window I just opened" and (if challenged) "please approve the 2FA prompt on your phone."
+- **Plain English only.** No jargon. Never say MCP, PAT, token, Bearer, HTTP, API, scope, OAuth, terminal, command, bash, CLI, config file, JSON, endpoint, environment variable, Playwright, browser automation, or DOM. If you must name a technical concept, plainly:
+  - Personal Access Token (PAT) → **"your GitHub access key"**
+  - Repository permissions / scopes → **"permissions"**
+  - Restart Claude Code → **"close and reopen"**
+  - The Playwright browser → **"the browser window I just opened for you"**
+- **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start, once when you need them ("please sign in" / "please approve the 2FA prompt"), once when you're done. No commentary in between.
 - **React to success and failure warmly.** Good: "That worked — your GitHub is now connected." Bad: "MCP server initialized with 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
-- **Never mention file paths, commands, or scripts** to the user. You run them; you do not describe them.
-- **Never echo the access key back to the user** after they paste it. Never include it in any visible output.
+- **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
+- **No fabricated UI assertions.** Don't reference button colours or specific positioning — verify from the live snapshot. GitHub's settings UI changes (the fine-grained PAT page has shifted permission groupings during 2025–2026).
+- **Never echo the access key** back to the user. Never include it in any output visible to the user.
 
 ---
 
-## PHASE 1 — Install & Auth (≤5 steps)
+## PHASE 1 — Install & Auth (autonomous via Playwright)
 
-This phase gets the Personal Access Token created, the MCP server wired into Claude Code, and the connection verified. You do every technical action; the user only provides information and clicks things in their browser.
+Claude drives the user's browser end-to-end via Playwright MCP. The user's only role is signing in to GitHub when prompted (and only the first time — the persistent Playwright profile keeps the session for future runs) and approving any 2FA challenge their account requires. Claude handles every other step — navigation, form fills, permission selection, token capture from DOM, MCP registration, verify.
 
-### Step 1 — Orient the user and ask about read vs. write
+> **Why fine-grained PAT (not OAuth, not classic PAT):** Fine-grained PATs let the user (and the SKILL on their behalf) pick exact per-permission read/write levels — matching the read-only-vs-read-and-write choice — and scope the key to specific repositories. OAuth would require a registered GitHub App for Claude Code (none exists) and a localhost callback that Playwright can't easily proxy. Classic PATs work, but their permission model is coarse-grained "all-or-nothing scopes" and GitHub flags them as legacy. Fine-grained is the cleaner single-path solution.
+
+> **Reasoning model.** Each Playwright step describes a *goal* (e.g., "find the Contents permission dropdown and set it to Read-only"). Achieve it via `mcp__playwright__browser_snapshot` → reason → `browser_click` / `browser_evaluate` / `browser_fill_form` / `browser_select_option` / `browser_type`. Match permission rows by their visible labels ("Contents", "Issues", "Pull requests"), not by selector paths — GitHub's settings UI changes.
+
+### Step 1 — Orient the user and ask read-only vs read-and-write
 
 Tell the user, in one short message:
 
-> "To connect your GitHub, I need you to create a free GitHub access key. This takes about three minutes. First — do you want me to just **read** your GitHub (browse repos, view issues, read pull requests), or do you want me to also be able to **make changes** for you (create issues, open pull requests, push code)? Read-only is safer to start."
+> "I'll connect your GitHub now. First — do you want me to just **read** your GitHub (browse repos, view issues, read pull requests), or do you want me to also be able to **make changes** for you (create issues, open pull requests, push code)? Read-only is safer to start."
 
-Wait for their answer. Remember their choice — it controls which permission boxes they will tick in Step 2.
+Wait for their answer. Remember their choice — it controls which level you select for each permission row in Step 5.
 
-- **Read-only** → Contents (read), Issues (read), Pull requests (read), Metadata (read — this one is required and selects itself).
-- **Read + write** → Contents (read and write), Issues (read and write), Pull requests (read and write), Metadata (read).
+- **Read-only** → Contents (Read-only), Issues (Read-only), Pull requests (Read-only). Metadata (Read-only — GitHub auto-selects this).
+- **Read + write** → Contents (Read and write), Issues (Read and write), Pull requests (Read and write). Metadata (Read-only).
 
-### Step 2 — Walk the user through creating a GitHub access key
+### Step 2 — Open the token page and confirm a logged-in session
 
-The user needs to create a fine-grained Personal Access Token in GitHub. You cannot do this step for them — GitHub requires their authenticated session.
+Tell the user, in one short message:
 
-Tell the user (one instruction at a time, waiting for confirmation between each):
+> "Opening a browser window for you — please sign in to GitHub when it appears (and approve any 2FA prompt). I'll do the rest. About a minute."
 
-1. "Please open this page in your browser: **https://github.com/settings/personal-access-tokens/new** — and sign in with your GitHub account. Let me know when you see the 'New fine-grained personal access token' form."
+Call `mcp__playwright__browser_navigate({ url: "https://github.com/settings/personal-access-tokens/new" })`.
 
-2. When they confirm → "For **Token name**, type: **Claude Assistant**. Then tell me when you are done."
+Take a `mcp__playwright__browser_snapshot()`. Reason from it:
 
-3. When they confirm → "For **Expiration**, pick **90 days** if you want to renew it every few months, or **No expiration** if you prefer to set it once and forget. Which one do you want?" Wait for their answer.
+- **Logged in** (you see the "New fine-grained personal access token" form with a Token name input) → continue to Step 3.
+- **Not logged in** (sign-in form, "Sign in to GitHub") → poll silently with `mcp__playwright__browser_wait_for({ text: "New fine-grained personal access token" })` (or "Token name"). Do not ask the user to confirm; detect login completion yourself.
+- **2FA challenge appears** (text like "Two-factor authentication", "Verify", "Authenticator app", "Confirm sign in") → poll silently with `mcp__playwright__browser_wait_for({ text: "New fine-grained personal access token" })`. The 2FA action happens on the user's phone or hardware key; the SKILL just waits for the post-2FA settings page to load.
 
-4. When they pick an expiration → "Scroll down to **Repository access**. Choose **All repositories** if you want me to work across all your repos, or **Only select repositories** if you only want me to touch specific ones — then pick them from the list. Let me know when you have chosen."
+If `browser_wait_for` times out (5+ minutes), check in: *"Still on the sign-in page? Anything I can help with?"*
 
-5. When they confirm → "Now scroll down to **Repository permissions**. I will tell you which boxes to tick, one at a time." Then, based on their answer from Step 1:
+### Step 3 — Fill the token name
 
-   **For read-only:**
-   - "Find **Contents** — click the dropdown on the right and change it from **No access** to **Read-only**. Tell me when done."
-   - "Find **Issues** — change it to **Read-only**."
-   - "Find **Pull requests** — change it to **Read-only**."
-   - "**Metadata** will already say **Read-only** — that one is required, leave it as is."
+Locate the "Token name" / "Name" input in the snapshot and type via `browser_type` or `browser_fill_form`:
 
-   **For read + write:**
-   - "Find **Contents** — click the dropdown on the right and change it to **Read and write**. Tell me when done."
-   - "Find **Issues** — change it to **Read and write**."
-   - "Find **Pull requests** — change it to **Read and write**."
-   - "**Metadata** will already say **Read-only** — leave that one alone."
+- **Name** → `"Claude Assistant"`
 
-6. When they confirm → "Now scroll to the bottom and click the green **Generate token** button."
+### Step 4 — Pick expiration
 
-7. When they confirm → "You should now see your **access key** — it starts with `github_pat_` (or `ghp_` for classic tokens). Please copy it and paste it to me. **Important: this is the only time GitHub will show you the key — if you close the page without copying, you will have to start over.**"
+Locate the "Expiration" dropdown / select control in the snapshot. Pick **90 days** (`browser_select_option`). This balances safety (auto-rotation) with not bothering the user too often. If a "Custom" or "No expiration" option exists and 90 days is unavailable on the user's plan, fall back to the longest reasonable preset.
 
-Common mistakes to look out for (and correct by re-asking):
-- The user pasted a placeholder like `your_token_here` → "I think that was a copy mistake — please try the real value that starts with `github_pat_` or `ghp_`."
-- The user pasted something that does not start with `github_pat_` or `ghp_` → "That doesn't look quite right. The value I need starts with `github_pat_` and is quite long. Can you check and try again?"
-- The user says they cannot find Repository permissions → "It is below the Expiration and Repository access sections. Keep scrolling down — you will see a list of permission categories like Actions, Contents, Issues, Pull requests, etc."
-- The user closed the page without copying → "No problem — we just need to make a new one. Please go back to **https://github.com/settings/personal-access-tokens/new** and start again. You can use the same settings."
+### Step 5 — Pick Repository access
 
-### Step 3 — Save the connection
+Locate the "Repository access" section. Click **"All repositories"** via `browser_click` (preferred — works for repos the user has now or adds later, and across orgs they have access to).
 
-Once the user pastes the access key, silently run one of the following commands from Bash — **do not mention the command to the user**:
+If "All repositories" is not available (some Enterprise org policies disable it), fall back to "Public repositories (read-only)" or, last resort, "Only select repositories" with no repos pre-selected — and warn the user briefly that you couldn't pick all repos so they may need to widen access later.
 
-**Default (Mac / Linux / Windows with Claude Code 2.1.1+):**
+### Step 6 — Set Repository permissions
+
+Locate the "Repository permissions" section. It is a list of permission rows; each row has a label on the left and a dropdown / select on the right with options like *No access*, *Read-only*, *Read and write*. For each of the three permissions below, find the matching row and set it to the level matching the user's Step 1 choice via `browser_click` (open the dropdown) → `browser_click` (pick the option) — or `browser_select_option` if the control is a native `<select>`.
+
+- **Contents** → Read-only or Read and write
+- **Issues** → Read-only or Read and write
+- **Pull requests** → Read-only or Read and write
+
+GitHub auto-selects **Metadata: Read-only** when any other repository permission is chosen — leave it as-is. Re-snapshot after each set to confirm state changed.
+
+If the permission rows are paginated or collapsed under category headers, click the category header to expand, or look for a search/filter input and type the permission name to filter the list.
+
+### Step 7 — Generate the token
+
+Locate the "Generate token" submit button at the bottom of the form (it is typically a green button). Click via `browser_click`.
+
+If GitHub shows a confirmation modal (occasional second-factor sudo-prompt before token creation), snapshot it. If it asks for password / 2FA again, narrate once: *"GitHub is asking to confirm — please approve on your phone."* Then `browser_wait_for` the post-confirmation page.
+
+Poll `mcp__playwright__browser_wait_for({ text: "github_pat_" })` (or wait for the token-reveal screen — GitHub's fine-grained PAT page renders the new token in a copyable readonly input near the top).
+
+### Step 8 — Capture the access token
+
+The post-creation screen displays the fine-grained PAT (starts with `github_pat_`). Read it via `browser_evaluate`:
+
+```
+() => {
+  const candidates = [...document.querySelectorAll('input, code, textarea, pre, [data-testid*="token"], [class*="token"]')];
+  for (const el of candidates) {
+    const v = (el.value || el.textContent || '').trim();
+    if (/^github_pat_[A-Za-z0-9_]+$/.test(v) && v.length >= 50) return v;
+    if (/^ghp_[A-Za-z0-9_]+$/.test(v) && v.length >= 40) return v;
+  }
+  return null;
+}
+```
+
+If the token is masked behind a "Copy" or "Show" button, click it via `browser_click`, re-snapshot, then re-evaluate.
+
+**Validation (silent):**
+- Token must start with `github_pat_` (fine-grained) or `ghp_` (classic — only if GitHub falls back to classic for some account types)
+- Fine-grained: token must be ≥ 50 characters; classic: ≥ 40 characters
+
+**Conversational fallback** — if two snapshot attempts don't surface a valid token (e.g., GitHub has moved the token reveal to a non-DOM-readable toast on this account), narrate once: *"I'm having trouble reading the access key automatically — could you paste it for me? It starts with `github_pat_`."* Wait for the user to paste, validate the shape, and continue. The token transits the transcript in this fallback path; that's an accepted trade-off documented in [skills/CLAUDE.md](../CLAUDE.md) Pattern 2 → "Conversational fallback".
+
+### Step 9 — Save the connection (silent)
+
+Silently register the MCP server with the PAT as a Bearer header. **Prefer `claude mcp add-json` via Bash** (default for Mac / Linux / Windows with Claude Code 2.1.1+):
+
 ```bash
-claude mcp add-json github '{"type":"http","url":"https://api.githubcopilot.com/mcp","headers":{"Authorization":"Bearer <TOKEN>"}}'
+claude mcp add-json github '{"type":"http","url":"https://api.githubcopilot.com/mcp","headers":{"Authorization":"Bearer <token captured in Step 8>"}}' --scope user
 ```
 
 **Windows fallback** — if `add-json` returns `Invalid input` (known quirk on Windows for HTTP servers), use the legacy transport-flag form instead:
+
 ```bash
-claude mcp add github --transport http https://api.githubcopilot.com/mcp/ -H "Authorization: Bearer <TOKEN>"
+claude mcp add github --transport http https://api.githubcopilot.com/mcp/ -H "Authorization: Bearer <token>" --scope user
 ```
 
-Replace `<TOKEN>` with the access key the user just pasted. Never log or echo the key back.
+**Last-resort fallback if `claude mcp add` fails for any reason other than "already exists"** — write directly to `~/.claude.json`:
 
-If both forms fail for a reason other than "already exists", fall back to editing `~/.claude.json` directly and adding this entry to the `mcpServers` object:
+<details>
+<summary>Direct JSON write</summary>
 
 ```json
 {
@@ -140,40 +189,31 @@ If both forms fail for a reason other than "already exists", fall back to editin
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp",
       "headers": {
-        "Authorization": "Bearer <TOKEN>"
+        "Authorization": "Bearer <token>"
       }
     }
   }
 }
 ```
+</details>
 
-Merge this into the existing `mcpServers` object rather than overwriting it. If `~/.claude.json` does not exist, create it with just the GitHub entry. If the file exists but is corrupted, back it up to `~/.claude.json.backup` first, then write a fresh config.
+Merge into the existing `mcpServers` object — never overwrite. If `~/.claude.json` doesn't exist, create it. If corrupt, back up to `~/.claude.json.backup` first.
 
-Tell the user: "I have saved your connection details. Now I need you to close Claude Code completely and open it again — that is how the new connection becomes active."
+Never echo the access key back to the user. Never include it in any output visible to the user. Never paste the contents of `~/.claude.json` to the user.
 
-### Step 4 — Ask the user to restart Claude Code
+### Step 10 — Close the browser, verify, success message
 
-Tell the user, in one short message:
+`mcp__playwright__browser_close()`.
 
-> "Please fully close Claude Code (not just this window — the whole app), then open it again, then come back and say **'test my GitHub connection'**. I will check everything is working."
+Tell the user: *"Saved — let me check it works."*
 
-Wait for them to come back. When they do, move to Step 5.
-
-### Step 5 — Verify the connection and celebrate
-
-Call `mcp__github__get_me` to verify the connection. The response includes the user's GitHub login (username) and name.
-
-- **If the call succeeds** — capture the username and deliver the success message:
+- **If `mcp__github__*` tools are available**: call `mcp__github__get_me`. Capture the username and deliver the success message:
 
   > "All done! I am now connected to your GitHub account **[@username]**. You can ask me things like *'show me my repositories'*, *'list open issues in [repo name]'*, or *'what are my recent pull requests?'*. Give it a try!"
 
-- **If the tools are not yet available** (the user may not have fully restarted) — tell them: "It looks like Claude Code has not fully picked up the new connection yet. Please fully close the app and open it again, then try once more."
+- **If tools not available**: *"All saved. Please close and reopen Claude Code once, then say 'test my GitHub' and I'll verify."*
 
-- **If the call returns an authentication error** (`401 Unauthorized` / `Bad credentials`) — tell them: "The access key didn't work. Could you double-check it? Let's go back to **https://github.com/settings/personal-access-tokens** and make a fresh one." Then re-do Steps 2 and 3 with the new key.
-
-- **If the call returns a permission error** (`403 Forbidden`) — tell them: "Your connection is working, but the key does not have enough permissions for that. Let me tell you which box to tick." Guide them to **https://github.com/settings/personal-access-tokens**, click on **Claude Assistant**, add the missing permission, click **Update**, then retry.
-
-- **Any other error** — "Something went wrong — let me try again." Retry once; if still failing, ask the user to confirm the key is still listed in their GitHub settings.
+If verification returns `401 Unauthorized` / `Bad credentials`, the most likely cause is a partial token capture. Re-run Steps 7–9 to mint a fresh token. If verification returns `403 Forbidden` on a write operation the user expects to work, the most likely cause is the user picked Read-only in Step 1 — guide them: *"Your access key is read-only. Want me to refresh it with write access?"* and re-run from Step 1.
 
 ---
 
@@ -304,13 +344,13 @@ When a GitHub tool call fails, diagnose and respond in plain English. Never show
 
 | Error | What to say | How to fix |
 |---|---|---|
-| 401 Unauthorized / Bad credentials | "Your GitHub connection has expired or the access key was revoked — let me help you reconnect." | Run Phase 1 from Step 2 (create a new access key) |
-| 403 Forbidden / Insufficient permission | "I need an extra permission to do that. Let me walk you through adding it." | Guide user to **https://github.com/settings/personal-access-tokens** → click **Claude Assistant** → adjust Repository permissions → Update. No restart needed. |
-| 404 Not Found on a repo the user owns | "I can't see that repo. Either the name is slightly off, or the access key is limited to a different set of repositories." | Either correct the repo name, or guide the user to widen **Repository access** on their access key |
+| 401 Unauthorized / Bad credentials | "Your GitHub connection has expired or the access key was revoked — let me reconnect you." | Re-run Phase 1 from Step 2 (Playwright re-mints a fresh token) |
+| 403 Forbidden / Insufficient permission | "I need an extra permission to do that — let me refresh your access." | If user picked Read-only in Step 1 and now wants to write, re-run Phase 1 with read-and-write. Otherwise the user may need to widen Repository access — re-run Phase 1 and pick a broader scope at Step 5. |
+| 404 Not Found on a repo the user owns | "I can't see that repo. Either the name is slightly off, or the access key is limited to a different set of repositories." | Either correct the repo name, or re-run Phase 1 and widen Repository access at Step 5 |
 | 422 Unprocessable Entity | "GitHub rejected that request — the input may be invalid. Let me check and try again." | Read the error body, fix the input, retry once |
 | 429 / secondary rate limit | "GitHub is asking me to slow down. I will wait a moment and try again." | Wait 10 seconds and retry once. If still 429, tell the user and suggest trying again in a minute. |
 | Tool not available (MCP server not running) | "The GitHub connection isn't active yet. Please fully close Claude Code and open it again so it picks up the new settings." | User restarts Claude Code |
-| Any other API error | "Something went wrong with GitHub — let me try again." | Retry once; if still failing, check the key is still listed in GitHub settings |
+| Any other API error | "Something went wrong with GitHub — let me try again." | Retry once; if still failing, re-run Phase 1 to mint a fresh token |
 
 ---
 
@@ -337,7 +377,7 @@ The GitHub MCP connector **cannot** do (deferred):
 - File uploads larger than GitHub's REST API limits
 - Webhook management
 - GitHub App installation or management
-- Anything the user's access key does not have permission for — add the permission in GitHub settings and retry
+- Anything the user's access key does not have permission for — re-run Phase 1 to widen permissions and retry
 
 ---
 
@@ -351,7 +391,7 @@ The GitHub MCP connector **cannot** do (deferred):
 - **Default pagination to 10–30 items.** Do not dump 100-item lists. Summarise first, offer to show more.
 - **Present data clearly.** Format results as readable tables or short summaries, not raw JSON.
 - **Issue and PR numbers are integers.** Do not confuse them with commit SHAs (hex strings) or pull request IDs (internal GraphQL IDs).
-- **Respect read-only mode.** If the user set up read-only in Phase 1 and then asks for a write operation, remind them: "Your access key is read-only. I can walk you through upgrading it if you want." Do not attempt the write.
+- **Respect read-only mode.** If the user picked read-only in Phase 1 and then asks for a write operation, remind them: "Your access key is read-only. Want me to refresh it with write access?" Do not attempt the write — re-run Phase 1 if they say yes.
 - **Rate limits.** The remote GitHub MCP server inherits GitHub's REST rate limit (5,000 requests/hour for authenticated PATs). Hitting this is rare in normal use; if it happens, wait and retry.
 - **Large repos.** For `get_file_contents` on a directory with hundreds of entries, warn the user and ask if they want the full list or just a filtered subset.
 
@@ -361,5 +401,5 @@ The GitHub MCP connector **cannot** do (deferred):
 
 - **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting GitHub auth or API errors
-- **xero-connector**, **quickbooks-connector**, **square-connector**: Sibling connectors — same Phase 1 / Phase 2 structure for different platforms
+- **airtable-connector**, **monday-connector**: Sibling Pattern-2 connectors — same autonomous Playwright PAT-mint shape
 - **github-actions-pipeline-builder**: Complementary skill for designing GitHub Actions workflows (this skill operates them; that skill designs them)
