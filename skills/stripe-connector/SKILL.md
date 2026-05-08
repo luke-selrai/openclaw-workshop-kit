@@ -99,7 +99,15 @@ scoop bucket add stripe https://github.com/stripe/scoop-stripe-cli.git
 scoop install stripe
 ```
 
-**Linux:** download the appropriate release tarball from `https://github.com/stripe/stripe-cli/releases/latest`, extract, and place `stripe` on PATH (e.g., `/usr/local/bin`).
+**Linux (Debian/Ubuntu via APT — the canonical Stripe-maintained path):**
+```bash
+curl -s https://packages.stripe.dev/api/security/keypair/stripe-cli-gpg/public | gpg --dearmor | sudo tee /usr/share/keyrings/stripe.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/stripe.gpg] https://packages.stripe.dev/stripe-cli-debian-local stable main" | sudo tee -a /etc/apt/sources.list.d/stripe.list
+sudo apt update
+sudo apt install stripe
+```
+
+**Linux (other distros) — manual fallback:** download the appropriate release tarball from `https://github.com/stripe/stripe-cli/releases/latest`, extract, and place `stripe` on PATH (e.g., `/usr/local/bin`).
 
 Verify:
 ```bash
