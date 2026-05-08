@@ -151,11 +151,32 @@ Silently run `bun --version`.
   - **Mac / Linux:** `curl -fsSL https://bun.sh/install | bash`
   - **Windows (PowerShell):** `powershell -c "irm bun.sh/install.ps1 | iex"`
 
-  After install completes, tell the user:
+  **Defensive PATH patch (Mac / Linux only).** The official Bun installer is non-deterministic about whether it appends the `BUN_INSTALL` and PATH-export lines to the user's shell rc — sometimes it writes only the completions line. When that happens, the binary lands at `~/.bun/bin/bun` but isn't on PATH for fresh login shells, and Step 8's listener silently fails to spawn the bun-based channel MCP server even after a clean app restart. Patch the rc explicitly so the install is deterministic across installer versions:
+
+  ```bash
+  # Detect shell rc (same logic as Step 8 Part A)
+  SHELL_RC=~/.zshrc
+  [ ! -f "$SHELL_RC" ] && [ -f ~/.bash_profile ] && SHELL_RC=~/.bash_profile
+  [ ! -f "$SHELL_RC" ] && [ -f ~/.bashrc ] && SHELL_RC=~/.bashrc
+  [ ! -f "$SHELL_RC" ] && SHELL_RC=~/.zshrc && touch "$SHELL_RC"
+
+  if ! grep -qE 'BUN_INSTALL|\.bun/bin' "$SHELL_RC"; then
+    {
+      echo ''
+      echo '# bun'
+      echo 'export BUN_INSTALL="$HOME/.bun"'
+      echo 'export PATH="$BUN_INSTALL/bin:$PATH"'
+    } >> "$SHELL_RC"
+  fi
+  ```
+
+  This is symmetrical to the `~/.local/bin` PATH check in Step 8 Part A. On Windows the installer's PowerShell variant has its own (different) PATH-management semantics, so this defensive patch is Mac/Linux only.
+
+  After install completes (and the rc is patched), tell the user:
 
   *"I just installed the helper tool. There's one thing I need you to do before we keep going: fully quit and reopen the app you're using to talk to me, whether that's Claude Desktop or VS Code. Just closing the terminal isn't enough. The app inherits its environment from when it first launched, so the new tool won't be available until the whole app restarts. On Mac, that's Cmd+Q to quit, then reopen from the dock. After it's back open, come back to this conversation (it'll resume from where we left off) and say 'ready'."*
 
-  **Why this matters:** the Step 8 listener launches in a terminal inside the user's app. That terminal inherits the app's PATH from launch time. If we don't restart now, Step 8's listener will silently fail to find `bun` and the channel MCP server won't spawn. The restart at this point is cheap (the conversation resumes); skipping it leads to a confusing failure 5 steps later.
+  **Why this matters:** the Step 8 listener launches in a terminal — either inside the user's app, or a freshly-opened Terminal.app / iTerm window. Either path needs `bun` on PATH at terminal-launch time. The defensive rc patch above guarantees `bun` lands in the rc. The app restart then guarantees the app's own integrated terminal also picks up the patched rc on its next launch. Skipping either half lets Step 8's listener silently fail with no clue why.
 
   Wait for the user to confirm. Then re-verify with `bun --version`. If it still fails after the restart, apply the PATH fix guidance in `skills/first-run-setup/SKILL.md` ("Windows Snags Reference" section).
 
@@ -387,15 +408,44 @@ pgrep -fa "claude-plugins-official/telegram" 2>&1
 
 - **One process found, command line includes `bun` and the plugin path** → listener is alive. Tell the user *"Listener is up. Pairing now."* and proceed to Step 9.
 
-- **No process found** → silent-spawn failure. The most likely cause: the terminal the user ran `claude-tg` from inherited a stale environment from before Bun was installed (Step 3), so when `claude` tried to spawn the channel MCP server (which runs `bun run …`), `bun` wasn't on PATH and the spawn silently failed. The terminal looks fine because `claude` itself is on PATH; it's the bun child that's missing.
+- **No process found** → silent-spawn failure. The terminal that ran `claude-tg` started `claude` (which is on PATH globally) but the spawn of the bun-based channel MCP server child failed silently because `bun` wasn't reachable. Two distinct manifestations cause this; they need different fixes, so diagnose first:
 
-  **This should have been prevented by Step 3's restart instruction.** If we're hitting it now, that restart either didn't happen or didn't take. Tell the user, plainly:
+  ```bash
+  # Probe a fresh login shell — does it find bun?
+  zsh -ilc 'command -v bun' >/dev/null 2>&1 && echo "RC_OK" || echo "RC_BROKEN"
+  ```
+
+  **Case A — probe prints `RC_OK`:** `bun` IS reachable from a fresh login shell. The user's listener terminal launched from a stale environment (typically Claude Desktop's or VS Code's integrated terminal, opened before Bun was installed). Step 3's restart instruction is the fix. Tell the user, plainly:
 
   *"The listener started Claude but couldn't load the Telegram piece. The terminal you used picked up an old environment from before I installed the helper tool. The fix is to fully quit your Claude Desktop or VS Code app (whichever you're in), Cmd+Q on Mac (not just closing the terminal), and reopen it. Then come back here, say 'restarted', and I'll have you run `claude-tg` again in a fresh terminal."*
 
-  After the user says "restarted", run Part B again (kill any leftover stale listener) and Part C (have them run `claude-tg`), then re-run this Part D health check.
+  After "restarted", run Part B again (kill any leftover stale listener) and Part C (have them run `claude-tg`), then re-run this Part D health check.
 
-  If after the full app restart `pgrep` STILL finds nothing, something deeper is wrong (Bun got uninstalled, plugin install corrupted, or a real Claude Code bug). At that point stop Phase 1 and walk the Troubleshooting table. **Do not improvise** — do not start a standalone `bun server.ts` outside Claude, it polls Telegram but has no Claude attached, which gives the user a worse half-broken experience (pair codes work but no message round-trip works) than a clean stop.
+  **Case B — probe prints `RC_BROKEN`:** `bun` is NOT reachable from a fresh login shell. The Bun installer didn't patch the user's shell rc, so even a freshly-opened Terminal.app / iTerm window won't find `bun`. App restart will not help — the rc itself is broken. Step 3's defensive PATH patch is the proactive prevention; if we're here it didn't run or didn't take. Patch the rc now (same code as Step 3) and have the user re-launch in a fresh terminal:
+
+  ```bash
+  SHELL_RC=~/.zshrc
+  [ ! -f "$SHELL_RC" ] && [ -f ~/.bash_profile ] && SHELL_RC=~/.bash_profile
+  [ ! -f "$SHELL_RC" ] && [ -f ~/.bashrc ] && SHELL_RC=~/.bashrc
+  [ ! -f "$SHELL_RC" ] && SHELL_RC=~/.zshrc && touch "$SHELL_RC"
+
+  if ! grep -qE 'BUN_INSTALL|\.bun/bin' "$SHELL_RC"; then
+    {
+      echo ''
+      echo '# bun'
+      echo 'export BUN_INSTALL="$HOME/.bun"'
+      echo 'export PATH="$BUN_INSTALL/bin:$PATH"'
+    } >> "$SHELL_RC"
+  fi
+  ```
+
+  Then run Part B (kill any leftover listener) and tell the user:
+
+  *"I just patched a missing line in your shell config. The terminal you used didn't have the helper tool on its path. Close that terminal window completely, open a new one, and run `claude-tg` again — say 'started' once it's up."*
+
+  Re-run this Part D health check after they do so.
+
+  If after both fixes (app restart for Case A, rc patch for Case B) `pgrep` STILL finds nothing, something deeper is wrong (Bun got uninstalled, plugin install corrupted, or a real Claude Code bug). At that point stop Phase 1 and walk the Troubleshooting table. **Do not improvise** — do not start a standalone `bun server.ts` outside Claude, it polls Telegram but has no Claude attached, which gives the user a worse half-broken experience (pair codes work but no message round-trip works) than a clean stop.
 
 - **Multiple processes found** → Part B's pkill missed something. Kill all matches and ask user to re-run `claude-tg`:
 
@@ -652,7 +702,7 @@ Report it in plain English to the user, never as raw JSON.
 
 | Symptom | Likely cause | What you do |
 |---|---|---|
-| `claude-tg` runs and shows a Claude prompt, but no bun listener process exists (`pgrep -f "claude-plugins-official/telegram"` returns nothing) | Stale-environment terminal — the user's Claude Desktop / VS Code app was launched BEFORE Bun was installed (Step 3), so the integrated terminal it spawned for `claude-tg` doesn't have `bun` on PATH. `claude` runs fine (globally installed) but the bun-based channel MCP server silently fails to spawn | Tell the user to fully quit (Cmd+Q on Mac) and reopen their Claude Desktop / VS Code app. The terminal inside it inherits the app's environment from launch time, so closing only the terminal isn't enough. After the restart, run `claude-tg` in a fresh terminal and re-check with `pgrep`. Step 3's restart instruction is the proactive prevention; this row is the recovery if Step 3 was skipped or didn't take |
+| `claude-tg` runs and shows a Claude prompt, but no bun listener process exists (`pgrep -f "claude-plugins-official/telegram"` returns nothing) | Two distinct manifestations: (a) **stale-environment terminal** — the user's Claude Desktop / VS Code app was launched BEFORE Bun was installed, so its integrated terminal doesn't have `bun` on PATH; or (b) **broken Bun installer** — the official installer didn't append the `BUN_INSTALL` / PATH-export lines to the user's shell rc, so `bun` isn't on PATH for ANY fresh login shell. Either way, `claude` runs fine (globally installed) but the bun-based channel MCP server silently fails to spawn | Run Step 8 Part D's diagnostic to distinguish: `zsh -ilc 'command -v bun' >/dev/null 2>&1 && echo RC_OK \|\| echo RC_BROKEN`. **`RC_OK`** → manifestation (a); fully quit (Cmd+Q on Mac) and reopen Claude Desktop / VS Code, then re-run `claude-tg` in a fresh terminal. **`RC_BROKEN`** → manifestation (b); append the `BUN_INSTALL` / PATH-export lines to the user's shell rc (see the rc-patch block in Step 3 or Step 8 Part D Case B), then have the user open a fresh terminal — no app restart needed. Step 3's defensive rc patch is the proactive prevention for (b); Step 3's restart is the prevention for (a) |
 | Bot doesn't respond when user messages it | Channel listener not running (`claude-tg` window closed, or silent-spawn case above) | Run `pgrep -f "claude-plugins-official/telegram"` to confirm. If nothing: `claude-tg` again. If a process IS running and still no replies: check the listener terminal for errors |
 | `Bun not found` after install | PATH not refreshed | Tell user to close and reopen the terminal; if still broken, apply `skills/first-run-setup/SKILL.md` PATH fix |
 | Pairing code never appears in the bot's reply (Telegram Web shows nothing back from the bot after `/start`) | Listener silent-spawn bug, OR listener crashed mid-poll | First check the listener: `pgrep -f "claude-plugins-official/telegram"`. If missing, walk row 1. If present, check the listener terminal for stack traces |
