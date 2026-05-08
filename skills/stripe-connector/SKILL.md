@@ -1,6 +1,7 @@
 ---
 name: stripe-connector
-description: Install and operate the Stripe connector. Use this skill when the user asks to set up Stripe, connect their payment account, or interact with payments, invoices, subscriptions, or customers. Handles full installation and uses the Stripe CLI + API.
+description: Install and operate the Stripe connector autonomously. Use this skill when the user asks to set up Stripe, connect their payment account, or interact with payments, invoices, subscriptions, or customers. Phase 1 is fully autonomous — Claude drives the Stripe CLI install and OAuth via a Playwright MCP browser; the user only signs in to Stripe Dashboard once. Phase 2 uses the `stripe` CLI for API operations.
+allowed-tools: mcp__playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Payments & Billing
   tags:
@@ -29,69 +30,141 @@ The connector uses the **Stripe CLI** (`stripe`) for authentication and API oper
 
 > **Account support:** Requires a Stripe account (live or test mode). Both standard accounts and Connect platforms are supported.
 
+> **Why this skill is autonomous.** Stripe's CLI ships a built-in agent flow: `stripe login` auto-detects non-TTY stdin and emits a JSON object with `browser_url`, `verification_code`, and a `next_step` command. Claude drives Playwright to the browser URL, confirms the verification code matches (Stripe's designed safety check against pairing-code spoofing), clicks Allow, and the `next_step` polling command captures credentials. No CLI patches, no env-var hacks — the upstream design supports this end-to-end.
+
 ---
 
-## Part 1 — Installation
+## Communication rules for Phase 1
 
-### Step 1: Check if already installed
+The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work, the user only signs in to Stripe once. Every message during Phase 1 must follow these rules:
+
+- **You drive, not them.** Never ask the user to click menus, copy URLs, paste codes, or read terminal output. The only action you ever request is: "please sign in to the browser window I just opened."
+- **Plain English only.** No jargon. Never say OAuth, API key, JSON, stdin, TTY, polling, callback, or file paths to the user. If you must refer to a technical thing, name it plainly: "the Stripe connection tool", "the browser window I just opened", "a small one-time setup step on your computer".
+- **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm setting up Stripe for you now"), once when you need them ("please sign in"), once when you're done ("your Stripe is now connected"). No commentary in between.
+- **React to success and failure warmly.** Good: "That worked — your Stripe is now connected." Bad: "Verification code matched, polling endpoint returned 200, credentials saved to config.toml."
+- **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
+- **Short responses.** Maximum 8 lines per message during Phase 1.
+- **Never echo the API key or verification code** back to the user. Both are stored locally; never include them in any output visible to the user.
+
+---
+
+## PHASE 1 — Install & Auth (autonomous via Playwright)
+
+Claude installs the Stripe CLI, runs the non-interactive auth flow, and drives the consent click-through entirely inside a Playwright MCP browser. The user's only role is signing in to Stripe Dashboard in the Playwright window when prompted in Step 3.
+
+> **Reasoning model.** Each step describes a *goal*. Achieve it by reading CLI output, taking `browser_snapshot` when navigating Stripe pages, and reasoning about what's on the page. Re-snapshot whenever the page state changes. Don't hardcode CSS selectors against the Stripe Dashboard — the UI evolves.
+
+### Step 1 — Check if `stripe` is already installed and authenticated
+
 ```bash
 stripe --version
 ```
-If this returns a version number, skip to Step 3 (auth check). If "command not found", continue from Step 2.
 
-### Step 2: Install the CLI
+If this returns a version number, proceed to the auth check. If `stripe` is missing, jump to Step 2.
 
-**Mac (Homebrew):**
+**Auth check:** probe the saved config without triggering interactive prompts:
+
+```bash
+stripe config --list 2>/dev/null | grep -E '^test_mode_api_key|^live_mode_api_key' | head -1
+```
+
+If a key line prints (test or live), the CLI is already authenticated. Skip to Phase 2. If no keys are configured, proceed to Step 3 (auth).
+
+If both checks pass and the user's account is already cached, the connector is set up. Skip to Phase 2.
+
+### Step 2 — Install the Stripe CLI
+
+Pick the platform-appropriate installer and run silently. After install, refresh PATH for the current shell so subsequent steps can find the binary in this Bash session.
+
+**macOS (Homebrew):**
 ```bash
 brew install stripe/stripe-cli/stripe
 ```
 
-**Windows (Scoop):**
+**Windows (winget):**
+```bash
+winget install --id Stripe.StripeCLI --accept-package-agreements --accept-source-agreements
+```
+
+> **Windows PATH note.** winget appends to the user PATH but the current shell does not see it until restart. Resolve the binary directly for the rest of this session:
+> ```bash
+> STRIPE_BIN="$(find "$LOCALAPPDATA/Microsoft/WinGet/Packages/" -name 'stripe.exe' 2>/dev/null | head -1)"
+> alias stripe="\"$STRIPE_BIN\""
+> ```
+> The user's next fresh terminal will see `stripe` on PATH naturally; this alias keeps Phase 1 working without forcing a restart mid-flow.
+
+**Windows (Scoop) — fallback if winget unavailable:**
 ```bash
 scoop bucket add stripe https://github.com/stripe/scoop-stripe-cli.git
 scoop install stripe
 ```
 
-**Windows (winget):**
-```bash
-winget install Stripe.StripeCLI
-```
+**Linux:** download the appropriate release tarball from `https://github.com/stripe/stripe-cli/releases/latest`, extract, and place `stripe` on PATH (e.g., `/usr/local/bin`).
 
-**Windows (manual):** Download the latest release from https://github.com/stripe/stripe-cli/releases — extract the zip and add the folder to your PATH.
-
-After install, verify:
+Verify:
 ```bash
 stripe --version
 ```
 
-### Step 3: Log in to Stripe
+If the verify command still errors after install (`command not found` on Mac/Linux even with brew on PATH), tell the user plainly: *"The terminal needs a refresh — please close this window, open a new one, then say 'ready'."* Wait, then retry.
+
+### Step 3 — Authenticate (autonomous via Playwright)
+
+Tell the user, in one short message:
+
+> "I'm opening a browser window for you — please sign in to your Stripe Dashboard when it appears, and I'll handle the rest."
+
+**3a. Get the auth URL via the non-interactive flow.** Stripe's CLI auto-activates non-interactive mode when stdin is not a TTY (which is the case in any agent context); the `--non-interactive` flag forces it explicitly:
 
 ```bash
-stripe login
+stripe login --non-interactive
 ```
 
-**In a terminal (TTY):** This prints a pairing code and opens a browser. The user signs in to their Stripe account and clicks **Allow access**. A restricted API key is saved locally.
+The CLI prints a JSON object to stdout and exits immediately:
 
-**In a non-TTY / agent context:** The CLI outputs JSON with a `browser_url` and a `next_step` command. Show the `browser_url` to the user and ask them to approve in the browser, then run the `next_step` command to complete login:
-```bash
-stripe login --complete '<poll-url-from-next_step>'
+```json
+{
+  "browser_url": "https://dashboard.stripe.com/stripecli/confirm_auth?t=...",
+  "verification_code": "<four-words-pairing-code>",
+  "next_step": "stripe login --complete '<poll-url>'"
+}
 ```
 
-> If the browser does not open, copy the URL from the terminal output and paste it into a browser manually.
+Parse the three fields. Store `verification_code` for the Step 3c safety check. Store the `next_step` command for Step 3b.
 
-### Step 4: Verify
+**3b. Start the polling background task.** Run the captured `next_step` command as a background process so it polls Stripe's auth endpoint while Playwright drives the consent page:
+
+```
+Bash(command: "<next_step command from JSON>", run_in_background: true, description: "Poll Stripe approval")
+```
+
+This returns a `bash_id`. The polling command blocks until the user clicks Allow in the browser (then captures + stores credentials and exits successfully).
+
+**3c. Drive Playwright to the browser_url.** Navigate using the user's persistent Playwright profile (signed in to Stripe Dashboard if previously logged in there):
+
+```
+mcp__playwright__browser_navigate({ url: "<browser_url>" })
+```
+
+Take a `browser_snapshot`. Reason about state:
+
+- **Sign-in page** (Email + Password inputs visible) → tell the user *once*: *"Please sign in to Stripe in the browser window I just opened."* Wait for the page to advance. The Stripe sign-in flow handles 2FA automatically; the page redirects to the verification step once auth completes.
+- **Account picker** (Connect platforms with multiple accounts) → click the account the user wants the CLI to use. If unclear which account, tell the user *once* and wait.
+- **Verification page** ("Allow CLI access?" or similar wording showing a pairing code) → **safety check first:** confirm the displayed pairing code on the page matches `verification_code` captured in Step 3a. If it matches, click **Allow access** via DOM-extract. **If it doesn't match, abort cleanly — never click Allow on a mismatched code.** This match is the security guarantee Stripe designed in to prevent pairing-code spoofing.
+
+**3d. Wait for the polling background task to capture credentials.** Poll `BashOutput(bash_id: "<id>")` until the success line appears (typically 1-3 seconds after Allow click; up to 30 seconds on slow networks). The CLI prints a confirmation message such as `Done! The Stripe CLI is configured for ...` to stdout when credentials are stored. Use a 15-minute timeout (first-time 2FA setup commonly takes 8-12 minutes).
+
+> **Token storage.** Stripe's CLI stores credentials in `~/.config/stripe/config.toml` on Mac/Linux or `%APPDATA%\stripe\config.toml` on Windows. Subsequent `stripe ...` calls reuse the credentials. The default profile is `[default]`; multiple Connect accounts use named profiles via `stripe login --project-name=<name>`.
+
+### Step 4 — Verify (binary smoke gate)
 
 ```bash
 stripe customers list --limit 1
 ```
 
-If customer data (or an empty list) is returned, the connector is working. You can also check the saved config:
+If customer data (or an empty list) is returned, the connector is working. Continue to Phase 2.
 
-```bash
-stripe config --list
-```
-
-If customer data (or an empty list) is returned, the connector is working.
+If the verify command returns a 401 / `Unauthorized`, the credentials didn't persist correctly. Re-run Step 3 (`stripe logout` first to clear partial state, if it errors).
 
 ---
 
