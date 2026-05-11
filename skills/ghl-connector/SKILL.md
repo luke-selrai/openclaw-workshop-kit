@@ -38,6 +38,8 @@ This skill lets you read and update a user's GoHighLevel sub-account on their be
 
 **Which phase to run** — Before any GHL tool call, check whether the MCP server is already configured. Read `~/.claude.json` (Mac/Linux) or `%USERPROFILE%\.claude.json` (Windows) and look for an `mcpServers.ghl` entry with both an `Authorization: Bearer ...` header and a `locationId` header. If both are present, run a single `mcp__ghl__ghl_get_location` smoke call. If it returns a sub-account name, ask the user *"I'm currently connected to [name] — is that right?"* and only skip to Phase 2 after they confirm. If the entry is missing, the smoke call returns 401, the smoke call returns a name the user doesn't recognise, or the user wants to switch sub-accounts, run Phase 1.
 
+<!-- DRY-RUN STATUS 2026-05-11: 2 of 8 VERIFY markers resolved against live SELR Group sub-accounts (URL pattern + canonical PIT page route — both confirmed across 3 sub-accounts). The remaining 6 require a sub-account with Private Integrations provisioned. SELR Group sub-accounts checked 2026-05-11 (SELR AI, Selr Studio, Selr Media) all lack PIT provisioning — likely a plan-tier or agency-level gate. Remaining markers will be resolved once a PIT-provisioned environment is available. -->
+
 <!-- VERIFY (sandbox dry-run): exact response shape from `mcp__ghl__ghl_get_location` — confirm it contains a `name` field for the sub-account name we then echo back to the user. If the canonical field is `companyName` or `locationName`, update the resume-check prose. -->
 
 ---
@@ -118,7 +120,7 @@ mcp__playwright__browser_evaluate({ function: "() => { const m = window.location
 
 The character classes (`[/]`) sidestep a JSON-double-escape pitfall: when the function string is serialised through the Playwright MCP tool-call envelope, `\/` requires double-escaping (`\\\\/` in the JSON source) for the decoded regex literal to be valid. Character classes need no escapes and serialise cleanly through any envelope.
 
-<!-- VERIFY (sandbox dry-run): exact URL pattern `/v2/location/<LOC_ID>/` against a live sub-account. The pattern is the one GHL has used through 2025-2026, but URL routes have shifted in past UI rewrites — confirm before claiming the regex is stable. -->
+<!-- VERIFIED 2026-05-11: URL pattern `/v2/location/<LOC_ID>/` confirmed against 3 SELR Group sub-accounts. All observed LOC_IDs were 20 chars alphanumeric and matched the `^[A-Za-z0-9]{18,24}$` regex below. Pattern stable as of 2026-05. -->
 
 A valid sub-account ID matches the regex `^[A-Za-z0-9]{18,24}$` (~20-character alphanumeric, example shape `VuWT1234abcd5678efgh`). Reject any other shape — a malicious page that mutates `window.location.href` via `history.replaceState` could embed a payload that the looser `[^/?#]+` capture would accept. Save the validated value as `<LOC_ID>` for Step 7.
 
@@ -137,16 +139,20 @@ If neither method yields a sub-account ID after two snapshot attempts, stop and 
 
 ### Step 4 — Open the Private Integrations page
 
-Click the **Settings** menu (gear icon, typically bottom-left of the account nav), then click **Private Integrations** in the settings sidebar.
+Click the **Settings** menu (gear icon, typically bottom-left of the account nav), then look for **Private Integrations** in the settings sidebar.
 
-Take a `browser_snapshot`. Reason from it:
+**Missing-feature guard (added 2026-05-11).** Before clicking, scan the Settings sidebar for a "Private Integrations" link. If it's absent, try the canonical deep-link `https://app.gohighlevel.com/v2/location/<LOC_ID>/settings/private_integrations` (snake-case — the kebab-case variant `private-integrations` redirects to `/dashboard` instead of rendering). Wait at least 5 seconds for hydration, then probe `browser_evaluate(() => document.body.innerText.length)`. If the body stays at 0 chars after the wait, Private Integrations isn't provisioned on this sub-account — surface to the user: *"Your sub-account doesn't have Private Integrations available — that's typically a plan-tier or agency-level setting. You'll need to ask your GoHighLevel agency admin to enable it before I can connect."* and stop. Empirical reference: 3 SELR Group sub-accounts checked 2026-05-11 all rendered empty under this signature.
+
+If the sidebar link is present (or the deep-link page hydrates with content), click through and take a `browser_snapshot`. Reason from it:
 
 - **Below the per-location 5-key cap** — empty state or 1-4 existing integrations. The "Create new Integration" button (or similarly-named CTA) is visible and active. Continue to Step 5.
 - **At the 5-key cap** — the list shows 5 existing integrations and the Create button is disabled. Stop and surface the named choice to the user (per the Communication Rules exception): *"You've reached the maximum of 5 connection keys on this account. To make room, I'd need to remove one. Here are the names of the ones you have: [list names from snapshot]. Which one is safe to remove?"* Wait for the user to name one. After they pick, drive the deletion via the row's delete control, re-snapshot to confirm the count is now 4, then continue to Step 5.
 
 If the list state is ambiguous after one snapshot, re-snapshot once before proceeding.
 
-<!-- VERIFY (sandbox dry-run): exact deep-link URL of the Private Integrations page once you're on it. Public docs name only the menu path. Capture the URL via `browser_evaluate(() => window.location.href)` and add it here as a navigation shortcut for future runs. -->
+<!-- PARTIALLY VERIFIED 2026-05-11: canonical deep-link confirmed as `/v2/location/<LOC_ID>/settings/private_integrations` (snake-case). The kebab-case variant `/settings/private-integrations` redirects to `/dashboard` and is NOT canonical. Page DOM (anchors, modal selectors, list shape) still pending live walk — see missing-feature guard above. -->
+
+<!-- VERIFY (sandbox dry-run): page DOM once a PIT-provisioned account loads — list-table shape, "Create new Integration" CTA exact label + selector, and 5-key cap detection (count vs disabled-button vs error toast). -->
 
 <!-- VERIFY (sandbox dry-run): the at-cap delete control — exact row-level button label ("Delete" / "Remove" / icon-only) and whether deletion needs a confirmation modal. -->
 
