@@ -60,8 +60,13 @@ SKILL author can't reach `mcp__playwright__*` or
 `mcp__plugin_playwright_playwright__*` tools, install Playwright first:
 
 ```bash
-claude mcp add playwright --scope user -- npx @playwright/mcp@latest
+claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"
 ```
+
+The `--user-data-dir` flag is mandatory — it gives the Playwright browser a
+persistent profile so user logins survive across sessions. Workshop attendees
+should never have to re-login to the same site twice; that friction is one of
+the top complaints when Playwright MCP is installed without it.
 
 After install, ask the user to close and reopen Claude Code once so the new
 MCP surface reconciles, then retry. This is identical across hosted-OAuth and

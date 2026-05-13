@@ -143,13 +143,23 @@ Then try `claude --version` again.
 
 **Windows note:** If it still says "command not found", tell the user: "Close Claude Desktop completely and reopen it, then say 'continue' to me."
 
-### Step 2 — Connect Browser Automation
+### Step 2 — Connect Browser Automation (Playwright MCP — non-negotiable, primary browser tool)
+
+Playwright MCP is the assistant's primary browser tool. Every connector SKILL in this kit is written against it. This step is non-negotiable — do not skip it, do not substitute Chrome MCP, computer-use, or any other browser surface. If Playwright MCP fails to install in any branch below, treat it as a setup blocker and tell the user honestly; do not silently continue without it.
 
 Say:
-> "Now I am going to connect to your browser. Once this is done, I can open websites and help you with things automatically."
+> "Now I am going to connect to your browser. Once this is done, I can open websites and fill in forms for you. The browser also remembers your logins — once you sign in to a site through me, you stay signed in next time."
 
+Install with a persistent profile directory so logins survive across sessions (this is critical — workshop attendees should never have to re-login to the same site twice):
+
+Mac/Linux (bash/zsh):
 ```bash
-claude mcp add playwright npx @playwright/mcp@latest --scope user
+claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"
+```
+
+Windows (PowerShell):
+```powershell
+claude mcp add playwright --scope user -- npx -y "@playwright/mcp@latest" --user-data-dir "$HOME\.cache\playwright-mcp-profile"
 ```
 
 Verify:
@@ -158,13 +168,15 @@ claude mcp list
 ```
 
 Look for `playwright` in the list. If it is there:
-> "Your browser remote control is connected."
+> "Your browser is connected. It will remember your logins from now on — you only have to sign in to each site once."
 
-If it failed, try:
+If it failed, try the fallback (still with the persistent profile):
 ```bash
 npm install -g @playwright/mcp
-claude mcp add playwright @playwright/mcp --scope user
+claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"
 ```
+
+If BOTH attempts fail, stop and tell the user: "I could not install the browser tool — every other tool in this kit needs it. Let me show you the error and we will fix it before continuing." Do not move on without Playwright MCP working.
 
 Mention which tools were connected in your next reply — Claude's memory will retain that context automatically.
 

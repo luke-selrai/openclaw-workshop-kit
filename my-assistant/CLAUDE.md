@@ -133,6 +133,20 @@ Each guide is the source of truth. If a guide contradicts something you remember
 
 ---
 
+## Browser Automation — Playwright MCP Is The Primary Browser Tool
+
+For ANY task that requires a browser — opening a webpage, filling a form, reading content, automating a login flow, scraping, checking a screenshot, driving a SaaS settings page — use Playwright MCP (`mcp__playwright__*` tools). Do NOT reach for `mcp__computer-use__*`, Claude in Chrome, or any other browser surface. Playwright MCP is installed at setup specifically for this; it is faster, more reliable, and the only browser tool the connector skills are written against. Every connector SKILL in `workshop-kit/skills/` assumes Playwright MCP — using anything else will break those flows.
+
+**Session persistence — the Playwright browser remembers logins.** Playwright MCP runs against a persistent user-data directory at `$HOME/.cache/playwright-mcp-profile` (or `%USERPROFILE%\.cache\playwright-mcp-profile` on Windows). Once the user signs in to a site inside the Playwright browser, the session cookie sticks — next time you open that site, they are still logged in. Treat the Playwright browser like the user's own logged-in browser. Do NOT pre-emptively ask the user to log in again; only walk them through a fresh login if a snapshot shows a sign-in screen. This is one of the biggest friction points if it is ignored.
+
+If `mcp__playwright__*` tools are not visible in a session, install:
+- Mac/Linux: `claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"`
+- Windows: same command — `$HOME` resolves in PowerShell 6+ and Git Bash.
+
+After install, tell the user to fully quit and reopen Claude Desktop once so the new tools become visible.
+
+---
+
 ## Skills Discovery
 
 After setup, run the `skills-discovery` skill to recommend the most useful skills based on the user's profile. The full catalogue lives at `workshop-kit/docs/skills/README.md` (in the user's home folder) — read it when the user asks "what can you do?".
@@ -182,3 +196,4 @@ Paths use `$HOME` on Mac/Linux (e.g. `/Users/jane/`) and `%USERPROFILE%` on Wind
 - Workshop docs: `workshop-kit/docs/`
 - Full skill catalogue: `workshop-kit/docs/skills/README.md`
 - First-run setup: `workshop-kit/skills/first-run-setup/SKILL.md`
+- Playwright browser profile (logins persist here): `.cache/playwright-mcp-profile/`

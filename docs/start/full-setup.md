@@ -297,15 +297,15 @@ These connections let your assistant do more. Now that Node.js is installed, eac
 
 ### Playwright — Browser Automation
 
-This lets your assistant open websites and do tasks in the browser for you (research, fill forms, take screenshots).
+This lets your assistant open websites and do tasks in the browser for you (research, fill forms, take screenshots). Your logins are remembered — sign in to a site once and you stay signed in for next time.
 
 1. In the Claude chat, type this and press Enter:
 
 ```
-claude mcp add playwright npx @playwright/mcp@latest --scope user
+claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"
 ```
 
-2. No sign-in needed — it installs automatically
+2. No sign-in needed — it installs automatically.
 
 ---
 
