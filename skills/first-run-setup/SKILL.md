@@ -162,26 +162,58 @@ Windows (PowerShell):
 claude mcp add playwright --scope user -- npx -y "@playwright/mcp@latest" --user-data-dir "$HOME\.cache\playwright-mcp-profile"
 ```
 
-Verify:
+Verify the entry is registered:
 ```bash
 claude mcp list
 ```
 
-Look for `playwright` in the list. If it is there:
-> "Your browser is connected. It will remember your logins from now on — you only have to sign in to each site once."
-
-If it failed, try the fallback (still with the persistent profile):
+If `playwright` is NOT listed, try the fallback (still with the persistent profile):
 ```bash
 npm install -g @playwright/mcp
 claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"
 ```
 
-If BOTH attempts fail, stop and tell the user: "I could not install the browser tool — every other tool in this kit needs it. Let me show you the error and we will fix it before continuing." Do not move on without Playwright MCP working.
+If BOTH attempts fail to register, stop and tell the user: "I could not install the browser tool — every other tool in this kit needs it. Let me show you the error and we will fix it before continuing." Do not move on without Playwright MCP working.
 
-Mention which tools were connected in your next reply — Claude's memory will retain that context automatically.
+#### Step 2a — Mandatory Claude Desktop restart
 
-Say:
-> "All connected! Now let me show you what I can actually do for your business."
+**Playwright MCP is registered, but its tools (`mcp__playwright__*`) are NOT visible to the current session.** New MCP servers only become callable after Claude Desktop fully restarts and reloads them. Do not attempt to call any `mcp__playwright__*` tool in this session — it will fail.
+
+Say to the user, exactly:
+
+> "Your browser tool is installed, but I need you to **fully quit Claude Desktop and reopen it** before I can use it.
+>
+> 1. Right-click the Claude Desktop icon in your dock (Mac) or system tray (Windows) and choose **Quit** — pressing Cmd+Q on Mac also works. Just closing the chat window is NOT enough.
+> 2. Reopen Claude Desktop.
+> 3. Come back to this same chat and type **ready**.
+>
+> When you say ready, I will run a quick test to confirm the browser is working."
+
+Then stop. Wait for the user to come back and say "ready", "continue", "ok", "done" or similar. Do not narrate anything else in the meantime.
+
+#### Step 2b — Smoke-test Playwright (after restart)
+
+Once the user is back and confirms they have restarted, immediately verify Playwright is alive. Do not skip this — silent installs that "look fine" but never actually launch a browser are a real failure mode, and the only way to catch it is to drive a real page load.
+
+Run, in this exact order:
+
+1. `mcp__playwright__browser_navigate` to `https://example.com` — a tiny page that loads in under a second. The browser window opens visibly (headed mode, default for Playwright MCP) — the user will see a small browser pop up on their screen.
+2. `mcp__playwright__browser_snapshot` — confirm the page rendered. The snapshot should contain the text "Example Domain". If it does not, Playwright is installed but not actually loading pages; stop and diagnose.
+3. `mcp__playwright__browser_close` — close the browser window immediately. The user sees it close.
+
+If `mcp__playwright__*` tools are STILL not visible after the user says "ready", they did not fully quit — closing the window is not enough. Say:
+
+> "I still cannot see the browser tools. That means Claude Desktop did not fully restart. Please **right-click the Claude Desktop icon in your dock (Mac) or system tray (Windows) and choose Quit** — pressing Cmd+Q on Mac also works. Closing the window does not quit the app. Once it's fully closed, reopen it and tell me ready again."
+
+Then wait again. Do NOT proceed to Phase 3 until the smoke test passes.
+
+After a successful smoke test, say:
+
+> "Browser is working. You just saw example.com open and close — that confirms I can drive a real browser for you. From now on, when I need to do anything in a browser (open a website, fill a form, log you in to a service), I will use this. Your logins will also be remembered, so you only sign in to each site once.
+>
+> Now let me show you what I can actually do for your business."
+
+Mention to yourself in memory which tools came online — Claude's memory will retain that context automatically.
 
 → Move to Phase 3.
 
