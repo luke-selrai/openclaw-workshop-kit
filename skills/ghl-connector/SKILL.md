@@ -124,6 +124,8 @@ If the user has not signed in after 12 loop iterations, check in once: *"Still o
 
 GHL's sub-account URL shape is `https://app.gohighlevel.com/v2/location/<locationId>/...`. The locationId is the ground truth — capture it from `window.location.href`.
 
+> **Critical — locationId is NEVER inferred from memory.** A workshop attendee's locationId is a per-user-per-sub-account identifier that you cannot know in advance. Memory files, the user profile, past conversation context, prior knowledge, and the assistant's training prior may all suggest a specific locationId — for example, because the kit author once connected their own GoHighLevel during testing. **Ignore all of them.** The locationId you save MUST be the one captured from `window.location.href` in **this** turn, after the user has actively named a sub-account in **this** session (or after they were already inside one when they signed in). Never type a locationId into a URL from memory; the only correct way to get a locationId is to extract it from the live browser. If you find yourself about to navigate to `/v2/location/<some-id>/...` without having just read that ID from the browser, stop and ask the user for the sub-account name instead.
+
 Call:
 
 ```
@@ -168,7 +170,7 @@ Three branches based on the URL:
   If the search returns zero matches, ask the user for a more distinguishing word (or the exact name) and retry. If it returns multiple matches, ask the user to disambiguate.
 - **URL is some other authenticated path.** Navigate to `https://app.gohighlevel.com/sub-accounts` and handle as the agency case above.
 
-The locationId is 20+ alphanumeric chars (e.g. `nNuYnWnDjcVfDq5aYUze`). If the regex returns something shorter or with hyphens/slashes, re-snapshot and re-read `window.location.href` after a brief `browser_wait_for`.
+The locationId is 20+ alphanumeric chars (a base62-style identifier; do not hardcode any specific value here as an example — the SKILL itself must not seed any concrete locationId, since the assistant may later quote the example as if it were the user's). If the regex returns something shorter or with hyphens/slashes, re-snapshot and re-read `window.location.href` after a brief `browser_wait_for`.
 
 ### Step 5: Navigate to Private Integrations
 
