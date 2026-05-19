@@ -51,6 +51,8 @@ This skill reads and writes data in the user's GoHighLevel sub-account using the
 
 Before any other action, decide whether to run Phase 1 or skip to Phase 2.
 
+> **Critical — memory is NOT authoritative.** Memory files, the user profile, past conversation context, prior knowledge, and the assistant's training prior may all suggest GHL is already connected. **Ignore all of them.** The only ground truth for "is GHL configured" is the live contents of `~/.claude.json`. You **MUST** read that file on every invocation before saying anything to the user about state. Never claim "GHL is already connected" without proving it from the file in this same turn. If the file has no `mcpServers.ghl` entry, GHL is not configured, regardless of what memory or context says.
+
 Read `~/.claude.json` (Windows: `%USERPROFILE%\.claude.json`) and look for `mcpServers.ghl`. Three branches:
 
 1. **Entry exists, has both `headers.Authorization` (non-placeholder) and `headers.locationId` (non-placeholder).** Run a single smoke call: `mcp__ghl__locations_get-location`.
@@ -74,6 +76,7 @@ The user is a non-technical business owner. Phase 1 is autonomous. Claude does t
 - **Never show error messages.** Translate. If something fails, say "No problem, let me try a different way," and diagnose silently.
 - **Short responses.** Maximum 8 lines per user-facing message during Phase 1.
 - **Never reveal file paths, commands, scripts, snapshot details, or selectors.**
+- **No name greetings.** Do not address the user by name unless they used their own name in this conversation. Names that live in memory or user profiles belong to past sessions; using them here breaks the workshop-attendee illusion and the test-user check. Open with "Hi there" or just start the work.
 
 ---
 
@@ -104,9 +107,18 @@ Send one short message:
 Call `mcp__playwright__browser_navigate({ url: "https://app.gohighlevel.com/" })`. Take a snapshot.
 
 - **Logged-in shell visible** (agency dashboard at `/agency_dashboard?tab=summary`, or a sub-account inner page with a left sidebar containing "Conversations" / "Contacts" / "Opportunities"). Continue to Step 4.
-- **Not logged in** (sign-in form, marketing landing, or "Get Started" CTA). Send one message: *"The browser is open. Please sign in to GoHighLevel when you're ready."* Then poll silently with `browser_wait_for` against a post-login shell signal (text like "Sub-Accounts", "Agency Dashboard", "Conversations", or the agency name in the top-left). Use a generous timeout (5+ minutes) to absorb 2FA, SSO, password resets. Do not ask the user to confirm they're done. Detect from the snapshot yourself.
+- **Not logged in** (sign-in form, marketing landing, or "Get Started" CTA). Send one message: *"The browser is open. Please sign in to GoHighLevel when you're ready."* Then poll silently for the URL to change.
 
-If the wait times out, check in once: *"Still on the sign-in page? Anything I can help with?"*
+> **Playwright MCP timeout cap.** `browser_wait_for({ text: "...", time: 300 })` does **not** wait 5 minutes. The Playwright MCP backend hard-caps every tool call at 30 seconds and throws `TimeoutError: browserBackend.callTool: Timeout 30000ms exceeded` if `text` hasn't appeared by then. Do not pass a `time` value above 25 expecting the SKILL to wait that long. The correct pattern is a poll loop:
+>
+> 1. `mcp__playwright__browser_evaluate({ function: "() => window.location.href" })`.
+> 2. If the URL is still the marketing/login page (`https://app.gohighlevel.com/` exactly, or `/login...`), call `mcp__playwright__browser_wait_for({ time: 25 })` to sleep 25 seconds within the cap.
+> 3. Loop back to step 1.
+> 4. Exit the loop when the URL contains `/agency_dashboard`, `/v2/location/`, or any other authenticated path.
+>
+> Run the loop for up to 12 iterations (~5 minutes). Do not ask the user to confirm they signed in — detect from the URL.
+
+If the user has not signed in after 12 loop iterations, check in once: *"Still on the sign-in page? Anything I can help with?"*
 
 ### Step 4: Land the user on a sub-account and capture the locationId
 
@@ -125,7 +137,35 @@ Three branches based on the URL:
 
   > "I can see your GoHighLevel. Which sub-account would you like me to connect to?"
 
-  Wait for the user's answer. Once they name one, navigate to the sub-accounts list (`https://app.gohighlevel.com/sub-accounts`), snapshot, click the matching row (fuzzy-match case-insensitive on the name). Wait for the URL to change to `/v2/location/<id>/...` using `browser_wait_for`, then capture the locationId. If you can't confidently find the name in the snapshot, ask the user for a more distinguishing word.
+  Wait for the user's answer. Once they name one, navigate to the sub-accounts list (`https://app.gohighlevel.com/sub-accounts`).
+
+  The sub-account list is **virtualised** by React, so most rows are not in the DOM until you filter. Type the user's answer into the page's search box, then read the visible row's `href` to get the locationId without clicking. The search input has placeholder `Search by Sub-Account`, and a native React-controlled value setter is required to fire the search:
+
+  ```
+  mcp__playwright__browser_evaluate({ function: `() => {
+    const inp = Array.from(document.querySelectorAll('input')).find(i => i.placeholder === 'Search by Sub-Account');
+    if (!inp) return 'no-search-input';
+    inp.focus();
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    setter.call(inp, '<sub-account name>');
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    inp.dispatchEvent(new Event('change', { bubbles: true }));
+    return 'typed';
+  }` })
+  ```
+
+  Wait 2-3 seconds for the filtered list to render, then read the locationId straight from the row's `href`:
+
+  ```
+  mcp__playwright__browser_evaluate({ function: `() => {
+    const a = document.querySelector('a[href*="/accounts/detail/"]');
+    return a ? { text: a.textContent.trim(), href: a.getAttribute('href') } : null;
+  }` })
+  ```
+
+  The `href` is `/accounts/detail/<locationId>`. Extract the locationId from there and skip clicking — you have what you need. Continue to Step 5 with this locationId.
+
+  If the search returns zero matches, ask the user for a more distinguishing word (or the exact name) and retry. If it returns multiple matches, ask the user to disambiguate.
 - **URL is some other authenticated path.** Navigate to `https://app.gohighlevel.com/sub-accounts` and handle as the agency case above.
 
 The locationId is 20+ alphanumeric chars (e.g. `nNuYnWnDjcVfDq5aYUze`). If the regex returns something shorter or with hyphens/slashes, re-snapshot and re-read `window.location.href` after a brief `browser_wait_for`.
@@ -144,7 +184,18 @@ Wait for the heading "Private Integrations" to be visible (`browser_wait_for({ t
 
 Snapshot the integrations table. Look for a row whose name cell is exactly "Claude Code" (case-insensitive).
 
-- **Found.** The row has an `Actions for integration Claude Code` button (three-dots icon, accessible via that exact name). Click it. A small popup menu appears with options like "Delete" or "Revoke". Click the destructive action. A confirmation dialog appears. Click the confirm button (label varies: "Delete", "Revoke", "Confirm", "Yes, delete"). Re-snapshot and verify the row is gone before continuing.
+- **Found.** Each integration row has a three-dots icon button whose **accessible name is exactly** `Actions for integration <name>` (so for the Claude Code row, it's `Actions for integration Claude Code`). The button has no visible text — match it by `aria-label`, not by text content:
+
+  ```
+  mcp__playwright__browser_evaluate({ function: `() => {
+    const btn = document.querySelector('button[aria-label="Actions for integration Claude Code"]');
+    if (!btn) return 'not-found';
+    btn.click();
+    return 'clicked';
+  }` })
+  ```
+
+  A popup menu appears with a destructive option (label varies: "Delete", "Revoke"). Snapshot the page, find that button by text, click it. A confirmation modal then appears with Cancel and Confirm buttons — click Confirm. Re-snapshot the integrations table and verify the "Claude Code" row is gone before continuing. If the row is still there, retry once.
 - **Not found.** Continue to Step 7.
 
 If the deletion fails or the row reappears after re-snapshot, retry once. If still failing, stop and tell the user: *"There's an old Claude Code connection that I can't remove. Could you delete it manually and let me know when it's done?"* Wait for them, then re-snapshot.
@@ -160,29 +211,76 @@ The Create flow is a **two-step wizard**, not a single form. The skill walks bot
 
 Click the `Next` button. The panel transitions to the Scopes step.
 
-**Step 7b — Scopes.** Click the `Select scopes` control to open the scopes dropdown. The dropdown contains:
+**Step 7b — Scopes.** The scopes selector is a custom searchable dropdown with a single `Select all` checkbox that ticks every available scope in one click. The dropdown trigger has CSS class `.hr-base-selection` and the checkboxes have class `.hr-checkbox`.
 
-- A **`Select all`** checkbox at the top of the list.
-- A counter row reading "0 of N selected" (N is currently 146; the GHL surface grows over time, so don't hardcode 146).
-- A flat list of N checkboxes, each labelled `<Action> <Resource> - <scope.permission>` (e.g. `View Businesses - businesses.readonly`).
-
-Click the `Select all` checkbox. Re-read the counter via `browser_evaluate`:
+Open the dropdown:
 
 ```
-() => {
+mcp__playwright__browser_evaluate({ function: `() => {
+  const target = document.querySelector('.hr-base-selection');
+  if (!target) return 'no-target';
+  target.click();
+  return 'opened';
+}` })
+```
+
+Wait 1 second for the popover to render, then click the Select-all checkbox. Match by the parent `.hr-checkbox` element whose text content is exactly "Select all" (the inner `<input>` element doesn't carry the label):
+
+```
+mcp__playwright__browser_evaluate({ function: `() => {
+  const all = Array.from(document.querySelectorAll('.hr-checkbox'));
+  const selectAll = all.find(el => /^select all$/i.test((el.textContent || '').trim()));
+  if (!selectAll) return 'not-found';
+  selectAll.click();
+  return 'clicked';
+}` })
+```
+
+Verify by reading the counter (a leaf element whose text matches `N of N selected`):
+
+```
+mcp__playwright__browser_evaluate({ function: `() => {
   const el = Array.from(document.querySelectorAll('*'))
-    .find(e => /\d+ of \d+ selected/.test(e.textContent || '') && e.children.length === 0);
+    .find(e => /^\d+ of \d+ selected$/i.test((e.textContent || '').trim()) && e.children.length === 0);
   return el ? el.textContent.trim() : null;
-}
+}` })
 ```
 
-The counter should now read "N of N selected" (both numbers equal). If it doesn't, click `Select all` once more (it may have been toggled into a half-selected state) and re-read.
+The counter should read "N of N selected" (both numbers equal — currently 146, but the GHL surface grows; don't hardcode 146). If the counter still shows `0 of N selected`, the click missed — re-snapshot and retry. If it shows `K of N selected` with K between 0 and N, the click toggled into half-selected; click `Select all` once more.
 
-Close the dropdown (press `Escape`). All selected scopes are now displayed as chips in the field, and the bottom `Create` button is enabled.
+Press `Escape` to close the dropdown. The selected scopes now render as chips in the field, and the bottom `Create` button is enabled.
 
-Click the bottom `Create` button.
+Click the bottom `Create` button (match by visible text `Create`, not by class — there are usually two Cancel buttons + Create + Confirm on the page at this point, find the one in the form footer):
 
-**Step 7c — Security Risk confirmation.** GHL pops a "Security Risk" confirmation modal whenever sensitive scopes are part of the grant. The modal heading reads "Security Risk — Are you sure you want to proceed with creating the private integration token with sensitive scopes?" with Cancel and Confirm buttons. Click `Confirm`. This is expected and is part of every all-scopes mint.
+```
+mcp__playwright__browser_evaluate({ function: `() => {
+  const buttons = Array.from(document.querySelectorAll('button')).filter(b => {
+    const r = b.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  });
+  const create = buttons.find(b => /^Create$/i.test((b.textContent || '').trim()));
+  if (!create || create.disabled) return 'no-create-or-disabled';
+  create.click();
+  return 'clicked-create';
+}` })
+```
+
+**Step 7c — Security Risk confirmation.** GHL pops a "Security Risk" confirmation modal whenever sensitive scopes are part of the grant. The modal heading reads "Security Risk — Are you sure you want to proceed with creating the private integration token with sensitive scopes?" with Cancel and Confirm buttons. This is **expected** on every all-scopes mint, **not** an error — click the Confirm button:
+
+```
+mcp__playwright__browser_evaluate({ function: `() => {
+  const buttons = Array.from(document.querySelectorAll('button')).filter(b => {
+    const r = b.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  });
+  const confirm = buttons.find(b => /^Confirm$/i.test((b.textContent || '').trim()));
+  if (!confirm) return 'no-confirm';
+  confirm.click();
+  return 'clicked-confirm';
+}` })
+```
+
+The success modal with the token follows. Continue to Step 8.
 
 ### Step 8: Capture the Private Integration Token
 
@@ -276,7 +374,7 @@ Two paths from here:
 
   Stop. The user will return and trigger Phase 0, which will run the smoke call and surface success.
 
-**If you want to confirm the connection works without waiting for a restart**, do a direct HTTP smoke test (don't show this to the user — it's just a sanity check Claude can run silently):
+**If you want to confirm the connection works without waiting for a restart**, do a direct HTTP smoke test (don't show this to the user — it's just a sanity check Claude can run silently). The Cloudflare front on `services.leadconnectorhq.com` **blocks** the default Python `urllib` user-agent (returns `Error 1010: browser_signature_banned`). Use `curl` with a browser-like User-Agent, **not** Python `urllib.request`:
 
 ```bash
 curl -s -X POST https://services.leadconnectorhq.com/mcp/ \
@@ -284,10 +382,11 @@ curl -s -X POST https://services.leadconnectorhq.com/mcp/ \
   -H "locationId: <locationId>" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
+  -A "Mozilla/5.0" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"locations_get-location","arguments":{}}}'
 ```
 
-A `200` with `"success": true` and a `data.location.name` confirms the headers, PIT, and locationId all work end-to-end.
+A `200` with `"success": true` and a `data.location.name` confirms the headers, PIT, and locationId all work end-to-end. If you get `Error 1010`, you forgot the `-A "Mozilla/5.0"` flag.
 
 If `mcp__ghl__locations_get-location` returns an error in-session:
 - **401 / Unauthorized / Invalid token.** Tell the user *"That didn't take. Let me grab a fresh key."* and re-run from Step 5 (the existing PIT will be detected and revoked, a new one minted).
