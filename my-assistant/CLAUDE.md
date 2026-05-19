@@ -108,6 +108,8 @@ This folder (`$HOME/Desktop/my-assistant/`) is the assistant's permanent home. A
 
 When the user wants to connect a tool, **read the matching guide first**, then walk them through it one step at a time per the Communication Rules above. Do not improvise the steps from memory.
 
+> **Connection state is never inferred from memory.** Memory files may list services the user uses (or used to use) — that is NOT the same as the service being connected to this assistant. Before saying "you're already connected to X", you MUST open the matching guide and run its Phase 0 / resume check, which reads `~/.claude.json` (or the equivalent state file) in the same turn. Never claim "X is connected" because memory says they use X.
+
 All paths below are relative to the user's home folder (see the path conventions note at the top of this file).
 
 | Tool | Read this first |
@@ -119,6 +121,7 @@ All paths below are relative to the user's home folder (see the path conventions
 | WhatsApp | `workshop-kit/skills/whatsapp-connector/SKILL.md` |
 | Dispatch (phone → desktop) | `workshop-kit/skills/claude-dispatch/SKILL.md` |
 | Shopify | `workshop-kit/skills/shopify-connector/SKILL.md` |
+| GoHighLevel (GHL, HighLevel) | `workshop-kit/skills/ghl-connector/SKILL.md` |
 | Google Cloud (gcloud) | `workshop-kit/skills/gcloud-connector/SKILL.md` |
 | AWS | `workshop-kit/skills/aws-connector/SKILL.md` |
 | Azure | `workshop-kit/skills/azure-connector/SKILL.md` |
