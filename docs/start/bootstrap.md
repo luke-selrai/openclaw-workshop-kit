@@ -61,20 +61,43 @@ folder. Do not create a separate workspace anywhere else.
    Do not copy `SKILLS-LIST.md` — only the folders.
 
 5. When everything is done, print this exact block to me, formatted as shown
-   (separator lines included), with no extra paragraphs after it:
+   (the diagram inside a fenced code block, then the markdown banner below it),
+   with no extra paragraphs after it:
 
-=========================================
- ✅ INSTALL COMPLETE
-=========================================
+Here's what your assistant can now do for you:
 
-DO THIS NEXT:
+```
+                              ┌───────────────────────┐
+                              │      CLAUDE CODE      │
+                              │   your AI assistant   │
+                              └───────────┬───────────┘
+                                          │
+         ┌────────────────────┬───────────┴───────────┬────────────────────┐
+         ▼                    ▼                       ▼                    ▼
+┌─────────────────┐  ┌─────────────────┐     ┌─────────────────┐  ┌─────────────────┐
+│   120 SKILLS    │  │  35 CONNECTORS  │     │     BROWSER     │  │     MEMORY      │
+│                 │  │                 │     │                 │  │                 │
+│ Saves hours on: │  │ Plugs into:     │     │ On the web:     │  │ Learns you:     │
+│                 │  │                 │     │                 │  │                 │
+│ • Writes quotes │  │ • Your email    │     │ • Connects apps │  │ • Your style    │
+│ • Chases leads  │  │ • Your calendar │     │ • Creates ads   │  │ • Your clients  │
+│ • Drafts emails │  │ • Slack/Teams   │     │ • Pulls quotes  │  │ • Your projects │
+│ • Files reports │  │ • Your CRM      │     │ • Fills forms   │  │ • Your team     │
+│ • Cleans data   │  │ • Cloud files   │     │ • Tests apps    │  │ • No repeating  │
+└─────────────────┘  └─────────────────┘     └─────────────────┘  └─────────────────┘
+```
 
-1. Start a NEW Code session in Claude Desktop. You're already inside the "my-assistant" folder, so the new session will use the same folder automatically — you do not need to navigate anywhere.
-2. Type "hi" and press Enter.
+## ✅ Install complete
 
-Your assistant will introduce itself and finish setup from there.
+### Do this next
 
-(The reason for a NEW session: I just wrote your assistant's instructions into this folder, but THIS session was started before that file existed, so it does not see them yet. A fresh session reads them on startup.)
-=========================================
+1. **Start a new Code session** in Claude Desktop
+2. **Type "hi"** and press Enter
+
+Your assistant will introduce itself and walk you through the rest from there.
+
+---
+
+*Why a new session? Your assistant's instructions are now in this folder, but this session started before those instructions existed. A fresh session reads them at startup.*
 
 Talk to me like I am not technical. Plain English, one step at a time.
