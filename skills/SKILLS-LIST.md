@@ -1,4 +1,4 @@
-# Skills Reference — Your <!-- skills-audit:total -->122<!-- /skills-audit:total --> Installed Skills
+# Skills Reference — Your <!-- skills-audit:total -->127<!-- /skills-audit:total --> Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need — Claude picks the right skill automatically.
 
@@ -43,8 +43,13 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `direct-response-copy` | High-converting sales copy using proven frameworks | "Write a direct response sales page" | CORE |
 | `email-composer` | Professional emails for any context | "Write a follow-up email to a client" | CORE |
 | `email-sequence` | Automated email campaigns and sequences | "Build a 5-email welcome sequence" | CORE |
+| `hyperframes` | Programmatic video — HTML compositions render to MP4 with captions, voiceovers, animation | "Make a 30-second product explainer video" | CORE |
+| `hyperframes-cli` | HyperFrames CLI commands: init, preview, render, lint, doctor | "Render my video composition to MP4" | ADVANCED |
+| `hyperframes-media` | Asset prep for HyperFrames — TTS narration, transcription, background removal | "Generate voiceover narration for my video" | ADVANCED |
+| `hyperframes-registry` | Install prebuilt HyperFrames blocks and components | "Add a lower-third caption block to my video" | ADVANCED |
 | `social-content` | Social posts for LinkedIn, Instagram, Facebook | "Write 7 LinkedIn posts for this week" | CORE |
 | `technical-writer` | Developer docs, API references, runbooks | "Document this process step by step" | ADVANCED |
+| `website-to-hyperframes` | Turn any URL into a HyperFrames video (product tour, social ad) | "Make a Facebook ad video from my website" | CORE |
 
 ## Design & UX
 
@@ -154,9 +159,9 @@ See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for
 
 ---
 
-**Total: <!-- skills-audit:total -->122<!-- /skills-audit:total --> skills installed**
-- CORE: <!-- skills-audit:core -->21<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
-- ADVANCED: <!-- skills-audit:advanced -->53<!-- /skills-audit:advanced --> skills (available on request)
+**Total: <!-- skills-audit:total -->127<!-- /skills-audit:total --> skills installed**
+- CORE: <!-- skills-audit:core -->23<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
+- ADVANCED: <!-- skills-audit:advanced -->56<!-- /skills-audit:advanced --> skills (available on request)
 - DEV-ONLY: <!-- skills-audit:dev-only -->8<!-- /skills-audit:dev-only --> skills (for technical integrations — never surfaced in demos)
 
 > Ask your assistant to do anything — it will automatically use the right skill for the job.
