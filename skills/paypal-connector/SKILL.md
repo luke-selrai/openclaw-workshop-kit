@@ -142,7 +142,22 @@ The app details page shows the Client ID inline and a Secret behind a "Show" / "
 
 **Reveal the Secret**: locate the Show / Reveal control next to the Secret field from the snapshot, click it via `browser_click`, re-snapshot.
 
-**Capture Secret** via `browser_evaluate` using the same selector pattern, filtering for a value distinct from the Client ID and matching the Secret format (long alphanumeric string with hyphens/underscores).
+**Capture Secret** via `browser_evaluate` (symmetric to the Client ID block above, biased toward Secret markers, with a Client-ID exclusion filter so the same input/code/textarea selectors don't return the previously-captured Client ID):
+
+```
+() => {
+  // Pass the captured Client ID via template substitution so the closure can exclude it.
+  const clientId = "<CLIENT_ID_FROM_STEP_5_PART_1>";
+  const candidates = [...document.querySelectorAll('input, code, textarea, [data-testid*="secret"], [class*="secret"]')];
+  for (const el of candidates) {
+    const v = (el.value || el.textContent || '').trim();
+    if (v && v !== clientId && v.length > 30 && /^[A-Za-z0-9_-]+$/.test(v)) return v;
+  }
+  return null;
+}
+```
+
+> **Note on the regex.** The `^[A-Za-z0-9_-]+$` validation matches PayPal's documented Client ID + Secret shape. If a future PayPal release ships Secrets with `=` padding or other characters, expand the character class here and at line ~149's validation in tandem.
 
 **Validation (silent):**
 - Both values must be longer than 30 characters
@@ -251,11 +266,11 @@ PayPal access tokens expire after ~9 hours. When a Phase 2 tool call returns `40
 
 ## PHASE 2 — Use Tools
 
-Once the connector is configured, use the `mcp__paypal__*` MCP tools below to answer questions and make changes in PayPal. The `@paypal/mcp` server provides **28 tools** covering invoicing, payments, disputes, tracking, products, subscriptions, and reporting.
+Once the connector is configured, use the `mcp__paypal__*` MCP tools below to answer questions and make changes in PayPal. The `@paypal/mcp` server provides **30 tools** covering invoicing, payments, disputes, tracking, products, subscriptions, and reporting.
 
 ### Tool Reference
 
-The official MCP server exposes tools with the prefix `mcp__paypal__`. All 28 tool names below are **verified against a live `@paypal/mcp` v1.8.0 server instance**.
+The official MCP server exposes tools with the prefix `mcp__paypal__`. All 30 tool names below are **verified against the published `@paypal/mcp` v1.8.1 README under `## Available tools` (re-extracted from npm 2026-05-07)**. v1.8.0 and v1.8.1 expose the same 30-tool set.
 
 #### Invoices (7 tools)
 
@@ -308,20 +323,22 @@ The official MCP server exposes tools with the prefix `mcp__paypal__`. All 28 to
 | `update_product` | Update an existing product | User asks to change a product — **confirm first** |
 | `show_product_details` | Get details of a specific product | User asks about a particular product |
 
-#### Subscription Plans (3 tools)
+#### Subscription Plans (4 tools)
 
 | Tool | Description | Use when |
 |---|---|---|
 | `create_subscription_plan` | Create a new subscription plan | User asks to set up a recurring plan — **confirm first** |
 | `list_subscription_plans` | List existing subscription plans | User asks "show me my subscription plans" |
 | `show_subscription_plan_details` | Get details of a specific plan | User asks about a particular plan |
+| `update_plan` | Update an existing subscription plan | User asks to change pricing/terms on a plan — **confirm first** |
 
-#### Subscriptions (3 tools)
+#### Subscriptions (4 tools)
 
 | Tool | Description | Use when |
 |---|---|---|
 | `create_subscription` | Create a new subscription for a customer | User asks to subscribe someone — **confirm first** |
 | `show_subscription_details` | Get details of a specific subscription | User asks about a particular subscription |
+| `update_subscription` | Update an existing subscription | User asks to change a subscription's quantity/billing — **confirm first** |
 | `cancel_subscription` | Cancel a subscription | User asks to cancel a subscription — **confirm first** |
 
 #### Transactions (1 tool)
@@ -330,7 +347,7 @@ The official MCP server exposes tools with the prefix `mcp__paypal__`. All 28 to
 |---|---|---|
 | `list_transactions` | List recent transactions with optional filters | User asks "show me recent transactions", "what came in this week" |
 
-> **Note:** All 28 tool names verified against a live `@paypal/mcp` v1.8.0 server via `tools/list` MCP call. In Claude Code they appear as `mcp__paypal__<tool_name>` (e.g. `mcp__paypal__list_invoices`, `mcp__paypal__create_refund`).
+> **Note:** All 30 tool names verified against the `@paypal/mcp` v1.8.1 README's `## Available tools` listing (re-extracted from npm 2026-05-07; v1.8.0 and v1.8.1 expose the same set). In Claude Code they appear as `mcp__paypal__<tool_name>` (e.g. `mcp__paypal__list_invoices`, `mcp__paypal__create_refund`).
 
 ---
 
@@ -389,7 +406,7 @@ When a PayPal tool call fails, diagnose and respond in plain English. Never show
 
 ## Scope Limitations
 
-The PayPal MCP connector **can** do (via `@paypal/mcp` — 28 tools verified):
+The PayPal MCP connector **can** do (via `@paypal/mcp` — 30 tools verified):
 - Create, list, get, send, remind, and cancel invoices
 - Generate invoice QR codes for easy payment
 - Create, get, and capture (pay) payment orders
@@ -397,14 +414,13 @@ The PayPal MCP connector **can** do (via `@paypal/mcp` — 28 tools verified):
 - List, get, and accept dispute claims
 - Add and retrieve shipment tracking
 - Create, list, update, and show product catalog items
-- Create, list, and show subscription plans
-- Create, show, and cancel subscriptions
+- Create, list, update, and show subscription plans
+- Create, show, update, and cancel subscriptions
 - List transactions
 
 The PayPal MCP connector **cannot** do:
-- **Update shipment tracking** — only create and retrieve (no update tool in v1.8.0)
-- **Update subscriptions** — only create, show, and cancel (no update tool in v1.8.0)
-- **Retrieve merchant insights** — not available in v1.8.0
+- **Update shipment tracking** — only create and retrieve (no update tool in v1.8.1)
+- **Retrieve merchant insights** — not available in v1.8.1
 - **Withdraw funds** or transfer money between accounts
 - **Access** PayPal Wallet, balance, or bank account details
 - **Send** peer-to-peer payments (PayPal.me / friends and family)
