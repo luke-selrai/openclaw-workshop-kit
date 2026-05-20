@@ -452,12 +452,16 @@ shopify store execute \
   --store <subdomain>.myshopify.com \
   --version 2026-04 \
   --allow-mutations \
-  --query 'mutation { inventoryAdjustQuantities(input: { reason: "correction", name: "available", changes: [{ delta: 10, changeFromQuantity: null, inventoryItemId: "gid://shopify/InventoryItem/<ITEM_ID>", locationId: "gid://shopify/Location/<LOCATION_ID>" }] }) { inventoryAdjustmentGroup { reason changes(first: 5) { edges { node { name delta } } } } userErrors { field message } } }'
+  --query 'mutation { inventoryAdjustQuantities(input: { reason: "correction", name: "available", changes: [{ delta: 10, changeFromQuantity: null, inventoryItemId: "gid://shopify/InventoryItem/<ITEM_ID>", locationId: "gid://shopify/Location/<LOCATION_ID>" }] }) @idempotent(key: "<UUID_V4>") { inventoryAdjustmentGroup { reason changes { name delta } } userErrors { field message } } }'
 ```
 
-> Always confirm inventory adjustments with the user before executing. Get the `inventoryItemId` from a product variant query and `locationId` from the locations query.
+> Always confirm inventory adjustments with the user before executing. Get the `inventoryItemId` from a product variant query and `locationId` from the locations query. Generate a fresh `UUID_V4` for `key` per call (e.g. `uuidgen` on macOS / `python3 -c "import uuid;print(uuid.uuid4())"` cross-platform); reuse the same key only when retrying the *same* logical operation, so the server can dedupe.
+>
+> **`@idempotent(key:)` is required on stores that enforce it.** Shopify Plus stores (and stores with @idempotent enforcement enabled in admin settings) reject the mutation without the directive: `BAD_REQUEST — The @idempotent directive is required for this mutation but was not provided`. The directive's location is `FIELD` (not `MUTATION`) — verified via live `__schema { directives }` introspection on API 2026-04 by [@gianselrai](https://github.com/selrai-company/claude-workshop-kit/issues/218#issuecomment-4394072013) — so it goes after the field's input/argument list, not on the operation. Stores without enforcement accept the directive harmlessly, so the example above is safe to use universally. The directive's own description gives the canonical example: `@idempotent(key: "123e4567-e89b-12d3-a456-426614174000")`. Constraint: `key` is a non-empty string (whitespace-only fails validation).
 >
 > **`changeFromQuantity` must be passed explicitly.** The schema types this field as optional (`Int`), but Shopify's mutation handler requires you to provide a value: pass `null` to skip the compare-and-swap check (only safe when your system is the source of truth), or pass the quantity you expect to find for a CAS-protected adjust. Omitting the field returns `INVALID_FIELD_ARGUMENTS - InventoryChangeInput must include the following argument: changeFromQuantity.` Reference: [Shopify CAS docs](https://shopify.dev/docs/apps/build/orders-fulfillment/inventory-management-apps/manage-quantities-states#compare-and-swap).
+>
+> **`inventoryAdjustmentGroup.changes` is a plain list, not a connection.** Type `[InventoryChange!]!` — so the response shape is `changes { name delta }`, NOT `changes(first: N) { edges { node { ... } } }`. The latter errors with `Field 'edges' doesn't exist on type 'InventoryChange'`.
 >
 > **Valid `reason` values:** `correction`, `cycle_count_available`, `damaged`, `movement_created`, `movement_updated`, `other`, `received`, `reservation_created`, `reservation_deleted`, `reservation_updated`, `restock`, `safety_stock`, `shrinkage`. Any other string returns `userErrors: [{ field: "reason", message: "Invalid reason" }]`. Note: validation runs *after* the schema check, so test plan items must use the modern shape above before `reason` is even reached.
 
