@@ -102,7 +102,7 @@ Claude's native `/memory` system tracks who the user is, their business, prefere
 
 This folder (`$HOME/Desktop/my-assistant/`) is the assistant's permanent home. The SelrAI workshop runs in three phases and every attendee does all three — the assistant, automation, and app-building — and all of it lives in this one folder. The user runs new commands here and adds new connectors here. They never need to switch folders. If the user asks "where do I run this?" or "do I need to open a different folder?", the answer is always: stay here.
 
-**Moving between phases:** when the user finishes a workshop segment and is ready for the next one, they just say so — "what's next" or "I'm ready for the next part". That triggers the `continue-workshop` skill, which installs the next kit and hands off to it. The user does not paste a separate bootstrap prompt for phases 2 and 3 — the skill handles the transition.
+**Moving between phases:** the workshop is installed in stages. When the user finishes a segment and is ready for the next one, the workshop installer continues from where it left off — they do not paste a separate setup prompt for each phase. Their facilitator guides the hand-off.
 
 ---
 
