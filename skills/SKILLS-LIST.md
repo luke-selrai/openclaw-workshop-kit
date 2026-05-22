@@ -1,4 +1,4 @@
-# Skills Reference — Your <!-- skills-audit:total -->173<!-- /skills-audit:total --> Installed Skills
+# Skills Reference — Your <!-- skills-audit:total -->174<!-- /skills-audit:total --> Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need — Claude picks the right skill automatically.
 
@@ -23,6 +23,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `autonomous-agent-patterns` | Design patterns for autonomous coding agents | "What patterns should I use for my agent?" | ADVANCED |
 | `bot-developer` | Discord, Telegram, Slack bots | "Build a Telegram bot for my business" | ADVANCED |
 | `claude-api` | Build apps with the Claude API | "Help me build a Claude-powered app" | ADVANCED |
+| `continue-workshop` | Moves you to the next phase of the workshop — installs the next kit and hands off | "What's next?" | CORE |
 | `mcp-creator` | Production-ready MCP server development | "Create a production MCP server" | ADVANCED |
 | `n8n-mcp-tools-expert` | Expert guide for using n8n MCP tools | "Help me use n8n MCP effectively" | ADVANCED |
 | `n8n-workflow-patterns` | Proven n8n workflow architectural patterns | "Help me build this n8n workflow" | ADVANCED |
@@ -205,8 +206,8 @@ See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for
 
 ---
 
-**Total: <!-- skills-audit:total -->173<!-- /skills-audit:total --> skills installed**
-- CORE: <!-- skills-audit:core -->23<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
+**Total: <!-- skills-audit:total -->174<!-- /skills-audit:total --> skills installed**
+- CORE: <!-- skills-audit:core -->24<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
 - ADVANCED: <!-- skills-audit:advanced -->92<!-- /skills-audit:advanced --> skills (available on request)
 - DEV-ONLY: <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> skills (for technical integrations — never surfaced in demos)
 
