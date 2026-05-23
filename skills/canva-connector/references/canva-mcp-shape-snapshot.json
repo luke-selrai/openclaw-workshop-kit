@@ -1,0 +1,47 @@
+{
+  "_comment": "Captured shape of mcp.canva.com/.well-known/oauth-protected-resource as of 2026-04-30. Paired with the SKILL.md empirical-verification timestamp. If the consent screen scope-count, permission labels, or OAuth metadata fields drift, an outsider can compare a fresh fetch against this snapshot to localise the change without needing a live test harness.",
+  "captured_at": "2026-04-30T10:32:11Z",
+  "captured_against": "https://mcp.canva.com/.well-known/oauth-protected-resource",
+  "captured_by": "selrai-company/claude-workshop-kit Phase 1 install audit",
+  "resource_metadata": {
+    "resource": "https://mcp.canva.com/mcp",
+    "authorization_servers": [
+      "https://mcp.canva.com"
+    ],
+    "scopes_supported": [
+      "design:read",
+      "design:write",
+      "asset:read",
+      "asset:write",
+      "folder:read",
+      "folder:write",
+      "comment:read",
+      "comment:write",
+      "export:read",
+      "ai:generate",
+      "brand_template:read",
+      "brand_template:autofill",
+      "brand_kit:read",
+      "help:read",
+      "editing:transactional"
+    ],
+    "bearer_methods_supported": [
+      "header"
+    ],
+    "resource_documentation": "https://www.canva.dev/docs/connect/oauth/"
+  },
+  "consent_screen_observed": {
+    "permission_count": 15,
+    "permission_labels_truncated": "designs:read, designs:write, assets:read, assets:write, folders:read, folders:write, comments:read, comments:write, exports:read, AI design generation, brand templates:read, brand templates:autofill, brand kits:read, help:read, editing transactions",
+    "consent_screen_url_pattern": "https://www.canva.com/oauth/authorize?...",
+    "callback_pattern": "https://mcp.canva.com/callback?code=...&state=...",
+    "post_redirect_pattern": "http://127.0.0.1:<dynamic-port>/callback?code=..."
+  },
+  "drift_check_recipe": {
+    "step_1": "From any shell with curl: curl -s https://mcp.canva.com/.well-known/oauth-protected-resource | jq '.'",
+    "step_2": "Compare the live response's scopes_supported array against the array above. Any new entry probably means a new tool category landed on the MCP. Any removed entry is the change you should care about because it may indicate a tool has been retired and a SKILL Tool Reference row needs updating.",
+    "step_3": "If the scopes_supported list is byte-identical to this snapshot, no SKILL changes needed. If different, open an issue and update the SKILL.md Phase 2 Tool Reference to match before re-running Phase 1.",
+    "out_of_band_signal": "If Canva ships a new consent screen design (different permission labels or count), the install transcript at examples/canva-export-designs-session.md will be the first place a non-technical user notices because the narration line in Step 4a names the count explicitly. Update both the SKILL and the example together."
+  },
+  "_why_no_automated_script": "An automated drift-check script would belong in tests/ and the canva-connector's parent workshop kit reserves tests/ for the existing kit-wide smoke and verification harness. Drift checking on a third-party SaaS is also rate-limit-aware work; it should run from a human or a scheduled job, not from every PR's CI run. The snapshot here is the durable artifact; the script is left as a one-line curl in the drift_check_recipe above."
+}

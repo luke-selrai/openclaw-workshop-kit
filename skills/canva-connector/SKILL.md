@@ -35,6 +35,12 @@ metadata:
 
 ## Overview
 
+Bundled artifacts in this skill folder (read these to verify the SKILL works end-to-end without a live install):
+
+- [`examples/canva-export-designs-session.md`](examples/canva-export-designs-session.md), full worked transcript: cold start, warm start, Enterprise-allowlist failure branch, token-expiry re-auth branch.
+- [`references/canva-mcp-shape-snapshot.json`](references/canva-mcp-shape-snapshot.json), captured `mcp.canva.com/.well-known/oauth-protected-resource` shape and consent screen detail at the empirical-verification timestamp. Drift-check recipe included.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
 This skill lets you read and update a user's Canva account on their behalf using the **official first-party Canva MCP server** hosted at `https://mcp.canva.com/mcp`. It has two phases:
 
 - **Phase 1 — Install & Auth (autonomous, 6 steps).** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen, auto-detects the callback via `browser_wait_for`, surfaces the Enterprise administrator-approval-required interstitial cleanly when present. The user's only manual moment is signing in to Canva inside the Playwright window. Token storage is handled by Claude Code's MCP runtime — there is no manual `~/.claude.json` token write.
@@ -397,6 +403,29 @@ Rules for editing transactions:
 - **One transaction per design at a time** — don't open a second transaction on the same design before committing or cancelling the first.
 - **Show a thumbnail first** when the user has not seen the current state of the design — it grounds the conversation in what they'll actually be changing.
 
+#### What "transaction in progress" actually means
+
+An open transaction owns the design's edit lock. While a transaction is open:
+
+- Nobody else can save changes to that design, including the user editing the same design directly in canva.com. They will see a "design is being edited by an integration" banner.
+- Operations applied via `perform-editing-operations` are staged on the server; they are not visible in the design until `commit-editing-transaction` runs.
+- Reads (`get-design`, `get-design-pages`, `get-design-thumbnail`) return the pre-transaction state until commit. This is by design.
+- The lock auto-expires after Canva's server-side transaction timeout (a few minutes of inactivity). If it expires mid-edit, the next operation call surfaces a transaction-expired error and the SKILL re-opens a fresh transaction transparently.
+
+If the user backs out mid-edit (says "actually cancel that"), call `cancel-editing-transaction` straight away so the lock releases. Never leave an open transaction dangling at the end of a turn.
+
+#### Partial-failure handling
+
+If `perform-editing-operations` succeeds for some operations but fails for others (Canva applies operations in array order and returns a per-operation result map), do not commit. The SKILL's contract is whole-batch-or-nothing:
+
+1. Surface the failure in plain English. Name which operation failed and why. Do not show raw error JSON.
+2. Call `cancel-editing-transaction` so the partial application rolls back atomically. After cancellation, the design is byte-identical to its pre-transaction state.
+3. Ask the user how they want to proceed: re-attempt the full batch with the failing operation corrected, drop the failing operation and re-attempt the rest, or abandon the edit entirely.
+
+#### Rollback semantics
+
+`cancel-editing-transaction` is an all-or-nothing rollback. Every operation applied within the transaction is discarded. There is no per-operation undo and no partial-commit option. This is why the "confirm before commit" rule matters: once committed, the edit is part of the design's version history and rolling back requires the user to do it from Canva's version-history UI.
+
 ---
 
 ## Prompt-to-Tool Mapping
@@ -425,6 +454,9 @@ Rules for editing transactions:
 | "Fill this brand template with data from my spreadsheet" | `search-brand-templates` → `get-brand-template-dataset` → `autofill-design` — **Enterprise only, confirm per row** |
 | "Change the title on slide 2 to 'Revenue'" | `get-design-thumbnail` → `start-editing-transaction` → `perform-editing-operations` → **confirm** → `commit-editing-transaction` |
 | "Show me a preview of that design" | `get-design-thumbnail` |
+| "Check my brand colours" / "Show me my brand kit" | `list-brand-kits` → `get-brand-kit-palette` |
+| "Show me my brand fonts" | `list-brand-kits` → `get-brand-kit-fonts` |
+| "Show me the Canva help on backgrounds" / "Search the Canva help for X" | `search-help-answers` |
 
 ---
 
