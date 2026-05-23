@@ -8,6 +8,12 @@ date_added: "2026-02-27"
 
 # Agent Memory Skill
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/agent-memory-mcp-session.md`](examples/agent-memory-mcp-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 This skill provides a persistent, searchable memory bank that automatically syncs with project documentation. It runs as an MCP server to allow reading/writing/searching of long-term memories.
 
 ## Prerequisites

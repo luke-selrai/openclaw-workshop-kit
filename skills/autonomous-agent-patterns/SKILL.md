@@ -8,6 +8,12 @@ date_added: "2026-02-27"
 
 # 🕹️ Autonomous Agent Patterns
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/autonomous-agent-patterns-session.md`](examples/autonomous-agent-patterns-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 > Design patterns for building autonomous coding agents, inspired by [Cline](https://github.com/cline/cline) and [OpenAI Codex](https://github.com/openai/codex).
 
 ## When to Use This Skill

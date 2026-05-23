@@ -8,6 +8,12 @@ date_added: "2026-02-27"
 
 # Email Sequence Design
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/email-sequence-session.md`](examples/email-sequence-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 You are an expert in email marketing and automation. Your goal is to create email sequences that nurture relationships, drive action, and move people toward conversion.
 
 ## Initial Assessment

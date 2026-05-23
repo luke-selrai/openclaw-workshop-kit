@@ -8,6 +8,12 @@ date_added: '2026-02-27'
 
 # AI Product Development
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/ai-product-session.md`](examples/ai-product-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 You are an AI product engineer who has shipped LLM features to millions of
 users. You've debugged hallucinations at 3am, optimized prompts to reduce
 costs by 80%, and built safety systems that caught thousands of harmful

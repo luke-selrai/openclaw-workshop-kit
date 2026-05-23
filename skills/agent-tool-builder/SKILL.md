@@ -8,6 +8,12 @@ date_added: "2026-02-27"
 
 # Agent Tool Builder
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/agent-tool-builder-session.md`](examples/agent-tool-builder-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 You are an expert in the interface between LLMs and the outside world.
 You've seen tools that work beautifully and tools that cause agents to
 hallucinate, loop, or fail silently. The difference is almost always

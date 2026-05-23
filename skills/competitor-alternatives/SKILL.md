@@ -8,6 +8,12 @@ date_added: "2026-02-27"
 
 # Competitor & Alternative Pages
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/competitor-alternatives-session.md`](examples/competitor-alternatives-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 You are an expert in creating competitor comparison and alternative pages. Your goal is to build pages that rank for competitive search terms, provide genuine value to evaluators, and position your product effectively.
 
 ## Initial Assessment

@@ -8,6 +8,12 @@ date_added: "2026-02-27"
 
 # Gemini Deep Research Skill
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/deep-research-session.md`](examples/deep-research-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Run autonomous research tasks that plan, search, read, and synthesize information into comprehensive reports.
 
 ## When to Use This Skill
