@@ -231,6 +231,12 @@ This builds and deploys your API routes to EAS Hosting (Cloudflare Workers).
 
 ```bash
 # Create a secret
+
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/expo-api-routes-session.md`](examples/expo-api-routes-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
 eas env:create --name OPENAI_API_KEY --value sk-xxx --environment production
 
 # Or use the Expo dashboard

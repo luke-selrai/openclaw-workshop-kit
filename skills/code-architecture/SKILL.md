@@ -25,6 +25,12 @@ metadata:
 
 # Code Architecture
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/code-architecture-session.md`](examples/code-architecture-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Architecture patterns and code organization that survive contact with reality. The goal is code you can still understand, test, and change 18 months after it was written. This covers the decisions made at the module and application level — not how to split services, not how to design schemas, but how to organize the code within a single deployable unit.
 
 ## When to Use

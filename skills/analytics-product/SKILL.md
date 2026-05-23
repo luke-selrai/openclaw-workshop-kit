@@ -18,6 +18,12 @@ tools:
 
 # ANALYTICS-PRODUCT — Decide With Data
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/analytics-product-session.md`](examples/analytics-product-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 ## Overview
 
 Product analytics skill covering PostHog, Mixpanel, events, funnels, cohorts, retention, north star metric, OKRs, and product dashboards. Use for: event tracking setup, conversion funnel analysis, cohort retention, DAU/MAU, feature flags, A/B testing, north star metrics, OKRs, and product dashboards.

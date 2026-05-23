@@ -5,6 +5,12 @@ description: Track engagement metrics, measure campaign ROI, and analyze content
 
 # Content Analytics
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/apify-content-analytics-session.md`](examples/apify-content-analytics-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Track and analyze content performance using Apify Actors to extract engagement metrics from multiple platforms.
 
 ## Prerequisites

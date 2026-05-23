@@ -5,6 +5,12 @@ description: Analyze competitor strategies, content, pricing, ads, and market po
 
 # Competitor Intelligence
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/apify-competitor-intelligence-session.md`](examples/apify-competitor-intelligence-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Analyze competitors using Apify Actors to extract data from multiple platforms.
 
 ## Prerequisites

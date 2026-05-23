@@ -7,6 +7,12 @@ license: MIT
 
 # Deployment
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/expo-deployment-session.md`](examples/expo-deployment-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 This skill covers deploying Expo applications across all platforms using EAS (Expo Application Services).
 
 ## References

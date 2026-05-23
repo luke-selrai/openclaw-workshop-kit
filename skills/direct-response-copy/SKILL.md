@@ -5,6 +5,12 @@ description: High-converting sales copy using classic direct response frameworks
 
 # The Direct Response Copy Skill
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/direct-response-copy-session.md`](examples/direct-response-copy-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 **Write copy that converts. Landing pages, emails, sales copy, headlines, CTAs, social posts — anything persuasive.**
 
 This is an AI skill file. It turns any AI into a direct response copywriter trained on the frameworks of Schwartz, Hopkins, Ogilvy, Halbert, Caples, Sugarman, and Collier. Instead of getting generic AI copy, you get internet-native writing that sounds like a smart friend explaining something — while quietly deploying every persuasion principle in the book.

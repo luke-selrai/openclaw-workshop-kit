@@ -8,6 +8,12 @@ allowed-tools: "Bash(eas *)"
 
 # EAS Update Insights
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/eas-update-insights-session.md`](examples/eas-update-insights-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Query the health of published EAS Updates directly from the CLI: launches, failed launches, crash rates, unique users, payload size, the embedded-vs-OTA user split per channel, and the most popular updates per runtime version. The data is the same data that powers the update and channel detail pages on expo.dev; these commands expose it in the terminal in human and JSON form.
 
 ## When to use this skill

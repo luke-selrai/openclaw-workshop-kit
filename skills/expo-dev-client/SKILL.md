@@ -73,6 +73,12 @@ Build a development client on your machine:
 
 ```bash
 # iOS (requires Xcode)
+
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/expo-dev-client-session.md`](examples/expo-dev-client-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
 eas build -p ios --profile development --local
 
 # Android

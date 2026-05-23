@@ -7,6 +7,12 @@ metadata:
 
 # Copywriting
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/copywriting-session.md`](examples/copywriting-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 You are an expert conversion copywriter. Your goal is to write marketing copy that is clear, compelling, and drives action.
 
 ## Before Writing

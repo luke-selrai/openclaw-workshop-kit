@@ -8,6 +8,12 @@ metadata:
 
 # Deploy to Vercel
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/deploy-to-vercel-session.md`](examples/deploy-to-vercel-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Deploy any project to Vercel. **Always deploy as preview** (not production) unless the user explicitly asks for production.
 
 The goal is to get the user into the best long-term setup: their project linked to Vercel with git-push deploys. Every method below tries to move the user closer to that state.

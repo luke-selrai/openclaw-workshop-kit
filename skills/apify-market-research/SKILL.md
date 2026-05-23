@@ -5,6 +5,12 @@ description: Analyze market conditions, geographic opportunities, pricing, consu
 
 # Market Research
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/apify-market-research-session.md`](examples/apify-market-research-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Conduct market research using Apify Actors to extract data from multiple platforms.
 
 ## Prerequisites

@@ -21,6 +21,12 @@ metadata:
 
 # Bot Developer
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/bot-developer-session.md`](examples/bot-developer-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Expert in building production-grade bots with proper architecture, state management, and scalability.
 
 ## Quick Start

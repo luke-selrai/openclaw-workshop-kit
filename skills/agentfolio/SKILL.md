@@ -8,6 +8,12 @@ date_added: "2026-02-27"
 
 # AgentFolio
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/agentfolio-session.md`](examples/agentfolio-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 **Role**: Autonomous Agent Discovery Guide
 
 Use this skill when you want to **discover, compare, and research autonomous AI agents** across ecosystems.

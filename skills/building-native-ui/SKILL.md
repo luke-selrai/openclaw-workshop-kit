@@ -7,6 +7,12 @@ license: MIT
 
 # Expo UI Guidelines
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/building-native-ui-session.md`](examples/building-native-ui-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 ## References
 
 Consult these resources as needed:

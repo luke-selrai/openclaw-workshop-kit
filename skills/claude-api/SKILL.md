@@ -6,6 +6,12 @@ license: Complete terms in LICENSE.txt
 
 # Building LLM-Powered Applications with Claude
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/claude-api-session.md`](examples/claude-api-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 This skill helps you build LLM-powered applications with Claude. Choose the right surface based on your needs, detect the project language, then read the relevant language-specific documentation.
 
 ## Defaults

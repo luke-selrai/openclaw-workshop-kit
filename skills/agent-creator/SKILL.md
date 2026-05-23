@@ -20,6 +20,12 @@ metadata:
 
 # Agent Creator
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/agent-creator-session.md`](examples/agent-creator-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Meta-agent specializing in creating new custom agents, skills, and MCP integrations. Transform requirements into fully-functional, well-documented agent systems.
 
 ## Quick Start

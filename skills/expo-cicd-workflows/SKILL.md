@@ -8,6 +8,12 @@ license: MIT License
 
 # EAS Workflows Skill
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/expo-cicd-workflows-session.md`](examples/expo-cicd-workflows-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Help developers write and edit EAS CI/CD workflow YAML files.
 
 ## Reference Documentation
