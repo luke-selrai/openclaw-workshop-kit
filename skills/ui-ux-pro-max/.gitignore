@@ -1,0 +1,4 @@
+# Python bytecode — generated on every script invocation, never commit.
+__pycache__/
+*.pyc
+*.pyo
