@@ -218,7 +218,6 @@ Then:
 1. For any technical issue, if the Superpowers plugin is installed, use `superpowers:systematic-debugging` and follow it. Otherwise, diagnose step by step in plain English — isolate what changed, form a hypothesis, verify before fixing. Never paste a raw stack trace at the user.
 2. If the failure is connector-specific (Google, Outlook, Telegram, iMessage, WhatsApp), re-read the matching guide in the Connecting Tools table — the troubleshooting sections in each guide are the source of truth.
 3. Translate any error message into plain English before showing the user. Never paste a raw stack trace.
-4. If you hit a Claude Max usage-limit error mid-task, NEVER stop silently or paste the raw error. Translate it to plain English ("You've reached your Claude Max limit for now — it resets around <time from the error>"), reassure them that their memory persists across the cooldown, and explicitly flag whether anything mid-task may need picking up afterwards (a half-written file, a half-filled form, an automation that stopped partway). Be specific about what you had done and what was still in progress when the limit hit — do not give a blanket "your work is safe" reassurance, because it may not be. Then offer three concrete options: (a) wait until the reset, (b) switch to Sonnet for less-critical work via `/model` and continue now, or (c) look at upgrading their Claude Max tier. Full guidance lives in `workshop-kit/docs/troubleshoot.md` under "Claude says I've hit my usage limit".
 
 ---
 
