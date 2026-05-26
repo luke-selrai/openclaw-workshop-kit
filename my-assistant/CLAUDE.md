@@ -3,7 +3,7 @@
 
 <!-- Last shrunk 2026-04-08. Target: <200 lines. Cold-path content lives in skills/ and docs/ — do not re-inline it here. -->
 
-<!-- Path conventions: most file paths in this document are relative to the user's home folder. workshop-kit/docs/FOO.md means $HOME/workshop-kit/docs/FOO.md on Mac and Linux, and C:\Users\<username>\workshop-kit\docs\FOO.md on Windows. The kit lives at $HOME/workshop-kit/ on all platforms. The user's WORKSPACE — where this CLAUDE.md sits — lives at $HOME/Desktop/my-assistant/ (the Desktop is universally findable in any file picker). When reading files, resolve paths relative to $HOME (or %USERPROFILE% on Windows) — never hardcode an absolute path or a username. -->
+<!-- Path conventions: most file paths in this document are relative to the user's home folder. workshop-kit/docs/FOO.md means $HOME/workshop-kit/docs/FOO.md on Mac and Linux, and C:\Users\<username>\workshop-kit\docs\FOO.md on Windows. The kit lives at $HOME/workshop-kit/ on all platforms. The user's WORKSPACE — where this CLAUDE.md sits — is whichever folder Claude is currently loaded in. The bootstrap creates it at $HOME/Desktop/my-assistant/ by default (the Desktop is universally findable in any file picker), but the user may have chosen a different name or location — always use the current working folder rather than a hardcoded path. When reading files, resolve paths relative to $HOME (or %USERPROFILE% on Windows) — never hardcode an absolute path or a username. -->
 
 ---
 
@@ -78,7 +78,7 @@ After using Playwright to take a screenshot, describe what you see in plain Engl
 
 ## ⚠️ FIRST MESSAGE PROTOCOL — RUN THIS BEFORE ANY OTHER RESPONSE
 
-Before you reply to ANYTHING the user types — even a one-word "hi" or "hello" — check whether the file `.first-run-pending` exists in this folder (the workspace, which is `$HOME/Desktop/my-assistant/`).
+Before you reply to ANYTHING the user types — even a one-word "hi" or "hello" — check whether the file `.first-run-pending` exists in this folder (the workspace — whichever folder Claude is currently loaded in; usually `$HOME/Desktop/my-assistant/` but may be elsewhere if the user chose a different name or location).
 
 - If `.first-run-pending` EXISTS → you MUST run `first-run-setup` end to end immediately. Do NOT greet generically. Do NOT skip. Do NOT ask the user if they want setup. Read `workshop-kit/skills/first-run-setup/SKILL.md` (in the user's home folder) and follow it from Phase 1 through Phase 4. The skill itself deletes `.first-run-pending` at the end.
 - If `.first-run-pending` does NOT exist → setup is already done. Greet the user by name (memory will have it) and continue normally.
@@ -96,7 +96,7 @@ If the check shows the file exists, immediately read `~/workshop-kit/skills/firs
 
 ## Memory — Start of Every Session
 
-Claude's native `/memory` system tracks who the user is, their business, preferences, and setup state automatically across every conversation. You do not read or write memory files manually — there is no `my-assistant/memory/` folder, no `USER.md`, no `SETUP.md`. Auto-memory handles it all.
+Claude's native `/memory` system tracks who the user is, their business, preferences, and setup state automatically across every conversation. You do not read or write memory files manually — there is no workspace `memory/` folder, no `USER.md`, no `SETUP.md`. Auto-memory handles it all.
 
 - The user's name, business, and other context are already in memory when you start — use them naturally in your responses.
 - When the user shares something new about themselves or their business, Claude's memory captures it automatically. Do not tell them you are "saving it to my notes".
@@ -107,7 +107,7 @@ Claude's native `/memory` system tracks who the user is, their business, prefere
 
 ## Layered Kits — This Folder is Your Assistant's Home
 
-This folder (`$HOME/Desktop/my-assistant/`) is the assistant's permanent home. The SelrAI workshop runs in three phases and every attendee does all three — the assistant, automation, and app-building — and all of it lives in this one folder. The user runs new commands here and adds new connectors here. They never need to switch folders. If the user asks "where do I run this?" or "do I need to open a different folder?", the answer is always: stay here.
+This folder — whichever folder Claude is currently loaded in, typically `$HOME/Desktop/my-assistant/` but possibly renamed or moved by the user — is the assistant's permanent home. The SelrAI workshop runs in three phases and every attendee does all three — the assistant, automation, and app-building — and all of it lives in this one folder. The user runs new commands here and adds new connectors here. They never need to switch folders. If the user asks "where do I run this?" or "do I need to open a different folder?", the answer is always: stay here.
 
 **Moving between phases:** the workshop is installed in stages. When the user finishes a segment and is ready for the next one, the workshop installer continues from where it left off — they do not paste a separate setup prompt for each phase. Their facilitator guides the hand-off.
 
@@ -225,8 +225,8 @@ Then:
 
 Paths use `$HOME` on Mac/Linux (e.g. `/Users/jane/`) and `%USERPROFILE%` on Windows (e.g. `C:\Users\jane\`). Never hardcode a username or absolute path.
 
-- This file (workspace): `Desktop/my-assistant/CLAUDE.md`
-- First-run state file: `Desktop/my-assistant/.first-run-pending` (deleted by first-run-setup when done)
+- This file (workspace): `<workspace>/CLAUDE.md` — typically `Desktop/my-assistant/CLAUDE.md` but may be elsewhere if the user renamed or moved it
+- First-run state file: `<workspace>/.first-run-pending` (deleted by first-run-setup when done)
 - Skills: `.claude/skills/`
 - Kit source: `workshop-kit/`
 - Workshop docs: `workshop-kit/docs/`
