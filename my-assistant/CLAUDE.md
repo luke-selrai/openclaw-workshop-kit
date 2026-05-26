@@ -153,16 +153,18 @@ Each guide is the source of truth. If a guide contradicts something you remember
 
 ---
 
-## ⚠️ Restart Claude Desktop After Installing Any New Tool
+## ⚠️ Restart Claude Desktop After Installing an MCP Server, Plugin, or CLI
 
-Whenever you install a new MCP server, connector, or plugin (`claude mcp add ...`, `claude plugin install ...`, or any other surface that adds tools), the new tools are NOT visible to the current session. Claude Desktop must **fully restart** for them to appear — and the user must do the restart themselves. Closing the chat window keeps the app running in the background.
+Whenever you install a new **MCP server** (`claude mcp add ...`), **plugin** (`claude plugin install ...`), or **CLI binary** that needs to be on PATH (Node, Bun, claude itself, gws, gh, etc.), the new capability is NOT visible to the current session. Claude Desktop must **fully restart** for it to appear — and the user must do the restart themselves. Closing the chat window keeps the app running in the background.
+
+**This rule does NOT apply to skills.** Skills (SKILL.md files under `~/.claude/skills/`) are loaded when a new Code session starts — opening a new session is enough, no app restart needed. Never park the user for a Claude Desktop quit just because you added or copied a skill.
 
 Spell out the restart for the user's operating system every time. Many users genuinely do not know how to fully quit an app — do not assume:
 
 - **Mac:** "Press **Command + Q** to fully quit Claude Desktop. Clicking the red close button on the window just closes the window — the app keeps running. After Cmd+Q, click the Claude Desktop icon in your dock to reopen it."
 - **Windows:** "In the system tray (bottom-right of your screen, near the clock — you may need to click the small up-arrow to see hidden icons), right-click the Claude Desktop icon and choose **Quit Claude Desktop**. Closing the chat window leaves the app running. Then double-click the Claude Desktop shortcut to reopen it."
 
-Ask the user to type **ready** when they're back, then run one smoke call against the new tool before continuing. If the tool is still not visible after the user says ready, the restart was incomplete — give the same platform-specific instructions again, do not loop on calling the missing tool.
+Ask the user to type **ready** when they're back, then run one smoke call against the new capability before continuing. If it is still not visible after the user says ready, the restart was incomplete — give the same platform-specific instructions again, do not loop on the missing call.
 
 ---
 
