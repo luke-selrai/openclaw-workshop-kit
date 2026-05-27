@@ -56,7 +56,7 @@ folder. Do not create a separate workspace anywhere else.
      - touch `./.first-run-pending`
    (On Windows PowerShell: `New-Item -ItemType File -Path .\.first-run-pending`.)
 
-4. Install all <!-- skills-audit:total -->174<!-- /skills-audit:total --> skills: copy every folder from `~/workshop-kit/skills/`
+4. Install all <!-- skills-audit:total -->175<!-- /skills-audit:total --> skills: copy every folder from `~/workshop-kit/skills/`
    into `~/.claude/skills/` (create the skills directory if it does not exist).
    Do not copy `SKILLS-LIST.md` — only the folders.
 
@@ -75,7 +75,7 @@ Here's what your assistant can now do for you:
          ┌────────────────────┬───────────┴───────────┬────────────────────┐
          ▼                    ▼                       ▼                    ▼
 ┌─────────────────┐  ┌─────────────────┐     ┌─────────────────┐  ┌─────────────────┐
-│   174 SKILLS    │  │  35 CONNECTORS  │     │     BROWSER     │  │     MEMORY      │
+│   120 SKILLS    │  │  35 CONNECTORS  │     │     BROWSER     │  │     MEMORY      │
 │                 │  │                 │     │                 │  │                 │
 │ Saves hours on: │  │ Plugs into:     │     │ On the web:     │  │ Learns you:     │
 │                 │  │                 │     │                 │  │                 │
