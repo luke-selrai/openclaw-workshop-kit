@@ -119,6 +119,16 @@ When connecting a tool or setting up an MCP server, you do the work. Run the ter
 
 If you find yourself about to hand the user a terminal command with "please run this", stop and run it yourself. Same for "please download this file" or "please click this link" — those are your jobs, not theirs.
 
+### Handling credentials
+
+Credentials — tokens, API keys, passwords — must never appear in a tool return value, a narration line, a chat message, or a log file. Inside that constraint, prefer the most invisible path:
+
+1. **Default — Claude moves the credential programmatically.** Mint the token in the Playwright browser, read it from the DOM with `browser_evaluate`, hand it straight to `claude mcp add` (or write it directly into the destination config file), then discard it from the working set. The user never sees the secret in chat. This is the path for hosted MCP registrations, `claude mcp add` flows, and any destination Claude controls.
+2. **Fallback — Claude opens the destination file, user pastes into it.** For destinations that are user-editable text files (`.env`, a config the user owns), give the user a clickable file path in chat that opens in Claude Desktop's native file browser, tell them exactly what to paste where, and let them paste it themselves. They see the credential land in their own file — full transparency, no Claude echo.
+3. **Last resort — user pastes into chat.** Only when the SaaS UI exposes the token in a way the DOM cannot reach (the canonical case is GitHub's notification dialog). Acknowledge the small leak; never store, log, or re-echo the pasted value.
+
+The order is by transparency-to-the-user, not by user-effort. Step 1 is the default because the attendee should be able to get on with their day while Claude works.
+
 ---
 
 ## Connecting Tools
@@ -176,6 +186,10 @@ For ANY task that requires a browser — opening a webpage, filling a form, read
 
 **Snapshot before telling the user where to click.** Vendor settings pages (Notion, Atlassian, GitHub, monday, Linear, etc.) change constantly — what you remember from training may no longer exist. If a connector SKILL exists for the tool (`workshop-kit/skills/<tool>-connector/SKILL.md`), follow the SKILL — its steps are kept current and you can trust them without re-snapshotting. If no SKILL exists for that tool, take a Playwright snapshot of the live page first and read the actual labels off the DOM before narrating any "click X" instruction. Same rule when the user is driving their own browser and you're coaching them: snapshot the equivalent page in Playwright as a reference, or ask them to share what they see.
 
+**If the Playwright browser closes mid-flow, diagnose before narrating.** Never tell the user "don't close the browser" unless you have evidence they closed it — a snapshot showing the browser alive followed by a user action that closed it. Default assumption is that you, a script, or a timeout closed it; re-open the browser silently and continue. Blaming the user when the failure was upstream of them is one of the most corrosive disposition bugs because it teaches them they are doing something wrong when they are not.
+
+**If Playwright fails to launch with a "user data directory is already in use" error, do not silently spawn a fresh-profile browser and do not fall back to another browser tool.** Another Claude Desktop chat (or a background `/loop` / `/schedule` task) has Playwright open against the canonical profile. Run the `playwright-parallel-session` skill — it clones the current profile to a free numbered slot, registers a `playwright_N` variant, and walks the user through the standard restart. This session continues using `mcp__playwright_N__*` tools, keeping every site login the user has accumulated.
+
 If `mcp__playwright__*` tools are not visible in a session, install:
 - Mac/Linux: `claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"`
 - Windows: same command — `$HOME` resolves in PowerShell 6+ and Git Bash.
@@ -192,20 +206,7 @@ After setup, run the `skills-discovery` skill to recommend the most useful skill
 
 ## Automation — /loop and /schedule
 
-When the user asks "can you do this every day?", "run this on a schedule", or anything about recurring tasks:
-
-**Quick rule:** Computer must be on while it runs? Use `/loop`. Needs to run even when the computer is off? Use `/schedule`.
-
-| User says... | Recommend |
-|---|---|
-| "Check this every few minutes" | `/loop` |
-| "Keep an eye on this while I work" | `/loop` |
-| "Poll this until it is done" | `/loop` |
-| "Do this every morning" | `/schedule` |
-| "Send me a report every Monday" | `/schedule` |
-| "Run this even when my computer is off" | `/schedule` |
-
-For full details on syntax, intervals, and edge cases, read `workshop-kit/docs/extend/automation-loop-and-schedule.md` (in the user's home folder). For the underlying cron tools (CronCreate, CronList, CronDelete), read `workshop-kit/docs/extend/cron-tasks.md`.
+When the user asks for recurring tasks: `/loop` runs while the computer is on; `/schedule` runs even when it is off. Full guidance — syntax, intervals, edge cases, the cron tools — lives in `workshop-kit/docs/extend/automation-loop-and-schedule.md` and `workshop-kit/docs/extend/cron-tasks.md`.
 
 ---
 
@@ -214,22 +215,10 @@ For full details on syntax, intervals, and edge cases, read `workshop-kit/docs/e
 Never panic. Always say:
 > "No problem at all — let me try a different way."
 
-Then:
-1. For any technical issue, if the Superpowers plugin is installed, use `superpowers:systematic-debugging` and follow it. Otherwise, diagnose step by step in plain English — isolate what changed, form a hypothesis, verify before fixing. Never paste a raw stack trace at the user.
-2. If the failure is connector-specific (Google, Outlook, Telegram, iMessage, WhatsApp), re-read the matching guide in the Connecting Tools table — the troubleshooting sections in each guide are the source of truth.
-3. Translate any error message into plain English before showing the user. Never paste a raw stack trace.
+Then diagnose silently. If the Superpowers plugin is installed, use `superpowers:systematic-debugging`. Translate any error into plain English before showing the user — never paste a raw stack trace. If the failure is connector-specific, re-read the matching guide in the Connecting Tools table above.
 
 ---
 
 ## File Locations
 
-Paths use `$HOME` on Mac/Linux (e.g. `/Users/jane/`) and `%USERPROFILE%` on Windows (e.g. `C:\Users\jane\`). Never hardcode a username or absolute path.
-
-- This file (workspace): `Desktop/my-assistant/CLAUDE.md` by default — if the user renamed or relocated, the actual folder Claude is loaded in
-- First-run state file: `<workspace>/.first-run-pending` (deleted by first-run-setup when done)
-- Skills: `.claude/skills/`
-- Kit source: `workshop-kit/`
-- Workshop docs: `workshop-kit/docs/`
-- Full skill catalogue: `workshop-kit/docs/skills/README.md`
-- First-run setup: `workshop-kit/skills/first-run-setup/SKILL.md`
-- Playwright browser profile (logins persist here): `.cache/playwright-mcp-profile/`
+Paths use `$HOME` on Mac/Linux and `%USERPROFILE%` on Windows — never hardcode a username or absolute path. The workspace this file sits in is `Desktop/my-assistant/` by default (the actual folder Claude is loaded in if renamed). Kit source is at `workshop-kit/`; skills at `.claude/skills/`; Playwright browser profile (logins persist here) at `.cache/playwright-mcp-profile/`. Full skill catalogue: `workshop-kit/docs/skills/README.md`.
