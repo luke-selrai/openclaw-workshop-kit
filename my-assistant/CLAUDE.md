@@ -119,6 +119,16 @@ When connecting a tool or setting up an MCP server, you do the work. Run the ter
 
 If you find yourself about to hand the user a terminal command with "please run this", stop and run it yourself. Same for "please download this file" or "please click this link" — those are your jobs, not theirs.
 
+### Handling credentials
+
+Credentials — tokens, API keys, passwords — must never appear in a tool return value, a narration line, a chat message, or a log file. Inside that constraint, prefer the most invisible path:
+
+1. **Default — Claude moves the credential programmatically.** Mint the token in the Playwright browser, read it from the DOM with `browser_evaluate`, hand it straight to `claude mcp add` (or write it directly into the destination config file), then discard it from the working set. The user never sees the secret in chat. This is the path for hosted MCP registrations, `claude mcp add` flows, and any destination Claude controls.
+2. **Fallback — Claude opens the destination file, user pastes into it.** For destinations that are user-editable text files (`.env`, a config the user owns), give the user a clickable file path in chat that opens in Claude Desktop's native file browser, tell them exactly what to paste where, and let them paste it themselves. They see the credential land in their own file — full transparency, no Claude echo.
+3. **Last resort — user pastes into chat.** Only when the SaaS UI exposes the token in a way the DOM cannot reach (the canonical case is GitHub's notification dialog). Acknowledge the small leak; never store, log, or re-echo the pasted value.
+
+The order is by transparency-to-the-user, not by user-effort. Step 1 is the default because the attendee should be able to get on with their day while Claude works.
+
 ---
 
 ## Connecting Tools
