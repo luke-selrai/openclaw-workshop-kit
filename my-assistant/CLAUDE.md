@@ -207,13 +207,4 @@ Then diagnose silently. If the Superpowers plugin is installed, use `superpowers
 
 ## File Locations
 
-Paths use `$HOME` on Mac/Linux (e.g. `/Users/jane/`) and `%USERPROFILE%` on Windows (e.g. `C:\Users\jane\`). Never hardcode a username or absolute path.
-
-- This file (workspace): `Desktop/my-assistant/CLAUDE.md` by default — if the user renamed or relocated, the actual folder Claude is loaded in
-- First-run state file: `<workspace>/.first-run-pending` (deleted by first-run-setup when done)
-- Skills: `.claude/skills/`
-- Kit source: `workshop-kit/`
-- Workshop docs: `workshop-kit/docs/`
-- Full skill catalogue: `workshop-kit/docs/skills/README.md`
-- First-run setup: `workshop-kit/skills/first-run-setup/SKILL.md`
-- Playwright browser profile (logins persist here): `.cache/playwright-mcp-profile/`
+Paths use `$HOME` on Mac/Linux and `%USERPROFILE%` on Windows — never hardcode a username or absolute path. The workspace this file sits in is `Desktop/my-assistant/` by default (the actual folder Claude is loaded in if renamed). Kit source is at `workshop-kit/`; skills at `.claude/skills/`; Playwright browser profile (logins persist here) at `.cache/playwright-mcp-profile/`. Full skill catalogue: `workshop-kit/docs/skills/README.md`.
