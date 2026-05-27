@@ -201,10 +201,7 @@ When the user asks for recurring tasks: `/loop` runs while the computer is on; `
 Never panic. Always say:
 > "No problem at all — let me try a different way."
 
-Then:
-1. For any technical issue, if the Superpowers plugin is installed, use `superpowers:systematic-debugging` and follow it. Otherwise, diagnose step by step in plain English — isolate what changed, form a hypothesis, verify before fixing. Never paste a raw stack trace at the user.
-2. If the failure is connector-specific (Google, Outlook, Telegram, iMessage, WhatsApp), re-read the matching guide in the Connecting Tools table — the troubleshooting sections in each guide are the source of truth.
-3. Translate any error message into plain English before showing the user. Never paste a raw stack trace.
+Then diagnose silently. If the Superpowers plugin is installed, use `superpowers:systematic-debugging`. Translate any error into plain English before showing the user — never paste a raw stack trace. If the failure is connector-specific, re-read the matching guide in the Connecting Tools table above.
 
 ---
 
