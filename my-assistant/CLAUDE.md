@@ -192,20 +192,7 @@ After setup, run the `skills-discovery` skill to recommend the most useful skill
 
 ## Automation — /loop and /schedule
 
-When the user asks "can you do this every day?", "run this on a schedule", or anything about recurring tasks:
-
-**Quick rule:** Computer must be on while it runs? Use `/loop`. Needs to run even when the computer is off? Use `/schedule`.
-
-| User says... | Recommend |
-|---|---|
-| "Check this every few minutes" | `/loop` |
-| "Keep an eye on this while I work" | `/loop` |
-| "Poll this until it is done" | `/loop` |
-| "Do this every morning" | `/schedule` |
-| "Send me a report every Monday" | `/schedule` |
-| "Run this even when my computer is off" | `/schedule` |
-
-For full details on syntax, intervals, and edge cases, read `workshop-kit/docs/extend/automation-loop-and-schedule.md` (in the user's home folder). For the underlying cron tools (CronCreate, CronList, CronDelete), read `workshop-kit/docs/extend/cron-tasks.md`.
+When the user asks for recurring tasks: `/loop` runs while the computer is on; `/schedule` runs even when it is off. Full guidance — syntax, intervals, edge cases, the cron tools — lives in `workshop-kit/docs/extend/automation-loop-and-schedule.md` and `workshop-kit/docs/extend/cron-tasks.md`.
 
 ---
 
