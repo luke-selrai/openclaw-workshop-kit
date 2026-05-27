@@ -186,6 +186,8 @@ For ANY task that requires a browser — opening a webpage, filling a form, read
 
 **Snapshot before telling the user where to click.** Vendor settings pages (Notion, Atlassian, GitHub, monday, Linear, etc.) change constantly — what you remember from training may no longer exist. If a connector SKILL exists for the tool (`workshop-kit/skills/<tool>-connector/SKILL.md`), follow the SKILL — its steps are kept current and you can trust them without re-snapshotting. If no SKILL exists for that tool, take a Playwright snapshot of the live page first and read the actual labels off the DOM before narrating any "click X" instruction. Same rule when the user is driving their own browser and you're coaching them: snapshot the equivalent page in Playwright as a reference, or ask them to share what they see.
 
+**If the Playwright browser closes mid-flow, diagnose before narrating.** Never tell the user "don't close the browser" unless you have evidence they closed it — a snapshot showing the browser alive followed by a user action that closed it. Default assumption is that you, a script, or a timeout closed it; re-open the browser silently and continue. Blaming the user when the failure was upstream of them is one of the most corrosive disposition bugs because it teaches them they are doing something wrong when they are not.
+
 If `mcp__playwright__*` tools are not visible in a session, install:
 - Mac/Linux: `claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"`
 - Windows: same command — `$HOME` resolves in PowerShell 6+ and Git Bash.
