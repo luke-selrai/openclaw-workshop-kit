@@ -188,6 +188,8 @@ For ANY task that requires a browser — opening a webpage, filling a form, read
 
 **If the Playwright browser closes mid-flow, diagnose before narrating.** Never tell the user "don't close the browser" unless you have evidence they closed it — a snapshot showing the browser alive followed by a user action that closed it. Default assumption is that you, a script, or a timeout closed it; re-open the browser silently and continue. Blaming the user when the failure was upstream of them is one of the most corrosive disposition bugs because it teaches them they are doing something wrong when they are not.
 
+**If Playwright fails to launch with a "user data directory is already in use" error, do not silently spawn a fresh-profile browser and do not fall back to another browser tool.** Another Claude Desktop chat (or a background `/loop` / `/schedule` task) has Playwright open against the canonical profile. Run the `playwright-parallel-session` skill — it clones the current profile to a free numbered slot, registers a `playwright_N` variant, and walks the user through the standard restart. This session continues using `mcp__playwright_N__*` tools, keeping every site login the user has accumulated.
+
 If `mcp__playwright__*` tools are not visible in a session, install:
 - Mac/Linux: `claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"`
 - Windows: same command — `$HOME` resolves in PowerShell 6+ and Git Bash.
