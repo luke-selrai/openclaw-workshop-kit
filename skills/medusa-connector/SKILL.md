@@ -65,6 +65,160 @@ Identical contract to `shopify-connector` and `wordpress-connector`. Summary:
 
 ---
 
+## PHASE A — Bootstrap a new Medusa project (skip if Medusa is already running)
+
+Before anything else, ask the user exactly once:
+
+> *"Do you already have a Medusa store running somewhere — local dev or hosted — or do we need to create one from scratch?"*
+
+Branch:
+
+- **Already running** (local on `:9000`, or hosted somewhere) → skip to **Phase 0**. The rest of this SKILL connects Claude to the existing instance.
+- **Need to create one** → continue with the rest of Phase A. **Use the Medusa CLI, NOT Playwright** — project scaffolding is an npm operation, not a browser flow.
+
+> **Why CLI, not Playwright, for this part.** Steps 1-7 (credential capture from a *running* Medusa admin) are Playwright-driven because that's a browser flow. Project *scaffolding* is `npx create-medusa-app@latest <name>` — it creates a directory of files via npm. There's nothing to drive in a browser. The CLI is the canonical Medusa-blessed path (see https://docs.medusajs.com/learn/installation and https://docs.medusajs.com/resources/medusa-cli).
+
+### Step A.1 — Run `create-medusa-app`
+
+Ask the user for a project name (default: `medusa-store` if they don't have a preference). Validate the shape (letters, digits, hyphens, no spaces):
+
+```bash
+echo "$MEDUSA_PROJECT_NAME" | grep -qE '^[a-z][a-z0-9-]{2,40}$' || echo "INVALID"
+```
+
+Ask where to create it (default: `~/projects/`). Then run:
+
+```bash
+mkdir -p "$HOME/projects"
+cd "$HOME/projects"
+npx create-medusa-app@latest "$MEDUSA_PROJECT_NAME" 2>&1 | tail -30
+```
+
+The scaffolder runs interactively by default — it asks about a starter storefront (default Next.js) and database (default Postgres or SQLite for first-run). Drive the prompts in Bash via `--yes` flags where supported, OR (more reliably for v2's evolving CLI) just stream the output and pass through the user's preferences if they speak up. Default to: **yes** to the Next.js storefront, **yes** to Postgres if available locally, **no** to SQLite (Medusa v2 ships Postgres as the production target).
+
+After scaffolding completes, the project lives at `$HOME/projects/$MEDUSA_PROJECT_NAME/`. Inside:
+
+- `apps/backend/` — the Medusa server
+- `apps/storefront/` — the Next.js storefront (if the user said yes to the starter)
+
+### Step A.2 — Start the dev server + create the admin user
+
+Tell the user *"Starting Medusa locally — this takes about 30 seconds."* Then:
+
+```bash
+cd "$HOME/projects/$MEDUSA_PROJECT_NAME/apps/backend"
+
+# Start the dev server in the background so we can hit the admin from this same session
+nohup npm run dev > /tmp/medusa-dev.log 2>&1 &
+MEDUSA_PID=$!
+echo "medusa-pid=$MEDUSA_PID" > "$HOME/.claude/state/medusa-connector-dev.json"
+
+# Poll for the backend to be ready (Medusa announces "Server is ready on port: 9000")
+for i in {1..60}; do
+  if grep -q "Server is ready" /tmp/medusa-dev.log 2>/dev/null; then
+    break
+  fi
+  sleep 1
+done
+
+# Create the admin user via the CLI (workshop-friendly defaults)
+ADMIN_EMAIL="admin@${MEDUSA_PROJECT_NAME}.local"
+ADMIN_PASSWORD="$(openssl rand -base64 24 | tr -d '/+=' | head -c 20)"
+npx medusa user -e "$ADMIN_EMAIL" -p "$ADMIN_PASSWORD" 2>&1 | tail -5
+
+# Persist the admin creds so the user can log in via Playwright in Step 3
+cat > "$HOME/.claude/state/medusa-connector-bootstrap.json" <<EOF
+{
+  "project_name": "$MEDUSA_PROJECT_NAME",
+  "project_path": "$HOME/projects/$MEDUSA_PROJECT_NAME",
+  "backend_path": "$HOME/projects/$MEDUSA_PROJECT_NAME/apps/backend",
+  "storefront_path": "$HOME/projects/$MEDUSA_PROJECT_NAME/apps/storefront",
+  "dev_pid": $MEDUSA_PID,
+  "admin_email": "$ADMIN_EMAIL",
+  "admin_password": "$ADMIN_PASSWORD",
+  "admin_url": "http://localhost:9000/app",
+  "backend_url": "http://localhost:9000",
+  "bootstrapped_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+chmod 600 "$HOME/.claude/state/medusa-connector-bootstrap.json"
+```
+
+> **Security caveat for the bootstrap credentials**: the generated admin password is stored in `~/.claude/state/medusa-connector-bootstrap.json` (mode 600). It's a *local-dev* password for an instance running on `localhost:9000` — fine for workshop runs. Before promoting the project to a public URL, the user should rotate this password (Settings → Profile → Change Password in the admin UI). Do NOT use this generated password as the production admin password.
+
+### Step A.3 — Hand off to the Phase 1 capture flow (clipboard transit, no password in chat)
+
+The generated admin password MUST NOT be echoed to chat, tool returns, or log lines. Use the same clipboard-transit pattern that `notion-pit-setup` uses for the Notion PIT — copy the password to the OS clipboard, then tell the user to paste it.
+
+```bash
+# Read the password from the state file written in Step A.2; copy to clipboard via the OS-appropriate tool
+ADMIN_PASSWORD=$(jq -r .admin_password "$HOME/.claude/state/medusa-connector-bootstrap.json")
+
+# Linux (Wayland) → wl-copy; macOS → pbcopy; X11 fallback → xclip; Windows → clip.exe
+if command -v wl-copy >/dev/null 2>&1; then
+  printf '%s' "$ADMIN_PASSWORD" | wl-copy
+elif command -v pbcopy >/dev/null 2>&1; then
+  printf '%s' "$ADMIN_PASSWORD" | pbcopy
+elif command -v xclip >/dev/null 2>&1; then
+  printf '%s' "$ADMIN_PASSWORD" | xclip -selection clipboard
+elif command -v clip.exe >/dev/null 2>&1; then
+  printf '%s' "$ADMIN_PASSWORD" | clip.exe
+else
+  echo "NO_CLIPBOARD_TOOL"
+fi
+
+# Wipe the variable from this shell context
+unset ADMIN_PASSWORD
+```
+
+Tell the user, once, exactly:
+
+> *"Your Medusa store is running locally. I've put the admin password on your clipboard. When the browser opens, the email is `admin@<project-name>.local` and you paste the password (Ctrl-V on Linux/Windows, Cmd-V on Mac) into the password field."*
+
+The email `admin@<project-name>.local` is synthetic — fine to display since it carries no secret. The password lives only in `~/.claude/state/medusa-connector-bootstrap.json` (mode 600) and on the user's clipboard until they paste it.
+
+If clipboard transit failed (`NO_CLIPBOARD_TOOL` output above — rare; happens on minimal Linux containers without `wl-copy` / `xclip`), fall back to telling the user *"I generated a password and saved it to `~/.claude/state/medusa-connector-bootstrap.json` — open that file with a text editor and copy the `admin_password` value into the login form. Close the file when you're done."* That's a small leak (the password transits the user's editor + file system) but is the only path when clipboard tooling is missing.
+
+**After the user pastes and logs in successfully** (Playwright detects the URL changed to `/app/orders`), wipe the clipboard so the password doesn't linger:
+
+```bash
+if command -v wl-copy >/dev/null 2>&1; then printf '' | wl-copy
+elif command -v pbcopy >/dev/null 2>&1; then printf '' | pbcopy
+elif command -v xclip >/dev/null 2>&1; then printf '' | xclip -selection clipboard
+elif command -v clip.exe >/dev/null 2>&1; then printf '' | clip.exe
+fi
+```
+
+Set `MEDUSA_BACKEND_URL="http://localhost:9000"` and continue with Phase 0 (resume check, which will be a no-op for a fresh bootstrap), then Step 1 onward. The connector skill flows the same way from Step 2 — the only difference is the user didn't bring their own URL.
+
+### Stopping the local dev server later
+
+`npm run dev` is running in the background as PID stored in `~/.claude/state/medusa-connector-dev.json`. The dev server dies when the laptop sleeps or reboots — to restart it later:
+
+```bash
+cd $(jq -r .backend_path "$HOME/.claude/state/medusa-connector-bootstrap.json")
+nohup npm run dev > /tmp/medusa-dev.log 2>&1 &
+```
+
+To stop it explicitly:
+
+```bash
+kill $(jq -r .dev_pid "$HOME/.claude/state/medusa-connector-dev.json") 2>/dev/null
+```
+
+Workshop participants don't need to do either — the connector skill leaves the server running so Phase 1 can hit it. They can let it die naturally on reboot.
+
+### What about deploying this local instance later?
+
+The user's local Medusa is on `localhost:9000` — fine for development, but it dies when the laptop sleeps and isn't reachable from a hosted storefront. When they're ready to deploy:
+
+- **Self-host path**: Step 9 → 10B will dispatch into `railway-deployment` (workshop default) or another platform skill. The local project's Git repo gets pushed to GitHub, and Railway deploys from there. The local creds in the bootstrap state file get rotated to production keys after the deploy.
+- **Cloud path**: Step 9 → 10A will install the `medusa-cloud` plugin and link the project. Medusa Cloud watches the Git repo and deploys on push.
+
+In both cases, **the local project IS the source of truth** for the backend code — Medusa CLI scaffolded it, the user (and Phase 3 agents) extend it with custom modules, and the deploy is just "push this to where it'll run."
+
+---
+
 ## PHASE 0 — Resume check
 
 If a previous run got partway through, do not start from scratch. Check `~/.claude/medusa-connector.env`:
@@ -510,7 +664,7 @@ The same rotation playbook applies to the Publishable Key, but the consequences 
 
 ## What this SKILL does NOT cover
 
-- **Hosting/deploying a Medusa instance from scratch.** This SKILL assumes the user already has Medusa running somewhere. If they don't, route them to the Phase 3 ecommerce-medusa team — the `deployer` agent there handles standing up Medusa on Railway/Render/Vercel.
+- **Hosting/deploying a Medusa instance to a public URL.** This SKILL handles *local* scaffolding via Phase A (`npx create-medusa-app@latest`) and credentials capture (Steps 1-7), but *promoting* the local instance to a hosted URL happens in Steps 9-10 (dispatch to `railway-deployment`, `aws-connector`, etc., OR Medusa Cloud via the `medusa-cloud` plugin). The Phase 3 ecommerce-medusa team's deployer agent picks up from there.
 - **Stripe wiring.** Medusa needs a payment provider, typically Stripe. After this SKILL lands, run `stripe-connector` to capture Stripe creds, then the Phase 3 backend-builder will wire `medusa-payment-stripe` into the Medusa config.
 - **Migrating from Shopify to Medusa.** Out of scope. Medusa's `medusa-source-shopify` exists for product import but isn't part of this connector.
 - **Multi-store / multi-region beyond a single instance.** This SKILL captures creds for one Medusa instance. If the user runs multiple stores, run the SKILL once per store and the env file will be overwritten — manual `medusa-connector.env` editing is needed for multi-instance setups.
@@ -524,6 +678,8 @@ The same rotation playbook applies to the Publishable Key, but the consequences 
 - [`wordpress-connector/SKILL.md`](../wordpress-connector/SKILL.md) — structurally identical (self-hosted, user-supplied URL, Playwright admin-login)
 - [`stripe-connector/SKILL.md`](../stripe-connector/SKILL.md) — pair with this for the payment side
 - [`../CLAUDE.md`](../CLAUDE.md) — the three install-pattern reference (Medusa is "first-party-stdio" alongside shopify/wordpress)
+- [Medusa CLI reference](https://docs.medusajs.com/resources/medusa-cli) — canonical CLI command docs. Used by Phase A (project scaffolding via `npx create-medusa-app@latest`) and in-project commands (`npx medusa db:migrate`, `npx medusa user`, `npx medusa exec`).
+- [Medusa v2 install guide](https://docs.medusajs.com/learn/installation) — the official "create a new project" walkthrough. Phase A above mirrors this exactly via Bash.
 - [Medusa v2 Admin API docs](https://docs.medusajs.com/api/admin) — full endpoint reference
 - [Medusa v2 Store API docs](https://docs.medusajs.com/api/store) — storefront endpoint reference
 - [Medusa agentic skills overview](https://docs.medusajs.com/learn/introduction/build-with-llms-ai/agentic-skills) — Medusa Labs' official rationale for the four plugins and how they're meant to be used
