@@ -102,7 +102,17 @@ Replace `ACTOR_ID` with the selected Actor (e.g., `apify/google-trends-scraper`)
 
 This returns the Actor description, README, required and optional input parameters, and output fields. Use the schema to build the JSON input for Step 4 — never hard-code params, as Apify Actor schemas drift.
 
-> **Google Trends-specific note.** The `apify/google-trends-scraper` schema expects `searchTerms` (array of strings), `geoLocations` (array of ISO country/region codes — `AU`, `US`, `AU-NSW`, `AU-NSW-Sydney`), and `timeRange` (one of `now 1-d`, `now 7-d`, `today 1-m`, `today 3-m`, `today 12-m`, `today 5-y`, `all`). Multi-term comparison is the killer feature — pass 2-5 related terms in one request and you get the relative-interest comparison Google Trends UI shows.
+> **Google Trends-specific note.** The `apify/google-trends-scraper` schema (verified live via `mcpc fetch-actor-details` on 2026-05-29) expects:
+>
+> - `searchTerms` — array of strings (required if no `spreadsheetId`)
+> - `geo` — **singular string** ISO country code (`AU`, `US`, `GB`, etc.). Defaults to Worldwide. Cannot use sub-region codes like `AU-NSW` here; that level of detail comes back automatically in the dataset for larger countries.
+> - `viewedFrom` — **lowercase** ISO country code for residential proxy origin (`us`, `au`, etc.). Optional; helps avoid Google's anti-scrape if direct requests fail.
+> - `timeRange` — one of: `""` (default, Past 12 months), `now 1-H`, `now 4-H`, `now 1-d`, `now 7-d`, `today 1-m`, `today 3-m`, `today 5-y`, `all`. **`today 12-m` is NOT a valid value** — Google Trends doesn't expose 12-month as a discrete option in their UI either; pass `""` (empty/omit) for the default Past 12 months window.
+> - `customTimeRange` — optional `YYYY-MM-DD YYYY-MM-DD` format. Takes precedence over `timeRange` if both are set.
+>
+> Multi-term comparison is the killer feature — pass 2-5 related terms in one request and you get the relative-interest comparison Google Trends UI shows.
+>
+> **Known reliability issue (verified 2026-05-29):** `apify/google-trends-scraper` runs frequently fail with Puppeteer selector timeouts because Google Trends actively blocks scraping. Symptom: status "Crawled 0/N pages" + log line `Failed to handle embed widget RELATED_QUERIES: TimeoutError: Waiting for selector trends-widget[widget-name*="RELATED_QUERIES"] failed`. This is upstream — not a SKILL bug — and happens to any user including direct Apify Console runs. Workarounds: (a) retry the same input 2-3 times across different residential proxy origins via `viewedFrom`; (b) use a different time range (`today 3-m` had higher success than `today 5-y` in testing); (c) for queries that consistently fail, fall back to the Marketplace + TripAdvisor + Booking Actors which don't have this issue. Apify's status page may flag the Actor as degraded during outages.
 
 ### Step 3: Ask User Preferences
 
