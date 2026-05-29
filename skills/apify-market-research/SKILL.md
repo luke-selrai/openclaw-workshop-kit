@@ -9,7 +9,7 @@ Size markets, validate demand, and quantify regional interest using Apify Actors
 
 ## Why Google Trends is the headline
 
-Among the three sibling `apify-*` skills, this one uniquely covers `apify/google-trends-scraper`, `apify/facebook-marketplace-scraper`, `voyager/booking-scraper`, and `maxcopell/tripadvisor-reviews` — none of which appear in competitor-intelligence or content-analytics. If you can frame the user's question as "what's the demand signal for X across a region or time period", lead with Google Trends first; it's the highest-signal-per-API-call data source for market-validation questions.
+Among the three sibling `apify-*` skills, this one uniquely covers `apify/google-trends-scraper`, `apify/facebook-marketplace-scraper`, and `maxcopell/tripadvisor-reviews` — none of which appear in competitor-intelligence or content-analytics. (`voyager/booking-scraper` is also covered here, but it overlaps with apify-competitor-intelligence — the difference is intent: market-research uses it for destination-demand sizing across a region, competitor-intelligence uses it for benchmarking a specific named hotel.) If you can frame the user's question as "what's the demand signal for X across a region or time period", lead with Google Trends first; it's the highest-signal-per-API-call data source for market-validation questions.
 
 ## Which Apify skill should fire?
 
@@ -66,19 +66,19 @@ Pick the Actor based on the research goal. The first block is the **unique value
 |-----------|----------|----------|
 | Search-interest trends over time / by region | `apify/google-trends-scraper` | Demand signal, regional cuts, multi-term comparison |
 | Marketplace pricing + listing density | `apify/facebook-marketplace-scraper` | Resale prices, second-hand demand, used-product sizing |
-| Hospitality demand + price signal | `voyager/booking-scraper` | Hotel availability, ADR signals by destination |
 | Tourism reputation + visitor sentiment | `maxcopell/tripadvisor-reviews` | Destination viability, attraction popularity |
 
-**Shared with sibling apify-* skills** (use these when the question genuinely needs them; otherwise prefer the unique ones above):
+**Shared with sibling apify-* skills** (use these when the question genuinely needs them; otherwise prefer the unique ones above). Disambiguate by intent: same Actor, different question shape.
 
-| User Need | Actor ID | Best For |
-|-----------|----------|----------|
-| Market density (count of operators in a region) | `compass/crawler-google-places` | "How many gyms / cafes / dentists in this postcode" |
-| Geospatial business mapping | `compass/google-maps-extractor` | Coordinates + categories for clustering |
-| Event market sizing | `apify/facebook-events-scraper` | Event count + attendee proxy for a category |
-| Consumer-need group research | `apify/facebook-groups-scraper` | What people are asking for / complaining about |
-| Hashtag size + reach signal | `apify/instagram-hashtag-stats` | "How big is #pilatesbondi" pre-launch sizing |
-| Hashtag-driven content sampling | `apify/instagram-hashtag-scraper` | What content currently dominates a hashtag |
+| User Need | Actor ID | Best For | Also in |
+|-----------|----------|----------|---------|
+| Hospitality demand + price signal across a destination | `voyager/booking-scraper` | Hotel availability, ADR signals, region-wide demand sizing | apify-competitor-intelligence (named-hotel benchmarking) |
+| Market density (count of operators in a region) | `compass/crawler-google-places` | "How many gyms / cafes / dentists in this postcode" | apify-competitor-intelligence |
+| Geospatial business mapping | `compass/google-maps-extractor` | Coordinates + categories for clustering | apify-competitor-intelligence |
+| Event market sizing | `apify/facebook-events-scraper` | Event count + attendee proxy for a category | apify-competitor-intelligence |
+| Consumer-need group research | `apify/facebook-groups-scraper` | What people are asking for / complaining about | — (genuinely unique here, no sibling overlap) |
+| Hashtag size + reach signal | `apify/instagram-hashtag-stats` | "How big is #pilatesbondi" pre-launch sizing | — (genuinely unique here, no sibling overlap) |
+| Hashtag-driven content sampling | `apify/instagram-hashtag-scraper` | What content currently dominates a hashtag | apify-content-analytics |
 
 > **Note on tightened mappings.** Earlier versions of this skill listed `apify/instagram-reel-scraper` under "Market activity" and `apify/facebook-photos-scraper` under "Cultural insights" — both were stretches. They've been removed; the right home for them is `apify-content-analytics` (if the reels are on the user's own account) or `apify-competitor-intelligence` (if scraping a named brand's reels). Don't reach for them from this skill.
 
