@@ -19,9 +19,9 @@ Implication for our positioning: the "first class free" lane is crowded. We can 
 
 ### 2. Video-first vs static-image creative is split 70/30
 
-33 of 47 ads (~70%) are video, mostly 8-15 second class-room or transformation clips. The 14 static ads concentrate at Coast Strength (10 of their 12 historical static ads); they barely run video.
+33 of 47 active ads (~70%) are video, mostly 8-15 second class-room or transformation clips. The 14 static ads concentrate at **Bondi Body Co** (8 of their 28 ads) and **RisePilates Bondi** (2 of their 15 ads). All 4 of **Coast Strength's** active ads are static — they don't run video at all, which is consistent with their lower volume and a more text-heavy "strength for the over-40s" hook that translates poorly to short-form video.
 
-Implication: workshop attendees who want to enter this competitive set should plan to produce video. The cost ceiling shifts here — they can't ship a still-image-only ad strategy and expect competitive CPMs.
+Implication: workshop attendees who want to enter this competitive set should plan to produce video unless they have a strongly text-driven differentiator like Coast Strength's. The cost ceiling shifts here — a still-image-only ad strategy at scale (Bondi Body Co or RisePilates volume) won't hit competitive CPMs.
 
 ### 3. Ad spend concentrates Thursday–Sunday for class-launch promos
 
