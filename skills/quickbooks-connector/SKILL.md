@@ -23,7 +23,9 @@ metadata:
 
 ## Overview
 
-This skill lets you read and update a user's QuickBooks Online data on their behalf. It is a **thin Bash wrapper around [`voska/qbo-cli`](https://github.com/voska/qbo-cli)** — a single-binary Go CLI with structured JSON output, machine-readable exit codes, and OS-keyring token storage. There is no MCP server, no Node.js layer, and no wrapper code in this repo.
+This skill lets you read and update a user's QuickBooks Online accounting data on their behalf — invoices, customers, the chart of accounts, bank transactions, customer payments, and the Profit & Loss / Balance Sheet reports. Once it is connected, the owner can ask things like *"show me my unpaid invoices"* or *"what's my profit and loss this year?"* in plain English and get answers back, no spreadsheets or logins required.
+
+Under the hood it is a **thin Bash wrapper around [`voska/qbo-cli`](https://github.com/voska/qbo-cli)** — a single-binary Go CLI with structured JSON output, machine-readable exit codes, and OS-keyring token storage. There is no MCP server, no Node.js layer, and no wrapper code in this repo.
 
 The skill has two phases:
 
@@ -397,7 +399,7 @@ echo "QBO_COMPANY_ID=\"${REALM_ID}\"" >> ~/.config/qbo/credentials.env
 
 Tell the user: *"Let me just double-check everything is talking to QuickBooks correctly."*
 
-Silently run two verification commands:
+Silently run two verification commands (also packaged together as [`scripts/smoke.sh`](scripts/smoke.sh), which runs both checks and exits non-zero on any failure — use it to re-confirm the connection later, or in CI):
 
 ```bash
 set -a && source ~/.config/qbo/credentials.env && set +a && qbo auth status 2>&1
@@ -683,6 +685,22 @@ It **requires** at least one Product/Service Item to exist in the company before
 - **Sandbox awareness** — remind the user gently, when relevant, that they are looking at practice data, not real figures. Say "practice company" when referring to the sandbox, not "sandbox".
 - **Token errors (exit 4)** → run Phase 1 from Step 9. Do not ask the user to "run a command" — you run it.
 - **Never log or echo credentials** — Client ID, Client Secret, and token values must never appear in any output visible to the user.
+
+---
+
+## Verification status
+
+Honest record of what has been walked end-to-end versus what is written from snapshot evidence and still needs a live confirmation. After Phase 1, run [`scripts/smoke.sh`](scripts/smoke.sh) to confirm a working connection in one command — it checks the binary, the credentials, authentication, and a live sandbox company read, and exits non-zero on any failure.
+
+| Path | Platform | Status |
+|---|---|---|
+| Full Phase 1 happy path — find existing app → redirect-URI upsert → credential extract → `qbo auth login` under a pty → live verify | Linux (Hyprland / Wayland) | ✅ Verified live 2026-05-29 |
+| Phase 2 read/report commands (invoices, customers, P&L, balance sheet) | Linux | ✅ Exercised against a sandbox company |
+| Phase 1 **create-new-app** path (Step 5b) | any | ⚠️ Written from workspace-UI snapshot evidence; not yet confirmed on a fresh Intuit account |
+| Phase 1 install + auth | macOS | ⚠️ Same shape; not end-to-end tested — flag any `open` / `brew` divergence |
+| Phase 1 `--manual` callback capture (Step 9b) | Windows (Git Bash) | ⚠️ Documented from a manual walkthrough; not extensively tested — flag any `script` / `start` divergence |
+
+When you walk one of the ⚠️ paths successfully, update its status and date here so the record stays honest — this table is the proof-it-works artifact the kit is graded on. The per-step `⚠️` notes in Steps 5b, 9, and 9b are the point-of-use reminders for the same gaps.
 
 ---
 
