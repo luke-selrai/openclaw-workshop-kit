@@ -4,10 +4,10 @@
  *
  * Usage:
  *   # Quick answer (display in chat, no file saved)
- *   node --env-file=.env scripts/run_actor.js --actor ACTOR_ID --input '{}'
+ *   node --env-file=$HOME/.claude/apify.env scripts/run_actor.js --actor ACTOR_ID --input '{}'
  *
  *   # Export to file
- *   node --env-file=.env scripts/run_actor.js --actor ACTOR_ID --input '{}' --output leads.csv --format csv
+ *   node --env-file=$HOME/.claude/apify.env scripts/run_actor.js --actor ACTOR_ID --input '{}' --output leads.csv --format csv
  */
 
 import { parseArgs } from 'node:util';
@@ -62,7 +62,7 @@ function printHelp() {
 Apify Actor Runner - Run Apify actors and export results
 
 Usage:
-  node --env-file=.env scripts/run_actor.js --actor ACTOR_ID --input '{}'
+  node --env-file=$HOME/.claude/apify.env scripts/run_actor.js --actor ACTOR_ID --input '{}'
 
 Options:
   --actor, -a       Actor ID (e.g., compass/crawler-google-places) [required]
@@ -80,12 +80,12 @@ Output Formats:
 
 Examples:
   # Quick answer - display top 5 in chat
-  node --env-file=.env scripts/run_actor.js \\
+  node --env-file=$HOME/.claude/apify.env scripts/run_actor.js \\
     --actor "compass/crawler-google-places" \\
     --input '{"searchStringsArray": ["coffee shops"], "locationQuery": "Seattle, USA"}'
 
   # Export all data to CSV
-  node --env-file=.env scripts/run_actor.js \\
+  node --env-file=$HOME/.claude/apify.env scripts/run_actor.js \\
     --actor "compass/crawler-google-places" \\
     --input '{"searchStringsArray": ["coffee shops"], "locationQuery": "Seattle, USA"}' \\
     --output leads.csv --format csv
@@ -322,9 +322,9 @@ async function main() {
     // Check for APIFY_TOKEN
     const token = process.env.APIFY_TOKEN;
     if (!token) {
-        console.error('Error: APIFY_TOKEN not found in .env file');
+        console.error('Error: APIFY_TOKEN not found in ~/.claude/apify.env');
         console.error('');
-        console.error('Add your token to .env file:');
+        console.error('Add your token to ~/.claude/apify.env (created automatically by the apify-installer skill):');
         console.error('  APIFY_TOKEN=your_token_here');
         console.error('');
         console.error('Get your token: https://console.apify.com/account/integrations');
