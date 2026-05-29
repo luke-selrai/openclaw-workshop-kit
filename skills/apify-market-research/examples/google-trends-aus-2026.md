@@ -1,7 +1,7 @@
 # Google Trends — Example Summary (Australia, 2026)
 
 **Source:** `apify/google-trends-scraper`
-**Query:** `["AI agent", "Claude Code", "ChatGPT plugin"]` across `AU` over `today 12-m`
+**Query:** `searchTerms: ["AI agent", "Claude Code", "ChatGPT plugin"]`, `geo: "AU"`, `timeRange: ""` (omitted to get the default Past 12 months window — `today 12-m` is NOT a valid value per the Actor's enum)
 **Run date:** 2026-05-29
 
 This is what a Step 5 plain-English summary of a Google Trends multi-term run reads like. Workshop attendees should see this shape before running their own, so the "market-validation answer" feels concrete.
