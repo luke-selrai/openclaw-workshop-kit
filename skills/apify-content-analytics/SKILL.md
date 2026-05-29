@@ -21,29 +21,24 @@ The disambiguator is the **possessive**: "my", "our", "this account I own/manage
 
 If the user said "analyse Instagram" with no possessive, ask one clarifying question: *"Are you analysing your own account, a competitor, or the broader market?"*
 
-## Step 0 — Check the install before starting
+## Step 0 — Check the install (dispatches to apify-installer if missing)
 
-Run both checks silently; surface a fix only if one fails.
+This skill consumes a token + a CLI installed by the shared `apify-installer` skill. Check silently; if the token is missing, dispatch to `apify-installer` (autonomous Playwright-driven install + token capture — no terminal interaction for the user). After `apify-installer` completes, the check returns READY on next invocation of this skill.
 
 ```bash
-# (a) Is the APIFY_TOKEN set in the current working dir's .env?
-if [ ! -f .env ] || ! grep -q '^APIFY_TOKEN=' .env 2>/dev/null; then
-  echo "MISSING_TOKEN"
+if [ -f "$HOME/.claude/apify.env" ] && grep -q '^APIFY_TOKEN=apify_api_' "$HOME/.claude/apify.env" 2>/dev/null; then
+  echo "READY"
+else
+  echo "MISSING"
 fi
-
-# (b) Is mcpc installed globally?
-command -v mcpc >/dev/null 2>&1 || echo "MISSING_MCPC"
 ```
 
-If `MISSING_TOKEN`:
-> *"I need your Apify token before I can pull engagement data. Open https://console.apify.com/account/integrations in your browser, click 'Personal API tokens', copy the token, and paste it here — I'll save it in a `.env` file in this folder."*
+If `MISSING`:
+> *"Quick one-off setup — I'll get your Apify account connected. Takes about 90 seconds. You'll click 'Allow' once in a browser window."*
 
-When the user pastes the token, write it to `.env` (mode 600). Never echo the token back.
+Then invoke the `apify-installer` skill. It installs the Apify CLI + MCP client, opens `console.apify.com` in a Playwright browser for the user to sign in once, captures the token, writes `~/.claude/apify.env` mode-600, and runs `apify login` so the native CLI is also authenticated. When it returns success, this skill's check returns `READY` and Step 1 begins. Never ask the user to paste a token here — that's the installer's job and it does it without copy-paste.
 
-If `MISSING_MCPC`:
-> *"I need to install a small Apify helper tool first — this is a one-off, about 30 seconds."* Then run `npm install -g @apify/mcpc` and confirm completion.
-
-Both checks together are the equivalent of the "Phase 0 resume check" the canonical CWK connectors use — see `skills/CLAUDE.md` for the full pattern. Once both pass, proceed to Step 1.
+If `READY`, proceed straight to Step 1.
 
 ## Workflow
 
@@ -51,7 +46,7 @@ Copy this checklist and track progress:
 
 ```
 Task Progress:
-- [ ] Step 0: APIFY_TOKEN + mcpc verified
+- [ ] Step 0: Apify install verified (dispatch to apify-installer if missing)
 - [ ] Step 1: Identify content analytics type (select Actor)
 - [ ] Step 2: Fetch Actor schema via mcpc
 - [ ] Step 3: Ask user preferences (format, filename)
@@ -88,7 +83,7 @@ Select the appropriate Actor based on analytics needs. Each row below assumes th
 Tell the user once: *"Looking up what this Actor needs as input — one quick query to Apify."* Then run:
 
 ```bash
-export $(grep APIFY_TOKEN .env | xargs) && mcpc --json mcp.apify.com --header "Authorization: Bearer $APIFY_TOKEN" tools-call fetch-actor-details actor:="ACTOR_ID" | jq -r ".content"
+export $(grep APIFY_TOKEN $HOME/.claude/apify.env | xargs) && mcpc --json mcp.apify.com --header "Authorization: Bearer $APIFY_TOKEN" tools-call fetch-actor-details actor:="ACTOR_ID" | jq -r ".content"
 ```
 
 Replace `ACTOR_ID` with the selected Actor (e.g., `apify/instagram-post-scraper`).
@@ -110,14 +105,14 @@ Tell the user once: *"Running the analytics pull now — this usually takes betw
 
 **Quick answer (display in chat, no file):**
 ```bash
-node --env-file=.env ${CLAUDE_PLUGIN_ROOT}/reference/scripts/run_actor.js \
+node --env-file=$HOME/.claude/apify.env ${CLAUDE_PLUGIN_ROOT}/reference/scripts/run_actor.js \
   --actor "ACTOR_ID" \
   --input 'JSON_INPUT'
 ```
 
 **CSV:**
 ```bash
-node --env-file=.env ${CLAUDE_PLUGIN_ROOT}/reference/scripts/run_actor.js \
+node --env-file=$HOME/.claude/apify.env ${CLAUDE_PLUGIN_ROOT}/reference/scripts/run_actor.js \
   --actor "ACTOR_ID" \
   --input 'JSON_INPUT' \
   --output YYYY-MM-DD_OUTPUT_FILE.csv \
@@ -126,7 +121,7 @@ node --env-file=.env ${CLAUDE_PLUGIN_ROOT}/reference/scripts/run_actor.js \
 
 **JSON:**
 ```bash
-node --env-file=.env ${CLAUDE_PLUGIN_ROOT}/reference/scripts/run_actor.js \
+node --env-file=$HOME/.claude/apify.env ${CLAUDE_PLUGIN_ROOT}/reference/scripts/run_actor.js \
   --actor "ACTOR_ID" \
   --input 'JSON_INPUT' \
   --output YYYY-MM-DD_OUTPUT_FILE.json \
@@ -154,9 +149,9 @@ Show workshop attendees one of these BEFORE running, so they know what the deliv
 
 ## Error Handling
 
-`APIFY_TOKEN not found` — Caught at Step 0 if the install check runs. If it slipped through (older session, .env in different dir): repeat the Step 0 token prompt.
+`APIFY_TOKEN not found` — `~/.claude/apify.env` is missing or empty. Dispatch to `apify-installer` per Step 0; the installer rewrites the env file from scratch.
 
-`mcpc not found` — Same as above; Step 0 should catch. Otherwise: `npm install -g @apify/mcpc`.
+`mcpc not found` — The CLI install didn't complete. Re-run `apify-installer` from Phase 1; it reinstalls both `apify-cli` and `@apify/mcpc`.
 
 `Actor not found` — Check Actor ID spelling; Apify Actor IDs are case-sensitive and use slashes (e.g. `apify/instagram-post-scraper`, NOT `apify-instagram-post-scraper`).
 
