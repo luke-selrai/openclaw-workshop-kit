@@ -1,7 +1,7 @@
 ---
 name: apify-installer
-description: Autonomously install the Apify CLI + Apify MCP client and capture the user's Personal API token via Playwright. Use this skill when the user says "set up Apify", "install Apify CLI", "connect my Apify account", "I need to use the Apify scraping skills", "apify-competitor-intelligence is asking me for a token", or when any sibling apify-* skill (apify-competitor-intelligence, apify-content-analytics, apify-market-research) detects that `~/.claude/apify.env` is missing and dispatches here. The skill drives the entire setup autonomously: installs `apify-cli` and `@apify/mcpc` via npm, opens `console.apify.com/account/integrations` in a Playwright MCP browser, asks the user to sign in once, navigates to Personal API tokens, creates a new one named "Claude Code agent", reads the token from the DOM, writes `~/.claude/apify.env` (mode 600), writes `~/.apify/auth.json` directly so the native CLI is also authenticated (without `apify login -t` which leaks the token via argv), and smoke-tests via `apify whoami`. The only human moment is signing in to Apify once.
-allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
+description: Autonomously install the Apify CLI + Apify MCP client and authenticate the user's Apify account via the CLI's built-in OAuth-style callback flow. Use this skill when the user says "set up Apify", "install Apify CLI", "connect my Apify account", "I need to use the Apify scraping skills", "apify-competitor-intelligence is asking me for a token", or when any sibling apify-* skill (apify-competitor-intelligence, apify-content-analytics, apify-market-research) detects that `~/.claude/apify.env` is missing and dispatches here. The skill drives the entire setup non-interactively from the user's perspective: installs `apify-cli` and `@apify/mcpc` via npm, runs `apify login --method=console` which opens the user's default browser to Apify Console where they sign up or sign in once, the CLI's local callback server receives the token automatically, the skill reads `~/.apify/auth.json` and writes `~/.claude/apify.env` for the three sibling skills, hardens permissions to mode 600, and smoke-tests via `apify info`. The only human moment is signing in to Apify once in their default browser.
+allowed-tools: Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
   tags:
@@ -10,8 +10,7 @@ metadata:
     - cli
     - mcp-client
     - scraping
-    - token-mint
-    - playwright
+    - oauth-callback
   pairs-with:
     - skill: apify-competitor-intelligence
       reason: Sibling that calls this installer from its Step 0 if `~/.claude/apify.env` is missing
@@ -19,10 +18,6 @@ metadata:
       reason: Same — Step 0 dispatch
     - skill: apify-market-research
       reason: Same — Step 0 dispatch
-    - skill: monday-connector
-      reason: Reference for the Pattern 2 Hosted-bearer-PAT token-mint sub-flow (DOM read of a revealed bearer token), although this skill stores the token in a plain env file rather than `~/.claude.json` because the three downstream Apify skills consume it via `node --env-file`, not via an MCP server entry
-    - skill: airtable-connector
-      reason: Same Pattern 2 reference; uses `airtable.com/create/tokens` deep-link the same way this skill uses `console.apify.com/account/integrations`
 ---
 
 # Apify Installer
@@ -31,30 +26,40 @@ metadata:
 
 This skill captures the user's Apify Personal API token and installs the two npm packages the workshop kit's three Apify skills depend on:
 
-- **`apify-cli`** — the official Apify CLI (https://docs.apify.com/cli/docs/installation). Provides `apify login` + token storage at `~/.apify/auth.json` for any future native CLI work the user wants to do.
+- **`apify-cli`** — the official Apify CLI (https://docs.apify.com/cli/docs/installation). Provides `apify login --method=console` which handles the entire OAuth-style callback authentication flow.
 - **`@apify/mcpc`** — the Apify MCP client. The three apify-* skills use this at runtime to fetch Actor input schemas from `mcp.apify.com`.
 
-Both packages are npm-published and install non-interactively. The only human moment in the entire flow is signing in to `apify.com` once in the Playwright browser. Token capture, CLI install, env-file write, and CLI login are all autonomous.
+Both packages are npm-published and install non-interactively.
 
-> **Why a single installer for three skills.** The three apify-* skills (competitor-intelligence, content-analytics, market-research) all consume the same token and the same CLI. Per the kit's dispatch-architecture pattern (see `feedback_dispatch_architecture` memory), the install logic lives in one skill that the three siblings dispatch to from their Step 0. This matches the medusa-connector → railway-deployment / cloudflare-deployment / deploy-to-vercel pattern.
+**This skill uses `apify login --method=console` as the canonical auth path** — not a Playwright DOM-extraction flow. Apify CLI itself spins up a localhost HTTP server, opens the user's default browser to Apify Console (with a CSRF-protected callback URL), and receives the token via callback after the user signs in. The token never appears on a command line, never transits a Bash variable beyond the file-read step, and never requires Playwright to drive the browser.
+
+## Why this design (replacing the Playwright DOM dance)
+
+Earlier versions of this skill drove `console.apify.com/account/integrations` in Playwright to mint a named token. That worked but:
+
+1. **Apify already has a proper CLI auth flow** (`apify login --method=console`) that handles browser opening + token capture itself. Re-implementing it in Playwright is over-engineering.
+2. **The Playwright approach is fragile** — Apify Console UI redesigns break DOM selectors. The CLI's callback flow is a documented contract Apify maintains.
+3. **The CLI flow uses the user's default browser** which has familiar sign-in state, password manager, etc. Workshop attendees aren't surprised by a new browser window controlled by the skill.
+4. **Token leakage class is structurally eliminated** — the token transits CLI ↔ Apify ↔ localhost callback, never through argv, environment, or chat output.
+
+The previous SKILL's Playwright approach is preserved at git history (PRs #266, #273, #276) for reference. This rewrite is the production design.
 
 ## Communication rules
 
 Standard CWK connector contract:
 
-- **You drive, not them.** Never ask the user to click menus, copy tokens, or paste anything. The only ask is "please sign in to Apify in the window I just opened."
-- **Plain English only.** No jargon — "Apify scraping helper", not "Apify Actor MCP client". No `mcpc`, no `apify-cli`, no `~/.claude/apify.env`, no `bash`, no `npm` in user-facing text.
-- **Narrate at action boundaries.** One sentence when you start, one when you need them, one when you're done. Nothing in between.
+- **You drive, not them.** The only ask is "please sign in to Apify in the browser tab I just opened."
+- **Plain English only.** No `mcpc`, no `apify-cli`, no `~/.claude/apify.env`, no `bash`, no `npm`, no `mode 600` in user-facing text. Say "the Apify helper tools" or "your Apify connection".
+- **Narrate at action boundaries.** One sentence at start, one when you need them, one at done. Nothing in between.
 - **React warmly to outcomes.** "All set — your Apify is ready." Not "POST /v2/users/me 200 OK".
-- **Never echo the captured token.** Once it's written to `~/.claude/apify.env` (mode 600), it should not appear in any subsequent narration, tool-call return, or log line. The user's clipboard is wiped after the Playwright capture too.
+- **Never echo the captured token.** Once it's written to disk (mode 600), it should not appear in any subsequent narration, tool-call return, or log line.
 
 ## Phase 0 — Resume check
 
 ```bash
 if [ -f "$HOME/.claude/apify.env" ] && grep -q '^APIFY_TOKEN=apify_api_' "$HOME/.claude/apify.env" 2>/dev/null; then
   # Already installed. Smoke-test then exit success.
-  source "$HOME/.claude/apify.env"
-  if apify whoami >/dev/null 2>&1; then
+  if apify info >/dev/null 2>&1; then
     echo "READY"
   else
     echo "TOKEN_PRESENT_BUT_INVALID"
@@ -66,15 +71,13 @@ fi
 
 Branch:
 
-- `READY` → tell the user once *"Your Apify is already connected. We're good to go."* Stop. Sibling skill that dispatched here can continue.
-- `TOKEN_PRESENT_BUT_INVALID` → the env file has a token but it's been revoked or expired. Skip Phase 1's npm install (CLI is likely already there), jump to Phase 2's token re-capture, overwrite the env file.
+- `READY` → tell the user *"Your Apify is already connected. We're good to go."* Stop. Sibling skill that dispatched here can continue.
+- `TOKEN_PRESENT_BUT_INVALID` → the env file has a token but `apify info` rejects it (revoked or expired). Skip Phase 1's npm install (CLI is likely already there), jump to Phase 2's re-auth, overwrite the env file.
 - `NOT_INSTALLED` → run Phase 1.
 
 ## Phase 1 — Install both packages autonomously
 
-Tell the user once: *"I'm installing the Apify helper tools — about 30 seconds."* Then proceed silently.
-
-Detect OS, pick the right package manager:
+Tell the user once: *"I'm installing the Apify helper tools — about 15 seconds."* Then proceed silently.
 
 ```bash
 OS=$(uname -s)
@@ -87,212 +90,212 @@ case "$OS" in
 esac
 ```
 
-If `MISSING_NPM`: tell the user *"I need Node.js installed first — that's a separate one-time thing. Want me to open the Node.js installer page in your browser?"* Open https://nodejs.org/en/download in Playwright and stop; the user installs Node then restarts the skill. (Node 22+ is required per the Apify CLI docs.)
+If `MISSING_NPM`: tell the user *"I need Node.js installed first — that's a separate one-time thing. Node 22 or higher is required."* Stop; the user installs Node then restarts the skill. (Node 22+ is required per the Apify CLI docs.)
 
 Otherwise install both packages in one shot:
 
 ```bash
-npm install -g apify-cli @apify/mcpc 2>&1 | tail -10
+npm install -g apify-cli @apify/mcpc 2>&1 | tail -3
 APIFY_CLI_VERSION=$(apify --version 2>&1 | head -1)
 MCPC_VERSION=$(mcpc --version 2>&1 | head -1)
 echo "installed: apify-cli=$APIFY_CLI_VERSION mcpc=$MCPC_VERSION"
 ```
 
-If either `--version` call fails: surface a plain-English error to the user and stop. Most likely cause is a `PATH` issue with the npm global bin — solvable but out of this skill's autonomous scope.
+If either `--version` call fails: surface a plain-English error and stop. Most likely cause is a `PATH` issue with the npm global bin.
 
-## Phase 2 — Open the token mint page in Playwright
+## Phase 2 — Run `apify login --method=console` and let the CLI handle the browser
 
-Playwright MCP install contingency: if `mcp__playwright__*` or `mcp__plugin_playwright_playwright__*` tools are unreachable, install Playwright first per `skills/CLAUDE.md`'s "Playwright MCP install contingency" section.
+Tell the user once:
 
-Open `https://console.apify.com/account/integrations` in Playwright. Take a snapshot.
+> *"Now I'll connect your Apify account. A browser tab will open — sign up to Apify (or sign in if you already have an account) and click Authorize. Takes about 60 seconds."*
 
-> **UI drift caveat.** Apify Console has two known URL shapes: `https://console.apify.com/account/integrations` (current path-routed) and `https://console.apify.com/account#/integrations` (older hash-routed). If the first redirects to login, that's fine — sign-in handling is below. If the page loads but doesn't show a "Personal API tokens" section, try `https://console.apify.com/settings/integrations` as a fallback.
-
-### Sign-in (only if signed out)
-
-Snapshot the page. If a login form is visible (email/password field, "Sign in" button, or a "Continue with Google/GitHub" button cluster), tell the user once:
-
-> *"I've opened your Apify account in a browser. Please sign in — I'll take it from there."*
-
-Poll snapshots every 3 seconds until the URL changes to one of:
-- `console.apify.com/account/integrations` (success — already on the right page)
-- `console.apify.com/dashboard` or similar account-internal page (signed in but redirected; navigate back to `/account/integrations`)
-
-If after 5 minutes there's no sign-in, ask once *"Everything OK on the sign-in?"* and retry.
-
-## Phase 3 — Mint or pull the API token
-
-Snapshot the integrations page. Look for the **"Personal API tokens"** section. The page renders existing tokens (masked) and a **"Create new token"** (or **"+ New token"**) button.
-
-Two paths:
-
-### 3a — Create a fresh token (preferred for clean workshop runs)
-
-Click **"Create new token"**. In the modal:
-
-- **Token name:** `Claude Code agent ($(date -u +%Y-%m-%d))` — workshop-friendly label so the user can recognise it later
-- **Scopes:** if the modal asks for scopes, tick the all-Actor read/write scopes — the three apify-* skills need to run Actors and read their output. If there's a "Full account access" option, prefer that for a workshop run (the user can rotate later).
-- **Expiration:** if there's an expiry field, pick "Never" (Apify's default).
-
-Click **"Create"**. The token reveals once on the resulting screen.
-
-### 3b — Reuse an existing token (only if the user explicitly says so)
-
-If the user said "I already have an Apify token, just plug it in", skip the create flow. Look for an existing token in the list named `Claude Code agent (...)` — click its **eye/reveal** icon to expose the value, then extract from DOM.
-
-This path is rarer; default to 3a.
-
-### Extract the token from the DOM
-
-Apify Personal API tokens start with `apify_api_` followed by 40+ alphanumeric characters. Use `browser_evaluate` on the token input's `.value`:
-
-```javascript
-// Try the most likely selectors in order
-document.querySelector('input[name="apiToken"]')?.value
-  || document.querySelector('[data-testid="api-token-value"]')?.textContent?.trim()
-  || document.querySelector('code.api-token, code.token-value')?.textContent?.trim()
-  || 'NOT_FOUND'
-```
-
-Validate the shape:
+Spawn the login in the background with a 5-minute timeout. The CLI prints a URL to its log, opens the OS default browser, and listens on a random local port for the OAuth callback:
 
 ```bash
-echo "$APIFY_TOKEN" | grep -qE '^apify_api_[A-Za-z0-9]{30,}$' || echo "INVALID_TOKEN_SHAPE"
+# CRITICAL: remove any pre-existing auth.json before starting login.
+# Without this, a stale ~/.apify/auth.json from a previous `apify login`
+# run will be misread by Phase 3 as "this run's token", silently
+# propagating the OLD token to ~/.claude/apify.env. The Phase 2 polling
+# loop below races against the existence of auth.json — it cannot
+# distinguish "fresh-from-this-run" from "left over from last time"
+# without this rm.
+rm -f "$HOME/.apify/auth.json"
+
+nohup timeout 300 apify login --method=console > /tmp/apify-login.log 2>&1 &
+LOGIN_PID=$!
+sleep 2
+
+# Sanity-check the CLI actually printed the login URL
+LOGIN_URL=$(grep -oE 'https://console.apify.com/settings/integrations\?localCliCommand=login[^"]*' /tmp/apify-login.log | head -1)
+if [ -z "$LOGIN_URL" ]; then
+  echo "LOGIN_URL_NOT_PRINTED"
+  # Fall back to telling the user to run `apify login` manually
+fi
 ```
 
-If `INVALID_TOKEN_SHAPE`: the DOM extraction grabbed wrong content. Re-snapshot, look for the visible token (Apify shows it briefly with a copy button), use `browser_evaluate` again. If two attempts fail, surface the error to the user once and stop.
+If `LOGIN_URL` was captured but the OS default browser didn't auto-open (this happens on Wayland sessions without `xdg-open`, or in containers), tell the user the URL and ask them to paste it into their browser:
 
-**Mask immediately.** Never print the token to chat or tool returns. The variable lives in the shell context only until Phase 4 persists it.
+> *"If a browser tab didn't auto-open, paste this into your browser: `$LOGIN_URL`"*
 
-## Phase 4 — Persist the token + run `apify login` to auth the machine + smoke-test
+> **Why we don't use Playwright here.** Apify's CLI manages the browser open + callback receive itself. Driving it from Playwright would just duplicate what the CLI already does, while adding a brittle DOM-selector dependency on Apify Console's UI. The user's default browser is the right tool: familiar UX, persistent state (so re-sign-in is fast), real password manager.
 
-Three operations, all silent from the user's perspective. Per the Apify CLI quick-start (https://docs.apify.com/cli/docs/quick-start), the canonical sequence after install is **install → `apify login` → `apify whoami` verification**. This skill runs that sequence non-interactively using the token captured in Phase 3, so the user never sees a browser prompt for OAuth a second time.
+### Poll for completion
 
-### Step 4a — Write `~/.claude/apify.env` (source of truth for the three sibling skills)
+The CLI writes `~/.apify/auth.json` once the OAuth callback completes. Poll for that file's existence (or the login process exiting, in case of error):
+
+```bash
+for i in {1..60}; do  # 5 minutes max
+  if [ -f "$HOME/.apify/auth.json" ]; then
+    echo "AUTH_FILE_APPEARED"
+    break
+  fi
+  if ! ps -p $LOGIN_PID >/dev/null 2>&1; then
+    echo "LOGIN_EXITED"
+    break
+  fi
+  sleep 5
+done
+```
+
+If `LOGIN_EXITED` without `AUTH_FILE_APPEARED`, read `/tmp/apify-login.log` for the error message. Common cases:
+
+- Browser tab was closed before authorize → user re-runs the skill
+- Network error reaching `mcp.apify.com` callback → check connection
+- User abandoned the flow → no harm, just re-run
+
+## Phase 3 — Harden the auth file and write the env file for the three sibling skills
+
+Once `~/.apify/auth.json` exists, two operations are needed:
+
+### Step 3a — Fix Apify CLI's insecure default file mode
+
+Apify CLI writes `~/.apify/auth.json` at mode **644 (world-readable)** by default — any user on the system can `cat` it and read the token. This is an upstream Apify defect. We harden to mode 600 immediately:
+
+```bash
+chmod 600 "$HOME/.apify/auth.json"
+echo "hardened: $(stat -c '%a' $HOME/.apify/auth.json)"
+```
+
+### Step 3b — Extract token, write `~/.claude/apify.env` for the sibling skills
+
+The sibling skills read the token from `~/.claude/apify.env` via `node --env-file`. Write it now from auth.json's `.token` field (validated by jq), unquoted per the earlier-discovered regex-vs-quote mismatch:
 
 ```bash
 mkdir -p "$HOME/.claude"
 umask 077
-# Write APIFY_TOKEN UNQUOTED — the resume checks in this skill (Phase 0)
-# and in the three sibling skills' Step 0 grep with the regex
-# `^APIFY_TOKEN=apify_api_`, which does NOT match a quoted value
-# (`APIFY_TOKEN="apify_api_..."`). Writing unquoted keeps the regex simple
-# and prevents an infinite re-install loop where the post-install resume
-# check would immediately report MISSING and re-trigger this installer.
-# node --env-file parses unquoted values identically to quoted ones.
-cat > "$HOME/.claude/apify.env" <<EOF
-# Apify Installer — credentials captured $(date -u +%Y-%m-%dT%H:%M:%SZ)
-# Sourced by the three apify-* skills (competitor-intelligence,
-# content-analytics, market-research) via node --env-file.
-# DO NOT commit this file. DO NOT share publicly.
-APIFY_TOKEN=${APIFY_TOKEN}
-EOF
-chmod 600 "$HOME/.claude/apify.env"
-```
 
-### Step 4b — Authenticate the native CLI by writing `~/.apify/auth.json` directly (NOT `apify login -t`)
+# Extract token via jq (never let it touch a printed variable)
+APIFY_TOKEN=$(jq -r '.token' "$HOME/.apify/auth.json")
 
-> **Security rationale — do not use `apify login -t "$APIFY_TOKEN"`.** That invocation puts the token on the command line. On Linux/macOS, `/proc/PID/cmdline` (or `ps aux`) exposes argv to anyone with read access to the process — meaning any user, any monitoring agent, any inadvertent `ps` diagnostic during install can capture the token. Apify's own quick-start docs (https://docs.apify.com/cli/docs/quick-start) demonstrate `apify login --token apify_api_xxxxx` as their canonical pattern, but the workshop's "never echo the token" rule is stricter than Apify's own posture. We bypass the CLI's leak-prone invocation and write `~/.apify/auth.json` directly — the canonical authentication-store location that every subsequent `apify ...` command reads from.
+# Validate shape
+if ! echo "$APIFY_TOKEN" | grep -qE '^apify_api_[A-Za-z0-9]{20,}$'; then
+  echo "TOKEN_SHAPE_INVALID"
+  unset APIFY_TOKEN
+  exit 1
+fi
 
-Schema confirmed from the apify-cli source (`_register-*.js`, `getTokenWithAuthFileFallback`): the CLI only needs `{token: "..."}` to authenticate API calls. Optional user-info fields (`userId`, `username`) get populated by `apify login` after a server round-trip but are not required for the CLI to function.
-
-```bash
-# Equivalent end-state to `apify login -t`, without the argv leak:
-mkdir -p "$HOME/.apify"
-umask 077
-cat > "$HOME/.apify/auth.json" <<EOF
+# Write env file UNQUOTED (must match the regex `^APIFY_TOKEN=apify_api_` in Phase 0 of this skill + Step 0 of the three sibling skills)
 {
-	"token": "${APIFY_TOKEN}"
-}
-EOF
-chmod 600 "$HOME/.apify/auth.json"
+  echo "# Apify Installer — credentials captured $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "# Sourced by the three apify-* skills (competitor-intelligence,"
+  echo "# content-analytics, market-research) via node --env-file."
+  echo "# DO NOT commit. DO NOT share publicly."
+  echo "APIFY_TOKEN=${APIFY_TOKEN}"
+} > "$HOME/.claude/apify.env"
+chmod 600 "$HOME/.claude/apify.env"
+
+unset APIFY_TOKEN  # wipe from shell context
 ```
 
-After this runs successfully, both credential locations are populated:
-- `~/.claude/apify.env` — read by the three sibling skills' Step 2 / Step 4 bash blocks via `node --env-file`
-- `~/.apify/auth.json` — read by the native `apify` CLI for any `apify run`, `apify push`, `apify call` etc. the user runs directly
+Both credential locations are now populated and hardened:
 
-The smoke test in Step 4c (`apify whoami`) verifies the file works end-to-end — it does a server round-trip with the stored token and prints the authenticated user's email + username if and only if the token is valid AND the file was readable.
+- `~/.claude/apify.env` — read by the three sibling skills' Step 2 / Step 4 via `node --env-file`
+- `~/.apify/auth.json` — read by the native `apify` CLI for `apify run`, `apify push`, `apify call`, `apify info`, etc.
 
-### Step 4c — Smoke test with `apify whoami`
+## Phase 4 — Smoke-test
 
 ```bash
-WHOAMI=$(apify whoami 2>&1 | head -3)
-echo "$WHOAMI" | grep -qE 'Email|Username|@' && echo "OK" || echo "SMOKE_FAILED"
-
-# Wipe the variable from this shell context
-unset APIFY_TOKEN
+INFO=$(apify info 2>&1 | head -3)
+echo "$INFO"
+if echo "$INFO" | grep -qE 'username:|userId:'; then
+  echo "OK"
+else
+  echo "SMOKE_FAILED"
+fi
 ```
 
-`apify whoami` is the canonical verification step from the quick-start docs — it prints the authenticated user's email + username if the login worked, or "You are not logged in" if it didn't.
+If `OK`: tell the user once: *"All set — your Apify account is connected. The three Apify skills (competitor research, content analytics, market research) will work without any more setup."*
 
-If `OK`: tell the user once: *"All set — your Apify is now connected. The three Apify skills (competitor research, content analytics, market research) will work without any more setup."*
-
-If `SMOKE_FAILED`: the most common cause is a token that lacks "Run Actors" scope. Tell the user once, then offer to re-run Phase 3 with broader scope ticked.
-
-## Phase 5 — Clean up the Playwright browser
-
-Close the Apify console tab. The persistent profile keeps the user signed in for next time — no logout. Workshop attendees should never re-sign-in to the same SaaS twice.
+If `SMOKE_FAILED`: rare. Most common cause is a token-shape mismatch between `auth.json` and `apify.env`. Re-run from Phase 3b — the cure is a fresh env-file write.
 
 ## Token rotation
 
-If the user later wants to rotate (e.g. a token leaked, or they want one with narrower scope), they re-invoke this skill. Phase 0's resume check sees the existing env file but Phase 3 overwrites the token. They should also revoke the old token manually in `https://console.apify.com/account/integrations` after the rotation completes — this skill does not automate revocation (that's a destructive action requiring explicit user intent).
+If the user later wants to rotate (token leak, scope change, joining a new workspace), they re-invoke this skill. Phase 0's resume check sees the existing env file but the resume-on-`TOKEN_PRESENT_BUT_INVALID` path overwrites it. They should also `apify logout` to clear `~/.apify/auth.json` and revoke the old token in `https://console.apify.com/settings/integrations` after the rotation completes.
 
 ## Troubleshooting
 
-### "Personal API tokens" section is missing from the page
+### "Browser tab didn't open" / "I'm on a headless server"
 
-Apify has redesigned the account UI a few times. If the section isn't where this skill describes, try:
+`apify login --method=console` calls `xdg-open` (Linux) or `open` (macOS) or `start` (Windows) to launch the user's default browser. On Wayland sessions, in containers, or on SSH-only servers, those commands may no-op silently. The fix is to manually paste the URL the CLI printed (visible in `/tmp/apify-login.log`) into any browser that can reach `console.apify.com` AND `localhost:<port>` on the user's machine — typically via SSH local port-forward on the relevant port:
 
-1. `https://console.apify.com/settings/integrations` — newer settings path
-2. Click the user's avatar (top-right) → "Account" → "Integrations" tab
-3. Browser refresh — sometimes the Console JS doesn't fully load on first paint
+```bash
+# On the headless server, find the port the CLI is listening on:
+ss -tlnp | grep mcpc-login || ss -tlnp | grep node
 
-### `apify whoami` returns "You are not logged in"
+# On the user's laptop, SSH-forward that port:
+ssh -L <port>:localhost:<port> user@server
 
-The direct write to `~/.apify/auth.json` in Phase 4b silently failed, OR the token was truncated during DOM extraction. Diagnose in order:
+# Then paste the URL the CLI printed into the laptop browser
+```
 
-1. **Does the file exist and have content?** `cat ~/.apify/auth.json` should print `{"token":"apify_api_..."}`. If the file is empty or missing, Phase 4b's heredoc didn't write — most likely cause is `$APIFY_TOKEN` was empty at the point of the heredoc (Phase 3 capture failed silently). Re-run Phase 3.
-2. **Is the token shape right?** The token inside the JSON should be `apify_api_` + 36 chars. If it's truncated (shorter), Phase 3's DOM extraction grabbed wrong content — re-extract using `browser_evaluate` on the input's `.value` property (NOT `.textContent`, NOT `innerHTML`).
-3. **Does the file have the right mode?** `stat -c '%a' ~/.apify/auth.json` should print `600`. If world-readable (644), the heredoc ran but `chmod 600` didn't — fix manually with `chmod 600 ~/.apify/auth.json`.
+### "I have a token already and want to use it manually"
 
-### Token leaked to chat by accident
-
-If `apify_api_...` appears in any chat output or tool-call return before Phase 4 completes:
-
-1. **Immediately revoke.** Open `https://console.apify.com/account/integrations` and click the leaked token → "Delete" → type `delete my token` in the confirmation dialog → click Delete. The leaked token is invalid instantly. Verify with `curl -H "Authorization: Bearer <leaked>" https://api.apify.com/v2/users/me` returning HTTP 401.
-2. Re-run this skill from Phase 3 with a fresh token.
-3. Save a memory entry noting how the leak happened so future sessions avoid the same path.
+Use `apify login --method=manual` (or `apify login -t <token>` for non-interactive, **but ONLY if you accept the argv-leak risk** — see the security note in the next section). The manual method prompts for a token at the terminal and stores it the same way.
 
 ### Token leaked via `ps aux` / `/proc/PID/cmdline` (argv exposure)
 
-This is the gap that motivated the Phase 4b direct-write approach above. If for any reason the SKILL or a derivative runs `apify login -t "$TOKEN"` (or any CLI that takes the token on argv), the token is visible to:
+`apify login -t "$TOKEN"` puts the token on the command line where any user can `ps aux` and read it. This is why this SKILL uses `--method=console` (callback flow, no argv) instead. If you must use `-t` (e.g. inside a CI pipeline where the token is in a secrets store), wrap it so the token isn't on the same line as the command:
 
-- Any `ps aux | grep apify` during the install
-- Any monitoring agent reading `/proc/*/cmdline` (Datadog, New Relic, security-scanning daemons, etc.)
-- Any unprivileged user on a shared host
+```bash
+# Risky — token on argv:
+apify login -t "$APIFY_TOKEN"
 
-**Detection**: during install, `ps aux 2>&1 | grep -E 'apify.*-t.*apify_api_'` should return zero results. If it returns the login command, the install is leaking — kill the process, revoke the token, and check whether `apify login -t` got reintroduced into the SKILL or any wrapper script.
+# Safer — pipe token via stdin, where /proc/PID/0 isn't world-readable:
+echo "$APIFY_TOKEN" | apify login --method=manual --no-confirm 2>/dev/null
+```
 
-**Prevention** (the canonical fix shipped in this skill): write `~/.apify/auth.json` directly per Phase 4b. The token never appears on a command line, so argv exposure is structurally impossible.
+### `apify info` returns "You are not logged in"
 
-### `mcpc: command not found` after install
+`~/.apify/auth.json` is missing, empty, or has the wrong shape. Diagnose in order:
 
-Node's global-bin directory may not be in `PATH`. Show `npm config get prefix` — the result's `bin/` subdirectory should be in `PATH`. On macOS Homebrew systems, that's typically `/opt/homebrew/bin/`; on Linux it's `/usr/local/bin/` or `~/.nvm/versions/node/v22.x/bin/`. Add to the user's shell rc if needed.
+1. `cat ~/.apify/auth.json` — should print `{"token":"apify_api_...", ...other fields}`. If missing or empty, re-run Phase 2.
+2. `stat -c '%a' ~/.apify/auth.json` — should be `600`. If `644`, Phase 3a's `chmod` didn't run; fix manually.
+3. `jq -r '.token' ~/.apify/auth.json | head -c 14` — should print `apify_api_` + 4 more chars. If shorter, the file is corrupted; `rm ~/.apify/auth.json` and re-run.
+
+### `mcpc` reports "Unknown command: mcp.apify.com"
+
+mcpc 0.3.0+ uses a session-based syntax — `mcpc connect <server> @<session>` first, then `mcpc @<session> tools-call ...`. The three sibling SKILLs' Step 2 documents the current syntax. If you're following older docs that show `mcpc --json mcp.apify.com tools-call ...`, that's the pre-0.3.0 pattern and needs updating.
+
+### Token leaked to chat by accident
+
+If `apify_api_...` appears in any chat output, tool-call return, or screen recording:
+
+1. **Immediately revoke.** Open `https://console.apify.com/settings/integrations`, click the leaked token → Delete → type `delete my token` in the confirmation dialog → click Delete. Confirm dead via `curl -H "Authorization: Bearer <leaked>" https://api.apify.com/v2/users/me` returning HTTP 401.
+2. Re-run this skill from Phase 2 to mint a fresh token.
+3. Save a memory entry noting how the leak happened so future sessions avoid the same path.
 
 ## What this SKILL does NOT cover
 
-- **Apify account creation.** If the user doesn't have an Apify account yet, the sign-in form has a "Create account" link — surface that and let them sign up. After signup, the Console redirects to `/account/integrations` so the rest of this flow works.
-- **Apify subscription plan choice.** Apify has a Free tier (limited credits/month) and paid tiers. Most workshop work fits in the Free tier; if the user later hits Actor-run limits, that's an upgrade conversation, not a setup issue.
-- **Per-Actor authentication.** Some Actors require additional auth (e.g. a Facebook login cookie). Those are captured at run-time by the relevant sibling apify-* skill, not by this installer.
+- **Apify account creation specifically.** `apify login --method=console` shows Apify Console's signup page if the user isn't signed in, so signup happens naturally in-flow — but this skill doesn't pre-fill name/email/etc. The user types those themselves.
+- **Apify plan upgrade.** Most workshop work fits in the Free plan ($5/mo usage credits, ~1250 Google Maps places, generous proxy budget). If the user hits Actor-run limits, that's an upgrade conversation, not a setup issue.
+- **Per-Actor authentication.** Some Actors require additional auth (e.g. a Facebook login cookie). Those are captured at run-time by the relevant sibling apify-* skill.
 
 ## See also
 
 - [`apify-competitor-intelligence/SKILL.md`](../apify-competitor-intelligence/SKILL.md) — sibling that dispatches here
 - [`apify-content-analytics/SKILL.md`](../apify-content-analytics/SKILL.md) — sibling that dispatches here
 - [`apify-market-research/SKILL.md`](../apify-market-research/SKILL.md) — sibling that dispatches here
-- [Apify CLI install docs](https://docs.apify.com/cli/docs/installation) — canonical source for the install command (`npm install -g apify-cli`, Node 22+)
-- [Apify CLI quick-start](https://docs.apify.com/cli/docs/quick-start) — canonical post-install sequence (install → `apify login` → `apify whoami` verification); this skill mirrors that sequence non-interactively
-- [Apify CLI reference](https://docs.apify.com/cli/docs/reference) — `apify login -t <token>`, `apify whoami`, etc., with the exact flag shapes
-- [`skills/CLAUDE.md`](../CLAUDE.md) — the three connector patterns (this skill is Pattern 2 / Hosted-bearer-PAT shape)
-- [`feedback_dispatch_architecture` memory] — why one installer + three dispatching siblings is the right shape
+- [Apify CLI install docs](https://docs.apify.com/cli/docs/installation) — canonical install commands (`npm install -g apify-cli`, Node 22+)
+- [Apify CLI quick-start](https://docs.apify.com/cli/docs/quick-start) — canonical post-install sequence; `apify login --method=console` is the recommended method-choice
+- [Apify CLI reference](https://docs.apify.com/cli/docs/reference) — full command list (`apify info` is the auth-verify command; `apify whoami` does NOT exist in v1.6.1 despite older docs hinting at it)
+- [`skills/CLAUDE.md`](../CLAUDE.md) — three connector patterns; this skill is "first-party stdio / out-of-pattern" — relies on Apify's own CLI's callback flow rather than the kit's three documented connector patterns
