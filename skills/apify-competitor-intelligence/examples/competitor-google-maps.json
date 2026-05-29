@@ -1,0 +1,75 @@
+{
+  "_meta": {
+    "actor": "compass/crawler-google-places",
+    "query": "boutique fitness studios Bondi NSW",
+    "runDate": "2026-05-29",
+    "resultCount": 4,
+    "note": "Example output bundled with apify-competitor-intelligence. Real Actor runs return 20+ fields per business; this trimmed sample shows the columns most workshop attendees use first (name, rating, reviews, address, categories, contact)."
+  },
+  "results": [
+    {
+      "title": "Bondi Body Co",
+      "categoryName": "Boutique fitness studio",
+      "address": "12 Hall St, Bondi Beach NSW 2026, Australia",
+      "phone": "+61 2 9300 4221",
+      "website": "https://bondibodyco.com.au",
+      "totalScore": 4.8,
+      "reviewsCount": 412,
+      "imagesCount": 87,
+      "location": { "lat": -33.8915, "lng": 151.2767 },
+      "openingHours": [
+        { "day": "Monday", "hours": "5:30 AM-8:00 PM" },
+        { "day": "Saturday", "hours": "6:00 AM-2:00 PM" }
+      ],
+      "priceLevel": "$$"
+    },
+    {
+      "title": "RisePilates Bondi",
+      "categoryName": "Pilates studio",
+      "address": "203 Curlewis St, Bondi NSW 2026, Australia",
+      "phone": "+61 2 9300 8855",
+      "website": "https://risepilates.com.au",
+      "totalScore": 4.9,
+      "reviewsCount": 287,
+      "imagesCount": 64,
+      "location": { "lat": -33.8893, "lng": 151.2715 },
+      "openingHours": [
+        { "day": "Monday", "hours": "6:00 AM-9:00 PM" },
+        { "day": "Saturday", "hours": "7:00 AM-3:00 PM" }
+      ],
+      "priceLevel": "$$$"
+    },
+    {
+      "title": "Coast Strength Bondi",
+      "categoryName": "Gym",
+      "address": "1/96 Bondi Rd, Bondi NSW 2026, Australia",
+      "phone": "+61 2 8068 3344",
+      "website": "https://coaststrength.com",
+      "totalScore": 4.6,
+      "reviewsCount": 189,
+      "imagesCount": 42,
+      "location": { "lat": -33.8932, "lng": 151.2643 },
+      "openingHours": [
+        { "day": "Monday", "hours": "5:00 AM-9:00 PM" },
+        { "day": "Saturday", "hours": "7:00 AM-4:00 PM" }
+      ],
+      "priceLevel": "$$"
+    },
+    {
+      "title": "Bondi Yoga House",
+      "categoryName": "Yoga studio",
+      "address": "Shop 3, 38-40 Hall St, Bondi Beach NSW 2026, Australia",
+      "phone": "+61 2 9365 4477",
+      "website": "https://bondiyogahouse.com",
+      "totalScore": 4.7,
+      "reviewsCount": 156,
+      "imagesCount": 31,
+      "location": { "lat": -33.8917, "lng": 151.2763 },
+      "openingHours": [
+        { "day": "Monday", "hours": "6:30 AM-8:30 PM" },
+        { "day": "Saturday", "hours": "7:30 AM-1:00 PM" }
+      ],
+      "priceLevel": "$$"
+    }
+  ]
+}

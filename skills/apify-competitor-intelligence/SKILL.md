@@ -1,18 +1,47 @@
 ---
 name: apify-competitor-intelligence
-description: Analyze competitor strategies, content, pricing, ads, and market positioning across Google Maps, Booking.com, Facebook, Instagram, YouTube, and TikTok.
+description: Pull competitor data via Apify Actors — Google Maps locations and reviews, Booking.com hotel benchmarking, Facebook Pages and Ads Library, Instagram profiles and reels, YouTube channels, TikTok creators. Use this skill when the user says "competitor analysis", "who are my competitors", "scrape Facebook ads", "compare hotels on Booking", "analyse competitor Instagram", "benchmark Google Maps reviews", "find competitor emails", or asks to compare a named brand to its rivals on any of these platforms. For analytics on the user's OWN accounts use apify-content-analytics. For market sizing/demand research (Google Trends, Marketplace pricing) use apify-market-research.
 ---
 
 # Competitor Intelligence
 
-Analyze competitors using Apify Actors to extract data from multiple platforms.
+Pull competitor data from Google Maps, Booking.com, Facebook, Instagram, YouTube, and TikTok via Apify Actors.
 
-## Prerequisites
-(No need to check it upfront)
+## Which Apify skill should fire?
 
-- `.env` file with `APIFY_TOKEN`
-- Node.js 20.6+ (for native `--env-file` support)
-- `mcpc` CLI tool: `npm install -g @apify/mcpc`
+Three apify-* skills share the run-Actor runtime but route by **whose data the user wants**. Before continuing, sanity-check the intent:
+
+| User says… | Right skill |
+|---|---|
+| "compare competitor X to Y", "who are my rivals", "scrape competitor ads", "benchmark competitor reviews" | **apify-competitor-intelligence** (this one) |
+| "how is MY Instagram performing", "audit MY Facebook page", "MY top reels this month", "track MY follower growth" | apify-content-analytics |
+| "how big is the market for X", "Google Trends for Y", "validate a product launch", "hashtag size for #foo" | apify-market-research |
+
+If the user said "analyse Instagram" with no possessive, ask one clarifying question: *"Are you analysing competitors, your own account, or the broader market?"*
+
+## Step 0 — Check the install before starting
+
+Both checks below are cheap and run silently. If either fails, surface the fix to the user once in plain English (no terminal jargon) before any Actor work.
+
+```bash
+# (a) Is the APIFY_TOKEN set in the current working dir's .env?
+if [ ! -f .env ] || ! grep -q '^APIFY_TOKEN=' .env 2>/dev/null; then
+  echo "MISSING_TOKEN"
+fi
+
+# (b) Is mcpc installed globally?
+command -v mcpc >/dev/null 2>&1 || echo "MISSING_MCPC"
+```
+
+If `MISSING_TOKEN`:
+> *"I need your Apify token before I can pull competitor data. Open https://console.apify.com/account/integrations in your browser, click 'Personal API tokens', copy the token, and paste it here — I'll save it in a `.env` file in this folder."*
+
+When the user pastes the token, write it to `.env` (mode 600). Never echo the token back.
+
+If `MISSING_MCPC`:
+> *"I need to install a small Apify helper tool first — this is a one-off, about 30 seconds."* Then run `npm install -g @apify/mcpc` and confirm completion.
+
+Both checks together are the equivalent of the "Phase 0 resume check" the canonical CWK connectors use — see `skills/CLAUDE.md` for the full pattern. Once both pass, proceed to Step 1.
 
 ## Workflow
 
@@ -20,6 +49,7 @@ Copy this checklist and track progress:
 
 ```
 Task Progress:
+- [ ] Step 0: APIFY_TOKEN + mcpc verified
 - [ ] Step 1: Identify competitor analysis type (select Actor)
 - [ ] Step 2: Fetch Actor schema via mcpc
 - [ ] Step 3: Ask user preferences (format, filename)
@@ -64,7 +94,7 @@ Select the appropriate Actor based on analysis needs:
 
 ### Step 2: Fetch Actor Schema
 
-Fetch the Actor's input schema and details dynamically using mcpc:
+Tell the user once: *"Looking up what this Actor needs as input — one quick query to Apify."* Then run:
 
 ```bash
 export $(grep APIFY_TOKEN .env | xargs) && mcpc --json mcp.apify.com --header "Authorization: Bearer $APIFY_TOKEN" tools-call fetch-actor-details actor:="ACTOR_ID" | jq -r ".content"
@@ -72,21 +102,20 @@ export $(grep APIFY_TOKEN .env | xargs) && mcpc --json mcp.apify.com --header "A
 
 Replace `ACTOR_ID` with the selected Actor (e.g., `compass/crawler-google-places`).
 
-This returns:
-- Actor description and README
-- Required and optional input parameters
-- Output fields (if available)
+This returns the Actor description, README, required and optional input parameters, and output fields. Use the schema to build the JSON input for Step 4 — never hard-code params, as Apify Actor schemas drift.
 
 ### Step 3: Ask User Preferences
 
 Before running, ask:
 1. **Output format**:
-   - **Quick answer** - Display top few results in chat (no file saved)
-   - **CSV** - Full export with all fields
-   - **JSON** - Full export in JSON format
-2. **Number of results**: Based on character of use case
+   - **Quick answer** — display top few results in chat (no file saved). Good for "show me the 3 closest competitors" exploratory queries.
+   - **CSV** — full export with all fields. Good for handing the data to a spreadsheet for further analysis.
+   - **JSON** — full export in JSON format. Good when feeding the data into another agent or script.
+2. **Number of results**: pick a sensible default based on the user's question — 10 for "give me a list", 50 for benchmarking, 100+ for a full audit.
 
 ### Step 4: Run the Script
+
+Tell the user once: *"Running the analysis now — this usually takes between 30 seconds and 3 minutes depending on how much data the Actor pulls."* Then run the appropriate variant:
 
 **Quick answer (display in chat, no file):**
 ```bash
@@ -115,17 +144,31 @@ node --env-file=.env ${CLAUDE_PLUGIN_ROOT}/reference/scripts/run_actor.js \
 
 ### Step 5: Summarize Findings
 
-After completion, report:
+After completion, report in plain English (not raw JSON):
 - Number of competitors analyzed
-- File location and name
-- Key competitive insights
-- Suggested next steps (deeper analysis, benchmarking)
+- File location and name (if saved)
+- Key competitive insights — top 3-5 observations a human would care about (review-score gaps, ad-creative themes, follower-count outliers, geographic clusters)
+- Suggested next steps — *"Want me to drill into the top 3 by review count?"* / *"Want me to compare ad creative themes across these competitors?"*
 
+Reference deliverables are bundled at `examples/` (see Examples section below) — match that shape when the user asks for a written summary.
+
+## Examples
+
+Two reference deliverables live in `examples/`:
+
+- **`examples/competitor-google-maps.json`** — what a `compass/crawler-google-places` run looks like, structured for spreadsheet import.
+- **`examples/facebook-ads-summary.md`** — what a Step 5 narrative summary of a `apify/facebook-ads-scraper` run reads like, with the three-observation shape.
+
+Show workshop attendees one of these BEFORE running, so they know what the deliverable looks like.
 
 ## Error Handling
 
-`APIFY_TOKEN not found` - Ask user to create `.env` with `APIFY_TOKEN=your_token`
-`mcpc not found` - Ask user to install `npm install -g @apify/mcpc`
-`Actor not found` - Check Actor ID spelling
-`Run FAILED` - Ask user to check Apify console link in error output
-`Timeout` - Reduce input size or increase `--timeout`
+`APIFY_TOKEN not found` — Caught at Step 0 if the install check runs. If it slipped through (older session, .env in different dir): repeat the Step 0 token prompt.
+
+`mcpc not found` — Same as above; Step 0 should catch. Otherwise: `npm install -g @apify/mcpc`.
+
+`Actor not found` — Check Actor ID spelling; Apify Actor IDs are case-sensitive and use slashes (e.g. `apify/facebook-ads-scraper`, NOT `apify-facebook-ads-scraper`).
+
+`Run FAILED` — Open the Apify console link in the error output; the run logs explain whether it was a rate limit, a paywalled Actor on the user's plan, or a broken Actor (rare).
+
+`Timeout` — Reduce input size, narrow geographic scope, or increase `--timeout`. Some Actors (especially `compass/Google-Maps-Reviews-Scraper`) are slow per result; budget realistically.
