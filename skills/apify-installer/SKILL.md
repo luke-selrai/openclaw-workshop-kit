@@ -1,7 +1,7 @@
 ---
 name: apify-installer
-description: Autonomously install the Apify CLI + Apify MCP client and authenticate the user's Apify account via the CLI's built-in OAuth-style callback flow. Use this skill when the user says "set up Apify", "install Apify CLI", "connect my Apify account", "I need to use the Apify scraping skills", "apify-competitor-intelligence is asking me for a token", or when any sibling apify-* skill (apify-competitor-intelligence, apify-content-analytics, apify-market-research) detects that `~/.claude/apify.env` is missing and dispatches here. The skill drives the entire setup non-interactively from the user's perspective: installs `apify-cli` and `@apify/mcpc` via npm, runs `apify login --method=console` which opens the user's default browser to Apify Console where they sign up or sign in once, the CLI's local callback server receives the token automatically, the skill reads `~/.apify/auth.json` and writes `~/.claude/apify.env` for the three sibling skills, hardens permissions to mode 600, and smoke-tests via `apify info`. The only human moment is signing in to Apify once in their default browser.
-allowed-tools: Bash, Read, Write, Edit
+description: Autonomously install the Apify CLI + Apify MCP client and authenticate the user's Apify account via a hybrid flow — `apify login --method=console` first (default-browser callback), falling back to Playwright DOM extraction if the CLI's localhost callback fails (Wayland/xdg-open silent failures, Playwright mixed-content blocking, hardened Chrome profiles). Use this skill when the user says "set up Apify", "install Apify CLI", "connect my Apify account", "I need to use the Apify scraping skills", "apify-competitor-intelligence is asking me for a token", or when any sibling apify-* skill (apify-competitor-intelligence, apify-content-analytics, apify-market-research) detects that `~/.claude/apify.env` is missing and dispatches here. The skill drives the entire setup non-interactively from the user's perspective: installs `apify-cli` and `@apify/mcpc` via npm, runs `apify login --method=console` (primary, 90s timeout), recovers any auto-minted "Apify CLI login for &lt;hostname&gt;" token via Playwright DOM extraction if the primary path fails to write `~/.apify/auth.json`, writes `~/.claude/apify.env` for the three sibling skills, hardens permissions to mode 600, and smoke-tests via `apify info`. The only human moment is signing in to Apify once (in their default browser for the primary path, or in the Playwright window for the fallback).
+allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
   tags:
@@ -31,18 +31,23 @@ This skill captures the user's Apify Personal API token and installs the two npm
 
 Both packages are npm-published and install non-interactively.
 
-**This skill uses `apify login --method=console` as the canonical auth path** — not a Playwright DOM-extraction flow. Apify CLI itself spins up a localhost HTTP server, opens the user's default browser to Apify Console (with a CSRF-protected callback URL), and receives the token via callback after the user signs in. The token never appears on a command line, never transits a Bash variable beyond the file-read step, and never requires Playwright to drive the browser.
+**This skill uses a hybrid auth flow** — `apify login --method=console` is the primary path (Apify CLI's own localhost-callback OAuth flow against the user's default browser), with Playwright DOM extraction as a documented fallback when the primary path fails. Both paths converge on the same end-state (`~/.apify/auth.json` + `~/.claude/apify.env`, mode 600).
 
-## Why this design (replacing the Playwright DOM dance)
+## Why this design (hybrid, not pure CLI-callback)
 
-Earlier versions of this skill drove `console.apify.com/account/integrations` in Playwright to mint a named token. That worked but:
+The first iteration of this design (PR #277) dropped Playwright entirely in favor of `apify login --method=console`. Sanity testing on a macOS-style default-browser environment passed in 75 seconds. Live screencast attempts on Linux Wayland surfaced two failure modes the original test missed:
 
-1. **Apify already has a proper CLI auth flow** (`apify login --method=console`) that handles browser opening + token capture itself. Re-implementing it in Playwright is over-engineering.
-2. **The Playwright approach is fragile** — Apify Console UI redesigns break DOM selectors. The CLI's callback flow is a documented contract Apify maintains.
-3. **The CLI flow uses the user's default browser** which has familiar sign-in state, password manager, etc. Workshop attendees aren't surprised by a new browser window controlled by the skill.
-4. **Token leakage class is structurally eliminated** — the token transits CLI ↔ Apify ↔ localhost callback, never through argv, environment, or chat output.
+1. **Wayland + xdg-open** — the CLI prints the URL but no browser opens. User often doesn't notice. CLI times out. No tokens minted.
+2. **Mixed-content / private-network blocking** — when a hardened Chrome profile (notably, the Playwright-managed one) is the browser that processes the OAuth, Chrome refuses to POST from `https://console.apify.com` to `http://localhost:<port>` as a private-network request. User sees "Error: Could not send API token to CLI" banner. Apify server-side **still mints** a valid token named `"Apify CLI login for <hostname>"` that can be recovered.
 
-The previous SKILL's Playwright approach is preserved at git history (PRs #266, #273, #276) for reference. This rewrite is the production design.
+Hybrid design properties:
+
+1. **Primary path wins when it works.** Workshop attendees on macOS, Windows, working-xdg-open Linux all get the CLI's clean default-browser flow with full mixed-content compatibility (since they're using their real Chrome/Brave/Firefox profile, not a sandboxed one). ~75s end-to-end.
+2. **Fallback wins when primary fails.** Wayland users without working xdg-open, container/CI environments without a default browser, and Playwright-controlled browser scenarios all recover cleanly via the DOM-extraction path.
+3. **Detection is structural.** After 90s the primary path either succeeded (auth.json written) or it didn't. There's no ambiguous state. The fallback triggers automatically.
+4. **Token leakage stays controlled.** Primary path: no argv, no env, no chat-visible transit. Fallback path: clipboard transit (wl-paste/xclip/pbpaste), variable wiped immediately after disk write. Either path's end-state file is mode 600.
+
+The previous Playwright-only design (PR #273) and the Playwright-free design (PR #277) are preserved in git history for reference. This is the current production design.
 
 ## Communication rules
 
@@ -103,65 +108,164 @@ echo "installed: apify-cli=$APIFY_CLI_VERSION mcpc=$MCPC_VERSION"
 
 If either `--version` call fails: surface a plain-English error and stop. Most likely cause is a `PATH` issue with the npm global bin.
 
-## Phase 2 — Run `apify login --method=console` and let the CLI handle the browser
+## Phase 2 — Hybrid auth: CLI callback first, Playwright fallback if it fails
+
+### Step 2a — Primary path: `apify login --method=console`
 
 Tell the user once:
 
-> *"Now I'll connect your Apify account. A browser tab will open — sign up to Apify (or sign in if you already have an account) and click Authorize. Takes about 60 seconds."*
+> *"Now I'll connect your Apify account. A browser tab will open — sign in (or sign up) and click Authorize. Takes about 60 seconds."*
 
-Spawn the login in the background with a 5-minute timeout. The CLI prints a URL to its log, opens the OS default browser, and listens on a random local port for the OAuth callback:
+Spawn the login in the background. The CLI prints a URL to its log, opens the OS default browser, and listens on a random local port for the OAuth callback:
 
 ```bash
 # CRITICAL: remove any pre-existing auth.json before starting login.
 # Without this, a stale ~/.apify/auth.json from a previous `apify login`
 # run will be misread by Phase 3 as "this run's token", silently
-# propagating the OLD token to ~/.claude/apify.env. The Phase 2 polling
-# loop below races against the existence of auth.json — it cannot
-# distinguish "fresh-from-this-run" from "left over from last time"
-# without this rm.
+# propagating the OLD token to ~/.claude/apify.env.
 rm -f "$HOME/.apify/auth.json"
 
-nohup timeout 300 apify login --method=console > /tmp/apify-login.log 2>&1 &
+# 90s timeout matches the empirical default-browser success window
+# (verified 2026-05-29 — successful run completed in 75s end-to-end).
+# Beyond 90s we activate the fallback rather than waiting indefinitely.
+nohup timeout 90 apify login --method=console > /tmp/apify-login.log 2>&1 &
 LOGIN_PID=$!
 sleep 2
 
-# Sanity-check the CLI actually printed the login URL
 LOGIN_URL=$(grep -oE 'https://console.apify.com/settings/integrations\?localCliCommand=login[^"]*' /tmp/apify-login.log | head -1)
-if [ -z "$LOGIN_URL" ]; then
-  echo "LOGIN_URL_NOT_PRINTED"
-  # Fall back to telling the user to run `apify login` manually
-fi
+HOSTNAME=$(uname -n)
 ```
 
-If `LOGIN_URL` was captured but the OS default browser didn't auto-open (this happens on Wayland sessions without `xdg-open`, or in containers), tell the user the URL and ask them to paste it into their browser:
+If `$LOGIN_URL` is empty, the CLI failed at startup — abort and report.
 
-> *"If a browser tab didn't auto-open, paste this into your browser: `$LOGIN_URL`"*
-
-> **Why we don't use Playwright here.** Apify's CLI manages the browser open + callback receive itself. Driving it from Playwright would just duplicate what the CLI already does, while adding a brittle DOM-selector dependency on Apify Console's UI. The user's default browser is the right tool: familiar UX, persistent state (so re-sign-in is fast), real password manager.
-
-### Poll for completion
-
-The CLI writes `~/.apify/auth.json` once the OAuth callback completes. Poll for that file's existence (or the login process exiting, in case of error):
+### Step 2b — Poll for completion or detect failure
 
 ```bash
-for i in {1..60}; do  # 5 minutes max
+for i in {1..18}; do  # 90s in 5s ticks
   if [ -f "$HOME/.apify/auth.json" ]; then
-    echo "AUTH_FILE_APPEARED"
+    OUTCOME="PRIMARY_OK"
     break
   fi
   if ! ps -p $LOGIN_PID >/dev/null 2>&1; then
-    echo "LOGIN_EXITED"
+    OUTCOME="CLI_EXITED_WITHOUT_AUTH"
     break
   fi
   sleep 5
 done
+[ -z "$OUTCOME" ] && OUTCOME="PRIMARY_TIMEOUT"
 ```
 
-If `LOGIN_EXITED` without `AUTH_FILE_APPEARED`, read `/tmp/apify-login.log` for the error message. Common cases:
+Branch on outcome:
 
-- Browser tab was closed before authorize → user re-runs the skill
-- Network error reaching `mcp.apify.com` callback → check connection
-- User abandoned the flow → no harm, just re-run
+- **`PRIMARY_OK`** — auth.json written by the CLI's callback. Skip to Phase 3.
+- **`PRIMARY_TIMEOUT` or `CLI_EXITED_WITHOUT_AUTH`** — primary path failed. Continue to Step 2c (Playwright fallback). Kill the CLI process if still alive: `kill $LOGIN_PID 2>/dev/null`.
+
+> **Why the primary path can fail silently.** Two known failure modes (verified 2026-05-29):
+>
+> 1. **Wayland / xdg-open** — CLI prints the URL but no browser actually opens. User often doesn't notice. No tokens minted, no callback fires.
+> 2. **Browser blocks the callback** — Playwright-controlled Chrome (or some hardened user Chrome profiles) refuses to POST from `https://console.apify.com` to `http://localhost:<port>` as a mixed-content / private-network request. User sees "Error: Could not send API token to CLI" banner in the browser. Apify still server-side mints a token named `"Apify CLI login for <hostname>"` in the account — that token is fully valid and recoverable.
+>
+> The fallback handles both: it drives Playwright through sign-in if needed, then either uses any auto-minted token (case 2) or mints a fresh one via the "Create new token" UI (case 1).
+
+### Step 2c — Playwright fallback (DOM extraction)
+
+Tell the user once:
+
+> *"The auto-flow didn't complete — switching to a backup route. Sign in if asked, then I'll capture the token myself."*
+
+Open `https://console.apify.com/settings/integrations` in Playwright MCP (install Playwright MCP first if needed — see `skills/CLAUDE.md` "Playwright MCP install contingency").
+
+Sign-in handling: snapshot the page. If a sign-in form is showing, narrate `"please sign in to Apify"` and `browser_wait_for` the integrations page to load (URL matches `/settings/integrations` without `/sign-in`).
+
+Once on the integrations page, capture the token via DOM. The fallback prefers any auto-minted `"Apify CLI login for <hostname>"` token (from a failed Step 2a attempt against this same hostname) before minting a fresh one:
+
+```javascript
+// browser_evaluate against console.apify.com/settings/integrations
+async () => {
+  const HOSTNAME = '<HOSTNAME_FROM_BASH>';  // injected from the $HOSTNAME bash var
+  const LABEL = `Apify CLI login for ${HOSTNAME}`;
+
+  // Prefer existing auto-minted token (Apify mints these even when callback fails)
+  const labels = Array.from(document.querySelectorAll('div')).filter(d =>
+    d.textContent?.trim() === LABEL && d.children.length === 0
+  );
+
+  let row = null;
+  if (labels.length > 0) {
+    // Most recent is last in DOM order
+    row = labels[labels.length - 1];
+    while (row && !row.querySelector('code')) row = row.parentElement;
+  }
+
+  // No auto-minted token — mint a fresh one via "Create new token" UI
+  if (!row) {
+    const createBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent?.includes('Create a new token'));
+    if (!createBtn) return { error: 'no Create-new-token button found' };
+    createBtn.click();
+    await new Promise(r => setTimeout(r, 600));
+
+    const desc = document.querySelector('[data-test="token-description"]');
+    if (!desc) return { error: 'token description input not found' };
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    setter.call(desc, `Claude Code agent (${new Date().toISOString().slice(0,10)})`);
+    desc.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const submit = document.querySelector('[data-test="submit-button"]');
+    submit.click();
+    await new Promise(r => setTimeout(r, 1500));
+
+    // After mint, the newly-created token row should be visible
+    const newLabels = Array.from(document.querySelectorAll('div')).filter(d =>
+      d.textContent?.trim()?.startsWith('Claude Code agent') && d.children.length === 0
+    );
+    if (newLabels.length === 0) return { error: 'minted token row not found' };
+    row = newLabels[newLabels.length - 1];
+    while (row && !row.querySelector('code')) row = row.parentElement;
+  }
+
+  if (!row) return { error: 'no usable token row' };
+
+  // Reveal value (click eye/toggle button)
+  const code = row.querySelector('code');
+  let value = code.textContent?.trim() || '';
+  if (value.startsWith('*')) {
+    const buttons = Array.from(row.querySelectorAll('button'));
+    const eye = buttons.find(b => !b.getAttribute('aria-label')?.includes('Copy') && b.textContent === '');
+    if (eye) {
+      eye.click();
+      await new Promise(r => setTimeout(r, 400));
+      value = code.textContent?.trim() || '';
+    }
+  }
+
+  if (!value.startsWith('apify_api_')) return { error: 'value not revealed' };
+  await navigator.clipboard.writeText(value);
+  return { copied: true, length: value.length };
+}
+```
+
+After clipboard transit, read it in Bash, validate the shape, write `~/.apify/auth.json` directly (since the CLI callback never wrote it):
+
+```bash
+APIFY_TOKEN=$(wl-paste 2>/dev/null || xclip -selection clipboard -o 2>/dev/null || pbpaste 2>/dev/null)
+
+if ! echo "$APIFY_TOKEN" | grep -qE '^apify_api_[A-Za-z0-9]{20,}$'; then
+  echo "FALLBACK_TOKEN_SHAPE_INVALID"
+  unset APIFY_TOKEN
+  exit 1
+fi
+
+mkdir -p "$HOME/.apify"
+umask 077
+printf '{"token":"%s"}\n' "$APIFY_TOKEN" > "$HOME/.apify/auth.json"
+chmod 600 "$HOME/.apify/auth.json"
+
+# Wipe clipboard immediately
+printf '' | wl-copy 2>/dev/null || printf '' | xclip -selection clipboard 2>/dev/null || printf '' | pbcopy 2>/dev/null
+unset APIFY_TOKEN
+```
+
+Phase 3's `chmod` + env-file write then runs as usual. The end-state is identical to the primary path.
 
 ## Phase 3 — Harden the auth file and write the env file for the three sibling skills
 
