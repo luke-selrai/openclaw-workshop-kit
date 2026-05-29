@@ -23,7 +23,7 @@ If the user said "analyse Instagram" with no possessive, ask one clarifying ques
 
 ## Step 0 — Check the install (dispatches to apify-installer if missing)
 
-This skill consumes a token + a CLI installed by the shared `apify-installer` skill. Check silently; if the token is missing, dispatch to `apify-installer` (autonomous Playwright-driven install + token capture — no terminal interaction for the user). After `apify-installer` completes, the check returns READY on next invocation of this skill.
+This skill consumes a token + a CLI installed by the shared `apify-installer` skill. Check silently; if the token is missing, dispatch to `apify-installer` (autonomous CLI-callback install + auth — no terminal interaction beyond a single sign-in click). After `apify-installer` completes, the check returns READY on next invocation of this skill.
 
 ```bash
 if [ -f "$HOME/.claude/apify.env" ] && grep -q '^APIFY_TOKEN=apify_api_' "$HOME/.claude/apify.env" 2>/dev/null; then
@@ -34,9 +34,9 @@ fi
 ```
 
 If `MISSING`:
-> *"Quick one-off setup — I'll get your Apify account connected. Takes about 90 seconds. You'll click 'Allow' once in a browser window."*
+> *"Quick one-off setup — I'll get your Apify account connected. Takes about 90 seconds. You'll click Authorize once in a browser tab the installer opens."*
 
-Then invoke the `apify-installer` skill. It installs the Apify CLI + MCP client, opens `console.apify.com` in a Playwright browser for the user to sign in once, captures the token, writes `~/.claude/apify.env` mode-600, and runs `apify login` so the native CLI is also authenticated. When it returns success, this skill's check returns `READY` and Step 1 begins. Never ask the user to paste a token here — that's the installer's job and it does it without copy-paste.
+Then invoke the `apify-installer` skill. It installs the Apify CLI + MCP client, runs `apify login --method=console` which opens the user's default browser to Apify Console (sign-up or sign-in handled by the CLI's callback flow), hardens `~/.apify/auth.json` to mode 600, extracts the token, and writes `~/.claude/apify.env` mode-600 for this skill to source. When it returns success, this skill's check returns `READY` and Step 1 begins. Never ask the user to paste a token here — that's the installer's job and it does it without copy-paste.
 
 If `READY`, proceed straight to Step 1.
 
@@ -83,7 +83,15 @@ Select the appropriate Actor based on analytics needs. Each row below assumes th
 Tell the user once: *"Looking up what this Actor needs as input — one quick query to Apify."* Then run:
 
 ```bash
-export $(grep APIFY_TOKEN $HOME/.claude/apify.env | xargs) && mcpc --json mcp.apify.com --header "Authorization: Bearer $APIFY_TOKEN" tools-call fetch-actor-details actor:="ACTOR_ID" | jq -r ".content"
+# Source the env file (sets APIFY_TOKEN in the shell)
+set -a; source "$HOME/.claude/apify.env"; set +a
+
+# mcpc 0.3.0+ uses a session-based syntax — connect first, call tool, close
+mcpc connect mcp.apify.com @apify --header "Authorization: Bearer $APIFY_TOKEN" >/dev/null 2>&1
+mcpc @apify tools-call fetch-actor-details actor:="ACTOR_ID"
+mcpc close @apify >/dev/null 2>&1
+
+unset APIFY_TOKEN
 ```
 
 Replace `ACTOR_ID` with the selected Actor (e.g., `apify/instagram-post-scraper`).
