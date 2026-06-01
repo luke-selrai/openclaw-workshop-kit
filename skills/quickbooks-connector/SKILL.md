@@ -1,6 +1,6 @@
 ---
 name: quickbooks-connector
-description: "Install and operate the QuickBooks Online connector autonomously. Drives developer.intuit.com setup end-to-end inside a Playwright MCP browser: finds or creates an Intuit developer app named 'Claude Assistant', adds http://localhost:8844/callback to the Development redirect URIs, DOM-extracts the Client ID and Client Secret with the Show-credentials toggle bracketing the read, persists them to ~/.config/qbo/credentials.env, and runs qbo auth login --sandbox under a pty wrapper so the local OAuth listener stays alive. The user's only manual moments are signing in to developer.intuit.com once and any 2FA challenge their Intuit account requires. Read and update QuickBooks Online accounting data via the qbo CLI (github.com/voska/qbo-cli). Handles invoices (list, view, create, filter by status), customers (list, create), the chart of accounts, bank transactions, customer payments, the Profit and Loss report, the Balance Sheet, and company information. Supports sandbox only — production is out of scope. Use this skill when the user asks about their QuickBooks, QBO, invoices, unpaid invoices, overdue invoices, customers, profit and loss, balance sheet, bank transactions, chart of accounts, payments received, or when they say 'connect my QuickBooks' or 'help me set up QuickBooks'. On the first use of any QuickBooks feature, run Phase 1 to install qbo and authenticate before attempting any tool calls."
+description: "Install and operate the QuickBooks Online connector autonomously. Drives developer.intuit.com setup end-to-end inside a Playwright MCP browser: finds or creates an Intuit developer app named 'Claude Assistant', adds http://localhost:8844/callback to the Development redirect URIs, DOM-extracts the Client ID and Client Secret with the Show-credentials toggle bracketing the read, persists them to the OS-appropriate shell startup file(s) (~/.zshrc on macOS / Linux-zsh, ~/.bashrc on Linux-bash and Git Bash on Windows, $PROFILE on PowerShell) with idempotent BEGIN/END marker comments plus a ~/.config/qbo/credentials.env backup, and runs qbo auth login --sandbox --manual (the --manual flag suppresses qbo's default browser auto-open so Playwright stays the only browser; the localhost:8844 OAuth listener keeps running). The user's only manual moments are signing in to developer.intuit.com once and any 2FA challenge their Intuit account requires. Read and update QuickBooks Online accounting data via the qbo CLI (github.com/voska/qbo-cli). Handles invoices (list, view, create, filter by status), customers (list, create), the chart of accounts, bank transactions, customer payments, the Profit and Loss report, the Balance Sheet, and company information. Supports sandbox only — production is out of scope. Use this skill when the user asks about their QuickBooks, QBO, invoices, unpaid invoices, overdue invoices, customers, profit and loss, balance sheet, bank transactions, chart of accounts, payments received, or when they say 'connect my QuickBooks' or 'help me set up QuickBooks'. On the first use of any QuickBooks feature, run Phase 1 to install qbo and authenticate before attempting any tool calls."
 allowed-tools: mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
@@ -27,7 +27,7 @@ This skill lets you read and update a user's QuickBooks Online data on their beh
 
 The skill has two phases:
 
-- **Phase 1 — Install & Auth (autonomous via Playwright).** Claude installs the `qbo` binary, drives the entire `developer.intuit.com` developer-app flow inside a Playwright MCP browser (find or create an app named "Claude Assistant", add `http://localhost:8844/callback` to the Development redirect URIs, DOM-extract Client ID + Client Secret with Show-credentials toggle bracketing), persists credentials to `~/.config/qbo/credentials.env`, and runs `qbo auth login --sandbox` under a pty wrapper so the OAuth listener stays alive. The user's only manual moments are signing in to `developer.intuit.com` once and approving any 2FA prompt. Everything else — workspace + app discovery / creation, redirect URI upsert, credential capture, OAuth click-through — is autonomous.
+- **Phase 1 — Install & Auth (autonomous via Playwright).** Claude installs the `qbo` binary, drives the entire `developer.intuit.com` developer-app flow inside a Playwright MCP browser (find or create an app named "Claude Assistant", add `http://localhost:8844/callback` to the Development redirect URIs, DOM-extract Client ID + Client Secret with Show-credentials toggle bracketing), persists credentials to the OS-appropriate shell startup file(s) plus a `~/.config/qbo/credentials.env` backup, and runs `qbo auth login --sandbox --manual` (the `--manual` flag suppresses qbo's default browser auto-open so Playwright is the only browser driving the OAuth consent). The user's only manual moments are signing in to `developer.intuit.com` once and approving any 2FA prompt. Everything else — workspace + app discovery / creation, redirect URI upsert, credential capture, OAuth click-through — is autonomous.
 - **Phase 2 — Use Tools.** Once qbo is installed and authenticated, you shell out to `qbo` via Bash to answer questions and make changes. This skill documents the 10 most common workshop prompt patterns. For advanced entities (bills, vendors, estimates, journal entries, budgets, etc.) delegate to the official `voska/qbo-cli` skill installed in Phase 1 Step 3.
 
 **Which phase to run** — Before any tool call, check whether qbo is installed and authenticated. Run:
@@ -61,7 +61,7 @@ The user is a non-technical business owner. Phase 1 is autonomous — Claude doe
 
 ## PHASE 1 — Install & Auth (autonomous via Playwright)
 
-Claude installs the `qbo` binary, drives developer.intuit.com end-to-end via Playwright MCP to set up the Intuit developer app + capture credentials + add the localhost redirect URI, persists those credentials to a small file, and runs `qbo auth login --sandbox` under a pty wrapper. The user's only role is signing in to developer.intuit.com when prompted (and only the first time — the persistent Playwright profile keeps the session for future runs) and approving any 2FA challenge their account requires.
+Claude installs the `qbo` binary, drives developer.intuit.com end-to-end via Playwright MCP to set up the Intuit developer app + capture credentials + add the localhost redirect URI, persists those credentials to the user's shell startup file(s) (plus a small backup file at `~/.config/qbo/credentials.env`), and runs `qbo auth login --sandbox --manual` (the `--manual` flag suppresses qbo's default browser auto-open so Playwright is the only browser driving the OAuth flow; the listener on `localhost:8844` keeps running). The user's only role is signing in to developer.intuit.com when prompted (and only the first time — the persistent Playwright profile keeps the session for future runs) and approving any 2FA challenge their account requires.
 
 > **Reasoning model.** Each Playwright step describes a *goal* (e.g., "find the Show credentials toggle and read the Client ID input from the same panel"). Achieve it via `mcp__playwright__browser_snapshot` → reason → `browser_click` / `browser_evaluate` / `browser_fill_form` / `browser_select_option`. Match elements by their visible labels and `aria-label` attributes ("Show credentials", "Add URI", inputs with `aria-label="url-location"`), not by selector paths — Intuit's developer portal UI evolves.
 
@@ -298,12 +298,20 @@ The page shows two sub-tabs (Development / Production). Development is selected 
 
 **Conversational fallback.** If two extract attempts don't surface valid credentials (e.g., Intuit has moved the values to a non-DOM-readable widget on this account), narrate once: *"I'm having trouble reading the credentials automatically — could you paste your Client ID and Client Secret for me?"* Wait for the user to paste, validate the shape, and continue. The credentials transit the transcript in this fallback path; that's an accepted trade-off.
 
-### Step 8 — Save the credentials (silent)
+### Step 8 — Persist the credentials (silent, cross-platform)
 
-Silently write `~/.config/qbo/credentials.env`:
+The qbo CLI reads `QBO_CLIENT_ID` and `QBO_CLIENT_SECRET` from the process environment. To make `qbo` work natively in any terminal the participant opens (the workshop UX goal — they should never need to source a file or remember a prefix), persist the credentials into the OS-appropriate shell startup file(s) using an idempotent marker block.
+
+**Two writes happen here, in order:**
+
+1. **Backup file** — always write `~/.config/qbo/credentials.env` (mode 600). This is the cross-block source of truth: Claude Code runs each fenced bash block as a separate `bash -c` invocation, so shell-level `export` in one block does NOT propagate to the next block. Every later step that needs the credentials sources this backup file at the top of its block.
+2. **OS-appropriate rc file(s)** — the source the participant's shell sees on the next interactive shell launch, so a participant or maintainer typing `qbo …` in a fresh terminal after Phase 1 finds the env naturally.
+
+**Step 8a — Backup file (always):**
 
 ```bash
 mkdir -p ~/.config/qbo
+umask 077
 cat > ~/.config/qbo/credentials.env <<EOF
 QBO_CLIENT_ID="<value from Step 7>"
 QBO_CLIENT_SECRET="<value from Step 7>"
@@ -311,9 +319,102 @@ EOF
 chmod 600 ~/.config/qbo/credentials.env
 ```
 
-If the file already exists, overwrite — fresh credentials always take precedence over stale ones.
+**Step 8b — rc file write (OS-conditional).** Define the marker-idempotent helper once, then dispatch by `uname`. The awk-based delete swallows the BEGIN..END block AND any leading blank lines so re-running the SKILL doesn't accumulate blank-line drift:
 
-> **Why a separate file (not `~/.zshrc`).** Isolating QBO credentials in their own file keeps them out of the user's globally-sourced shell config. Every Phase 1 and Phase 2 qbo invocation prefixes with `set -a && source ~/.config/qbo/credentials.env && set +a` to load them just for that subprocess. Bash subshells don't auto-source `~/.zshrc`, so a global-export approach would silently fail in many invocation contexts.
+```bash
+write_qbo_block_bash() {
+  local rc="$1"
+  local begin="# === BEGIN qbo credentials (managed by claude-workshop-kit) ==="
+  local end="# === END qbo credentials ==="
+  local var val
+  mkdir -p "$(dirname "$rc")" 2>/dev/null || true
+  touch "$rc"
+  # Remove existing block + any leading blank-line drift
+  awk -v b="$begin" -v e="$end" '
+    BEGIN { in_block = 0; pending = "" }
+    $0 == b { in_block = 1; pending = ""; next }
+    in_block && $0 == e { in_block = 0; next }
+    in_block { next }
+    /^[[:space:]]*$/ { pending = pending $0 "\n"; next }
+    { printf "%s", pending; pending = ""; print }
+    END { printf "%s", pending }
+  ' "$rc" > "$rc.tmp" && mv "$rc.tmp" "$rc"
+  # One blank-line separator before the block if the file isn't already empty/blank-terminated
+  [ -n "$(tail -n 1 "$rc")" ] && echo "" >> "$rc"
+  {
+    echo "$begin"
+    # Iterate the fixed list of expected QBO vars; emit only those set in the env.
+    # This lets Step 8 call us with 2 vars set, and Step 9 call us with 3 set.
+    for var in QBO_CLIENT_ID QBO_CLIENT_SECRET QBO_COMPANY_ID; do
+      val="$(printenv "$var" 2>/dev/null)"
+      [ -n "$val" ] && printf 'export %s=%q\n' "$var" "$val"
+    done
+    echo "$end"
+  } >> "$rc"
+}
+
+write_qbo_block_pwsh() {
+  local profile="$1"
+  local begin="# === BEGIN qbo credentials (managed by claude-workshop-kit) ==="
+  local end="# === END qbo credentials ==="
+  local var val
+  mkdir -p "$(dirname "$profile")" 2>/dev/null || true
+  touch "$profile"
+  awk -v b="$begin" -v e="$end" '
+    BEGIN { in_block = 0; pending = "" }
+    $0 == b { in_block = 1; pending = ""; next }
+    in_block && $0 == e { in_block = 0; next }
+    in_block { next }
+    /^[[:space:]]*$/ { pending = pending $0 "\n"; next }
+    { printf "%s", pending; pending = ""; print }
+    END { printf "%s", pending }
+  ' "$profile" > "$profile.tmp" && mv "$profile.tmp" "$profile"
+  [ -n "$(tail -n 1 "$profile")" ] && echo "" >> "$profile"
+  {
+    echo "$begin"
+    for var in QBO_CLIENT_ID QBO_CLIENT_SECRET QBO_COMPANY_ID; do
+      val="$(printenv "$var" 2>/dev/null)"
+      [ -n "$val" ] && printf "\$env:%s = '%s'\n" "$var" "$val"
+    done
+    echo "$end"
+  } >> "$profile"
+}
+
+# Dispatch by OS
+set -a; . ~/.config/qbo/credentials.env; set +a
+case "$(uname -s)" in
+  Darwin)
+    # macOS Catalina+ default: zsh. Older Macs may use bash — write to both for safety.
+    write_qbo_block_bash "$HOME/.zshrc"
+    [ -f "$HOME/.bash_profile" ] && write_qbo_block_bash "$HOME/.bash_profile"
+    ;;
+  Linux)
+    SHELL_NAME="$(basename "${SHELL:-/bin/bash}")"
+    if [ "$SHELL_NAME" = "zsh" ]; then
+      write_qbo_block_bash "$HOME/.zshrc"
+    else
+      write_qbo_block_bash "$HOME/.bashrc"
+    fi
+    ;;
+  MINGW*|CYGWIN*|MSYS*)
+    # Windows: write to BOTH Git Bash rc AND PowerShell profile(s).
+    write_qbo_block_bash "$HOME/.bashrc"
+    # PowerShell 5.1 (Windows default) and PowerShell 7 use different profile paths.
+    # Write to both so the participant's shell choice doesn't matter.
+    UP="${USERPROFILE:-$HOME}"
+    write_qbo_block_pwsh "$UP/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
+    write_qbo_block_pwsh "$UP/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
+    ;;
+esac
+```
+
+> **No "export in current Claude session" step.** Earlier drafts of this SKILL included a Step 8c that ran `export QBO_CLIENT_ID; export QBO_CLIENT_SECRET` to "make them available to Step 9". That was a misunderstanding of Claude Code's Bash tool — each fenced bash block runs as a separate `bash -c` invocation, so shell-level exports never propagate across blocks. The backup file (Step 8a) is what carries the credentials across block boundaries; every later step that needs them prepends `set -a; . ~/.config/qbo/credentials.env; set +a`.
+
+> **Why the rc-file write, not just the backup file.** Earlier versions of this SKILL kept credentials only in `~/.config/qbo/credentials.env` and required every qbo invocation to prefix `set -a && source ~/.config/qbo/credentials.env && set +a && qbo …`. That works for Claude-driven invocations (Claude can always add the prefix) but creates friction the moment a participant or maintainer types `qbo …` directly in a fresh terminal — they get `✗ set QBO_CLIENT_ID and QBO_CLIENT_SECRET before logging in`. Persisting the env vars in the user's shell startup file removes that friction. Trade-off: the credentials are now in the shell environment of every shell the participant opens, not just qbo-invoking subshells. For QBO **sandbox-only** credentials (the scope of this SKILL — production is out of scope), that surface area is acceptable.
+
+> **Idempotency.** Re-running Phase 1 (e.g., because tokens expired and the participant needs a fresh Client Secret) calls `write_qbo_block_*` again, which detects the existing marker block, removes it (along with any leading blank-line drift), and appends the fresh block. Re-running N times always leaves exactly one block.
+
+> **Marker comments are sacred.** Never rename the `# === BEGIN qbo credentials (managed by claude-workshop-kit) ===` / `# === END qbo credentials ===` strings. The awk delete matches them by exact equality, so a renamed marker means future re-runs orphan the old block rather than replacing it.
 
 Never echo the captured values back to the user. Never include them in any output visible to the user.
 
@@ -321,28 +422,31 @@ Never echo the captured values back to the user. Never include them in any outpu
 
 Tell the user: *"Connecting to QuickBooks now — this takes about ten seconds."*
 
-The `qbo` CLI's OAuth listener requires a controlling pseudo-terminal to keep running; without one (the default in any Bash subshell), `qbo` prints the auth URL and exits before the listener spawns, so the OAuth callback never lands. Wrap qbo in a pty.
+The `qbo` CLI on default settings does two things: it spawns an OAuth listener on `localhost:8844`, AND it tries to auto-open the OAuth URL in the user's default browser (via `xdg-open` on Linux, `open` on macOS, `rundll32 url.dll,FileProtocolHandler` on Windows). The auto-open races Playwright — the participant sees their default browser pop up alongside the Playwright window, which is confusing and means Playwright is no longer actually driving the credential moment.
 
-**Mac / Linux (primary path).** Use `script -qfc` to allocate a pty for the wrapped command:
+The fix is the **`--manual` flag**, which suppresses the auto-open while keeping the listener running. Verified live 2026-06-01: `qbo auth login --sandbox --manual` does NOT shut down the listener (the earlier docs that claimed it did were wrong); it only skips the platform-specific browser-open call. Playwright is the only browser involved, and qbo's listener still catches the callback at `localhost:8844`.
+
+**Launch qbo in the background** (source credentials from the backup file written in Step 8a; each fenced bash block is a separate `bash -c` invocation so the env vars from prior steps don't persist):
 
 ```bash
+set -a; . ~/.config/qbo/credentials.env; set +a
 rm -f /tmp/qbo-auth.log
-script -qfc "set -a && source ~/.config/qbo/credentials.env && set +a && qbo auth login --sandbox" /tmp/qbo-auth.log < /dev/null > /dev/null 2>&1 &
+nohup qbo auth login --sandbox --manual > /tmp/qbo-auth.log 2>&1 &
 QBO_PID=$!
+sleep 2
 ```
 
-The listener spawns on `localhost:8844`. Output goes to `/tmp/qbo-auth.log`.
+No pty wrapper, no fifo, no stdin pipe — the listener stays alive on its own as long as the process runs.
 
-**Windows (Git Bash) — fallback.** `script` is not present in Git Bash by default. Use the `--manual` mode + Playwright callback URL capture instead — see Step 9b alternate flow at the bottom of this step. This path is documented from the manual walkthrough but not extensively tested on Windows; flag any deviations to reviewers.
-
-**Drive Playwright through the consent flow.** Read the auth URL printed to `/tmp/qbo-auth.log` (strip ANSI escape codes from terminal banners):
+**Read the auth URL** from the log (strip any ANSI banner codes):
 
 ```bash
-sleep 2
 AUTH_URL="$(sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' /tmp/qbo-auth.log | grep -oE 'https://appcenter\.intuit\.com/connect/oauth2[^[:space:]]+' | head -1)"
 ```
 
-Navigate Playwright to the URL:
+If `AUTH_URL` is empty after 5 seconds, sleep another 3 and retry. If still empty, the qbo process has likely errored — `cat /tmp/qbo-auth.log` for the cause and diagnose silently.
+
+**Drive Playwright through the consent flow.** Navigate to the URL:
 
 ```
 mcp__playwright__browser_navigate({ url: "<AUTH_URL>" })
@@ -350,7 +454,7 @@ mcp__playwright__browser_navigate({ url: "<AUTH_URL>" })
 
 Take a `browser_snapshot`. Three possible states:
 
-- **Auto-redirect to `localhost:8844/callback`** (fast — under a second; happens when the persistent Playwright profile already has Intuit consent for this app) → the qbo listener catches the redirect; nothing more to do in the browser. The browser tab will show ERR_CONNECTION_REFUSED briefly only because we're racing the listener's response — qbo completes regardless. Skip to the wait-for-success step below.
+- **Auto-redirect to `localhost:8844/callback`** (fast — under a second; happens when the persistent Playwright profile already has Intuit consent for this app) → qbo's listener catches the redirect; the page shows "Authenticated! You can close this window." Skip to the wait-for-success step below.
 - **Sandbox company picker** (a list of practice companies the user has access to) → click the first sandbox company. If multiple, prefer one matching the user's region or the most-recently-created one.
 - **Connect / Authorize button visible** ("Connect", "Allow access", "Authorize") → DOM-extract and click via `browser_evaluate`:
 
@@ -363,51 +467,139 @@ Take a `browser_snapshot`. Three possible states:
   }
   ```
 
-**Wait for qbo to complete.** Poll the wrapped output file until you see `✓ authenticated for company <realm-id>`:
+**Wait for qbo to complete AND persist QBO_COMPANY_ID in one block.** Polling for `✓ authenticated for company <realm-id>` and the subsequent persistence must live in the same fenced bash block because `REALM_ID` is a shell variable — Claude Code's Bash tool runs each fenced bash block as a separate `bash -c` invocation, so a `REALM_ID=` assignment in one block doesn't survive into the next. If the loop times out without success, the block exits non-zero and you read `/tmp/qbo-auth.log` for the actual error. Common causes: the `http://localhost:8844/callback` redirect URI hasn't propagated yet on Intuit's side (re-check Step 6 ran and saved), or the participant cancelled the consent flow in Playwright.
+
+This block is **self-contained** — it sources `~/.config/qbo/credentials.env` (so `QBO_CLIENT_ID` and `QBO_CLIENT_SECRET` are in the env when the rc-write helpers iterate the env-var list) and redefines the helper functions inline. If you update the helper bodies, update them in BOTH Step 8b and here.
 
 ```bash
+set -a; . ~/.config/qbo/credentials.env; set +a
+
+# Wait for qbo to print its success line
 for i in $(seq 1 30); do
   if grep -q '✓ authenticated for company' /tmp/qbo-auth.log; then break; fi
   sleep 1
 done
 REALM_ID="$(sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' /tmp/qbo-auth.log | grep -oE 'authenticated for company [0-9]+' | awk '{print $4}')"
+
+if [ -z "$REALM_ID" ]; then
+  echo "ERROR: qbo auth login did not complete; log follows:" >&2
+  cat /tmp/qbo-auth.log >&2
+  exit 1
+fi
+export QBO_COMPANY_ID="$REALM_ID"
+
+# --- Re-define helpers (identical to Step 8b — keep in sync if either is updated) ---
+write_qbo_block_bash() {
+  local rc="$1"
+  local begin="# === BEGIN qbo credentials (managed by claude-workshop-kit) ==="
+  local end="# === END qbo credentials ==="
+  local var val
+  mkdir -p "$(dirname "$rc")" 2>/dev/null || true
+  touch "$rc"
+  awk -v b="$begin" -v e="$end" '
+    BEGIN { in_block = 0; pending = "" }
+    $0 == b { in_block = 1; pending = ""; next }
+    in_block && $0 == e { in_block = 0; next }
+    in_block { next }
+    /^[[:space:]]*$/ { pending = pending $0 "\n"; next }
+    { printf "%s", pending; pending = ""; print }
+    END { printf "%s", pending }
+  ' "$rc" > "$rc.tmp" && mv "$rc.tmp" "$rc"
+  [ -n "$(tail -n 1 "$rc")" ] && echo "" >> "$rc"
+  {
+    echo "$begin"
+    for var in QBO_CLIENT_ID QBO_CLIENT_SECRET QBO_COMPANY_ID; do
+      val="$(printenv "$var" 2>/dev/null)"
+      [ -n "$val" ] && printf 'export %s=%q\n' "$var" "$val"
+    done
+    echo "$end"
+  } >> "$rc"
+}
+
+write_qbo_block_pwsh() {
+  local profile="$1"
+  local begin="# === BEGIN qbo credentials (managed by claude-workshop-kit) ==="
+  local end="# === END qbo credentials ==="
+  local var val
+  mkdir -p "$(dirname "$profile")" 2>/dev/null || true
+  touch "$profile"
+  awk -v b="$begin" -v e="$end" '
+    BEGIN { in_block = 0; pending = "" }
+    $0 == b { in_block = 1; pending = ""; next }
+    in_block && $0 == e { in_block = 0; next }
+    in_block { next }
+    /^[[:space:]]*$/ { pending = pending $0 "\n"; next }
+    { printf "%s", pending; pending = ""; print }
+    END { printf "%s", pending }
+  ' "$profile" > "$profile.tmp" && mv "$profile.tmp" "$profile"
+  [ -n "$(tail -n 1 "$profile")" ] && echo "" >> "$profile"
+  {
+    echo "$begin"
+    for var in QBO_CLIENT_ID QBO_CLIENT_SECRET QBO_COMPANY_ID; do
+      val="$(printenv "$var" 2>/dev/null)"
+      [ -n "$val" ] && printf "\$env:%s = '%s'\n" "$var" "$val"
+    done
+    echo "$end"
+  } >> "$profile"
+}
+# --- end helpers ---
+
+# Backup file — idempotent grep-or-append, no dupes on re-run
+mkdir -p ~/.config/qbo
+umask 077
+if grep -q '^QBO_COMPANY_ID=' ~/.config/qbo/credentials.env 2>/dev/null; then
+  sed -i.bak "s|^QBO_COMPANY_ID=.*|QBO_COMPANY_ID=\"${REALM_ID}\"|" ~/.config/qbo/credentials.env
+  rm -f ~/.config/qbo/credentials.env.bak
+else
+  echo "QBO_COMPANY_ID=\"${REALM_ID}\"" >> ~/.config/qbo/credentials.env
+fi
+chmod 600 ~/.config/qbo/credentials.env
+
+# rc file(s) — same dispatch as Step 8b, now with QBO_COMPANY_ID also in the env so the
+# helpers emit the 3-export block (replacing the prior 2-export block). Re-run idempotent.
+case "$(uname -s)" in
+  Darwin)
+    write_qbo_block_bash "$HOME/.zshrc"
+    [ -f "$HOME/.bash_profile" ] && write_qbo_block_bash "$HOME/.bash_profile"
+    ;;
+  Linux)
+    SHELL_NAME="$(basename "${SHELL:-/bin/bash}")"
+    if [ "$SHELL_NAME" = "zsh" ]; then
+      write_qbo_block_bash "$HOME/.zshrc"
+    else
+      write_qbo_block_bash "$HOME/.bashrc"
+    fi
+    ;;
+  MINGW*|CYGWIN*|MSYS*)
+    write_qbo_block_bash "$HOME/.bashrc"
+    UP="${USERPROFILE:-$HOME}"
+    write_qbo_block_pwsh "$UP/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
+    write_qbo_block_pwsh "$UP/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
+    ;;
+esac
 ```
 
-Capture the realm ID. If the loop times out without success, read the full log for the actual error and fall back to Step 9b below.
+> **Why the iterate-and-detect pattern.** The first call (Step 8b) runs before `qbo auth login`, when only `QBO_CLIENT_ID` and `QBO_CLIENT_SECRET` are known. The second call (here) runs after `qbo auth login` succeeds and `QBO_COMPANY_ID` has been exported. Same helper logic, same files — the awk delete removes the prior 2-var block before appending the new 3-var block. After Phase 1 completes, every relevant rc file contains all three exports.
 
-**Append `QBO_COMPANY_ID` to the credentials file** so future qbo calls don't need `--company-id`:
-
-```bash
-echo "QBO_COMPANY_ID=\"${REALM_ID}\"" >> ~/.config/qbo/credentials.env
-```
-
-**Step 9b — `--manual` fallback** (Windows Git Bash, or when `script` is unavailable):
-
-1. Run `qbo auth login --sandbox --manual` in the background; capture stdout to a file or fifo.
-2. Read the printed auth URL from the output.
-3. Drive Playwright to the URL using the same consent-flow logic as the primary path.
-4. After Playwright auto-Allow / consent click, the browser navigates to `http://localhost:8844/callback?code=...&state=...&realmId=...`. The page will show ERR_CONNECTION_REFUSED (no listener was started in `--manual` mode) but the URL is still in the address bar.
-5. Capture the URL via `browser_evaluate(() => window.location.href)` — note: Chrome's error page replaces `window.location.href` with `chrome-error://chromewebdata/`, so capture **before** the error page renders by polling URL state during the redirect. Alternatively, retrieve the URL from the tabs list returned by Playwright snapshot (the open-tabs section retains the original navigation target for a short window).
-6. Pipe the captured callback URL to qbo's stdin so it can extract the code and exchange it for tokens.
-7. Wait for qbo to print success and exit.
-
-> **Empirical caveat.** Step 9 was verified live on Linux + Hyprland (Wayland). Mac and Windows variants follow the same shape but have not been end-to-end tested in this PR. Reviewers walking the install on Mac / Windows should flag any divergence in browser-launch behavior (`xdg-open` vs `open` vs `start`) or in `script`'s behavior across BSD vs GNU userlands.
+> **Empirical history.** This Step 9 was verified live 2026-06-01 on Linux + Hyprland (Wayland). qbo auth login --sandbox --manual completed in ~3 seconds with no fifo, no stdin pipe, no pty wrapper. The persistent Playwright profile's stored Intuit consent meant the auth URL auto-redirected to `localhost:8844/callback` and qbo's listener caught it cleanly. macOS + Windows variants of this Step 9 follow the same shape (the `--manual` flag has identical semantics across all three platforms per the Go source at `github.com/voska/qbo-cli/internal/auth/oauth.go:182`), but have not been end-to-end tested in this PR. Reviewers walking the install on macOS or Windows should flag any divergence.
 
 ### Step 10 — Verify the connection
 
 Tell the user: *"Let me just double-check everything is talking to QuickBooks correctly."*
 
-Silently run two verification commands:
+Silently run two verification commands. Each is in its own bash block (separate `bash -c` invocations), so each must source the backup file:
 
 ```bash
-set -a && source ~/.config/qbo/credentials.env && set +a && qbo auth status 2>&1
+set -a; . ~/.config/qbo/credentials.env; set +a
+qbo auth status 2>&1
 ```
 
 - Exit 0 with `authenticated true` → continue.
 - Any other exit → diagnose and retry from Step 9.
 
 ```bash
-set -a && source ~/.config/qbo/credentials.env && set +a && qbo company info --sandbox --json
+set -a; . ~/.config/qbo/credentials.env; set +a
+qbo company info --sandbox --json
 ```
 
 - Exit 0 and valid JSON in stdout → parse `QueryResponse.CompanyInfo[0].CompanyName`. That's what you show the user in Step 11.
@@ -425,13 +617,22 @@ Save to memory that the qbo CLI is installed and authenticated, so on the next u
 
 ## PHASE 2 — Use Tools
 
-Once qbo is installed and authenticated, shell out to it via Bash to answer questions and make changes. **Every Phase 2 command must be prefixed with the credentials source line**:
+Once Phase 1 has completed (qbo installed AND `qbo auth login --sandbox --manual` succeeded), there are TWO distinct execution contexts to keep in mind:
+
+**Context A — interactive shells the participant opens after Phase 1.** The rc-file marker block (written by Step 8b and refreshed at the end of Step 9 to include `QBO_COMPANY_ID`) is sourced automatically by the shell on launch. The participant can type `qbo …` directly in a new terminal and it just works:
 
 ```bash
-set -a && source ~/.config/qbo/credentials.env && set +a && qbo <command>
+qbo <command>          # Works in any new interactive shell the participant opens
 ```
 
-For brevity, the recipes below omit the prefix — but you must include it in every actual Bash invocation.
+**Context B — Claude's own Bash tool invocations during Phase 2.** Claude Code's Bash tool runs each fenced bash block as a separate `bash -c` invocation, which does NOT source the user's rc file. So Phase 2 bash blocks executed by Claude must source the backup file (`~/.config/qbo/credentials.env`, which Phase 1 keeps in sync with the rc-file contents):
+
+```bash
+set -a; . ~/.config/qbo/credentials.env; set +a
+qbo <command>          # Claude-executed bash block
+```
+
+For brevity, the Phase 2 recipes below show just `qbo <command>`. When Claude runs them via the Bash tool, prepend the source line. When the participant runs them in their own terminal, they don't need to.
 
 ### Common Pattern 1 — List recent invoices
 
@@ -675,7 +876,7 @@ It **requires** at least one Product/Service Item to exist in the company before
 - **Always confirm before creating** invoices or customers — summarise what you are about to create and wait for the user's OK before calling the tool.
 - **Invoices are saved, not emailed** — never imply an invoice has been sent. Say "I've saved the invoice in QuickBooks — review and send it from QuickBooks when ready."
 - **Customer auto-creation** — when creating an invoice for a new customer, tell the user a new customer was created alongside the invoice.
-- **Always prefix qbo calls** with `set -a && source ~/.config/qbo/credentials.env && set +a &&` — never call `qbo` without sourcing the credentials file first. `qbo` will exit 10 (`config_error`) if you forget.
+- **qbo finds its credentials in the environment** (`QBO_CLIENT_ID`, `QBO_CLIENT_SECRET`, `QBO_COMPANY_ID`). Phase 1 writes these to the user's shell startup file(s) so any *new interactive shell* sees them. But Claude Code's Bash tool runs each fenced bash block as a separate `bash -c` invocation, which does NOT source the user's rc file — so when YOU run a qbo command via Bash, always prepend `set -a; . ~/.config/qbo/credentials.env; set +a;` to source the backup file. If qbo exits 10 (`config_error`), the most likely cause is that you forgot the source prefix.
 - **Always use `--json --results-only`** on list commands when you're going to parse the output — it strips the QBO pagination wrapper and gives you a clean array.
 - **Unwrap `get` responses** — they come back as `{"Invoice": {...}}`. Pipe through `jq '.Invoice'` (or the relevant entity key) to get the flat object.
 - **Format currency correctly** — 2 decimal places, use the currency from the QuickBooks response.
