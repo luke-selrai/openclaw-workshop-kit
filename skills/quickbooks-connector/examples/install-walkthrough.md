@@ -1,5 +1,7 @@
 # quickbooks-connector — install walkthrough
 
+> **Screencast available** — `qbo-installer-demo.mp4` (~2.9 MB, 1:30, 720p / 30fps) in this folder captures the Steps 8-10 portion of a real install (file writes, qbo auth login launch, the `✓ authenticated for company` log line, the Step 10 verification commands, the fresh-shell smoke test returning 18 invoices). Poster frame at `qbo-installer-poster.jpg`. The clip is terminal-side only; for the browser-side Playwright actions, read the walkthrough below.
+
 This file shows what a successful Phase 1 install looks like end-to-end. It's a narrative reference for two audiences:
 
 - **Workshop attendees** debugging an install that didn't quite finish ("did the SKILL get this far?")
