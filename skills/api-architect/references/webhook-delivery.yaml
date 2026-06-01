@@ -1,0 +1,71 @@
+# Webhook Delivery Reference
+# ─────────────────────────────────────────────────────────────────────
+# What's inside: the delivery semantics most webhook implementations get
+# wrong — backed by the "Webhooks without retries or signing" anti-pattern.
+#   • Delivery guarantee (at-least-once) and what it forces on consumers
+#   • Retry policy with exponential backoff + jitter and a dead-letter queue
+#   • HMAC request signing so receivers can verify authenticity
+#   • The event envelope shape and required delivery headers
+#   • Consumer contract: idempotent handling, fast ACK, replay endpoint
+# Copy this when designing an outbound webhook system. Values are
+# illustrative; tune backoff and timeouts to your consumers.
+# ─────────────────────────────────────────────────────────────────────
+
+# Delivery guarantee
+delivery:
+  guarantee: "at-least-once"   # at-most-once loses events on failure; at-least-once is the safe default
+  implication: "Consumers MUST be idempotent — the same event id may arrive more than once."
+  ordering: "not-guaranteed"   # Don't assume events arrive in emission order; carry a sequence/occurred_at
+
+# Retry policy (applied when the consumer does not return 2xx within timeout)
+retry:
+  max_attempts: 6
+  timeout_seconds: 10          # Per-attempt request timeout
+  success_status: [200, 201, 202, 204]
+  backoff:
+    strategy: "exponential"
+    base_seconds: 5            # Attempt delays: ~5s, 25s, 2m, 10m, 50m, 4h
+    multiplier: 5
+    jitter: true               # Spread retries so a recovering consumer isn't thundered
+  give_up:
+    action: "dead_letter"      # After max_attempts, park the event
+    dead_letter_queue: "webhooks.failed"
+    alert: true                # Notify the integration owner
+
+# Request signing (let the receiver verify the payload really came from you)
+signing:
+  algorithm: "HMAC-SHA256"
+  secret_source: "per-endpoint secret, rotatable"
+  signed_payload: "{timestamp}.{raw_body}"   # Sign timestamp + body to bind them together
+  headers:
+    X-Webhook-Signature: "sha256=<hex hmac of signed_payload>"
+    X-Webhook-Timestamp: "<unix seconds>"    # Receiver rejects if skew > tolerance (replay defense)
+  timestamp_tolerance_seconds: 300
+  rotation:
+    overlap_window_hours: 24   # Accept old + new secret during rotation
+
+# Event envelope (POST body)
+event_envelope:
+  id: "evt_01HZX…"             # Stable, unique — the consumer's idempotency key
+  type: "user.created"         # noun.verb, past tense
+  api_version: "2026-01-01"    # Pin the payload schema so changes don't break consumers
+  occurred_at: "2026-06-01T12:00:00Z"
+  sequence: 10472              # Monotonic per source; lets consumers detect gaps/reorder
+  data:
+    object: "user"
+    id: "usr_123"
+
+# Delivery headers sent with every POST
+headers:
+  Content-Type: "application/json"
+  User-Agent: "ExampleHooks/1.0"
+  X-Webhook-Id: "<delivery attempt id>"
+  X-Webhook-Event: "user.created"
+  Idempotency-Key: "<event id>"   # Mirrors envelope.id for consumers keying off headers
+
+# Consumer contract (document this for integrators)
+consumer_contract:
+  ack: "Return 2xx within the timeout, BEFORE doing slow work — enqueue and process async."
+  idempotency: "De-duplicate on event id; processing the same id twice must be a no-op."
+  verification: "Recompute the HMAC over {timestamp}.{body} and constant-time compare; reject on mismatch or stale timestamp."
+  replay_endpoint: "GET /webhooks/events/{id} so consumers can re-pull a missed or failed event."

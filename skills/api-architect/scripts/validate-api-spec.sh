@@ -29,46 +29,46 @@ check_openapi() {
         # Check for version
         if ! grep -qE "openapi:\s*(3\.[0-9]+\.[0-9]+)" "$spec" 2>/dev/null; then
             echo "⚠️  WARN: $spec may be using outdated OpenAPI version (prefer 3.0+)"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS + 1))
         fi
 
         # Check for info section
         if ! grep -q "^info:" "$spec" 2>/dev/null; then
             echo "❌ ERROR: $spec missing info section"
-            ((ERRORS++))
+            ERRORS=$((ERRORS + 1))
         fi
 
         # Check for servers
         if ! grep -q "^servers:" "$spec" 2>/dev/null; then
             echo "⚠️  WARN: $spec missing servers section"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS + 1))
         fi
 
         # Check for security schemes
         if ! grep -q "securitySchemes:" "$spec" 2>/dev/null; then
             echo "⚠️  WARN: $spec missing security schemes"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS + 1))
         fi
 
         # Check for operationId
         if grep -q "get:\|post:\|put:\|patch:\|delete:" "$spec" 2>/dev/null; then
             if ! grep -q "operationId:" "$spec" 2>/dev/null; then
                 echo "⚠️  WARN: $spec missing operationId (required for SDK generation)"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             fi
         fi
 
         # Check for verb-based paths (anti-pattern)
         if grep -qE "/get[A-Z]|/create[A-Z]|/update[A-Z]|/delete[A-Z]" "$spec" 2>/dev/null; then
             echo "❌ ERROR: $spec contains verb-based URLs (use nouns, let HTTP methods convey action)"
-            ((ERRORS++))
+            ERRORS=$((ERRORS + 1))
         fi
 
         # Check for consistent error schemas
         if grep -q "responses:" "$spec" 2>/dev/null; then
             if ! grep -qE "'4[0-9]{2}':|\"4[0-9]{2}\":" "$spec" 2>/dev/null; then
                 echo "⚠️  WARN: $spec missing 4xx error responses"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             fi
         fi
     done
@@ -87,14 +87,14 @@ check_graphql() {
         # Check for Query type
         if ! grep -q "type Query" "$schema" 2>/dev/null; then
             echo "❌ ERROR: $schema missing Query type"
-            ((ERRORS++))
+            ERRORS=$((ERRORS + 1))
         fi
 
         # Check for Relay-style pagination
         if grep -q "type.*Connection" "$schema" 2>/dev/null; then
             if ! grep -q "type PageInfo" "$schema" 2>/dev/null; then
                 echo "⚠️  WARN: $schema has Connection types but missing PageInfo"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             fi
         fi
 
@@ -102,7 +102,7 @@ check_graphql() {
         if grep -q "type Mutation" "$schema" 2>/dev/null; then
             if ! grep -qE "errors:\s*\[" "$schema" 2>/dev/null; then
                 echo "⚠️  WARN: $schema mutations should return error arrays in payloads"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             fi
         fi
 
@@ -110,7 +110,7 @@ check_graphql() {
         if grep -qE "DateTime|Date|JSON|UUID" "$schema" 2>/dev/null; then
             if ! grep -q "scalar DateTime\|scalar Date\|scalar JSON\|scalar UUID" "$schema" 2>/dev/null; then
                 echo "⚠️  WARN: $schema uses custom types without scalar definitions"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             fi
         fi
     done
@@ -129,19 +129,19 @@ check_protobuf() {
         # Check for syntax version
         if ! grep -q 'syntax = "proto3"' "$proto" 2>/dev/null; then
             echo "⚠️  WARN: $proto not using proto3 syntax"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS + 1))
         fi
 
         # Check for package definition
         if ! grep -q "^package " "$proto" 2>/dev/null; then
             echo "❌ ERROR: $proto missing package definition"
-            ((ERRORS++))
+            ERRORS=$((ERRORS + 1))
         fi
 
         # Check for go_package option
         if ! grep -q "option go_package" "$proto" 2>/dev/null; then
             echo "⚠️  WARN: $proto missing go_package option"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS + 1))
         fi
 
         # Check for field numbers > 0
@@ -149,8 +149,39 @@ check_protobuf() {
             # Check if it's in an enum (0 is required for enums)
             if ! grep -B5 "= 0;" "$proto" | grep -q "enum" 2>/dev/null; then
                 echo "❌ ERROR: $proto has field number 0 (must be positive for messages)"
-                ((ERRORS++))
+                ERRORS=$((ERRORS + 1))
             fi
+        fi
+    done
+}
+
+# Check webhook delivery configs
+check_webhooks() {
+    echo ""
+    echo "🪝 Checking webhook delivery configs..."
+
+    for file in *.yaml *.yml; do
+        [ -f "$file" ] || continue
+
+        # Only inspect files that actually describe webhooks
+        if ! grep -qiE "webhook|delivery:" "$file" 2>/dev/null; then
+            continue
+        fi
+        # Skip files that just mention the word in passing (need a delivery/retry shape)
+        if ! grep -qiE "retr(y|ies)|signing|delivery" "$file" 2>/dev/null; then
+            continue
+        fi
+
+        echo "  Checking: $file"
+
+        if ! grep -qiE "retr(y|ies)|backoff|max_attempts" "$file" 2>/dev/null; then
+            echo "⚠️  WARN: $file webhook config missing a retry policy (use at-least-once + backoff)"
+            WARNINGS=$((WARNINGS + 1))
+        fi
+
+        if ! grep -qiE "signing|signature|hmac" "$file" 2>/dev/null; then
+            echo "⚠️  WARN: $file webhook config missing request signing (receivers can't verify authenticity)"
+            WARNINGS=$((WARNINGS + 1))
         fi
     done
 }
@@ -167,22 +198,25 @@ check_common_issues() {
         if grep -qE "localhost|127\.0\.0\.1|0\.0\.0\.0" "$file" 2>/dev/null; then
             if ! echo "$file" | grep -qE "dev|local|test" 2>/dev/null; then
                 echo "⚠️  WARN: $file contains localhost/IP (use environment variables)"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             fi
         fi
     done
 
-    # Check for API versioning
+    # Check for an API versioning strategy across all specs.
+    # Matches: /v1 in a path or server URL, an OpenAPI info.version, or a
+    # header/query-based version scheme.
     has_versioning=false
-    if grep -rqE "/v[0-9]+/" *.yaml *.yml 2>/dev/null; then
+    if grep -rqhE "/v[0-9]+([/ \"']|$)" *.yaml *.yml 2>/dev/null; then
         has_versioning=true
-    fi
-    if grep -rq "version:" *.yaml *.yml 2>/dev/null | grep -qE "header|query" 2>/dev/null; then
+    elif grep -rqiE "version:|version=|;version|vnd\..*version" *.yaml *.yml 2>/dev/null; then
         has_versioning=true
     fi
 
     if [ "$has_versioning" = false ]; then
         echo "ℹ️  INFO: No API versioning strategy detected"
+    else
+        echo "  Versioning strategy detected ✅"
     fi
 }
 
@@ -190,6 +224,7 @@ check_common_issues() {
 check_openapi
 check_graphql
 check_protobuf
+check_webhooks
 check_common_issues
 
 # Summary
