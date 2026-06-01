@@ -302,11 +302,10 @@ The page shows two sub-tabs (Development / Production). Development is selected 
 
 The qbo CLI reads `QBO_CLIENT_ID` and `QBO_CLIENT_SECRET` from the process environment. To make `qbo` work natively in any terminal the participant opens (the workshop UX goal — they should never need to source a file or remember a prefix), persist the credentials into the OS-appropriate shell startup file(s) using an idempotent marker block.
 
-**Three writes happen here, in order:**
+**Two writes happen here, in order:**
 
-1. **Backup file** — always write `~/.config/qbo/credentials.env` (mode 600). This is defence in depth: if a participant's rc file gets corrupted, the backup lets Phase 1 recover by re-reading without re-running Playwright.
-2. **OS-appropriate rc file(s)** — the actual source the participant's shell sees on next launch.
-3. **Current Claude session** — `export` the vars so the immediately-following `qbo auth login` call (Step 9) finds them without requiring a new shell.
+1. **Backup file** — always write `~/.config/qbo/credentials.env` (mode 600). This is the cross-block source of truth: Claude Code runs each fenced bash block as a separate `bash -c` invocation, so shell-level `export` in one block does NOT propagate to the next block. Every later step that needs the credentials sources this backup file at the top of its block.
+2. **OS-appropriate rc file(s)** — the source the participant's shell sees on the next interactive shell launch, so a participant or maintainer typing `qbo …` in a fresh terminal after Phase 1 finds the env naturally.
 
 **Step 8a — Backup file (always):**
 
@@ -409,12 +408,7 @@ case "$(uname -s)" in
 esac
 ```
 
-**Step 8c — current session export (so Step 9 picks them up):**
-
-```bash
-export QBO_CLIENT_ID
-export QBO_CLIENT_SECRET
-```
+> **No "export in current Claude session" step.** Earlier drafts of this SKILL included a Step 8c that ran `export QBO_CLIENT_ID; export QBO_CLIENT_SECRET` to "make them available to Step 9". That was a misunderstanding of Claude Code's Bash tool — each fenced bash block runs as a separate `bash -c` invocation, so shell-level exports never propagate across blocks. The backup file (Step 8a) is what carries the credentials across block boundaries; every later step that needs them prepends `set -a; . ~/.config/qbo/credentials.env; set +a`.
 
 > **Why the rc-file write, not just the backup file.** Earlier versions of this SKILL kept credentials only in `~/.config/qbo/credentials.env` and required every qbo invocation to prefix `set -a && source ~/.config/qbo/credentials.env && set +a && qbo …`. That works for Claude-driven invocations (Claude can always add the prefix) but creates friction the moment a participant or maintainer types `qbo …` directly in a fresh terminal — they get `✗ set QBO_CLIENT_ID and QBO_CLIENT_SECRET before logging in`. Persisting the env vars in the user's shell startup file removes that friction. Trade-off: the credentials are now in the shell environment of every shell the participant opens, not just qbo-invoking subshells. For QBO **sandbox-only** credentials (the scope of this SKILL — production is out of scope), that surface area is acceptable.
 
@@ -432,9 +426,10 @@ The `qbo` CLI on default settings does two things: it spawns an OAuth listener o
 
 The fix is the **`--manual` flag**, which suppresses the auto-open while keeping the listener running. Verified live 2026-06-01: `qbo auth login --sandbox --manual` does NOT shut down the listener (the earlier docs that claimed it did were wrong); it only skips the platform-specific browser-open call. Playwright is the only browser involved, and qbo's listener still catches the callback at `localhost:8844`.
 
-**Launch qbo in the background** (env vars from Step 8 are already exported in the current session):
+**Launch qbo in the background** (source credentials from the backup file written in Step 8a; each fenced bash block is a separate `bash -c` invocation so the env vars from prior steps don't persist):
 
 ```bash
+set -a; . ~/.config/qbo/credentials.env; set +a
 rm -f /tmp/qbo-auth.log
 nohup qbo auth login --sandbox --manual > /tmp/qbo-auth.log 2>&1 &
 QBO_PID=$!
@@ -472,25 +467,26 @@ Take a `browser_snapshot`. Three possible states:
   }
   ```
 
-**Wait for qbo to complete.** Poll the log file until you see `✓ authenticated for company <realm-id>`:
+**Wait for qbo to complete AND persist QBO_COMPANY_ID in one block.** Polling for `✓ authenticated for company <realm-id>` and the subsequent persistence must live in the same fenced bash block because `REALM_ID` is a shell variable — Claude Code's Bash tool runs each fenced bash block as a separate `bash -c` invocation, so a `REALM_ID=` assignment in one block doesn't survive into the next. If the loop times out without success, the block exits non-zero and you read `/tmp/qbo-auth.log` for the actual error. Common causes: the `http://localhost:8844/callback` redirect URI hasn't propagated yet on Intuit's side (re-check Step 6 ran and saved), or the participant cancelled the consent flow in Playwright.
+
+This block is **self-contained** — it sources `~/.config/qbo/credentials.env` (so `QBO_CLIENT_ID` and `QBO_CLIENT_SECRET` are in the env when the rc-write helpers iterate the env-var list) and redefines the helper functions inline. If you update the helper bodies, update them in BOTH Step 8b and here.
 
 ```bash
+set -a; . ~/.config/qbo/credentials.env; set +a
+
+# Wait for qbo to print its success line
 for i in $(seq 1 30); do
   if grep -q '✓ authenticated for company' /tmp/qbo-auth.log; then break; fi
   sleep 1
 done
 REALM_ID="$(sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' /tmp/qbo-auth.log | grep -oE 'authenticated for company [0-9]+' | awk '{print $4}')"
-```
 
-If the loop times out without success, read the full log for the actual error and diagnose. Common causes: the `http://localhost:8844/callback` redirect URI hasn't propagated yet on Intuit's side (re-check Step 6 ran and saved), or the participant cancelled the consent flow in Playwright.
-
-**Persist `QBO_COMPANY_ID`** to both the backup file and the rc file(s) so future `qbo` invocations don't need `--company-id`. The `write_qbo_block_bash` / `write_qbo_block_pwsh` helpers iterate the fixed list `QBO_CLIENT_ID QBO_CLIENT_SECRET QBO_COMPANY_ID` and emit `export` lines only for vars that are set in the env at call time. So after exporting `QBO_COMPANY_ID`, calling the same helpers refreshes the marker block to include all three.
-
-This bash block is **self-contained** — it redefines the helper functions inline because Claude Code runs each fenced bash block as a separate `bash -c` invocation, so the function definitions from Step 8b's block do NOT persist into this one. If you update the helper bodies, update them in BOTH Step 8b and here.
-
-```bash
-set -a; . ~/.config/qbo/credentials.env; set +a
-export QBO_COMPANY_ID="${REALM_ID}"
+if [ -z "$REALM_ID" ]; then
+  echo "ERROR: qbo auth login did not complete; log follows:" >&2
+  cat /tmp/qbo-auth.log >&2
+  exit 1
+fi
+export QBO_COMPANY_ID="$REALM_ID"
 
 # --- Re-define helpers (identical to Step 8b — keep in sync if either is updated) ---
 write_qbo_block_bash() {
@@ -591,9 +587,10 @@ esac
 
 Tell the user: *"Let me just double-check everything is talking to QuickBooks correctly."*
 
-Silently run two verification commands. The env vars are already exported in this Claude session from Step 8c, so no source prefix is needed:
+Silently run two verification commands. Each is in its own bash block (separate `bash -c` invocations), so each must source the backup file:
 
 ```bash
+set -a; . ~/.config/qbo/credentials.env; set +a
 qbo auth status 2>&1
 ```
 
@@ -601,6 +598,7 @@ qbo auth status 2>&1
 - Any other exit → diagnose and retry from Step 9.
 
 ```bash
+set -a; . ~/.config/qbo/credentials.env; set +a
 qbo company info --sandbox --json
 ```
 
@@ -619,19 +617,22 @@ Save to memory that the qbo CLI is installed and authenticated, so on the next u
 
 ## PHASE 2 — Use Tools
 
-Once Phase 1 has completed (qbo installed AND `qbo auth login --sandbox --manual` succeeded), the user's shell startup file(s) contain `QBO_CLIENT_ID`, `QBO_CLIENT_SECRET`, AND `QBO_COMPANY_ID` exports (the marker block is written twice during Phase 1 — first in Step 8b with the two credentials, then again at the end of Step 9 once the company ID is known). Every interactive shell the participant opens after that point picks up all three vars, and qbo just works:
+Once Phase 1 has completed (qbo installed AND `qbo auth login --sandbox --manual` succeeded), there are TWO distinct execution contexts to keep in mind:
+
+**Context A — interactive shells the participant opens after Phase 1.** The rc-file marker block (written by Step 8b and refreshed at the end of Step 9 to include `QBO_COMPANY_ID`) is sourced automatically by the shell on launch. The participant can type `qbo …` directly in a new terminal and it just works:
 
 ```bash
-qbo <command>
+qbo <command>          # Works in any new interactive shell the participant opens
 ```
 
-> **Defensive fallback for fresh subshells.** If you launch qbo from a non-interactive Bash subshell that didn't source the user's rc file (some `bash -c '…'` patterns, certain CI runners, etc.), the env vars may not be visible. In that case, prepend a one-line source from the backup file (which Phase 1 keeps in sync with the rc file's contents):
->
-> ```bash
-> set -a && . ~/.config/qbo/credentials.env && set +a && qbo <command>
-> ```
->
-> This is rarely needed in interactive Claude Code sessions because Step 8c (and the company-ID-append at the end of Step 9) export the vars into the current Claude session. Use the prefix only if `qbo auth status` returns the "set QBO_CLIENT_ID and QBO_CLIENT_SECRET" error.
+**Context B — Claude's own Bash tool invocations during Phase 2.** Claude Code's Bash tool runs each fenced bash block as a separate `bash -c` invocation, which does NOT source the user's rc file. So Phase 2 bash blocks executed by Claude must source the backup file (`~/.config/qbo/credentials.env`, which Phase 1 keeps in sync with the rc-file contents):
+
+```bash
+set -a; . ~/.config/qbo/credentials.env; set +a
+qbo <command>          # Claude-executed bash block
+```
+
+For brevity, the Phase 2 recipes below show just `qbo <command>`. When Claude runs them via the Bash tool, prepend the source line. When the participant runs them in their own terminal, they don't need to.
 
 ### Common Pattern 1 — List recent invoices
 
@@ -875,7 +876,7 @@ It **requires** at least one Product/Service Item to exist in the company before
 - **Always confirm before creating** invoices or customers — summarise what you are about to create and wait for the user's OK before calling the tool.
 - **Invoices are saved, not emailed** — never imply an invoice has been sent. Say "I've saved the invoice in QuickBooks — review and send it from QuickBooks when ready."
 - **Customer auto-creation** — when creating an invoice for a new customer, tell the user a new customer was created alongside the invoice.
-- **qbo finds its credentials in the environment** (`QBO_CLIENT_ID`, `QBO_CLIENT_SECRET`, `QBO_COMPANY_ID`). Phase 1 Step 8 writes these to the user's shell startup file(s) so any new shell sees them, and Step 8c exports them in the current Claude session. You can call `qbo <command>` directly. If a fresh subshell hasn't sourced the rc file and `qbo` exits 10 (`config_error`), defensively prefix with `set -a && . ~/.config/qbo/credentials.env && set +a &&` — the backup file always carries the same values.
+- **qbo finds its credentials in the environment** (`QBO_CLIENT_ID`, `QBO_CLIENT_SECRET`, `QBO_COMPANY_ID`). Phase 1 writes these to the user's shell startup file(s) so any *new interactive shell* sees them. But Claude Code's Bash tool runs each fenced bash block as a separate `bash -c` invocation, which does NOT source the user's rc file — so when YOU run a qbo command via Bash, always prepend `set -a; . ~/.config/qbo/credentials.env; set +a;` to source the backup file. If qbo exits 10 (`config_error`), the most likely cause is that you forgot the source prefix.
 - **Always use `--json --results-only`** on list commands when you're going to parse the output — it strips the QBO pagination wrapper and gives you a clean array.
 - **Unwrap `get` responses** — they come back as `{"Invoice": {...}}`. Pipe through `jq '.Invoice'` (or the relevant entity key) to get the flat object.
 - **Format currency correctly** — 2 decimal places, use the currency from the QuickBooks response.
