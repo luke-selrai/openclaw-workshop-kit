@@ -165,7 +165,7 @@ For each angle, generate multiple variations. Vary:
 
 ### Step 3: Validate Against Specs
 
-Before delivering, check every piece of creative against the platform's character limits. **Don't eyeball the counts — models miscount characters.** Put the variations into the bulk CSV format (see [Output Formats](#output-formats)) and run the checker:
+Before delivering, check every piece of creative against the platform's character limits. **Don't eyeball the counts — models miscount characters.** Save the variations to a CSV file in the bulk format (see [Output Formats](#output-formats) — one column per element, including `primary_text` / `intro_text` / `ad_text` / `tweet_text` where the platform uses them), then run the checker on that file:
 
 ```bash
 node skills/ad-creative/scripts/check-char-limits.mjs your-copy.csv
@@ -272,11 +272,26 @@ Organize by angle, with character counts:
 
 ### Bulk CSV Output
 
-When generating at scale (10+ variations), offer CSV format for direct upload:
+When generating at scale (10+ variations), offer CSV format for direct upload.
+
+**Use one column per copy element, named by its type, and always include a `platform` column.** The checker in Step 3 maps each column to a limit by its name (with any trailing number removed — `headline_1` and `headline_2` are both checked against the headline limit), so every field you put in a column gets validated. Column names the checker understands:
+
+`headline`, `description`, `primary_text` (Meta), `intro_text` (LinkedIn), `ad_text` (TikTok), `tweet_text` (X), `path` (Google display path).
+
+The columns differ by platform — include the elements that platform actually uses. **For Meta, LinkedIn, TikTok and X, the primary/intro/ad/tweet text is the field most likely to run over, so never leave it out.**
+
+Google Ads (RSA — headlines and descriptions):
 
 ```csv
-headline_1,headline_2,headline_3,description_1,description_2,platform
-"Stop Manual Reporting","Automate in 5 Minutes","Join 10K+ Teams","Save 10+ hrs/week on reports. Start free.","Connect data sources once. Reports forever.","google_ads"
+platform,headline_1,headline_2,headline_3,description_1,description_2
+google_ads,"Stop Manual Reporting","Automate in 5 Minutes","Join 10K+ Teams","Save 10+ hrs/week on reports. Start free.","Connect data sources once. Reports forever."
+```
+
+Meta (primary text included so it gets checked against the 125-char limit):
+
+```csv
+platform,primary_text,headline_1,description_1
+meta,"Staring at a blank page? Draft a full, on-brand blog post in minutes and ship 5x faster.","Write Blogs 5x Faster","Built for B2B SaaS teams."
 ```
 
 ### Iteration Report
