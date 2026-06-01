@@ -484,10 +484,71 @@ REALM_ID="$(sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' /tmp/qbo-auth.log | grep -oE 'au
 
 If the loop times out without success, read the full log for the actual error and diagnose. Common causes: the `http://localhost:8844/callback` redirect URI hasn't propagated yet on Intuit's side (re-check Step 6 ran and saved), or the participant cancelled the consent flow in Playwright.
 
-**Persist `QBO_COMPANY_ID`** to both the backup file and the rc file(s) so future `qbo` invocations don't need `--company-id`. Step 8b's `write_qbo_block_bash` / `write_qbo_block_pwsh` helpers iterate the fixed list `QBO_CLIENT_ID QBO_CLIENT_SECRET QBO_COMPANY_ID` and emit `export` lines only for vars that are set in the env at call time. So after exporting `QBO_COMPANY_ID`, re-calling the same helpers refreshes the marker block to include all three:
+**Persist `QBO_COMPANY_ID`** to both the backup file and the rc file(s) so future `qbo` invocations don't need `--company-id`. The `write_qbo_block_bash` / `write_qbo_block_pwsh` helpers iterate the fixed list `QBO_CLIENT_ID QBO_CLIENT_SECRET QBO_COMPANY_ID` and emit `export` lines only for vars that are set in the env at call time. So after exporting `QBO_COMPANY_ID`, calling the same helpers refreshes the marker block to include all three.
+
+This bash block is **self-contained** — it redefines the helper functions inline because Claude Code runs each fenced bash block as a separate `bash -c` invocation, so the function definitions from Step 8b's block do NOT persist into this one. If you update the helper bodies, update them in BOTH Step 8b and here.
 
 ```bash
-# Backup file — append QBO_COMPANY_ID (idempotent: grep-or-append, no dupes on re-run)
+set -a; . ~/.config/qbo/credentials.env; set +a
+export QBO_COMPANY_ID="${REALM_ID}"
+
+# --- Re-define helpers (identical to Step 8b — keep in sync if either is updated) ---
+write_qbo_block_bash() {
+  local rc="$1"
+  local begin="# === BEGIN qbo credentials (managed by claude-workshop-kit) ==="
+  local end="# === END qbo credentials ==="
+  local var val
+  mkdir -p "$(dirname "$rc")" 2>/dev/null || true
+  touch "$rc"
+  awk -v b="$begin" -v e="$end" '
+    BEGIN { in_block = 0; pending = "" }
+    $0 == b { in_block = 1; pending = ""; next }
+    in_block && $0 == e { in_block = 0; next }
+    in_block { next }
+    /^[[:space:]]*$/ { pending = pending $0 "\n"; next }
+    { printf "%s", pending; pending = ""; print }
+    END { printf "%s", pending }
+  ' "$rc" > "$rc.tmp" && mv "$rc.tmp" "$rc"
+  [ -n "$(tail -n 1 "$rc")" ] && echo "" >> "$rc"
+  {
+    echo "$begin"
+    for var in QBO_CLIENT_ID QBO_CLIENT_SECRET QBO_COMPANY_ID; do
+      val="$(printenv "$var" 2>/dev/null)"
+      [ -n "$val" ] && printf 'export %s=%q\n' "$var" "$val"
+    done
+    echo "$end"
+  } >> "$rc"
+}
+
+write_qbo_block_pwsh() {
+  local profile="$1"
+  local begin="# === BEGIN qbo credentials (managed by claude-workshop-kit) ==="
+  local end="# === END qbo credentials ==="
+  local var val
+  mkdir -p "$(dirname "$profile")" 2>/dev/null || true
+  touch "$profile"
+  awk -v b="$begin" -v e="$end" '
+    BEGIN { in_block = 0; pending = "" }
+    $0 == b { in_block = 1; pending = ""; next }
+    in_block && $0 == e { in_block = 0; next }
+    in_block { next }
+    /^[[:space:]]*$/ { pending = pending $0 "\n"; next }
+    { printf "%s", pending; pending = ""; print }
+    END { printf "%s", pending }
+  ' "$profile" > "$profile.tmp" && mv "$profile.tmp" "$profile"
+  [ -n "$(tail -n 1 "$profile")" ] && echo "" >> "$profile"
+  {
+    echo "$begin"
+    for var in QBO_CLIENT_ID QBO_CLIENT_SECRET QBO_COMPANY_ID; do
+      val="$(printenv "$var" 2>/dev/null)"
+      [ -n "$val" ] && printf "\$env:%s = '%s'\n" "$var" "$val"
+    done
+    echo "$end"
+  } >> "$profile"
+}
+# --- end helpers ---
+
+# Backup file — idempotent grep-or-append, no dupes on re-run
 mkdir -p ~/.config/qbo
 umask 077
 if grep -q '^QBO_COMPANY_ID=' ~/.config/qbo/credentials.env 2>/dev/null; then
@@ -498,11 +559,8 @@ else
 fi
 chmod 600 ~/.config/qbo/credentials.env
 
-# Export in current Claude session so the helpers see it
-export QBO_COMPANY_ID="${REALM_ID}"
-
-# Re-call the same Step-8b dispatch — the helpers detect the existing block, delete it,
-# and append a fresh one with all THREE vars now present. Re-run is idempotent.
+# rc file(s) — same dispatch as Step 8b, now with QBO_COMPANY_ID also in the env so the
+# helpers emit the 3-export block (replacing the prior 2-export block). Re-run idempotent.
 case "$(uname -s)" in
   Darwin)
     write_qbo_block_bash "$HOME/.zshrc"
@@ -525,7 +583,7 @@ case "$(uname -s)" in
 esac
 ```
 
-> **Why the iterate-and-detect pattern.** The first call (Step 8b) runs before `qbo auth login`, when only `QBO_CLIENT_ID` and `QBO_CLIENT_SECRET` are known. The second call (here) runs after `qbo auth login` succeeds and `QBO_COMPANY_ID` has been exported. Same helper, same files, no duplication — the awk delete removes the prior 2-var block before appending the new 3-var block. After Phase 1 completes, every relevant rc file contains all three exports.
+> **Why the iterate-and-detect pattern.** The first call (Step 8b) runs before `qbo auth login`, when only `QBO_CLIENT_ID` and `QBO_CLIENT_SECRET` are known. The second call (here) runs after `qbo auth login` succeeds and `QBO_COMPANY_ID` has been exported. Same helper logic, same files — the awk delete removes the prior 2-var block before appending the new 3-var block. After Phase 1 completes, every relevant rc file contains all three exports.
 
 > **Empirical history.** This Step 9 was verified live 2026-06-01 on Linux + Hyprland (Wayland). qbo auth login --sandbox --manual completed in ~3 seconds with no fifo, no stdin pipe, no pty wrapper. The persistent Playwright profile's stored Intuit consent meant the auth URL auto-redirected to `localhost:8844/callback` and qbo's listener caught it cleanly. macOS + Windows variants of this Step 9 follow the same shape (the `--manual` flag has identical semantics across all three platforms per the Go source at `github.com/voska/qbo-cli/internal/auth/oauth.go:182`), but have not been end-to-end tested in this PR. Reviewers walking the install on macOS or Windows should flag any divergence.
 
