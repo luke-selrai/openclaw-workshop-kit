@@ -2,7 +2,7 @@
 name: ad-creative
 description: "When the user wants to generate, iterate, or scale ad creative — headlines, descriptions, primary text, or full ad variations — for any paid advertising platform. Also use when the user mentions 'ad copy variations,' 'ad creative,' 'generate headlines,' 'RSA headlines,' 'bulk ad copy,' 'ad iterations,' 'creative testing,' 'ad performance optimization,' 'write me some ads,' 'Facebook ad copy,' 'Google ad headlines,' 'LinkedIn ad text,' or 'I need more ad variations.' Use this whenever someone needs to produce ad copy at scale or iterate on existing ads. For campaign strategy and targeting, see paid-ads. For landing page copy, see copywriting."
 metadata:
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # Ad Creative
@@ -165,7 +165,13 @@ For each angle, generate multiple variations. Vary:
 
 ### Step 3: Validate Against Specs
 
-Before delivering, check every piece of creative against the platform's character limits. Flag anything that's over and provide a trimmed alternative.
+Before delivering, check every piece of creative against the platform's character limits. **Don't eyeball the counts — models miscount characters.** Put the variations into the bulk CSV format (see [Output Formats](#output-formats)) and run the checker:
+
+```bash
+node skills/ad-creative/scripts/check-char-limits.mjs your-copy.csv
+```
+
+It checks every cell against that row's platform limits and reports all violations — `ERROR` means the platform truncates or rejects the copy, `WARN` means it may truncate in some placements. Trim anything flagged and provide an alternative that fits.
 
 ### Step 4: Organize for Upload
 
@@ -308,7 +314,7 @@ For large-scale creative production (Anthropic's growth team generates 100+ vari
 - Wave 3: Wild card angles (contrarian, emotional, specific)
 
 ### 3. Quality filter
-- Remove anything over character limit
+- Run `node skills/ad-creative/scripts/check-char-limits.mjs <batch>.csv` to catch every over-limit line — don't rely on eyeballed counts
 - Remove duplicates or near-duplicates
 - Flag anything that might violate platform policies
 - Ensure headline/description combinations make sense together
@@ -328,28 +334,14 @@ For large-scale creative production (Anthropic's growth team generates 100+ vari
 
 ---
 
-## Tool Integrations
+## Pulling Performance Data
 
-For pulling performance data and managing campaigns, see the [tools registry](../../tools/REGISTRY.md).
+To iterate on live ads (Mode 2) you need recent performance numbers. How you get them depends on the platform:
 
-| Platform | Pull Performance Data | Manage Campaigns | Guide |
-|----------|:---------------------:|:----------------:|-------|
-| **Google Ads** | `google-ads campaigns list`, `google-ads reports get` | `google-ads campaigns create` | [google-ads.md](../../tools/integrations/google-ads.md) |
-| **Meta Ads** | `meta-ads insights get` | `meta-ads campaigns list` | [meta-ads.md](../../tools/integrations/meta-ads.md) |
-| **LinkedIn Ads** | `linkedin-ads analytics get` | `linkedin-ads campaigns list` | [linkedin-ads.md](../../tools/integrations/linkedin-ads.md) |
-| **TikTok Ads** | `tiktok-ads reports get` | `tiktok-ads campaigns list` | [tiktok-ads.md](../../tools/integrations/tiktok-ads.md) |
+- **Meta (Facebook / Instagram):** if the [meta-business-suite-connector](../meta-business-suite-connector/SKILL.md) is set up, pull ad and campaign performance through it directly. If it isn't, offer to set it up, or have the user export the report from Meta Ads Manager.
+- **Google Ads, LinkedIn, TikTok, X:** the kit has no direct connection for these yet. Have the user export the ad-performance report as a spreadsheet from the platform's own reporting (Google Ads → Reports; LinkedIn → Campaign Manager → Export; TikTok → Reporting), then paste the rows in or point this skill at the saved file.
 
-### Workflow: Pull Data, Analyze, Generate
-
-```bash
-# 1. Pull recent ad performance
-node tools/clis/google-ads.js reports get --type ad_performance --date-range last_30_days
-
-# 2. Analyze output (identify top/bottom performers)
-# 3. Feed winning patterns into this skill
-# 4. Generate new variations
-# 5. Upload to platform
-```
+Either way, hand the performance rows to **Mode 2** above — the skill analyzes winners and losers and generates the next round of variations.
 
 ---
 
@@ -357,6 +349,6 @@ node tools/clis/google-ads.js reports get --type ad_performance --date-range las
 
 - **paid-ads**: For campaign strategy, targeting, budgets, and optimization
 - **copywriting**: For landing page copy (where ad traffic lands)
-- **ab-test-setup**: For structuring creative tests with statistical rigor
-- **marketing-psychology**: For psychological principles behind high-performing creative
-- **copy-editing**: For polishing ad copy before launch
+- **direct-response-copy**: For persuasion frameworks and high-converting copy structures
+- **social-content**: For organic social posts that complement paid campaigns
+- **content-marketer**: For the broader content strategy ad creative plugs into
