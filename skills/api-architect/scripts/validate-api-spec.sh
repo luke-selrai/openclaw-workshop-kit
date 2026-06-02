@@ -6,6 +6,7 @@ set -e
 
 ERRORS=0
 WARNINGS=0
+CHECKED=0
 
 echo "═══════════════════════════════════════════════════════════════"
 echo "API Architect Skill Validator"
@@ -25,11 +26,18 @@ check_openapi() {
         fi
 
         echo "  Checking: $spec"
+        CHECKED=$((CHECKED + 1))
 
         # Check for version
         if ! grep -qE "openapi:\s*(3\.[0-9]+\.[0-9]+)" "$spec" 2>/dev/null; then
             echo "⚠️  WARN: $spec may be using outdated OpenAPI version (prefer 3.0+)"
             WARNINGS=$((WARNINGS + 1))
+        fi
+
+        # Check for the 3.1 'nullable' removal (a grep-passable spec a real parser rejects)
+        if grep -qE "openapi:\s*3\.1" "$spec" 2>/dev/null && grep -qE "^\s*nullable:" "$spec" 2>/dev/null; then
+            echo "❌ ERROR: $spec declares OpenAPI 3.1 but uses 'nullable' (removed in 3.1 — use type: [<type>, \"null\"])"
+            ERRORS=$((ERRORS + 1))
         fi
 
         # Check for info section
@@ -83,6 +91,7 @@ check_graphql() {
         [ -f "$schema" ] || continue
 
         echo "  Checking: $schema"
+        CHECKED=$((CHECKED + 1))
 
         # Check for Query type
         if ! grep -q "type Query" "$schema" 2>/dev/null; then
@@ -125,6 +134,7 @@ check_protobuf() {
         [ -f "$proto" ] || continue
 
         echo "  Checking: $proto"
+        CHECKED=$((CHECKED + 1))
 
         # Check for syntax version
         if ! grep -q 'syntax = "proto3"' "$proto" 2>/dev/null; then
@@ -173,6 +183,7 @@ check_webhooks() {
         fi
 
         echo "  Checking: $file"
+        CHECKED=$((CHECKED + 1))
 
         if ! grep -qiE "retr(y|ies)|backoff|max_attempts" "$file" 2>/dev/null; then
             echo "⚠️  WARN: $file webhook config missing a retry policy (use at-least-once + backoff)"
@@ -232,9 +243,18 @@ echo ""
 echo "═══════════════════════════════════════════════════════════════"
 echo "Validation Complete"
 echo "═══════════════════════════════════════════════════════════════"
+echo "Files checked: $CHECKED"
 echo "Errors:   $ERRORS"
 echo "Warnings: $WARNINGS"
 echo ""
+
+# A run that inspected zero specs must not report a green pass — a "✅" on
+# nothing reads as validated when it isn't (e.g. run from the wrong directory).
+if [ $CHECKED -eq 0 ]; then
+    echo "⚠️  Validation INCONCLUSIVE - no OpenAPI/GraphQL/proto/webhook specs found here"
+    echo "   (run this from a directory that contains your API specs)"
+    exit 2
+fi
 
 if [ $ERRORS -gt 0 ]; then
     echo "❌ Validation FAILED - fix errors before publishing API"

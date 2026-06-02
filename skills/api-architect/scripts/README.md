@@ -46,9 +46,14 @@ subdirectories.
 | No errors, ≤5 warnings | `0` | `✅ Validation PASSED` |
 | No errors, >5 warnings | `0` | `⚠️  Validation PASSED with warnings` |
 | Any error | `1` | `❌ Validation FAILED` |
+| No specs found to check | `2` | `⚠️  Validation INCONCLUSIVE` |
 
-Errors are blockers (verb URLs, missing `info`/`package`, field-number 0).
-Warnings are advisories you should review but that won't fail CI.
+Errors are blockers (verb URLs, missing `info`/`package`, field-number 0,
+`nullable` in an OpenAPI 3.1 spec). Warnings are advisories you should review
+but that won't fail CI. Exit `2` means the script ran against a directory with
+no API specs — a green pass on nothing would be misleading, so it's called out
+separately. The summary prints a `Files checked:` count so you can confirm it
+actually inspected what you expected.
 
 ## Sample run — PASS
 
@@ -67,6 +72,7 @@ $ cd references && bash ../scripts/validate-api-spec.sh
 🔍 Checking for common API design issues...
   Versioning strategy detected ✅
 
+Files checked: 4
 Errors:   0
 Warnings: 0
 ✅ Validation PASSED
@@ -94,6 +100,7 @@ $ bash validate-api-spec.sh
 ⚠️  WARN: hooks.yaml webhook config missing a retry policy (use at-least-once + backoff)
 ⚠️  WARN: hooks.yaml webhook config missing request signing (receivers can't verify authenticity)
 
+Files checked: 2
 Errors:   2
 Warnings: 6
 ❌ Validation FAILED - fix errors before publishing API

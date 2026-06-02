@@ -28,6 +28,11 @@ skill at "Promising" (Evidence=3).
   (regex required a trailing slash)
 - SKILL.md reference table replaced stale line-count column (counts had
   drifted: grpc 95→102, rate-limiting 85→98, etc.) with content summaries
+- `validate-api-spec.sh` now errors on `nullable` in an OpenAPI 3.1 spec
+  (removed in 3.1; the grep validator previously passed specs a real parser
+  rejects). Surfaced by a skill-qa-harness live run.
+- `validate-api-spec.sh` no longer prints a green pass when it inspected zero
+  specs — it reports `Files checked:` and exits `2` (INCONCLUSIVE) instead
 
 ## [2.0.0] - 2024-12-12
 
