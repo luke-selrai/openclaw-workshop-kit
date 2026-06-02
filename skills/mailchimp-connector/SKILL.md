@@ -110,48 +110,36 @@ Send one short message:
 
 > "Great — connecting your Mailchimp. I'll open Mailchimp's settings in a small browser window. Please sign in (and approve any verification code Mailchimp sends to your phone or email) — I'll do the rest. About a minute."
 
-### Step 2 — Open Mailchimp API keys page
+### Step 2 — Open Mailchimp's Create-API-Key modal directly
 
 ```
-mcp__playwright__browser_navigate({ url: "https://admin.mailchimp.com/account/api/" })
+mcp__playwright__browser_navigate({ url: "https://admin.mailchimp.com/account/api/manage/" })
 ```
+
+**Critical: navigate to `/account/api/manage/`, NOT `/account/api/`.** Mailchimp's settings UI is now wrapped in an Intuit-owned shell (`uxfabric.app.intuit.com` plumbing — Intuit acquired Mailchimp in 2021). The legacy `/account/api/` route renders the API keys listing **inside an iframe** (`id="fallback"` at `/i/account/api/`), which Playwright's outer-document DOM queries cannot reach without `frameLocator`-style traversal. The `/account/api/manage/` route auto-opens the **"Name New API Key" modal at the outer shell level** — same modal you'd reach by clicking the iframe's "Create A Key" button, but accessible from the top frame directly. This was verified live on rodolfo@selrai.com.au's account 2026-06-02.
 
 **Do NOT snapshot the sign-in page** (password-leak risk — see `reference_playwright_snapshot_password_leak`). Use:
 
 ```
-mcp__playwright__browser_wait_for({ text: "API keys", time: 60 })
+mcp__playwright__browser_wait_for({ text: "Name New API Key", time: 60 })
 ```
 
-If the participant has multiple Mailchimp accounts on their Google sign-on, Mailchimp may present an account-chooser before the API keys page renders. Wait for `API keys` to appear; if the participant gets stuck on the chooser, check in: *"Which Mailchimp account should I connect to?"* and wait for their reply.
+The text "Name New API Key" is the modal heading and only appears post-sign-in once the modal renders. If the participant has multiple Mailchimp accounts on their Google sign-on, Mailchimp may present an account-chooser before the page renders. Wait for the heading; if the participant gets stuck on the chooser, check in: *"Which Mailchimp account should I connect to?"* and wait for their reply.
 
-### Step 3 — Generate a new API key
+> **Onboarding note**: brand-new Mailchimp accounts (those still on the 5-step onboarding wizard at the dashboard) can reach the API keys modal anyway — the wizard is non-blocking. Don't make the participant complete the wizard first.
 
-The API keys page lists existing keys (if any) plus a `Create A Key` button (variants: "Create Key", "Create new key" — Mailchimp's button copy changes over time, so match by intent not exact text).
+### Step 3 — Fill the name field and click Generate Key
 
-Click the create button via `browser_evaluate`:
+The `/account/api/manage/` route auto-opens the **"Name New API Key" modal** — no separate Create button click needed. The modal contains a single text input (labeled `API Key Name`) and a `Generate Key` button.
+
+Fill the name via React-friendly setter (the modal's input is the only visible text input on the page when the modal is open):
 
 ```js
 () => {
-  const btn = Array.from(document.querySelectorAll('button, a')).find(b => /^create.*key$/i.test((b.innerText||'').trim()));
-  if (!btn) return { ok: false, reason: 'no_create_button' };
-  btn.scrollIntoView({ block: 'center' });
-  btn.click();
-  return { ok: true };
-}
-```
-
-Mailchimp typically opens a small dialog asking for a key name. Fill `Claude Workshop Connector`:
-
-```js
-() => {
-  // Find the visible name input in the create-key dialog
   const inputs = Array.from(document.querySelectorAll('input[type="text"], input:not([type])'));
-  const target = inputs.find(i => {
-    const aria = (i.getAttribute('aria-label') || '').toLowerCase();
-    const placeholder = (i.placeholder || '').toLowerCase();
-    return /name|label|key name/.test(aria + placeholder);
-  });
-  if (!target) return { ok: false };
+  const visible = inputs.filter(i => i.offsetWidth > 0 && i.offsetHeight > 0);
+  if (visible.length === 0) return { ok: false, reason: 'no_visible_input' };
+  const target = visible[0];
   const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
   target.focus();
   setter.call(target, 'Claude Workshop Connector');
@@ -161,18 +149,21 @@ Mailchimp typically opens a small dialog asking for a key name. Fill `Claude Wor
 }
 ```
 
-Then click the dialog's submit button (`Create`, `Generate`, `Save`):
+Then click the dialog's `Generate Key` button:
 
 ```js
 () => {
-  const btn = Array.from(document.querySelectorAll('button')).find(b => /^(create|generate|save)$/i.test((b.innerText||'').trim()) && !b.disabled);
+  const btn = Array.from(document.querySelectorAll('button')).find(b => /^generate key$/i.test((b.innerText||'').trim()) && !b.disabled);
   if (!btn) return { ok: false };
+  btn.scrollIntoView({ block: 'center' });
   btn.click();
   return { ok: true };
 }
 ```
 
-Mailchimp shows the key value ONCE on the post-create screen — the same key is never displayed again after the page is reloaded. Phase 1 captures it in Step 4 below before any navigation away.
+After ~2-4 seconds Mailchimp generates and displays the new key on the same page (no navigation). The key is shown **once** — closing or refreshing the page makes it unrecoverable. Step 4 captures it immediately.
+
+> **Button-copy reality check (2026-06-02)**: the button reads `Generate Key` (not `Create`, `Save`, `Submit`). The regex above is intentionally strict to this — broader variants like `/^(generate|create|save)/i` would match unrelated buttons elsewhere on the page (e.g., the top-nav `Create` campaign button). If Mailchimp's button copy drifts in future, snapshot the dialog to find the new label.
 
 ### Step 4 — DOM-extract the API key via clipboard transit
 
@@ -190,7 +181,7 @@ Then extract:
 ```js
 async () => {
   // Find any element whose visible text matches Mailchimp's API-key shape: 32 hex chars + '-' + dc prefix
-  const re = /\b([a-f0-9]{30,34}-[a-z]{2}[0-9]{1,3})\b/i;
+  const re = /\b([a-f0-9]{30,36}-[a-z]{2,4}[0-9]{1,3})\b/i;
   const all = Array.from(document.querySelectorAll('input, code, span, div, p, pre'));
   for (const el of all) {
     const v = (el.value || el.innerText || el.textContent || '').trim();
