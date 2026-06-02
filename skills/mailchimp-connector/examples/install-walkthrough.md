@@ -176,7 +176,7 @@ Claude:      Added hello@example.com to your Newsletter audience.
 | Step 2 (Playwright navigate + wait for API keys page) | 30 s if signed in / +60 s for cold sign-in |
 | Step 3 (Create key dialog + submit) | 8 s |
 | Step 4 (DOM-extract via clipboard transit) | 1 s |
-| Step 5 (.env write + clipboard restore) | 0.5 s |
+| Step 5 (credentials.json write + clipboard restore) | 0.5 s |
 | Step 6 (smoke ping) | 1 s |
 | **Total** | **~40 s for cached session; ~100 s cold** |
 
