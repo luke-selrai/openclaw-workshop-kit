@@ -1,6 +1,6 @@
 ---
 name: gusto-connector
-description: "Connect and operate Gusto payroll (read company info, employees, pay schedules, payroll history, employee compensation, year-to-date earnings, time-off requests; approve/deny time-off requests). Tier-1 connector for US SMBs running W-2 payroll. Direct-REST against Gusto API v1 (api.gusto.com or api-demo.gusto.com). OAuth2 partner-app auth — each participant creates their own Partner Application at dev.gusto.com (or dev-demo.gusto.com for the test sandbox). Phase 0 defaults to Demo mode (instant setup, fake payroll data at api-demo.gusto.com, no Gusto review required); Production mode is opt-in and requires a ~1-2 week Gusto partner-app review before live customer data is accessible. Phase 2 writes (approve/deny time-off) are gated by per-call confirmation prose in Production mode; freely callable in Demo. Running payroll (POST /payrolls/{id}/submit) is NOT in v1 — too high-stakes; tracked as v2 enhancement. Use this skill when the user asks about their Gusto, says 'connect Gusto', asks about employees / payroll / pay schedule / time off / W-2 / paychecks / compensation. On the first use of any Gusto feature, run Phase 0 then Phase 1 before any tool call."
+description: "Connect and operate Gusto payroll (read company info, employees, pay schedules, payroll history, employee compensation, year-to-date earnings, time-off requests; approve/deny time-off requests). Tier-1 connector for US SMBs running W-2 payroll. Direct-REST against Gusto API v1 (api.gusto.com for Production or api-demo.gusto.com for Demo). OAuth2 partner-app auth — each participant creates their own Partner Application at dev.gusto.com, which serves both Demo and Production app settings as separate tabs in the same dev portal. Phase 0 defaults to Demo mode (instant setup, fake payroll data at api-demo.gusto.com, no Gusto review required); Production mode is opt-in and requires a ~1-2 week Gusto partner-app review before live customer data is accessible. Phase 2 writes (approve/deny time-off) are gated by per-call confirmation prose in Production mode; freely callable in Demo. Running payroll (POST /payrolls/{id}/submit) is NOT in v1 — too high-stakes; tracked as v2 enhancement. Use this skill when the user asks about their Gusto, says 'connect Gusto', asks about employees / payroll / pay schedule / time off / W-2 / paychecks / compensation. On the first use of any Gusto feature, run Phase 0 then Phase 1 before any tool call."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -182,7 +182,34 @@ If creating a new app, fill the form via React-friendly setter:
 | Redirect URI | `http://localhost:8765/callback` |
 | Scopes | Check `companies:read`, `employees:read`, `payrolls:read`, `time_off_requests:read`, `time_off_requests:write` |
 
-For Demo mode, Gusto issues credentials immediately. For Production mode, a "Submit for review" button appears after save — clicking it triggers the 1-2 week review; in that case set `mode=pending-production` in credentials.json.
+For Demo mode, Gusto issues credentials immediately. For Production mode, a "Submit for review" button appears after save — clicking it triggers the 1-2 week review.
+
+**When Production review is kicked off**, persist a partial credentials.json immediately so Phase 0.3 can poll for approval on future sessions:
+
+```bash
+mkdir -p "$HOME/.config/gusto"
+chmod 700 "$HOME/.config/gusto"
+umask 077
+
+# Capture client_id/client_secret already via Step 4 below; here we ALSO record the pending-production marker
+APPLIED_AT="$(python3 -c 'import datetime; print(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"))')"
+
+jq -n \
+  --arg cid "$CLIENT_ID" \
+  --arg csec "$CLIENT_SECRET" \
+  --arg ap "$APPLIED_AT" \
+  '{mode:"pending-production",
+    client_id:$cid, client_secret:$csec,
+    api_endpoint:"https://api.gusto.com/v1",
+    production_application:{applied_at:$ap, status:"submitted"}}' \
+  > "$HOME/.config/gusto/credentials.json.tmp"
+chmod 600 "$HOME/.config/gusto/credentials.json.tmp"
+mv "$HOME/.config/gusto/credentials.json.tmp" "$HOME/.config/gusto/credentials.json"
+```
+
+(The full token write happens in Step 9 once Gusto approves and OAuth completes. Until then `access_token`/`refresh_token`/`company_uuid`/`expires_at` are absent from the file — Phase 0.3 detects this absence to know the application is still pending.)
+
+Optionally, in Production mode, also drop the participant into Demo mode in parallel so they have a working connection while waiting: run the rest of Phase 1 against the Demo tab as a fallback (`MODE=demo` for the actual token capture path), and store the demo tokens alongside the pending-production marker. Phase 2 uses Demo creds; Phase 0.3 watches for Production approval.
 
 ### Step 4 — DOM-extract client_id and client_secret via clipboard transit
 
@@ -603,7 +630,7 @@ It **cannot**:
 - **Modify pay rates** — `PUT /jobs/{id}/compensations` writes affect every future paycheck; v1 keeps these read-only.
 - **Issue tax forms** (W-2, 1099) — separate API surface, complex compliance.
 - **Run reports on benefits / 401(k)** — separate API endpoints; not in v1's 10 patterns.
-- **Production-mode access without partner-app review** — Gusto requires a 1-2 week review for production access. The SKILL kicks off the application in Phase 1L (Production) but cannot bypass the wait.
+- **Production-mode access without partner-app review** — Gusto requires a 1-2 week review for production access. The SKILL kicks off the application in Phase 1 Step 3's Production-tab submit path but cannot bypass the wait. Phase 0.3 polls for approval status on subsequent sessions.
 
 It **requires** the participant to be a payroll admin on the company (other Gusto roles like `manager`, `accountant`, `employee_self_service` have limited or no API access).
 
