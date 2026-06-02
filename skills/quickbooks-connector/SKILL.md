@@ -619,16 +619,14 @@ ls -la "$PAGES_DIR/legal/" "$PAGES_DIR/qbo/"
 wrangler pages deploy "$PAGES_DIR" --project-name="$SLUG" --branch=main 2>&1 | tee /tmp/wrangler-pages-deploy.log | tail -10
 ```
 
-On success, the log contains a deployment URL like `https://<deploy-id>.<slug>.pages.dev` AND a stable alias `https://<slug>.pages.dev`. Capture the stable alias:
+On success, the log contains a per-deploy URL like `https://<deploy-id>.<slug>.pages.dev` AND a stable project alias `https://<slug>.pages.dev`. The Intuit form needs the stable alias, which is deterministic from the `$SLUG` we set in 1L-A.3 — construct it directly instead of parsing the log:
 
 ```bash
-PAGES_URL="$(grep -oE 'https://[a-z0-9-]+\.pages\.dev' /tmp/wrangler-pages-deploy.log | grep -v -- '-' | head -1)"
-# Fallback if the no-dash filter misses
-if [ -z "$PAGES_URL" ]; then
-  PAGES_URL="https://${SLUG}.pages.dev"
-fi
+PAGES_URL="https://${SLUG}.pages.dev"
 echo "$PAGES_URL"
 ```
+
+(Cloudflare Pages always exposes `https://<project-name>.pages.dev` as the stable alias for the project's production branch; we set `--branch=main` in 1L-A.4 so the production-branch alias is what we get.)
 
 #### 1L-A.5 — Smoke-test all 4 URLs
 
