@@ -731,11 +731,15 @@ Expect `google_ads: pipx run ... - ✓ Connected`. If `✗ Failed to connect`, t
 
 ### Step 1F.5 — Prompt restart Claude Code
 
-Phase 1T (or 1L) already shows the participant a "you're connected — restart Claude Code" message after writing `credentials.json`. When Phase 1F also runs successfully, fold the new tools into that same message rather than asking the participant to restart twice:
+A restart is required only because Phase 1F registered a new MCP server (`google_ads`); the new `mcp__google_ads__*` tools only enter Claude Code's deferred-tool surface after the MCP runtime reconciles them at startup. Phase 1T's and Phase 1L's completion prose (the *"All connected — your Google Ads test account is ready"* / *"Google approved you"* messages) deliberately omits any restart instruction so the SKILL can decide where to place it based on whether Phase 1F ran.
+
+If Phase 1F ran successfully, replace Phase 1T's / 1L's plain completion message with a restart-prompt variant:
 
 > "All connected. One last step: please close this window and reopen Claude Code, then say hi. The Google Ads tools will be ready for you."
 
-After restart, the `mcp__google_ads__search`, `mcp__google_ads__list_accessible_customers`, and `mcp__google_ads__get_resource_metadata` tools appear in Claude's deferred-tool surface (verify via `ToolSearch +google_ads`).
+If Phase 1F was skipped (`.mcp-skipped` marker present), keep the original Phase 1T / 1L completion message — no restart needed, reads route through direct REST immediately.
+
+After restart, verify the tools appeared via `ToolSearch +google_ads` — expect `mcp__google_ads__search`, `mcp__google_ads__list_accessible_customers`, `mcp__google_ads__get_resource_metadata`.
 
 ### Phase 1F skip-state
 
