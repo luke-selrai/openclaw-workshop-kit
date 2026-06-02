@@ -11,7 +11,7 @@ This walkthrough documents the **default install path** (Phase 0 → Phase 1 →
 - Internet access (admin.mailchimp.com + the participant's data-center API endpoint, e.g., `us8.api.mailchimp.com`).
 - Participant has a Mailchimp account (free tier is fine — Mailchimp's free tier supports up to 500 contacts and full API access).
 
-Captured run total time: ~3-4 minutes including Mailchimp account creation (which the participant did mid-flow); ~40 seconds end-to-end on the technical install once signed in. See the timing table below for per-step breakdown.
+Captured run total time: ~3-4 minutes including Mailchimp account creation (which the participant did mid-flow); ~20 seconds end-to-end on the technical install once signed in. See the timing table below for per-step breakdown.
 
 ---
 
