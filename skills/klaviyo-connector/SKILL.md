@@ -513,7 +513,7 @@ Returns 202 + job id for async processing. Most suppressions are processed withi
 | HTTP 401 `unauthorized_request` | API key revoked / invalid | Translate: "Looks like the connection was disconnected — let me reconnect." Re-run Phase 1. |
 | HTTP 400 with `revision` in message | Klaviyo deprecated the revision constant the SKILL pins to | Bump the revision string in credentials.json + the SKILL's helper to a newer date (Klaviyo publishes revisions roughly every 3 months). |
 | HTTP 400 `validation_error` | Filter syntax wrong (Klaviyo's JSON:API filters are strict) | Diagnose silently, retry. |
-| HTTP 403 `insufficient_scope` | Private API key was created Read-only when the operation needs Full | Tell participant: "I need a key with full access — let me create a new one." Re-run Phase 1 Step 4 with Full scope. |
+| HTTP 403 `insufficient_scope` | Private API key was created as a `Read-Only Key` when the operation needs `Full Access Key` | Tell participant: "I need a key with full access — let me create a new one." Re-run Phase 1 Step 4 with the `Full Access Key` access level. |
 | HTTP 404 on `/profiles/<id>` | Profile id stale (deleted or never existed) | Re-fetch via Pattern 2 (filter by email). |
 | HTTP 429 | Hit Klaviyo's burst rate cap (75 req/s burst, 700 req/min steady on most endpoints) | Wait 30s, retry once. Surface plain English if still hitting. |
 | HTTP 202 with no `data.id` on writes | Async job queued; processing takes seconds-minutes | Note: this is success, not error. Tell participant the action is processing. |
@@ -542,7 +542,7 @@ It **cannot**:
 - **Coupon code generation** — Klaviyo's coupon endpoints are e-commerce-integration-specific; not in v1.
 - **SMS consent management** — SMS in Klaviyo has stricter consent requirements; v1 treats SMS campaigns as read-only.
 
-It **requires** the Private API key to have **Full** scope (not Read-only) for Patterns 5/9/10. Read-only keys work for Patterns 1-4 + 6-8.
+It **requires** the Private API key to be a `Full Access Key` (not `Read-Only Key`) for Patterns 5/9/10. `Read-Only Keys` work for Patterns 1-4 + 6-8.
 
 ---
 
