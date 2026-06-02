@@ -231,14 +231,14 @@ For Phase 2 failures, see the SKILL's Error Handling section.
 
 ---
 
-## Notes for the smoke runner
+## Notes from the captured run (2026-06-02)
 
-When the first real smoke is run, capture:
+| What was verified | Captured value |
+|---|---|
+| Button copy at Step 3 | Exactly **`Generate Key`** — not `Create`, `Save`, or `Submit`. SKILL Step 3 regex is `/^generate key$/i`. |
+| Inline vs dialog | **Modal at outer shell** (top-frame, NOT inside an iframe) — appears automatically when you land at `/account/api/manage/`. The legacy `/account/api/` route puts the key list inside an iframe (`id="fallback"`, `/i/account/api/`); the SKILL skips that entirely. |
+| 2FA on cold sign-in | Not encountered on the captured account (signup → dashboard direct, no 2FA prompt). Cold-path with 2FA still anticipated but not yet exercised; failure-modes table covers it. |
+| Real key length + DC suffix | `key_len: 36` (32 hex + `-` + `us8`); `dc: "us8"`. Within the SKILL's regex bounds `[a-f0-9]{30,36}-[a-z]{2,4}[0-9]{1,3}`. |
+| Total wall-clock | ~20s technical install (cached sign-in) + ~3 min Mailchimp account creation when fresh (outside SKILL scope). |
 
-1. **Exact button copy** at Step 3 (`Create A Key` vs `Create Key` vs `Create new key` vs something else).
-2. **Whether the key appears in a dialog or inline** at Step 3.
-3. **Whether Mailchimp triggers 2FA** for cold sign-in (Reference Run testing should use a fresh Playwright profile, not the persistent one used by other workshop connectors, to exercise the cold path).
-4. **Real key length and DC suffix** to confirm the regex `[a-f0-9]{30,34}-[a-z]{2}[0-9]{1,3}` matches Mailchimp's current format.
-5. **Total wall-clock** to compare against the projection above.
-
-The captured run replaces this document.
+This document supersedes the pre-capture projection. Future captured runs against different accounts (especially cold-path-with-2FA and Mailchimp's EU shards `eu1`) should append findings here rather than replacing.
