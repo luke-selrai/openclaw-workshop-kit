@@ -56,7 +56,7 @@ folder. Do not create a separate workspace anywhere else.
      - touch `./.first-run-pending`
    (On Windows PowerShell: `New-Item -ItemType File -Path .\.first-run-pending`.)
 
-4. Install all <!-- skills-audit:total -->183<!-- /skills-audit:total --> skills: copy every folder from `~/workshop-kit/skills/`
+4. Install all <!-- skills-audit:total -->184<!-- /skills-audit:total --> skills: copy every folder from `~/workshop-kit/skills/`
    into `~/.claude/skills/` (create the skills directory if it does not exist).
    Do not copy `SKILLS-LIST.md` — only the folders.
 
