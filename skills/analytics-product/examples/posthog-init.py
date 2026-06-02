@@ -7,7 +7,9 @@ match what your own users actually do before you ship this.
 
 Setup
 -----
-    pip install posthog python-dotenv
+    pip install "posthog>=7" python-dotenv
+
+This example targets the PostHog Python SDK v7+ (v7 removed identify(); use set()).
 
 Put a .env file beside this script:
 
@@ -71,7 +73,8 @@ def track(user_id: str, event: str, properties: dict | None = None) -> None:
 
 def identify(user_id: str, traits: dict) -> None:
     """Attach traits to a user so cohorts and funnels can segment on them."""
-    posthog.identify(
+    # PostHog 7.x removed identify(); set() updates the person's traits.
+    posthog.set(
         distinct_id=user_id,
         properties=traits,
     )

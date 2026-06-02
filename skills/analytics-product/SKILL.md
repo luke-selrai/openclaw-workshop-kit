@@ -89,7 +89,7 @@ PRODUCT_EVENTS = {
 
 ## PostHog Implementation (Python)
 
-> Setup: this snippet needs `posthog` installed and a PostHog project key. Run `pip install posthog python-dotenv` first, then put `POSTHOG_API_KEY=phc_...` in a `.env` file beside your script. The `load_dotenv()` call below reads it so you never hard-code the key. Use your PostHog PROJECT API key (the `phc_...` ingest key), NOT a personal API key. A runnable version of this wrapper ships at `examples/posthog-init.py`.
+> Setup: this snippet needs `posthog` installed and a PostHog project key. Run `pip install "posthog>=7" python-dotenv` first, then put `POSTHOG_API_KEY=phc_...` in a `.env` file beside your script. The `load_dotenv()` call below reads it so you never hard-code the key. Use your PostHog PROJECT API key (the `phc_...` ingest key), NOT a personal API key. A runnable version of this wrapper ships at `examples/posthog-init.py`. This targets PostHog Python SDK v7+ (v7 removed identify(); use set()).
 
 ```python
 from posthog import Posthog
@@ -111,7 +111,8 @@ def track(user_id: str, event: str, properties: dict = None):
     )
 
 def identify(user_id: str, traits: dict):
-    posthog.identify(
+    # PostHog 7.x removed identify(); set() updates the person's traits.
+    posthog.set(
         distinct_id=user_id,
         properties=traits
     )
