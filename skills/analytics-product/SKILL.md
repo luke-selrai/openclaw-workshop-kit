@@ -22,6 +22,8 @@ Product analytics skill covering PostHog, Mixpanel, events, funnels, cohorts, re
 
 > Note: Code examples throughout this skill use a sample SaaS product as reference — adapt event names, metrics, and targets to your own product.
 
+> You do not need to write code to use this skill. Just ask in plain language, for example "what events should I track?", "is this A/B test significant?", or "where are users dropping off in my funnel?", and it does the analysis and gives you the answer. The Python snippets and the `examples/` folder are optional. They are there for when you or a developer wire the numbers into a tool like PostHog.
+
 ## When to Use This Skill
 
 Reach for this skill when you say things like:
