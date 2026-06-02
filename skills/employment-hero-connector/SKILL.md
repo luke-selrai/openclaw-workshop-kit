@@ -237,15 +237,17 @@ If multiple businesses are visible, ask the participant which to connect.
 
 ### Step 8 — Save credentials.json
 
+Only the `api_key` came through the clipboard (Step 6). The `api_host` (from Step 3), `region` (derived from `api_host`), and `business_id` (from Step 7) are NOT clipboard values — they were returned as JS function results from Playwright `browser_evaluate` calls and must be captured into shell variables at that point (each `browser_evaluate` call in Steps 3 and 7 returns the value directly; assign them to `API_HOST`, `REGION`, `BUSINESS_ID` immediately in the Bash glue that wraps those Playwright calls).
+
+Once those four values are in scope as shell variables, write `credentials.json`:
+
 ```bash
+umask 077
 mkdir -p "$HOME/.config/employment-hero"
 chmod 700 "$HOME/.config/employment-hero"
-umask 077
 
 API_KEY="$(wl-paste | jq -r '.api_key')"
-REGION="$(wl-paste | jq -r '.region // "au"')"   # default au
-API_HOST="$(wl-paste | jq -r '.api_host')"
-BUSINESS_ID="$(wl-paste | jq -r '.business_id')"
+# API_HOST, REGION, BUSINESS_ID already set by the Bash wrappers around Steps 3 and 7
 
 jq -n \
   --arg key "$API_KEY" \
@@ -264,6 +266,8 @@ rm -f /tmp/employment-hero-prev-clipboard.b64
 
 unset API_KEY
 ```
+
+> **Why the variables differ from the clipboard**: the clipboard-transit pattern is for the **secret** (the API key). Non-secret values (region, api_host, business_id) don't need clipboard isolation; they're captured from the Playwright JS return values directly into shell variables in the same script step that ran the `browser_evaluate`. Pattern is: `RESULT="$(jq -r .api_host /tmp/playwright-region-result.json)"` after the Playwright call writes its return value to a known temp file, OR — cleaner — the Playwright wrapper Claude uses captures the JSON result and exports `API_HOST`/`REGION`/`BUSINESS_ID` directly. The exact wiring depends on how the Bash-Playwright glue is implemented in your runtime; what matters is that those three values are populated as shell variables at this point.
 
 ### Step 9 — Smoke test
 
