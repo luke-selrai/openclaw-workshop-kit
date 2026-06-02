@@ -42,7 +42,7 @@ mcp__playwright__browser_navigate({ url: "https://secure.employmenthero.com/" })
 
 Captured: page is two-step. First page shows "Welcome, please enter your email address" with a single email field. After Next, password page renders, then optional 2FA (and first-time 2FA enrolment also auto-downloads `eh_recovery_code.txt` to `.playwright-mcp/` which must be quarantined to `~/.config/employment-hero/recovery-code.txt` mode 600 — see SKILL Step 2).
 
-Probe post-sign-in via `browser_evaluate` returning `{ on_dashboard: !/\\/users\\/sign_in/.test(location.href) && !document.querySelector('input[type="password"]') }`. Don't use `browser_wait_for({ text: "Dashboard", time: 60 })` — the `time` parameter is ignored and the tool hard-caps at 30s.
+Probe post-sign-in via `browser_evaluate` returning `{ on_dashboard: !/\/users\/sign_in/.test(location.href) && !document.querySelector('input[type="password"]') }`. Don't use `browser_wait_for({ text: "Dashboard", time: 60 })` — the `time` parameter is ignored and the tool hard-caps at 30s.
 
 Captured Hub dashboard URL: `https://secure.employmenthero.com/app/v2/organisations/<org_id>/dashboard`. Top nav: Start Guide / Home / People / Billing / More. Expanded "More" menu adds: Recruitment / Benefits & Perks / Compliance / Time / **Pay** / Engagement / Development / Performance / Reports / Workflows / Settings.
 
