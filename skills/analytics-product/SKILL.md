@@ -2,7 +2,7 @@
 name: analytics-product
 description: 'Product analytics — PostHog, Mixpanel, events, funnels, cohorts, retention, north star metric, OKRs, and product dashboards. Use for: event tracking setup, conversion funnel analysis, cohort retention, DAU/MAU, feature flags, A/B testing, north star metrics, OKRs, product dashboards.'
 risk: none
-source: community
+source: selrai-company/claude-workshop-kit
 date_added: '2026-03-06'
 tags:
 - analytics
@@ -12,8 +12,6 @@ tags:
 - mixpanel
 tools:
 - claude-code
-- cursor
-- gemini-cli
 ---
 
 # ANALYTICS-PRODUCT — Decide With Data
@@ -26,13 +24,23 @@ Product analytics skill covering PostHog, Mixpanel, events, funnels, cohorts, re
 
 ## When to Use This Skill
 
-- When you need specialized assistance with this domain
+Reach for this skill when you say things like:
+
+- "Set up analytics for my product" or "what events should I track?"
+- "Design an event taxonomy" or "name these events properly"
+- "Build a retention dashboard" or "calculate cohort retention for my users"
+- "Is this A/B test statistically significant?" or "did the variant actually win?"
+- "Define our north star metric" or "what should our north star be?"
+- "Score my activation funnel" or "where are users dropping off before the aha moment?"
+- "What's a good W4 retention benchmark for SaaS?"
+- "Write an OKR for the product team this quarter"
 
 ## Do Not Use This Skill When
 
-- The task is unrelated to analytics product
-- A simpler, more specific tool can handle the request
-- The user needs general-purpose assistance without domain expertise
+- The task is raw data-warehouse modelling, SQL schema design, or ETL pipeline work. That is a database / DBA task, not product analytics.
+- You need the actual analytics vendor SDK installed and wired into a production app. This skill gives you the taxonomy, math, and reference code, but the user installs and runs the libraries.
+- The question is marketing-attribution or ad-spend ROAS modelling. Adjacent, but a different discipline with its own tooling.
+- You want financial forecasting or revenue recognition. That is finance, not product analytics.
 
 ## How It Works
 
@@ -50,6 +58,8 @@ Wrong:    signup, click, conversion
 ---
 
 ## Essential Events (Example)
+
+> The events below are from a sample SaaS product. They are a starting shape, not your taxonomy. Rename every event to match what your own users actually do.
 
 ```python
 PRODUCT_EVENTS = {
@@ -79,9 +89,14 @@ PRODUCT_EVENTS = {
 
 ## PostHog Implementation (Python)
 
+> Setup: this snippet needs `posthog` installed and a PostHog project key. Run `pip install posthog python-dotenv` first, then put `POSTHOG_API_KEY=phc_...` in a `.env` file beside your script. The `load_dotenv()` call below reads it so you never hard-code the key. Use your PostHog PROJECT API key (the `phc_...` ingest key), NOT a personal API key. A runnable version of this wrapper ships at `examples/posthog-init.py`.
+
 ```python
 from posthog import Posthog
+from dotenv import load_dotenv
 import os
+
+load_dotenv()  # reads POSTHOG_API_KEY (and POSTHOG_HOST) from a .env file beside this script
 
 posthog = Posthog(
     project_api_key=os.environ["POSTHOG_API_KEY"],
@@ -268,33 +283,38 @@ def ab_test_significance(
 
 ---
 
-## Commands
+## What This Skill Can Do For You
 
-| Command | Action |
-|---------|--------|
-| `/event-taxonomy` | Define event taxonomy |
-| `/funnel-analysis` | Analyse conversion funnel |
-| `/cohort-retention` | Calculate cohort retention |
-| `/north-star` | Define or review North Star Metric |
-| `/ab-test` | Calculate A/B test significance |
-| `/dashboard-setup` | Create product dashboard |
-| `/okr-template` | OKR template for product teams |
+This is a skill, not a set of slash commands. Ask in plain language and it will help you with any of these actions:
+
+| Action | What you get |
+|--------|--------------|
+| Design an event taxonomy | A named, `[object]_[past_verb]` event list mapped to your product's acquisition, activation, retention, and revenue stages |
+| Analyse a conversion funnel | Step-by-step drop-off scoring against benchmarks, plus where to look next (session recordings, surveys) |
+| Calculate cohort retention | A weekly retention matrix from your events, read against the SaaS benchmark table below |
+| Define or review a north star metric | A single value-aligned metric (the WAC worked example shows the method) with year-one and year-two targets |
+| Check A/B test significance | A p-value and lift verdict so you ship the variant only when the result is real, not noise |
+| Set up a product dashboard | The metrics that belong on it (north star, funnel, retention curve) and the queries behind them |
+| Draft product OKRs | An objective plus measurable key results tied to the metrics above |
 
 ## Best Practices
 
-- Provide clear, specific context about your project and requirements
-- Review all suggestions before applying them to production code
-- Combine with other complementary skills for comprehensive analysis
+- Track outcomes, not clicks. An event like `upgrade_completed` is worth ten `button_clicked` events. Name events for what the user achieved.
+- Pick exactly one north star metric and align it with user value, not vanity. Revenue is an outcome of the north star, not the north star itself.
+- Hold an A/B test for a minimum of two full business weeks and require `p < 0.05` before you call a winner. Underpowered tests lie.
+- Read retention as a curve that flattens, not a single number. A flat curve at any height beats a high W1 that decays to zero.
+- Always read a metric against a benchmark. "30% W4 retention" means nothing until you know good SaaS is 20-30%.
 
 ## Common Pitfalls
 
-- Using this skill for tasks outside its domain expertise
-- Applying recommendations without understanding your specific context
-- Not providing enough project context for accurate analysis
+- Vanity metrics. Page views, total signups, and cumulative downloads always go up and tell you nothing. Track active, retained, and converting users instead.
+- Sample-ratio mismatch. If your A/B split should be 50/50 but the traffic lands 55/45, the randomisation is broken and the result is invalid before you even read the p-value.
+- P-hacking. Peeking at the test daily and stopping the moment it crosses `p < 0.05` manufactures false winners. Fix the sample size and the duration up front.
+- Celebrating bad retention. A W4 number looks fine until you compare it to the benchmark. Without the reference table you cannot tell a healthy curve from a leaking bucket.
+- Aggregate-only thinking. A flat DAU line can hide that you are churning and re-acquiring the same volume. Cohort analysis exposes what the aggregate hides.
 
-## Related Skills
+## Related Disciplines
 
-- `growth-engine` - Complementary skill for enhanced analysis
-- `monetization` - Complementary skill for enhanced analysis
-- `product-design` - Complementary skill for enhanced analysis
-- `product-inventor` - Complementary skill for enhanced analysis
+- Growth experimentation: turns the funnel drop-offs this skill finds into acquisition and activation experiments.
+- Monetization and pricing: takes the upgrade and revenue events defined here into pricing and packaging decisions.
+- Product design: acts on the qualitative "why" behind the quantitative drop-offs this skill surfaces.
