@@ -1,6 +1,6 @@
 ---
 name: ai-engineer
-description: Build production-ready LLM applications, advanced RAG systems, and intelligent agents. Implements vector search, multimodal AI, agent orchestration, and enterprise AI integrations. Use PROACTIVELY for LLM features, chatbots, AI agents, or AI-powered applications.
+description: Build production-ready LLM applications, advanced RAG systems, intelligent agents, and multi-model routers. Implements vector search, retrieval pipelines, agent orchestration, multi-model routing, and enterprise AI integrations. Use PROACTIVELY to build or design any LLM feature, chatbot, AI agent, RAG system, or model router.
 allowed-tools: Read,Write,Edit,Glob,Grep,Bash,WebFetch,mcp__SequentialThinking__sequentialthinking
 metadata:
   category: AI & Machine Learning
@@ -42,9 +42,9 @@ AI Engineer:
 6. Deploy with monitoring and observability
 ```
 
-**Result**: Production-ready AI chatbot in days, not weeks
+**Result**: Production-ready AI chatbot in days, not weeks. A self-hosted RAG pipeline like the one below replaces a managed RAG service that runs roughly $200 to $800/mo at low volume, and deflects routine support tickets a human would otherwise answer.
 
-A runnable end-to-end reference for these patterns ships in `examples/basic-rag/`. It embeds a small corpus, retrieves over it, and answers a query through Claude using the same loop shapes shown below. Read it to verify the patterns before adapting them.
+**Try it now**: a runnable end-to-end reference ships in `examples/basic-rag/`. Run `npm install`, copy `.env.example` to `.env`, then `npm run rag -- "how long do refunds take?"` to see embedding, retrieval, fenced context, and a grounded Claude answer end to end. It uses the same loop shapes shown below. Read it to verify the patterns before adapting them.
 
 ## Core Competencies
 

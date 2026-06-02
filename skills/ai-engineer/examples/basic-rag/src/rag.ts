@@ -41,8 +41,14 @@ async function retrieve(query: string, topK: number): Promise<Scored[]> {
 }
 
 function buildPrompt(query: string, chunks: Scored[]): string {
-  const context = chunks.map((c, i) => `[${i + 1}] (${c.id}) ${c.text}`).join("\n");
-  return `Context:\n${context}\n\nQuestion: ${query}`;
+  // Structurally fence each retrieved chunk in a data delimiter so the model
+  // can tell document content from instructions. Anything inside <document> is
+  // untrusted data, never a command. This makes the boundary visible, and pairs
+  // with the untrusted-context clause in SYSTEM_PROMPT.
+  const context = chunks
+    .map((c, i) => `<document index="${i + 1}" id="${c.id}">\n${c.text}\n</document>`)
+    .join("\n");
+  return `<context>\n${context}\n</context>\n\nQuestion: ${query}`;
 }
 
 async function main(): Promise<void> {
@@ -57,6 +63,8 @@ async function main(): Promise<void> {
   console.log("Retrieved:");
   for (const c of chunks) console.log(`  ${c.score.toFixed(3)}  ${c.id}`);
 
+  // Production: wire timeout + maxRetries on the client and a rate limiter.
+  // See the Production Readiness checklist in SKILL.md.
   const client = new Anthropic();
   const response = await client.messages.create({
     model: MODEL,

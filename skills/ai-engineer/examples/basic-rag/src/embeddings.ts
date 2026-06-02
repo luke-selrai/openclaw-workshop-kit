@@ -34,6 +34,9 @@ export async function embed(texts: string[], inputType: InputType): Promise<numb
   });
 
   if (!res.ok) {
+    // Production: redact or structure the upstream error body before logging.
+    // Do not echo a raw third-party response verbatim, it can carry secrets or
+    // injection payloads into your logs.
     const body = await res.text();
     throw new Error(`Voyage API ${res.status}: ${body}`);
   }
