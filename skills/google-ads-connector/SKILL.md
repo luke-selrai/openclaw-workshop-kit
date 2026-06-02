@@ -1,7 +1,7 @@
 ---
 name: google-ads-connector
-description: "Connect and operate Google Ads (read campaigns, ad groups, ads, keywords, search terms, audiences; pull reports for spend/conversions/ROAS; pause/resume campaigns and adjust budgets) via direct REST against the Google Ads API. Each participant has their own Google Cloud OAuth client and their own developer token. Phase 0 picks between Test mode (immediate dev-token, only works with Google Ads test accounts) and Basic Access mode (live data, real customer, but Google reviews the dev-token application over ~1-3 business days). Phase 1 drives Google Cloud Console (OAuth client creation) + Google Ads API Center (dev-token request) + Google's OAuth consent flow + the optional 'New Google Ads account' wizard, all inside a Playwright MCP browser. Tokens persist at ~/.config/google-ads/credentials.json (mode 0600). Use this skill when the user asks about their Google Ads, says 'connect Google Ads', asks about ad spend / ROAS / conversions / keywords / campaigns / ad groups. For paid-ads strategy advice (vs. data queries), prefer the paid-ads skill — this connector is the data source. On first use of any Google Ads feature, run Phase 0 then Phase 1 before any tool call."
-allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
+description: "Connect and operate Google Ads (read campaigns, ad groups, ads, keywords, search terms, audiences; pull reports for spend/conversions/ROAS; pause/resume campaigns and adjust budgets). Phase 1 captures credentials and Phase 1F wraps Google's official MCP server (github.com/googleads/google-ads-mcp) for read operations — Phase 2 reads call mcp__google_ads__search / list_accessible_customers / get_resource_metadata. Writes (pause/resume campaign, change budget) stay on direct REST because the official MCP is read-only. Each participant has their own Google Cloud OAuth client and their own developer token. Phase 0 picks between Test mode (immediate dev-token, only works with Google Ads test accounts) and Basic Access mode (live data, real customer, but Google reviews the dev-token application over ~1-3 business days). Phase 1 drives Google Cloud Console + Google Ads API Center + Google's OAuth consent flow + the optional 'New Google Ads account' wizard, all inside a Playwright MCP browser. Credentials persist at ~/.config/google-ads/credentials.json (mode 0600); the official MCP reads them via GOOGLE_APPLICATION_CREDENTIALS pointing at ~/.config/google-ads/adc-credentials.json (also mode 0600). Use this skill when the user asks about their Google Ads, says 'connect Google Ads', asks about ad spend / ROAS / conversions / keywords / campaigns / ad groups. For paid-ads strategy advice, prefer the paid-ads skill — this connector is the data source. On first use of any Google Ads feature, run Phase 0 then Phase 1 before any tool call."
+allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*, mcp__google_ads__*
 metadata:
   category: Marketing & Advertising
   tags:
@@ -29,12 +29,15 @@ metadata:
 
 ## Overview
 
-This skill lets you read and operate a user's Google Ads account on their behalf using **Google Ads API v17 REST endpoints** (no MCP server, no first-party CLI). `skills/CLAUDE.md` documents the three install patterns (Hosted-OAuth, Hosted-bearer-PAT, Plugin-marketplace) and explicitly marks direct-REST connectors (`ghl-connector`, `myob-connector`) as out of scope for that doc — see the per-connector SKILL. This SKILL is the third direct-REST connector in the kit and follows the `myob-connector` shape (loopback listener + Playwright-driven OAuth + atomic `credentials.json` write + bearer-on-curl Phase 2).
+This skill lets you read and operate a user's Google Ads account on their behalf. Read operations route through **Google's official `google-ads-mcp` MCP server** (`github.com/googleads/google-ads-mcp`, Apache-2.0); write operations stay on **direct REST** because the official MCP is read-only.
 
-It has two phases:
+`skills/CLAUDE.md` documents the three install patterns (Hosted-OAuth, Hosted-bearer-PAT, Plugin-marketplace) and explicitly marks direct-REST connectors (`ghl-connector`, `myob-connector`) as out of scope for that doc. This SKILL is a hybrid that doesn't fit any of the three cleanly: it wraps an official vendor MCP for reads (similar to how `quickbooks-connector` wraps Intuit's MCP) AND keeps direct REST for the writes the vendor MCP doesn't cover. `myob-connector`'s loopback listener + atomic credentials.json pattern is reused for the OAuth capture; the wrap-the-vendor-MCP step (Phase 1F) is closer to QBO's shape.
+
+It has three phases:
 
 - **Phase 1 — Install & Connect (autonomous via Playwright + REST).** Claude drives Google Cloud Console end-to-end via Playwright MCP to create an OAuth client, drives `ads.google.com/aw/apicenter` to request a developer token (Test mode = instant; Basic Access mode = 1-3 business day Google review), drives the OAuth consent flow to capture access + refresh tokens, lists the participant's accessible customer IDs, and persists everything to `~/.config/google-ads/credentials.json` (mode 0600). The participant's manual moments are signing in to Google once and approving consent.
-- **Phase 2 — Use Tools (Direct-REST via curl + GAQL).** Once `credentials.json` is configured, you `curl` Google Ads API REST endpoints. Reports run as GAQL queries via `customers/{cid}/googleAds:searchStream`. Writes (pause/resume campaign, adjust budget) are gated by Production-mode confirmation prose when `mode=basic` (real ads, real money).
+- **Phase 1F — Wrap the official MCP for reads.** After Phase 1's credential capture, Phase 1F writes an Application Default Credentials JSON at `~/.config/google-ads/adc-credentials.json` from the same refresh token Phase 1 just minted, ensures `pipx` is installed, and registers the official `google-ads-mcp` server via `claude mcp add google_ads --scope user --env GOOGLE_APPLICATION_CREDENTIALS=... --env GOOGLE_PROJECT_ID=... --env GOOGLE_ADS_DEVELOPER_TOKEN=... -- pipx run --spec git+https://github.com/googleads/google-ads-mcp.git google-ads-mcp`. The MCP exposes three tools: `mcp__google_ads__search`, `mcp__google_ads__list_accessible_customers`, `mcp__google_ads__get_resource_metadata`. Phase 1F can be skipped if `pipx` install fails or Python is unavailable; Phase 2 reads then fall back to direct REST via curl.
+- **Phase 2 — Use Tools.** Once Phase 1F completes and Claude Code has been restarted, **prefer `mcp__google_ads__*` tools for reads** (Patterns 1-8); the structured `search(customer_id, fields, resource, conditions, orderings, limit)` call replaces the curl + GAQL string approach. If the MCP is not registered (Phase 1F was skipped or failed), reads fall back to the documented direct-REST curl examples. Writes (Patterns 9-10 — pause/resume campaign, adjust budget) ALWAYS run direct REST because the official MCP is read-only. All writes are gated by Production-mode confirmation prose when `mode=basic` (real ads, real money).
 
 **Two modes, picked at Phase 0:**
 
@@ -637,6 +640,113 @@ If still pending: see Phase 0.3.
 
 ---
 
+## PHASE 1F — Wrap the official google-ads-mcp for reads
+
+After Phase 1T or Phase 1L completes (credentials.json populated), Phase 1F writes an Application Default Credentials JSON file and registers Google's official MCP server as `google_ads` in Claude Code. Three tools become available after restart: `mcp__google_ads__search`, `mcp__google_ads__list_accessible_customers`, `mcp__google_ads__get_resource_metadata`. The MCP is read-only — Phase 2 writes still go through direct REST.
+
+Phase 1F is **best-effort**. If `pipx` install fails (no Python, restricted environment, corporate network) or the MCP registration fails, log the failure silently and proceed; Phase 2 reads then fall back to the direct-REST curl examples documented below.
+
+### Step 1F.1 — Write the ADC credentials file
+
+Google's MCP authenticates via `google.auth.default()` which resolves Application Default Credentials. Rather than requiring `gcloud` CLI install (heavy — ~100MB toolchain), we write the credentials JSON directly from Phase 1's captured `client_id` + `client_secret` + `refresh_token`. The Google auth library accepts `{"type":"authorized_user", ...}` JSON files via `GOOGLE_APPLICATION_CREDENTIALS`, dispatching on the `type` field.
+
+```bash
+CREDS="$HOME/.config/google-ads/credentials.json"
+ADC="$HOME/.config/google-ads/adc-credentials.json"
+mkdir -p "$(dirname "$ADC")"
+chmod 700 "$(dirname "$ADC")"
+
+jq '{type:"authorized_user", client_id, client_secret, refresh_token}' "$CREDS" > "$ADC.tmp"
+chmod 600 "$ADC.tmp"
+mv "$ADC.tmp" "$ADC"
+```
+
+Verify the file shape:
+
+```bash
+jq -r 'keys | join(",")' "$ADC"
+# expect: client_id,client_secret,refresh_token,type
+```
+
+> **Why a custom path, not gcloud's default `~/.config/gcloud/application_default_credentials.json`?** If the participant already uses `gcloud` for unrelated work (other GCP projects, BigQuery, etc.), writing to gcloud's default ADC path would silently clobber their existing credentials. Our own path at `~/.config/google-ads/adc-credentials.json` is dedicated to this connector and pointed-to via `GOOGLE_APPLICATION_CREDENTIALS` set in `claude mcp add --env` (Step 1F.4). The participant's gcloud setup is untouched.
+
+### Step 1F.2 — Detect or install `pipx`
+
+```bash
+if ! command -v pipx >/dev/null 2>&1; then
+  # pipx installs cleanly via `python3 -m pip install --user pipx` on every supported platform
+  python3 -m pip install --user pipx 2>&1 | tail -3
+  python3 -m pipx ensurepath 2>&1 | tail -3
+  # Refresh PATH so the just-installed pipx is visible without a shell restart
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+
+pipx --version 2>&1 | head -1
+```
+
+If `python3 --version` returns < 3.7 or fails entirely, surface to the participant in plain English: *"I'd love to plug Google's official Google Ads tool in for you — but it needs Python on your computer, and I don't see it. Want to install Python first (it's free), or skip this step? Either way your connection works either way; Google's tool just makes reads a bit cleaner."*
+
+If they skip: set `MCP_INTEGRATION=skipped` in a sidecar marker (`~/.config/google-ads/.mcp-skipped`) and exit Phase 1F. Phase 2 will route reads through direct REST.
+
+### Step 1F.3 — Validate the MCP runs
+
+Before registering with Claude Code, smoke-test that `pipx run google-ads-mcp` can actually start (catches missing system libraries, Python version issues, network failures during the first git clone):
+
+```bash
+timeout 30 pipx run --spec git+https://github.com/googleads/google-ads-mcp.git google-ads-mcp --help 2>&1 | head -10
+```
+
+The first run downloads the MCP package from GitHub and creates an isolated venv via pipx (~20-40 seconds depending on network). Subsequent runs are near-instant. If `--help` returns non-zero, surface the error briefly and skip to Step 1F.5 (skip registration). Common causes: corporate firewall blocking `github.com`, Python 3.7+ missing, pip install denied.
+
+### Step 1F.4 — Register the MCP server with Claude Code
+
+```bash
+ADC="$HOME/.config/google-ads/adc-credentials.json"
+GOOGLE_PROJECT_ID="$(jq -r .google_cloud_project "$CREDS")"
+DEV_TOKEN="$(jq -r .developer_token "$CREDS")"
+# Manager-customer-id only if the participant uses a manager account (rare for SMBs; field optional)
+MANAGER_CID="$(jq -r '.manager_customer_id // empty' "$CREDS")"
+
+CMD=(claude mcp add google_ads --scope user
+  --env "GOOGLE_APPLICATION_CREDENTIALS=$ADC"
+  --env "GOOGLE_PROJECT_ID=$GOOGLE_PROJECT_ID"
+  --env "GOOGLE_ADS_DEVELOPER_TOKEN=$DEV_TOKEN")
+if [ -n "$MANAGER_CID" ]; then
+  CMD+=(--env "GOOGLE_ADS_LOGIN_CUSTOMER_ID=$MANAGER_CID")
+fi
+CMD+=(-- pipx run --spec git+https://github.com/googleads/google-ads-mcp.git google-ads-mcp)
+
+"${CMD[@]}" >/dev/null 2>&1
+```
+
+> **Why `>/dev/null 2>&1`?** `claude mcp add` v2.1.x echoes `--env` values verbatim on stdout — see memory `reference_claude_mcp_add_token_echo`. The redirect prevents the dev token from leaking into the tool stream.
+
+Verify registration:
+
+```bash
+claude mcp list 2>&1 | grep -E '^google_ads:'
+```
+
+Expect `google_ads: pipx run ... - ✓ Connected`. If `✗ Failed to connect`, the most common cause is `GOOGLE_APPLICATION_CREDENTIALS` pointing to a malformed JSON file — re-check Step 1F.1's output.
+
+### Step 1F.5 — Prompt restart Claude Code
+
+A restart is required only because Phase 1F registered a new MCP server (`google_ads`); the new `mcp__google_ads__*` tools only enter Claude Code's deferred-tool surface after the MCP runtime reconciles them at startup. Phase 1T's and Phase 1L's completion prose (the *"All connected — your Google Ads test account is ready"* / *"Google approved you"* messages) deliberately omits any restart instruction so the SKILL can decide where to place it based on whether Phase 1F ran.
+
+If Phase 1F ran successfully, replace Phase 1T's / 1L's plain completion message with a restart-prompt variant:
+
+> "All connected. One last step: please close this window and reopen Claude Code, then say hi. The Google Ads tools will be ready for you."
+
+If Phase 1F was skipped (`.mcp-skipped` marker present), keep the original Phase 1T / 1L completion message — no restart needed, reads route through direct REST immediately.
+
+After restart, verify the tools appeared via `ToolSearch +google_ads` — expect `mcp__google_ads__search`, `mcp__google_ads__list_accessible_customers`, `mcp__google_ads__get_resource_metadata`.
+
+### Phase 1F skip-state
+
+If Phase 1F was skipped (no Python, install failure, participant opted out), `~/.config/google-ads/.mcp-skipped` exists. Phase 2 reads detect this and use the direct-REST fallback path documented under each Pattern below.
+
+---
+
 ## PHASE 2 — Use Tools
 
 Phase 2 runs after Phase 1 completes. Every call:
@@ -676,7 +786,44 @@ For Patterns 9 and 10 (the only writes), confirm in plain English first:
 
 Per-write call, not per-session. Reads after a confirmed write don't re-trigger.
 
-### Step 2.0 — Refresh access token (called automatically by every tool)
+### Read routing — MCP-first, direct-REST fallback
+
+Before each read pattern, check whether the official MCP is registered:
+
+```bash
+# Fast path: tools surface check
+if [ -f "$HOME/.config/google-ads/.mcp-skipped" ]; then
+  ROUTE=rest
+elif claude mcp list 2>/dev/null | grep -q '^google_ads:.*Connected'; then
+  ROUTE=mcp
+else
+  ROUTE=rest
+fi
+```
+
+- `ROUTE=mcp` → prefer the `mcp__google_ads__search` invocation shown under each pattern.
+- `ROUTE=rest` → use the documented `gaql_call` curl example.
+
+The MCP's `search` tool signature (from `ads_mcp/tools/search.py`):
+
+```
+mcp__google_ads__search({
+  customer_id: string,         // required
+  fields: string[],            // required, e.g. ["metrics.cost_micros", "campaign.name"]
+  resource: string,            // required, e.g. "customer", "campaign", "keyword_view"
+  conditions?: string[],       // optional, e.g. ["segments.date DURING THIS_MONTH"]
+  orderings?: string[],        // optional, e.g. ["metrics.cost_micros DESC"]
+  limit?: number               // optional
+})
+```
+
+The MCP constructs the GAQL query internally from the structured args. The 8 read patterns below show both shapes — MCP first, direct-REST fallback below it.
+
+**Writes (Patterns 9-10) always run direct REST** regardless of `ROUTE` — the official MCP doesn't expose mutate endpoints.
+
+### Step 2.0 — Refresh access token (called automatically by every tool, direct-REST path only)
+
+Only runs when `ROUTE=rest`. The MCP handles its own token refresh internally via `google.auth.default()`.
 
 ```bash
 CREDS="$HOME/.config/google-ads/credentials.json"
@@ -710,6 +857,19 @@ CID="$(jq -r .customer_id "$CREDS")"
 
 ### Common Pattern 1 — Spend this month
 
+**MCP path (`ROUTE=mcp`):**
+
+```
+mcp__google_ads__search({
+  customer_id: "<CID>",
+  fields: ["metrics.cost_micros"],
+  resource: "customer",
+  conditions: ["segments.date DURING THIS_MONTH"]
+})
+```
+
+**Direct-REST fallback (`ROUTE=rest`):**
+
 ```bash
 gaql_call() {
   local query="$1"
@@ -723,11 +883,26 @@ gaql_call() {
 gaql_call "SELECT metrics.cost_micros FROM customer WHERE segments.date DURING THIS_MONTH"
 ```
 
-Response: `{ "results": [{ "metrics": { "costMicros": "<n>" } }] }`. Divide `costMicros` by 1,000,000 to get the currency unit. Present as "$X.XX this month."
+Response shape (both paths): `[{ metrics: { costMicros: "<n>" } }]` (MCP returns a flat list; direct REST wraps it as `{ results: [...] }`). Divide `costMicros` by 1,000,000 to get the currency unit. Present as "$X.XX this month."
 
 **Use when:** "what's my Google Ads spend?", "how much have I spent this month?"
 
 ### Common Pattern 2 — Top campaigns by conversions (last 30 days)
+
+**MCP path:**
+
+```
+mcp__google_ads__search({
+  customer_id: "<CID>",
+  fields: ["campaign.name", "metrics.conversions", "metrics.cost_micros"],
+  resource: "campaign",
+  conditions: ["segments.date DURING LAST_30_DAYS"],
+  orderings: ["metrics.conversions DESC"],
+  limit: 10
+})
+```
+
+**Direct-REST fallback:**
 
 ```bash
 gaql_call "SELECT campaign.name, metrics.conversions, metrics.cost_micros FROM campaign WHERE segments.date DURING LAST_30_DAYS ORDER BY metrics.conversions DESC LIMIT 10"
@@ -739,6 +914,22 @@ Present as a table with Campaign / Conversions / Cost / Cost per Conversion.
 
 ### Common Pattern 3 — Keyword performance
 
+**MCP path:**
+
+```
+mcp__google_ads__search({
+  customer_id: "<CID>",
+  fields: ["ad_group_criterion.keyword.text", "ad_group_criterion.keyword.match_type",
+           "metrics.clicks", "metrics.cost_micros", "metrics.conversions"],
+  resource: "keyword_view",
+  conditions: ["segments.date DURING LAST_30_DAYS"],
+  orderings: ["metrics.clicks DESC"],
+  limit: 25
+})
+```
+
+**Direct-REST fallback:**
+
 ```bash
 gaql_call "SELECT ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type, metrics.clicks, metrics.cost_micros, metrics.conversions FROM keyword_view WHERE segments.date DURING LAST_30_DAYS ORDER BY metrics.clicks DESC LIMIT 25"
 ```
@@ -749,6 +940,21 @@ Filter client-side for `ad_group_criterion.status = 'ENABLED'` to show only acti
 
 ### Common Pattern 4 — Search terms triggering my ads
 
+**MCP path:**
+
+```
+mcp__google_ads__search({
+  customer_id: "<CID>",
+  fields: ["search_term_view.search_term", "metrics.clicks", "metrics.cost_micros"],
+  resource: "search_term_view",
+  conditions: ["segments.date DURING LAST_30_DAYS"],
+  orderings: ["metrics.clicks DESC"],
+  limit: 25
+})
+```
+
+**Direct-REST fallback:**
+
 ```bash
 gaql_call "SELECT search_term_view.search_term, metrics.clicks, metrics.cost_micros FROM search_term_view WHERE segments.date DURING LAST_30_DAYS ORDER BY metrics.clicks DESC LIMIT 25"
 ```
@@ -756,6 +962,23 @@ gaql_call "SELECT search_term_view.search_term, metrics.clicks, metrics.cost_mic
 **Use when:** "what searches show my ads?", "search terms report", "what are people searching to find me?"
 
 ### Common Pattern 5 — Ad-level performance
+
+**MCP path:**
+
+```
+mcp__google_ads__search({
+  customer_id: "<CID>",
+  fields: ["ad_group_ad.ad.id", "ad_group_ad.ad.responsive_search_ad.headlines",
+           "metrics.clicks", "metrics.conversions"],
+  resource: "ad_group_ad",
+  conditions: ["segments.date DURING LAST_30_DAYS",
+               "ad_group_ad.status = 'ENABLED'"],
+  orderings: ["metrics.clicks DESC"],
+  limit: 10
+})
+```
+
+**Direct-REST fallback:**
 
 ```bash
 gaql_call "SELECT ad_group_ad.ad.id, ad_group_ad.ad.responsive_search_ad.headlines, metrics.clicks, metrics.conversions FROM ad_group_ad WHERE segments.date DURING LAST_30_DAYS AND ad_group_ad.status = 'ENABLED' ORDER BY metrics.clicks DESC LIMIT 10"
@@ -767,18 +990,45 @@ The `responsive_search_ad.headlines` field is an array of text variations. Prese
 
 ### Common Pattern 6 — This month vs last month
 
-Two queries, present side-by-side:
+Two queries, present side-by-side. Compute deltas client-side.
+
+**MCP path** (call once per range):
+
+```
+mcp__google_ads__search({
+  customer_id: "<CID>",
+  fields: ["metrics.cost_micros", "metrics.conversions", "metrics.clicks"],
+  resource: "customer",
+  conditions: ["segments.date DURING THIS_MONTH"]
+})
+// then again with conditions: ["segments.date DURING LAST_MONTH"]
+```
+
+**Direct-REST fallback:**
 
 ```bash
 gaql_call "SELECT metrics.cost_micros, metrics.conversions, metrics.clicks FROM customer WHERE segments.date DURING THIS_MONTH"
 gaql_call "SELECT metrics.cost_micros, metrics.conversions, metrics.clicks FROM customer WHERE segments.date DURING LAST_MONTH"
 ```
 
-Compute deltas client-side.
-
 **Use when:** "compare to last month", "month over month", "is performance improving?"
 
 ### Common Pattern 7 — Audience performance
+
+**MCP path:**
+
+```
+mcp__google_ads__search({
+  customer_id: "<CID>",
+  fields: ["campaign.name", "ad_group.name", "metrics.clicks", "metrics.conversions"],
+  resource: "audience",
+  conditions: ["segments.date DURING LAST_30_DAYS"],
+  orderings: ["metrics.conversions DESC"],
+  limit: 15
+})
+```
+
+**Direct-REST fallback:**
 
 ```bash
 gaql_call "SELECT campaign.name, ad_group.name, metrics.clicks, metrics.conversions FROM audience WHERE segments.date DURING LAST_30_DAYS ORDER BY metrics.conversions DESC LIMIT 15"
@@ -788,6 +1038,19 @@ gaql_call "SELECT campaign.name, ad_group.name, metrics.clicks, metrics.conversi
 
 ### Common Pattern 8 — List all campaigns
 
+**MCP path:**
+
+```
+mcp__google_ads__search({
+  customer_id: "<CID>",
+  fields: ["campaign.id", "campaign.name", "campaign.status", "campaign_budget.amount_micros"],
+  resource: "campaign",
+  orderings: ["campaign.name"]
+})
+```
+
+**Direct-REST fallback:**
+
 ```bash
 gaql_call "SELECT campaign.id, campaign.name, campaign.status, campaign_budget.amount_micros FROM campaign ORDER BY campaign.name"
 ```
@@ -795,6 +1058,10 @@ gaql_call "SELECT campaign.id, campaign.name, campaign.status, campaign_budget.a
 Returns id, name, ENABLED/PAUSED/REMOVED status, daily budget. Present as a table.
 
 **Use when:** "list my campaigns", "show all campaigns", "campaign summary"
+
+> **For the `list_accessible_customers` shape**: `mcp__google_ads__list_accessible_customers({})` — no args, returns `[{ "customer_id": "1234567890" }, ...]`. Useful when the participant says "list all my Google Ads accounts" or for verifying the active customer is in the accessible list. No direct-REST equivalent in this SKILL because Step 10 (Phase 1) already covers that endpoint during install.
+
+> **For the `get_resource_metadata` shape**: `mcp__google_ads__get_resource_metadata({ resource: "campaign" })` returns the field metadata for the named GAQL resource (selectable fields, segments, etc.). Useful when constructing a non-standard GAQL query for an ad-hoc participant question.
 
 ### Common Pattern 9 — Pause or resume a campaign (write, gated)
 
@@ -858,6 +1125,8 @@ curl -sf "https://googleads.googleapis.com/v17/customers/$CID/campaignBudgets:mu
 | "What's my ROAS?" | Pattern 2 with derived metric: `conversions_value / cost_micros` |
 | "Connect Google Ads" / "Help me set up Google Ads" | **Run Phase 0** |
 | "Check my Google Ads approval" | **Run Phase 0.3** |
+| "List all my Google Ads accounts" | `mcp__google_ads__list_accessible_customers({})` (MCP) or curl the `listAccessibleCustomers` endpoint as in Phase 1 Step 10 (REST) |
+| "What fields can I query for X?" | `mcp__google_ads__get_resource_metadata({ resource: "<X>" })` (MCP only — no direct-REST shortcut) |
 
 ---
 
@@ -865,7 +1134,10 @@ curl -sf "https://googleads.googleapis.com/v17/customers/$CID/campaignBudgets:mu
 
 | Error | What it means | How to respond |
 |---|---|---|
-| HTTP 401 `UNAUTHENTICATED` | Access token expired | Run Step 2.0 (refresh) and retry once |
+| `mcp__google_ads__*` tools missing after restart | Phase 1F skipped, failed, or pipx not on PATH | Re-run Phase 1F; if it still fails, fall back to direct REST and tell the participant *"Google's tool isn't installable on your system; I'll use a backup connection. Same results, just a bit slower."* |
+| `mcp__google_ads__search` returns `PERMISSION_DENIED` referencing `developer-token` | The MCP's env has a stale or wrong dev token | `claude mcp remove google_ads -s user` then re-run Phase 1F.4 with the refreshed env values |
+| `mcp__google_ads__search` returns `INVALID_RESOURCE` | `fields` or `resource` arg names are wrong (e.g. typo in a field) | Run `mcp__google_ads__get_resource_metadata({ resource: "<x>" })` to confirm the legal field list, then retry |
+| HTTP 401 `UNAUTHENTICATED` (direct-REST path only) | Access token expired | Run Step 2.0 (refresh) and retry once |
 | HTTP 401 `PERMISSION_DENIED` and message includes "developer token" | Test dev token used against a real (non-test) customer, or Basic Access not approved yet | If `MODE=test`, tell the participant: *"I can only see test accounts right now. Want me to apply for real-data access? Takes 1 to 3 business days."* If `MODE=pending-basic`, repeat the application-pending message. |
 | HTTP 403 `CUSTOMER_NOT_ENABLED` | The Google Ads account is not active (e.g., suspended for billing) | Tell the participant: *"Your Google Ads account looks inactive — Google probably wants billing info. Open ads.google.com in your browser to fix it, then ping me."* |
 | HTTP 400 `INVALID_ARGUMENT` and `query` in message | GAQL syntax error | Diagnose silently, retry with corrected query, fall back to plain English if can't fix |
@@ -892,6 +1164,7 @@ It **cannot** access:
 - **Manager-account-level admin** (creating sub-accounts, billing, account-level changes) — separate flow, not in v1.
 - **Conversion-tracking setup** — creating goals, tags, audiences requires the Conversion Action APIs which are not in v1's 10 patterns.
 - **Ad-asset upload** (images, videos for image ads) — requires multipart upload to `Asset:mutate`; not in v1.
+- **Writes via the official MCP** — `googleads/google-ads-mcp` is strictly read-only. Patterns 9 and 10 in this SKILL go through direct REST regardless of `ROUTE`. When that MCP eventually adds write tools (no roadmap signal yet), this SKILL can swap them in with a localised edit to Patterns 9 and 10.
 
 It **requires** at least one operating Google Ads customer the participant has access to. Manager-only logins with no operating account underneath will fail at Step 10.
 
@@ -899,6 +1172,7 @@ It **requires** at least one operating Google Ads customer the participant has a
 
 ## Behaviour Guidelines (Phase 2)
 
+- **Read routing** — before each read pattern, check `claude mcp list 2>/dev/null | grep -q '^google_ads:.*Connected'` AND `[ ! -f "$HOME/.config/google-ads/.mcp-skipped" ]`. If both true → MCP path. Otherwise → direct REST. Cache the route for the session.
 - **Mode awareness** — `MODE=test` is freely callable; `MODE=basic` applies Gate 1 (once per session) and Gate 2 (every write). `MODE=pending-basic` behaves as `test` data-wise but on the participant's "check my approval" prompt, run Phase 0.3.
 - **Always present money in real units** — divide `costMicros` and `amountMicros` by 1,000,000. Use the account's currency (read from `customer.currency_code` if needed).
 - **Date ranges in GAQL** — supported tokens: `TODAY`, `YESTERDAY`, `LAST_7_DAYS`, `LAST_14_DAYS`, `LAST_30_DAYS`, `LAST_BUSINESS_WEEK`, `LAST_WEEK_SUN_SAT`, `LAST_WEEK_MON_SUN`, `THIS_MONTH`, `LAST_MONTH`, `THIS_QUARTER`, `LAST_QUARTER`, `ALL_TIME`. For arbitrary ranges, use `segments.date BETWEEN 'YYYY-MM-DD' AND 'YYYY-MM-DD'`.
@@ -912,15 +1186,19 @@ It **requires** at least one operating Google Ads customer the participant has a
 ## Related Skills
 
 - **`paid-ads`**: The strategy advisor. Pair when the participant wants advice on what to DO with the data the connector returns. The advisor asks "what's working?" and Claude uses this connector to answer factually.
-- **`quickbooks-connector`**: Same Phase 0 / Phase 1 Playwright-driven autonomous pattern as the SelrAI canonical. QBO's Phase 1L lives-tier work (Cloudflare Pages + tunnel) is heavier than this connector's Phase 1L (Google Ads' API Center is in-portal only).
-- **`myob-connector`**: The Direct-REST + Playwright reference SKILL this connector models its Phase 1 on. Loopback listener pattern, atomic `credentials.json` write pattern, and refresh-on-call pattern all borrowed from MYOB.
-- **`ghl-connector`**: The other direct-REST sibling. Wraps the GHL hosted MCP (so its frontmatter says Hosted-bearer-PAT pattern), but the Phase 1 shape is closer to direct-REST than Pattern 1 / 2. Reference for the Playwright-driven autonomous-Phase-1 communication rules.
+- **`quickbooks-connector`**: Same Phase 0 / Phase 1 Playwright-driven autonomous pattern. QBO's Phase 1L (Cloudflare Pages + tunnel) is heavier than this connector's Phase 1L (Google Ads' API Center is in-portal). Both connectors wrap an official vendor MCP in the same shape — QBO via `intuit/quickbooks-online-mcp-server`, this connector via `googleads/google-ads-mcp` for the read surface.
+- **`myob-connector`**: The Direct-REST + Playwright reference SKILL this connector models Phase 1 on. Loopback listener pattern, atomic `credentials.json` write pattern, and refresh-on-call pattern all borrowed from MYOB. MYOB has no official MCP so it stays pure direct-REST; this SKILL is the hybrid example.
+- **`ghl-connector`**: The other vendor-MCP wrapper in the kit. Reference for the Playwright-driven autonomous-Phase-1 communication rules.
 - **`superpowers:systematic-debugging`**: For troubleshooting OAuth flow failures or unexpected GAQL responses.
 
 ## See also
 
-- [`skills/CLAUDE.md`](../CLAUDE.md) — the three-pattern decision tree (Hosted-OAuth, Hosted-bearer-PAT, Plugin-marketplace). This SKILL is explicitly out of scope for that doc (it's a direct-REST connector); follow `myob-connector`'s shape as the closest canonical reference.
+- [`skills/CLAUDE.md`](../CLAUDE.md) — the three-pattern decision tree (Hosted-OAuth, Hosted-bearer-PAT, Plugin-marketplace). This SKILL is a hybrid (vendor-MCP wrap for reads + direct REST for writes) explicitly out of scope for that doc; follow `myob-connector`'s shape for the direct-REST half and `quickbooks-connector`'s shape for the vendor-MCP-wrap half.
+- [google-ads-mcp official repo](https://github.com/googleads/google-ads-mcp) — Google's read-only MCP server (Apache-2.0). Source for the `search` / `list_accessible_customers` / `get_resource_metadata` tool signatures Phase 2 calls.
+- [FastMCP framework](https://github.com/jlowin/fastmcp) — the framework `googleads/google-ads-mcp` is built on. Useful for understanding the OAuth proxy mode the MCP supports (which this SKILL deliberately does not use — see Phase 1F.1's design note).
 - [Google Ads API reference](https://developers.google.com/google-ads/api/docs/start) — the official source of GAQL grammar, resource shapes, and rate limits.
 - [Google Ads API Center](https://ads.google.com/aw/apicenter) — where Phase 1T and Phase 1L dev tokens come from.
+- [Google Application Default Credentials reference](https://cloud.google.com/docs/authentication/application-default-credentials) — confirms the `{"type":"authorized_user", ...}` JSON file format Phase 1F.1 writes.
 - Memory `reference_playwright_snapshot_password_leak` — sign-in page snapshot rule (applies to Google Cloud, Google Ads, and the consent screen alike).
+- Memory `reference_claude_mcp_add_token_echo` — `>/dev/null 2>&1` requirement on `claude mcp add --env`.
 - Memory `feedback_workshop_kit_update_format` — say "test mode" to participants, not "sandbox".

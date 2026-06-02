@@ -209,19 +209,99 @@ Claude: All connected — your Google Ads test account is ready. Ask
 
 ---
 
-## Phase 2 sample (immediately after install)
+## Phase 1F — Wrap the official MCP for reads
+
+Runs after Phase 1T's smoke test succeeds. Best-effort: failures don't block; Phase 2 falls back to direct REST.
+
+### Step 1F.1 — Write ADC credentials JSON
+
+```bash
+jq '{type:"authorized_user", client_id, client_secret, refresh_token}' \
+  "$HOME/.config/google-ads/credentials.json" \
+  > "$HOME/.config/google-ads/adc-credentials.json.tmp"
+chmod 600 "$HOME/.config/google-ads/adc-credentials.json.tmp"
+mv "$HOME/.config/google-ads/adc-credentials.json.tmp" \
+   "$HOME/.config/google-ads/adc-credentials.json"
+
+jq -r 'keys | join(",")' "$HOME/.config/google-ads/adc-credentials.json"
+# expected: client_id,client_secret,refresh_token,type
+```
+
+### Step 1F.2 — Install pipx if absent
+
+```bash
+$ command -v pipx || python3 -m pip install --user pipx
+Successfully installed pipx-1.4.3 ...
+$ python3 -m pipx ensurepath
+Note: PATH already contains /home/<user>/.local/bin
+$ export PATH="$HOME/.local/bin:$PATH"
+$ pipx --version
+1.4.3
+```
+
+Projected time: ~10s if pipx absent (downloads + installs from PyPI); 0s if already present.
+
+### Step 1F.3 — Smoke-test the MCP
+
+```bash
+$ timeout 30 pipx run --spec git+https://github.com/googleads/google-ads-mcp.git google-ads-mcp --help 2>&1 | head -5
+Cloning into /tmp/pipx-...  # first run only
+Successfully installed google-ads-mcp-... in /home/<user>/.local/share/pipx/...
+usage: google-ads-mcp [-h]
+Google Ads MCP server
+```
+
+First run downloads + venv ~25s; subsequent runs ~2s.
+
+### Step 1F.4 — Register with Claude Code
+
+```bash
+$ claude mcp add google_ads --scope user \
+    --env "GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/google-ads/adc-credentials.json" \
+    --env "GOOGLE_PROJECT_ID=my-personal-projects-2024" \
+    --env "GOOGLE_ADS_DEVELOPER_TOKEN=<22-char token>" \
+    -- pipx run --spec git+https://github.com/googleads/google-ads-mcp.git google-ads-mcp \
+    >/dev/null 2>&1
+$ echo $?
+0
+
+$ claude mcp list 2>&1 | grep google_ads
+google_ads: pipx run --spec git+https://github.com/googleads/google-ads-mcp.git google-ads-mcp - ✓ Connected
+```
+
+### Step 1F.5 — Restart prompt
+
+The participant restarts Claude Code. On the next session, the `mcp__google_ads__search`, `mcp__google_ads__list_accessible_customers`, and `mcp__google_ads__get_resource_metadata` tools appear.
+
+---
+
+## Phase 2 sample (immediately after install + restart)
 
 ```
 Participant: List my test campaigns.
-Claude:      # GAQL Pattern 8
-             gaql_call "SELECT campaign.id, campaign.name, campaign.status,
-                       campaign_budget.amount_micros FROM campaign
-                       ORDER BY campaign.name"
+Claude:      # ROUTE check: claude mcp list shows google_ads ✓ Connected → ROUTE=mcp
+             mcp__google_ads__search({
+               customer_id: "4123456789",
+               fields: ["campaign.id", "campaign.name", "campaign.status",
+                        "campaign_budget.amount_micros"],
+               resource: "campaign",
+               orderings: ["campaign.name"]
+             })
              # → empty results (brand-new test account has no campaigns)
 Claude:      Your test account doesn't have any campaigns yet — that's
              expected for a fresh setup. Want me to walk you through
              creating a test campaign so you can see what the data
              looks like?
+```
+
+If Phase 1F had been skipped (no Python, or pipx install denied), the same prompt would fall back to:
+
+```
+Claude:      # ROUTE=rest (mcp__google_ads__* not registered or .mcp-skipped marker present)
+             gaql_call "SELECT campaign.id, campaign.name, campaign.status,
+                       campaign_budget.amount_micros FROM campaign
+                       ORDER BY campaign.name"
+             # → same data, different transport
 ```
 
 For a test account with pre-existing campaigns (e.g. linked to a manager account's seed data), the response would contain the campaign list.
