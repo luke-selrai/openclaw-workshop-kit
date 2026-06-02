@@ -43,7 +43,11 @@ function calculate(expression: string): string {
   }
 }
 
-type Token = { kind: "num"; value: number } | { kind: "op"; value: string } | { kind: "paren"; value: "(" | ")" };
+type Token =
+  | { kind: "num"; value: number }
+  | { kind: "op"; value: string }
+  | { kind: "unary"; value: "neg" }
+  | { kind: "paren"; value: "(" | ")" };
 
 // Split an arithmetic string into number, operator, and parenthesis tokens.
 function tokenize(expr: string): Token[] {
@@ -67,10 +71,15 @@ function tokenize(expr: string): Token[] {
     }
     if (/[\d.]/.test(ch)) {
       let num = "";
+      let dots = 0;
       while (i < expr.length && /[\d.]/.test(expr[i])) {
+        if (expr[i] === ".") dots++;
         num += expr[i];
         i++;
       }
+      // Self-sufficient numeric validity: do NOT lean on the first-pass regex.
+      // Reject empty, a bare dot, or multiple dots before trusting Number().
+      if (num === "" || num === "." || dots > 1) throw new Error("bad number");
       const value = Number(num);
       if (!Number.isFinite(value)) throw new Error("bad number");
       tokens.push({ kind: "num", value });
@@ -82,26 +91,47 @@ function tokenize(expr: string): Token[] {
 }
 
 // Shunting-yard: convert infix tokens to Reverse Polish Notation.
-// Unary minus is handled by treating a leading or post-operator "-" as 0 - x.
+// A "+" or "-" in a unary position (at the start, after a binary operator, or
+// after a "(") has no left-hand operand. Unary "+" is a no-op and is dropped;
+// unary "-" becomes a distinct right-associative "neg" operator whose precedence
+// is HIGHER than * and /, so it binds tightly to exactly its operand. This
+// replaces the old "inject a 0" trick, which let the binary "-" associate with
+// the wrong neighbour and silently produced wrong results (e.g. 2 - -3).
 function toRpn(tokens: Token[]): Token[] {
   const output: Token[] = [];
   const ops: Token[] = [];
-  const prec: Record<string, number> = { "+": 1, "-": 1, "*": 2, "/": 2 };
+  // Binary precedence: + - = 1, * / = 2. Unary neg sits above both at 3 and is
+  // right-associative, so a neg is only popped by another neg, never by * or /.
+  const binPrec: Record<string, number> = { "+": 1, "-": 1, "*": 2, "/": 2 };
+  const NEG_PREC = 3;
   let prevKind: Token["kind"] | "start" = "start";
+
+  const precOf = (t: Token): number =>
+    t.kind === "unary" ? NEG_PREC : t.kind === "op" ? binPrec[t.value] : -1;
 
   for (const tok of tokens) {
     if (tok.kind === "num") {
       output.push(tok);
     } else if (tok.kind === "op") {
-      // Detect unary minus/plus: an operator with no left-hand operand.
-      const unary = (tok.value === "-" || tok.value === "+") && (prevKind === "start" || prevKind === "op" || (prevKind === "paren"));
+      // A +/- with no left-hand operand is unary.
+      const unary =
+        (tok.value === "-" || tok.value === "+") &&
+        (prevKind === "start" || prevKind === "op" || prevKind === "unary" || prevKind === "paren");
       if (unary) {
-        output.push({ kind: "num", value: 0 });
+        // Unary "+" is a no-op; only unary "-" emits a neg operator. Push neg
+        // without popping: it is the highest-precedence, right-associative op,
+        // so it never displaces an operator already on the stack.
+        if (tok.value === "-") ops.push({ kind: "unary", value: "neg" });
+        prevKind = "unary";
+        continue;
       }
+      // Binary operator: pop strictly-higher, and equal-but-left-associative,
+      // operators (neg, being right-associative, is only popped when strictly
+      // higher, which it always is, so a pending neg flushes correctly here).
       while (
         ops.length > 0 &&
-        ops[ops.length - 1].kind === "op" &&
-        prec[ops[ops.length - 1].value] >= prec[tok.value]
+        (ops[ops.length - 1].kind === "op" || ops[ops.length - 1].kind === "unary") &&
+        precOf(ops[ops.length - 1]) >= binPrec[tok.value]
       ) {
         output.push(ops.pop() as Token);
       }
@@ -133,6 +163,13 @@ function evalRpn(rpn: Token[]): number {
   for (const tok of rpn) {
     if (tok.kind === "num") {
       stack.push(tok.value);
+      continue;
+    }
+    if (tok.kind === "unary") {
+      // neg: 1-arg pop, negate.
+      const x = stack.pop();
+      if (x === undefined) throw new Error("malformed expression");
+      stack.push(-x);
       continue;
     }
     if (tok.kind !== "op") throw new Error("unexpected token");
