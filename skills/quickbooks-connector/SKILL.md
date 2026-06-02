@@ -1,6 +1,6 @@
 ---
 name: quickbooks-connector
-description: "Install and operate the QuickBooks Online connector autonomously by wrapping Intuit's official MCP server (github.com/intuit/quickbooks-online-mcp-server — 144 tools across 29 entities + 11 reports). Drives developer.intuit.com setup end-to-end inside a Playwright MCP browser: finds or creates an Intuit developer app named 'Claude Assistant', adds http://localhost:8000/callback to the Development redirect URIs, DOM-extracts the Client ID and Client Secret with the Show-credentials toggle bracketing the read, persists them to ~/.local/share/qbo-mcp/.env (mode 600), runs `npm run auth` against the Intuit MCP server's bundled auth-server to capture the REFRESH_TOKEN and REALM_ID, then registers the MCP server with Claude Code via `claude mcp add quickbooks --env ... -- node ~/.local/share/qbo-mcp/dist/index.js`. The user's only manual moments are signing in to developer.intuit.com once and any 2FA challenge their Intuit account requires. Read and update QuickBooks Online accounting data via `mcp__quickbooks__*` tools (after the participant restarts Claude Code once so the new MCP server's tools reconcile into the deferred surface). Handles invoices, customers, vendors, bills, estimates, journal entries, payments, the chart of accounts, bank transactions, and 11 financial reports (Balance Sheet, Profit & Loss, Cash Flow, Trial Balance, General Ledger, Customer Sales, Customer Balance, Aged Receivables, Aged Payables, Vendor Balance, Vendor Expenses). Supports sandbox only — production (live company data) requires an HTTPS non-localhost redirect URI and is tracked separately in issue #320. Use this skill when the user asks about their QuickBooks, QBO, invoices, unpaid invoices, overdue invoices, customers, vendors, bills, profit and loss, balance sheet, bank transactions, chart of accounts, payments received, or when they say 'connect my QuickBooks' or 'help me set up QuickBooks'. On the first use of any QuickBooks feature, run Phase 1 to install the MCP server and authenticate before attempting any tool calls."
+description: "Install and operate the QuickBooks Online connector autonomously by wrapping Intuit's official MCP server (github.com/intuit/quickbooks-online-mcp-server — 144 tools across 29 entities + 11 reports). Drives developer.intuit.com setup end-to-end inside a Playwright MCP browser: finds or creates an Intuit developer app named 'Claude Assistant', adds http://localhost:8000/callback to the Development redirect URIs, DOM-extracts the Client ID and Client Secret with the Show-credentials toggle bracketing the read, persists them to ~/.local/share/qbo-mcp/.env (mode 600), runs `npm run auth` against the Intuit MCP server's bundled auth-server to capture the REFRESH_TOKEN and REALM_ID, then registers the MCP server with Claude Code via `claude mcp add quickbooks --env ... -- node ~/.local/share/qbo-mcp/dist/index.js`. The user's only manual moments are signing in to developer.intuit.com once and any 2FA challenge their Intuit account requires. Read and update QuickBooks Online accounting data via `mcp__quickbooks__*` tools (after the participant restarts Claude Code once so the new MCP server's tools reconcile into the deferred surface). Handles invoices, customers, vendors, bills, estimates, journal entries, payments, the chart of accounts, bank transactions, and 11 financial reports (Balance Sheet, Profit & Loss, Cash Flow, Trial Balance, General Ledger, Customer Sales, Customer Balance, Aged Receivables, Aged Payables, Vendor Balance, Vendor Expenses). Supports both live (real company data) and sandbox (practice data) — Phase 0 asks which mode and defaults to live. The live-mode install is entirely participant-side, no SelrAI hosting: drives Cloudflare account creation and a Cloudflare Pages deploy (for the four legal/landing URLs Intuit's Production Settings form requires), creates the Intuit Production app, fills the Production Settings form, runs a Cloudflare quick tunnel for the OAuth callback only, and registers the MCP server with QUICKBOOKS_ENVIRONMENT=production. Use this skill when the user asks about their QuickBooks, QBO, invoices, unpaid invoices, overdue invoices, customers, vendors, bills, profit and loss, balance sheet, bank transactions, chart of accounts, payments received, or when they say 'connect my QuickBooks' or 'help me set up QuickBooks'. On the first use of any QuickBooks feature, run Phase 0 then Phase 1 to install + authenticate before attempting any tool calls."
 allowed-tools: mcp__quickbooks__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
@@ -37,11 +37,18 @@ The skill has two phases:
 claude mcp list 2>&1 | grep -i quickbooks
 ```
 
-- A line like `quickbooks: node /home/<user>/.local/share/qbo-mcp/dist/index.js - ✓ Connected` → MCP server is registered and connected. Verify `mcp__quickbooks__*` tools are visible (via `ToolSearch +quickbooks`); if visible → Phase 2. If not visible → ask the user to restart Claude Code once so the runtime reconciles the new MCP surface.
-- No quickbooks line → run Phase 1.
-- A quickbooks line followed by `✗ Failed to connect` or similar → re-run Phase 1 from Step 8 (re-auth + re-register).
+- A line like `quickbooks: node /home/<user>/.local/share/qbo-mcp/dist/index.js - ✓ Connected` → MCP server is registered. Run **Phase 0** to discover the mode (live vs sandbox) from the registered env, then jump to Phase 2.
+- No quickbooks line → run **Phase 0** to pick a mode, then **Phase 1L** (live) or **Phase 1S** (sandbox).
+- A quickbooks line followed by `✗ Failed to connect` → run Phase 0 to learn the mode, then re-run Phase 1's auth-only sub-flow for that mode (Phase 1S Step 9 for sandbox; Phase 1L sub-phase D for live — Phase 1L sub-phases A/B/C are one-time, no re-run needed).
 
-**Sandbox only.** This skill supports QuickBooks Online sandbox only. Production (live company data) requires an HTTPS non-localhost redirect URI (because Intuit refuses `localhost` URIs in Production app config) and is tracked separately in [issue #320](https://github.com/selrai-company/claude-workshop-kit/issues/320). For the workshop's sandbox-only scope, the existing `Claude Assistant` app's Development redirect URIs are sufficient.
+**Live by default; sandbox is opt-in.** This skill supports both modes:
+
+- **Live (Production-Development tier)** — connects to the participant's real QuickBooks company. Default. Each participant has their own Intuit Production app and their own Cloudflare Pages deploy hosting the four legal/landing URLs Intuit's Production Settings form requires. No SelrAI hosting. Phase 1L drives all of this via Playwright.
+- **Sandbox** — connects to a practice company. Opt-in via Phase 0 prompt. Phase 1S is the existing zero-config-required sandbox install.
+
+The MCP server itself reads `QUICKBOOKS_ENVIRONMENT` (`production` or `sandbox`) and switches its API base URL accordingly. Phase 2 tool calls are identical across modes; only the soft-gate + destructive-op confirmation behaviour changes for live (see Phase 2 below).
+
+**App Store publishing (Intuit tier 2 — 4-6 week App Assessment) is NOT in scope.** Tier 1 (Production-Development mode, ~5-company cap, no human review, credentials issued immediately on Production Settings save) is sufficient for any participant connecting their own one QBO company. If a participant ever wants to publish their app on the QBO App Store so other QBO users can install it, that's a separate optional follow-up documented in `examples/install-walkthrough-app-store.md` (future).
 
 **This is a Playwright-driven autonomous-Phase-1 connector** — same shape as `xero-connector`, `stripe-connector`, `github-connector`. The `skills/CLAUDE.md` install-pattern decision tree currently lists three canonical patterns (Hosted-OAuth, Hosted-bearer-PAT, Plugin-marketplace); this SKILL fits a candidate **fourth pattern**: *Vendor-published local stdio MCP* — clone + build the vendor's MCP server locally, drive their auth flow, register via `claude mcp add` with stdio command. If two or three more connectors land on this same pattern (Salesforce's `@salesforce/mcp` is the obvious next candidate), the pattern should be formalised in `skills/CLAUDE.md`.
 
@@ -63,9 +70,41 @@ The user is a non-technical business owner. Phase 1 is autonomous — Claude doe
 
 ---
 
-## PHASE 1 — Install & Auth (autonomous via Playwright)
+## PHASE 0 — Mode Detection (live vs sandbox)
 
-Claude clones + builds the Intuit MCP server, drives developer.intuit.com end-to-end via Playwright MCP to set up the Intuit developer app + capture credentials + add the localhost:8000 redirect URI, runs the bundled `npm run auth` flow to capture refresh tokens, and registers the MCP server with Claude Code via `claude mcp add`. The user's only role is signing in to developer.intuit.com when prompted (and only the first time — the persistent Playwright profile keeps the session for future runs) and approving any 2FA challenge their account requires.
+Run Phase 0 before any Phase 1 work. It picks live or sandbox and surfaces the choice so Phase 1L vs Phase 1S can branch correctly. If the MCP server is already registered, Phase 0 derives the existing mode from `claude mcp get quickbooks` and skips the prompt.
+
+### Step 0.1 — Discover existing mode (if registered)
+
+```bash
+EXISTING_MODE="$(claude mcp get quickbooks 2>/dev/null | awk -F= '/QUICKBOOKS_ENVIRONMENT=/ {print $2}' | head -1)"
+echo "${EXISTING_MODE:-not-registered}"
+```
+
+- Output `production` or `sandbox` → MCP already registered in this mode. Tell the user warmly: *"You're already connected in [live / practice] mode — let me check it still works."* Then run a single `mcp__quickbooks__get_company_info` smoke call. On success → Phase 2 (and set `MODE=$EXISTING_MODE` for Phase 2's behavioural switches). On auth-expired error → run the auth-only sub-flow for `$EXISTING_MODE` (Phase 1S Step 9 for sandbox; Phase 1L sub-phase D for live).
+- Output `not-registered` → continue to Step 0.2.
+
+### Step 0.2 — Ask live vs sandbox
+
+If not already registered, ask the user in one warm message:
+
+> "Want to connect your **real QuickBooks** (your actual company data) or set up a **practice company** first to try it out? Real is the default — most business owners want real."
+
+Map their reply:
+
+- "real", "live", "production", "yes", "go", "connect", or no specific answer → `MODE=production` → **Phase 1L**.
+- "practice", "sandbox", "test", "try first" → `MODE=sandbox` → **Phase 1S**.
+- Ambiguous reply → ask once for clarification, default `MODE=production`.
+
+Set `MODE` as a shell variable that Phase 1's downstream steps read. Do NOT say the word "sandbox" to the user during this prompt — use "practice company" (workshop UX rule from `feedback_workshop_kit_update_format`).
+
+---
+
+## PHASE 1S — Sandbox Install & Auth (autonomous via Playwright)
+
+Run this branch when Phase 0 selects `MODE=sandbox`. This is the original zero-config-required sandbox flow — no Cloudflare, no Production Settings form, localhost callback URI directly.
+
+Claude clones + builds the Intuit MCP server, drives developer.intuit.com end-to-end via Playwright MCP to set up the Intuit developer app + capture credentials + add the localhost:8000 redirect URI on the **Development** sub-tab, runs the bundled `npm run auth` flow to capture refresh tokens, and registers the MCP server with Claude Code via `claude mcp add`. The user's only role is signing in to developer.intuit.com when prompted (and only the first time — the persistent Playwright profile keeps the session for future runs) and approving any 2FA challenge their account requires.
 
 > **Reasoning model.** Each Playwright step describes a *goal* (e.g., "find the Show credentials toggle and read the Client ID input from the same panel"). Achieve it via `mcp__playwright__browser_snapshot` → reason → `browser_click` / `browser_evaluate` / `browser_fill_form` / `browser_select_option`. Match elements by their visible labels and `aria-label` attributes ("Show credentials", "Add URI", inputs with `aria-label="url-location"`), not by selector paths — Intuit's developer portal UI evolves.
 
@@ -479,11 +518,475 @@ If the smoke call errors with `auth_expired` or similar, re-run Phase 1 from Ste
 
 ---
 
+## PHASE 1L — Live Install & Auth (autonomous via Playwright)
+
+Run this branch when Phase 0 selects `MODE=production`. Connects to the participant's real QuickBooks company. Five sub-phases:
+
+- **1L-A** — Cloudflare onboarding: wrangler install + login + Pages deploy of the four legal/landing HTML templates (`assets/legal/{launch,disconnect,eula,privacy}.html`) from this SKILL.
+- **1L-B** — Intuit Production app creation and navigation: same find-or-create as Phase 1S Step 5 but navigates to the **Production** Settings tab.
+- **1L-C** — Production Settings form fill: Playwright fills 5 URL fields with the participant's own Pages URLs (NOT SelrAI URLs), saves, waits for Intuit to issue Production credentials.
+- **1L-D** — OAuth tunnel + auth: Cloudflare quick tunnel for the callback only, Playwright drives Production consent flow.
+- **1L-E** — MCP register with `QUICKBOOKS_ENVIRONMENT=production` + restart prompt + smoke.
+
+Phase 1L assumes Phase 1S Steps 2 (prereqs: Node ≥ 18, git, Playwright MCP) and 3 (clone + build the Intuit MCP server) have ALREADY RUN — these are mode-agnostic and reused as-is. Skip to Step 1L-A if those are complete; otherwise run Phase 1S Steps 2-3 first.
+
+> **Workshop-UX recap.** The communication rules from the top of this SKILL apply throughout: plain English, no jargon, never ask the user to click menus or paste values in the happy path. The user's only manual moments in Phase 1L are: signing in to (or signing up for) Cloudflare, signing in to (or signing up for) developer.intuit.com, and any verification-email step Cloudflare/Intuit requires for new accounts. Playwright drives everything else.
+
+### Step 1L-A — Cloudflare onboarding (wrangler install + login + Pages deploy)
+
+Cloudflare hosts the four small HTML pages whose URLs go into Intuit's Production Settings form. Each participant deploys to their **own** Cloudflare Pages account — SelrAI hosts nothing.
+
+#### 1L-A.1 — Install wrangler if absent
+
+Silently run, narrating to the user "Setting up where your QuickBooks app stores its legal pages — about a minute":
+
+```bash
+if ! command -v wrangler >/dev/null 2>&1; then
+  npm install -g wrangler 2>&1 | tail -3
+fi
+wrangler --version 2>&1 | head -1
+```
+
+If the global install fails (permission denied on Linux/macOS without sudo, or Windows path issues), fall back to `npx wrangler` for the remaining steps — slower per-call but no install required.
+
+#### 1L-A.2 — Cloudflare login
+
+```bash
+wrangler whoami 2>&1 | tail -3
+```
+
+- If output contains `You are logged in` → skip to 1L-A.3.
+- If output contains `You are not authenticated` → run the OAuth flow:
+
+  ```bash
+  rm -f /tmp/wrangler-login.log
+  exec wrangler login > /tmp/wrangler-login.log 2>&1
+  ```
+  (Run in the background — `run_in_background: true`.)
+
+  After ~3 seconds, extract the auth URL from the log and navigate Playwright to it:
+
+  ```bash
+  sleep 3
+  CF_AUTH_URL="$(grep -oE 'https://dash\.cloudflare\.com/oauth2/auth[^[:space:]]+' /tmp/wrangler-login.log | head -1)"
+  ```
+
+  ```
+  mcp__playwright__browser_navigate({ url: "<CF_AUTH_URL>" })
+  ```
+
+  Three states the page can be in:
+
+  - **Already logged in** → page auto-redirects to a Cloudflare "Authorize wrangler" consent screen. Playwright clicks the **Allow** button (`role=button[name=/^Allow$/i]`).
+  - **Cloudflare sign-in page** → tell the user: *"Please sign in to your Cloudflare account in the browser window — I'll continue once you're in."* Use `browser_wait_for({ text: "Authorize" })` to detect the post-sign-in consent screen (NOT `browser_snapshot` on the sign-in page — same password-leak risk as Intuit, see `reference_playwright_snapshot_password_leak`). Then click **Allow**.
+  - **Sign-up page** → tell the user: *"You don't have a Cloudflare account yet — please create one in the browser window (the free tier is fine), confirm the verification email, and let me know when you're signed in. I'll continue from there."* Wait for the user's reply. Then re-navigate to `<CF_AUTH_URL>` and click **Allow**.
+
+  After **Allow**, the browser shows a success page and `wrangler login` exits 0. Confirm:
+
+  ```bash
+  wrangler whoami 2>&1 | grep -E '(logged in|email)' | head -1
+  ```
+
+#### 1L-A.3 — Build the legal-pages directory from SKILL assets
+
+The SKILL ships four HTML templates at `skills/quickbooks-connector/assets/legal/{launch,disconnect,eula,privacy}.html`. Copy them into a working dir with the URL-path structure Intuit's form expects:
+
+```bash
+SKILL_DIR="$(dirname "$(find ~/.claude ~/.config -path '*/skills/quickbooks-connector/SKILL.md' 2>/dev/null | head -1)")"
+# Fallback: if not in a plugin cache, try the workshop kit repo location
+if [ -z "$SKILL_DIR" ] || [ ! -d "$SKILL_DIR/assets/legal" ]; then
+  SKILL_DIR="$(find "$HOME" -maxdepth 8 -type d -name quickbooks-connector -path '*/skills/*' 2>/dev/null | head -1)"
+fi
+
+LEGAL_SRC="$SKILL_DIR/assets/legal"
+SLUG="qbo-legal-$(date +%s | tail -c 7)$RANDOM"
+PAGES_DIR="$HOME/.local/share/qbo-mcp/pages-$SLUG"
+
+mkdir -p "$PAGES_DIR/legal" "$PAGES_DIR/qbo"
+cp "$LEGAL_SRC/eula.html"       "$PAGES_DIR/legal/eula.html"
+cp "$LEGAL_SRC/privacy.html"    "$PAGES_DIR/legal/privacy.html"
+cp "$LEGAL_SRC/launch.html"     "$PAGES_DIR/qbo/launch.html"
+cp "$LEGAL_SRC/disconnect.html" "$PAGES_DIR/qbo/disconnect.html"
+
+ls -la "$PAGES_DIR/legal/" "$PAGES_DIR/qbo/"
+```
+
+`SLUG` is a unique-ish per-install identifier (Pages project names must be unique within a Cloudflare account). The `qbo-legal-<slug>` naming makes the project's purpose obvious in the Cloudflare dashboard.
+
+#### 1L-A.4 — Deploy to Cloudflare Pages
+
+```bash
+wrangler pages deploy "$PAGES_DIR" --project-name="$SLUG" --branch=main 2>&1 | tee /tmp/wrangler-pages-deploy.log | tail -10
+```
+
+On success, the log contains a deployment URL like `https://<deploy-id>.<slug>.pages.dev` AND a stable alias `https://<slug>.pages.dev`. Capture the stable alias:
+
+```bash
+PAGES_URL="$(grep -oE 'https://[a-z0-9-]+\.pages\.dev' /tmp/wrangler-pages-deploy.log | grep -v -- '-' | head -1)"
+# Fallback if the no-dash filter misses
+if [ -z "$PAGES_URL" ]; then
+  PAGES_URL="https://${SLUG}.pages.dev"
+fi
+echo "$PAGES_URL"
+```
+
+#### 1L-A.5 — Smoke-test all 4 URLs
+
+```bash
+for path in /legal/eula.html /legal/privacy.html /qbo/launch.html /qbo/disconnect.html; do
+  code="$(curl -sI -o /dev/null -w '%{http_code}' "$PAGES_URL$path")"
+  echo "$PAGES_URL$path -> $code"
+done
+```
+
+All four should return `200`. If any return `404`, the deploy didn't pick up the file — re-run the deploy with the `--commit-dirty=true` flag, or check `ls -la "$PAGES_DIR/legal" "$PAGES_DIR/qbo"` for missing files.
+
+Pages takes ~5-15 seconds to propagate the first time; if any URL returns `522` or `523`, sleep 10 and retry once.
+
+> **Why per-install slug.** Cloudflare Pages project names are unique within an account. A returning participant who has already done Phase 1L still has a working Pages project from the prior run — those URLs are reusable forever (Pages keeps deploys live until you delete the project). Phase 0 catches this case via the MCP-registered branch; we only land in 1L-A when no prior registration exists. The new slug per fresh install is therefore safe AND prevents accidental collision when the participant's Cloudflare account has many projects.
+
+### Step 1L-B — Find or create the Intuit Production app
+
+Mostly the same as Phase 1S Steps 4 and 5 with one key change: we set up the app's **Production** Settings tab, not Development.
+
+#### 1L-B.1 — Sign in to developer.intuit.com
+
+Identical to Phase 1S Step 4. **Do not snapshot the sign-in page.** Use `browser_wait_for({ text: "Workspaces" })` to detect post-sign-in.
+
+If the participant doesn't have an Intuit developer account, tell them: *"You'll need an Intuit developer account — please sign up in the browser window (it's free), confirm any verification email, and let me know when you're at the Workspaces page."* Wait for their reply, then continue.
+
+#### 1L-B.2 — Find or create the "Claude Assistant" app
+
+Identical to Phase 1S Step 5 logic. Reuse if the app already exists from a prior install. Note the `appId` and workspace `id` from the post-create URL.
+
+#### 1L-B.3 — Navigate to the Production Settings tab
+
+```
+mcp__playwright__browser_navigate({
+  url: "https://developer.intuit.com/appdetail/settings?appId=<appId>&id=<workspaceId>&tab=production"
+})
+```
+
+`mcp__playwright__browser_wait_for({ text: "Production app settings" })`. Take a snapshot.
+
+Two states the page can be in:
+
+- **Production Settings already filled** (Pages URLs from a prior 1L install present in all 5 fields) → skip to Step 1L-D.
+- **Production Settings empty** (or partially filled with old/missing URLs) → continue to Step 1L-C.
+
+### Step 1L-C — Fill the Production Settings form (Playwright-driven)
+
+Intuit's Production Settings form has 5 required URL fields plus industry/regulated questions. Each participant's form references their own Pages URLs from Step 1L-A.
+
+#### 1L-C.1 — Fill the 5 URL fields
+
+The form fields and their target values:
+
+| Field name (visible label) | Form input identifier | Value to type |
+|---|---|---|
+| Host domain | `aria-label="host-domain"` or `name="host_domain"` | `<slug>.pages.dev` (no scheme) |
+| App URL (Launch URL) | `aria-label="launch-url"` | `${PAGES_URL}/qbo/launch.html` |
+| Disconnect Landing Page URL | `aria-label="disconnect-url"` | `${PAGES_URL}/qbo/disconnect.html` |
+| End User License Agreement (EULA) URL | `aria-label="eula-url"` | `${PAGES_URL}/legal/eula.html` |
+| Privacy Policy URL | `aria-label="privacy-policy-url"` | `${PAGES_URL}/legal/privacy.html` |
+
+Field identifiers are best-effort — verify against the page snapshot before relying on a specific `aria-label`. Intuit's UI evolves; match by visible label as primary.
+
+Use the **React-friendly setter** pattern from Phase 1S Step 6 (controlled-component setter + dispatch `input`/`change` events). Naive `el.value = '...'` does NOT work on Intuit's React inputs.
+
+```js
+(fieldLabel, value) => {
+  const labels = Array.from(document.querySelectorAll('label, div, span, p'));
+  const labelEl = labels.find(el => new RegExp(`^${fieldLabel}`, 'i').test((el.innerText||'').trim()));
+  if (!labelEl) return { ok: false, reason: `no label for ${fieldLabel}` };
+  // Find the input that follows this label
+  let scope = labelEl.parentElement;
+  for (let depth = 0; depth < 4 && scope; depth++) {
+    const input = scope.querySelector('input[type="text"], input[type="url"], input:not([type])');
+    if (input) {
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+      input.focus();
+      setter.call(input, value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      input.blur();
+      return { ok: true, value_len: value.length };
+    }
+    scope = scope.parentElement;
+  }
+  return { ok: false, reason: 'no input found near label' };
+}
+```
+
+Call once per field (5 invocations) with the label and value from the table above.
+
+#### 1L-C.2 — Answer the industry questions
+
+Intuit asks one or two questions about regulated industries (healthcare, financial services, gambling, etc.). For a workshop-scope connector, defaults of **No** are correct.
+
+Walk each question via `browser_evaluate` to select the "No" radio button:
+
+```js
+() => {
+  const noRadios = Array.from(document.querySelectorAll('input[type="radio"]'))
+    .filter(r => /\bno\b/i.test(r.value || r.getAttribute('aria-label') || ''));
+  noRadios.forEach(r => {
+    if (!r.checked) {
+      r.click();
+      r.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+  return { clicked: noRadios.length };
+}
+```
+
+If the participant's app is for a regulated industry, surface the questions to them in plain English first: *"Intuit asks if your business is in healthcare, financial services, or gambling. Default is 'no' — say so unless any of those apply."*
+
+#### 1L-C.3 — Save the form
+
+The Save button is typically at the bottom and may be outside the viewport.
+
+```js
+() => {
+  const btn = Array.from(document.querySelectorAll('button')).find(b => /^save( settings)?$/i.test((b.innerText||'').trim()));
+  if (!btn || btn.disabled) return { ok: false };
+  btn.scrollIntoView({block: 'center'});
+  btn.click();
+  return { ok: true };
+}
+```
+
+Wait for the post-save confirmation:
+
+```
+mcp__playwright__browser_wait_for({ text: "Production credentials" })
+```
+
+(Or whatever text Intuit shows on save success — verify via snapshot if the wait times out.)
+
+#### 1L-C.4 — Optional: ask about App Store submission
+
+After Production credentials are issued, the Production tab typically shows a **Submit for App Assessment** button (this triggers Intuit's 4-6 week review for App Store publishing). For workshop participants connecting their own QBO company, this is NOT needed.
+
+Tell the user, in one short message:
+
+> "You're now able to connect QuickBooks. Optional: you can also list this app on the QuickBooks App Store so other QuickBooks users can install it — that's a 4-6 week review process by Intuit. Most people skip it. Should I submit it for you, or skip and proceed to connecting your QuickBooks?"
+
+Default: skip. Only run the submission flow if the participant explicitly opts in (covered in `examples/install-walkthrough-app-store.md`, future).
+
+### Step 1L-D — OAuth tunnel + Production credentials + auth
+
+Like Phase 1S Steps 6-9, but on the **Production** sub-tab and using a Cloudflare quick tunnel for the HTTPS callback URL (Intuit refuses `localhost` for Production redirect URIs).
+
+#### 1L-D.1 — Start the Cloudflare quick tunnel
+
+Detect `cloudflared` and install if absent:
+
+```bash
+if ! command -v cloudflared >/dev/null 2>&1; then
+  case "$(uname -s)" in
+    Darwin)  brew install cloudflared 2>&1 | tail -3 ;;
+    Linux)   curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null && echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(lsb_release -cs) main' | sudo tee /etc/apt/sources.list.d/cloudflared.list && sudo apt-get update && sudo apt-get install -y cloudflared ;;
+    MINGW*|MSYS*|CYGWIN*)  scoop install cloudflared 2>&1 | tail -3 ;;
+  esac
+fi
+cloudflared --version | head -1
+```
+
+If sudo is required, surface to the user: *"I need to install a small tool called Cloudflared (free, from Cloudflare) so QuickBooks can connect securely. May I install it? It'll need your computer password."* — wait for OK, then proceed.
+
+Start the tunnel:
+
+```bash
+rm -f /tmp/qbo-tunnel.log
+exec cloudflared tunnel --url http://localhost:8000 > /tmp/qbo-tunnel.log 2>&1
+```
+
+(Run in the background.)
+
+Wait for the tunnel URL to appear:
+
+```bash
+TUNNEL_URL=""
+for i in $(seq 1 30); do
+  TUNNEL_URL="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' /tmp/qbo-tunnel.log | head -1)"
+  if [ -n "$TUNNEL_URL" ]; then break; fi
+  sleep 1
+done
+echo "${TUNNEL_URL:-NO_TUNNEL}"
+```
+
+If `TUNNEL_URL` is empty after 30 seconds, read `/tmp/qbo-tunnel.log` and surface to the user in plain English: *"Cloudflared isn't connecting — your network might be blocking it. Can you check if your work VPN is on?"*
+
+#### 1L-D.2 — Add the tunnel URL to the Production redirect URIs
+
+Same pattern as Phase 1S Step 6 (React-friendly setter, Add URI button, Save), but:
+
+- Navigate to the redirect URIs page and click the **Production** sub-tab BEFORE adding the URI. The sub-tab switcher is a `role="tab"` named `Production`.
+- Add `${TUNNEL_URL}/callback` (NOT `http://localhost:8000/callback`).
+- **Prune step**: before saving, scan the existing URIs and remove any `*.trycloudflare.com/callback` entries OLDER than the current run (regex match on the hostname, keep last 5). This prevents the URI list from growing unbounded over repeat runs.
+
+```js
+() => {
+  const tabpanel = document.querySelector('[role="tabpanel"]');
+  const inputs = Array.from(tabpanel.querySelectorAll('input[aria-label="url-location"]'));
+  const stale = inputs.filter(i => /\.trycloudflare\.com\/callback/.test(i.value));
+  // Keep the most-recent 5; remove the rest by finding their adjacent remove buttons
+  if (stale.length > 4) {
+    const toRemove = stale.slice(0, stale.length - 4);
+    toRemove.forEach(input => {
+      const row = input.closest('[role="row"], li, .uri-row, div');
+      const removeBtn = row && Array.from(row.querySelectorAll('button')).find(b => /remove|delete|trash/i.test(b.ariaLabel || b.innerText || ''));
+      if (removeBtn) removeBtn.click();
+    });
+    return { pruned: toRemove.length };
+  }
+  return { pruned: 0 };
+}
+```
+
+#### 1L-D.3 — DOM-extract Production credentials
+
+Same as Phase 1S Step 7, but on the **Production** sub-tab of `/appdetail/keys`:
+
+```
+mcp__playwright__browser_navigate({ url: "https://developer.intuit.com/appdetail/keys?appId=<appId>&id=<workspaceId>&tab=production" })
+```
+
+Wait for `Client ID`, click the Production-tab Show credentials toggle, run the clipboard-transit extract (return lengths only), click the toggle again to hide. Identical script as Phase 1S Step 7.
+
+#### 1L-D.4 — Write `.env` for live mode
+
+Same as Phase 1S Step 8 but with three different values:
+
+```bash
+INSTALL_DIR="$HOME/.local/share/qbo-mcp"
+mkdir -p "$INSTALL_DIR"
+umask 077
+
+CLIENT_ID="$(wl-paste | jq -r '.client_id')"
+CLIENT_SECRET="$(wl-paste | jq -r '.client_secret')"
+
+cat > "$INSTALL_DIR/.env" <<EOF
+QUICKBOOKS_CLIENT_ID=${CLIENT_ID}
+QUICKBOOKS_CLIENT_SECRET=${CLIENT_SECRET}
+QUICKBOOKS_REDIRECT_URI=${TUNNEL_URL}/callback
+QUICKBOOKS_ENVIRONMENT=production
+EOF
+chmod 600 "$INSTALL_DIR/.env"
+
+base64 -d /tmp/qbo-prev-clipboard.b64 | wl-copy 2>/dev/null
+rm -f /tmp/qbo-prev-clipboard.b64
+unset CLIENT_ID CLIENT_SECRET
+```
+
+Key deltas vs Phase 1S Step 8:
+- `QUICKBOOKS_REDIRECT_URI` is the tunnel URL, not `http://localhost:8000/callback`.
+- `QUICKBOOKS_ENVIRONMENT=production` (sandbox would be `sandbox`).
+
+#### 1L-D.5 — Run `npm run auth` and drive Production consent
+
+Same as Phase 1S Step 9. The auth-server reads `QUICKBOOKS_REDIRECT_URI` from .env (verified in `src/clients/quickbooks-client.ts:38`) and emits the consent URL with the tunnel host. Playwright drives the consent — but on the **production** OAuth endpoint, not sandbox.
+
+Two practical differences in the consent flow:
+
+- **No company picker**: production OAuth presents a list of the participant's REAL QBO companies (not sandbox practice companies). If the participant has multiple companies, they choose which one to connect.
+- **Real authorization screen**: the copy reads "**[Participant's company name]** will allow Claude Assistant to: view and edit your data". Playwright clicks Connect/Allow as usual.
+
+Wait for tokens written, verify all 6 .env keys are set, same as Phase 1S Step 9.
+
+#### 1L-D.6 — Tear down the tunnel
+
+After tokens captured:
+
+```bash
+TUNNEL_PID="$(pgrep -f 'cloudflared tunnel --url http://localhost:8000' | head -1)"
+[ -n "$TUNNEL_PID" ] && kill "$TUNNEL_PID"
+```
+
+Then rewrite `QUICKBOOKS_REDIRECT_URI` in .env back to `http://localhost:8000/callback` as a placeholder. Future re-auth (if the 100-day refresh token eventually expires) re-runs Phase 1L sub-phase D with a fresh tunnel anyway, so the placeholder is purely cosmetic — but it keeps the .env coherent.
+
+```bash
+sed -i.bak 's|^QUICKBOOKS_REDIRECT_URI=.*|QUICKBOOKS_REDIRECT_URI=http://localhost:8000/callback|' "$HOME/.local/share/qbo-mcp/.env"
+rm -f "$HOME/.local/share/qbo-mcp/.env.bak"
+```
+
+(`sed -i` works on Linux; on macOS use `sed -i ''`; the .bak/rm pattern is portable.)
+
+### Step 1L-E — Register the MCP server and prompt restart
+
+Same as Phase 1S Steps 10-12, but with `QUICKBOOKS_ENVIRONMENT=production` in the `--env` list:
+
+```bash
+INSTALL_DIR="$HOME/.local/share/qbo-mcp"
+cd "$INSTALL_DIR"
+set -a; . ./.env; set +a
+
+claude mcp add quickbooks --scope user \
+  --env "QUICKBOOKS_CLIENT_ID=$QUICKBOOKS_CLIENT_ID" \
+  --env "QUICKBOOKS_CLIENT_SECRET=$QUICKBOOKS_CLIENT_SECRET" \
+  --env "QUICKBOOKS_REFRESH_TOKEN=$QUICKBOOKS_REFRESH_TOKEN" \
+  --env "QUICKBOOKS_REALM_ID=$QUICKBOOKS_REALM_ID" \
+  --env "QUICKBOOKS_REDIRECT_URI=$QUICKBOOKS_REDIRECT_URI" \
+  --env "QUICKBOOKS_ENVIRONMENT=production" \
+  -- node "$INSTALL_DIR/dist/index.js" >/dev/null 2>&1
+```
+
+Verify with `claude mcp list 2>&1 | grep quickbooks` (expect `✓ Connected`), then prompt the participant to restart Claude Code:
+
+> "All set — your QuickBooks is now connected to your real company data. One last step: please close this window and reopen Claude Code, then say hi. I'll show you your live QuickBooks once you're back."
+
+Save a memory marker that QuickBooks is installed in **live mode** so the next session's Phase 0 picks `production` from `claude mcp get quickbooks` and goes straight to Phase 2 with the live-mode behavioural switches on.
+
+### Phase 1L re-auth (when refresh token expires)
+
+Intuit refresh tokens have a rolling ~100-day lifetime. When Phase 2 returns `auth_expired`, re-run **only Phase 1L sub-phase D** — sub-phases A (Cloudflare Pages still alive), B (Intuit app already exists), C (Production Settings already filled) are one-time and not re-run. The tunnel is per-run.
+
+---
+
 ## PHASE 2 — Use Tools
 
 Once Phase 1 is complete and Claude Code has been restarted, the `mcp__quickbooks__*` tools are available. There are 144 of them across 29 entities + 11 reports — far more than the 10 most-common patterns documented here. For advanced operations, introspect via the tool descriptions in your deferred-tool surface (search via `ToolSearch +quickbooks`), or consult [the Intuit MCP repo README](https://github.com/intuit/quickbooks-online-mcp-server) for the full tool catalogue.
 
-**Sandbox awareness.** Every Phase 2 invocation operates against the user's connected sandbox company. If the user says "real numbers" or "live data", remind them gently that this skill is sandbox-only and point at [issue #320](https://github.com/selrai-company/claude-workshop-kit/issues/320) for the production-mode follow-up.
+**Mode awareness (set at session start).** Read `QUICKBOOKS_ENVIRONMENT` from the registered MCP config — `claude mcp get quickbooks | grep QUICKBOOKS_ENVIRONMENT` — and remember the value for the session as `MODE`. Phase 2 behaviour switches on `MODE`:
+
+- **`MODE=production` (live):** every tool call operates on the participant's **real** company data. The two production-mode gates below apply.
+- **`MODE=sandbox` (practice):** every tool call operates on a practice company. Use the word "practice company" with the user, never "sandbox" (workshop UX rule). If the user says "real numbers" or "live data", offer to re-run Phase 1L to switch — don't pretend sandbox is live.
+
+### Production-mode gate 1 — Soft "real-data" confirmation on first invocation
+
+On the **first** Phase 2 tool call of any session where `MODE=production`, do NOT call the requested tool immediately. Instead:
+
+1. Call `mcp__quickbooks__get_company_info({})` first, silently.
+2. Extract `CompanyInfo.CompanyName` from the response.
+3. Tell the user, in one short message:
+
+   > "Just confirming — you're connected to your real QuickBooks company **[CompanyName]**. Anything I do here will hit your live data. OK to proceed with **[summary of what they asked]**?"
+
+4. Wait for the user's OK. Then proceed with the original tool call.
+
+Apply this gate ONCE per session, not per tool call. Once the user has confirmed for the session, subsequent reads (search, get) proceed silently; subsequent writes still trigger Gate 2 below.
+
+### Production-mode gate 2 — Destructive-op confirmation
+
+For every `create_*` / `update_*` / `delete_*` tool call when `MODE=production`, confirm in plain English BEFORE invoking the tool:
+
+| Operation | Example confirmation prompt |
+|---|---|
+| `create_invoice` | "I'm about to create a real invoice for **[Customer]** for **$[Amount]**, due **[DueDate]**. This will appear in your QuickBooks immediately. OK?" |
+| `update_invoice` | "I'm about to update invoice **[DocNumber]** — changing [field] from [old] to [new]. This will save to your QuickBooks. OK?" |
+| `delete_invoice` | "I'm about to **delete** invoice **[DocNumber]** for **[Customer]** (**$[TotalAmt]**). This can't be undone from here — you'd have to recreate it. Are you sure?" |
+| `create_customer` | "I'm about to add a new customer **[DisplayName]** to your QuickBooks. OK?" |
+| `update_customer` | "I'm about to update **[DisplayName]**'s [field] from [old] to [new]. OK?" |
+| `delete_customer` | "I'm about to **delete** customer **[DisplayName]** from your QuickBooks. They have **[N]** invoices that will become orphaned. Are you sure?" |
+| `create_bill` / `update_bill` / `delete_bill` | Similar phrasing — name the vendor, amount, date. |
+| `create_*` / `update_*` / `delete_*` for other entities | Same pattern: name the operation in plain English, name the key fields, ask for OK. |
+
+The gate is **per write call**, not per session. A read after a confirmed write does NOT re-trigger the gate; the next write does.
+
+The MCP server itself does NOT enforce these gates — this is SKILL-prose enforcement. Claude reads the SKILL at session start and applies them. If a future participant configures `QUICKBOOKS_DISABLE_WRITE=true` (read-only mode), Gate 2 becomes moot for the disabled categories.
+
+**`MODE=sandbox` does not trigger either gate.** Practice-company writes are not confirmed — they're a learning sandbox.
 
 ### Common Pattern 1 — List recent invoices
 
@@ -712,9 +1215,9 @@ MCP tool calls return either a result or an error. Translate errors to plain Eng
 | Error pattern | What it means | How to respond |
 |---|---|---|
 | `Tool not found: mcp__quickbooks__*` | Claude Code hasn't reconciled the new MCP server yet | Ask the user to close + reopen Claude Code |
-| `Failed to authenticate / refresh token expired` | QuickBooks refresh token expired (100-day window) | Re-run Phase 1 from Step 9 (re-auth only) |
+| `Failed to authenticate / refresh token expired` | QuickBooks refresh token expired (100-day window) | Check `MODE` — if `sandbox`, re-run Phase 1S Step 9 (re-auth only). If `production`, re-run Phase 1L sub-phase D (tunnel + auth — sub-phases A/B/C already done). |
 | `Resource not found` | The entity ID doesn't exist | Tell the user "I couldn't find [resource]. Let me list the recent ones so you can pick." Then run a search command. |
-| `Permission denied` / `forbidden` | Unusual on sandbox | Translate: "QuickBooks says I don't have permission for that. Let me reconnect you." Run Phase 1 from Step 9. |
+| `Permission denied` / `forbidden` | Unusual — possible scope mismatch | Translate: "QuickBooks says I don't have permission for that. Let me reconnect you." Re-run the auth-only sub-flow for the current `MODE` (Phase 1S Step 9 for sandbox, Phase 1L sub-phase D for live). |
 | `Rate limit exceeded` | API rate limit hit | Wait 30 seconds, retry once. If still rate-limited, tell the user: "QuickBooks is asking me to slow down. Let me wait a minute and try again." |
 | `No company ID` / `Realm not set` | `QUICKBOOKS_REALM_ID` env var missing or wrong | Re-run Step 9 — the refresh-token flow re-captures REALM_ID. |
 | Generic JSON parse error | Transient API hiccup | Retry once after a 2-second delay. |
@@ -729,7 +1232,7 @@ This connector **can** read and write all 29 QuickBooks Online entity types (inv
 
 It **cannot** access:
 
-- **Production QuickBooks companies** — this skill is sandbox only. Production requires an HTTPS non-localhost redirect URI (because Intuit refuses `localhost` URIs in Production app config); tracked as [issue #320](https://github.com/selrai-company/claude-workshop-kit/issues/320).
+- **App Store publishing (Intuit tier 2 — 4-6 week App Assessment)** — not in scope for the workshop install flow. Tier 1 (Production-Development mode, immediate credentials, ~5-company cap) is what Phase 1L sets up, and is sufficient for any participant connecting their own one QBO company. App Store submission is an optional follow-up the participant can do on their own from the Intuit dev portal at any time (see `examples/install-walkthrough-app-store.md`, future).
 - Payroll or employee payroll data (no payroll API in the MCP server's tool set).
 - QuickBooks Payments processing (credit card processing).
 - File attachments beyond the basic `Attachable` entity.
@@ -749,8 +1252,8 @@ It **requires** at least one Product/Service Item to exist in the company before
 - **Date format** — QuickBooks accepts ISO-8601 dates (`YYYY-MM-DD`). When the user says "last week", "Q1", "year-to-date", convert to explicit start_date / end_date before calling reports.
 - **Format currency correctly** — 2 decimal places, use the currency from the QuickBooks response (`CurrencyRef.value`).
 - **Present reports clearly** — when showing P&L or Balance Sheet, format as readable tables, not raw JSON.
-- **Sandbox awareness** — remind the user gently, when relevant, that they are looking at practice data, not real figures. Say "practice company" when referring to the sandbox, not "sandbox".
-- **Auth errors** → re-run Phase 1 from Step 9. Do not ask the user to "run a command" — you run it.
+- **Mode awareness** — `MODE=sandbox` operations target a practice company (say "practice company" to the user, never "sandbox"). `MODE=production` operations target real company data; the two gates above apply on first invocation and on every write call.
+- **Auth errors** → re-run the auth-only sub-flow for the current `MODE` (Phase 1S Step 9 for sandbox; Phase 1L sub-phase D for live). Do not ask the user to "run a command" — you run it.
 - **Never log or echo credentials** — CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN, REALM_ID values must never appear in any output visible to the user.
 
 ---
@@ -765,7 +1268,11 @@ It **requires** at least one Product/Service Item to exist in the company before
 
 ## See also
 
-- [Issue #320](https://github.com/selrai-company/claude-workshop-kit/issues/320) — live-account (production-mode) support tracking issue
+- [Issue #320](https://github.com/selrai-company/claude-workshop-kit/issues/320) — original live-account (production-mode) tracking issue; implemented by this Phase 1L flow
+- `assets/legal/` — the 4 HTML templates Phase 1L-A copies into the participant's Cloudflare Pages deploy (eula, privacy, launch, disconnect)
+- Cloudflare Pages — https://developers.cloudflare.com/pages/ (the hosting target for Phase 1L-A)
+- `cloudflared` — https://github.com/cloudflare/cloudflared (the OAuth-callback tunnel binary)
+- `wrangler` — https://developers.cloudflare.com/workers/wrangler/ (the Cloudflare deploy CLI used by Phase 1L-A)
 - [Intuit MCP repo](https://github.com/intuit/quickbooks-online-mcp-server) — README + full tool catalogue
 - `skills/CLAUDE.md` — the four install-pattern decision tree (this SKILL is the prototype for a candidate fourth pattern: "Vendor-published local stdio MCP")
 - Memory `reference_skill_tool_arg_interpolation` — Skill-tool `$N` arg interpolation workshop-UX issue affecting all connector SKILLs
