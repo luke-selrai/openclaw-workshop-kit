@@ -81,9 +81,9 @@ Reference: page shows either no existing key + a **Generate** button, OR an exis
 If re-generating: Claude warns the participant about breaking other integrations before clicking:
 
 ```
-Claude: Quick warning — if you've connected Employment Hero Payroll
-        to any other tool with an API key, generating a new one will
-        break that connection. Are you sure to continue?
+Claude: Quick heads-up — if you've connected Employment Hero Payroll
+        to any other tool, generating a new connection key will break
+        that other connection. Are you sure to continue?
 Participant: Yes — no other tools using it.
 ```
 
