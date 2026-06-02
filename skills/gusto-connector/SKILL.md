@@ -1,6 +1,6 @@
 ---
 name: gusto-connector
-description: "Connect and operate Gusto payroll (read company info, employees, pay schedules, payroll history, employee compensation, year-to-date earnings, time-off requests; approve/deny time-off requests). Tier-1 connector for US SMBs running W-2 payroll. Direct-REST against Gusto API v1 (api.gusto.com for Production or api-demo.gusto.com for Demo). OAuth2 partner-app auth — each participant creates their own Partner Application at dev.gusto.com, which serves both Demo and Production app settings as separate tabs in the same dev portal. Phase 0 defaults to Demo mode (instant setup, fake payroll data at api-demo.gusto.com, no Gusto review required); Production mode is opt-in and requires a ~1-2 week Gusto partner-app review before live customer data is accessible. Phase 2 writes (approve/deny time-off) are gated by per-call confirmation prose in Production mode; freely callable in Demo. Running payroll (POST /payrolls/{id}/submit) is NOT in v1 — too high-stakes; tracked as v2 enhancement. Use this skill when the user asks about their Gusto, says 'connect Gusto', asks about employees / payroll / pay schedule / time off / W-2 / paychecks / compensation. On the first use of any Gusto feature, run Phase 0 then Phase 1 before any tool call."
+description: "Connect and operate Gusto payroll (read company info, employees, pay schedules, payroll history, employee compensation, year-to-date earnings, time-off requests; approve/deny time-off requests). Tier-1 connector for US SMBs running W-2 payroll. Direct-REST against Gusto API v1 (api.gusto.com for Production or api.gusto-demo.com for Demo). OAuth2 partner-app auth — each participant creates their own Partner Application at dev.gusto.com, which serves both Demo and Production app settings as separate tabs in the same dev portal. Phase 0 defaults to Demo mode (instant setup, fake payroll data at api.gusto-demo.com, no Gusto review required); Production mode is opt-in and requires a ~1-2 week Gusto partner-app review before live customer data is accessible. Phase 2 writes (approve/deny time-off) are gated by per-call confirmation prose in Production mode; freely callable in Demo. Running payroll (POST /payrolls/{id}/submit) is NOT in v1 — too high-stakes; tracked as v2 enhancement. Use this skill when the user asks about their Gusto, says 'connect Gusto', asks about employees / payroll / pay schedule / time off / W-2 / paychecks / compensation. On the first use of any Gusto feature, run Phase 0 then Phase 1 before any tool call."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -32,13 +32,13 @@ This skill lets you read and operate a user's Gusto payroll account on their beh
 It has two phases:
 
 - **Phase 1 — Install & Connect (autonomous via Playwright + REST).** Claude drives `dev.gusto.com` (Demo mode) or `dev.gusto.com` Production tab via Playwright MCP to sign the participant in, create a Partner Application, capture client_id + client_secret + redirect_uri configuration, run the OAuth2 authorization-code flow via a local loopback listener on `localhost:8765`, exchange the code for access_token + refresh_token, list accessible companies, and persist everything to `~/.config/gusto/credentials.json` (mode 0600). The participant's manual moments: signing in to Gusto once + approving the OAuth consent screen.
-- **Phase 2 — Use Tools (Direct-REST via curl).** Once `credentials.json` is configured, you `curl` Gusto REST endpoints with `Authorization: Bearer <access_token>`. The base URL switches between `https://api-demo.gusto.com/v1/` (Demo mode) and `https://api.gusto.com/v1/` (Production mode) based on `mode` in credentials.json. Writes are gated by production-mode confirmation prose.
+- **Phase 2 — Use Tools (Direct-REST via curl).** Once `credentials.json` is configured, you `curl` Gusto REST endpoints with `Authorization: Bearer <access_token>`. The base URL switches between `https://api.gusto-demo.com/v1/` (Demo mode) and `https://api.gusto.com/v1/` (Production mode) based on `mode` in credentials.json. Writes are gated by production-mode confirmation prose.
 
 **Two modes, picked at Phase 0:**
 
 | Mode | When | What it touches | Wait |
 |---|---|---|---|
-| **Demo** | Default for first-time install; recommended for "I want to try it today." | Demo company data on api-demo.gusto.com — fake employees, fake paychecks, fake time-off. No real money, no real PII. | Immediate (Gusto auto-creates a Demo Company on first partner-app sign-up). |
+| **Demo** | Default for first-time install; recommended for "I want to try it today." | Demo company data on api.gusto-demo.com — fake employees, fake paychecks, fake time-off. No real money, no real PII. | Immediate (Gusto auto-creates a Partner Application; the participant manually creates a Demo Company at `/demo_companies/new` — separate one-page wizard with name + admin email + password). |
 | **Production** | When the participant says "I want to see my real payroll data." | Real Gusto company on api.gusto.com — real employees, real money. | 1-2 week review by Gusto's partner-app team. Application must explain the use case. |
 
 **Demo-by-default is the right framing** (unlike QBO where Production-Development tier is immediate). Gusto's Production review is a 1-2 week wait; the SKILL defaults to Demo so participants can use the connection today, with Production as an explicit upgrade path.
@@ -49,7 +49,7 @@ It has two phases:
 test -f "$HOME/.config/gusto/credentials.json" && jq -r '.mode // "missing"' "$HOME/.config/gusto/credentials.json" 2>/dev/null || echo missing
 ```
 
-- `demo` or `production` → credentials present. Smoke-test (`GET /v1/me`); on success → Phase 2 with appropriate gates.
+- `demo` or `production` → credentials present. Smoke-test (`GET /v1/token_info`); on success → Phase 2 with appropriate gates. Captured 2026-06-02: `/v1/me` returns `404 not_found` on the current Gusto API version; `/v1/token_info` is the canonical token + resource introspection endpoint.
 - `pending-production` → Production application submitted, waiting for Gusto review. Phase 0 polls status; falls through to Phase 2 in Demo mode meanwhile.
 - `missing` → run Phase 0 + Phase 1.
 
@@ -143,7 +143,7 @@ echo "Applied $DAYS_AGO days ago"
 For Demo mode:
 
 ```
-mcp__playwright__browser_navigate({ url: "https://dev.gusto.com/oauth_applications" })
+mcp__playwright__browser_navigate({ url: "https://dev.gusto.com/applications" })
 ```
 
 `browser_wait_for({ text: "Applications", time: 60 })` (NOT snapshot — password-leak rule). If the participant has multiple Gusto identities (admin, accountant), the dev portal lands on a personal-developer dashboard regardless.
@@ -180,7 +180,10 @@ If creating a new app, fill the form via React-friendly setter:
 | Application name | `Claude Workshop Connector` |
 | Application website | (any HTTPS URL — placeholder OK in Demo mode: `https://localhost/` works) |
 | Redirect URI | `http://localhost:8765/callback` |
-| Scopes | Check `companies:read`, `employees:read`, `payrolls:read`, `time_off_requests:read`, `time_off_requests:write` |
+| Category | Pick `Other` (closest neutral choice; SKILL not building a vertical-specific integration) |
+| Disable Gusto's time tracking | leave **unchecked** (we're not building a time-tracking integration) |
+
+> **Captured 2026-06-02 — there is NO scope picker on the Create Application form.** The SKILL's earlier prose said scopes are selected at app creation; that's wrong. Demo Partner Apps auto-default to scope set `public webhook_subscriptions:read webhook_subscriptions:write`. Empirically the `public` scope alone is sufficient for the Phase 2 Demo reads (companies, employees, payrolls, leave balances, leave requests, etc.). Production apps may need explicit scope review by Gusto — verify at the first Production-mode smoke.
 
 For Demo mode, Gusto issues credentials immediately. For Production mode, a "Submit for review" button appears after save — clicking it triggers the 1-2 week review.
 
@@ -213,7 +216,9 @@ Optionally, in Production mode, also drop the participant into Demo mode in para
 
 ### Step 4 — DOM-extract client_id and client_secret via clipboard transit
 
-The post-create page shows Client ID + Client Secret. Save the participant's prior clipboard first:
+Captured 2026-06-02: navigate to the app's detail page `https://dev.gusto.com/applications/<app-uuid>`. The Client ID and Secret are both shown as masked `*****` values with `Reveal` toggle buttons + `Copy`/`Hide` buttons inline. **Click both Reveal buttons first**, then DOM-extract via a value-only span filter (NOT the parent div whose `innerText` slurps in the adjacent button labels).
+
+Save the participant's prior clipboard first:
 
 ```bash
 SAVED=$(wl-paste 2>/dev/null | base64 -w0)
@@ -224,23 +229,26 @@ Extract:
 
 ```js
 async () => {
-  const labels = Array.from(document.querySelectorAll('*'))
-    .filter(el => /^(your )?(client|api)\s*(id|secret)\s*:?$/i.test((el.innerText||'').trim()));
+  // 1. Click both Reveal buttons (no-op if already revealed)
+  const reveals = Array.from(document.querySelectorAll('button')).filter(b => /^reveal$/i.test((b.innerText||'').trim()) && b.offsetWidth > 0);
+  reveals.forEach(b => b.click());
+  await new Promise(r => setTimeout(r, 700));
+
+  // 2. Find Client ID / Secret labels
+  const labelEls = Array.from(document.querySelectorAll('*'))
+    .filter(el => /^(client id|secret)$/i.test((el.innerText||'').trim()));
   const out = {};
-  for (const label of labels) {
-    const which = /secret/i.test(label.innerText) ? 'client_secret' : 'client_id';
+  for (const label of labelEls) {
+    const which = /id/i.test(label.innerText) ? 'client_id' : 'client_secret';
     if (out[which]) continue;
+    // 3. CRITICAL: look for value-only <span> elements (NOT div.innerText — that slurps Copy/Hide button labels and concatenates them to the value)
     let scope = label.parentElement;
-    for (let d = 0; d < 8 && scope; d++) {
-      const fields = Array.from(scope.querySelectorAll('input, code, span'));
-      for (const f of fields) {
-        const v = (f.value || f.innerText || '').trim();
-        if (v && v.length > 20 && /^[A-Za-z0-9_\-]+$/.test(v.replace(/\s/g, ''))) {
-          out[which] = v.replace(/\s/g, '');
-          break;
-        }
-      }
-      if (out[which]) break;
+    for (let d = 0; d < 3 && scope && !out[which]; d++) {
+      const valueSpans = Array.from(scope.querySelectorAll('span')).filter(s => {
+        const t = (s.innerText||'').trim();
+        return t.length >= 30 && /^[A-Za-z0-9_.\-]+$/.test(t);
+      });
+      if (valueSpans.length) { out[which] = valueSpans[0].innerText.trim(); }
       scope = scope.parentElement;
     }
   }
@@ -250,7 +258,41 @@ async () => {
 }
 ```
 
-Returns only the lengths. Gusto client_id is typically 32 chars; client_secret is 64 chars (or longer for newer keys).
+> **Captured 2026-06-02 — value-only span filter is required.** The credentials are wrapped in a parent `<div>` whose `innerText` is `<value>CopyHide` (the `Copy` and `Hide` button labels concatenate into the parent's text content). An earlier broader extract that walked `span, div, code` indiscriminately captured `tUj8...UU8CopyHide` as the client_id, which then failed the OAuth `client_authentication_failed` check. The fix: filter ONLY for `<span>` whose `innerText` matches the alphanumeric shape AND has no adjacent button-label contamination.
+>
+> Captured client_id and secret are both **43 chars** (not 32/64 as the SKILL's earlier prose projected) — both alphanumeric with `_` and `-` allowed.
+
+Returns only the lengths. Tool output never contains the values; clipboard holds them for Step 8 below.
+
+### Step 4.5 — Create a Demo Company (one-time, separate flow)
+
+**Captured 2026-06-02 — Demo Companies are NOT auto-provisioned on first app creation.** The SKILL's earlier prose implied they were. Reality: the participant must manually create one at `dev.gusto.com/demo_companies/new`. Each Demo Company is its own isolated environment with its own admin email + password.
+
+Navigate:
+
+```
+mcp__playwright__browser_navigate({ url: "https://dev.gusto.com/demo_companies/new" })
+```
+
+Form fields:
+
+| Field | Value |
+|---|---|
+| Demo company name | `Selr AI Demo Co` (or other workshop-appropriate name) |
+| Email | A **fresh email** the participant doesn't use elsewhere — plus-alias works: `<their-email>+gusto-demo@<domain>` |
+| Password | The participant chooses + types directly into the Playwright window (don't auto-fill — it's a real credential they'll need to OAuth-sign-in with in Step 6) |
+| Password confirmation | Same |
+
+Submit. The Demo Company enters `generating` status; Gusto says "allow a few minutes for the account to be created." Poll until status flips to `finished`:
+
+```bash
+# Check via Playwright: navigate to /demo_companies and look for "finished" next to the company name
+until mcp__playwright__browser_evaluate(...) returns status="finished"; do sleep 30; done
+```
+
+Typical generation time: ~30-90 seconds. The status table on `/demo_companies` shows columns: `Name | Admin email | Status | Date created`. Filter for `Status: finished`.
+
+> **Quota**: Gusto allows up to 3 Demo Company creations per day per developer account. If a participant hits this limit, they can use an existing Demo Company (find it on `/demo_companies`).
 
 ### Step 5 — Start loopback listener for OAuth callback
 
@@ -284,10 +326,10 @@ echo "$PORT" > /tmp/gusto-listener.port
 ```bash
 CLIENT_ID="$(wl-paste | jq -r '.client_id')"
 PORT="$(cat /tmp/gusto-listener.port)"
-# Demo: api-demo.gusto.com; Production: api.gusto.com
-AUTH_HOST=$([ "$MODE" = "production" ] && echo "api.gusto.com" || echo "api-demo.gusto.com")
-SCOPE="companies:read employees:read payrolls:read time_off_requests:read time_off_requests:write"
-AUTH_URL="https://${AUTH_HOST}/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${PORT}%2Fcallback&response_type=code&scope=$(printf '%s' "$SCOPE" | sed 's/ /%20/g')"
+# Demo: api.gusto-demo.com (note dashed top-level); Production: api.gusto.com
+AUTH_HOST=$([ "$MODE" = "production" ] && echo "api.gusto.com" || echo "api.gusto-demo.com")
+# Captured 2026-06-02: scope parameter is OPTIONAL — omitting it lets Gusto grant the app's default scopes (public + webhook_subscriptions:read/write for Demo apps), which is sufficient for the Phase 2 Demo reads. For Production, scopes may need to be explicitly listed and pre-approved by Gusto's partner-review process.
+AUTH_URL="https://${AUTH_HOST}/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${PORT}%2Fcallback&response_type=code"
 ```
 
 ```
@@ -335,10 +377,10 @@ Response JSON has `access_token`, `refresh_token`, `token_type` (`Bearer`), `exp
 
 ```bash
 ACCESS_TOKEN="$(echo "$RESP" | jq -r .access_token)"
-COMPANIES="$(curl -sf "https://${AUTH_HOST}/v1/me" -H "Authorization: Bearer $ACCESS_TOKEN" | jq -r '.roles.payroll_admin.companies[].uuid')"
+COMPANIES="$(curl -sf "https://${AUTH_HOST}/v1/token_info" -H "Authorization: Bearer $ACCESS_TOKEN" | jq -r '.resource | select(.type == "Company") | .uuid')"
 ```
 
-The `/v1/me` endpoint returns the authenticated user's role + company UUIDs they can access.
+**Captured 2026-06-02 — use `/v1/token_info`, NOT `/v1/me`.** The SKILL's earlier prose called for `/v1/me` which returns `404 not_found` on the current Gusto API version. The canonical endpoint is `/v1/token_info` which returns `{scope, resource: {type, uuid}, resource_owner: {type, uuid}}`. For Demo apps, `resource.type` is `Company` and `resource.uuid` is the Demo Company UUID. For production multi-company partners, may need a different discovery shape — verify at first Production-mode smoke.
 
 - **One company** → silently pick it.
 - **Multiple companies** → ask the participant which one to connect (rare for SMBs; common for accountants/bookkeepers).
@@ -606,8 +648,8 @@ gusto_put "/time_off_requests/$TOR_UUID" "$(jq -n --arg r "$REASON" '{status:"de
 |---|---|---|
 | HTTP 401 `Unauthorized` | Access token expired | Run Step 2.0 (refresh), retry once |
 | HTTP 401 with `invalid_grant` on refresh | Refresh token rotated out / revoked | Tell participant: "Looks like the connection was disconnected. Let me reconnect." Run Phase 1 from Step 5 (re-OAuth). |
-| HTTP 403 `Forbidden` on Demo endpoints | Wrong API host (`api.gusto.com` instead of `api-demo.gusto.com` or vice versa) | Check `mode` in credentials.json matches the `api_endpoint` host. |
-| HTTP 404 `Resource not found` on `/companies/<uuid>` | Company UUID is wrong or the connected role lost access | Re-run `/v1/me` to refresh accessible companies. |
+| HTTP 403 `Forbidden` on Demo endpoints | Wrong API host (`api.gusto.com` instead of `api.gusto-demo.com` or vice versa) | Check `mode` in credentials.json matches the `api_endpoint` host. |
+| HTTP 404 `Resource not found` on `/companies/<uuid>` | Company UUID is wrong or the connected role lost access | Re-run `/v1/token_info` (NOT `/v1/me` — that endpoint doesn't exist on current Gusto API) to refresh accessible companies via `resource.uuid`. |
 | HTTP 422 `Validation error` on Pattern 9/10 | Time-off request is no longer pending (already approved/denied by someone else) | Translate: "Looks like that request was already handled. Want me to check the queue again?" |
 | HTTP 429 | Per-minute rate cap (200/min default in Demo, 1000/min in Production) | Wait 60s, retry once. Surface plain English if still hitting. |
 | Network error to api.gusto.com | DNS / outbound block | Plain English. Mention check VPN / corporate firewall. |
@@ -661,6 +703,6 @@ It **requires** the participant to be a payroll admin on the company (other Gust
 - [`skills/CLAUDE.md`](../CLAUDE.md) — three-pattern decision tree. This SKILL is a direct-REST connector (out of scope for that doc; sibling shape to `myob-connector`).
 - [Gusto API v1 reference](https://docs.gusto.com/embedded-payroll/reference) — official endpoint catalogue.
 - [Gusto Developer Portal](https://dev.gusto.com) — where Phase 1 Step 2 lands.
-- [Gusto Demo Company](https://docs.gusto.com/embedded-payroll/docs/demo-company) — how Demo Companies are auto-provisioned.
+- [Gusto Demo Company](https://docs.gusto.com/embedded-payroll/docs/demo-company) — how Demo Companies are provisioned (manual create at `dev.gusto.com/demo_companies/new` with name + fresh admin email + password — NOT auto-provisioned per the SKILL's earlier prose).
 - Memory `reference_playwright_snapshot_password_leak` — sign-in page snapshot rule (applies to dev.gusto.com).
 - Memory `feedback_workshop_kit_update_format` — say "demo mode" / "real payroll" to participants, never "sandbox" / "production environment".
