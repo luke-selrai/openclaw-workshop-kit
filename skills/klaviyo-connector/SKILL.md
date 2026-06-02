@@ -1,6 +1,6 @@
 ---
 name: klaviyo-connector
-description: "Connect and operate Klaviyo (e-commerce-focused email + SMS marketing) — read profiles/subscribers, lists, segments, campaigns, flows (automations), campaign performance (opens/clicks/revenue); add profiles to lists, send draft campaigns, suppress profiles. Tier-1 connector for SMBs running e-commerce email + SMS, especially Shopify/WooCommerce stores. Direct-REST against Klaviyo API at https://a.klaviyo.com/api/ with `Authorization: Klaviyo-API-Key <key>` header and a required `revision` header pinning the API version (this SKILL uses `revision: 2025-10-15`). Single-mode connector — Klaviyo's free tier IS real data (up to 250 profiles, 500 email sends/month), no test vs live distinction. Phase 1 drives www.klaviyo.com via Playwright: signs participant in, navigates organization-name → Settings → API keys, clicks Create Private API Key, names it `Claude Workshop Connector` with Full scope, captures the one-time-displayed key via clipboard transit (Klaviyo cannot show the key again after creation), persists to ~/.config/klaviyo/credentials.json (mode 0600). Use this skill when the user asks about their Klaviyo, subscribers, profiles, lists, segments, flows, email/SMS campaigns, or says 'connect Klaviyo', 'send my newsletter', 'show campaign revenue'. On the first use of any Klaviyo feature, run Phase 1 before attempting any tool call."
+description: "Connect and operate Klaviyo (e-commerce-focused email + SMS marketing) — read profiles/subscribers, lists, segments, campaigns, flows (automations), campaign performance (opens/clicks/revenue); add profiles to lists, send draft campaigns, suppress profiles. Tier-1 connector for SMBs running e-commerce email + SMS, especially Shopify/WooCommerce stores. Direct-REST against Klaviyo API at https://a.klaviyo.com/api/ with `Authorization: Klaviyo-API-Key <key>` header and a required `revision` header pinning the API version (this SKILL uses `revision: 2025-10-15`). Single-mode connector — Klaviyo's free tier IS real data (up to 250 profiles, 500 email sends/month), no test vs live distinction. Phase 1 drives www.klaviyo.com via Playwright: signs participant in, navigates directly to the canonical `/settings/account/api-keys` URL, clicks Create Private API Key (which navigates to a full-page form at `/create-private-api-key`), names it `Claude Workshop Connector` with the Full Access Key access level, captures the one-time-displayed key from the post-create confirmation page via clipboard transit (Klaviyo cannot show the key again once you navigate away), persists to ~/.config/klaviyo/credentials.json (mode 0600). Use this skill when the user asks about their Klaviyo, subscribers, profiles, lists, segments, flows, email/SMS campaigns, or says 'connect Klaviyo', 'send my newsletter', 'show campaign revenue'. On the first use of any Klaviyo feature, run Phase 1 before attempting any tool call."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Marketing & Advertising
@@ -32,7 +32,7 @@ This skill lets you read and operate a user's Klaviyo account on their behalf us
 
 It has two phases:
 
-- **Phase 1 — Install & Connect (autonomous via Playwright).** Claude drives `www.klaviyo.com` via Playwright MCP: signs the participant in, walks organization-name → Settings → API keys, clicks **Create Private API Key**, names it `Claude Workshop Connector` with Full scope, DOM-extracts the one-time-displayed key via clipboard transit (Klaviyo cannot show the key again after the modal closes — this is the most time-sensitive moment in Phase 1), and persists to `~/.config/klaviyo/credentials.json` (mode 0600). The participant's only manual moment is signing in to Klaviyo once.
+- **Phase 1 — Install & Connect (autonomous via Playwright).** Claude drives `www.klaviyo.com` via Playwright MCP: signs the participant in, navigates directly to the canonical `/settings/account/api-keys` URL, clicks **Create Private API Key** (which navigates to a full-page form at `/create-private-api-key`), names it `Claude Workshop Connector` with Full Access Key, DOM-extracts the one-time-displayed key from the post-create confirmation page via clipboard transit (Klaviyo cannot show the key again after navigating away — this is the most time-sensitive moment in Phase 1), and persists to `~/.config/klaviyo/credentials.json` (mode 0600). The participant's only manual moment is signing in to Klaviyo once.
 - **Phase 2 — Use Tools (Direct-REST via curl).** Once `credentials.json` is configured, you `curl` Klaviyo REST endpoints with `Authorization: Klaviyo-API-Key <key>` + the required `revision: 2025-10-15` header (Klaviyo's API versioning is by date string). Writes (add to list, send campaign, suppress profile) are gated by per-call confirmation prose — every Phase 2 invocation hits real data (Klaviyo has no sandbox).
 
 **Single-mode, no test/live distinction.** Klaviyo's free tier (up to 250 profiles, 500 sends/month) is real data — no sandbox API. Every Phase 2 call touches the participant's real audience. Production-mode gates are the default behaviour.
@@ -118,60 +118,53 @@ mcp__playwright__browser_wait_for({ text: "Dashboard", time: 60 })
 
 (Or wait for any post-sign-in marker like "Profiles", "Campaigns" — Klaviyo's sign-in destination depends on the participant's account state. Avoid snapshotting until at least one of these post-sign-in markers is visible.)
 
-### Step 3 — Navigate to API keys
-
-Klaviyo's API keys tab is reached via the org-name dropdown in the top-right → Settings → API keys. Drive this via Playwright:
-
-```js
-// Click the organization-name dropdown (top-right corner button)
-() => {
-  const btn = Array.from(document.querySelectorAll('button, [role=button]')).find(b => {
-    const aria = (b.getAttribute('aria-label') || '').toLowerCase();
-    return /organization|account|workspace.*menu/.test(aria);
-  });
-  if (!btn) return { ok: false };
-  btn.click();
-  return { ok: true };
-}
-```
-
-Then click **Settings** in the dropdown menu, then click the **API keys** tab on the Settings page. (Klaviyo's URL changes during this navigation; expected end state is `klaviyo.com/account/api-keys` or similar — verify via `window.location.href`.)
-
-Fallback if the dropdown selector fails: navigate directly:
+### Step 3 — Navigate directly to API keys settings
 
 ```
-mcp__playwright__browser_navigate({ url: "https://www.klaviyo.com/account#api-keys-tab" })
+mcp__playwright__browser_navigate({ url: "https://www.klaviyo.com/settings/account/api-keys" })
 ```
 
-(Klaviyo has used this URL for several years; if it 404s on a UI rev, the dropdown path above is the reliable alternative.)
+**Captured 2026-06-02**: this is the canonical URL. The legacy `klaviyo.com/account#api-keys-tab` URL still works but issues a 302 redirect to `/settings/account/api-keys` (Klaviyo migrated its settings sub-router in 2024-25). Navigate directly to the canonical URL to skip the redirect hop.
 
-### Step 4 — Create the Private API Key
+The page renders directly (no iframe, no modal). Verify it loaded by checking the page text contains both `Public API Key` and `Private API Keys` sections (the page shows both side-by-side).
+
+If a dropdown-walk alternative is ever needed (canonical URL changes again): click the org-name button in the top-right of the page (post-sign-in), then **Settings** in the dropdown, then the **API keys** tab on the Settings sidebar. Lower-confidence than the direct URL — selectors for the org-menu drift across Klaviyo's product redesigns.
+
+### Step 4 — Create the Private API Key (full-page form, NOT a modal)
 
 The API keys page shows existing keys + a `Create Private API Key` button.
 
-Idempotent check: if a key already named `Claude Workshop Connector` exists, ask the participant: *"You already have a Claude Workshop Connector key. Want me to use a different name, or are you OK rotating to a fresh one?"* — Klaviyo doesn't let you view existing keys' values, so re-using requires asking the participant to paste the key.
+**Captured 2026-06-02 — Klaviyo's create flow is a NEW PAGE, not a modal dialog.** Clicking `Create Private API Key` navigates the browser to `https://www.klaviyo.com/create-private-api-key` (a full-page form). The SKILL's earlier prose implied a modal — that's wrong; the form is page-scoped with three sections (Name input, Access Level radio cards, API Scopes table).
 
-For a fresh key, click Create:
+Idempotent check: if a key already named `Claude Workshop Connector` exists in the listing, ask the participant: *"You already have a Claude Workshop Connector key. Want me to use a different name, or are you OK rotating to a fresh one?"* — Klaviyo doesn't let you view existing keys' values, so re-using requires asking the participant to paste the key.
+
+For a fresh key, click the create button on the listing page:
 
 ```js
 () => {
   const btn = Array.from(document.querySelectorAll('button, a')).find(b => /^create private api key$/i.test((b.innerText||'').trim()));
   if (!btn) return { ok: false };
+  btn.scrollIntoView({ block: 'center' });
   btn.click();
   return { ok: true };
 }
 ```
 
-The Create dialog opens. Fill the name field via React-friendly setter:
+Wait for the navigation to complete:
+
+```
+mcp__playwright__browser_wait_for({ text: "New private API key", time: 10 })
+```
+
+(`New private API key` is the page heading on `/create-private-api-key`.)
+
+Fill the name field via React-friendly setter. The input has `name="Private API Key Name"` and `placeholder="Name your key"` (verified 2026-06-02):
 
 ```js
 () => {
-  const inputs = Array.from(document.querySelectorAll('input[type="text"], input:not([type])'));
-  const target = inputs.find(i => {
-    const aria = (i.getAttribute('aria-label') || '').toLowerCase();
-    const placeholder = (i.placeholder || '').toLowerCase();
-    return /name|label/.test(aria + placeholder);
-  });
+  const target = Array.from(document.querySelectorAll('input[type="text"]')).find(i =>
+    i.name === 'Private API Key Name' || /name your key/i.test(i.placeholder || '')
+  );
   if (!target) return { ok: false };
   const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
   target.focus();
@@ -182,34 +175,48 @@ The Create dialog opens. Fill the name field via React-friendly setter:
 }
 ```
 
-Pick the **Full** scope (Klaviyo's options are `Read-only`, `Full`, or `Custom` per-resource — Full is needed for the writes in Patterns 5/9/10):
+Pick the **Full Access Key** card (Klaviyo's three options are `Custom Key`, `Read-Only Key`, `Full Access Key` — note the `Key` suffix on each label; verified 2026-06-02). Full is needed for the writes in Patterns 5/9/10:
 
 ```js
 () => {
-  // Find the Full scope radio/button (often a card-style radio in Klaviyo's UI)
-  const candidates = Array.from(document.querySelectorAll('input[type=radio], button, [role=radio], label'));
-  const full = candidates.find(el => /^full$/i.test((el.innerText || el.value || '').trim()));
-  if (!full) return { ok: false };
-  full.click();
-  full.dispatchEvent(new Event('change', { bubbles: true }));
-  return { ok: true };
+  const labels = Array.from(document.querySelectorAll('label, div, span'));
+  const fullCard = labels.find(el => /^full access key$/i.test((el.innerText||'').trim()));
+  if (!fullCard) return { ok: false };
+  // Find the nearest radio in the card's DOM ancestry
+  let scope = fullCard.parentElement;
+  for (let d = 0; d < 5 && scope; d++) {
+    const radio = scope.querySelector('input[type="radio"]');
+    if (radio) {
+      radio.click();
+      radio.dispatchEvent(new Event('change', { bubbles: true }));
+      return { ok: true };
+    }
+    scope = scope.parentElement;
+  }
+  return { ok: false, reason: 'no_radio_in_card_ancestry' };
 }
 ```
 
-Then click the dialog's **Create** button:
+Then click the form's submit button. **Captured 2026-06-02 — the button text is exactly `Create`, NOT `Create Private API Key` / `Generate` / `Save` / `Submit`.** There are TWO `Create` buttons visible on the page: one in the sidebar nav (top-of-page; this is the workshop-feature dropdown) and one at the form's bottom-right. Disambiguate by class (the form submit uses `Mixins-medium-OrkBY` class; the sidebar nav uses `NavRow-*`). The simplest reliable filter is to take the first visible non-nav `Create` button:
 
 ```js
 () => {
-  const btn = Array.from(document.querySelectorAll('button')).find(b => /^create$/i.test((b.innerText||'').trim()) && !b.disabled);
-  if (!btn) return { ok: false };
+  const candidates = Array.from(document.querySelectorAll('button'))
+    .filter(b => /^create$/i.test((b.innerText||'').trim()) && !b.disabled && b.offsetWidth > 0)
+    .filter(b => !/NavRow|navRow/.test(b.className?.toString?.() || ''));   // exclude sidebar nav
+  if (candidates.length === 0) return { ok: false };
+  const btn = candidates[0];
+  btn.scrollIntoView({ block: 'center' });
   btn.click();
-  return { ok: true };
+  return { ok: true, total_candidates: candidates.length };
 }
 ```
+
+After the click, Klaviyo redirects to a confirmation page showing the new key (the `pk_`-prefixed value). Step 5 captures it.
 
 ### Step 5 — DOM-extract the key via clipboard transit (TIME-SENSITIVE)
 
-**Klaviyo only displays the key once.** The post-create modal shows it; close it and the key is gone forever.
+**Klaviyo only displays the key once on the post-create confirmation page; navigating away discards it.** There is no modal — after clicking Create on the full-page form (Step 4), Klaviyo renders a confirmation page with the new `pk_`-prefixed key. Extract before any further navigation.
 
 Save the participant's prior clipboard first:
 
@@ -240,7 +247,7 @@ async () => {
 
 Returns only `key_len`. The key is in the clipboard, never in the tool return.
 
-**Validation (silent):** key starts with `pk_` and is typically 40-50 chars. If `{ ok: false }`, the modal may have already closed — tell the participant: *"I missed the key, sorry — let me create another one."* Re-run Step 4.
+**Validation (silent):** key starts with `pk_` and is typically 40-50 chars. If `{ ok: false }`, the confirmation page may have already been navigated away from — tell the participant: *"I missed the key, sorry — let me create another one."* Re-run Step 4.
 
 ### Step 6 — Save credentials.json
 
@@ -506,7 +513,7 @@ Returns 202 + job id for async processing. Most suppressions are processed withi
 | HTTP 401 `unauthorized_request` | API key revoked / invalid | Translate: "Looks like the connection was disconnected — let me reconnect." Re-run Phase 1. |
 | HTTP 400 with `revision` in message | Klaviyo deprecated the revision constant the SKILL pins to | Bump the revision string in credentials.json + the SKILL's helper to a newer date (Klaviyo publishes revisions roughly every 3 months). |
 | HTTP 400 `validation_error` | Filter syntax wrong (Klaviyo's JSON:API filters are strict) | Diagnose silently, retry. |
-| HTTP 403 `insufficient_scope` | Private API key was created Read-only when the operation needs Full | Tell participant: "I need a key with full access — let me create a new one." Re-run Phase 1 Step 4 with Full scope. |
+| HTTP 403 `insufficient_scope` | Private API key was created as a `Read-Only Key` when the operation needs `Full Access Key` | Tell participant: "I need a key with full access — let me create a new one." Re-run Phase 1 Step 4 with the `Full Access Key` access level. |
 | HTTP 404 on `/profiles/<id>` | Profile id stale (deleted or never existed) | Re-fetch via Pattern 2 (filter by email). |
 | HTTP 429 | Hit Klaviyo's burst rate cap (75 req/s burst, 700 req/min steady on most endpoints) | Wait 30s, retry once. Surface plain English if still hitting. |
 | HTTP 202 with no `data.id` on writes | Async job queued; processing takes seconds-minutes | Note: this is success, not error. Tell participant the action is processing. |
@@ -535,7 +542,7 @@ It **cannot**:
 - **Coupon code generation** — Klaviyo's coupon endpoints are e-commerce-integration-specific; not in v1.
 - **SMS consent management** — SMS in Klaviyo has stricter consent requirements; v1 treats SMS campaigns as read-only.
 
-It **requires** the Private API key to have **Full** scope (not Read-only) for Patterns 5/9/10. Read-only keys work for Patterns 1-4 + 6-8.
+It **requires** the Private API key to be a `Full Access Key` (not `Read-Only Key`) for Patterns 5/9/10. `Read-Only Keys` work for Patterns 1-4 + 6-8.
 
 ---
 

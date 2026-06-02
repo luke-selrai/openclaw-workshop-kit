@@ -1,6 +1,6 @@
 # Klaviyo Connector — Install Walkthrough
 
-> **Status: illustrative, not yet captured.** Authored from the SKILL design + Klaviyo's documented help articles without an end-to-end run against a real Klaviyo account. Specific button copy, DOM structures, and exact key-display widget layout below are projected from Klaviyo's documented UX (help.klaviyo.com/hc/en-us/articles/7423954176283) at design time; the walkthrough will be replaced with a captured reference run once smoke is performed against an actual Klaviyo account.
+> **Status: captured reference run, 2026-06-02 against rodolfo@selrai.com.au's Klaviyo account.** Three real SKILL drifts were discovered during this run and fixed in PR (separate commit): (1) the SKILL's documented URL `/account#api-keys-tab` 302-redirects to `/settings/account/api-keys` (canonical), (2) the Create Private API Key click navigates to a **new full page** at `/create-private-api-key` — NOT a modal as the SKILL prose implied, (3) the form's submit button is exactly **`Create`** (NOT `Create Private API Key` / `Generate Key` / `Save`). All three are now reflected in SKILL.md Steps 3-4. The captured key was 44 chars `pk_`-prefixed; verified live calls to `/accounts/` and `/lists` returned correct shapes.
 
 This walkthrough documents the **default install path** (Phase 0 → Phase 1 → smoke). Single-mode SKILL — Klaviyo's free tier IS real data (up to 250 profiles, 500 sends/month); the participant's free or paid Klaviyo account is the data target throughout.
 
@@ -47,26 +47,33 @@ Klaviyo's first-new-device sign-in flow includes an emailed verification code or
 
 ---
 
-## Step 3 — Navigate to API keys
+## Step 3 — Navigate to API keys settings (captured: canonical URL)
 
-Projected: Claude clicks the organization-name dropdown in the top-right corner via `browser_evaluate`, then clicks **Settings** in the dropdown menu, then clicks the **API keys** tab on the Settings page.
+```
+mcp__playwright__browser_navigate({ url: "https://www.klaviyo.com/settings/account/api-keys" })
+```
 
-Fallback if any selector fails: navigate directly to `https://www.klaviyo.com/account#api-keys-tab` (a stable Klaviyo URL anchor).
+**Captured 2026-06-02**: navigating to the legacy `klaviyo.com/account#api-keys-tab` issues a 302 redirect to `klaviyo.com/settings/account/api-keys` (clean URL, no hash fragment). The canonical URL is the new one. Both work but the canonical avoids the redirect hop. Page renders directly without iframe or modal — text content shows `Public API Key`, `Private API Keys`, `Create Private API Key` button, all flat on the page.
 
 ---
 
-## Step 4 — Create the Private API Key
+## Step 4 — Create the Private API Key (captured: full-page form, NOT a modal)
 
-Reference page state: API keys tab shows existing keys (typically empty for fresh accounts) + a **Create Private API Key** button.
+**Real form layout (captured 2026-06-02):**
 
-Claude clicks Create. A dialog opens with:
+Claude clicks `Create Private API Key`. The browser navigates to `https://www.klaviyo.com/create-private-api-key` — a full page form, NOT a modal dialog. Page heading: `New private API key`.
 
-- **Name** input → Claude fills `Claude Workshop Connector` via React-friendly setter.
-- **Scope** selector with radio cards: `Read-only` / `Full` / `Custom`. Claude clicks **Full**.
+The form has three sections:
 
-Claude clicks the dialog's **Create** button. Klaviyo generates the key and displays it in a follow-up modal — this is the one-and-only chance to capture it.
+1. **Private API Key Name** (text input; `name="Private API Key Name"`, `placeholder="Name your key"`)
+2. **Select Access Level** (three radio cards, in order): **`Custom Key`** / **`Read-Only Key`** / **`Full Access Key`** — note the `Key` suffix on each card label, not just `Read-only` / `Full` / `Custom` as the SKILL prose suggested.
+3. **API Scopes** table (per-resource scopes — only visible when Custom is selected)
 
-Projected wall-clock: ~12 seconds (form fill + submit + Klaviyo server-side key generation).
+Claude fills `Claude Workshop Connector` into the name input, then clicks the `Full Access Key` radio card (Patterns 5/9/10 need write access).
+
+Submit button: **exact text is `Create`** (NOT `Create Private API Key`, NOT `Generate`, NOT `Submit`). There are TWO `Create` buttons visible on the page — one is the sidebar workshop-feature dropdown (`NavRow-*` classes), one is the form's submit button (`Mixins-medium-OrkBY` class). The SKILL Step 4 script filters out the `NavRow` button to pick the right one.
+
+Captured wall-clock: ~5 seconds (name fill + radio click + Create click + ~3s server-side key generation).
 
 ---
 
@@ -76,6 +83,7 @@ Save prior clipboard:
 
 ```bash
 $ wl-paste 2>/dev/null | base64 -w0 > /tmp/klaviyo-prev-clipboard.b64
+[clipboard saved]
 ```
 
 Extract:
@@ -83,13 +91,13 @@ Extract:
 ```js
 async () => {
   const re = /\bpk_[A-Za-z0-9_-]{30,}\b/;
-  // ... walk DOM, find the new key (starts with pk_, ~40-50 chars)
+  // ... walk DOM, find the new key (starts with pk_)
   await navigator.clipboard.writeText(JSON.stringify({ api_key: key }));
-  return { ok: true, key_len: 45 };
+  return { ok: true, key_len: 44 };
 }
 ```
 
-Projected return: `{ ok: true, key_len: 45 }` (Klaviyo Private Keys typically 40-50 chars including the `pk_` prefix).
+Captured return: `{ ok: true, key_len: 44 }`. Klaviyo's Private Key was exactly 44 chars including `pk_` prefix. Existing regex `pk_[A-Za-z0-9_-]{30,}` matches comfortably.
 
 The full key is in the clipboard, never in the tool return.
 
@@ -128,22 +136,47 @@ File shape:
 
 ---
 
-## Step 7 — Smoke test
+## Step 7 — Smoke test (captured 2026-06-02)
 
 ```bash
+$ API_KEY="$(jq -r .api_key ~/.config/klaviyo/credentials.json)"
+
 $ curl -sf "https://a.klaviyo.com/api/accounts/" \
-    -H "Authorization: Klaviyo-API-Key <key>" \
+    -H "Authorization: Klaviyo-API-Key $API_KEY" \
     -H "revision: 2025-10-15" \
-    | jq -r '.data[0].attributes.contact_information.organization_name'
-Reference Run Pty Ltd
+    | jq '.data[0] | {id, attributes: {organization_name: .attributes.contact_information.organization_name, timezone: .attributes.timezone, locale: .attributes.locale}}'
+{
+  "id": "YdTwvt",
+  "attributes": {
+    "organization_name": "Selrai",
+    "timezone": "Asia/Manila",
+    "locale": "en-US"
+  }
+}
+
+$ curl -sf "https://a.klaviyo.com/api/lists?page%5Bsize%5D=5" \
+    -H "Authorization: Klaviyo-API-Key $API_KEY" \
+    -H "revision: 2025-10-15" \
+    | jq '{total: (.data | length), lists: [.data[] | {id, name: .attributes.name}]}'
+{
+  "total": 3,
+  "lists": [
+    {"id": "R7YJK8", "name": "Email List"},
+    {"id": "SZ3SAZ", "name": "Text Messaging List"},
+    {"id": "YhGgM4", "name": "Preview List"}
+  ]
+}
 ```
+
+Klaviyo auto-provisions three lists on new accounts (Email List, Text Messaging List, Preview List). All API calls succeeded on first try with the captured `pk_`-prefixed key.
 
 Claude tells the participant:
 
 ```
-Claude: All connected — your Klaviyo account Reference Run Pty Ltd
-        is ready. Ask me things like 'how many subscribers do I
-        have?' or 'show me my top flows by revenue'.
+Claude: All connected — your Klaviyo account Selrai is ready with
+        3 lists (Email List, Text Messaging List, Preview List). Ask
+        me things like 'how many subscribers do I have?' or 'show
+        me my top flows by revenue'.
 ```
 
 ---
@@ -194,31 +227,33 @@ Claude:      Suppressed noreply@spam.com. Klaviyo processes the
 
 ---
 
-## Total projected timing (illustrative)
+## Captured total timing (2026-06-02)
 
-| Stage | Estimated wall-clock |
+| Stage | Captured wall-clock |
 |---|---|
 | Step 0 (credential check) | 0.1 s |
 | Step 1 (welcome) | 0 s |
-| Step 2 (Playwright navigate + sign-in detect) | 15 s (cached) / 60 s cold |
-| Step 3 (dropdown → Settings → API keys nav) | 10 s |
-| Step 4 (Create dialog + fill + Full scope + Create) | 12 s |
-| Step 5 (DOM-extract via clipboard transit) | 1 s |
-| Step 6 (credentials.json write + clipboard restore) | 0.5 s |
-| Step 7 (smoke test) | 1 s |
-| **Total** | **~40 s cached / ~85 s cold** |
+| Step 2 (Playwright navigate + sign-in detect) | ~15 s with cached session; +30 s for cold sign-in including Klaviyo's onboarding-guide redirect |
+| Step 3 (direct nav to canonical URL) | ~4 s |
+| Step 4 (Create Private API Key click → page nav → fill name + radio + Create) | ~5 s |
+| Step 5 (DOM-extract via clipboard transit) | ~1 s |
+| Step 6 (credentials.json write + clipboard restore) | ~1 s |
+| Step 7 (smoke test: /accounts/ + /lists) | ~2 s |
+| **Total technical install (cached sign-in)** | **~25 s** |
+| **+ Klaviyo account creation (when fresh)** | ~2-3 min (signup form + email verification — outside SKILL scope) |
 
 ---
 
-## Failure modes anticipated from design review (will be confirmed on first real smoke)
+## Failure modes (captured + anticipated)
 
-| Failure | Cause | Fix |
-|---|---|---|
-| Step 2 `browser_wait_for("Dashboard")` times out | Klaviyo's 2FA / email-verification challenge on cold sign-in | Prompt participant to check email and approve |
-| Step 3 dropdown selector returns null | Klaviyo's UI revisions occasionally rename the org-menu button | Snapshot the page, locate the menu by visible text instead of aria-label |
-| Step 4 `Full` scope card not found | Klaviyo's scope picker is sometimes a multi-step wizard rather than radios | Snapshot the dialog post-click, find the Full option in whatever shape it takes |
-| Step 5 `{ ok: false }` (extract found no `pk_`-prefixed key) | Modal may have closed before extract; or Klaviyo changed key prefix | Tell participant: "I missed it — let me create another." Re-run Step 4. Note new prefix if applicable. |
-| Step 7 HTTP 400 with `revision` in message | The `2025-10-15` revision constant is deprecated | Bump revision in credentials.json + the SKILL helper to a newer date |
-| Step 7 HTTP 403 `insufficient_scope` | Participant accidentally created Read-only key instead of Full | Re-run Phase 1 from Step 4, explicitly select Full |
+| Failure | Captured? | Cause | Fix |
+|---|---|---|---|
+| `/account#api-keys-tab` URL hash fragment redirects to `/settings/account/api-keys` | **Captured 2026-06-02** | Klaviyo migrated its settings sub-router in 2024-25; the hash-fragment URL is now legacy | **SKILL fix**: navigate to canonical `/settings/account/api-keys` directly. Both URLs still work; the canonical avoids the 302 hop. |
+| SKILL prose assumed "Create dialog" / modal flow | **Captured 2026-06-02** | Klaviyo's Create Private API Key is actually a full-page navigation to `/create-private-api-key`, not a modal | **SKILL fix**: Step 4 prose now says "full-page form, NOT a modal"; added `browser_wait_for("New private API key")` between the click and the form fill. |
+| Submit button text mismatch | **Captured 2026-06-02** | Real button text is exactly `Create`, NOT `Create Private API Key`/`Generate`/`Save` | **SKILL fix**: regex tightened to `/^create$/i` AND class filter excludes `NavRow-*` (the sidebar Create button) |
+| Step 2 `browser_wait_for("Dashboard")` times out | not seen on captured run | Klaviyo's onboarding-guide redirect captures fresh accounts at `/onboarding/guide` not `/dashboard` | Use broader wait-for text or just check `window.location.href` is NOT login |
+| Step 5 `{ ok: false }` (no `pk_` match) | not seen | Navigated away from the confirmation page before extract / Klaviyo changed key prefix | Tell participant: "I missed it — let me create another." Re-run Step 4 |
+| Step 7 HTTP 400 with `revision` in message | not seen | The `2025-10-15` constant is deprecated | Bump revision string in credentials.json + SKILL helper |
+| Step 7 HTTP 403 `insufficient_scope` | not seen | Participant accidentally created Read-only key | Re-run Phase 1 from Step 4, select Full Access Key |
 
 For Phase 2 failures, see the SKILL's Error Handling section.
