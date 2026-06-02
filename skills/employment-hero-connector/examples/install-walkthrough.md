@@ -106,7 +106,7 @@ async () => {
 
 Projected return: `{ ok: true, key_len: 36 }` (GUIDs are 36 chars including 4 hyphens; some Employment Hero keys may be longer base64-flavoured strings).
 
-If the key is hidden behind a "Show" button, Claude tells the participant: *"I need to see your key to capture it — could you click 'Show' on the key field, please?"* Then retries.
+If the key is hidden behind a "Show" button, Claude tells the participant (using only allowed terms — "connection key" not "API key"): *"I need to see your connection key on the page to capture it — could you click 'Show' if there's a hidden-by-default option, please?"* Then retries.
 
 ---
 
@@ -228,7 +228,7 @@ Claude:      Approved Alice's 40 hours of Annual Leave starting July 15.
 | Failure | Cause | Fix |
 |---|---|---|
 | Step 3 Payroll launch button missing | Participant's role doesn't include Payroll access | Tell participant: "I don't see Payroll in your account — your role might not include it. Check with whoever owns your Employment Hero." |
-| Step 4 API tab returns "Not Available" | Participant's Payroll role is view-only | Tell participant: "I need Full Access to generate an API key. Could you ask the account owner to upgrade your role or generate the key themselves and paste it?" |
+| Step 4 API tab returns "Not Available" | Participant's Payroll role is view-only | Tell participant (allowed terms only): "I need Full Access to set up the connection. Could you ask the account owner to upgrade your role, or have them set up the connection and share the connection key with you?" |
 | Step 5 Generate button generates without warning prompt | UI variant — direct generate, no confirm dialog | Apply the warning prose preemptively before clicking |
 | Step 6 `{ ok: false }` (no key found) | Key is hidden behind "Show" button | Tell participant to click Show; retry the extract |
 | Step 7 business_id is null | URL doesn't contain `/business/<id>` (some Payroll URL patterns differ) | Navigate to `app.yourpayroll.*/business/` (list page) and extract from the first card's link |
