@@ -515,7 +515,13 @@ Returns the full invoice object. Line items are in the `Line` array. `SalesItemL
 
 **Use when:** The user asks "show me invoice 145" or "details of invoice INV-1022". (QuickBooks uses numeric `Id` internally; `DocNumber` like "1022" is the user-facing label. If the user gives a `DocNumber`, first run `search_invoices({ where: "DocNumber = '1022'" })` to get the `Id`.)
 
-> **Naming quirk — `read_*` vs `get_*`.** Intuit's MCP server uses **`read_*`** for fetching specific Invoice and Item entities by ID, but **`get_*`** for all other entities (customer, account, vendor, bill_payment, deposit, employee, journal_entry, payment, purchase, etc.) AND for all 11 reports. So: `read_invoice`, `read_item`, but `get_customer`, `get_account`, `get_balance_sheet`. This is an Intuit-source quirk, not an error — always use `read_` for invoice/item, `get_` for everything else. Bill entity has no read/get tool (use `search_bills({ where: "Id = '<id>'" })` as a workaround).
+> **Naming quirks — three styles coexist in Intuit's MCP server.** Verified against `src/tools/*.tool.ts` (run `grep -rhoE '"(create|read|update|delete|search|get)[_-][a-z_-]+"' ~/.local/share/qbo-mcp/src/` to enumerate locally):
+>
+> 1. **`read_*` (snake_case)** — only 2 entities use this prefix: `read_invoice`, `read_item`.
+> 2. **`get-*`, `create-*`, `update-*`, `delete-*` (kebab-case)** — only 2 entities use this hyphenated style: **Bill** (`get-bill`, `create-bill`, `update-bill`, `delete-bill`) and **Vendor** (`get-vendor`, `create-vendor`, `update-vendor`, `delete-vendor`). Their `search` variants stay snake_case: `search_bills`, `search_vendors`.
+> 3. **`get_*`, `create_*`, `update_*`, `delete_*` (snake_case)** — everyone else (24+ entities including customer, account, employee, estimate, journal_entry, payment, purchase, sales_receipt, credit_memo, deposit, transfer, etc.) and all 11 reports (`get_balance_sheet`, `get_profit_and_loss`, etc.).
+>
+> So: fetching a Bill by ID is `mcp__quickbooks__get-bill({ id: ... })` (with a hyphen), but fetching a Customer is `mcp__quickbooks__get_customer({ id: ... })` (with an underscore). This is genuine source inconsistency in `intuit/quickbooks-online-mcp-server`, not a SKILL bug. When in doubt, search `ToolSearch +quickbooks` after Phase 1 completes to see the actual tool names as Claude Code exposes them.
 
 ### Common Pattern 4 — Create an invoice
 
@@ -692,7 +698,9 @@ For complete entity coverage tables, see the [Intuit MCP repo README](https://gi
 | "Get the balance sheet" | `mcp__quickbooks__get_balance_sheet({})` |
 | "What QuickBooks company am I connected to?" | `mcp__quickbooks__get_company_info({})` |
 | "List my bills" | `mcp__quickbooks__search_bills({})` |
+| "Show me bill 42" | `mcp__quickbooks__get-bill({ id: "42" })` (kebab-case for bill/vendor) |
 | "Show me my vendors" | `mcp__quickbooks__search_vendors({})` |
+| "Show me vendor 7" | `mcp__quickbooks__get-vendor({ id: "7" })` (kebab-case for bill/vendor) |
 | "Connect my QuickBooks" / "Help me set up QuickBooks" | **Run Phase 1** |
 
 ---
