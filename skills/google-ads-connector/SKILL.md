@@ -17,8 +17,6 @@ metadata:
   pairs-with:
     - skill: paid-ads
       reason: paid-ads is the strategy advisor (how to plan/optimise campaigns); google-ads-connector is the data source for those decisions. Pair when the user wants both advice and live data.
-    - skill: tiktok-ads-connector
-      reason: Sibling Direct-REST ads-platform connector (Tier 1, similar Playwright-driven OAuth pattern)
     - skill: quickbooks-connector
       reason: Same Phase 0 mode-detection + Phase 1 Playwright-driven autonomous install pattern as the Tier-1 reference. QBO's Phase 1L is a heavier variant of this skill's Phase 1L.
     - skill: myob-connector
@@ -31,7 +29,7 @@ metadata:
 
 ## Overview
 
-This skill lets you read and operate a user's Google Ads account on their behalf using **Google Ads API v17 REST endpoints** (no MCP server, no first-party CLI — Direct-REST + Playwright pattern, see `skills/CLAUDE.md` for the four-pattern decision tree).
+This skill lets you read and operate a user's Google Ads account on their behalf using **Google Ads API v17 REST endpoints** (no MCP server, no first-party CLI). `skills/CLAUDE.md` documents the three install patterns (Hosted-OAuth, Hosted-bearer-PAT, Plugin-marketplace) and explicitly marks direct-REST connectors (`ghl-connector`, `myob-connector`) as out of scope for that doc — see the per-connector SKILL. This SKILL is the third direct-REST connector in the kit and follows the `myob-connector` shape (loopback listener + Playwright-driven OAuth + atomic `credentials.json` write + bearer-on-curl Phase 2).
 
 It has two phases:
 
@@ -914,14 +912,14 @@ It **requires** at least one operating Google Ads customer the participant has a
 ## Related Skills
 
 - **`paid-ads`**: The strategy advisor. Pair when the participant wants advice on what to DO with the data the connector returns. The advisor asks "what's working?" and Claude uses this connector to answer factually.
-- **`tiktok-ads-connector`** (Tier 1 sibling, also Direct-REST + Playwright): Same install shape; mirror this connector's structure when implementing.
 - **`quickbooks-connector`**: Same Phase 0 / Phase 1 Playwright-driven autonomous pattern as the SelrAI canonical. QBO's Phase 1L lives-tier work (Cloudflare Pages + tunnel) is heavier than this connector's Phase 1L (Google Ads' API Center is in-portal only).
-- **`myob-connector`**: The Direct-REST + Playwright reference SKILL. Phase 1 loopback listener pattern, atomic credentials.json write pattern, and refresh-on-call pattern all borrowed from MYOB.
+- **`myob-connector`**: The Direct-REST + Playwright reference SKILL this connector models its Phase 1 on. Loopback listener pattern, atomic `credentials.json` write pattern, and refresh-on-call pattern all borrowed from MYOB.
+- **`ghl-connector`**: The other direct-REST sibling. Wraps the GHL hosted MCP (so its frontmatter says Hosted-bearer-PAT pattern), but the Phase 1 shape is closer to direct-REST than Pattern 1 / 2. Reference for the Playwright-driven autonomous-Phase-1 communication rules.
 - **`superpowers:systematic-debugging`**: For troubleshooting OAuth flow failures or unexpected GAQL responses.
 
 ## See also
 
-- [`skills/CLAUDE.md`](../CLAUDE.md) — four install-pattern decision tree (this SKILL is canonical Direct-REST + Playwright; sibling to MYOB).
+- [`skills/CLAUDE.md`](../CLAUDE.md) — the three-pattern decision tree (Hosted-OAuth, Hosted-bearer-PAT, Plugin-marketplace). This SKILL is explicitly out of scope for that doc (it's a direct-REST connector); follow `myob-connector`'s shape as the closest canonical reference.
 - [Google Ads API reference](https://developers.google.com/google-ads/api/docs/start) — the official source of GAQL grammar, resource shapes, and rate limits.
 - [Google Ads API Center](https://ads.google.com/aw/apicenter) — where Phase 1T and Phase 1L dev tokens come from.
 - Memory `reference_playwright_snapshot_password_leak` — sign-in page snapshot rule (applies to Google Cloud, Google Ads, and the consent screen alike).
