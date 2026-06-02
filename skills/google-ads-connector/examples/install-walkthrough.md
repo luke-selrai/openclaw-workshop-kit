@@ -209,8 +209,6 @@ Claude: All connected — your Google Ads test account is ready. Ask
 
 ---
 
----
-
 ## Phase 1F — Wrap the official MCP for reads
 
 Runs after Phase 1T's smoke test succeeds. Best-effort: failures don't block; Phase 2 falls back to direct REST.

@@ -729,13 +729,13 @@ claude mcp list 2>&1 | grep -E '^google_ads:'
 
 Expect `google_ads: pipx run ... - ✓ Connected`. If `✗ Failed to connect`, the most common cause is `GOOGLE_APPLICATION_CREDENTIALS` pointing to a malformed JSON file — re-check Step 1F.1's output.
 
-### Step 1F.5 — Prompt restart Claude Code (combined with Phase 1E)
+### Step 1F.5 — Prompt restart Claude Code
 
-If Phase 1F runs as part of a fresh install (alongside Phase 1E's `claude mcp add quickbooks ...` analogue — though this connector doesn't add quickbooks, just google_ads), bundle the restart prompt with Phase 1E's existing one:
+Phase 1T (or 1L) already shows the participant a "you're connected — restart Claude Code" message after writing `credentials.json`. When Phase 1F also runs successfully, fold the new tools into that same message rather than asking the participant to restart twice:
 
 > "All connected. One last step: please close this window and reopen Claude Code, then say hi. The Google Ads tools will be ready for you."
 
-After restart, the `mcp__google_ads__search`, `mcp__google_ads__list_accessible_customers`, and `mcp__google_ads__get_resource_metadata` tools appear in Claude's deferred-tool surface (via `ToolSearch +google_ads` to confirm).
+After restart, the `mcp__google_ads__search`, `mcp__google_ads__list_accessible_customers`, and `mcp__google_ads__get_resource_metadata` tools appear in Claude's deferred-tool surface (verify via `ToolSearch +google_ads`).
 
 ### Phase 1F skip-state
 
