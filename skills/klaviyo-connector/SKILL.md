@@ -32,7 +32,7 @@ This skill lets you read and operate a user's Klaviyo account on their behalf us
 
 It has two phases:
 
-- **Phase 1 — Install & Connect (autonomous via Playwright).** Claude drives `www.klaviyo.com` via Playwright MCP: signs the participant in, walks organization-name → Settings → API keys, clicks **Create Private API Key**, names it `Claude Workshop Connector` with Full scope, DOM-extracts the one-time-displayed key via clipboard transit (Klaviyo cannot show the key again after the modal closes — this is the most time-sensitive moment in Phase 1), and persists to `~/.config/klaviyo/credentials.json` (mode 0600). The participant's only manual moment is signing in to Klaviyo once.
+- **Phase 1 — Install & Connect (autonomous via Playwright).** Claude drives `www.klaviyo.com` via Playwright MCP: signs the participant in, navigates directly to the canonical `/settings/account/api-keys` URL, clicks **Create Private API Key** (which navigates to a full-page form at `/create-private-api-key`), names it `Claude Workshop Connector` with Full Access Key, DOM-extracts the one-time-displayed key from the post-create confirmation page via clipboard transit (Klaviyo cannot show the key again after navigating away — this is the most time-sensitive moment in Phase 1), and persists to `~/.config/klaviyo/credentials.json` (mode 0600). The participant's only manual moment is signing in to Klaviyo once.
 - **Phase 2 — Use Tools (Direct-REST via curl).** Once `credentials.json` is configured, you `curl` Klaviyo REST endpoints with `Authorization: Klaviyo-API-Key <key>` + the required `revision: 2025-10-15` header (Klaviyo's API versioning is by date string). Writes (add to list, send campaign, suppress profile) are gated by per-call confirmation prose — every Phase 2 invocation hits real data (Klaviyo has no sandbox).
 
 **Single-mode, no test/live distinction.** Klaviyo's free tier (up to 250 profiles, 500 sends/month) is real data — no sandbox API. Every Phase 2 call touches the participant's real audience. Production-mode gates are the default behaviour.
@@ -216,7 +216,7 @@ After the click, Klaviyo redirects to a confirmation page showing the new key (t
 
 ### Step 5 — DOM-extract the key via clipboard transit (TIME-SENSITIVE)
 
-**Klaviyo only displays the key once.** The post-create modal shows it; close it and the key is gone forever.
+**Klaviyo only displays the key once on the post-create confirmation page; navigating away discards it.** There is no modal — after clicking Create on the full-page form (Step 4), Klaviyo renders a confirmation page with the new `pk_`-prefixed key. Extract before any further navigation.
 
 Save the participant's prior clipboard first:
 
@@ -247,7 +247,7 @@ async () => {
 
 Returns only `key_len`. The key is in the clipboard, never in the tool return.
 
-**Validation (silent):** key starts with `pk_` and is typically 40-50 chars. If `{ ok: false }`, the modal may have already closed — tell the participant: *"I missed the key, sorry — let me create another one."* Re-run Step 4.
+**Validation (silent):** key starts with `pk_` and is typically 40-50 chars. If `{ ok: false }`, the confirmation page may have already been navigated away from — tell the participant: *"I missed the key, sorry — let me create another one."* Re-run Step 4.
 
 ### Step 6 — Save credentials.json
 

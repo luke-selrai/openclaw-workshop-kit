@@ -252,7 +252,7 @@ Claude:      Suppressed noreply@spam.com. Klaviyo processes the
 | SKILL prose assumed "Create dialog" / modal flow | **Captured 2026-06-02** | Klaviyo's Create Private API Key is actually a full-page navigation to `/create-private-api-key`, not a modal | **SKILL fix**: Step 4 prose now says "full-page form, NOT a modal"; added `browser_wait_for("New private API key")` between the click and the form fill. |
 | Submit button text mismatch | **Captured 2026-06-02** | Real button text is exactly `Create`, NOT `Create Private API Key`/`Generate`/`Save` | **SKILL fix**: regex tightened to `/^create$/i` AND class filter excludes `NavRow-*` (the sidebar Create button) |
 | Step 2 `browser_wait_for("Dashboard")` times out | not seen on captured run | Klaviyo's onboarding-guide redirect captures fresh accounts at `/onboarding/guide` not `/dashboard` | Use broader wait-for text or just check `window.location.href` is NOT login |
-| Step 5 `{ ok: false }` (no `pk_` match) | not seen | Modal closed early / Klaviyo changed key prefix | Tell participant: "I missed it — let me create another." Re-run Step 4 |
+| Step 5 `{ ok: false }` (no `pk_` match) | not seen | Navigated away from the confirmation page before extract / Klaviyo changed key prefix | Tell participant: "I missed it — let me create another." Re-run Step 4 |
 | Step 7 HTTP 400 with `revision` in message | not seen | The `2025-10-15` constant is deprecated | Bump revision string in credentials.json + SKILL helper |
 | Step 7 HTTP 403 `insufficient_scope` | not seen | Participant accidentally created Read-only key | Re-run Phase 1 from Step 4, select Full Access Key |
 
