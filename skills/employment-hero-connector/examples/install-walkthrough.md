@@ -57,10 +57,10 @@ Projected: opens `app.yourpayroll.com.au` (AU) in the same tab or a new one. Cla
 
 ```js
 // Reference output for AU account:
-{ region_host: "yourpayroll.com.au", api_host: "api.yourpayroll.com.au" }
+{ region_host: "yourpayroll.com.au", api_host: "api.yourpayroll.com.au", region: "au" }
 ```
 
-For NZ: `yourpayroll.co.nz` → `api.yourpayroll.co.nz`. UK: `yourpayroll.io` → `api.yourpayroll.io`. SG: `yourpayroll.com.sg` → `api.yourpayroll.com.sg`.
+For NZ: `yourpayroll.co.nz` → `api.yourpayroll.co.nz`, region `nz`. UK: `yourpayroll.io` → `api.yourpayroll.io`, region `uk`. SG: `yourpayroll.com.sg` → `api.yourpayroll.com.sg`, region `sg`.
 
 ---
 
