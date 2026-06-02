@@ -95,7 +95,7 @@ Clipboard now holds `{"client_id":"...","client_secret":"..."}`. Tool returns on
 mcp__playwright__browser_navigate({ url: "https://ads.google.com/aw/overview" })
 ```
 
-Two states the page can be in. Projected: participant has no Google Ads account yet. The page shows *"You don't have any Google Ads accounts. Would you like to create a new one?"* (confirmed via Playwright recon 2026-06-02 — that copy was on the page when this SKILL was designed).
+Two states the page can be in. Projected: participant has no Google Ads account yet. The page shows *"You don't have any Google Ads accounts. Would you like to create a new one?"* (page copy verified at design time; full end-to-end SKILL run still pending).
 
 Claude clicks **New Google Ads account**, then on the first onboarding page clicks **Switch to Expert Mode** (bottom-left link). The Expert Mode account creation skips the "create your first campaign" pressure and gives a bare-account state immediately. Projected wall-clock: ~25 seconds including Google's billing-skip step (Test-mode accounts don't require billing).
 
