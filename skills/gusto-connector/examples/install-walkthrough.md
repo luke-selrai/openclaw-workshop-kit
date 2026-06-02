@@ -1,6 +1,6 @@
 # Gusto Connector — Install Walkthrough (Demo mode)
 
-> **Status: illustrative, not yet captured.** Authored from the SKILL design without an end-to-end run against Gusto's live dev portal. Timings, DOM structures, and exact dev-portal field labels below are projected from Gusto's documented API behaviour at design time; the walkthrough will be replaced with a captured reference run once smoke is performed against an actual Gusto Demo Company.
+> **Status: captured reference run, 2026-06-02 against rodolfo@selrai.com.au's Gusto Developer account + a Demo Company named `Selr AI Demo Co`.** Captured 10 SKILL drifts during this run, all fixed in the accompanying PR. Live OAuth completed end-to-end; `/v1/companies/{uuid}`, `/v1/companies/{uuid}/employees`, and `/v1/companies/{uuid}/payrolls?include[]=totals` all returned real demo data (Selr AI Demo Co, 5+ demo employees including Isaiah Berlin / Patricia Churchland / Soren Kierkegaard / Hannah Arendt / Taylor Swift, 7 historical payrolls).
 
 This walkthrough documents the **default install path** (Phase 0 → Phase 1 → Demo mode). Production mode (the 1-2 week Gusto partner-app review) is documented separately in `install-walkthrough-production.md` (future).
 
@@ -10,7 +10,7 @@ This walkthrough documents the **default install path** (Phase 0 → Phase 1 →
 
 - Playwright MCP installed.
 - `curl`, `jq`, `python3`, `ss` (or `netstat`) on PATH.
-- Internet access (dev.gusto.com, api-demo.gusto.com).
+- Internet access (dev.gusto.com, api.gusto-demo.com).
 - Participant has a Gusto Developer account (free; create at dev.gusto.com if absent). They do NOT need an existing Gusto payroll subscription — Demo mode creates a synthetic Demo Company.
 
 Projected total: ~90 seconds for a participant with an existing dev.gusto.com session; ~3 minutes for cold sign-up (including email verification on a new developer account).
@@ -40,48 +40,84 @@ Claude sends the 3-bullet expectation-setting message.
 
 ---
 
+## Captured drifts summary (fixed in this PR)
+
+| # | SKILL said | Reality (2026-06-02) |
+|---|---|---|
+| 1 | URL `/oauth_applications` | `/applications` |
+| 2 | Form has scope checkboxes | No scope picker — Demo apps default to `public webhook_subscriptions:read/write` |
+| 3 | Scopes `companies:read` etc | `public` alone is sufficient for all Phase 2 Demo reads (companies, employees, payrolls verified live) |
+| 4 | Demo Company auto-provisions | Must be created manually at `/demo_companies/new` |
+| 5 | Demo Company needs only name | Needs fresh email + password (becomes the OAuth admin) |
+| 6 | Credentials shown plainly | Hidden behind `Reveal` buttons; toggle to `Hide` after reveal |
+| 7 | client_id ~32, secret ~64 | Both are 43 chars |
+| 8 | DOM extract uses any container | Parent div `innerText` slurps adjacent `Copy`+`Hide` button text — must use value-only `<span>` filter |
+| 9 | Demo host `api-demo.gusto.com` | **DNS doesn't resolve** at the SKILL's host. Real host is `api.gusto-demo.com` (dashed top-level, not subdomain) |
+| 10 | Company UUID via `/v1/me` | `/v1/me` returns 404 not_found on current Gusto API. **Use `/v1/token_info`** — returns `{scope, resource:{type:"Company", uuid:"..."}, resource_owner:{...}}` |
+
 ## Step 2 — Open Gusto developer portal
 
 ```
-mcp__playwright__browser_navigate({ url: "https://dev.gusto.com/oauth_applications" })
+mcp__playwright__browser_navigate({ url: "https://dev.gusto.com/applications" })
 mcp__playwright__browser_wait_for({ text: "Applications", time: 60 })
 ```
 
-Projected: participant signs in or session is cached. The OAuth Applications page renders.
+Captured 2026-06-02: the page renders the empty-state "Get started building your Gusto integration" with a `Create application` button.
 
 ---
 
-## Step 3 — Create or find Partner Application
+## Step 3 — Create or find Partner Application (captured)
 
-Projected: no existing `Claude Workshop Connector` app, so Claude clicks **New application** and fills the form via React-friendly setter:
+No existing `Claude Workshop Connector` app, so Claude clicks **Create application** (link to `/applications/new`) and fills the form. **Captured form fields (no scope picker!):**
 
 | Field | Value |
 |---|---|
 | Application name | `Claude Workshop Connector` |
-| Application website | `https://localhost/` (any HTTPS URL accepted in Demo) |
-| Redirect URI | `http://localhost:8765/callback` |
-| Scopes (checkboxes) | `companies:read`, `employees:read`, `payrolls:read`, `time_off_requests:read`, `time_off_requests:write` |
+| Redirect URI | `http://localhost:8765/callback` (textarea — supports multiple lines for multiple redirects) |
+| Category | **Other** (closest neutral choice — Gusto's dropdown lists 25 categories including Accounting, Background Checks, Payroll, etc.; pick `Other` for the workshop kit) |
+| Disable Gusto's time tracking features | leave **unchecked** |
 
-Submit. Gusto issues client_id + client_secret immediately for Demo. Projected timing: ~30 seconds for form fill + save.
+Submit. Gusto issues client_id + client_secret immediately, redirects to `/applications` listing showing `Claude Workshop Connector | Selr AI | demo` (stage column shows `demo` for Demo mode). Captured wall-clock: ~3 seconds. Click into the app → detail page at `/applications/<uuid>`.
+
+Captured scopes (auto-assigned to Demo apps): `public, webhook_subscriptions:read, webhook_subscriptions:write`. The `public` scope alone is sufficient for all Phase 2 Demo reads — verified live.
 
 ---
 
-## Step 4 — DOM-extract via clipboard transit
+## Step 4 — DOM-extract via clipboard transit (captured Reveal + value-only span filter)
 
-Save prior clipboard, then run the extract:
+The app detail page shows Client ID + Secret as masked `*********` values with `Reveal` toggle + `Copy`/`Hide` buttons inline.
+
+Save prior clipboard, click both `Reveal` buttons, then extract:
 
 ```js
-{ ok: true, client_id_len: 32, client_secret_len: 64 }
+{ ok: true, client_id_len: 43, client_secret_len: 43 }
 ```
 
-Clipboard now holds `{"client_id":"...","client_secret":"..."}`. Tool return contains only the integer lengths.
+**Captured drift**: client_id and client_secret are both **43 chars** (not 32/64 as the pre-fix SKILL projected). The captured client_id was `tUj8npd37sQ9sz-HIfMclRijuCG_gt8oJE-IKQfuUU8`.
+
+**Critical extract detail**: the parent `<div>` wrapping each value's `<span>` has `innerText` equal to `<value>CopyHide` because the inline buttons concatenate via the DOM tree. A naive `span,div,code` walk captures `tUj8...UU8CopyHide` (51 chars instead of 43), which then breaks the OAuth `client_authentication_failed` check downstream. Fix: filter for value-only `<span>` elements whose `innerText` matches `/^[A-Za-z0-9_.\-]+$/` with length ≥ 30.
+
+---
+
+## Step 4.5 — Create Demo Company (captured: required separate step)
+
+Navigate to `https://dev.gusto.com/demo_companies/new`. Form fields:
+
+| Field | Value |
+|---|---|
+| Demo company name | `Selr AI Demo Co` |
+| Email | A **fresh email** (use plus-alias: `<your-email>+gusto-demo@<domain>`). Captured: `rodolfo+gusto-demo@selrai.com.au` |
+| Password | participant chooses + types directly into Playwright window |
+| Password confirmation | same |
+
+Submit. Status flips `generating` → `finished` after ~30-90s. Captured: 90s on the reference run. The Demo Company gets its own UUID (Captured: `e8d85ba3-fce8-4736-9155-88147ed384a3`) and admin account (the fresh email + password become the OAuth sign-in credentials for Step 6).
 
 ---
 
 ## Step 5 — Start loopback listener
 
 ```bash
-PORT=8765   # default; auto-increments if in use
+PORT=8765
 nohup python3 -c "http.server..." > /tmp/gusto-listener.log 2>&1 &
 echo $! > /tmp/gusto-listener.pid
 ```
@@ -90,53 +126,75 @@ Listener live on `127.0.0.1:8765`, ready to capture the OAuth callback.
 
 ---
 
-## Step 6 — OAuth consent
+## Step 6 — OAuth consent (captured: scope param OPTIONAL, host fixed)
 
-Construct AUTH_URL:
+Construct AUTH_URL with the CORRECT Demo host (`api.gusto-demo.com`, NOT `api-demo.gusto.com` which doesn't resolve in DNS). Captured: scope parameter omitted — Gusto grants the app's default Demo scopes (`public webhook_subscriptions:read/write`), which is sufficient for Phase 2 Demo reads.
 
 ```
-https://api-demo.gusto.com/oauth/authorize
-  ?client_id=<32 chars>
+https://api.gusto-demo.com/oauth/authorize
+  ?client_id=<43 chars>
   &redirect_uri=http%3A%2F%2Flocalhost%3A8765%2Fcallback
   &response_type=code
-  &scope=companies:read employees:read payrolls:read time_off_requests:read time_off_requests:write
 ```
 
-Navigate Playwright. Projected: consent screen rendered ("Allow Claude Workshop Connector to access your Gusto demo data?"). Claude clicks **Allow** via `browser_evaluate`.
-
-Browser redirects to `http://localhost:8765/callback?code=<short-lived-code>&state=...`. Listener writes the code to `/tmp/gusto-auth-code` and exits.
+Navigate Playwright. Captured flow:
+1. Redirected to `https://app.gusto-demo.com/oauth/authorize?...` (note `app.gusto-demo.com` not `api.gusto-demo.com` — Gusto does a redirect under the hood)
+2. If the Demo Company admin isn't yet signed in: Keycloak SSO at `https://login.gusto-demo.com/realms/zenpayroll/protocol/openid-connect/auth?...` — participant signs in with the Demo Company admin email + password set in Step 4.5
+3. Consent screen: "Authorize Claude Workshop Connector to connect to your account? ... will allow Claude Workshop Connector to view and access Selr AI Demo Co's account information."
+4. `<input type="submit" value="Authorize">` button — click it (NOT `<button>` element; the consent button is a submit input)
+5. Browser redirects to `http://localhost:8765/callback?code=<43-char-code>`
+6. Listener writes the code to `/tmp/gusto-auth-code` and exits
 
 ---
 
-## Step 7 — Exchange code for tokens
+## Step 7 — Exchange code for tokens (captured response)
 
 ```bash
-curl https://api-demo.gusto.com/oauth/token ... # POST with code, client_id, client_secret
+curl https://api.gusto-demo.com/oauth/token \
+  -H 'Content-Type: application/json' \
+  -d '{"client_id":"...","client_secret":"...","code":"...","redirect_uri":"http://localhost:8765/callback","grant_type":"authorization_code"}'
 ```
 
-Response JSON:
+Captured response shape:
 
 ```json
 {
-  "access_token": "<long-lived-token>",
-  "refresh_token": "<rotation-token>",
+  "access_token": "<43 chars>",
+  "refresh_token": "<43 chars>",
   "token_type": "Bearer",
   "expires_in": 7200,
-  "scope": "companies:read employees:read ..."
+  "scope": "public webhook_subscriptions:read webhook_subscriptions:write",
+  "created_at": 1780392797
 }
 ```
 
-Listener torn down, tmp files cleaned.
+`expires_at` computed from `created_at` + `expires_in` (Unix timestamp arithmetic).
 
 ---
 
-## Step 8 — Discover companies
+## Step 8 — Discover company via /v1/token_info (captured: NOT /v1/me)
 
 ```bash
-curl https://api-demo.gusto.com/v1/me -H "Authorization: Bearer <token>"
+curl https://api.gusto-demo.com/v1/token_info -H "Authorization: Bearer <token>"
 ```
 
-Projected response: a Demo Company auto-created on first dev sign-up. Single company → silently pick. Capture `company_uuid`.
+**Captured drift**: `/v1/me` returns `{"errors":[{"error_key":"request","category":"not_found","message":"This endpoint does not exist on this version of the Gusto API."}]}` on the current Gusto API (v2026-02-01). The canonical endpoint is `/v1/token_info`, which returns:
+
+```json
+{
+  "scope": "public webhook_subscriptions:read webhook_subscriptions:write",
+  "resource": {
+    "type": "Company",
+    "uuid": "e8d85ba3-fce8-4736-9155-88147ed384a3"
+  },
+  "resource_owner": {
+    "type": "CompanyAdmin",
+    "uuid": "da69a045-ccdd-4238-8480-3cd534d1111c"
+  }
+}
+```
+
+Extract `resource.uuid` as `company_uuid`. For multi-company partner installs, Gusto may return multiple records — verify at first Production-mode smoke.
 
 ---
 
@@ -161,7 +219,7 @@ File shape:
   "refresh_token": "<rotation token>",
   "expires_at": "2026-06-02T07:43:00Z",
   "company_uuid": "<uuid>",
-  "api_endpoint": "https://api-demo.gusto.com/v1"
+  "api_endpoint": "https://api.gusto-demo.com/v1"
 }
 ```
 
@@ -172,7 +230,7 @@ Mode 0600. Restore prior clipboard.
 ## Step 10 — Smoke test
 
 ```bash
-curl https://api-demo.gusto.com/v1/companies/<uuid> -H "Authorization: Bearer <token>" | jq -r '.name + " (" + .uuid + ")"'
+curl https://api.gusto-demo.com/v1/companies/<uuid> -H "Authorization: Bearer <token>" | jq -r '.name + " (" + .uuid + ")"'
 # → "Acme Demo Company (abc-...)"
 ```
 
