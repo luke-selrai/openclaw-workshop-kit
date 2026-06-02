@@ -1,6 +1,6 @@
 ---
 name: employment-hero-connector
-description: "Connect and operate Employment Hero Payroll (the product formerly known as KeyPay before Employment Hero's 2020 acquisition + rebrand). Read businesses, employees, pay schedules, pay runs (payroll history), pay run line items, employee leave balances, pending leave requests; approve or decline leave requests. Tier-1 connector for AU SMBs running PAYG payroll. Direct-REST against the Employment Hero Payroll API at https://api.yourpayroll.com.au/api/v2/ (AU region — region host changes for UK / NZ / SG). HTTP Basic auth with a self-serve tenant-level API key generated inside the Payroll product (Business Settings → API). Single-mode — there is no test sandbox in the payroll product; every Phase 2 call hits real employee/paycheck data, so the production-mode gates apply unconditionally. Phase 1 drives my.employmenthero.com / Payroll product via Playwright: signs the participant in, navigates to Business Settings → API, generates an API key, DOM-extracts via clipboard transit, persists to ~/.config/employment-hero/credentials.json (mode 0600). Use this skill when the user asks about Employment Hero, KeyPay, employees, PAYG, payroll, leave requests, time off, pay slips, employees on payroll. Note: this SKILL wraps the Payroll API only. The core Employment Hero HR API (people/leave/performance via oauth.employmenthero.com) is partner-gated and out of v1 scope. On first use, run Phase 1 before any tool call."
+description: "Connect and operate Employment Hero Payroll (the product formerly known as KeyPay before Employment Hero's 2020 acquisition + rebrand). Read businesses, employees, pay schedules, pay runs (payroll history), pay run line items, employee leave balances, pending leave requests; approve or decline leave requests. Tier-1 connector for AU SMBs running PAYG payroll. Direct-REST against the Employment Hero Payroll API at https://api.yourpayroll.com.au/api/v2/ (AU region — region host changes for UK / NZ / SG). HTTP Basic auth with a self-serve tenant-level API key generated inside the Payroll product (Business Settings → API). Single-mode — there is no test sandbox in the payroll product; every Phase 2 call hits real employee/paycheck data, so the production-mode gates apply unconditionally. Phase 1 drives secure.employmenthero.com / Payroll product via Playwright: signs the participant in, runs a Payroll-enabled pre-flight (Hub-only free trials and the Hub HR-only tier do not include Payroll), navigates to Business Settings → API, generates an API key, DOM-extracts via clipboard transit, persists to ~/.config/employment-hero/credentials.json (mode 0600). Use this skill when the user asks about Employment Hero, KeyPay, employees, PAYG, payroll, leave requests, time off, pay slips, employees on payroll. Note: this SKILL wraps the Payroll API only. The core Employment Hero HR API (people/leave/performance via oauth.employmenthero.com) is partner-gated and out of v1 scope. On first use, run Phase 1 before any tool call."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -51,7 +51,7 @@ Phase 1 detects the participant's region from the host their Employment Hero Pay
 
 It has two phases:
 
-- **Phase 1 — Install & Connect (autonomous via Playwright).** Claude drives `my.employmenthero.com` → Payroll product launch → Business Settings → API → Generate API Key. DOM-extract the new key via clipboard transit. Persist to `~/.config/employment-hero/credentials.json` (mode 0600). The participant's manual moment: signing in once.
+- **Phase 1 — Install & Connect (autonomous via Playwright).** Claude drives `secure.employmenthero.com` → Payroll-enabled pre-flight (verifies the account actually has the Payroll product, not just Hub) → Payroll product launch → Business Settings → API → Generate API Key. DOM-extract the new key via clipboard transit. Persist to `~/.config/employment-hero/credentials.json` (mode 0600). The participant's manual moment: signing in once.
 - **Phase 2 — Use Tools (Direct-REST via curl).** Once `credentials.json` is configured, you `curl` Employment Hero Payroll REST endpoints with HTTP Basic auth (`-u "api:<api_key>"`, where the username is conventionally `api` — Employment Hero Payroll's Basic auth ignores the username field). Writes (approve/decline leave) gated by per-call confirmation prose.
 
 **Single-mode, no test/live distinction.** Employment Hero Payroll has no API sandbox. Every Phase 2 call touches real employees + real money. Production-mode gates apply unconditionally.
@@ -124,28 +124,70 @@ echo "$STATE"
 ### Step 2 — Sign in to Employment Hero
 
 ```
-mcp__playwright__browser_navigate({ url: "https://my.employmenthero.com/" })
+mcp__playwright__browser_navigate({ url: "https://secure.employmenthero.com/" })
 ```
 
-**Do NOT snapshot the sign-in page** (password-leak rule). Use:
+**Do NOT snapshot the sign-in page** (password-leak rule). The auto-snapshot returned by `browser_navigate` itself is also a leak surface — mask `input[type=password]` immediately after navigate (see `reference_playwright_snapshot_password_leak`). Then probe page state via `browser_evaluate` rather than `browser_wait_for` (which hard-caps at 30s regardless of the `time` parameter).
+
+Employment Hero's sign-in is **two-step**: email page first ("Welcome, please enter your email address"), password page next, then optional 2FA. The MutationObserver-based password masker handles the page transition correctly.
+
+**2FA recovery code quarantine.** First-time sign-in triggers 2FA enrolment which auto-downloads a tiny `eh_recovery_code.txt` (the 2FA recovery code, ~20 bytes) to the Playwright download dir (defaults to `.playwright-mcp/` in the current working directory — i.e., the project workspace, world-readable). Immediately after sign-in lands, move it to a 0600 location:
+
+```bash
+if ls .playwright-mcp/eh_recovery_code*.txt >/dev/null 2>&1; then
+  mkdir -p "$HOME/.config/employment-hero"
+  chmod 700 "$HOME/.config/employment-hero"
+  mv .playwright-mcp/eh_recovery_code*.txt "$HOME/.config/employment-hero/recovery-code.txt"
+  chmod 600 "$HOME/.config/employment-hero/recovery-code.txt"
+  echo "Recovery code saved at ~/.config/employment-hero/recovery-code.txt (mode 600)"
+fi
+```
+
+Then tell the participant in plain English: *"Employment Hero gave you a 2FA recovery code I've saved at `~/.config/employment-hero/recovery-code.txt`. Please copy it to your password manager — you'll need it if you lose access to your authenticator app."*
+
+### Step 2.5 — Pre-flight: verify the account has the Payroll product
+
+**Critical gate.** Employment Hero sells the HR Hub (People, Compliance, Time, Performance) separately from Employment Hero Payroll (the former KeyPay product). Hub-only subscriptions and the platinum free trial include Hub but NOT Payroll. The Payroll connector cannot install on a Hub-only account.
+
+Detect by navigating to the regional Payroll product root and checking for the not-subscribed dead-end page (text begins with "Welcome to Payroll. Please check that the page you're trying to access is the correct address..."):
 
 ```
-mcp__playwright__browser_wait_for({ text: "Dashboard", time: 60 })
+mcp__playwright__browser_navigate({ url: "https://app.yourpayroll.com.au/" })
 ```
 
-(Or other post-sign-in markers like "People", "Payroll", "Onboarding".)
-
-### Step 3 — Launch the Payroll product
-
-From the my.employmenthero.com dashboard, the Payroll product is launched via a button or tile labeled "Payroll" or "Launch Payroll". This opens `app.yourpayroll.com.au` (AU) or the regional equivalent in a new tab.
+(Use the regional host the participant's account is in; AU is `com.au`, UK `io`, NZ `co.nz`, SG `com.sg`. If region is unknown at this point, start with `com.au` — non-AU accounts will fail this probe AND the region detect in Step 3, surface to participant in both cases.)
 
 ```js
 () => {
-  const links = Array.from(document.querySelectorAll('a, button'));
-  const payrollLink = links.find(el => /^(launch )?payroll$/i.test((el.innerText||'').trim()));
+  const txt = (document.body.innerText || '').slice(0, 500);
+  const hasDeadEnd = /welcome to payroll[\s\S]{0,200}correct address/i.test(txt);
+  const onBusinessOrPayrollDashboard = /\/business\//.test(location.href) || /pay run|employees on payroll/i.test(txt);
+  return { hub_only: hasDeadEnd, payroll_enabled: onBusinessOrPayrollDashboard };
+}
+```
+
+If `hub_only: true`, surface to the participant and halt Phase 1:
+
+> "Your Employment Hero account doesn't have the Payroll product enabled — this connector only works with Employment Hero Payroll (the former KeyPay product). To use it, you'll need either a paid Payroll subscription or a Payroll free trial through your Employment Hero account manager. I'll skip this connector for now — let me know once Payroll is enabled and I'll come back."
+
+If `payroll_enabled: true`, proceed to Step 3 (the navigation already landed inside the Payroll product, so Step 3's region detect can read `window.location.hostname` directly without another launch click).
+
+### Step 3 — Launch the Payroll product (skip if Step 2.5 already landed in it)
+
+If Step 2.5 detected `payroll_enabled: true`, skip to the region-detect block below — you're already in the Payroll product. Otherwise (Step 2.5 returned neither hub_only nor payroll_enabled — e.g., landed on a Payroll login page because the Hub session doesn't auto-SSO), look on the Hub dashboard for the Payroll launcher.
+
+In the current Hub v2 UI, the Payroll launcher is in the expanded "More" menu and is labeled **"Pay"** (not "Payroll"). Older UI variants used "Payroll" or "Launch Payroll". Match all three:
+
+```js
+() => {
+  const links = Array.from(document.querySelectorAll('a, button, [role="menuitem"], li'));
+  const payrollLink = links.find(el => {
+    const t = (el.innerText||'').trim();
+    return /^(pay|payroll|launch payroll)$/i.test(t) && el.getBoundingClientRect().width > 0;
+  });
   if (payrollLink) {
     payrollLink.click();
-    return { ok: true };
+    return { ok: true, label: (payrollLink.innerText||'').trim() };
   }
   return { ok: false, reason: 'no_payroll_launch_button' };
 }
