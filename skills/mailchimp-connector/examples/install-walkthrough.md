@@ -11,7 +11,7 @@ This walkthrough documents the **default install path** (Phase 0 → Phase 1 →
 - Internet access (admin.mailchimp.com + the participant's data-center API endpoint, e.g., `us21.api.mailchimp.com`).
 - Participant has a Mailchimp account (free tier is fine — Mailchimp's free tier supports up to 500 contacts and full API access).
 
-Projected total time: ~2 minutes for an account that's already signed in (sign-in cookies cached in the Playwright profile); ~3 minutes for cold sign-in including 2FA.
+Projected total time: ~40 seconds for an account that's already signed in (sign-in cookies cached in the Playwright profile); ~100 seconds for cold sign-in including 2FA. See the timing table below for per-step breakdown.
 
 ---
 
