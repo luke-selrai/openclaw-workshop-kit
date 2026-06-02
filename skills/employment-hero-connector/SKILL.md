@@ -157,9 +157,17 @@ Wait for the new tab (or in-window navigation) to land on `app.yourpayroll.com.a
 () => {
   const host = window.location.hostname;
   const m = host.match(/yourpayroll\.(com\.au|com\.sg|co\.nz|io)/);
-  return { region_host: m ? m[0] : host, api_host: m ? `api.yourpayroll.${m[1]}` : null };
+  if (!m) return { region_host: host, api_host: null, region: null };
+  const tldToRegion = { 'com.au': 'au', 'io': 'uk', 'co.nz': 'nz', 'com.sg': 'sg' };
+  return {
+    region_host: m[0],
+    api_host: `api.yourpayroll.${m[1]}`,
+    region: tldToRegion[m[1]]
+  };
 }
 ```
+
+This returns `region` as one of `au` / `uk` / `nz` / `sg` directly, so Step 8 can use it without additional derivation logic.
 
 If `api_host` is null, surface to the participant: *"I see your Employment Hero Payroll is on a region I don't have wired up yet. Let me know what country your business is in."*
 
@@ -188,7 +196,7 @@ Idempotent check: if a key already exists and the participant remembers it, they
 }
 ```
 
-> **Warning**: regenerating an existing key invalidates the old one. If other integrations (e.g., a third-party HRIS pulling payroll data) are using the existing key, they'll break. Tell the participant: *"Quick warning — if you've connected Employment Hero Payroll to any other tool with an API key, generating a new one will break that connection. Are you sure to continue?"* Wait for OK.
+> **Warning**: regenerating an existing key invalidates the old one. If other integrations (e.g., a third-party HRIS pulling payroll data) are using the existing key, they'll break. Tell the participant: *"Quick heads-up — if you've connected Employment Hero Payroll to any other tool, generating a new connection key will break that other connection. Are you sure to continue?"* Wait for OK. (Note the participant-facing phrasing uses "connection key" not "API key" per the communication rules above.)
 
 ### Step 6 — DOM-extract via clipboard transit
 
@@ -218,7 +226,7 @@ async () => {
 }
 ```
 
-If extraction fails (the page may render the key inside a tooltip or behind a "Show" button), surface fallback: *"I need to see your key to capture it — could you click 'Show' on the key field, please?"*
+If extraction fails (the page may render the key inside a tooltip or behind a "Show" button), surface a participant-friendly fallback: *"I need to see your connection key on the page to capture it — could you click 'Show' if there's a hidden-by-default option, please?"* (Using "connection key" not "API key" per the communication rules.)
 
 ### Step 7 — Detect business (tenant) ID
 
