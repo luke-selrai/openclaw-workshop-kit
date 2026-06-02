@@ -1,0 +1,21 @@
+{
+  "name": "basic-rag-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal runnable RAG example: Voyage embeddings + in-memory retrieval + Claude answer synthesis.",
+  "type": "module",
+  "scripts": {
+    "rag": "tsx src/rag.ts",
+    "agent": "tsx src/agent.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.100.1",
+    "dotenv": "17.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "25.9.1",
+    "tsx": "4.22.4",
+    "typescript": "6.0.3"
+  }
+}
