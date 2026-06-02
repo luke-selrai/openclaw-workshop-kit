@@ -508,12 +508,14 @@ Returns only invoices with an outstanding balance. Derive "overdue" vs "pending"
 ### Common Pattern 3 — Get a specific invoice by ID
 
 ```
-mcp__quickbooks__get_invoice({ id: "145" })
+mcp__quickbooks__read_invoice({ id: "145" })
 ```
 
 Returns the full invoice object. Line items are in the `Line` array. `SalesItemLineDetail` line types contain the billable amounts.
 
 **Use when:** The user asks "show me invoice 145" or "details of invoice INV-1022". (QuickBooks uses numeric `Id` internally; `DocNumber` like "1022" is the user-facing label. If the user gives a `DocNumber`, first run `search_invoices({ where: "DocNumber = '1022'" })` to get the `Id`.)
+
+> **Naming quirk — `read_*` vs `get_*`.** Intuit's MCP server uses **`read_*`** for fetching specific Invoice and Item entities by ID, but **`get_*`** for all other entities (customer, account, vendor, bill_payment, deposit, employee, journal_entry, payment, purchase, etc.) AND for all 11 reports. So: `read_invoice`, `read_item`, but `get_customer`, `get_account`, `get_balance_sheet`. This is an Intuit-source quirk, not an error — always use `read_` for invoice/item, `get_` for everything else. Bill entity has no read/get tool (use `search_bills({ where: "Id = '<id>'" })` as a workaround).
 
 ### Common Pattern 4 — Create an invoice
 
@@ -679,7 +681,7 @@ For complete entity coverage tables, see the [Intuit MCP repo README](https://gi
 |---|---|
 | "Show me my invoices" | `mcp__quickbooks__search_invoices({ limit: 20 })` |
 | "List unpaid invoices" | `mcp__quickbooks__search_invoices({ where: "Balance > '0'" })` |
-| "Show me invoice 1022" | `mcp__quickbooks__get_invoice({ id: "<id>" })` |
+| "Show me invoice 1022" | `mcp__quickbooks__read_invoice({ id: "<id>" })` (note: `read_*` not `get_*` for invoice/item) |
 | "Create an invoice for [client]" | Pattern 4 above |
 | "Find [name] in my customers" | `mcp__quickbooks__search_customers({ where: "DisplayName LIKE '%<name>%'" })` |
 | "Add a new customer" | `mcp__quickbooks__create_customer({ DisplayName: "..." })` |
