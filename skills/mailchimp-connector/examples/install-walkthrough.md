@@ -116,7 +116,7 @@ async () => {
 }
 ```
 
-Captured return: `{ ok: true, key_len: 36, dc: "us8" }`. Mailchimp's data center shards are `us1` through ~`us22` (and a few EU shards: `eu1`); the captured key was 36 chars (32-hex + `-` + `us8`). Tightened the regex from the original `[a-f0-9]{30,34}` to `[a-f0-9]{30,36}` to cover the verified shape.
+Captured return: `{ ok: true, key_len: 36, dc: "us8" }`. Mailchimp's data center shards are `us1` through ~`us22` (and a few EU shards: `eu1`); the captured key was 36 chars (32-hex + `-` + `us8`) which already fit the SKILL's original regex bounds. Widened the SKILL regex from `[a-f0-9]{30,34}` to `[a-f0-9]{30,36}` and the DC suffix from `[a-z]{2}` to `[a-z]{2,4}` as defensive headroom for Mailchimp's possible future shard naming (the captured run did not require these extra characters; the SKILL and walkthrough now share the broader pattern).
 
 The full API key value lives in the clipboard, never in the tool return.
 

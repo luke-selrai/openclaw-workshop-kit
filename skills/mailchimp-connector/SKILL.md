@@ -181,7 +181,7 @@ Then extract:
 ```js
 async () => {
   // Find any element whose visible text matches Mailchimp's API-key shape: 32 hex chars + '-' + dc prefix
-  const re = /\b([a-f0-9]{30,34}-[a-z]{2}[0-9]{1,3})\b/i;
+  const re = /\b([a-f0-9]{30,36}-[a-z]{2,4}[0-9]{1,3})\b/i;
   const all = Array.from(document.querySelectorAll('input, code, span, div, p, pre'));
   for (const el of all) {
     const v = (el.value || el.innerText || el.textContent || '').trim();
