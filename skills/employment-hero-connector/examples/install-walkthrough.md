@@ -1,6 +1,6 @@
 # Employment Hero Connector — Install Walkthrough
 
-> **Status: illustrative, not yet captured.** Authored from the SKILL design + Employment Hero's documented UX (legacy KeyPay docs at api.yourpayroll.com.au/docs/api/) without an end-to-end run against a real Employment Hero Payroll account. Specific UI selectors and DOM behaviour below are projected; the walkthrough will be replaced with a captured reference run once smoke is performed on a real AU Payroll account.
+> **Status: partial capture 2026-06-02 (sign-in flow + Hub-only pre-flight verified live; Payroll-product steps still illustrative).** First half (Steps 0-2.5) captured against Rodolfo's platinum free trial — confirmed the Hub-only trial does NOT include the Payroll product (`app.yourpayroll.com.au` returns the "Welcome to Payroll / contact your payroll administrator" dead-end). Steps 3-9 remain projected; the walkthrough will be replaced with a full captured reference run once smoke is performed on a real Payroll-enabled account.
 
 This walkthrough documents the **default install path** (Phase 0 → Phase 1 → smoke). Single-mode SKILL — Employment Hero Payroll has no API sandbox; the participant's real payroll account is the data target.
 
@@ -8,7 +8,7 @@ This walkthrough documents the **default install path** (Phase 0 → Phase 1 →
 
 - Playwright MCP installed.
 - `curl`, `jq`, clipboard utility on PATH.
-- Internet access (my.employmenthero.com + the regional `app.yourpayroll.*` + `api.yourpayroll.*` hosts).
+- Internet access (secure.employmenthero.com + the regional `app.yourpayroll.*` + `api.yourpayroll.*` hosts).
 - Participant has an Employment Hero Payroll account with **Full Access** role on at least one Business (view-only roles can't generate API keys).
 
 Projected total: ~60 seconds cached / ~120 seconds cold.
@@ -34,22 +34,41 @@ Claude sends the 60-second expectation message.
 
 ---
 
-## Step 2 — Sign in
+## Step 2 — Sign in (captured 2026-06-02)
 
 ```
-mcp__playwright__browser_navigate({ url: "https://my.employmenthero.com/" })
-mcp__playwright__browser_wait_for({ text: "Dashboard", time: 60 })
+mcp__playwright__browser_navigate({ url: "https://secure.employmenthero.com/" })
 ```
 
-Projected: participant signs in or session is cached. The my.employmenthero.com dashboard renders showing modules: People, Payroll, Onboarding, etc.
+Captured: page is two-step. First page shows "Welcome, please enter your email address" with a single email field. After Next, password page renders, then optional 2FA (and first-time 2FA enrolment also auto-downloads `eh_recovery_code.txt` to `.playwright-mcp/` which must be quarantined to `~/.config/employment-hero/recovery-code.txt` mode 600 — see SKILL Step 2).
+
+Probe post-sign-in via `browser_evaluate` returning `{ on_dashboard: !/\/users\/sign_in/.test(location.href) && !document.querySelector('input[type="password"]') }`. Don't use `browser_wait_for({ text: "Dashboard", time: 60 })` — the `time` parameter is ignored and the tool hard-caps at 30s.
+
+Captured Hub dashboard URL: `https://secure.employmenthero.com/app/v2/organisations/<org_id>/dashboard`. Top nav: Start Guide / Home / People / Billing / More. Expanded "More" menu adds: Recruitment / Benefits & Perks / Compliance / Time / **Pay** / Engagement / Development / Performance / Reports / Workflows / Settings.
 
 ---
 
-## Step 3 — Launch Payroll product
+## Step 2.5 — Pre-flight: is Payroll product enabled? (captured 2026-06-02)
+
+```
+mcp__playwright__browser_navigate({ url: "https://app.yourpayroll.com.au/" })
+```
+
+Reference outputs (both captured 2026-06-02):
+
+- **Hub-only / Hub free trial**: page text begins *"Welcome to Payroll. Please check that the page you're trying to access is the correct address for accessing your payroll information."* — the Payroll module is not enabled. **Halt Phase 1 here** with the friendly message in SKILL Step 2.5; do not proceed to Step 3.
+- **Payroll-enabled** (projected — not yet captured live): page redirects to `https://app.yourpayroll.com.au/business/<id>/...` or similar tenant-scoped URL. Region detect can proceed.
+
+---
+
+## Step 3 — Launch Payroll product (skip if Step 2.5 already landed in it)
 
 ```js
-// Click the Payroll launch tile
-const link = Array.from(document.querySelectorAll('a, button')).find(el => /^(launch )?payroll$/i.test((el.innerText||'').trim()));
+// Click Pay / Payroll / Launch Payroll (Hub v2 UI uses just "Pay")
+const link = Array.from(document.querySelectorAll('a, button, [role="menuitem"], li')).find(el => {
+  const t = (el.innerText||'').trim();
+  return /^(pay|payroll|launch payroll)$/i.test(t) && el.getBoundingClientRect().width > 0;
+});
 link.click();
 ```
 
