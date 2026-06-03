@@ -75,7 +75,7 @@ Here's what your assistant can now do for you:
          ┌────────────────────┬───────────┴───────────┬────────────────────┐
          ▼                    ▼                       ▼                    ▼
 ┌─────────────────┐  ┌─────────────────┐     ┌─────────────────┐  ┌─────────────────┐
-│   120 SKILLS    │  │  35 CONNECTORS  │     │     BROWSER     │  │     MEMORY      │
+│   186 SKILLS    │  │  40 CONNECTORS  │     │     BROWSER     │  │     MEMORY      │
 │                 │  │                 │     │                 │  │                 │
 │ Saves hours on: │  │ Plugs into:     │     │ On the web:     │  │ Learns you:     │
 │                 │  │                 │     │                 │  │                 │
