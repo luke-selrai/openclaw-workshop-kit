@@ -47,7 +47,7 @@ The exact "is it configured?" predicate varies by pattern:
 |---|---|
 | Hosted-OAuth | `mcpServers.<service>` entry with `type: "http"` (token is stored by the MCP runtime, not in this file) |
 | Hosted-bearer-PAT | `mcpServers.<service>` entry with `headers.Authorization` (HTTP) **or** `env.<TOKEN>` (local npx) |
-| Plugin-marketplace | Skill presence (e.g. `Notion:search`), tool presence (`mcp__plugin_<service>_*`), or `claude plugin list \| grep <name>@claude-plugins-official` — there is no `mcpServers` entry for plugins |
+| Plugin-marketplace | Skill presence (e.g. `Telegram:configure`), tool presence (`mcp__plugin_<service>_*`), or `claude plugin list \| grep <name>@claude-plugins-official` — there is no `mcpServers` entry for plugins |
 
 For the plugin-marketplace pattern specifically, also check that the plugin's
 own state files (e.g. `~/.claude/plugins/telegram-connector/access.json`)
@@ -250,7 +250,7 @@ claude plugin list | grep <name>@claude-plugins-official
 
 Three signals to check, in order of strength:
 
-1. **Skill presence** — e.g. `Notion:search`, `Telegram:configure` appear in
+1. **Skill presence** — e.g. `Telegram:configure`, `Telegram:access` appear in
    the available-skills list.
 2. **Tool presence** — `mcp__plugin_<service>_*` tools appear in the deferred
    surface.
