@@ -38,7 +38,7 @@ metadata:
 This skill lets you read and update a user's Canva account on their behalf using the **official first-party Canva MCP server** hosted at `https://mcp.canva.com/mcp`. It has two phases:
 
 - **Phase 1 — Install & Auth (autonomous, 6 steps).** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen, auto-detects the callback via `browser_wait_for`, surfaces the Enterprise administrator-approval-required interstitial cleanly when present. The user's only manual moment is signing in to Canva inside the Playwright window. Token storage is handled by Claude Code's MCP runtime — there is no manual `~/.claude.json` token write.
-- **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__canva__*` native tools to read and update Canva data. The hosted Canva MCP server provides **30 first-party tools** across 10 categories covering designs, assets, folders, comments, exports, AI generation, and a transactional editing flow.
+- **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__canva__*` native tools to read and update Canva data. The hosted Canva MCP server provides **37 first-party tools** across 11 categories covering designs (read, generate, duplicate, merge, shortlink-resolution), assets, folders, comments, exports, AI generation, a transactional editing flow, brand templates and kits, and help-answers. **Drift caveat**: 3 of those tools (`search-brand-templates`, `get-brand-template-dataset`, `autofill-design`) are Enterprise-plan-gated and only surface in the tool list for Enterprise users; the other 34 are available across plans.
 
 **Which phase to run** — Before any tool call, check whether the Canva MCP server is already configured. Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.canva` entry. If present, attempt a verification tool call (Phase 1 Step 6). If it succeeds, the connector is ready — skip to Phase 2. If it 401s, walk through Phase 1 from Step 3 to re-trigger the OAuth flow (the registration is already in place).
 
@@ -95,7 +95,15 @@ console.log(cv ? 'REGISTERED' : 'NOT_CONFIGURED');
 ```
 
 - `REGISTERED` → try Phase 1 Step 6 (verify) first. If it succeeds, the connector is already active — surface a friendly message and stop. If 401, walk Phase 1 from Step 3.
-- `NOT_CONFIGURED` → run full Phase 1 from Step 1.
+- `NOT_CONFIGURED` → **also check the claude.ai-layer Connectors surface** before declaring the install needed:
+
+  ```bash
+  claude mcp list 2>/dev/null | grep -iE 'canva.*Connected' >/dev/null && echo CLAUDE_AI_LAYER_REGISTERED
+  ```
+
+  Captured 2026-06-05: Canva can be registered via the claude.ai web UI Connectors tab, which does NOT write into `~/.claude.json` `mcpServers` but DOES show in `claude mcp list` as `claude.ai Canva: https://mcp.canva.com/mcp - ✓ Connected`. If the grep matches, treat as REGISTERED (the user's tool surface already exposes `mcp__claude_ai_Canva__*` or, after their next reconciliation, `mcp__canva__*`) and route to Phase 1 Step 6 verification.
+
+  If neither signal matches → run full Phase 1 from Step 1.
 
 ### 0.2 — Tooling check (silent)
 
@@ -291,7 +299,7 @@ Tell the user, in one short message (include the live design count if available)
 
 ## PHASE 2 — Use Tools
 
-Once the connector is configured, use the `mcp__canva__*` MCP tools below to answer questions and make changes in Canva. The hosted Canva MCP server provides **30 first-party tools** across 10 categories covering designs, assets, folders, comments, exports, AI generation, and a transactional editing flow.
+Once the connector is configured, use the `mcp__canva__*` MCP tools below to answer questions and make changes in Canva. The hosted Canva MCP server provides **37 first-party tools** across 11 categories covering designs (read, generate, duplicate, merge, shortlink-resolution), assets, folders, comments, exports, AI generation, a transactional editing flow, brand templates and kits, and help-answers. **Drift caveat**: 3 of those tools (`search-brand-templates`, `get-brand-template-dataset`, `autofill-design`) are Enterprise-plan-gated and only surface in the tool list for Enterprise users; the other 34 are available across plans.
 
 ### Tool names use hyphens
 
@@ -303,32 +311,40 @@ Some tools are gated by the user's Canva plan. Calling a gated tool on a lower p
 
 | Plan | Tools available |
 |---|---|
-| **Free / all plans** | 25 tools — designs, comments, folders, exports, imports, assets, AI generation, editing transactions |
+| **Free / all plans** | 33 tools — designs (read, generate, copy, merge, shortlink-resolve), assets, folders, comments, exports, imports, AI generation, editing transactions, help-answers, brand-kit listing, brand-template instantiation |
 | **Pro and above** | Adds `resize-design` |
-| **Enterprise only** | Adds `autofill-design`, `get-brand-template-dataset`, `search-brand-templates`, `list-brand-kits` |
+| **Enterprise only** | Adds `autofill-design`, `get-brand-template-dataset`, `search-brand-templates` |
+
+> **Captured 2026-06-05 — `list-brand-kits` is NOT Enterprise-gated** despite older Canva docs implying it was. A non-Enterprise smoke (Rodolfo's account) returned `{ items: [] }` (success, empty list) — the tool surfaces for all plans; it just returns empty if the user has no brand kits set up. Route brand-colour questions to `list-brand-kits` first, only plan-warn if the user expected results AND another signal suggests they're below the brand-kit-creation tier.
 
 **Export quality is also plan-gated.** `export-design` works on all plans, but Free plans only get standard-quality exports; Pro and above get lossless PNG, transparent backgrounds, and premium element export. If a design on a Free plan contains premium elements, the export may fail with `license_required` — tell the user they need a paid plan for that specific design.
 
 ### Tool Reference
 
+> **Captured 2026-06-05 — every Canva tool requires a `user_intent` parameter.** The live JSON schema on every `mcp__canva__*` tool declares `user_intent` as a string field with description `"Mandatory description of what the user is trying to accomplish with this tool call... (255 characters or less recommended)"`. Pass it on every call — a one-sentence framing of what the user is trying to do. This is server-side enforced framing, not a no-op convention.
+
 #### Designs — read (no confirmation needed)
 
 | Tool | Rate | Description |
 |---|---|---|
-| `search-designs` | 100/min | Find designs by name or keyword |
-| `get-design` | 100/min | Retrieve a single design's metadata |
+| `search-designs` | 100/min | Find designs by name or keyword. If `query` is set, `sort_by` MUST be `"relevance"` |
+| `get-design` | 100/min | Retrieve a single design's metadata. Design IDs are exactly 11 chars, regex `^D[a-zA-Z0-9_-]+$` |
 | `get-design-pages` | 100/min | Retrieve the page structure of a design |
 | `get-design-content` | 100/min | Retrieve text and element content from a design |
 | `get-presenter-notes` | 100/min | Retrieve speaker notes from a presentation |
-| `get-design-export-formats` | 100/min | Check which formats a design can be exported as |
+| `get-export-formats` | 100/min | Check which formats a design can be exported as. Returns `{ formats: { pdf: {}, jpg: {}, png: {}, pptx: {}, gif: {}, mp4: {}, ... } }` — keys are the supported formats, empty-object values |
+| `resolve-shortlink` | 100/min | Resolve a `canva.link/<id>` short URL to a full `canva.com/d/<id>` design URL (use BEFORE `get-design` when the user pastes a shortlink) |
 
-#### Designs — generate (destructive — always confirm)
+#### Designs — generate, copy, merge (destructive — always confirm)
 
 | Tool | Rate | Description |
 |---|---|---|
 | `generate-design` | 20/min | AI-generate a new design from a prompt — **confirm first** |
 | `generate-design-structured` | 20/min | AI-generate a design with a specified structure — **confirm first** |
 | `create-design-from-candidate` | 20/min | Create a design from a previously generated AI candidate — **confirm first** |
+| `create-design-from-brand-template` | 20/min | Instantiate a brand template into a new editable design (distinct from `autofill-design` which fills with structured data) — **confirm first** |
+| `copy-design` | 20/min | Duplicate an existing design as a new design — **confirm first** |
+| `merge-designs` | 20/min | Combine multiple designs into one — **confirm first**; the source designs are unchanged |
 | `request-outline-review` | 20/min | Request a review pass on an AI-generated outline |
 
 #### Design imports & exports
@@ -369,14 +385,25 @@ Some tools are gated by the user's Canva plan. Calling a gated tool on a lower p
 |---|---|---|
 | `resize-design` | 20/min | Resize a design to new dimensions — **confirm first**. Returns `403` / `plan_required` on Free plans |
 
+#### Brand kits (all plans)
+
+| Tool | Rate | Description |
+|---|---|---|
+| `list-brand-kits` | 100/min | List the user's brand kits. Works on all plans; returns `{ items: [] }` (success, empty) for users with no brand kits set up. May surface `Missing scopes: [brandkit:read]` if the connector token lacks the scope — surface "please reconnect" guidance |
+
 #### Brand templates and autofill (Enterprise only)
 
 | Tool | Rate | Description |
 |---|---|---|
 | `search-brand-templates` | 100/min | Find Enterprise brand templates |
-| `list-brand-kits` | 100/min | List Enterprise brand kits |
 | `get-brand-template-dataset` | 100/min | Retrieve the field schema of an autofill-capable brand template |
 | `autofill-design` | 10/min | Fill a brand template with data (one design per row) — **confirm first** |
+
+#### Help & resources
+
+| Tool | Rate | Description |
+|---|---|---|
+| `help` | 100/min | Search Canva's help-answers knowledge base (e.g. *"remove background"*, *"resize a design"*). Returns `{ job: { id, status, result: { answer } } }` — an async-job pattern with a SINGLE markdown answer string, not a list of snippets. Prompt: `minLength: 1, maxLength: 2000`. May surface `Missing scopes: [help:answers:read]` requiring reconnect |
 
 #### Editing transactions — the 4-step edit pattern
 
@@ -407,10 +434,16 @@ Rules for editing transactions:
 | "My Canva stopped working" / "I'm getting auth errors" | Run Phase 1 from Step 3 (Claude Code re-runs the OAuth dance) |
 | "Show me my latest designs" | `search-designs` (empty or recency-sorted query) |
 | "Find my pitch deck" | `search-designs` (name match) |
+| "Check my brand colours" / "What's in my brand kit?" / "List my brand kits" | `list-brand-kits` — works on all plans; returns empty list if no brand kits set up (surface "I don't see any brand kits set up in your Canva account — want to create one?") |
+| "I have this URL: canva.link/abc123" / "Open this shortlink" | `resolve-shortlink` → then `get-design` with the resolved ID |
+| "Duplicate this design" / "Copy this and make a new version" | `copy-design` — **confirm first** |
+| "Combine these designs into one" / "Merge slide deck A and slide deck B" | `merge-designs` — **confirm first**; source designs are unchanged |
+| "Start from this brand template" / "Make a design from our brand template" | `create-design-from-brand-template` — **confirm first** (distinct from `autofill-design` which needs structured data) |
+| "Show me the Canva help on backgrounds" / "How do I resize a design in Canva?" | `help` (search-style query against Canva's help knowledge base — works on all plans) |
 | "What pages are in this design?" | `get-design` → `get-design-pages` |
 | "Read the text in this design" | `get-design-content` |
 | "Show me the speaker notes" | `get-presenter-notes` |
-| "Export my pitch deck as a PDF" | `get-design-export-formats` → `export-design` — **confirm first** |
+| "Export my pitch deck as a PDF" | `get-export-formats` → `export-design` — **confirm first** |
 | "Generate a social post about our product launch" | `generate-design` → `create-design-from-candidate` — **confirm before creating** |
 | "Import this design from <URL>" | `import-design-from-url` — **confirm first** |
 | "Upload this image to my Canva assets" | `upload-asset-from-url` — **confirm first** |
@@ -464,10 +497,14 @@ The Canva MCP connector **can** do (via the official Canva MCP server):
 - Search Enterprise brand templates, list brand kits, and autofill brand templates with data (Enterprise)
 - Run transactional edits on design content (start → perform → commit / cancel)
 - Fetch design thumbnails for visual confirmation
+- Search Canva's help knowledge base (`help`) — answer "how do I…" questions without leaving the chat
+- Duplicate, copy, and merge designs (`copy-design`, `merge-designs`)
+- Instantiate brand templates into editable designs (`create-design-from-brand-template`)
+- Resolve `canva.link/<id>` shortlinks to full design URLs (`resolve-shortlink`)
 
 The Canva MCP connector **cannot** do (needs the Canva UI or other tools):
 
-- **Delete** designs, assets, folders, or comments — none of the 30 tools supports deletion. Use the Canva UI to delete.
+- **Delete** designs, assets, folders, or comments — none of the 37 tools supports deletion. Use the Canva UI to delete.
 - **Connect via API key** — Canva MCP is OAuth-only. No Bearer-token fallback.
 - **Bypass plan gating** — `resize-design` requires Pro+; brand templates and autofill require Enterprise. Calling them on lower plans returns `403`.
 - **Export premium elements on Free plans** — exports may fail with `license_required` if the design contains premium Canva content.
@@ -492,7 +529,8 @@ This mirrors the same shape as the Jotform "workspace admin must install first" 
 
 ## Behaviour Guidelines (Phase 2)
 
-- **Always confirm before creating, generating, editing, exporting, or moving** — summarise what you are about to do and wait for the user's OK before calling a write/generate/export tool. AI generation (`generate-design`, `generate-design-structured`, `create-design-from-candidate`) costs the user's Canva AI credits — always confirm before firing.
+- **Every Canva tool call requires a `user_intent` parameter** — captured 2026-06-05: every `mcp__canva__*` JSON schema declares `user_intent: string` as a "Mandatory description of what the user is trying to accomplish... (255 chars or less recommended)". Pass it on every call: one short sentence framing the user's goal. Omitting it is a tool-call shape error, not a no-op.
+- **Always confirm before creating, generating, editing, exporting, copying, merging, or moving** — summarise what you are about to do and wait for the user's OK before calling a write/generate/export tool. AI generation (`generate-design`, `generate-design-structured`, `create-design-from-candidate`, `create-design-from-brand-template`) and structural transforms (`copy-design`, `merge-designs`) cost the user's Canva AI credits / consume their design quota — always confirm before firing.
 - **Discover IDs before writing** — Canva designs, folders, and assets are referenced by opaque IDs. Always call `search-designs` / `search-folders` / `get-assets` once per session before any write or edit, unless you already have the IDs from earlier in the conversation.
 - **Handle the editing transaction lifecycle carefully** — always commit or cancel. Never leave a transaction open. If `perform-editing-operations` fails, call `cancel-editing-transaction` before retrying.
 - **Show thumbnails before structural edits** — `get-design-thumbnail` grounds the user in what they are about to change. Cheap, fast, worth calling.
