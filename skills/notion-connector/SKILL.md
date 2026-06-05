@@ -1,224 +1,331 @@
 ---
 name: notion-connector
-description: "Connect the user's Notion workspace to Claude Code by installing the official Notion plugin from Claude Code's plugin marketplace. Install is autonomous — Claude runs `claude plugin install notion@claude-plugins-official` directly via Bash; the user's only manual moment is signing in to Notion and clicking Allow in the browser window the plugin opens. Use this skill when the user asks to connect Notion, set up Notion, or mentions Notion pages, databases, or meeting notes for the first time and the plugin isn't installed yet. Once the plugin is installed, Claude Code's built-in Notion skills (Notion:search, Notion:create-page, Notion:database-query, and the related task-board skills) take over for everyday use — this skill's job is only the one-time install walkthrough."
-allowed-tools: Bash, Read
+description: "Connect and operate a user's Notion workspace through the official Notion CLI (`ntn`, https://developers.notion.com/cli). Instructions-only — no MCP server, no plugin, no token stored in any config file. Phase 1 installs `ntn` (npm) and runs `ntn login --no-browser`: Claude reads the verification URL + code the CLI prints, drives a Playwright browser to that URL, the user signs in to Notion and confirms the matching code, then `ntn login poll` completes and the token is saved in the OS keychain (Keychain / Secret Service), never on disk. Phase 2 operates Notion via `ntn pages`, `ntn datasources`, and the `ntn api` passthrough (search, comments, blocks, users — the full public API). Use this skill when the user asks to set up or connect Notion, or to read/search/create/update Notion pages, databases, or meeting notes."
+allowed-tools: Bash, Read, Write, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
   tags:
     - notion
     - workspace
     - documentation
-    - plugin
-    - mcp
+    - cli
+    - ntn
   pairs-with:
+    - skill: google-chat-connector
+      reason: Sibling CLI-based connector — wraps a first-party CLI (`gws`) with OAuth, same instructions-only shape
+    - skill: quickbooks-connector
+      reason: Sibling CLI-based connector — wraps a first-party CLI (`qbo`) the same way
     - skill: first-run-setup
       reason: Shares the conversational-bootstrap pattern for non-technical users
-    - skill: telegram-connector
-      reason: Sibling autonomous-install connector wrapping a first-party plugin (`telegram@claude-plugins-official`) — same `claude plugin install` shape
-    - skill: hubspot-connector
-      reason: Sibling integration — similar "walk the user through one-time setup in plain English" flow (HubSpot ships a wrapper rather than a first-party plugin)
+    - skill: playwright-skill
+      reason: The Playwright MCP browser is how this skill drives the Notion sign-in / consent screen
 ---
 
 # Notion Connector
 
-> **Install pattern:** Plugin-marketplace — see [skills/CLAUDE.md](../CLAUDE.md) for the canonical reference (telegram-connector).
+> **Install pattern:** CLI-based (first-party CLI + OAuth login), like `google-chat-connector` (`gws`) and `quickbooks-connector` (`qbo`). **Not** a hosted-MCP or plugin connector — see the rationale below.
 
 ## Overview
 
-This skill connects a user's Notion workspace to Claude Code by installing the **official Claude Code Notion plugin** (authored jointly by Anthropic and Notion) from the plugin marketplace. It has **one phase**: the autonomous install + browser-OAuth walkthrough.
+This skill connects and operates a user's Notion workspace through the **official Notion CLI**, `ntn` (https://developers.notion.com/cli). It has two phases:
 
-Unlike the other connectors in this kit (Xero, HubSpot, QuickBooks, etc.), this skill does **not** hand-wire an MCP server into `~/.claude.json` or ship a Phase 2 tool reference. Notion's MCP wiring and skill set are handled by the official plugin itself. Once the plugin is installed and authorised, Claude Code automatically loads the plugin's curated skills for Notion operations:
+- **Phase 1 — Install & Log in (autonomous via Playwright).** Claude installs `ntn`, runs `ntn login --no-browser`, reads the verification URL + code the CLI prints, opens that URL in a Playwright browser, the user signs in to Notion and confirms the matching code, then `ntn login poll` completes the login. The token is stored in the **OS keychain** (`notion-cli` service) — never in a file, never in `~/.claude.json`.
+- **Phase 2 — Operate.** Claude runs `ntn` commands to search, read, create, and update Notion pages and databases on the user's behalf.
 
-| Plugin skill | What it does |
-|---|---|
-| `Notion:search` | Search the user's Notion workspace |
-| `Notion:find` | Quickly find pages or databases by title |
-| `Notion:database-query` | Query a Notion database by name or ID |
-| `Notion:create-page` | Create a new Notion page |
-| `Notion:create-task` | Create a task in the user's Notion tasks database |
-| `Notion:create-database-row` | Insert a new row into a database |
-| `Notion:tasks:build`, `tasks:plan`, `tasks:setup`, `tasks:explain-diff` | Task-board workflow skills |
+The only manual moment for the user is signing in to Notion in the browser window.
 
-Plus 14 underlying MCP tools (`mcp__plugin_Notion_notion__notion-search`, `...notion-create-pages`, `...notion-update-page`, `...notion-fetch`, etc.) that the plugin exposes for direct tool use.
+### Why the CLI, not the Notion plugin or a hand-wired MCP server
 
-**This skill's job is only the one-time install walkthrough.** After install, the user interacts with the plugin's skills directly — you don't need a Phase 2 in this file.
+This connector deliberately uses the `ntn` CLI instead of the `notion@claude-plugins-official` plugin or a hand-wired hosted-MCP entry. Reasons, in order:
 
-### Which phase to run
+1. **No secret ever lands in a file.** `ntn login` stores the OAuth token in the **OS keychain**. There is no `Authorization: Bearer …` line in `~/.claude.json` (the hosted-bearer-PAT shape that has leaked into config + logs before) and no manual integration token to paste.
+2. **Works in any session.** A CLI runs the same whether or not the MCP tool surface has reconciled. (Plugin-/MCP-exposed Notion tools can fail to appear in a running session until a chat restart; a CLI never has that problem.)
+3. **Markdown-native.** `ntn pages get/create/update` speak Markdown, which is the natural format for Claude to read and write.
 
-Before running the install walkthrough, check whether the plugin is already installed. Three signals, in order:
+> If you ever find yourself adding a `mcpServers.notion` entry with a Bearer token to `~/.claude.json`, **stop** — that is the leak-prone path this skill exists to avoid. Use `ntn login` instead.
 
-1. `Notion:search` (or any other `Notion:*` skill) is available in the current session.
-2. `mcp__plugin_Notion_notion__*` tools are available.
-3. `claude plugin list | grep notion@claude-plugins-official` returns a line with a version string.
+### What this skill does NOT use
 
-If **any** signal is present, treat the plugin as already installed and skip straight to the "already connected" short-circuit below. If **none** is present, run the install walkthrough.
-
-### Already-connected short-circuit
-
-If the user says *"connect my Notion"* or similar and the plugin is already installed, respond warmly and briefly:
-
-> "Good news — your Notion is already connected through the official Claude Code plugin. You can ask me things like 'search my Notion for meeting notes', 'create a new Notion page called R&D Log', or 'what's in my Tasks database?'. Want me to demo it?"
-
-Don't re-run the install walkthrough. Don't touch `~/.claude.json`. The plugin handles its own lifecycle.
+- **No bearer token / integration token in any config file.** OAuth login → OS keychain. (`NOTION_API_TOKEN` is an *override* the CLI supports, but this skill does not use it — verified on `ntn` v0.16.0 that `ntn login` alone authorizes the full public API.)
+- **No `claude mcp add` / MCP server registration.**
+- **No Claude Code plugin install.**
+- **No manual integration-app creation in Notion.** `ntn login` is an OAuth flow against Notion's own pre-registered CLI app; there is no integration to create.
 
 ---
 
-## Why we use the plugin, not a custom wrapper
+## Security rules
 
-This skill follows the wrap-existing-tooling principle we apply across the kit (QuickBooks via `qbo-cli`, HubSpot via `@hubspot/mcp-server`, Xero via `@xeroapi/xero-mcp-server`, GoHighLevel via HighLevel's hosted MCP), taken one step further: when a **first-party Claude Code plugin** already ships curated skills + MCP wiring for an integration, installing the plugin is strictly better than writing our own wrapper. We get:
-
-- **Notion + Anthropic maintain it**, not us
-- Upstream bug fixes and new Notion API coverage for free
-- Curated skill prompts tuned by the plugin authors, not improvised
-- Zero custom Node code in this repo
-- OAuth handled by the plugin — no manual `claude mcp add` commands, no token management, no user-facing config edits
-
-If you find yourself writing a Phase 2 tool reference for Notion inside this skill, stop — something has gone wrong, and you should be recommending the plugin's own skills instead.
+- **Never echo a token.** `ntn` stores the token in the OS keychain; you never see it and must never print it. Never set or echo `NOTION_API_TOKEN`. Never run `claude mcp get` or print `~/.claude.json`.
+- **The verification code is short-lived and low-risk**, but still don't paste it into chat unnecessarily — drive it through Playwright.
+- If a user is on a system with no keychain, `ntn` falls back to `~/.config/notion/auth.json` (set `NOTION_KEYRING=0`). Treat that file as a secret: never read it back into chat, never commit it.
 
 ---
 
-## Communication rules for the install walkthrough
+## Communication rules (non-technical user)
 
-The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work, the user only signs in to Notion in the browser window the plugin opens and clicks Allow. Every message follows the rules in `my-assistant/CLAUDE.md`:
+The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work; the user only signs in to Notion in the browser window. Every message follows these rules:
 
-- **You drive, not them.** Never ask the user to type slash commands, click menus, or paste anything. The only thing you ever ask them to do is sign in to Notion in the browser window the plugin opens, and click **Allow** on the consent screen.
-- **One step at a time.** Never stack two instructions in one message.
-- **Plain English only.** No jargon. Never say MCP, OAuth, plugin marketplace (say "the Notion plugin"), token, API, config, slash command. If you must name a technical thing, name it plainly: "the connection", "your browser", "the sign-in window".
-- **Tell them what is about to happen.** "I'm installing the Notion plugin now — takes about a minute."
-- **React warmly.** Good: "Your Notion is now connected." Bad: "Plugin installation successful, MCP server registered."
-- **Short messages.** Maximum 8 lines per message.
-- **Never show raw errors** to the user — translate into plain English and diagnose silently.
+- **You drive, not them.** The only thing you ever ask is "please sign in to Notion in the window I just opened (and confirm the code matches)."
+- **Plain English only.** No jargon. Never say CLI, npm, OAuth, keychain, token, API, MCP, terminal, config, JSON, data source. The browser window is "a sign-in window I opened for you"; the connection is "your Notion connection".
+- **Narrate at action boundaries.** Once when you start, once when you need them, once when done.
+- **Short messages** (max ~8 lines). **Never show raw errors** — translate to plain English and diagnose silently.
 
 ---
 
-## PHASE 1 — Install the Notion Plugin
+## PHASE 0 — Resume check (silent)
+
+Before installing anything, check whether `ntn` is already installed and logged in.
+
+```bash
+command -v ntn >/dev/null 2>&1 && ntn --version    # installed?
+ntn whoami 2>&1                                     # logged in? prints the user, or an error
+```
+
+- `ntn whoami` returns a user → **already connected.** Skip to Phase 2. Optionally greet: *"Good news — your Notion is already connected. Want me to search something or create a page?"*
+- `ntn` missing, or `whoami` errors with "No workspace selected" / "Run `ntn login`" → run Phase 1.
+- For a fuller health read use `ntn doctor` (shows CLI version, config dir, default workspace, token source, public-API access).
+
+---
+
+## PHASE 1 — Install & Log in (autonomous via Playwright)
 
 ### Step 1 — Orient the user
 
-Tell the user, in one short message:
+> "I'll connect your Notion now. I'll open a sign-in window in a moment — just sign in to Notion there and I'll handle the rest. About a minute."
 
-> "Notion connects to Claude Code through an official plugin that Notion and Anthropic maintain together. I'll install it for you now — about a minute. The only thing you'll need to do is sign in to Notion in a browser window when it pops up. Ready?"
+### Step 2 — Install `ntn` (silent)
 
-Wait for the user's "yes" or equivalent before continuing.
-
-### Step 2 — Install the Notion plugin (autonomous)
-
-Tell the user: *"Installing the Notion plugin now. About 30 seconds."*
-
-Silently run the install via Bash:
+Check Node first (`ntn` needs **Node 22+**):
 
 ```bash
-claude plugin install notion@claude-plugins-official
+node --version    # need v22+
 ```
 
-Verify with a separate, stable command (do not parse the install output):
+Install (npm is the cross-platform path; Windows must use npm):
 
 ```bash
-claude plugin list | grep notion@claude-plugins-official
+npm install --global ntn
 ```
 
-Expect a line showing `notion@claude-plugins-official` with a version. The plugin's own skills (`Notion:search`, `Notion:create-page`, etc.) won't be loaded into the running session until a restart, but that's fine — the only thing that matters here is that the plugin is registered in `~/.claude/plugins/installed_plugins.json` so the OAuth flow in Step 3 can launch.
-
-Branch on the install result:
-
-- **Success** → "That's done." Continue to Step 3.
-- **Already installed** (verify command finds the entry on first try) → short-circuit to the "already connected" message and stop.
-- **Permissions error** (`EACCES`, `EPERM`) → translate: *"Your computer needs a small permission fix, give me a moment to sort it."* Apply guidance from `skills/first-run-setup/SKILL.md`, then retry once.
-- **Network error** → *"Your network is blocking the install. This sometimes happens on company laptops. Could you try again from a home connection or switch off any VPN?"*
-- **Plugin not found in marketplace** (`plugin not found`, `unknown plugin` from the install output) → translate: *"It looks like the Notion plugin isn't available in your plugin marketplace yet. Could you check with Luke at luke@selrai.com.au whether your Claude Code setup has the plugin marketplace enabled?"* Do not attempt to hand-wire the MCP server as a fallback — that would undo the whole point of using the plugin.
-
-### Step 3 — Authorise the plugin with Notion (browser OAuth — the only user moment)
-
-The plugin uses Notion's official hosted MCP server, which requires a one-time browser sign-in to authorise access to the user's workspace. The plugin's own launcher opens the browser window automatically on first use of any `Notion:*` skill or `mcp__plugin_Notion_notion__*` tool — or it may open immediately as part of the install if the plugin chooses to prompt up-front.
-
-Tell the user, in one short message:
-
-> "A browser window should open for you to sign in to Notion. Sign in with your Notion account, pick which workspace you want me to use (if you have more than one), and click **Allow**. Come back here when you see a 'connected' or 'success' message in the browser."
-
-Wait for confirmation.
-
-**If the browser doesn't open automatically:**
-
-> "No problem — the plugin sometimes waits to authorise until the first time it's used. Let me try again."
-
-Call any safe `Notion:*` skill or `mcp__plugin_Notion_notion__*` tool (e.g. a search with a benign query). The plugin will then prompt for OAuth. If it still doesn't open a browser, translate to plain English and ask the user to describe what they see.
-
-**If the user accidentally clicks Deny or the browser closes before finishing:**
-
-> "No worries — let me retry that for you."
-
-Re-run the install command silently:
+Fallback if npm is unavailable on macOS/Linux:
 
 ```bash
-claude plugin install notion@claude-plugins-official
+curl -fsSL https://ntn.dev | bash
 ```
 
-The plugin re-launches its OAuth flow. The user signs in again.
+Verify:
 
-### Step 4 — Verify the plugin is live
+```bash
+ntn --version     # expect e.g. "ntn 0.16.0"
+```
 
-After the user confirms the install completed and they clicked Allow, verify the plugin is actually loaded in the current session. Three checks, in order:
+- **`EACCES` / `EPERM` on npm global install** → translate: *"Your computer needs a small permission fix — one moment."* Apply guidance from `first-run-setup/SKILL.md` (or install with a Node version manager), then retry once.
+- **Node too old (`< 22`)** → install/upgrade Node via the user's package manager or a version manager, then retry. Translate to plain English.
 
-1. **Skill presence.** Check whether `Notion:search` (or any other `Notion:*` skill) is now available. If yes, the plugin is loaded — go to success.
-2. **Tool presence (fallback).** If skills aren't showing yet (they may require a session reload), check for `mcp__plugin_Notion_notion__*` tools. If yes, the plugin is loaded — go to success.
-3. **Registry presence (silent).** Run `claude plugin list | grep notion@claude-plugins-official` once more. A version line confirms the plugin is registered, even if the running session hasn't picked up its skills/tools yet.
+### Step 3 — Log in (the captured two-step flow)
 
-**If only signal 3 is present** (registry yes, skills/tools no), the running session needs a reload for plugin discovery to kick in. Tell the user:
+Run the headless login. The CLI prints a URL (with a verification code) and a matching code, then tells you to poll:
 
-> "The plugin is installed, but Claude Code needs to refresh to pick it up. Please close this chat and start a new one, then say 'test my Notion' and I'll check the connection."
+```bash
+ntn login --no-browser
+```
 
-**If the user comes back after a reload and signals 1+2 are still absent:**
+**Captured output shape (`ntn` v0.16.0):**
 
-- Translate to plain English: *"Something is off with the connection — let me think about this."*
-- Re-run `claude plugin list | grep notion@claude-plugins-official` to confirm the plugin row is still present.
-- If the plugin row is present but the skills/tools still aren't loading, this is outside our recovery path — suggest contacting Luke at luke@selrai.com.au.
+```
+Open this URL in your browser to log in:
 
-### Step 5 — Success message
+  https://www.notion.so/workers/cli-login?verificationCode=XXX-XXXX
 
-When the plugin is confirmed live, say in one short message:
+Confirm that this verification code matches what you see in the browser:
 
-> "All done! Your Notion is connected through the official Claude Code plugin. You can now ask me things like 'search my Notion for meeting notes', 'create a Notion page called R&D Log', 'add today's progress to my R&D page', or 'list the items in my Tasks database'. Give it a try!"
+  XXX-XXXX
 
-That's it. No Phase 2 in this file — the plugin's own skills take over from here.
+Then run this command to complete login:
+
+  ntn login poll
+
+  hint: For agents: You must show the URL above to the user to click, then run
+  `ntn login poll`. The poll command will wait for the user to confirm in the
+  browser and exit once login is complete. Do not ask the user before polling —
+  they have already requested to log in.
+```
+
+Drive it:
+
+1. **Parse** the `https://www.notion.so/workers/cli-login?verificationCode=…` URL and the verification code from stdout.
+2. **Open the URL in the Playwright browser:**
+
+   ```
+   mcp__playwright__browser_navigate({ url: <login_url> })
+   mcp__playwright__browser_snapshot()
+   ```
+
+   - **Not signed in** (Notion login form / SSO) → tell the user *once*: *"Please sign in to your Notion account in the window I opened — I'll wait."* Then `browser_wait_for` the confirm screen.
+   - **Signed in** → Notion shows a confirm screen with the verification code. **Check the on-screen code matches** the one from stdout (`browser_evaluate` reads the page text), then click **Confirm** / **Allow**:
+
+     ```
+     mcp__playwright__browser_click({ target: <Confirm/Allow button>, element: "Notion CLI login Confirm button" })
+     ```
+
+3. **Complete the login** (run this without asking again — per the CLI's own agent hint; `poll` blocks until the browser confirm lands):
+
+   ```bash
+   ntn login poll
+   ```
+
+   Run it in the background or with a generous timeout — it waits for the user to confirm, then exits 0.
+
+> **Browser variant.** Plain `ntn login` (no `--no-browser`) tries to open a browser itself. In a Playwright-driven workshop flow prefer `--no-browser` so the only browser is the one you control.
+
+### Step 4 — Verify
+
+```bash
+ntn whoami        # prints the authenticated Notion user → success
+ntn doctor        # all green: token source found, public API access ok
+```
+
+If `whoami` still errors, re-run Step 3 once. If it persists, surface in plain English and stop.
+
+### Success message
+
+> "All done — your Notion is connected! You can ask me things like 'search my Notion for the Q3 plan', 'create a page called R&D Log', 'add today's notes to my R&D page', or 'what's in my Tasks database?'. Give it a try!"
 
 ---
 
-## Troubleshooting summary
+## PHASE 2 — Operate (verified `ntn` command surface, v0.16.0)
 
-| Problem | What to tell the user | What you do |
+`ntn`'s command groups: `pages`, `datasources`, `files`, and a generic `api` passthrough, plus `whoami` / `doctor` / `login` / `logout`. There is **no** top-level `search` or `databases` command — search and everything else go through `ntn api`.
+
+Add `--json` to most commands for machine-readable output; default output is human-readable Markdown.
+
+### Search — `ntn api v1/search`
+
+```bash
+ntn api v1/search -X POST -d '{"query":"quarterly plan","page_size":10}'
+# or with inline body inputs:
+ntn api v1/search query="quarterly plan" page_size:=10
+```
+
+`POST /v1/search` matches pages and databases **by title**. Returns objects with their `id` (use the id with `ntn pages get`, etc.).
+
+### Pages — `ntn pages` (Markdown-native)
+
+```bash
+ntn pages get <page-id>                 # Markdown, with page properties as frontmatter
+ntn pages get <page-id> --json          # inspect blocks / unknown_block_ids if Markdown truncates
+ntn pages create --parent page:<id> --content '# Title\n\nBody'
+ntn pages create --parent database:<id> < page.md
+ntn pages create --parent data-source:<id> --content '# Title'
+ntn pages update <page-id> --content '# Updated body'
+ntn pages update <page-id> < page.md
+ntn pages trash <page-id>               # moves the page to trash (reversible)
+```
+
+- `--parent` (create only) is optional and takes `page:<id>`, `database:<id>`, or `data-source:<id>`.
+- Content comes from `--content`, stdin, or — interactively — `$EDITOR`. In an automated flow **always pass `--content` or stdin**; never rely on `$EDITOR` opening.
+- For page **properties**, templates, or moves, use the `ntn api` paths (`v1/pages`, `v1/pages/{id}`, `v1/pages/{id}/move`, `v1/pages/{id}/properties/{property_id}`).
+
+### Databases & data sources — `ntn datasources`
+
+> **Gotcha (real, non-obvious):** `ntn datasources query` needs a **data-source ID, not a database ID**. A Notion database can hold multiple data sources. Resolve first.
+
+```bash
+ntn datasources resolve <database-id>                       # → the data-source IDs in that database
+ntn datasources query <data-source-id>                      # query rows (pages)
+ntn datasources query <data-source-id> --limit 50 --json
+ntn datasources query <data-source-id> --filter '{"property":"Done","checkbox":{"equals":true}}'
+ntn datasources query <data-source-id> --start-cursor <cursor>   # pagination
+```
+
+### Everything else — `ntn api` (full public API, 44 endpoints)
+
+```bash
+ntn api ls                              # list all supported endpoints
+ntn api <path> --spec                   # reduced OpenAPI fragment for an endpoint
+ntn api <path> --docs                   # full official docs for an endpoint
+```
+
+Common endpoints (discover the rest with `ntn api ls`):
+
+| Need | Call |
+|---|---|
+| Search by title | `ntn api v1/search -X POST -d '{"query":"…"}'` |
+| Who am I (token's bot user) | `ntn api v1/users/me` (or `ntn whoami`) |
+| List workspace users | `ntn api v1/users` |
+| Retrieve a page (raw) | `ntn api v1/pages/{page_id}` |
+| Page as markdown | `ntn api v1/pages/{page_id}/markdown` |
+| Block children (read) | `ntn api v1/blocks/{block_id}/children` |
+| Append blocks | `ntn api v1/blocks/{block_id}/children -X PATCH -d '{…}'` |
+| List / create comments | `ntn api v1/comments` (GET / POST) |
+| Query a data source | `ntn api v1/data_sources/{data_source_id}/query -X POST -d '{…}'` |
+| Retrieve / update a database | `ntn api v1/databases/{database_id}` |
+
+**Inline input syntax** (alternative to `-d` JSON): `Header:Value` (header), `name==value` (query param), `path=value` (body string), `path:=json` (typed JSON, e.g. `archived:=true`). Method is GET by default, POST when a body is present, and `-X` always wins.
+
+---
+
+## Prompt-to-command mapping
+
+| What the user says | Command |
+|---|---|
+| "Connect my Notion" / "Set up Notion" | **Run Phase 1** |
+| "My Notion stopped working" / "reconnect Notion" | `ntn login --no-browser` (re-run Phase 1 Step 3) |
+| "Search my Notion for X" / "find the Q3 plan" | `ntn api v1/search -X POST -d '{"query":"X"}'` |
+| "Open / read the <page>" | search → `ntn pages get <page-id>` |
+| "Create a page called X" / "add a note" | **CONFIRM** → `ntn pages create --parent … --content '# X …'` |
+| "Update / append to <page>" | `ntn pages get <id>` → **CONFIRM** → `ntn pages update <id> …` |
+| "Delete / archive <page>" | **CONFIRM** → `ntn pages trash <page-id>` |
+| "What's in my Tasks database?" / "show rows where …" | `ntn datasources resolve <db-id>` → `ntn datasources query <data-source-id> [--filter …]` |
+| "Add a row to <database>" | **CONFIRM** → `ntn pages create --parent data-source:<id> …` |
+| "Comment on <page>" | **CONFIRM** → `ntn api v1/comments -X POST -d '{…}'` |
+| "Who's in the workspace?" | `ntn api v1/users` |
+
+---
+
+## Error handling (Phase 2)
+
+Diagnose and respond in plain English; never show raw errors.
+
+| Error | What to say | Fix |
 |---|---|---|
-| `claude plugin install` errors with permissions (`EACCES`, `EPERM`) | "Your computer needs a small permission fix — give me a moment to sort it." | Apply guidance from `first-run-setup/SKILL.md`, then retry once |
-| `claude plugin install` errors with network failure | "Your network is blocking the install. Could you try again from a home connection or switch off any VPN?" | Wait, then retry once after the user confirms |
-| Plugin not found in marketplace | "It looks like the Notion plugin isn't available in your plugin marketplace yet. Please reach out to Luke at luke@selrai.com.au." | Stop — do not hand-wire an MCP fallback |
-| Browser didn't open for Notion sign-in | "Let me try again." | Call a benign `Notion:*` skill or `mcp__plugin_Notion_notion__*` tool to re-trigger OAuth |
-| User accidentally clicked Deny | "No worries — let me retry that." | Re-run `claude plugin install notion@claude-plugins-official` to relaunch OAuth |
-| Plugin installed but `Notion:*` skills not showing in current session | "Close this chat and start a new one — Claude Code will pick up the plugin on the next session." | Wait for the user to reload |
-| `Notion:*` skills returning "not authorised" / "expired token" | "Let me reconnect that for you." | Re-run `claude plugin install notion@claude-plugins-official` to re-trigger OAuth |
-| `claude plugin list` doesn't show `notion@claude-plugins-official` after install | "The install didn't take — let me try once more." | Retry install once; if still missing, surface in plain English and stop |
+| "No workspace selected" / "Run `ntn login`" | "Your Notion connection needs a quick refresh — one moment." | Re-run Phase 1 Step 3 (`ntn login --no-browser`) |
+| 401 / unauthorized / expired | "Let me reconnect your Notion." | `ntn login --no-browser` again |
+| 404 not found (page/db) | "I couldn't find that — let me re-search." | `ntn api v1/search` to get the right id |
+| "needs a data source id" on a database query | (silent) | `ntn datasources resolve <database-id>` first, then query the data-source id |
+| 429 rate limited | "Notion asked me to slow down — trying again in a moment." | Wait, retry once |
+| Markdown truncated on `pages get` | (silent) | Re-run with `--json` to inspect `unknown_block_ids` |
+| Node too old / `ntn` missing | "Let me finish setting up the connection." | Phase 1 Step 2 |
 
 ---
 
 ## Scope Limitations
 
-This skill **can** do:
+**Can** (via `ntn`): search by title; read/create/update/trash pages as Markdown; query database rows (via data sources, with filters + pagination); read/append blocks; read/create comments; list users; and any other public-API endpoint via `ntn api` (44 endpoints; `ntn api ls`).
 
-- Install the official Claude Code Notion plugin autonomously via Bash
-- Verify the plugin is registered, loaded, and authorised
-- Re-trigger OAuth for re-auth or after a denied prompt — autonomously, without asking the user to type any slash commands
-- Short-circuit when the plugin is already installed and authorised
+**Cannot:**
+- **No bearer token in any config file** — by design (token lives in the OS keychain).
+- **Query a database by database-id directly** — resolve to a data-source-id first (`ntn datasources resolve`).
+- **Permanently delete a page** — `ntn pages trash` is reversible; permanent delete needs the Notion UI.
+- **Operate without `ntn login`** — there is no API-key-paste path in this skill (deliberately).
+- Some endpoints are marked **beta** in `ntn` (`api`, `files`, `workers`) — behaviour may change; re-check with `ntn api <path> --spec`.
 
-This skill **cannot** do:
+---
 
-- Operate Notion after install — that's the plugin's own `Notion:*` skills
-- Wrap the hosted Notion MCP server directly (and shouldn't — that's what the plugin is for)
-- Install the plugin without network access to the plugin marketplace
+## Behaviour Guidelines (Phase 2)
 
-If a user asks you to do something with Notion and the plugin isn't installed, run Phase 1 above. If the plugin **is** installed, the request will route to `Notion:search`, `Notion:create-page`, `Notion:database-query`, or one of the other plugin skills automatically based on their descriptions.
+- **Confirm before create / update / trash / comment** — these change the user's real workspace. Summarise what you'll do (page title, parent, content gist) and wait for OK.
+- **Discover IDs before acting** — call `ntn api v1/search` (or `datasources resolve`) once per session to get page/database/data-source IDs before reads or writes.
+- **Never echo tokens or read keychain/`auth.json` into chat.**
+- **Present results readably** — format `--json` output as lists/summaries, not raw JSON dumps. For database rows, show the key properties, not the full payload.
+- **One step at a time** — summarise first ("Found 12 pages matching 'plan'"), then offer detail.
+- **Prefer `ntn pages`/`ntn datasources` typed commands** for the common cases; reach for `ntn api` only when the typed commands don't cover the need.
 
 ---
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap; the install walkthrough above follows the same rules
-- **telegram-connector**: Sibling autonomous-install connector wrapping a first-party plugin (`telegram@claude-plugins-official`) — same `claude plugin install` shape and the canonical reference for this skill's flow
-- **hubspot-connector** / **xero-connector** / **quickbooks-connector**: Sibling integrations that ship their own wrappers because no first-party Claude Code plugin exists for them yet. If any of those products ships an official plugin in the future, they should be refactored to use this same plugin-installer pattern.
+- **google-chat-connector** — sibling CLI-based connector (`gws`); same instructions-only, OAuth-login shape
+- **quickbooks-connector** — sibling CLI-based connector (`qbo`)
+- **first-run-setup** — conversational-bootstrap pattern this skill's Phase 1 follows
+- **playwright-skill** — the Playwright MCP browser drives the Notion sign-in / code-confirm screen
