@@ -6,7 +6,7 @@ new connector, start here, then read the per-pattern reference SKILL it points
 to.
 
 If a connector does not fit one of the three patterns below
-(CLI-based: `gws`, `gh`, `qbo`; direct REST: `ghl`, `myob`; first-party stdio:
+(CLI-based: `gws`, `gh`, `qbo`, `notion` (`ntn`); direct REST: `ghl`, `myob`; first-party stdio:
 `hubspot`, `paypal`, `slack`, `square`, `stripe`, `shopify`, `xero`,
 `voice-transcription`, `whatsapp`, `wordpress`), it has its own shape and is
 out of scope for this doc — see the SKILL itself.
@@ -47,7 +47,7 @@ The exact "is it configured?" predicate varies by pattern:
 |---|---|
 | Hosted-OAuth | `mcpServers.<service>` entry with `type: "http"` (token is stored by the MCP runtime, not in this file) |
 | Hosted-bearer-PAT | `mcpServers.<service>` entry with `headers.Authorization` (HTTP) **or** `env.<TOKEN>` (local npx) |
-| Plugin-marketplace | Skill presence (e.g. `Notion:search`), tool presence (`mcp__plugin_<service>_*`), or `claude plugin list \| grep <name>@claude-plugins-official` — there is no `mcpServers` entry for plugins |
+| Plugin-marketplace | Skill presence (e.g. `Telegram:configure`), tool presence (`mcp__plugin_<service>_*`), or `claude plugin list \| grep <name>@claude-plugins-official` — there is no `mcpServers` entry for plugins |
 
 For the plugin-marketplace pattern specifically, also check that the plugin's
 own state files (e.g. `~/.claude/plugins/telegram-connector/access.json`)
@@ -221,11 +221,15 @@ directly to `~/.claude.json`, merging into the `mcpServers` object:
 ## Pattern 3 — Plugin-marketplace
 
 **Reference SKILL:** [telegram-connector](telegram-connector/SKILL.md) —
-labelled as the canonical reference for this shape in the
-`notion-connector` frontmatter.
+the canonical reference for this shape.
 
-**Other SKILLs on this pattern:** [notion-connector](notion-connector/SKILL.md),
-[imessage-connector](imessage-connector/SKILL.md).
+**Other SKILLs on this pattern:** [imessage-connector](imessage-connector/SKILL.md).
+
+> `notion-connector` previously used this pattern (via the
+> `notion@claude-plugins-official` plugin) but **moved to a CLI-based connector**
+> (the official `ntn` CLI) so the OAuth token lives in the OS keychain rather
+> than a Bearer header in `~/.claude.json`. See `notion-connector/SKILL.md` and
+> the CLI-based list at the top of this doc.
 
 **When it fits:** the vendor (or Anthropic) publishes an official Claude Code
 plugin in `claude-plugins-official`. The plugin owns the OAuth handshake (or
@@ -246,7 +250,7 @@ claude plugin list | grep <name>@claude-plugins-official
 
 Three signals to check, in order of strength:
 
-1. **Skill presence** — e.g. `Notion:search`, `Telegram:configure` appear in
+1. **Skill presence** — e.g. `Telegram:configure`, `Telegram:access` appear in
    the available-skills list.
 2. **Tool presence** — `mcp__plugin_<service>_*` tools appear in the deferred
    surface.
@@ -257,11 +261,11 @@ If the registry shows the plugin but the skills/tools are not visible, ask the
 user to close and reopen Claude Code once so the surface reconciles. This is
 the plugin equivalent of the deferred-tool reconciliation in Pattern 1.
 
-**OAuth choreography (when the plugin uses it).** For `notion-connector`, the
-plugin launches OAuth automatically the first time the user invokes any
-`Notion:*` skill — the SKILL does **not** call `authenticate` directly. The
-user signs in, picks a workspace, clicks Allow; the plugin captures the
-callback. Subsequent SKILL invocations reuse the stored token.
+**OAuth choreography (when the plugin uses it).** Some plugins launch OAuth
+automatically the first time the user invokes one of the plugin's skills — the
+SKILL does **not** call `authenticate` directly. The user signs in, picks a
+workspace, clicks Allow; the plugin captures the callback. Subsequent
+invocations reuse the stored token.
 
 **Restart-the-chat semantics.** Plugin-installed skills and tools become
 visible after the runtime reconciles. If the user invokes a `<plugin>:*` skill

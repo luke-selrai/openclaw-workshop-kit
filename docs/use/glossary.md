@@ -61,7 +61,7 @@ A password-like code you create on a platform (GitHub, HubSpot, CircleCI, etc.) 
 A sequence of automated steps that run when code changes. In CI/CD tools like CircleCI or GitHub Actions: code gets pushed → tests run automatically → if they pass, the code deploys. Your assistant can check pipeline status, read failure logs, and trigger reruns.
 
 **Plugin Marketplace**
-A built-in screen inside Claude Code where you can install official integrations. Access it via the puzzle-piece icon in the sidebar. Notion uses this path — rather than setting up a connection manually, you just search and install like an app store.
+A built-in screen inside Claude Code where you can install official integrations. Access it via the puzzle-piece icon in the sidebar. Telegram uses this path — rather than setting up a connection manually, you just search and install like an app store.
 
 **Private App (HubSpot)**
 A connection key you create inside your HubSpot account that gives Claude permission to read and update your CRM data. Created in HubSpot → Settings → Integrations → Private Apps. Lets you control exactly what Claude can see — just contacts, or deals, or everything. You can revoke it any time from the same screen.
