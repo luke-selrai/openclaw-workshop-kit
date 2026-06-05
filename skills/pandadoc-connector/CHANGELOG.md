@@ -52,13 +52,22 @@ full table.
 - SKILL "What the server does NOT expose as tools" section + Scope Limitations
   entries: **no reminder tool, no webhook tools, no signed-PDF download, no
   file-upload doc creation, no embedded session-URL tools** (all verified absent).
+- SKILL "Response shapes (captured live 2026-06-05)" subsection + walkthrough
+  capture block, from a recipient-less throwaway draft (created via
+  `documents_create_from_markdown`, read, then archived — zero residue). Documents
+  the `documents_search` richer envelope (`total`/`has_next_page`/`scope`), the
+  `documents_details_get` field set, the async `document.uploaded`→poll create
+  flow, the `{retry_after:N}` envelope for content/summary/metadata, and the
+  account-currency caveat (`grand_total.currency`, e.g. `PHP`).
 
-### Not verified (account empty)
+### Not verified
 
-- Plan-gating boundaries (no `403 plan_required` — 0 docs/templates on the test
-  account), populated per-document response shapes, fresh-new-user consent button
-  text (auto-granted again). Destructive tools had schemas inspected but were not
-  invoked against the real account.
+- Plan-gating boundaries (no `403 plan_required` observed), fresh-new-user consent
+  button text (auto-granted again), rendered `documents_content_get` success body
+  (still rendering at archive time). Destructive tools needing recipients or a
+  sent/live document (`documents_send`, `documents_create` from template,
+  `documents_update`, `documents_fields_assign`, `documents_status_change`,
+  `recipients_*`) had schemas inspected but were not invoked.
 
 ## [0.1.0] — 2026-06-05
 

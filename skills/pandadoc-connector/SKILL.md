@@ -394,6 +394,20 @@ Earlier drafts of this SKILL documented these as operations; they have **no back
 - **No file-upload document creation** — documents come from a template (`documents_create`) or markdown (`documents_create_from_markdown`); only *templates* can be created from a source (a PDF URL).
 - **No "reassign sender / transfer ownership" tool** — `recipients_reassign` swaps a *signer*, not the sender. Change the sender via `documents_send`'s `sender` param (at send) or `documents_create`'s `owner`.
 
+### Response shapes (captured live 2026-06-05)
+
+Real payloads from a live draft (created recipient-less, read, then archived):
+
+- **`documents_list`** → `{"results":[ {id, name, status, date_created, date_modified, date_completed, expiration_date, version, document_url} ]}` (bare `{"results":[]}` when empty).
+- **`documents_search`** → `{"total":N, "has_next_page":bool, "scope":"full", "results":[...]}` — a **richer envelope than `documents_list`** (note `total` / `has_next_page` for pagination).
+- **`documents_details_get`** → rich object incl. `id`, `status`, `ref_number`, `folder_uuid`, `created_by{id, membership_id, email, first_name, last_name}`, `tokens:[{name,value}]`, `fields:[]`, `pricing:{tables,quotes,total}`, `recipients:[]`, `grand_total:{amount,currency}`, `metadata`, `approval_execution`. (For a markdown-created draft, `uuid` can be `null` — use `id`.)
+- **`documents_create` / `documents_create_from_markdown`** → returns immediately with `status:"document.uploaded"` and an `info_message` telling you to poll. **Async** — poll `documents_status_get` until `status:"document.draft"` before updating/sending.
+- **`documents_content_get` / `documents_summary_get` / `documents_metadata_get`** → return `{"retry_after":N}` (seconds) while still rendering/extracting; retry after the delay. `summary`/`metadata` may also return `{code:"not_started", ...}` until the document is completed.
+- **`documents_status_get`** → `{"id":..., "status":"document.<state>"}`.
+- **`documents_archive`** → `{"archived":true, "document_id":..., "forever":false}` (reversible).
+
+> Note: monetary fields carry the account's currency (e.g. `grand_total:{amount:"0", currency:"PHP"}`) — don't assume USD.
+
 ---
 
 ## Prompt-to-Tool Mapping

@@ -356,9 +356,22 @@ a DCR-minted client. Round 2 corrected the most load-bearing Round-1 inference: 
 **client-id-metadata-document** flow, not DCR (Drift 14). Round 2 also confirmed the auto-grant (Drift 2) live —
 the consent page auto-redirected straight to the localhost callback with no buttons rendered.
 
-**Still not verified (account is empty):** plan-gating boundaries (no `403 plan_required` observed — 0 docs/templates),
-populated per-document/template response shapes, and fresh-*new*-user consent-screen button text (auto-granted again
-via the prior bridge consent). Destructive tools (`documents_send`, `documents_create`, `documents_status_change`,
-`documents_archive`, `recipients_*`) had their **schemas** inspected but were **not invoked** against the real account.
+**Populated response shapes captured (follow-up, same session).** A recipient-less throwaway draft was created
+via `documents_create_from_markdown` (so no email ever left), read through the read tools, then archived
+(`{"archived":true, "forever":false}`) — leaving zero residue. Captured live:
+
+- `documents_create_from_markdown` → `{id, name, status:"document.uploaded", date_created, date_modified, version, uuid, links:[{rel,href,type}], info_message, document_url}` — **async**, poll `documents_status_get` until `document.draft`.
+- `documents_list` (populated) → `{"results":[{id, name, status, date_created, date_modified, date_completed, expiration_date, version, document_url}]}`.
+- `documents_search` → `{"total":N, "has_next_page":bool, "scope":"full", "results":[...]}` — richer envelope than `documents_list` (NIT not previously documented).
+- `documents_details_get` → rich: `ref_number`, `folder_uuid`, `created_by{...}`, `tokens:[{name,value}]`, `fields:[]`, `pricing:{tables,quotes,total}`, `recipients:[]`, `grand_total:{amount,currency:"PHP"}`, `metadata`, `approval_execution`; `uuid` can be `null` for a markdown-created draft (use `id`).
+- `documents_content_get` / `documents_summary_get` → `{"retry_after":N}` while rendering.
+- `documents_status_get` → `{"id":..., "status":"document.draft"}`; `documents_archive` → `{"archived":true, "document_id":..., "forever":false}`.
+
+**Still not verified:** plan-gating boundaries (no `403 plan_required` observed), fresh-*new*-user consent-screen
+button text (auto-granted again via the prior bridge consent), rendered `documents_content_get` success body (the
+draft was still rendering at archive time — only the `{retry_after}` envelope was captured). Destructive tools that
+need recipients or a sent/live document — `documents_send`, `documents_create` (from template), `documents_update`,
+`documents_fields_assign`, `documents_status_change`, `recipients_*` — had their **schemas** inspected but were **not
+invoked** (the test account has no templates and the draft had no recipients).
 
 > **Note on the DCR client used during the Round 1 smoke** — a low-risk transcript leak occurred: `curl POST https://mcp.pandadoc.com/register` echoed the freshly-minted `client_id` + `client_secret` to stdout. Risk is low because the client is fresh, has no user grants, and the secret alone is useless without an authorization_code. Round 2 did not use DCR at all (the runtime uses the metadata-document flow), so no secret was minted in Round 2.
