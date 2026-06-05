@@ -1,6 +1,6 @@
 # PandaDoc Connector — Install Walkthrough
 
-> **Status: partial captured reference, 2026-06-05 against rodolfo@selrai.com.au's PandaDoc account.** Phase 0 + Phase 1 Steps 1-2 captured live; Step 3 OAuth bridge architecture captured live via a hand-constructed DCR client (see drifts below); Steps 3-6 deferred-tool path remains projected because the runtime's deferred-tool reconciliation requires a chat restart to expose `mcp__pandadoc__authenticate` after `claude mcp add pandadoc` (documented Tool-availability precondition). **Phase 2 tool contracts** could NOT be captured live this session — unlike canva-connector, no parallel `mcp__claude_ai_PandaDoc__*` surface exists for verification (Rodolfo had not previously installed the claude.ai-layer PandaDoc connector). **Six live drifts** were captured during the smoke and folded into the SKILL — see *Drifts captured 2026-06-05* at the bottom. PandaDoc OAuth authorization-server metadata is captured live (`mcp.pandadoc.com/.well-known/oauth-authorization-server`); see `scripts/verify-well-known.sh` for the re-runnable check.
+> **Status: fully captured, 2026-06-05 against rodolfo@selrai.com.au's PandaDoc account.** Phase 0 + Phase 1 (full OAuth flow, including the `mcp__pandadoc__authenticate` → callback → in-session tool reconciliation path) captured live, AND **Phase 2 tool contracts verified live** by enumerating the real `mcp__pandadoc__*` surface and inspecting all 22 tool schemas + running read smokes. The first capture (initial release) was partial — the deferred-tool pair hadn't reconciled yet; a follow-up smoke from a fresh chat session completed it. **Two capture rounds, 7 MAJOR + 4 MINOR + 2 NIT drifts total** were captured and folded into the SKILL — see *Drifts captured 2026-06-05* at the bottom. PandaDoc OAuth authorization-server metadata is captured live (`mcp.pandadoc.com/.well-known/oauth-authorization-server`); see `scripts/verify-well-known.sh` for the re-runnable check.
 
 This walkthrough documents the **default install path** (Phase 0 → Phase 1 → smoke). Single-mode SKILL — PandaDoc MCP is OAuth-only with no API-key fallback through MCP (PandaDoc's REST API supports API keys, but the MCP server is OAuth-only). The participant's real PandaDoc account (Essentials, Business, or Enterprise) is the data target throughout.
 
@@ -73,7 +73,14 @@ No token is stored in this file — the MCP runtime owns the token lifecycle aft
 
 ```
 { authorization_url } = mcp__pandadoc__authenticate()
-// → "https://mcp.pandadoc.com/authorize?response_type=code&client_id=<runtime-managed>&state=<...>&code_challenge=<...>&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A<port>%2Fcallback&scope=read%2Bwrite"
+// Captured live 2026-06-05:
+// → "https://mcp.pandadoc.com/authorize?response_type=code
+//     &client_id=https%3A%2F%2Fclaude.ai%2Foauth%2Fclaude-code-client-metadata
+//     &code_challenge=<...>&code_challenge_method=S256
+//     &redirect_uri=http%3A%2F%2Flocalhost%3A<port>%2Fcallback
+//     &state=<...>&scope=read+read%2Bwrite
+//     &resource=https%3A%2F%2Fmcp.pandadoc.com%2Fv1%2Fmcp"
+// NOTE: client_id is the client-id-metadata-document URL, NOT a DCR-minted client.
 
 mcp__playwright__browser_navigate({ url: authorization_url })
 mcp__playwright__browser_snapshot()
@@ -96,10 +103,10 @@ mcp__playwright__browser_snapshot()
 }
 ```
 
-Two SKILL-relevant facts captured from this metadata:
+Two SKILL-relevant facts captured from this metadata (and corrected against the live flow):
 
-1. **PandaDoc supports Dynamic Client Registration** (`registration_endpoint` present, `client_id_metadata_document_supported: true`). Claude Code's MCP runtime can mint a per-installation client without a pre-shared client_id — different from Canva's bridge OAuth pattern which used a pre-registered MCP app.
-2. **Scopes are coarse-grained — only `read` and `read+write`**. The consent screen will show 2 permission levels rather than Canva's ~15 per-resource scopes. The user sees a simpler permissions screen.
+1. **Claude Code uses the client-id-metadata-document flow** (`client_id_metadata_document_supported: true`). Live, `authenticate()` returns a `client_id` of `https://claude.ai/oauth/claude-code-client-metadata` — the runtime presents a metadata document rather than minting a DCR client. (The `registration_endpoint` is publicly reachable, but the runtime does **not** use DCR for this server.) The grant is then re-framed through PandaDoc's pre-registered MCP bridge client_id `f88018a252b20dcb8987`, which is why prior-consent users auto-grant.
+2. **Scopes are coarse-grained — only `read` and `read+write`**. The live URL requests `scope=read read+write`. The consent screen shows 2 permission levels rather than Canva's ~15 per-resource scopes.
 
 **Tool-availability precondition.** On the first session after `claude mcp add pandadoc ...`, the deferred-tool reconciliation may not have fired yet. If `mcp__pandadoc__authenticate` is missing from the tool surface, ask the participant *once*: *"I've added PandaDoc. Please close and reopen the chat once, then say 'connect to my PandaDoc' and I'll finish."* On resume, Phase 0 re-enters at Step 3.
 
@@ -160,10 +167,9 @@ callback_url = mcp__playwright__browser_evaluate({
 // → "http://localhost:<port>/callback?code=<opaque>&state=<opaque>"
 
 mcp__pandadoc__complete_authentication({ callback_url })
-// → { ok: true, server: "pandadoc" }
 ```
 
-On success, the `mcp__pandadoc__*` tool surface becomes available in the same session.
+**Captured live 2026-06-05 (auto-grant path).** For a user with a prior bridge grant, the navigate in Step 3 lands on `mcp.pandadoc.com/consent?txn_id=<opaque>` and then **auto-redirects to the localhost callback with no buttons rendered** — confirming the Step 4 auto-grant race. In this case the Claude Code runtime detected the callback and reconciled the tool surface **automatically**: the `mcp__pandadoc__complete_authentication` tool was *replaced* by the 22 real `mcp__pandadoc__*` tools, and a direct `complete_authentication` call returned `No such tool available` because reconciliation had already happened. Either way, on success the `mcp__pandadoc__*` tool surface becomes available in the same session — no chat restart needed.
 
 ---
 
@@ -193,13 +199,15 @@ If `true`, surface the clean exit and stop. No API-key bypass through MCP.
 ## Step 6 — Smoke verification
 
 ```
-mcp__pandadoc__list-documents({ limit: 5, user_intent: "..." })
-// (exact tool name surfaces post-registration — list mcp__pandadoc__* tools to discover)
+mcp__pandadoc__documents_list({ count: 5 })
+// Captured live 2026-06-05: → {"results":[]} on an empty account (still 200 OK = ready).
+// On a populated account: → {"results":[{...document objects...}]}.
+// NOTE: no user_intent param — schemas are additionalProperties:false and reject it.
 ```
 
-Projected success message:
+Success message (include the live count when non-zero):
 
-> "All done! Your PandaDoc is now connected — I can see **84 documents**. You can ask me things like 'create a contract from the Master Services Agreement template', 'show me documents waiting for signatures', 'send reminders to anyone who hasn't signed', or 'report on signed contracts this quarter'. Give it a try!"
+> "All done! Your PandaDoc is now connected. You can ask me things like 'create a contract from the Master Services Agreement template', 'show me documents waiting for signatures', 'summarize the signed Acme contract', or 'report on contracts signed this quarter'. Give it a try!"
 
 ---
 
@@ -207,63 +215,64 @@ Projected success message:
 
 ```
 Participant: List my templates.
-Claude:      mcp__pandadoc__list-templates({ user_intent: "Show the user
-                their available PandaDoc templates so they can pick one
-                to instantiate." })
-             # → [10 templates including Master Services Agreement, NDA, ...]
+Claude:      mcp__pandadoc__templates_list({ count: 50 })
+             # → {"results":[ 10 templates incl Master Services Agreement, NDA, ... ]}
 Claude:      You have 10 templates. The MSA, NDA, and Statement of Work
              are the most-used. Want me to start from one?
 
 Participant: Create a contract from the MSA template for Acme Corp,
              counterparty john@acme.com.
-Claude:      mcp__pandadoc__inspect-template-fields({ template_id: "TPL-xxx", user_intent: "..." })
-             # → fields: customer_name, customer_email, total_amount, ...
+Claude:      mcp__pandadoc__templates_details_get({ template_id: "TPL-xxx" })
+             # → roles: [client], fields: customer_name, total_amount, ...
 Claude:      I'm about to create a new "Master Services Agreement - Acme
              Corp" document with customer Acme Corp, counterparty
              john@acme.com. This creates a draft (not yet sent). OK?
 Participant: Yes.
-Claude:      mcp__pandadoc__create-document-from-template({
-               template_id: "TPL-xxx",
+Claude:      mcp__pandadoc__documents_create({
+               template_uuid: "TPL-xxx",
                name: "Master Services Agreement - Acme Corp",
-               recipients: [{ email: "john@acme.com", role: "client", ... }],
-               fields: { customer_name: "Acme Corp", ... },
-               user_intent: "..."
+               recipients: [{ email: "john@acme.com", role: "client",
+                              first_name: "John", last_name: "Smith" }],
+               fields: { customer_name: { value: "Acme Corp" } }
              })
-             # → { id: "DOC-yyy", status: "draft", ... }
+             # → { id: "DOC-yyy", status: "document.uploaded" → "document.draft", ... }
 Claude:      Draft created — "Master Services Agreement - Acme Corp"
              with John (john@acme.com) as the counterparty. Want me to
              send it for signature now?
 
 Participant: Yes, send it.
-Claude:      mcp__pandadoc__get-document({ document_id: "DOC-yyy", user_intent: "..." })
-             # → confirms recipient + content
+Claude:      mcp__pandadoc__documents_details_get({ document_id: "DOC-yyy" })
+             # → confirms recipient + per-recipient status
 Claude:      I'm about to SEND "Master Services Agreement - Acme Corp"
              to John Smith (john@acme.com) for signature. This sends a
              real email and creates a binding signature request. OK?
 Participant: Yes.
-Claude:      mcp__pandadoc__send-document({ document_id: "DOC-yyy", user_intent: "..." })
-             # → { id: "DOC-yyy", status: "sent", sent_at: "...", ... }
-Claude:      Sent — John will receive the email shortly. I'll let you
-             know when he signs (or you can ask me "did Acme sign yet?"
-             any time).
+Claude:      mcp__pandadoc__documents_send({ document_id: "DOC-yyy",
+               subject: "Master Services Agreement for signature",
+               message: "Hi John, please review and sign." })
+             # → { id: "DOC-yyy", status: "document.sent", ... }
+Claude:      Sent — John will receive the email shortly. You can ask me
+             "what's the status of the Acme contract?" any time.
 ```
 
-### Bulk reminder flow
+### Find-unsigned flow (there is NO reminder tool)
+
+PandaDoc MCP has **no** "send reminder" endpoint. The honest flow finds and reports
+unsigned documents, then directs the user to the PandaDoc UI to actually nudge signers:
 
 ```
-Participant: Send reminders to anyone who hasn't signed.
-Claude:      mcp__pandadoc__find-documents-awaiting-signatures({ user_intent: "..." })
-             # → [9 unsigned documents, 14 total non-signed recipients]
-Claude:      I'm about to send reminder emails to **14 recipients**
-             across **9 unsigned contracts**. Examples:
-             - John Smith (Acme MSA, sent 12 days ago)
-             - Jane Doe (Beta SOW, sent 8 days ago)
-             - ... +12 more
-             OK to send all 14?
-Participant: Yes.
-Claude:      mcp__pandadoc__send-reminders({ document_ids: [...], user_intent: "..." })
-             # → { sent: 14, failed: 0 }
-Claude:      Sent 14 reminders. I'll surface any bounces.
+Participant: Remind anyone who hasn't signed.
+Claude:      mcp__pandadoc__documents_list({ status: 1, count: 100 })
+             # status 1 = sent (awaiting signature)
+             # → {"results":[ 9 sent documents ]}
+Claude:      I found **9 contracts still awaiting signature**:
+             - Acme MSA (sent 12 days ago)
+             - Beta SOW (sent 8 days ago)
+             - ... +7 more
+             Heads-up: PandaDoc's connector can't send reminder emails
+             directly — you can nudge signers from the PandaDoc app
+             (open the document → Send reminder). Want me to open the
+             list so you can do that, or pull details on any one of these?
 ```
 
 ---
@@ -278,7 +287,7 @@ Claude:      Sent 14 reminders. I'll surface any bounces.
 | Step 3 (mint URL + open + sign-in detect) | 5 s warm / 45 s cold |
 | Step 4 (Allow access + Authorize + callback) | 10 s |
 | Step 5 (admin-block probe) | 1 s (when consent succeeds) |
-| Step 6 (smoke list-documents) | 2 s |
+| Step 6 (smoke `documents_list`) | 2 s |
 | **Total (warm)** | **~20 s** |
 | **Total (cold, no 2FA)** | **~65 s** |
 
@@ -295,7 +304,8 @@ Claude:      Sent 14 reminders. I'll surface any bounces.
 | Step 5 admin-block detected | Enterprise / SSO admin restriction | Clean exit; admin must allowlist |
 | Step 6 401 invalid_token immediately | Clock skew / race | Re-run Step 3 once; do not re-`claude mcp add` |
 | Step 6 403 plan_required on specific tool | User's plan doesn't grant that capability | Translate per Error Handling table |
-| Phase 2 — destructive op fired without confirm | SKILL bug | Always re-read recipient + document name before `send-document` |
+| Phase 2 — destructive op fired without confirm | SKILL bug | Always re-read recipient + document name (via `documents_details_get`) before `documents_send` |
+| Phase 2 — tool call rejected with validation error | Passed `user_intent` or other undocumented field | Remove it — schemas are `additionalProperties:false`; pass only documented params |
 
 For Phase 2 failures, see the SKILL's Error Handling section.
 
@@ -309,7 +319,9 @@ To re-validate PandaDoc's OAuth metadata shape without re-running the install, s
 
 ## Drifts captured 2026-06-05
 
-Live smoke against rodolfo@selrai.com.au's PandaDoc account surfaced **4 MAJOR + 1 MINOR + 1 NIT drifts** vs the SKILL.md state pre-smoke. All were folded into the SKILL.md commit that accompanies this walkthrough.
+Live smoke against rodolfo@selrai.com.au's PandaDoc account ran in **two rounds** (initial release + a follow-up Phase 2 smoke from a fresh chat session) and surfaced **7 MAJOR + 4 MINOR + 2 NIT drifts** total. All were folded into the SKILL.md commits that accompany this walkthrough.
+
+### Round 1 — install / OAuth (initial release)
 
 | # | Severity | Drift | Folded into SKILL |
 |---|---|---|---|
@@ -320,6 +332,46 @@ Live smoke against rodolfo@selrai.com.au's PandaDoc account surfaced **4 MAJOR +
 | 5 | MINOR | OAuth redirect chain has 4 hops, not 2 (projected walkthrough showed 2) | Walkthrough Step 3 + drifts table above enumerate the 4 hops |
 | 6 | NIT | `GET https://mcp.pandadoc.com/v1/mcp` returns `405 Method Not Allowed`, `Allow: DELETE, POST`. Not a bug — MCP transport uses POST — but worth noting for a debugger inspecting the endpoint manually | Noted in failure modes |
 
-**Smoke methodology.** Phase 0 captured live (no PandaDoc registration found at either `~/.claude.json mcpServers.pandadoc` or via `claude mcp list`). Phase 1 Step 1 narrated. Phase 1 Step 2 `claude mcp add pandadoc` succeeded and wrote the entry. Phase 1 Step 3 deferred tools (`mcp__pandadoc__authenticate`) did NOT surface — would require a chat restart per the SKILL's documented Tool-availability precondition. **OAuth bridge architecture (Drifts 1-5) was captured by hand-constructing an OAuth URL using a DCR-minted client_id and driving Playwright through it** — the bridge auto-granted (Drift 2) because Rodolfo had previously consented to the bridge's pre-registered client_id (Drift 4), redirecting straight to `localhost:8976/callback` with the auth code (which was lost to `ERR_CONNECTION_REFUSED` since no listener was running). The bridge / re-frame / auto-grant chain is the empirical evidence for Drifts 1-4. **Phase 2 tool contracts** remain unverified live — fully completing the OAuth flow would require either (a) a chat restart for runtime reconciliation, or (b) a `localhost:8976` listener to capture the auth code and a manual `client_secret_post` token exchange. Either is a follow-up smoke task to lift the walkthrough from partial-captured to fully captured.
+### Round 2 — Phase 2 tool contracts (follow-up smoke, fresh chat session)
 
-> **Note on the DCR client used during the smoke** — a low-risk transcript leak occurred: `curl POST https://mcp.pandadoc.com/register` echoed the freshly-minted `client_id` + `client_secret` to stdout. Risk is low because the client is fresh, has no user grants, and the secret alone is useless without an authorization_code. Tracked separately for awareness; PandaDoc DCR does not appear to expose a management endpoint, so deletion requires support contact.
+The follow-up smoke ran the **real** `mcp__pandadoc__authenticate()` → Playwright → callback path
+(auto-granted via the prior bridge consent), let the runtime reconcile the tool surface in-session,
+then enumerated all 22 tools and inspected every schema + ran read smokes (`documents_list`,
+`templates_list` → both `200 OK`, `{"results":[]}` on the empty account).
+
+| # | Severity | Drift | Folded into SKILL |
+|---|---|---|---|
+| 7 | MAJOR | Tool surface is **22 tools across 3 namespaces** (`documents_*` 15, `recipients_*` 4, `templates_*` 3), NOT "~50 operations across 10 categories" | SKILL Overview + Phase 2 intro + full Tool Reference rewritten to the 22 verified tools |
+| 8 | MAJOR | **`user_intent` is NOT a parameter** — every schema is `additionalProperties:false`, so passing it (per the Canva precedent the SKILL assumed) is *rejected*. The guidance to "pass user_intent on every call" was actively breaking | Removed from Tool Reference note, Step 6, Behaviour Guidelines; replaced with explicit "never pass it" guidance |
+| 9 | MAJOR | **Naming is `namespace_object_verb` snake_case** (`documents_list`, `templates_details_get`), NOT kebab (`list-documents`). Entire Prompt-to-Tool Mapping used non-existent names | Naming-convention section + Prompt-to-Tool Mapping rewritten with real names |
+| 10 | MAJOR | **No webhook tools, no reminder tool, no signed-PDF download** exist — three documented categories/ops have zero backing tools | Moved to a "What the server does NOT expose" section + Scope Limitations; reminder flow rewritten to find-and-report |
+| 11 | MINOR | mark-paid / decline / expire / complete are **one** tool `documents_status_change` (status codes 2/10/11/12), not 4 separate ops | Tool Reference + Prompt-to-Tool Mapping collapsed to the one tool |
+| 12 | MINOR | `recipients_reassign` reassigns a **signer** (contact), not the document sender — SKILL conflated them | Tool Reference + Scope Limitations clarify; sender change is `documents_send.sender` |
+| 13 | MINOR | Document status is an **integer code 0–13** with a specific mapping the SKILL never documented (and code 11 is `voided` in `documents_list` but `expired` in `documents_search`) | Added a Document-status-codes table to Phase 2 |
+| 14 | NIT | OAuth `client_id` is the **client-id-metadata-document URL** `https://claude.ai/oauth/claude-code-client-metadata`, not a DCR-minted per-install client_id as Round 1 implied | Corrected the Overview captured-note + Step 3 (here and in SKILL) |
+
+**Round 1 methodology note (superseded).** The Round 1 capture could not complete the OAuth flow in-session
+(deferred tools hadn't reconciled) and reconstructed the bridge architecture by hand-driving Playwright through
+a DCR-minted client. Round 2 corrected the most load-bearing Round-1 inference: the runtime uses the
+**client-id-metadata-document** flow, not DCR (Drift 14). Round 2 also confirmed the auto-grant (Drift 2) live —
+the consent page auto-redirected straight to the localhost callback with no buttons rendered.
+
+**Populated response shapes captured (follow-up, same session).** A recipient-less throwaway draft was created
+via `documents_create_from_markdown` (so no email ever left), read through the read tools, then archived
+(`{"archived":true, "forever":false}`) — leaving zero residue. Captured live:
+
+- `documents_create_from_markdown` → `{id, name, status:"document.uploaded", date_created, date_modified, version, uuid, links:[{rel,href,type}], info_message, document_url}` — **async**, poll `documents_status_get` until `document.draft`.
+- `documents_list` (populated) → `{"results":[{id, name, status, date_created, date_modified, date_completed, expiration_date, version, document_url}]}`.
+- `documents_search` → `{"total":N, "has_next_page":bool, "scope":"full", "results":[...]}` — richer envelope than `documents_list` (NIT not previously documented).
+- `documents_details_get` → rich: `ref_number`, `folder_uuid`, `created_by{...}`, `tokens:[{name,value}]`, `fields:[]`, `pricing:{tables,quotes,total}`, `recipients:[]`, `grand_total:{amount,currency:"PHP"}`, `metadata`, `approval_execution`; `uuid` can be `null` for a markdown-created draft (use `id`).
+- `documents_content_get` / `documents_summary_get` → `{"retry_after":N}` while rendering.
+- `documents_status_get` → `{"id":..., "status":"document.draft"}`; `documents_archive` → `{"archived":true, "document_id":..., "forever":false}`.
+
+**Still not verified:** plan-gating boundaries (no `403 plan_required` observed), fresh-*new*-user consent-screen
+button text (auto-granted again via the prior bridge consent), rendered `documents_content_get` success body (the
+draft was still rendering at archive time — only the `{retry_after}` envelope was captured). Destructive tools that
+need recipients or a sent/live document — `documents_send`, `documents_create` (from template), `documents_update`,
+`documents_fields_assign`, `documents_status_change`, `recipients_*` — had their **schemas** inspected but were **not
+invoked** (the test account has no templates and the draft had no recipients).
+
+> **Note on the DCR client used during the Round 1 smoke** — a low-risk transcript leak occurred: `curl POST https://mcp.pandadoc.com/register` echoed the freshly-minted `client_id` + `client_secret` to stdout. Risk is low because the client is fresh, has no user grants, and the secret alone is useless without an authorization_code. Round 2 did not use DCR at all (the runtime uses the metadata-document flow), so no secret was minted in Round 2.

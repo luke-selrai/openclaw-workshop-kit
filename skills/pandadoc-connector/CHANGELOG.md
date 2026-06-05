@@ -2,6 +2,73 @@
 
 All notable changes to this skill, oldest at the bottom.
 
+## [0.2.0] — 2026-06-05
+
+**Phase 2 verified live (follow-up smoke from a fresh chat session).** The 0.1.0
+Tool Reference was written from PandaDoc's published capability brochure, not from
+live tool enumeration — the deferred-tool pair hadn't reconciled at release time.
+A follow-up smoke completed the OAuth flow (auto-granted via the prior bridge
+consent), let the runtime reconcile the `mcp__pandadoc__*` surface in-session,
+enumerated **all 22 tools**, inspected every schema, and ran read smokes
+(`documents_list`, `templates_list` → both `200 OK`). The connector works
+end-to-end; the Phase 2 docs drifted hard from the live surface.
+
+**7 MAJOR + 4 MINOR + 2 NIT drifts** captured (Round 2); see
+`examples/install-walkthrough.md` *Drifts captured 2026-06-05 → Round 2* for the
+full table.
+
+### Changed
+
+- **Tool surface corrected: 22 tools across 3 namespaces**, NOT "~50 operations
+  across 10 categories". `documents_*` (15), `recipients_*` (4), `templates_*` (3).
+  SKILL Overview, Phase 2 intro, and the entire Tool Reference rewritten to the 22
+  verified tools with real params and confirmation gates.
+- **`user_intent` guidance reversed (was breaking).** PandaDoc tools do NOT accept
+  `user_intent`; every schema is `additionalProperties: false`, so the 0.1.0
+  instruction to "pass user_intent on every call" (Canva precedent) would make
+  every call fail validation. Removed from the Tool Reference note, Step 6, and
+  Behaviour Guidelines; replaced with explicit "never pass it" guidance.
+- **Tool naming corrected** to `namespace_object_verb` snake_case
+  (`documents_list`, `templates_details_get`) — the 0.1.0 Prompt-to-Tool Mapping
+  used non-existent kebab names (`list-documents`, `send-document`). Mapping fully
+  rewritten with real tool names.
+- **Status codes documented** — added the integer status-code table (0–13) used by
+  `documents_list` / `documents_search` / `documents_status_change`, incl. the
+  code-11 `voided`-vs-`expired` server inconsistency.
+- mark-paid / decline / expire / complete consolidated to the single real tool
+  `documents_status_change` (status codes 2/10/11/12), not 4 separate ops.
+- `recipients_reassign` clarified as a **signer** swap (not a sender/ownership
+  transfer — that's `documents_send.sender` / `documents_create.owner`).
+- OAuth architecture note corrected: the runtime uses the
+  **client-id-metadata-document** flow (`client_id=https://claude.ai/oauth/claude-code-client-metadata`),
+  not DCR as 0.1.0 inferred. Step 3 + the Overview captured-note updated; auto-grant
+  confirmed live (consent page → straight to localhost callback, no buttons).
+- `examples/install-walkthrough.md` promoted from *partial captured* to *fully
+  captured*; Phase 2 sample flows rewritten with real tool names; the bulk-reminder
+  flow replaced with an honest find-and-report flow.
+
+### Added
+
+- SKILL "What the server does NOT expose as tools" section + Scope Limitations
+  entries: **no reminder tool, no webhook tools, no signed-PDF download, no
+  file-upload doc creation, no embedded session-URL tools** (all verified absent).
+- SKILL "Response shapes (captured live 2026-06-05)" subsection + walkthrough
+  capture block, from a recipient-less throwaway draft (created via
+  `documents_create_from_markdown`, read, then archived — zero residue). Documents
+  the `documents_search` richer envelope (`total`/`has_next_page`/`scope`), the
+  `documents_details_get` field set, the async `document.uploaded`→poll create
+  flow, the `{retry_after:N}` envelope for content/summary/metadata, and the
+  account-currency caveat (`grand_total.currency`, e.g. `PHP`).
+
+### Not verified
+
+- Plan-gating boundaries (no `403 plan_required` observed), fresh-new-user consent
+  button text (auto-granted again), rendered `documents_content_get` success body
+  (still rendering at archive time). Destructive tools needing recipients or a
+  sent/live document (`documents_send`, `documents_create` from template,
+  `documents_update`, `documents_fields_assign`, `documents_status_change`,
+  `recipients_*`) had schemas inspected but were not invoked.
+
 ## [0.1.0] — 2026-06-05
 
 Initial release. Pattern 1 hosted-OAuth connector for the official
