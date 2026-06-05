@@ -1,6 +1,6 @@
 ---
 name: pandadoc-connector
-description: "Connect and operate PandaDoc via the official first-party PandaDoc MCP server (https://mcp.pandadoc.com/v1/mcp). Phase 1 is a 6-step Playwright-driven install: register the server with `claude mcp add`, open Claude Code's OAuth start URL inside the Playwright MCP browser, detect login state and prompt sign-in only if needed, auto-click 'Allow access' and 'Authorize' on the consent screen, auto-detect the callback via `browser_wait_for`, then verify with a read-only `mcp__pandadoc__*` smoke call. The user's only manual moment is signing in to PandaDoc inside the Playwright window. Use this skill when the user asks to set up PandaDoc, connect their account, create contracts or proposals from templates, send documents for signature, track signature status, send reminder emails, search or filter documents, run analytics on document completion, expire old drafts, or any e-signature / document-automation workflow."
+description: "Connect and operate PandaDoc via the official first-party PandaDoc MCP server (https://mcp.pandadoc.com/v1/mcp). Phase 1 is a 6-step Playwright-driven install: register the server with `claude mcp add`, open Claude Code's OAuth start URL inside the Playwright MCP browser, detect login state and prompt sign-in only if needed, auto-click 'Allow access' and 'Authorize' on the consent screen, auto-detect the callback via `browser_wait_for`, then verify with a read-only `mcp__pandadoc__*` smoke call. The user's only manual moment is signing in to PandaDoc inside the Playwright window. Use this skill when the user asks to set up PandaDoc, connect their account, create contracts or proposals from templates, send documents for signature, track signature status, find documents awaiting signature, search or filter documents, summarize or extract document text, expire or void documents, or any e-signature / document-automation workflow."
 allowed-tools: mcp__pandadoc__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
@@ -43,8 +43,8 @@ This skill lets you read and update a user's PandaDoc account on their behalf us
 
 > **Captured 2026-06-05 — PandaDoc MCP is a bridge / proxy OAuth server** (same architecture as Canva). `mcp.pandadoc.com/authorize` accepts the MCP client's request, redirects through an intermediate `mcp.pandadoc.com/consent?txn_id=<opaque>` page, then re-frames to `app.pandadoc.com/oauth2/authorize/confirm?client_id=f88018a252b20dcb8987` using PandaDoc's pre-registered MCP bridge client_id. Final hop returns to `localhost:<port>/callback?code=...&state=...`. Four-hop redirect chain — debug from whichever hop returns the error.
 >
-> **Captured 2026-06-05 — PandaDoc supports RFC 7591 Dynamic Client Registration publicly**. POST to `mcp.pandadoc.com/register` with `{ client_name, redirect_uris }` returns a fresh `client_id` + `client_secret` with NO authentication required. Claude Code's MCP runtime mints a DCR client per `claude mcp add`, but the bridge re-frames every grant through the single pre-registered client_id `f88018a252b20dcb8987` — so user consent is **per-user-per-bridge**, not per-DCR-client. A consequence: if Rodolfo grants the bridge once, every subsequent re-install (any machine, any runtime) auto-grants without showing the consent screen.
-- **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__pandadoc__*` native tools to read and update PandaDoc data. The hosted PandaDoc MCP server provides **~50 first-party operations** across 10 categories covering document creation from templates, content updates (fields, tables, pricing, variables), status and lifecycle (send, decline, expire, mark paid), signing (order, identity verification, embedded signing), search and filtering, bulk operations and reminders, analytics and reporting, webhooks, and advanced workflows (multi-party signing, complex proposals, onboarding agreements). Exact tool names are server-side and surfaced post-registration — see *Tool Reference* below for the documented operation set, then list available tools with the `mcp__pandadoc__` prefix at runtime to discover the exact naming.
+> **Captured 2026-06-05 — Claude Code uses the client-id-metadata-document flow, not DCR.** Live, `mcp__pandadoc__authenticate()` returns a URL whose `client_id` is the metadata-document URL `https://claude.ai/oauth/claude-code-client-metadata` (PandaDoc's well-known declares `client_id_metadata_document_supported: true`). PandaDoc's RFC 7591 Dynamic Client Registration endpoint (`mcp.pandadoc.com/register`) *is* publicly reachable with no auth — but the Claude Code runtime does **not** use it for this server; it presents the metadata document instead. The bridge re-frames the grant through PandaDoc's pre-registered MCP bridge client_id `f88018a252b20dcb8987` at the `app.pandadoc.com/oauth2/authorize/confirm` hop, so consent is **per-user-per-bridge**: once a user grants the bridge, every subsequent re-install (any machine, any runtime) auto-grants without showing the consent screen. **Verified live 2026-06-05** — a re-auth from a fresh chat went `mcp.pandadoc.com/authorize` → `mcp.pandadoc.com/consent?txn_id=<opaque>` → straight to `localhost:<port>/callback?code=...` with no consent buttons rendered.
+- **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__pandadoc__*` native tools to read and update PandaDoc data. The hosted PandaDoc MCP server provides **22 first-party tools across 3 namespaces** (verified live 2026-06-05): `documents_*` (15 tools — create, update, send, search, status, content, summary, audit, archive), `recipients_*` (4 tools — add CC, edit, reassign, delete), and `templates_*` (3 tools — list, details, create-from-PDF). Tool names follow a `namespace_object_verb` snake_case convention (e.g. `documents_list`, `templates_details_get`). See *Tool Reference* below for the full verified contract. You can always re-list the live surface with the `mcp__pandadoc__` prefix to confirm.
 
 **Which phase to run** — Before any tool call, check whether the PandaDoc MCP server is already configured. Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.pandadoc` entry. **Also check `claude mcp list`** for a claude.ai-Connectors-layer registration — that layer does NOT write into `mcpServers` but does show in `claude mcp list` as `claude.ai PandaDoc: https://mcp.pandadoc.com/v1/mcp - ✓ Connected`. If either signal is present, attempt a verification tool call (Phase 1 Step 6). If it succeeds, the connector is ready — skip to Phase 2. If it 401s, walk through Phase 1 from Step 3 to re-trigger the OAuth flow (the registration is already in place).
 
@@ -155,7 +155,7 @@ If the merge stderr emits `CONFIG_BACKUP=`, the existing config was unreadable a
 
 When Claude Code registers a hosted MCP server that requires auth, its runtime exposes a **per-server pair of OAuth-bootstrap tools** in the deferred-tool surface:
 
-- `mcp__pandadoc__authenticate()` — no args, returns the OAuth authorization URL (PandaDoc-shaped: `https://mcp.pandadoc.com/authorize?...` or `https://app.pandadoc.com/oauth/authorize?...` depending on how PandaDoc's bridge / proxy OAuth is implemented).
+- `mcp__pandadoc__authenticate()` — no args, returns the OAuth authorization URL. **Verified live 2026-06-05:** the URL is `https://mcp.pandadoc.com/authorize?response_type=code&client_id=https%3A%2F%2Fclaude.ai%2Foauth%2Fclaude-code-client-metadata&code_challenge=<...>&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A<port>%2Fcallback&state=<...>&scope=read+read%2Bwrite`. Note the `client_id` is the **client-id-metadata-document URL** `https://claude.ai/oauth/claude-code-client-metadata` (PandaDoc's well-known declares `client_id_metadata_document_supported: true`), **not** a per-install DCR-minted client_id. Scope is the coarse `read read+write` pair.
 - `mcp__pandadoc__complete_authentication({ callback_url })` — submits the post-redirect callback URL to finish the OAuth dance.
 
 These appear after `claude mcp add` registers the server and the tool surface refreshes. They are the supported programmatic OAuth-bootstrap path — **not** a `claude mcp` CLI subcommand.
@@ -290,10 +290,10 @@ If the function returns `false`, the consent flow completed normally — proceed
 ### Step 6 — Verify via a read-only smoke call
 
 ```
-mcp__pandadoc__<list-documents-or-similar>({ limit: 1, ... })
+mcp__pandadoc__documents_list({ count: 1 })
 ```
 
-Exact tool name surfaces post-registration — list available tools with the `mcp__pandadoc__` prefix and pick a non-destructive read tool (typically a documents listing). On `200 OK`, the connection is ready.
+**Verified live 2026-06-05** — `documents_list` is the canonical read smoke. It returns `{"results": [...]}` (an empty `{"results": []}` on a brand-new account is still a success — the connection is ready). Do **not** pass a `user_intent` argument — PandaDoc tool schemas are `additionalProperties: false` and will reject unknown fields (see Tool Reference).
 
 **Smoke failure handling:**
 
@@ -311,128 +311,88 @@ Tell the user, in one short message (include the live document count if availabl
 
 ## PHASE 2 — Use Tools
 
-Once the connector is configured, use the `mcp__pandadoc__*` MCP tools below to answer questions and make changes in PandaDoc. The hosted PandaDoc MCP server provides **~50 first-party operations** across 10 categories.
+Once the connector is configured, use the `mcp__pandadoc__*` MCP tools below to answer questions and make changes in PandaDoc. The hosted PandaDoc MCP server exposes **22 first-party tools across 3 namespaces** — `documents_*` (15), `recipients_*` (4), `templates_*` (3) — all verified live 2026-06-05 against a real PandaDoc account.
 
 ### Tool naming convention
 
-PandaDoc's MCP tool names will surface at runtime — list available tools with the `mcp__pandadoc__` prefix once the connection is verified to discover the exact naming. The categories below reflect PandaDoc's published capability surface; specific tool names may differ slightly (e.g. `list-documents`, `create-document-from-template`, `send-document`).
+Tool names follow a `namespace_object_verb` snake_case convention: `documents_list`, `documents_create`, `templates_details_get`, `recipients_reassign`. They are **not** kebab-case — there is no `list-documents`, `create-document-from-template`, or `send-document`. You can re-list the live surface with the `mcp__pandadoc__` prefix at any time to confirm.
+
+> **No `user_intent` parameter — and passing one breaks the call.** Unlike Canva MCP, PandaDoc tools do **not** accept a `user_intent` field. Every PandaDoc tool schema declares `additionalProperties: false`, so passing `user_intent` (or any other undocumented field) is **rejected with a validation error**. Pass only the documented parameters below. (Verified live 2026-06-05 — the Canva precedent does not carry over.)
 
 ### Plan gating
 
-PandaDoc has plan tiers (Essentials / Business / Enterprise). The published MCP docs do not enumerate plan-specific tool restrictions, but capabilities like **identity verification**, **approval workflows**, **embedded sending**, and **content library blocks** are historically plan-gated in the REST API. If a tool call returns `403 plan_required`, translate into plain English and offer a plan-appropriate alternative.
+PandaDoc has plan tiers (Essentials / Business / Enterprise). The MCP docs do not enumerate plan-specific tool restrictions, but capabilities like **identity verification** (the `verification_settings` recipient param), **approval workflows** (the `selected_approvers` param on `documents_send`), and **content library blocks** (the `content_placeholders` param on `documents_create`) are historically plan-gated in the REST API. If a tool call returns `403 plan_required`, translate into plain English and offer a plan-appropriate alternative.
 
-### Tool Reference — operation categories
+### Document status codes
 
-> Every PandaDoc tool call may require a `user_intent` parameter (Canva MCP precedent — verify on first smoke). Pass it on every call: one short sentence framing the user's goal.
+Several tools speak in integer status codes — `documents_list` / `documents_search` filter by them, `documents_status_change` sets them:
 
-#### Document creation & templates
+| Code | Status | Code | Status |
+|---|---|---|---|
+| 0 | draft | 7 | approved |
+| 1 | sent | 8 | rejected |
+| 2 | completed | 9 | waiting_pay |
+| 3 | uploaded | 10 | paid |
+| 4 | error | 11 | voided / expired\* |
+| 5 | viewed | 12 | declined |
+| 6 | waiting_approval | 13 | external_review |
 
-| Operation | Description | Confirmation? |
-|---|---|---|
-| List templates | Retrieve the workspace's available templates | Read |
-| Create document from template | Instantiate a template into a draft document with pre-filled fields | **Confirm first** — creates real document |
-| Create document from file upload | Upload a PDF and create a document from it | **Confirm first** |
-| Create document from public URL | Create a document by referencing a hosted PDF / URL | **Confirm first** |
-| Create document on behalf of member | Specify a different sender (Business+) | **Confirm first** |
-| Upload PDF as new template | Save an uploaded PDF as a re-usable template | **Confirm first** |
-| Inspect template fields, roles, and tokens | Read template structure for field-mapping | Read |
+\* Code 11 is labelled `voided` by `documents_list` but `expired` by `documents_search` / `documents_status_change` — PandaDoc's own surface is inconsistent here. `documents_status_change` accepts only **2 (completed), 10 (paid), 11 (expired), 12 (declined)**.
 
-#### Document content management
+### Tool Reference — the 22 verified tools
 
-| Operation | Description | Confirmation? |
-|---|---|---|
-| Pre-fill document fields | Populate fields with structured data (e.g. from Airtable rows) | **Confirm first** if document is sent / live |
-| Add images to documents | Insert images into draft documents | **Confirm first** |
-| Populate and update text blocks | Edit text content in drafts | **Confirm first** |
-| Populate and update tables | Insert / update tabular data | **Confirm first** |
-| Work with pricing tables | Build / modify pricing tables (quotes) | **Confirm first** |
-| Update quotes via API | Modify quote values | **Confirm first** |
-| Use variables in document titles | Reference variables in title strings | Read-then-write |
-| Set up embedded editing | Generate session URLs for embedded editor | **Confirm first** |
-| Set up embedded sending | Generate session URLs for embedded sending | **Confirm first** |
+#### `templates_*` — templates (3)
 
-#### Document status & lifecycle
+| Tool | Key params | Description | Confirmation? |
+|---|---|---|---|
+| `templates_list` | `q`, `tag`, `folder_uuid`, `count`, `page`, `shared`, `deleted` | List / filter the workspace's templates | Read |
+| `templates_details_get` | `template_id` | Template structure: roles, fields, tokens, pricing, content placeholders | Read |
+| `templates_create` | `url` (HTTPS PDF), `name`, `folder_uuid`, `tokens`, `owner_email` | Create a re-usable template **from a public PDF URL** (no file-upload path) | **Confirm — creates a real template** |
 
-| Operation | Description | Confirmation? |
-|---|---|---|
-| Check signature completion status | Read which recipients have signed | Read |
-| Retrieve full document details | Get document metadata + recipients + status | Read |
-| Mark documents as paid | Update payment status | **Confirm first — affects billing records** |
-| Decline documents with notes | Mark a document declined with a reason | **Confirm first — visible to recipients** |
-| Expire old drafts | Set drafts to expired state | **Confirm first — bulk-safe if filtered** |
-| Create, review, send contracts | Full create → review → send flow | **Confirm at send** |
-| Walk through document lifecycle | Multi-step state transitions | **Confirm per state change** |
-| Send through approval workflows | Route documents through approval chain (Business+) | **Confirm first** |
-| Reassign documents to new senders | Transfer document ownership | **Confirm first** |
+#### `documents_*` — read (8)
 
-#### Signing & completion
+| Tool | Key params | Description | Confirmation? |
+|---|---|---|---|
+| `documents_list` | `count`, `page`, `q`, `status` (int), `tag`, `folder_uuid` | Paginated listing with structured filters | Read |
+| `documents_search` | `query` (req), `status` (int[]), `date_filter_column`+`from_date`+`to_date` | Full-text search with status / date-window filters | Read |
+| `documents_details_get` | `document_id` | Full details incl **per-recipient signing progress**, fields, pricing | Read |
+| `documents_status_get` | `document_id` | Overall document status only (lighter than details) | Read |
+| `documents_content_get` | `document_id`, `content_format` (`plaintext`/`markdown`) | Document text content — **text only, not the signed PDF** | Read |
+| `documents_summary_get` | `document_id`, `summary_type` (`detailed`/`short`/`headline`) | AI summary; returns `{retry_after:N}` when not ready | Read |
+| `documents_metadata_get` | `document_id`, `limit`, `offset` | AI-extracted metadata fields; `{code, retry_after?}` envelope when pending | Read |
+| `documents_audit_trail_get` | `document_id` | Document audit log | Read |
 
-| Operation | Description | Confirmation? |
-|---|---|---|
-| Send documents via API | Send a draft to recipients for signing | **CONFIRM — this is the canonical destructive op; sends real legal documents** |
-| Set signing order | Specify recipient signing sequence | Pre-send config |
-| Enable identity verification | Require ID verification at signing (Enterprise) | **Confirm first** |
-| Embed document signing | Generate session URLs for embedded signing | **Confirm first** |
-| Set post-completion redirect URLs | Redirect signers after completion | Pre-send config |
-| Handle post-completion actions in embedded signing | Wire up completion callbacks | Pre-send config |
-| Download completed documents | Fetch the signed PDF | Read |
+#### `documents_*` — write (7)
 
-#### Document search & filtering
+| Tool | Key params | Description | Confirmation? |
+|---|---|---|---|
+| `documents_create` | `template_uuid`, `name`, `recipients` (all req); plus `fields`, `tokens`, `pricing_tables`, `tables`, `texts`, `images`, `content_placeholders`, `tags`, `folder_uuid`, `metadata`, `owner` | Create a draft **from a template**. Identity verification (`recipients[].verification_settings`), signing order (`recipients[].signing_order`), pricing tables, and content-library blocks are all **params here — not separate tools** | **Confirm — creates a real document** |
+| `documents_create_from_markdown` | `name`, `document_markdown` (req); `recipients`, `role_fields`, `folder_id` | Create a draft from markdown text (supports PandaDoc `[Variable]` / `[[field]]` syntax). Async: starts `UPLOADED` → `DRAFT` | **Confirm — creates a real document** |
+| `documents_update` | `document_id` (req); `name`, `fields`, `texts`, `tokens`, `pricing_tables`, `tables`, `images`, `recipients`, `tags`, `metadata` | Update a **draft** (must be `document.draft`). The `recipients` param replaces the entire list — use `recipients_*` for single edits | **Confirm first** |
+| `documents_fields_assign` | `document_id` (req), `assignments` (`[{field_id, recipient_id\|null}]`) | Assign / reassign / unassign fields to recipients (draft only) | **Confirm first** |
+| `documents_send` | `document_id` (req); `message`, `subject`, `silent`, `sender`, `reply_to`, `forwarding_settings`, `selected_approvers` | **Send a draft to recipients for signature.** Approval workflows via `selected_approvers`; change sender via `sender`; suppress emails via `silent` | **CONFIRM — canonical destructive op; sends real legal documents** |
+| `documents_status_change` | `document_id` (req), `status` (req: 2/10/11/12); `note`, `notify_recipients` | Manually set completed / paid / expired / declined — one tool covers all four | **Confirm — affects records; may notify recipients** |
+| `documents_archive` | `document_id` (req) | Archive (reversible delete, `forever=false`) | **Confirm first** |
 
-| Operation | Description | Confirmation? |
-|---|---|---|
-| Full-text search across documents | Search by mentions and keywords | Read |
-| Filter by tags and status | Filter document list by metadata | Read |
-| Find documents expiring in date ranges | Filter by expiry date | Read |
-| Find expired unsigned documents | Filter by status + age | Read |
-| Locate recently modified documents | Filter by last-modified | Read |
-| Search by customer association | Filter by linked customer | Read |
+#### `recipients_*` — recipients (4)
 
-#### Bulk operations & reminders
+| Tool | Key params | Description | Confirmation? |
+|---|---|---|---|
+| `recipients_add_cc` | `document_id`, `contact_id` (req); `kind` | Add a CC (non-signing) recipient by existing contact ID | **Confirm first** |
+| `recipients_edit` | `document_id`, `recipient_id` (req); `email`/`first_name`/`company`/… | Edit one recipient's details in place (cannot change a signer's email after they sign) | **Confirm first** |
+| `recipients_reassign` | `document_id`, `recipient_id`, `new_contact_id` (req); `kind` | Replace a **signer** with another contact (transfers their fields). Cannot reassign already-signed recipients | **Confirm first** |
+| `recipients_delete` | `document_id`, `recipient_id` (req) | Remove a recipient (signers draft-only; CC any status except Expired/Declined) | **Confirm first** |
 
-| Operation | Description | Confirmation? |
-|---|---|---|
-| Find all documents awaiting signatures | Bulk read | Read |
-| Send reminders for unsigned contracts | Send reminder emails to non-signers | **Confirm first — sends real emails to recipients** |
-| Archive completed documents from folders | Bulk archive | **Confirm first** |
-| Expire multiple old drafts | Bulk expire | **Confirm first — list before expiring** |
+### What the server does NOT expose as tools
 
-#### Analytics & reporting
+Earlier drafts of this SKILL documented these as operations; they have **no backing MCP tool** (verified live 2026-06-05). Do not promise them — explain the gap and point to the PandaDoc UI:
 
-| Operation | Description | Confirmation? |
-|---|---|---|
-| Count documents by status | Pivot count by status | Read |
-| View full audit trails | Read document audit log | Read |
-| Generate AI summaries of documents | LLM summary of document content | Read |
-| Report on signed contracts by date range | Date-bounded report | Read |
-| Extract document text for analysis | Full-text dump | Read |
-| Get headline summaries for multiple documents | Multi-doc summary | Read |
-
-#### Webhooks & notifications
-
-| Operation | Description | Confirmation? |
-|---|---|---|
-| Set up webhook notifications | Register webhook endpoint | **Confirm first** |
-| Verify webhook authenticity | Validate webhook signatures | Read |
-| Debug and monitor webhooks | Inspect webhook delivery history | Read |
-
-#### Advanced operations
-
-| Operation | Description | Confirmation? |
-|---|---|---|
-| Create multi-party signing agreements | Document with multiple signers + roles | **Confirm first** |
-| Create proposals with complex pricing and content library blocks | Rich proposal authoring | **Confirm first** |
-| Create onboarding agreements with pre-filled customer data | New-customer flow | **Confirm first** |
-| Extract document text in markdown format | Markdown dump | Read |
-
-#### Error handling & diagnostics
-
-| Operation | Description | Confirmation? |
-|---|---|---|
-| Diagnose document sending failures | Inspect send-error reasons | Read |
-| Check document existence | Verify a document_id resolves | Read |
-| Retrieve request IDs for support escalation | Pull request_id for PandaDoc support | Read |
-| Retry operations with retry logic | Retry summary generation | Read |
+- **No reminder tool.** There is no "send reminder to unsigned recipients" endpoint. You can *find* unsigned documents (`documents_list` / `documents_search` with `status:[1]`) and report them, but you cannot auto-remind through MCP.
+- **No webhook tools.** No webhook registration, verification, or monitoring.
+- **No signed-PDF download.** `documents_content_get` returns **text** (plaintext / markdown), not the signed PDF binary.
+- **No embedded editing / sending / signing session-URL tools**, and **no standalone identity-verification or signing-order tools** — identity verification (`verification_settings`) and signing order (`signing_order`) are *recipient parameters* on `documents_create` / `documents_update`.
+- **No file-upload document creation** — documents come from a template (`documents_create`) or markdown (`documents_create_from_markdown`); only *templates* can be created from a source (a PDF URL).
+- **No "reassign sender / transfer ownership" tool** — `recipients_reassign` swaps a *signer*, not the sender. Change the sender via `documents_send`'s `sender` param (at send) or `documents_create`'s `owner`.
 
 ---
 
@@ -442,24 +402,30 @@ PandaDoc has plan tiers (Essentials / Business / Enterprise). The published MCP 
 |---|---|
 | "Connect my PandaDoc" / "Help me set up PandaDoc" | **Run Phase 1** |
 | "My PandaDoc stopped working" / "I'm getting auth errors" | Run Phase 1 from Step 3 (Claude Code re-runs the OAuth dance) |
-| "List my templates" / "What templates do I have?" | List-templates |
-| "Create a contract from the MSA template" / "Make a new proposal from the X template" | Inspect template fields → Create-document-from-template — **confirm first** |
-| "Send the contract for Acme to signature" | Retrieve document details → **CONFIRM** — Send-document |
-| "Show me documents waiting for signatures" / "Anything still unsigned?" | Find-all-documents-awaiting-signatures |
-| "Check status of the Acme contract" | Check-signature-completion-status |
-| "Send reminders to anyone who hasn't signed" | List unsigned → **CONFIRM** — Send-reminders-for-unsigned-contracts |
-| "How many contracts did we sign this quarter?" | Report-on-signed-contracts-by-date-range |
-| "Mark the Acme invoice as paid" | **CONFIRM (affects billing records)** — Mark-documents-as-paid |
-| "Decline that proposal with a note" | **CONFIRM** — Decline-documents-with-notes |
-| "Find all contracts expiring in the next 30 days" | Find-documents-expiring-in-date-ranges |
-| "Find documents tagged 'legal-review'" | Filter-by-tags-and-status |
-| "Expire any draft older than 90 days" | List drafts older than 90 days → **CONFIRM bulk** — Expire-multiple-old-drafts |
-| "Summarize this signed contract" | Generate-ai-summaries-of-documents |
-| "Download the signed Acme contract" | Download-completed-documents |
-| "Search documents mentioning 'indemnity'" | Full-text-search-across-documents |
-| "Show me the audit trail for this document" | View-full-audit-trails |
-| "Reassign this draft to my colleague Jane" | **CONFIRM** — Reassign-documents-to-new-senders |
-| "Set up a webhook for signed contracts" | **CONFIRM** — Set-up-webhook-notifications |
+| "List my templates" / "What templates do I have?" | `templates_list` |
+| "Create a contract from the MSA template" | `templates_details_get` (read fields/roles) → **CONFIRM** → `documents_create` |
+| "Draft an NDA from this text" | **CONFIRM** → `documents_create_from_markdown` |
+| "Change the price / fix a field on that draft" | **CONFIRM** → `documents_update` (draft only) |
+| "Send the contract for Acme to signature" | `documents_details_get` (re-read recipients) → **CONFIRM** → `documents_send` |
+| "Show me documents waiting for signatures" / "Anything still unsigned?" | `documents_list` / `documents_search` with `status:[1]` (sent) |
+| "Check status of the Acme contract" | `documents_status_get` (overall) or `documents_details_get` (per-recipient) |
+| "Remind anyone who hasn't signed" | `documents_list` `status:[1]` → **report the list** (no reminder tool — explain you can't auto-send reminders through PandaDoc) |
+| "How many contracts did we sign this quarter?" | `documents_search` `status:[2]` + `date_filter_column:signature_date` + date window |
+| "Mark the Acme invoice as paid" | **CONFIRM (affects records)** → `documents_status_change` (`status:10`) |
+| "Decline that proposal with a note" | **CONFIRM** → `documents_status_change` (`status:12`, `note`) |
+| "Expire / void that document" | **CONFIRM** → `documents_status_change` (`status:11`) |
+| "Find all contracts expiring in the next 30 days" | `documents_search` with `date_filter_column:date_expiration` + date window |
+| "Find documents tagged 'legal-review'" | `documents_list` with `tag:["legal-review"]` |
+| "Summarize this signed contract" | `documents_summary_get` (`summary_type:"short"`) |
+| "Get the text of the Acme contract" | `documents_content_get` (`content_format:"markdown"`) — text only |
+| "Download the signed Acme PDF" | **No tool** — MCP returns text only; direct them to the PandaDoc UI for the PDF |
+| "Search documents mentioning 'indemnity'" | `documents_search` (`query:"indemnity"`) |
+| "Show me the audit trail for this document" | `documents_audit_trail_get` |
+| "Add my colleague as a CC on this" | **CONFIRM** → `recipients_add_cc` |
+| "Replace the signer Jane with John" | **CONFIRM** → `recipients_reassign` |
+| "Fix the signer's email address" | **CONFIRM** → `recipients_edit` |
+| "Archive that completed contract" | **CONFIRM** → `documents_archive` |
+| "Set up a webhook for signed contracts" | **No tool** — webhooks aren't available through MCP; direct to the PandaDoc UI |
 
 ---
 
@@ -483,22 +449,26 @@ When a PandaDoc tool call fails, diagnose and respond in plain English. Never sh
 
 ## Scope Limitations
 
-The PandaDoc MCP connector **can** do (via the official PandaDoc MCP server):
+The PandaDoc MCP connector **can** do (via the 22 verified tools):
 
-- Create documents from templates, file uploads, or public URLs
-- Update document content (fields, text blocks, tables, pricing tables, quotes, variables, images)
-- Manage document lifecycle (send, decline, expire, mark paid, reassign, approval workflows)
-- Configure signing (signing order, identity verification, embedded signing, post-completion redirects)
-- Search and filter documents (full-text, by tags, status, expiry, customer)
-- Run bulk operations (find unsigned, send reminders, archive completed, expire drafts)
-- Generate analytics and reports (status counts, audit trails, AI summaries, date-bounded reports, text extraction)
-- Set up and verify webhooks
-- Build advanced workflows (multi-party signing, complex proposals, onboarding agreements)
-- Diagnose document send failures and retrieve support escalation IDs
+- Create documents from a **template** (`documents_create`) or from **markdown** (`documents_create_from_markdown`)
+- Create templates from a **public PDF URL** (`templates_create`)
+- Update draft content — fields, text blocks, tables, pricing tables, tokens/variables, images (`documents_update`, `documents_fields_assign`)
+- Manage lifecycle — send (`documents_send`, incl. approval workflows + sender override), mark completed/paid/expired/declined (`documents_status_change`), archive (`documents_archive`)
+- Manage recipients — add CC, edit in place, reassign a signer, delete (`recipients_*`)
+- Configure signing **as parameters** — signing order and identity verification on `documents_create`/`documents_update` recipients
+- Search and filter documents — full-text, by tags, status, date windows (`documents_list`, `documents_search`)
+- Read status and reporting — per-recipient signing progress (`documents_details_get`), overall status (`documents_status_get`), audit trail (`documents_audit_trail_get`), AI summaries (`documents_summary_get`), AI metadata (`documents_metadata_get`), text extraction (`documents_content_get`)
 
-The PandaDoc MCP connector **cannot** do (needs the PandaDoc UI or other tools):
+The PandaDoc MCP connector **cannot** do (needs the PandaDoc UI or other tools) — all verified absent 2026-06-05:
 
-- **Delete documents permanently.** Use the PandaDoc UI to delete; MCP supports archive / expire only.
+- **Send reminders to unsigned recipients.** No reminder tool. You can find + report unsigned documents, but cannot auto-remind through MCP.
+- **Register / verify / monitor webhooks.** No webhook tools at all. Use the PandaDoc UI.
+- **Download the signed PDF.** `documents_content_get` returns text (plaintext/markdown) only, not the PDF binary. Use the PandaDoc UI to download.
+- **Create documents from a file upload or a public URL.** Only templates can be created from a (PDF URL) source; documents come from a template or markdown.
+- **Generate embedded editing / sending / signing session URLs.** No session-URL tools.
+- **Transfer document ownership / reassign the sender** as a standalone op — change the sender via `documents_send.sender` or `documents_create.owner`; `recipients_reassign` swaps a *signer*, not the sender.
+- **Delete documents permanently.** `documents_archive` is a reversible delete (`forever=false`); permanent delete needs the PandaDoc UI.
 - **Connect via API key.** PandaDoc MCP is OAuth-only. No Bearer-token fallback through this skill.
 - **Bypass plan gating** — identity verification, approval workflows, content library blocks may require Business+ / Enterprise plans.
 - **Bypass admin allowlisting** — if the admin blocks third-party integrations, the only option is for the admin to allowlist Claude.
@@ -508,11 +478,11 @@ The PandaDoc MCP connector **cannot** do (needs the PandaDoc UI or other tools):
 
 ## Behaviour Guidelines (Phase 2)
 
-- **Every PandaDoc tool call may require a `user_intent` parameter** — Canva MCP precedent (every Canva tool's schema declares `user_intent` as Mandatory). Pass a one-sentence framing of the user's goal on every call; verify on first smoke.
+- **Never pass a `user_intent` parameter** — PandaDoc tools do NOT accept it, and because every schema is `additionalProperties: false`, passing it makes the call fail validation. (This is the opposite of the Canva MCP precedent — verified live 2026-06-05.) Pass only the documented parameters.
 - **Always confirm before sending, declining, marking paid, reassigning, expiring, or archiving** — these are destructive operations that affect REAL legal documents and may notify recipients or change billing records. Summarise what you are about to do and wait for the user's OK before firing.
-- **`send-document` is the canonical destructive op** — it sends real legal documents to real recipients via email. Always re-read the document title, recipient names, and recipient emails back to the user before sending, in plain English: *"I'm about to send 'Master Services Agreement - Acme Corp' to John Smith (john@acme.com) and Jane Doe (jane@acme.com) for signature. OK?"*
-- **Bulk reminder sends need an explicit count + sample** — before `Send-reminders-for-unsigned-contracts`, surface: *"I'm about to send reminder emails to 14 recipients across 9 unsigned contracts. Examples: John Smith (Acme MSA, sent 12 days ago), Jane Doe (Beta SOW, sent 8 days ago)... OK to send all 14?"*
-- **`Mark-documents-as-paid` affects billing records** — this is not a UI flag; downstream invoicing systems may consume it. Confirm with extra care: *"This will mark the Acme invoice as paid in your PandaDoc records. If your accounting software syncs with PandaDoc, this will flow through. OK?"*
+- **`documents_send` is the canonical destructive op** — it sends real legal documents to real recipients via email. Always re-read the document title, recipient names, and recipient emails (from `documents_details_get`) back to the user before sending, in plain English: *"I'm about to send 'Master Services Agreement - Acme Corp' to John Smith (john@acme.com) and Jane Doe (jane@acme.com) for signature. OK?"*
+- **There is no reminder tool** — when the user asks to "remind unsigned recipients," do NOT claim you sent reminders. Find unsigned documents (`documents_list`/`documents_search` `status:[1]`), report them clearly, and explain reminders must be sent from the PandaDoc UI. (Confirmed absent 2026-06-05.)
+- **`documents_status_change` with `status:10` (paid) affects records** — this is not a UI flag; downstream invoicing systems may consume it. Confirm with extra care: *"This will mark the Acme invoice as paid in your PandaDoc records. If your accounting software syncs with PandaDoc, this will flow through. OK?"*
 - **Discover IDs before writing** — PandaDoc documents and templates are referenced by opaque IDs. Always call list / search tools once per session before any write or send, unless you already have the IDs from earlier in the conversation.
 - **Respect plan gating before calling** — if you're unsure of the user's PandaDoc plan, attempt the call and translate the `403` / `plan_required` response into plain English.
 - **Documents often contain confidential content** — contracts, NDAs, customer data, pricing. Never dump full document content into a public log without checking with the user first. Prefer titles and recipient counts over full text dumps.
