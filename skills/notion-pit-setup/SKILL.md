@@ -1,6 +1,6 @@
 ---
 name: notion-pit-setup
-description: "Connect the user's Notion workspace to Claude Code via a Personal Integration Token (PIT), so the resulting MCP entry is replicable to a headless agent server. Install is autonomous Playwright-driven: drive `notion.so/profile/integrations` in the Playwright MCP browser, detect login state and prompt sign-in only if needed, autonomously create a new internal integration (name + workspace + capabilities + submit), reveal and extract the PIT from the DOM via clipboard transit (the raw token NEVER appears in chat or tool-call returns), then register the MCP server entry via `claude mcp add --transport http --header`. The user's only manual moments are signing in to Notion (if not already), confirming the workspace + capabilities on the creation form, and choosing the page-access strategy (workspace teamspace connection if admin/Plus, otherwise per-page sharing). Use this skill when the user asks to set up Notion FOR THE AGENT SERVER, mentions needing Notion in a headless install, or explicitly asks for the PIT path. For laptop-only use, prefer the `notion-connector` skill (plugin OAuth path) — this skill is the headless-friendly Model 1 alternative."
+description: "Connect the user's Notion workspace to Claude Code via a Personal Integration Token (PIT), so the resulting MCP entry is replicable to a headless agent server. Install is autonomous Playwright-driven: drive `notion.so/profile/integrations` in the Playwright MCP browser, detect login state and prompt sign-in only if needed, autonomously create a new internal integration (name + workspace + capabilities + submit), reveal and extract the PIT from the DOM via clipboard transit (the raw token NEVER appears in chat or tool-call returns), then register the MCP server entry via `claude mcp add --transport http --header`. The user's only manual moments are signing in to Notion (if not already), confirming the workspace + capabilities on the creation form, and choosing the page-access strategy (workspace teamspace connection if admin/Plus, otherwise per-page sharing). Use this skill when the user asks to set up Notion FOR THE AGENT SERVER, mentions needing Notion in a headless install, or explicitly asks for the PIT path. For laptop-only use, prefer the `notion-connector` skill (the official `ntn` CLI — OAuth token in the OS keychain, nothing written to config) — this skill is the headless-friendly Model 1 alternative."
 allowed-tools: mcp__plugin_playwright_playwright__*, mcp__playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
@@ -13,7 +13,7 @@ metadata:
     - server-friendly
   pairs-with:
     - skill: notion-connector
-      reason: Sibling skill for the laptop-friendly Model 2 (plugin OAuth) path — this skill is the Model 1 alternative for headless servers
+      reason: Sibling skill for the laptop-friendly Model 2 (`ntn` CLI, OAuth → OS keychain) path — this skill is the Model 1 alternative for headless servers
     - skill: xero-connector
       reason: Sibling Playwright-driven autonomous connector — admin-portal + DOM-extract pattern, clipboard-transit secret handling
     - skill: hubspot-connector
@@ -34,12 +34,13 @@ This skill connects a user's Notion workspace to Claude Code by creating a **Per
 - The user explicitly asks to set up Notion for an **agent server** or **headless** environment
 - The agent stack at [`advanced-claude-workshop-kit`](https://github.com/selrai-company/advanced-claude-workshop-kit) needs Notion access on its EC2
 - The user mentions wanting their Notion configuration to **sync from laptop to server** via `sync-connectors.sh`
-- The user has already tried the plugin (Model 2) and hit headless-server OAuth limitations
+- The user has already tried the laptop CLI path (Model 2) and hit headless-server limitations (the `ntn` keychain token doesn't sync to a server)
 
 **Use [`notion-connector`](../notion-connector/SKILL.md) instead when**:
-- Laptop-only Notion usage
-- User wants the plugin's curated skill set (`Notion:tasks:plan`, etc.)
+- Laptop-only Notion usage (it uses the official `ntn` CLI; the OAuth token lives in the OS keychain, nothing in config)
 - No server-side access needed
+
+For the official plugin's **curated `Notion:*` skills** (`Notion:tasks:plan`, `Notion:search`, etc.), install the plugin directly with `claude plugin install notion@claude-plugins-official` — it coexists with both Model 1 (PIT) and Model 2 (`ntn` CLI).
 
 The two skills coexist intentionally — they target different deployment models. See the architectural finding in [`advanced-claude-workshop-kit/connectors/notion/README.md`](https://github.com/selrai-company/advanced-claude-workshop-kit/blob/main/connectors/notion/README.md) for the Model 1 / Model 2 distinction.
 
@@ -70,9 +71,9 @@ This shape matches the URL-substring-detect rule used by [`advanced-claude-works
 
 Before opening any browser, confirm the user understands the security trade-offs:
 
-> "I'm about to create a Notion Personal Integration Token (PIT) on your behalf. A PIT is a long-lived API key tied to your Notion account — it doesn't expire (unlike the plugin's OAuth token, which auto-refreshes). It gives whatever pages you share with it full Read/Update/Insert access. You can revoke it any time at notion.so/profile/integrations. OK to proceed?"
+> "I'm about to create a Notion Personal Integration Token (PIT) on your behalf. A PIT is a long-lived API key tied to your Notion account — it doesn't expire (unlike an OAuth login, which is managed and refreshed for you). It gives whatever pages you share with it full Read/Update/Insert access. You can revoke it any time at notion.so/profile/integrations. OK to proceed?"
 
-If the user explicitly says no, do not proceed. If they say "use the plugin instead," hand off to `notion-connector`.
+If the user explicitly says no, do not proceed. If they say "use the laptop CLI instead," hand off to `notion-connector`.
 
 ---
 
@@ -117,7 +118,7 @@ One short message:
 
 > "I'll set up a Notion connector you can use on a server. I'll open Notion's integration portal in a browser, create a new integration in your workspace, and grab the token. You'll need to (1) sign in to Notion if it asks, and (2) pick which pages or teamspace the integration can access. Two clicks at most. Ready?"
 
-Wait for any affirmative ("yes", "go", "ok", "ready"). If they refuse or ask to use the plugin, hand off to `notion-connector`.
+Wait for any affirmative ("yes", "go", "ok", "ready"). If they refuse or ask for the laptop CLI path, hand off to `notion-connector`.
 
 ### Step 2 — Open `notion.so/developers/connections` + handle login
 
@@ -362,7 +363,7 @@ Once Phase 1 completes, the user interacts with Notion via the **raw MCP tool su
 | `mcp__notion__notion-get-users` / `notion-get-teams` | Workspace member directory |
 | `mcp__notion__notion-duplicate-page` / `notion-move-pages` | Page-level moves |
 
-These are the SAME tools the official plugin exposes (the plugin and PIT path hit the same `https://mcp.notion.com/mcp` endpoint). The plugin additionally ships **curated `Notion:*` skills** (Notion:search, Notion:tasks:plan, etc.) on top of the raw tools — those skills are NOT available via the PIT path. If the user wants the curated skills, install the plugin via `notion-connector` instead (the two coexist; both can be active).
+These are the SAME tools the official plugin exposes (the plugin and PIT path hit the same `https://mcp.notion.com/mcp` endpoint). The plugin additionally ships **curated `Notion:*` skills** (Notion:search, Notion:tasks:plan, etc.) on top of the raw tools — those skills are NOT available via the PIT path. If the user wants the curated skills, install the official plugin directly with `claude plugin install notion@claude-plugins-official` (it coexists with both the PIT path and the `ntn` CLI path in `notion-connector`).
 
 ---
 
@@ -433,6 +434,6 @@ The user is logged into a Notion account that has no workspaces yet. Pause and t
 
 ## When this skill is NOT the right choice
 
-- If the user only needs Notion **on their laptop** and explicitly mentions wanting Claude's curated skills (`Notion:tasks:plan`, `Notion:search`, etc.) → use `notion-connector` (plugin OAuth path)
+- If the user wants Claude's curated Notion skills (`Notion:tasks:plan`, `Notion:search`, etc.) → install the official plugin directly (`claude plugin install notion@claude-plugins-official`). For general laptop use without those curated skills, `notion-connector` (the `ntn` CLI) is the simpler path
 - If the user is setting up a kit that lives entirely in claude.ai (web app) rather than Claude Code (CLI / app) → neither skill applies; the user authorizes via claude.ai's MCP marketplace UI
 - If the user already has the plugin installed AND a working agent server with its own plugin install + OAuth completed → both paths are working in parallel, no action needed
