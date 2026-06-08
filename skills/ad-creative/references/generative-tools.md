@@ -252,6 +252,7 @@ Full-stack video creation platform with cinematic camera controls.
 
 **Best for:** Social video ads, cinematic style, mobile-first content
 **Platform:** [higgsfield.ai](https://higgsfield.ai/)
+**Automate it:** the **`higgsfield-connector`** skill drives the official Higgsfield CLI — generate these images/videos directly from Claude (cost-estimate → generate → result URL), no manual web UI.
 
 **Capabilities:**
 - 50+ professional camera movements (zooms, pans, FPV drone shots)
