@@ -2,6 +2,21 @@
 
 All notable changes to this skill, oldest at the bottom.
 
+## [0.1.1] — 2026-06-08
+
+Docs/evidence update (no behaviour change).
+
+- **Image-to-video smoked live.** `seedance1_5` image-to-video run end-to-end:
+  `generate cost … --image <photo> --duration 4 --resolution 480p` → `2.4 credits`,
+  `generate create … --image <photo> --wait` → a 4.05s MP4 (H.264+AAC, 864×496) at
+  the result URL. The async video path (cost → create → poll → MP4) is now verified,
+  not just images. Walkthrough updated.
+- **Input content-safety finding.** Captured that Higgsfield returns
+  `Error: NSFW content detected` at `generate cost`/`create` and refuses to proceed
+  when the **input image** violates its content rules (e.g. images of minors). Added
+  an Error-Handling row instructing not to bypass the guardrail. Adults / products
+  pass normally.
+
 ## [0.1.0] — 2026-06-08
 
 Initial release. CLI-based connector for **Higgsfield** (cinematic AI image +
