@@ -9,7 +9,7 @@
 #                                    # (this is the path Claude uses — it collects the 8 answers
 #                                    #  conversationally, then persists them here. No TTY needed.)
 #   bash audit.sh --reset            # wipe and re-ask everything
-#   bash audit.sh --update <field>   # update one field only
+#   bash audit.sh --update <field> <value>   # change one saved answer (value JSON-parsed if structured)
 #   bash audit.sh --auto             # extract from memory, mark missing as TBC, no prompts (for testing)
 #
 # NOTE: the interactive mode below uses python input() and therefore REQUIRES a real TTY.
@@ -44,8 +44,20 @@ if [[ "$MODE" == "--ingest" ]]; then
   fi
 fi
 
-# Export to Python env so it can read MODE/STATE/MEMORY/INGEST_FILE
-export STATE MEMORY MODE INGEST_FILE
+# --update <field> <value>: change one already-saved answer (non-interactive, Claude-friendly).
+UPDATE_FIELD=""
+UPDATE_VALUE=""
+if [[ "$MODE" == "--update" ]]; then
+  UPDATE_FIELD="${2:-}"
+  UPDATE_VALUE="${3:-}"
+  if [[ -z "$UPDATE_FIELD" ]]; then
+    echo "ERROR: --update needs a field and a value: bash audit.sh --update <field> <value>" >&2
+    exit 2
+  fi
+fi
+
+# Export to Python env so it can read MODE/STATE/MEMORY/INGEST_FILE/UPDATE_*
+export STATE MEMORY MODE INGEST_FILE UPDATE_FIELD UPDATE_VALUE
 
 # Use Python for the heavy lifting — more readable than pure bash for JSON + prompts.
 # PYTHONUTF8=1 (UTF-8 Mode) forces utf-8 for BOTH stdout and file I/O (read_text/write_text),
@@ -164,6 +176,18 @@ elif mode == "--ingest":
         audit[k] = "TBC"
     if missing:
         sys.stderr.write("NOTE: marked TBC (not supplied): " + ", ".join(missing) + "\n")
+elif mode == "--update":
+    # Change one already-saved field. Value comes from argv via env (Claude-friendly, no TTY).
+    field = os.environ.get("UPDATE_FIELD", "")
+    raw_val = os.environ.get("UPDATE_VALUE", "")
+    if field not in REQUIRED:
+        sys.stderr.write(f"ERROR: unknown field {field!r}. One of: {', '.join(REQUIRED)}\n")
+        sys.exit(2)
+    # Parse the value as JSON when it looks structured (numbers, tools/volume dicts); else keep the string.
+    try:
+        audit[field] = json.loads(raw_val)
+    except Exception:
+        audit[field] = raw_val
 elif mode != "--update":
     # Interactive flow — ask only for fields we don't have
     print("\n═══════════════════════════════════════════════════════════")

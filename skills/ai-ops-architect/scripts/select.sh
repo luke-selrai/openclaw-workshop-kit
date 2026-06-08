@@ -110,6 +110,23 @@ if any(p < 1 or p > len(top) for p in picks):
 
 selected_opps = [top[p - 1] for p in picks]
 
+def delegate_for(runtime):
+    # Catalog runtimes are free text: "n8n", "managed-agent", "managed-agent (Haiku)",
+    # "managed-agent (Haiku for triage) + n8n", "routine", "managed-agent (Sonnet) or routine"...
+    # Match by keyword (NOT exact string) and test hybrid (both engines) first.
+    rt = (runtime or "").lower()
+    has_agent = "managed-agent" in rt
+    has_n8n = "n8n" in rt
+    if has_agent and has_n8n:
+        return "hybrid:/n8n+/managed-agents-setup"
+    if has_agent:
+        return "/managed-agents-setup"
+    if "routine" in rt:
+        return "/schedule"
+    if has_n8n:
+        return "/n8n"
+    return "/n8n"
+
 # Atomic write via tmpfile + os.replace
 out = {
     "selected_at": datetime.now(timezone.utc).isoformat(),
@@ -120,12 +137,7 @@ out = {
             "title": opp.get("title") or opp.get("id"),
             "runtime": opp.get("runtime", "n8n"),
             "score": opp.get("score") or opp.get("fit"),
-            "delegate_to": (
-                "/managed-agents-setup" if opp.get("runtime") == "managed-agents"
-                else "/n8n" if opp.get("runtime") == "n8n"
-                else "hybrid:/n8n+/managed-agents-setup" if opp.get("runtime") == "hybrid"
-                else "/n8n"
-            ),
+            "delegate_to": delegate_for(opp.get("runtime")),
         }
         for opp in selected_opps
     ],
