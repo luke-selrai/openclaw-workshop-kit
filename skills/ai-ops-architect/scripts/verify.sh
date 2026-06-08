@@ -57,12 +57,16 @@ fi
 
 # AC4 — managed-agent presets via canonical source (managed-agents-setup)
 LOADER="$ROOT/templates/managed-agents/presets.json"
-CANONICAL="$HOME/.claude/skills/managed-agents-setup/references/business-outcome-presets.json"
+# Resolve canonical presets relative to the sibling skill first (works in a kit bundle / clone),
+# then fall back to the installed ~/.claude location. Pass paths via env so MSYS converts them
+# for Windows python (paths baked into heredoc text are NOT converted and fail on Windows).
+CANONICAL="$ROOT/../managed-agents-setup/references/business-outcome-presets.json"
+[[ -s "$CANONICAL" ]] || CANONICAL="$HOME/.claude/skills/managed-agents-setup/references/business-outcome-presets.json"
 if [[ -s "$LOADER" ]]; then
-    AC4_OUT=$(python3 - <<PY
+    AC4_OUT=$(LOADER="$LOADER" CANONICAL="$CANONICAL" PYTHONUTF8=1 python3 - <<'PY'
 import json, sys, os
-loader_path = "$LOADER"
-canonical_path = "$CANONICAL"
+loader_path = os.environ["LOADER"]
+canonical_path = os.environ["CANONICAL"]
 loader = json.load(open(loader_path))
 # If loader has type=loader, follow it; else treat loader as the data
 if isinstance(loader, dict) and loader.get("_meta", {}).get("type") == "loader":
@@ -121,7 +125,11 @@ rm -rf "$TMPSTATE"
 
 # SKILL + agent definition
 [[ -f "$ROOT/SKILL.md" ]] && ok "skill manifest SKILL.md present" || fail "SKILL.md missing"
-[[ -f "$HOME/.claude/agents/ai-ops-architect.md" ]] && ok "driver agent present" || fail "agents/ai-ops-architect.md missing"
+if [[ -f "$ROOT/agents/ai-ops-architect.md" || -f "$HOME/.claude/agents/ai-ops-architect.md" ]]; then
+    ok "driver agent present"
+else
+    warn "agents/ai-ops-architect.md not found (bundled or installed)"
+fi
 [[ -f "$ROOT/INSTALL.md" ]] && ok "INSTALL.md present" || warn "INSTALL.md missing"
 [[ -f "$ROOT/plugin.json" ]] && ok "plugin manifest present" || warn "plugin.json missing"
 

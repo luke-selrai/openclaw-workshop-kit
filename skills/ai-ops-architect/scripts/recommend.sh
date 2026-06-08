@@ -65,28 +65,35 @@ if current and current.get("title"):
 
 # Score each opportunity
 def score(op, audit):
+    # Audit fields can be "TBC" strings (from --auto, or --ingest when the caller omits a
+    # field) instead of their natural type. Coerce defensively so scoring never crashes.
     s = 0
     # Industry overlap
     industries = op.get("industries", [])
     if "all" in industries or audit.get("industry") in industries:
         s += 3
-    # Pain keyword match
-    pains_text = " ".join(audit.get("pains", []) or []).lower()
-    north_star = (audit.get("north_star") or "").lower()
+    # Pain keyword match (pains may be a list, or "TBC"/missing)
+    pains = audit.get("pains")
+    pains_text = " ".join(pains).lower() if isinstance(pains, list) else ""
+    ns = audit.get("north_star")
+    north_star = ns.lower() if isinstance(ns, str) else ""
     pain_text_combined = pains_text + " " + north_star
     for kw in op.get("pain_keywords", []):
         if kw in pain_text_combined:
             s += 5
-    # Tools coverage — does the user already have the services this needs?
+    # Tools coverage — does the user already have the services this needs? (tools may be a dict, or "TBC")
     user_tools = []
-    for v in (audit.get("tools") or {}).values():
-        if isinstance(v, list):
-            user_tools.extend([t.lower() for t in v])
+    tools = audit.get("tools")
+    if isinstance(tools, dict):
+        for v in tools.values():
+            if isinstance(v, list):
+                user_tools.extend([t.lower() for t in v])
     services = [s.lower() for s in op.get("services", [])]
     coverage = sum(1 for svc in services if any(t in svc or svc in t for t in user_tools))
     s += coverage * 2
-    # Difficulty alignment with tech_comfort
+    # Difficulty alignment with tech_comfort (may be int, or "TBC"/missing)
     tc = audit.get("tech_comfort", 3)
+    tc = tc if isinstance(tc, int) else 3
     diff = op.get("difficulty", "5min-config")
     if diff == "30min-custom" and tc <= 2: s -= 3
     if diff == "auto-deploy": s += 1
