@@ -228,6 +228,7 @@ Diagnose and respond in plain English; never show raw errors.
 |---|---|---|
 | `Not authenticated. Hint: Run: hf auth login` | "Your Higgsfield connection needs a quick refresh — one moment." | Re-run Phase 1 Step 3 |
 | Insufficient credits | "You're out of Higgsfield credits for that — you'd need to top up your plan to generate more." | User tops up; offer a cheaper/smaller model meanwhile |
+| `Error: NSFW content detected` (at `cost`/`create`) | "Higgsfield's content rules won't allow generating from that image — for example, photos of children are blocked." | Platform input-safety guardrail. **Do not** try to bypass it (re-crop, reword, switch models). Surface plainly and stop; suggest a different (e.g. adult / product) source if appropriate |
 | `Unknown model …. Run: … model list` | (silent) | `higgsfield model list` to get the right `job_set_type` |
 | Bad/missing param | "That model needs a different setting — let me check what it accepts." | `higgsfield model get <type>` then reformat the call |
 | Job failed / timed out on `wait` | "That generation didn't complete — let me retry it." | `generate get <id>` to inspect; retry once with a longer `--timeout` |

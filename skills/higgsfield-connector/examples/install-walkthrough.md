@@ -1,6 +1,6 @@
 # Higgsfield Connector — Install Walkthrough
 
-> **Status: fully captured, 2026-06-08 against rodolfo@selrai.com.au's Higgsfield account** (`@higgsfield/cli` v0.1.40). Phase 1 (install + device login) and a Phase 2 image-generation smoke were run live end-to-end. The login was approved in a Playwright browser; one `nano_banana_2` image was generated (2 credits; balance 10 → 8) and its real response shape captured.
+> **Status: fully captured, 2026-06-08 against rodolfo@selrai.com.au's Higgsfield account** (`@higgsfield/cli` v0.1.40). Phase 1 (install + device login) plus **both** a Phase 2 image-generation smoke **and** an image-to-video smoke were run live end-to-end. The login was approved in a Playwright browser; a `nano_banana_2` image was generated (2 credits) and a `seedance1_5` image-to-video clip was generated (2.4 credits, 4.05s MP4), with real response shapes captured. The platform's input content-safety guardrail (`Error: NSFW content detected`) was also observed live.
 
 This walkthrough documents the default path: Phase 0 → Phase 1 → a Phase 2 smoke. Single-mode skill (CLI device-login OAuth; no API-key path).
 
@@ -114,9 +114,23 @@ rodolfo@selrai.com.au — free plan, 8 credits
 - `model list --image` returns the full image catalog (Nano Banana Pro, FLUX.2, Seedream, Cinematic Studio, …).
 - `generate cost nano_banana_2` → `2 credits` (matched actual spend).
 - `generate create … --wait` → result URL; `generate get/list --json` → the shape above.
-- Credits decremented 10 → 8 exactly as estimated.
+- Credits decremented as estimated on every job.
 
-**Not exercised** (free plan, 10 credits): video generation (costs more credits), `soul-id` training, and the Marketing Studio / product-photoshoot / marketplace-card flows — documented from `--help` + `model`/`--help` contracts, not live-smoked.
+**Image-to-video smoked live too** (`seedance1_5`, image-to-video): `generate cost
+seedance1_5 --image <photo> … --duration 4 --resolution 480p` → `2.4 credits`;
+`generate create … --image <photo> --wait --wait-timeout 12m` → a 4.05s MP4 (H.264+AAC,
+864×496) at the result URL. So the full async **video** path (cost → create → poll →
+MP4) is verified end-to-end, not just images.
+
+**Input content safety (captured 2026-06-08).** Higgsfield enforces a content filter on
+**input media** — `generate cost`/`create` return `Error: NSFW content detected` and refuse
+to proceed (e.g. when the source image is of a minor). This is the platform's guardrail;
+do not attempt to bypass it (re-cropping, rewording, switching models). Surface it plainly
+and stop. Adults / products pass normally.
+
+**Not exercised** (free plan, limited credits): `soul-id` training and the Marketing Studio /
+product-photoshoot / marketplace-card flows — documented from `--help` + `model`/`--help`
+contracts, not live-smoked.
 
 ---
 
