@@ -21,13 +21,19 @@ CATALOG="$ROOT/references/opportunity-catalog.md"
 
 [ -f "$AUDIT" ] || { echo "REFUSE: run audit.sh first ($AUDIT not found)"; exit 1; }
 
-python3 <<'PYEOF'
+# Export script-relative paths so the Python heredoc resolves the SAME install location.
+# Do NOT hardcode ~/.claude — the skill may be bundled inside a kit or run from a project workspace.
+export STATE ROOT CATALOG AUDIT
+
+# PYTHONUTF8=1 (UTF-8 Mode) forces utf-8 for BOTH stdout and file I/O — so reading the UTF-8
+# opportunity-catalog.md never mojibakes arrows/separators on a Windows cp1252 locale.
+PYTHONUTF8=1 python3 <<'PYEOF'
 import json, re, os, sys
 from pathlib import Path
 
-state = Path(os.path.expanduser("~/.claude/skills/ai-ops-architect/.state"))
+state = Path(os.environ["STATE"])
 audit = json.loads((state / "audit-result.json").read_text())
-catalog_path = Path(os.path.expanduser("~/.claude/skills/ai-ops-architect/references/opportunity-catalog.md"))
+catalog_path = Path(os.environ["CATALOG"])
 catalog_text = catalog_path.read_text()
 
 # Parse the catalog markdown into structured opportunities
@@ -115,7 +121,7 @@ for i, op in enumerate(ranked[:5], 1):
     md.append(f"- **Score**: {op['score']}\n")
 
 md.append("---\n## Next: pick 1-3 to build")
-md.append("Run `bash scripts/select.sh` to choose which to deploy in this session.")
+md.append("Confirm the owner's 1-3 picks, then run `bash scripts/select.sh --auto <indices>` (e.g. `--auto 1,3`) — the bare interactive form needs a TTY.")
 
 (state / "audit-output.md").write_text("\n".join(md))
 print((state / "audit-output.md").read_text())

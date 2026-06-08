@@ -4,10 +4,16 @@
 # for anything not auto-extractable, writes ~/.claude/skills/ai-ops-architect/.state/audit-result.json.
 #
 # Usage:
-#   bash audit.sh              # interactive
-#   bash audit.sh --reset      # wipe and re-ask everything
+#   bash audit.sh                    # interactive (direct-terminal use only — NOT for Claude)
+#   bash audit.sh --ingest <file>    # non-interactive: write the intake answers from a JSON file
+#                                    # (this is the path Claude uses — it collects the 8 answers
+#                                    #  conversationally, then persists them here. No TTY needed.)
+#   bash audit.sh --reset            # wipe and re-ask everything
 #   bash audit.sh --update <field>   # update one field only
-#   bash audit.sh --auto       # extract from memory, mark missing as TBC, no prompts (for testing)
+#   bash audit.sh --auto             # extract from memory, mark missing as TBC, no prompts (for testing)
+#
+# NOTE: the interactive mode below uses python input() and therefore REQUIRES a real TTY.
+# When Claude drives this skill there is no TTY, so Claude MUST use --ingest (see SKILL.md).
 
 set -eu
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,11 +33,24 @@ if [[ "$MODE" == "--reset" ]]; then
   exit 0
 fi
 
-# Export to Python env so it can read MODE/STATE/MEMORY
-export STATE MEMORY MODE
+# --ingest <file>: non-interactive intake (the path Claude uses). Validate the file up front.
+INGEST_FILE=""
+if [[ "$MODE" == "--ingest" ]]; then
+  INGEST_FILE="${2:-}"
+  if [[ -z "$INGEST_FILE" || ! -f "$INGEST_FILE" ]]; then
+    echo "ERROR: --ingest requires a path to a JSON file of intake answers (got: '${INGEST_FILE:-<none>}')" >&2
+    echo "Write the 8 answers to a JSON file first, then: bash audit.sh --ingest /path/to/answers.json" >&2
+    exit 2
+  fi
+fi
 
-# Use Python for the heavy lifting — more readable than pure bash for JSON + prompts
-python3 <<'PYEOF'
+# Export to Python env so it can read MODE/STATE/MEMORY/INGEST_FILE
+export STATE MEMORY MODE INGEST_FILE
+
+# Use Python for the heavy lifting — more readable than pure bash for JSON + prompts.
+# PYTHONUTF8=1 (UTF-8 Mode) forces utf-8 for BOTH stdout and file I/O (read_text/write_text),
+# so the ✓ / box / arrow glyphs don't crash, and reading memory/JSON never mojibakes on Windows cp1252.
+PYTHONUTF8=1 python3 <<'PYEOF'
 import json, os, re, sys
 from pathlib import Path
 
@@ -117,10 +136,34 @@ def ask(prompt, default=None, options=None):
     ans = input(f"{prompt}{suffix} > ").strip()
     return ans or default
 
+REQUIRED = ["industry", "team_size", "tools", "pains", "volume", "tech_comfort", "budget", "north_star"]
+
 if mode == "--auto":
     # In auto mode, just write whatever we have and mark gaps as TBC
-    for k in ["industry", "team_size", "tools", "pains", "volume", "tech_comfort", "budget", "north_star"]:
+    for k in REQUIRED:
         audit.setdefault(k, "TBC")
+elif mode == "--ingest":
+    # Non-interactive intake (the Claude path). Read the answers JSON and merge it over
+    # anything auto-extracted from memory — the user's explicit answers win.
+    ingest_file = os.environ.get("INGEST_FILE", "")
+    try:
+        payload = json.loads(Path(ingest_file).read_text())
+    except Exception as e:
+        sys.stderr.write(f"ERROR: could not read/parse --ingest file {ingest_file!r}: {e}\n")
+        sys.exit(2)
+    if not isinstance(payload, dict):
+        sys.stderr.write("ERROR: --ingest JSON must be an object of {field: answer}\n")
+        sys.exit(2)
+    for k, v in payload.items():
+        if v not in (None, "", []):
+            audit[k] = v
+    # Any of the 8 the caller didn't supply (and memory couldn't fill) get marked TBC,
+    # and we tell the caller which — so Claude can ask the user before recommending.
+    missing = [k for k in REQUIRED if not audit.get(k)]
+    for k in missing:
+        audit[k] = "TBC"
+    if missing:
+        sys.stderr.write("NOTE: marked TBC (not supplied): " + ", ".join(missing) + "\n")
 elif mode != "--update":
     # Interactive flow — ask only for fields we don't have
     print("\n═══════════════════════════════════════════════════════════")

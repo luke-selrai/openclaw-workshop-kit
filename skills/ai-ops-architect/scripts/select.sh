@@ -49,7 +49,7 @@ if [[ ! -f "$RANKED" ]]; then
     exit 2
 fi
 
-RANKED="$RANKED" SELECTED="$SELECTED" AUTO_PICKS="$AUTO_PICKS" python3 - <<'PYEOF'
+PYTHONUTF8=1 RANKED="$RANKED" SELECTED="$SELECTED" AUTO_PICKS="$AUTO_PICKS" python3 - <<'PYEOF'
 import json, os, sys
 from datetime import datetime, timezone
 from pathlib import Path

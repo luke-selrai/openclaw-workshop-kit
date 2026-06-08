@@ -28,6 +28,33 @@ Q8. Stitches 3+ SaaS apps with trivial transforms?    → n8n
 Q9. Default                                           → server cron (if available) else Routine
 ```
 
+### Visual flowchart (same logic, for non-technical tracing)
+
+```mermaid
+flowchart TD
+  S([Opportunity to build]) --> Q0{Build request?<br/>SaaS dashboard / app}
+  Q0 -- yes --> OUT([Out of scope → dev tools])
+  Q0 -- no --> Q0b{Pure data scrape?<br/>no OAuth, no judgement}
+  Q0b -- yes --> SCR([n8n Apify node, or server-cron])
+  Q0b -- no --> Q1{Client-visible / editable<br/>by a non-technical user?}
+  Q1 -- yes --> N8N([n8n])
+  Q1 -- no --> Q2{3rd-party SaaS webhook,<br/>transform + route?}
+  Q2 -- yes --> N8N
+  Q2 -- no --> Q3{Judgement AND 3+<br/>SaaS mechanical actions?}
+  Q3 -- yes --> HYB([Hybrid: Agent + n8n tools])
+  Q3 -- no --> Q4{Webhook needs<br/>Claude reasoning?}
+  Q4 -- yes --> MA([Managed Agent])
+  Q4 -- no --> Q5{Cadence &lt; 1 hour?}
+  Q5 -- yes --> CRON([server cron if available,<br/>else Routine])
+  Q5 -- no --> Q6{Durable state across runs?<br/>memory / conversation}
+  Q6 -- yes --> MA
+  Q6 -- no --> Q7{Scheduled wake→task→sleep<br/>+ repo-aware?}
+  Q7 -- yes --> ROUT([Routines])
+  Q7 -- no --> Q8{Stitches 3+ SaaS apps,<br/>trivial transforms?}
+  Q8 -- yes --> N8N
+  Q8 -- no --> DEF([Default: server cron if available,<br/>else Routine])
+```
+
 **Q3 unpacks**: if the opportunity needs LLM judgement (classify / decide / draft) AND mechanical actions across 3+ SaaS services, the hybrid pattern beats either pure runtime. The agent is cheaper because it only fires at decision points; n8n handles the deterministic rest. See `hybrid-pattern.md` for recipes. **Hybrid is offered, not forced** — the user can override to single-runtime if they want simpler.
 
 ## Comparison table
