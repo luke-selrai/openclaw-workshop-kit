@@ -214,4 +214,4 @@ ffmpeg -i INPUT.mp4 -c:v libx264 -crf 23 -preset medium -c:a aac -b:a 128k -movf
 - **hyperframes-media** — Whisper transcription (→ SRT for captions), TTS, background removal
 - **hyperframes-cli** — programmatic/templated React video (data-driven ads, animated graphics)
 - **higgsfield-connector** — generate AI images/clips and B-roll to edit in
-- **ad-creative** / **content-creator** — script and plan the video before you cut it
+- **ad-creative** / **copywriting** — script and plan the video before you cut it
