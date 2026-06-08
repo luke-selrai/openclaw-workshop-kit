@@ -1,4 +1,4 @@
-# Skills Reference — Your <!-- skills-audit:total -->189<!-- /skills-audit:total --> Installed Skills
+# Skills Reference — Your <!-- skills-audit:total -->190<!-- /skills-audit:total --> Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need — Claude picks the right skill automatically.
 
@@ -47,6 +47,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `hyperframes-cli` | HyperFrames CLI commands: init, preview, render, lint, doctor | "Render my video composition to MP4" | ADVANCED |
 | `hyperframes-media` | Asset prep for HyperFrames — TTS narration, transcription, background removal | "Generate voiceover narration for my video" | ADVANCED |
 | `hyperframes-registry` | Install prebuilt HyperFrames blocks and components | "Add a lower-third caption block to my video" | ADVANCED |
+| `obs-recording-setup` | Set up OBS to record screen/webcam with a perfect circular cam | "Set up OBS so I can record my tutorials" | ADVANCED |
 | `social-content` | Social posts for LinkedIn, Instagram, Facebook | "Write 7 LinkedIn posts for this week" | CORE |
 | `technical-writer` | Developer docs, API references, runbooks | "Document this process step by step" | ADVANCED |
 | `video-editor` | Edit recorded video locally & free (FFmpeg + auto-editor): trim, silence-cut, captions, reframe | "Cut the silences out of my podcast recording" | ADVANCED |
@@ -206,9 +207,9 @@ See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for
 
 ---
 
-**Total: <!-- skills-audit:total -->189<!-- /skills-audit:total --> skills installed**
+**Total: <!-- skills-audit:total -->190<!-- /skills-audit:total --> skills installed**
 - CORE: <!-- skills-audit:core -->23<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
-- ADVANCED: <!-- skills-audit:advanced -->93<!-- /skills-audit:advanced --> skills (available on request)
+- ADVANCED: <!-- skills-audit:advanced -->94<!-- /skills-audit:advanced --> skills (available on request)
 - DEV-ONLY: <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> skills (for technical integrations — never surfaced in demos)
 
 > Ask your assistant to do anything — it will automatically use the right skill for the job.
