@@ -117,7 +117,7 @@ def delegate_for(runtime):
     rt = (runtime or "").lower()
     has_agent = "managed-agent" in rt
     has_n8n = "n8n" in rt
-    if has_agent and has_n8n:
+    if "hybrid" in rt or (has_agent and has_n8n):
         return "hybrid:/n8n+/managed-agents-setup"
     if has_agent:
         return "/managed-agents-setup"
