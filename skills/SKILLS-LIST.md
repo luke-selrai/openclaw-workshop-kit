@@ -1,4 +1,4 @@
-# Skills Reference — Your <!-- skills-audit:total -->190<!-- /skills-audit:total --> Installed Skills
+# Skills Reference — Your <!-- skills-audit:total -->192<!-- /skills-audit:total --> Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need — Claude picks the right skill automatically.
 
@@ -24,6 +24,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `bot-developer` | Discord, Telegram, Slack bots | "Build a Telegram bot for my business" | ADVANCED |
 | `claude-api` | Build apps with the Claude API | "Help me build a Claude-powered app" | ADVANCED |
 | `mcp-creator` | Production-ready MCP server development | "Create a production MCP server" | ADVANCED |
+| `morning-brief` | Daily HTML email brief: today's calendar, new CRM contacts, inbox triage (needs Google Workspace connector) | "Run my morning brief" | CORE |
 | `n8n-mcp-tools-expert` | Expert guide for using n8n MCP tools | "Help me use n8n MCP effectively" | ADVANCED |
 | `n8n-workflow-patterns` | Proven n8n workflow architectural patterns | "Help me build this n8n workflow" | ADVANCED |
 | `orchestrator` | Master coordinator — delegates to specialist skills | "Orchestrate a multi-step research project" | ADVANCED |
@@ -174,6 +175,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 |---|---|---|---|
 | `indie-monetization-strategist` | Monetisation models for solopreneurs | "How should I price my new offer?" | CORE |
 | `paid-ads` | Google, Meta, LinkedIn campaign strategy | "Build me a Meta ads strategy" | CORE |
+| `process-discovery-call` | Turns a recorded discovery call into a CRM update, follow-up email draft, and Telegram summary (needs GoHighLevel, Telegram, and Google Workspace connectors) | "Process discovery call with Tom" | ADVANCED |
 | `sales-automator` | Cold outreach emails and sales templates | "Write a cold email to a restaurant owner" | CORE |
 
 ## Strategy & Business
@@ -207,9 +209,9 @@ See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for
 
 ---
 
-**Total: <!-- skills-audit:total -->190<!-- /skills-audit:total --> skills installed**
-- CORE: <!-- skills-audit:core -->23<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
-- ADVANCED: <!-- skills-audit:advanced -->94<!-- /skills-audit:advanced --> skills (available on request)
+**Total: <!-- skills-audit:total -->192<!-- /skills-audit:total --> skills installed**
+- CORE: <!-- skills-audit:core -->24<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
+- ADVANCED: <!-- skills-audit:advanced -->95<!-- /skills-audit:advanced --> skills (available on request)
 - DEV-ONLY: <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> skills (for technical integrations — never surfaced in demos)
 
 > Ask your assistant to do anything — it will automatically use the right skill for the job.
