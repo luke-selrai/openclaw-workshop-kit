@@ -131,7 +131,7 @@ else
     warn "agents/ai-ops-architect.md not found (bundled or installed)"
 fi
 [[ -f "$ROOT/INSTALL.md" ]] && ok "INSTALL.md present" || warn "INSTALL.md missing"
-[[ -f "$ROOT/plugin.json" ]] && ok "plugin manifest present" || warn "plugin.json missing"
+[[ -f "$ROOT/.claude-plugin/plugin.json" ]] && ok "plugin manifest present" || warn ".claude-plugin/plugin.json missing"
 
 echo
 for r in "${RESULTS[@]}"; do echo "  $r"; done

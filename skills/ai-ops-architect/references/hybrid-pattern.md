@@ -118,7 +118,7 @@ The orchestrator handles all 3 of those for them.
 When the user picks an opportunity flagged `runtime: hybrid`, the orchestrator runs both skills in sequence:
 
 1. **First**: `/n8n` builds the workflows as webhook-callable endpoints. Each gets a unique URL like `https://selrai.app.n8n.cloud/webhook/qualify-lead`.
-2. **Second**: `/managed-agents-setup` creates the agent. During Phase 4 (Connect), it reads the webhook URLs from the n8n build's output and uses `scripts/build-hybrid-tool.py` to generate the tool JSON spec, which gets passed to `create-agent.sh --tools`.
+2. **Second**: `/managed-agents-setup` creates the agent. During Phase 5 (Create the agent), it reads the webhook URLs from the n8n build's output and uses `scripts/build-hybrid-tool.py` to generate the tool JSON spec, which the managed-agents-setup skill loads as the agent's tool definitions.
 3. **The user sees**: one combined handoff doc listing the agent + all its workflow tools, with one kill switch that pauses everything.
 
 ## Connector strategy in hybrid mode
