@@ -56,6 +56,8 @@ for line in catalog_text.split("\n"):
         current["services"] = [s.strip() for s in m.group(1).split(",")]
     elif m := re.match(r"^\- \*\*value\*\*: (.+)$", line):
         current["value"] = m.group(1)
+    elif m := re.match(r"^\- \*\*trigger\*\*: (.+)$", line):
+        current["trigger"] = m.group(1)
     elif m := re.match(r"^\- \*\*difficulty\*\*: (.+)$", line):
         current["difficulty"] = m.group(1)
     elif m := re.match(r"^\- \*\*pain_keywords\*\*: (.+)$", line):
@@ -133,6 +135,7 @@ else:
     for i, op in enumerate(ranked[:5], 1):
         md.append(f"### {i}. {op['title']}")
         md.append(f"- **Runtime**: {op.get('runtime','?')}")
+        if op.get('trigger'): md.append(f"- **Trigger**: {op['trigger']}")
         md.append(f"- **Needs**: {', '.join(op.get('services', []))}")
         md.append(f"- **Estimated value**: {op.get('value','?')}")
         md.append(f"- **Difficulty**: {op.get('difficulty','?')}")

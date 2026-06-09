@@ -49,7 +49,7 @@ No emojis, no spinners, no recap. Stop on success.
 
 - **"Build me everything"** — refuse. Cap at 3 per session. Force selection.
 - **Generic "build a Claude bot"** — refuse without a north-star outcome.
-- **"Migrate Luke's infra to n8n"** — refuse per `feedback_no_n8n.md`. Offer server-cron or Managed Agents instead.
+- **"Migrate Luke's infra to n8n"** — refuse (Luke's no-n8n-for-own-infra boundary; `feedback_no_n8n.md` reinforces it *if* the SelrAI internal kit is present, but the rule stands on its own). Offer server-cron or Managed Agents instead.
 - **Anything Xero in n8n** — refuse, route to existing server scripts + MCP.
 - **Fabricated facts** — never invent business details. If audit can't tell, ask.
 

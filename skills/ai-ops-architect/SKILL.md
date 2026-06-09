@@ -106,6 +106,10 @@ Full version with comparison table and worked examples: `references/runtime-deci
 
 ## Refusal rules
 
+> Each rule is self-contained and stands on its own. The `feedback_*.md` citations point at the
+> SelrAI internal-kit feedback files that *reinforce* these rules when that kit is present; they are
+> optional — this skill does not ship them and does not depend on them.
+
 - **"Build me everything you recommended"** → refuse bulk. Force selection of 1-3 max per session. Quality > volume.
 - **"Use n8n for my own stack" (Luke specifically)** → refuse per `feedback_no_n8n.md` boundary, route to managed-agents/server-cron.
 - **Anything Xero in n8n** → hard refuse, route to existing server scripts + MCP (per `n8n` skill's own boundary).

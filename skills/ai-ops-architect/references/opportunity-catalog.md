@@ -553,16 +553,16 @@ Schema for each entry:
 
 ## Match scoring (used by recommend.sh)
 
-For each opportunity, compute:
+For each opportunity, `recommend.sh` computes:
 ```
-score = (industry_overlap * 3)
-      + (pain_keyword_match * 5)
-      + (tools_coverage * 2)
-      - (budget_overshoot * 4)        # penalise expensive runtimes if budget low
-      + (difficulty_alignment * 1)    # penalise 30min-custom if tech_comfort=1
+score = +3   if the user's industry is in the opportunity's industries (or industries = "all")
+      + 5    per matched pain keyword (opportunity pain_keywords found in the user's pains + north-star)
+      + 2    per service the user already has that the opportunity needs
+      - 3    if difficulty is "30min-custom" and tech_comfort <= 2
+      + 1    if difficulty is "auto-deploy"
 ```
 
-Top 3 by score = recommendation. Ties broken by `value` (hrs/mo).
+Opportunities scoring > 0 are ranked highest-first; the top 5 are shown. (No budget term is applied today — keep this block in sync with `recommend.sh` `score()`.)
 
 ## How this catalog grows
 
