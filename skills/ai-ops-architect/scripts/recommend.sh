@@ -74,7 +74,7 @@ def score(op, audit):
         s += 3
     # Pain keyword match (pains may be a list, or "TBC"/missing)
     pains = audit.get("pains")
-    pains_text = " ".join(pains).lower() if isinstance(pains, list) else ""
+    pains_text = " ".join(str(p) for p in pains).lower() if isinstance(pains, list) else ""
     ns = audit.get("north_star")
     north_star = ns.lower() if isinstance(ns, str) else ""
     pain_text_combined = pains_text + " " + north_star
@@ -87,13 +87,18 @@ def score(op, audit):
     if isinstance(tools, dict):
         for v in tools.values():
             if isinstance(v, list):
-                user_tools.extend([t.lower() for t in v])
+                # drop empty / 1-char noise so a "" or "x" tool can't substring-match every service
+                user_tools.extend([t.lower().strip() for t in v if isinstance(t, str) and len(t.strip()) >= 2])
     services = [s.lower() for s in op.get("services", [])]
     coverage = sum(1 for svc in services if any(t in svc or svc in t for t in user_tools))
     s += coverage * 2
-    # Difficulty alignment with tech_comfort (may be int, or "TBC"/missing)
-    tc = audit.get("tech_comfort", 3)
-    tc = tc if isinstance(tc, int) else 3
+    # Difficulty alignment with tech_comfort. Coerce numerically: "2" (string from --ingest) and 2
+    # both yield 2 so the low-tech penalty fires; "TBC"/missing fall back to 3.
+    tc_raw = audit.get("tech_comfort", 3)
+    try:
+        tc = int(tc_raw)
+    except (TypeError, ValueError):
+        tc = 3
     diff = op.get("difficulty", "5min-config")
     if diff == "30min-custom" and tc <= 2: s -= 3
     if diff == "auto-deploy": s += 1
@@ -112,20 +117,26 @@ md = []
 md.append("# Your AI Ops Audit\n")
 md.append(f"**Industry**: {audit.get('industry','?')}  ·  **Team**: {audit.get('team_size','?')}  ·  **Tech comfort**: {audit.get('tech_comfort','?')}/5  ·  **Budget**: {audit.get('budget','?')}")
 md.append(f"\n**North star**: {audit.get('north_star') or '(not set)'}\n")
-if audit.get("pains"):
+pains_list = audit.get("pains")
+if isinstance(pains_list, list) and pains_list:
     md.append("**Pains:**")
-    for p in audit["pains"]: md.append(f"- {p}")
+    for p in pains_list: md.append(f"- {p}")
     md.append("")
 
-md.append("## Top opportunities for you\n")
-md.append("Ranked by industry fit + pain match + tools you already have.\n")
-for i, op in enumerate(ranked[:5], 1):
-    md.append(f"### {i}. {op['title']}")
-    md.append(f"- **Runtime**: {op.get('runtime','?')}")
-    md.append(f"- **Needs**: {', '.join(op.get('services', []))}")
-    md.append(f"- **Estimated value**: {op.get('value','?')}")
-    md.append(f"- **Difficulty**: {op.get('difficulty','?')}")
-    md.append(f"- **Score**: {op['score']}\n")
+if not ranked:
+    md.append("## No opportunities matched\n")
+    md.append("_The opportunity catalog may be missing/empty, or your audit answers are all TBC. "
+              "Re-run the intake with concrete answers, and confirm references/opportunity-catalog.md is present._")
+else:
+    md.append("## Top opportunities for you\n")
+    md.append("Ranked by industry fit + pain match + tools you already have.\n")
+    for i, op in enumerate(ranked[:5], 1):
+        md.append(f"### {i}. {op['title']}")
+        md.append(f"- **Runtime**: {op.get('runtime','?')}")
+        md.append(f"- **Needs**: {', '.join(op.get('services', []))}")
+        md.append(f"- **Estimated value**: {op.get('value','?')}")
+        md.append(f"- **Difficulty**: {op.get('difficulty','?')}")
+        md.append(f"- **Score**: {op['score']}\n")
 
 md.append("---\n## Next: pick 1-3 to build")
 md.append("Confirm the owner's 1-3 picks, then run `bash scripts/select.sh --auto <indices>` (e.g. `--auto 1,3`) — the bare interactive form needs a TTY.")
