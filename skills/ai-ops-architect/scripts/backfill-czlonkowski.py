@@ -9,6 +9,7 @@ Usage:
   python3 backfill-czlonkowski.py
 """
 import concurrent.futures as cf
+import hashlib
 import json
 import os
 import re
@@ -17,7 +18,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-ROOT = Path(os.path.expanduser("~/.claude/skills/ai-ops-architect/templates/n8n"))
+ROOT = Path(os.environ.get('AOA_TEMPLATES_ROOT') or (Path(__file__).resolve().parent.parent / 'templates' / 'n8n'))
 ROOT.mkdir(parents=True, exist_ok=True)
 
 # Same cats as main curator
@@ -124,6 +125,8 @@ def add_sticky_note(workflow_json, meta):
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
     seen = existing_ids()
     counts = count_per_cat()
     needed = {c: QUOTAS[c] - counts[c] for c in QUOTAS if counts[c] < QUOTAS[c]}
@@ -149,7 +152,7 @@ def main():
     for it in items:
         path = it["path"]
         # Synthetic stable id from path hash
-        wid = abs(hash(path)) % (10**8) + 100_000_000
+        wid = int(hashlib.sha1(path.encode('utf-8')).hexdigest()[:8], 16) % (10**8) + 100_000_000
         if wid in seen:
             skipped_seen += 1
             continue
@@ -249,8 +252,8 @@ def main():
             cat_dir = ROOT / use_cat
             cat_dir.mkdir(exist_ok=True)
             base = f"{wid}__{slug(wf_name)}"
-            (cat_dir / f"{base}.json").write_text(json.dumps(wf_with_note, indent=2))
-            (cat_dir / f"{base}.meta.json").write_text(json.dumps(meta, indent=2))
+            (cat_dir / f"{base}.json").write_text(json.dumps(wf_with_note, indent=2), encoding='utf-8')
+            (cat_dir / f"{base}.meta.json").write_text(json.dumps(meta, indent=2), encoding='utf-8')
             counts = count_per_cat()
             saved += 1
             if saved % 10 == 0:
