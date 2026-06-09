@@ -1,0 +1,64 @@
+﻿# Discovery call — Tom Calleia (Ridgeline Industrial) — 2026-05-19
+
+
+00:00:00 Tom, thanks for jumping on. Good to finally put a voice to the name.
+00:00:05 No worries mate. Appreciate you making time.
+00:00:08 Did Cynthia send through the calendar link okay?
+00:00:11 Yeah, all good. Got it Friday afternoon.
+00:00:15 Cool. So how I usually run these is, first half is me getting a feel for the business and what's actually going on, second half is more about whether we're the right partner. About 45 minutes total. Sound okay?
+00:00:28 Yeah that works.
+00:00:30 Before we dive in, just quickly, where'd you hear about us originally?
+00:00:35 Uh, it was actually one of your workshop attendees. A guy named Brendan from Coastal Building Products. We use them for some warehouse stuff and he was telling me about your workshop, said it changed how he thinks about all of this AI stuff.
+00:00:50 Brendan, yeah, good bloke. He came to the Gold Coast one in February I think.
+00:00:55 Yeah that's what he said.
+00:00:58 Awesome. Okay so give me the lay of the land. What does Ridgeline do, who are you guys?
+00:01:05 Yeah so, we're an industrial auto parts distributor. We supply mechanics, workshops, fleet operators across south-east Queensland. Mostly Brisbane and Gold Coast, some Sunshine Coast. Been around since 2009, family-owned.
+00:01:22 How many staff?
+00:01:24 Twelve full-time. Four reps on the road, four in the warehouse, two in the office, then me and the owner.
+00:01:32 And what's your turnover roughly, just for context?
+00:01:35 Last financial year we did about eight mil. We've had pretty steady growth.
+00:01:41 Nice. What about the systems you're running, what's the stack look like?
+00:01:46 So our front-end ordering is Shopify B2B, that's been good actually. Accounting is Xero. We have Pipedrive for the sales reps, that's where they're meant to be logging their visits. Then there's just, look, a lot of spreadsheets honestly. Inventory cross-checking is in sheets. Quoting is half in a Word template, half in Pipedrive. Yeah.
+00:02:13 Yeah, fair enough. Most businesses I talk to at your scale, that's the picture.
+00:02:18 Yeah.
+00:02:19 Have you tried to consolidate any of that, like with an automation platform, ever attempted that?
+00:02:24 Yeah we did. We tried Hubspot maybe, year and a half ago? It just, no one had time to actually own it. We put six months of data in and then it just kind of, sat there. We pulled the pin.
+00:02:39 Right. That's super common. Okay so where's the actual pain right now. If you had to pick the things that are bleeding time, what comes up first.
+00:02:50 Yeah I've been thinking about this honestly. Three big ones for me. The first one is quote turnaround. When a customer calls in for a quote on something custom, or a big order, it can take us two, sometimes three days to get back to them. Our reps are out in the field, they get the request, by the time they pull together the line items and pricing and pull it together, it's two days later. Should be hours.
+00:03:18 Yeah. What does that cost you, do you reckon?
+00:03:21 Hard to say exactly but, I'd guess we lose at least one or two big quotes a month because the customer just goes elsewhere while we're getting back to them. Could be five, six grand each one. So could be ten plus per month easy.
+00:03:36 Okay yeah, that adds up. What's the second thing.
+00:03:40 Second one is, our reps. They get pulled off selling all the time because customers ring up and ask, do you have X in stock for Friday. Or what's the price on Y again. Like, stuff that should just be self-service. Our Shopify B2B has the stock levels but our customers, half of them are old-school workshop guys, they just want to ring up. So our reps end up being a phone answering service half the day.
+00:04:08 Hmm. Yeah. How many phone calls a day do you reckon they're handling that should be self-service.
+00:04:14 Per rep, maybe ten, fifteen calls a day. Each one's not long but, you add it up.
+00:04:21 So, three, four hours a day per rep, easy.
+00:04:24 Yeah, honestly, easy.
+00:04:26 And the third thing?
+00:04:28 Dormant accounts. So we've built up over the years, we've got around eight hundred trade accounts on our books. Active ones, probably two hundred. The other six hundred are, they bought once or twice, then went quiet. We have no real way to systematically follow up. Our reps prioritise the squeaky wheels, the active accounts. We've talked about doing email campaigns but, never get round to it. There's so much money sitting in those dormant accounts.
+00:05:00 If you got, let's say, even ten percent of them back active, what does that mean for the business?
+00:05:06 Sixty accounts back active, average account spends maybe four, five grand a year with us. So, like, another two-fifty, three hundred grand a year revenue. Maybe more.
+00:05:18 Yeah, big number. Okay so let me play back what I'm hearing. You're sitting on three problems. Quotes taking days instead of hours, reps stuck answering phone calls that should be self-service, and a graveyard of dormant accounts you can't get to. Fair?
+00:05:33 Yeah, that's basically it.
+00:05:36 Okay. So this is exactly the kind of thing we end up architecting for businesses your size. The way I'd think about it, you're not really looking for a tool, you're looking for a system that sits across your Shopify B2B, your Xero, your Pipedrive, and just, handles a lot of this for you in the background.
+00:05:58 Yeah.
+00:05:59 What kind of timeline are you thinking? Like, when do you actually want this running.
+00:06:04 We're heading into our slower season in July. That'd be ideal to install during, because the reps have a bit more time. So Q3 basically.
+00:06:14 Yeah, makes sense. Three months from now.
+00:06:17 Yeah.
+00:06:18 And on budget, just so we're not wasting each other's time, what kind of range have you been thinking about for something like this?
+00:06:24 Yeah, honestly haven't pegged a hard number. I know it's not a five hundred dollar saas thing. I've been telling Mark, our owner, that we should be thinking like, ten to twenty grand for the right partner. Maybe more if the payback's obviously there. I'd rather pay properly and have it actually work than chase a cheap option and end up where we ended up with Hubspot, you know.
+00:06:51 Yeah, totally hear you. So ten to twenty's about the right shape. Could be slightly above depending on scope, but we're in the same ballpark.
+00:07:00 Yeah okay.
+00:07:02 And just on decision-making, you mentioned Mark, the owner. Who actually signs off on something like this.
+00:07:08 Yeah Mark's the final yes. I do the recommending, he signs. He's pretty trusting of me on this stuff but for ten grand plus he's gonna want to be on a call to size you guys up.
+00:07:21 Yeah of course. So what I'd want to do next, if you're keen, I'll put together a short outline before Tuesday. Just a page or so covering what we'd scope, where the budget probably lands, a couple of similar jobs we've done. Gives Mark something to look at before the call so he's not walking in cold. I'll get it over to you by Friday.
+00:07:39 Yeah that'd be great.
+00:07:41 And then probably the most useful thing is, get Mark on a call with you and me, walk through what we'd actually scope and the ballpark, and let him kick the tyres. Could you set that up for, say, Tuesday or Wednesday next week?
+00:07:55 Yeah I can definitely do that. Tuesday would probably be better, Wednesday he's at the trade show.
+00:08:01 Tuesday it is. I'll get Cynthia to send through some times.
+00:08:05 Cool.
+00:08:07 Alright Tom, anything else you want to flag for me before I dig in this week?
+00:08:11 No I think you've got it. Honestly it's, kind of nice to talk to someone who gets it without me having to explain industrial distribution from scratch.
+00:08:19 Yeah we work with a lot of you guys. Alright, outline by Friday, call Tuesday with Mark. I'll be in touch.
+00:08:25 Cheers, thanks mate.
+00:08:27 Cheers mate.

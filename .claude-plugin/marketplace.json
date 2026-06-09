@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "selrai-workshop-kit",
+  "version": "1.0.0",
+  "description": "Selr AI workshop kit marketplace. First-party plugins bundled with the kit and installed from the cloned kit at ~/workshop-kit.",
+  "owner": {
+    "name": "Selr AI",
+    "email": "harvey@selrai.com.au"
+  },
+  "plugins": [
+    {
+      "name": "routine-installer-plugin",
+      "source": "./plugins/routine-installer-plugin",
+      "description": "Package one or more local skills into a working Remote Routine on claude.ai/code/routines: introspect dependencies, extract the credentials it needs, generate setup.sh + .mcp.json, scaffold the repo, and walk through the UI checkpoints. Provides the /package-as-routine command.",
+      "category": "workshop",
+      "keywords": ["routines", "remote-routine", "skill-packaging", "workshop", "automation"]
+    }
+  ]
+}

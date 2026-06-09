@@ -1,8 +1,8 @@
 # Skills — What Your Assistant Can Do
 
-Your assistant has <!-- skills-audit:total -->190<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
+Your assistant has <!-- skills-audit:total -->192<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
 
-<!-- skills-audit:core -->23<!-- /skills-audit:core --> of them are **CORE** — the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->94<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
+<!-- skills-audit:core -->24<!-- /skills-audit:core --> of them are **CORE** — the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->95<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
 
 ---
 
@@ -83,6 +83,11 @@ Example: "Tell me what's strong and weak about how I'm positioning my offer."
 Maps the competitive landscape strategically — finds white space and positioning gaps.
 Example: "Where are the underserved gaps in my market that I could own?"
 
+### Process Discovery Call *(ADVANCED)*
+Turns a recorded discovery call into a CRM update, a drafted follow-up email, and a summary sent to your phone.
+Needs: GoHighLevel, Telegram, and Google Workspace connectors.
+Example: "Process discovery call with Tom."
+
 ---
 
 ## GROUP C — Understanding Your Market
@@ -160,6 +165,11 @@ Example: "Help me validate whether this business idea has real demand."
 ### Personal Finance Coach *(CORE)*
 Tax optimisation, investment strategy, and business cash flow planning.
 Example: "Help me understand what I should be doing with my business revenue."
+
+### Morning Brief *(CORE)*
+Sends a daily HTML email to your own inbox: today's calendar, new CRM contacts, and an inbox triage that files the noise out of sight.
+Needs: Google Workspace connector.
+Example: "Run my morning brief."
 
 ### Plan CEO Review *(ADVANCED)*
 Reviews any plan from a CEO or founder perspective — challenges assumptions, expands scope.

@@ -1,0 +1,44 @@
+{
+  "name": "routine-installer-plugin",
+  "version": "0.1.6",
+  "description": "Package one or more local Claude Code skills into a Remote Routine: introspect dependencies, extract local auth (via an optional connector library or the resolution ladder), generate the setup.sh and .mcp.json the routine sandbox needs, scaffold the GitHub repo, and walk the user through the claude.ai/code/routines UI checkpoints.",
+  "author": {
+    "name": "harvey-selrai",
+    "email": "harvey@selrai.com.au"
+  },
+  "homepage": "https://github.com/selrai-company/online-workshop-kit",
+  "repository": "https://github.com/selrai-company/online-workshop-kit.git",
+  "license": "UNLICENSED",
+  "keywords": [
+    "routines",
+    "remote-routine",
+    "skill-packaging",
+    "workshop",
+    "claude-code"
+  ],
+  "skills": "./skills",
+  "commands": "./commands",
+  "_meta": {
+    "depends_on_skills": [],
+    "depends_on_binaries": ["python3", "bash", "git", "gh", "pbcopy"],
+    "depends_on_paths": [],
+    "prereqs": {
+      "anthropic_account": true,
+      "claude_cli_authenticated": true,
+      "gh_authenticated": true
+    },
+    "phases": [
+      "0-discover",
+      "1-introspect",
+      "2-resolve-deps",
+      "3-scaffold-repo",
+      "4-env-capture",
+      "5-drive-routines-ui-playwright",
+      "6-verify"
+    ],
+    "publishing": {
+      "current": "private",
+      "workshop_release_gate": "must demo cleanly end-to-end against morning-brief + one Notion-using skill"
+    }
+  }
+}
