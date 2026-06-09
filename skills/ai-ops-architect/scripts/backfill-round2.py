@@ -192,15 +192,13 @@ def main():
         # Take 3x candidates to allow lint failures
         sample = candidates[:max(target * 3, 30)]
         print(f"\n=== {cat}: need {target}, fetching {len(sample)} ===", flush=True)
+        cat_count = counts[cat]   # in-memory tally — avoids re-globbing disk every iteration
         for fut in cf.as_completed([pool.submit(fetch_one, c) for c in sample]):
             res = fut.result()
             if not res:
                 continue
             wid, path, wf = res
             seen.add(wid)
-            cur = count_per_cat()
-            if cur[cat] >= QUOTAS[cat]:
-                break
             nodes = wf.get("nodes", []) or []
             if len(nodes) < 3:
                 continue
@@ -253,7 +251,10 @@ def main():
             (cat_dir / f"{base}.json").write_text(json.dumps(wf_with_note, indent=2), encoding='utf-8')
             (cat_dir / f"{base}.meta.json").write_text(json.dumps(meta, indent=2), encoding='utf-8')
             saved += 1
-            counts = count_per_cat()
+            cat_count += 1
+            if cat_count >= QUOTAS[cat]:   # save first, THEN stop — don't discard the fetched workflow
+                break
+        counts[cat] = cat_count
         print(f"  cat now {counts[cat]}/{QUOTAS[cat]}", flush=True)
     pool.shutdown(wait=False)
 
