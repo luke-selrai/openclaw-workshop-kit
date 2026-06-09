@@ -215,6 +215,35 @@ After a successful smoke test, say:
 
 Mention to yourself in memory which tools came online — Claude's memory will retain that context automatically.
 
+### Step 3 — Install power-user skills
+
+Say:
+> "One last tool step: I'm adding four power-user skills the Selr team uses every day. They help me stress-test your plans, dig into problems properly, hand work between sessions, and teach you anything step by step. Takes about thirty seconds."
+
+Run (same command on Mac and Windows):
+
+```bash
+npx -y skills@latest add mattpocock/skills -g -a claude-code -s grill-me -s handoff -s diagnose -s teach -y --copy
+```
+
+Verify all four landed — each of these files must exist:
+
+- `~/.claude/skills/grill-me/SKILL.md`
+- `~/.claude/skills/handoff/SKILL.md`
+- `~/.claude/skills/diagnose/SKILL.md`
+- `~/.claude/skills/teach/SKILL.md`
+
+If all four are present, say:
+> "Done. Here's what you just got: **grill-me** stress-tests any plan by interviewing you about it, **diagnose** works through bugs and problems in a disciplined loop, **handoff** packages up a conversation so your next session picks up exactly where we left off, and **teach** walks you through learning any concept step by step — just say `/teach`."
+
+**Failure branch — non-blocking.** If the command errors or any of the four files is missing, this is NOT a setup blocker (unlike the browser step above). Do not troubleshoot in the room. Say:
+
+> "The four extra skills didn't come through just now — probably a network hiccup. Everything else is set up fine. Any time later, just say 'install the power-user skills' and I'll try again."
+
+(If a later session is asked to "install the power-user skills", re-run the command above from this step — it is safe to repeat.)
+
+Then continue to Phase 3 either way.
+
 → Move to Phase 3.
 
 ---
