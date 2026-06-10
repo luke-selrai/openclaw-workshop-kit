@@ -2,7 +2,7 @@
 name: cost-optimizer
 description: Tracks cumulative LLM costs across DAG execution and makes real-time decisions to stay within budget. Downgrades models, skips optional nodes, or stops early when cost exceeds thresholds. Use
   when managing execution budgets, analyzing cost breakdowns, or optimizing model routing for cost. Activate on "cost budget", "too expensive", "reduce cost", "cost optimization", "model downgrade", "budget
-  exceeded". NOT for LLM model selection logic (use llm-router), pricing comparisons across providers, or billing/invoicing.
+  exceeded". NOT for LLM model selection logic, pricing comparisons across providers, or billing/invoicing.
 allowed-tools: Read,Grep
 argument-hint: '[dag-id] [budget-usd]'
 metadata:
@@ -12,13 +12,6 @@ metadata:
   - cost-budget
   - too-expensive
   - reduce-cost
-  pairs-with:
-  - skill: cost-accrual-tracker
-    reason: The tracker provides the real-time cost data that the optimizer uses for budget decisions
-  - skill: llm-router
-    reason: Model routing is the primary mechanism through which cost optimization is enacted
-  - skill: cost-verification-auditor
-    reason: Post-execution auditing validates that optimization decisions actually reduced costs
 ---
 
 # Cost Optimizer
@@ -37,7 +30,7 @@ Tracks cumulative LLM costs across DAG execution and makes real-time decisions t
 - Post-execution cost analysis and optimization recommendations
 
 ❌ **NOT for**:
-- Choosing which model to use per node (use `llm-router`)
+- Choosing which model to use per node (that's a separate model-routing concern)
 - Provider pricing comparisons (static data, not a skill)
 - Billing or invoicing features
 
