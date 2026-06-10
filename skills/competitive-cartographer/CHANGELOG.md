@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.0] - 2024-12-XX
+## [2.0.0] - 2026-03-17
 
 ### Changed
 - **SKILL.md restructured** for progressive disclosure (407 → ~125 lines)

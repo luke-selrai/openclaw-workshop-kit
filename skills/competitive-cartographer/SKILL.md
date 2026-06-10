@@ -6,8 +6,6 @@ allowed-tools: Read,Write,WebSearch,WebFetch
 metadata:
   category: Research & Analysis
   pairs-with:
-  - skill: career-biographer
-    reason: Position career narratives competitively
   - skill: research-analyst
     reason: Deep market research backing
   tags:
@@ -124,14 +122,13 @@ Cartographer:
 | `references/mapping-process.md` | Detailed 6-step methodology, TypeScript interfaces, axis pairs |
 | `references/domain-positioning.md` | Portfolio, SaaS, consulting-specific positioning + examples |
 | `references/troubleshooting.md` | Common issues, validation methods, best practices checklist |
+| `scripts/validate_map.sh` | Optional check that a saved `CompetitiveMap` JSON (see the interface in `mapping-process.md`) has the required axes/players/clusters/whiteSpace structure. Run manually: `bash scripts/validate_map.sh map.json` (needs `jq`). |
 
 ## Integration with Other Skills
 
 | Skill | Integration |
 |-------|-------------|
-| **design-archivist** | Visual pattern database informs differentiation strategy |
-| **vibe-matcher** | Translate positioning into emotional/visual direction |
-| **career-biographer** | Competitive context informs personal brand positioning |
+| **research-analyst** | Deep market research backing for competitive positioning |
 
 ---
 
