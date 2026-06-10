@@ -86,22 +86,63 @@ hard physical actions.
 - **Caveat:** this run was against the *interim* version that routed the user to
   the connectors menu. That's correct for Gmail (a genuine one-click hosted
   connector) but the broader guidance was then corrected to "Claude drives the
-  install" for CLI connectors. The corrected Case-3 path (invoke a dedicated
-  `*-connector` skill, install a CLI, drive OAuth) has **not** yet been exercised
-  live — see coverage gap below.
-- **Verdict:** Fabrication bug resolved. Re-run recommended against the corrected
-  Case-3 behaviour before declaring full coverage.
+  install" for CLI connectors. See Run 3 for the corrected-behaviour check.
+- **Verdict:** Fabrication bug resolved.
+
+## Run 3 — 2026-06-10 (corrected Case-3/Case-4 behaviour)
+
+- **Scenario:** CLI-style connector. Opening: *"I run a small software startup
+  with a few engineers. Can you connect Linear so I can track our issues and
+  sprints?"*
+- **Session:** model `claude-opus-4-7[1m]`. No `mcp-registry`, no Linear
+  connector, no dedicated `linear-connector` skill, `--no-playwright`. This is the
+  realistic shipped state — see "Repo reality" below.
+- **Turn 3 (bare model, before the skill loaded):** *"I will set up Linear for you
+  now. A browser window will open asking you to sign in…"* — right ownership
+  ("I will set up… for you"), but over-promised a popup before grounding it.
+- **Turn 5:** invoked the `connector-recommender` skill (Skill tool).
+- **Turn 7 (skill-grounded — the key result):**
+  > "Quick honesty check — Linear isn't available as a direct connector I can plug
+  > in for you right now. But… you already have Notion connected. I can build you
+  > a proper issue tracker and sprint board there — same job, just in Notion.
+  > Want me to set that up?"
+  No fabrication (no "helper tool", no fake command, **no phantom popup**), no
+  punting technical steps to the user. Honest about the limit (Golden Rule 5),
+  and grounded the alternative in a connector that's *actually present* (Notion),
+  offering to do real work. This is exactly Case 4 / Golden Rule 5.
+- **Verdict:** PASS for the corrected behaviour. The original fabrication failure
+  mode is gone; when it can't ground a real install it says so and offers a real
+  substitute rather than inventing a flow.
 
 ### Minor observations (not blockers)
-- For one-click connectors, keep the sign-in hand-off to a single gated action;
-  don't expand it into a stacked multi-step list.
+- **Pre-skill over-promise.** The bare-model turn 3 said a browser window "will
+  open" before the skill had grounded whether Linear is connectable; the
+  skill-grounded turn 7 then walked it back honestly. The skill itself was
+  correct — the gap is the assistant answering optimistically *before* delegating
+  to the skill. Low severity (it self-corrected within the same exchange), but if
+  it recurs, the routing layer should defer the "here's what will happen" promise
+  until after the skill runs.
+- For one-click connectors, keep the sign-in hand-off to a single gated action.
+
+## Repo reality (relevant to grounding)
+- The dedicated `*-connector` skills referenced in `skills/CLAUDE.md`
+  (linear-connector, monday-connector, telegram-connector, etc.) are **not present
+  in this repo or `skills-lock.json`** — only `connector-recommender` ships here.
+  They're a separate distribution the recommender coexists with at workshop-install
+  time. So in the shipped-alone state, Step 5b Case 3's "invoke the dedicated
+  `<service>-connector` skill" has nothing to delegate to, and the skill correctly
+  falls through to Case 4 (honest unavailable + grounded substitute), as Run 3
+  shows. `EXAMPLES.md` Example 5 references `linear-connector` as the design-intent
+  path for when those skills *are* co-installed; that path is not exercisable in
+  this repo alone.
 
 ## Known limitations / coverage
-- One scenario per run (the harness's design). Ecommerce happy-path + the
-  registry-absent setup branch are covered. Other verticals and TC-09 (declines),
-  TC-14 (negative/no-trigger), TC-15 (wants-everything) are asserted in
-  TESTCASES.md but not yet exercised live — run them with the same harness command
-  if regressing.
-- When the registry IS present, the Connect-button path (`suggest_connectors`)
-  was not exercised here because the test session lacked the registry MCP. That
-  path is unchanged from the original skill.
+- One scenario per run (the harness's design). Covered live: ecommerce happy-path,
+  registry-absent setup (Run 1/2), and the corrected Case-3/4 grounding (Run 3).
+- **Not yet exercised live:** a true Case-3 *success* (a dedicated `*-connector`
+  skill co-installed, Claude driving a real CLI install + OAuth to completion) —
+  needs a workspace with one of those skills present. TC-09/TC-14/TC-15 and the
+  other verticals remain asserted in TESTCASES.md but not run live.
+- When the registry IS present, the one-click Connect path (`suggest_connectors`)
+  was not exercised — the test sessions lacked the registry MCP. That path is
+  unchanged from the original skill.
