@@ -136,13 +136,54 @@ hard physical actions.
   path for when those skills *are* co-installed; that path is not exercisable in
   this repo alone.
 
+## Run 4 — 2026-06-10 (real connector-suite install, end-to-end to the credential gate)
+
+- **Goal:** exercise a true Case-3 *install* — Claude driving a real CLI connector
+  kit's install end-to-end. Sourced `selrai-company/notion-skills` (one of the
+  real `<service>-skills` connector-suite kits) into a sandboxed workspace.
+- **Sandbox/safety:** `SKILLS_DIR` / `CLAUDE_JSON` pointed at workspace-local
+  paths; the kit was pre-cloned so no network clone hit real `~/code`. Operator
+  chose "run up to the credential gate, no live vendor calls."
+- **Opening (bootstrap-style):** *"Please install the SelrAI notion-skills kit for
+  me… Drive the whole setup yourself and only stop to ask me for any keys or
+  passwords I personally have to paste. Don't make me run commands you can run."*
+- **What Claude did, autonomously (16 turns):** checked prereqs (`claude`, `jq`)
+  itself; inspected the kit (README, BOOTSTRAP, both installers, the 5 skills, the
+  smoke test); queried the **real** `~/.claude.json` for an existing
+  `@notionhq/notion-mcp-server` (none); detected Windows and drove the PowerShell
+  path. **Robustness:** PowerShell `ConvertFrom-Json` threw on duplicate keys in
+  `~/.claude.json` (`C:/…` vs `c:/…` casing); Claude recovered by falling back to
+  `jq`, which tolerates dup keys, and continued — no fabrication, no stall.
+- **Credential gate (turn 22 — the stop point):**
+  > "I checked your computer and the helper tools are all ready. I need one thing
+  > from you that only you can do: create a Notion connection and paste me the
+  > secret token." + 4 precise browser steps to mint the Internal Integration
+  > token, plus the per-page "Connections" sharing note. "I'll do the rest."
+- **Verdict:** PASS. Claude drove the entire technical install itself and paused
+  at exactly the one irreducible user action (mint + paste the vendor token),
+  in plain English, no terminal command handed to the user, no fabricated flow.
+  This is the corrected Golden-Rule behaviour working on a *real* connector kit.
+- **Cleanup verified:** real `~/.claude.json` unchanged (still only `gmail`,
+  `playwright`); no `notion-*` skills linked into `~/.claude/skills`; the
+  installer correctly gated before any write. Temp clone + workspace removed.
+
+### Minor observation (not a blocker)
+- Turn 22 says "the helper tools are all ready" — here it's **accurate** (it really
+  did verify `claude`+`jq`, which are genuine prereqs), unlike the Run-1 bug where
+  "helper tool" was fabricated. Still, the phrase is close enough to the old failure
+  language that it's worth keeping an eye on; prefer naming the actual check
+  ("Claude Code and jq are installed") over the generic "helper tools".
+
 ## Known limitations / coverage
 - One scenario per run (the harness's design). Covered live: ecommerce happy-path,
-  registry-absent setup (Run 1/2), and the corrected Case-3/4 grounding (Run 3).
-- **Not yet exercised live:** a true Case-3 *success* (a dedicated `*-connector`
-  skill co-installed, Claude driving a real CLI install + OAuth to completion) —
-  needs a workspace with one of those skills present. TC-09/TC-14/TC-15 and the
-  other verticals remain asserted in TESTCASES.md but not run live.
+  registry-absent setup (Run 1/2), the corrected Case-3/4 grounding (Run 3), and a
+  real connector-suite install driven to the credential gate (Run 4).
+- **Not exercised (operator's choice in Run 4):** completing the real OAuth/token
+  and the post-token steps (MCP registration → skill link → live smoke "All checks
+  passed"). The pre-credential install is fully driven; the post-credential tail
+  needs a real vendor token to run.
+- TC-09/TC-14/TC-15 and the other verticals remain asserted in TESTCASES.md but
+  not run live.
 - When the registry IS present, the one-click Connect path (`suggest_connectors`)
   was not exercised — the test sessions lacked the registry MCP. That path is
   unchanged from the original skill.
