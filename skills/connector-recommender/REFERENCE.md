@@ -251,7 +251,9 @@ Typical flow: **connector-recommender** (what to connect) → **automation-intel
 ```
 ~/.claude/skills/connector-recommender/
 ├── SKILL.md          # Skill definition (core logic + instructions)
+├── EXAMPLES.md       # 5 full worked transcripts (the reference outputs)
 ├── TESTCASES.md      # 15 test scenarios with pass criteria
+├── QA-NOTES.md       # Live skill-qa-harness run findings + fixes
 └── REFERENCE.md      # This document
 ```
 
