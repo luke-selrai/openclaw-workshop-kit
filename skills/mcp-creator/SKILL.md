@@ -467,9 +467,7 @@ Does this tool need...
 | `references/architecture-patterns.md` | Transport layers, server lifecycle, resource management |
 | `references/tool-design.md` | Schema patterns, naming conventions, output formats |
 | `references/security-hardening.md` | Complete OWASP-aligned security checklist |
-| `references/error-handling.md` | Error types, recovery strategies, logging |
 | `references/testing-debugging.md` | Inspector usage, unit/integration tests |
-| `references/performance.md` | Caching, pooling, async patterns |
 | `templates/` | Production-ready server templates |
 
 ---

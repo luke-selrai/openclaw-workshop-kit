@@ -480,9 +480,5 @@ For full working implementations see **[references/examples.md](references/examp
 - **Last Updated**: 2025-01-01
 - **Compatible Platforms**: Claude, ChatGPT, Gemini
 
-### Related Skills
-- [ui-component-patterns](../ui-component-patterns/SKILL.md): UI component implementation
-- [responsive-design](../responsive-design/SKILL.md): Responsive design
-
 ### Tags
 `#accessibility` `#a11y` `#WCAG` `#ARIA` `#screen-reader` `#keyboard-navigation` `#frontend`
