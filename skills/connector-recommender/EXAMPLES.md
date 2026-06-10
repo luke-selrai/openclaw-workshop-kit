@@ -155,38 +155,62 @@ the generic "search your inbox"), then a single gated next step.
 
 ---
 
-## Example 5 — Registry tools absent (graceful degradation)
+## Example 5 — Connector that needs technical setup (Claude drives it)
 
-Some sessions don't have the MCP registry tools (`search_mcp_registry`,
-`suggest_connectors`) loaded. The skill must still help — from its built-in
-maps — and must NOT invent an install path.
+Not every connector is a one-click button. Many need a small command-line tool
+installed and registered first. The skill's job is to **do that work for the
+user**, grounded in a real install path — never to hand them the steps, and
+never to fabricate a fake one.
 
-**User:** (after Example 1's recommendations) "Yes, set up Gmail."
+**User:** (after a recommendation) "Yes, connect Linear so I can track issues."
 
-**Session state:** `mcp__mcp-registry__suggest_connectors` is **not present**.
+**Session state:** Linear is not a one-click hosted connector; there's no Connect
+button for it. There IS a dedicated `linear-connector` skill in the kit that owns
+the tested install flow.
 
 **Assistant output (correct):**
 
 ```
-To connect Gmail, open the connectors menu in Claude (the plug/settings icon),
-find Gmail, and click Connect — then sign in when your browser opens. Tell me
-once it's connected and I'll set up the next one.
+On it. Linear needs a quick bit of setup behind the scenes — I'll handle all of
+it, takes about a minute.
+
+[invokes the linear-connector skill, which installs the tool and registers the
+ connection; then it reaches the sign-in step]
+
+One thing only you can do: a Linear sign-in page is about to open in your browser
+— click "Allow" to give me access. I'll take it from there.
 ```
 
-**Forbidden output (the bug this guards against):**
+**Forbidden output A — punting the technical work to the user:**
 
 ```
-Gmail needs a small helper tool on your computer. Let me check if it's installed...
+To connect Linear, open the connectors menu, find Linear, click Connect, and if it
+asks you to install a command-line tool, run this in your terminal: npx ...
+```
+
+**Forbidden output B — fabricating an ungrounded flow:**
+
+```
+Linear needs a small helper tool on your computer. Let me check if it's installed...
 [runs `node --version`]
-Great news — the helper tool is already there. I'll run a quick setup command and
-a Google sign-in window will pop up...
+Great news — it's already there. I'll run a quick setup command and a sign-in
+window will pop up...
 ```
 
-**Why the bad version is wrong:** there is no "helper tool", no Node.js
-dependency, and no "setup command" that connects a connector — connecting is a UI
-action. Running a terminal command for a non-technical user is a hard rule
-violation (see Golden Rules in SKILL.md). This path was caught by a live
-skill-qa-harness run; see [QA-NOTES.md](QA-NOTES.md).
+**Why A is wrong:** it dumps a terminal command and install decision on a
+non-technical owner. The skill must perform technical steps itself (Golden Rule
+1–3).
+
+**Why B is wrong:** it invents a "helper tool" and a "setup command" with no real
+install path behind them — `node --version` proves nothing about connecting
+Linear, and no popup will actually appear. The correct move is to use the
+grounded `linear-connector` skill (Golden Rule 5). This exact fabricated flow was
+caught by a live skill-qa-harness run; see [QA-NOTES.md](QA-NOTES.md).
+
+> For a genuine one-click connector (e.g. Gmail via Claude's hosted connectors),
+> the correct output is simpler: present the Connect button and walk the sign-in
+> (EXAMPLES Case 2 / SKILL Step 5b). The point is to match the connector's *real*
+> setup — easy when it's easy, fully driven by you when it's not.
 
 ## How these map to the test suite
 
