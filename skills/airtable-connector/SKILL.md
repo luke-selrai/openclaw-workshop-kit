@@ -1,6 +1,6 @@
 ---
 name: airtable-connector
-description: "Connect and operate Airtable via the official first-party Airtable MCP server (https://mcp.airtable.com/mcp). Drives the entire setup autonomously through airtable.com/create/tokens in a Playwright MCP browser: clicks Create new token, fills the name, ticks the four required scope checkboxes, selects All current and future bases, clicks Create token, reads the Personal Access Token from the DOM, and registers the MCP server with the token as a Bearer header. The only human moment is signing in to Airtable once. Use this skill when the user asks to set up Airtable, connect their bases, list tables, read or create records, or update their database schema. On first use run Phase 1 to configure the MCP server and authenticate before attempting tool calls."
+description: "Connect and operate Airtable via the official first-party Airtable MCP server (https://mcp.airtable.com/mcp). Drives the entire setup autonomously through airtable.com/create/tokens in a Playwright MCP browser: clicks Create new token, fills the name, ticks the required scope checkboxes, selects All current and future bases, clicks Create token, reads the Personal Access Token from the DOM, and registers the MCP server with the token as a Bearer header. The only human moment is signing in to Airtable once. Use this skill when the user asks to set up Airtable, connect their bases, list tables, read or create records, or update their database schema. On first use run Phase 1 to configure the MCP server and authenticate before attempting tool calls."
 allowed-tools: mcp__airtable__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
@@ -33,7 +33,7 @@ metadata:
 
 This skill lets you read and update a user's Airtable account on their behalf using the **official first-party Airtable MCP server** hosted at `https://mcp.airtable.com/mcp`. It has two phases:
 
-- **Phase 1 — Install & Auth (autonomous).** Claude drives the entire `airtable.com/create/tokens` flow inside a Playwright MCP browser. The user does exactly one thing: sign in to Airtable in the Playwright window. Everything else — clicking *Create new token*, filling the name, walking the scope list to tick the four required scope checkboxes, selecting "All current and future bases", clicking *Create token*, reading the Personal Access Token from the DOM, registering the MCP server with the token as a Bearer header — is autonomous. The user never copies, never pastes, never reads a token aloud, never opens a tab themselves. This works on Enterprise workspaces too (PAT bypasses the OAuth admin-allowlist).
+- **Phase 1 — Install & Auth (autonomous).** Claude drives the entire `airtable.com/create/tokens` flow inside a Playwright MCP browser. The user does exactly one thing: sign in to Airtable in the Playwright window. Everything else — clicking *Create new token*, filling the name, walking the scope list to tick the required scope checkboxes, selecting "All current and future bases", clicking *Create token*, reading the Personal Access Token from the DOM, registering the MCP server with the token as a Bearer header — is autonomous. The user never copies, never pastes, never reads a token aloud, never opens a tab themselves. This works on Enterprise workspaces too (PAT bypasses the OAuth admin-allowlist).
 - **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__airtable__*` native tools to read and update Airtable data.
 
 **Which phase to run** — Before any tool call, check whether the Airtable MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.airtable` entry. If it exists, treat the connector as configured and skip to Phase 2 (verify with a tool call before assuming the session is still valid). Otherwise, run Phase 1.
@@ -46,7 +46,7 @@ This skill lets you read and update a user's Airtable account on their behalf us
 
 ### How auth works under the hood
 
-The hosted Airtable MCP server accepts a Personal Access Token (PAT) passed in an `Authorization: Bearer <token>` header. Claude drives the entire token mint via Playwright at `https://airtable.com/create/tokens` — no copy/paste, no OAuth callback, no admin-allowlist friction. The required scopes are `data.records:read`, `data.records:write`, `schema.bases:read`, `schema.bases:write`. This works identically on Free, Pro, Team, Business, and Enterprise plans.
+The hosted Airtable MCP server accepts a Personal Access Token (PAT) passed in an `Authorization: Bearer <token>` header. Claude drives the entire token mint via Playwright at `https://airtable.com/create/tokens` — no copy/paste, no OAuth callback, no admin-allowlist friction. The scopes Airtable documents for the MCP server are `data.records:read`, `data.records:write`, `schema.bases:read`, `schema.bases:write`, `data.recordComments:read`, `data.recordComments:write`, and `workspacesAndBases:read`. The last one (`workspacesAndBases:read`) gates base and workspace discovery — without it `list_bases` / `search_bases` (the first calls Phase 2 makes) return nothing or fail, so it must always be ticked. This works identically on Free, Pro, Team, Business, and Enterprise plans.
 
 ---
 
@@ -61,9 +61,10 @@ The user is a non-technical business owner. Phase 1 is autonomous — Claude doe
   - Restart Claude Code → **"close and reopen"**
   - The Playwright browser → **"the browser window I just opened for you"**
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start, once when you need them ("please sign in" / "please click Allow"), once when you're done. No commentary in between.
-- **React to success and failure warmly.** Good: "That worked — your Airtable is now connected." Bad: "MCP server initialized with 200 OK."
-- **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
+- **React to success and failure warmly.** Good: "That worked. Your Airtable is now connected." Bad: "MCP server initialized with 200 OK."
+- **Never show error messages directly.** Translate into plain English. If something fails, say "No problem, let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
+- **Plain punctuation.** Write the way a person texts. Use full stops, commas, and parentheses. Do not use em-dashes (—) in anything the user sees, including messages you improvise (timeout check-ins, reassurances); they read as machine-generated.
 - **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
 - **No fabricated UI assertions.** Don't reference button colours or specific positioning — verify from the live snapshot. Airtable's token UI changes occasionally.
 - **Never echo the access key** back to the user (PAT path). Never include it in any output visible to the user.
@@ -82,7 +83,7 @@ Claude drives the user's browser end-to-end via Playwright MCP. The user's only 
 
 Tell the user, in one short message:
 
-> "I'll connect your Airtable now. I'm opening a browser window — please sign in to Airtable when it appears, and I'll do the rest. About a minute."
+> "I'll connect your Airtable now. I'm opening a browser window for you. Please sign in to Airtable when it appears, and I'll do the rest. About a minute."
 
 ### Step 2 — Open the token page and confirm a logged-in session
 
@@ -90,8 +91,8 @@ Call `mcp__playwright__browser_navigate({ url: "https://airtable.com/create/toke
 
 Take a `mcp__playwright__browser_snapshot()`. Reason from it:
 
-- **Logged in** (you see the token-management page with a "Create new token" button or the existing tokens list) → continue to Step C.
-- **Not logged in** (sign-in form, "Sign in to Airtable") → tell the user *once*: *"The browser window is open — please sign in to Airtable when you're ready."* Poll silently with `mcp__playwright__browser_wait_for({ text: "Create new token" })` (or any post-login token-page element). Do not ask the user to confirm; detect login completion yourself.
+- **Logged in** (you see the token-management page with a "Create new token" button or the existing tokens list) → continue to Step 3.
+- **Not logged in** (sign-in form, "Sign in to Airtable") → tell the user *once*: *"The browser window is open. Please sign in to Airtable when you're ready."* Poll silently with `mcp__playwright__browser_wait_for({ text: "Create new token" })` (or any post-login token-page element). Do not ask the user to confirm; detect login completion yourself.
 
 If `browser_wait_for` times out (5+ minutes), check in: *"Still on the sign-in page? Anything I can help with?"*
 
@@ -104,14 +105,19 @@ Locate the "Create new token" control in the snapshot. Click it via `browser_cli
 Locate the name input in the snapshot and type via `browser_type` or `browser_fill_form`:
 - **Name** → `"Claude Assistant"`
 
-### Step 5 — Tick the four required scopes
+### Step 5 — Tick the required scopes
 
-Airtable's scope list is a series of checkboxes labelled by scope name. For each of the four scopes below, locate the matching checkbox from the snapshot (search for the scope text) and click via `browser_click`. Re-snapshot after each tick to confirm state changed.
+Airtable's scope list is a series of checkboxes labelled by scope name. For each of the scopes below, locate the matching checkbox from the snapshot (search for the scope text) and click via `browser_click`. Re-snapshot after each tick to confirm state changed.
 
 - `data.records:read`
 - `data.records:write`
 - `schema.bases:read`
 - `schema.bases:write`
+- `data.recordComments:read`
+- `data.recordComments:write`
+- `workspacesAndBases:read`
+
+These are the scopes Airtable documents for the hosted MCP server. `workspacesAndBases:read` is the one most easily missed and the most important — base/workspace discovery (`list_bases`, the first thing Phase 2 does) depends on it, so verify it is ticked before continuing.
 
 If the scope list is collapsed by category, click the category header to expand it before clicking checkboxes. If a scope checkbox isn't visible, look for a search/filter input and type the scope name into it to filter the list.
 
@@ -152,7 +158,7 @@ If the token is masked behind a "Copy" or "Show" button, click it via `browser_c
 - Token must start with `pat`
 - Token must be longer than 30 characters
 
-If two snapshot attempts don't surface a valid token, stop and ask the user: *"I'm having trouble finding the access key on the page — could you describe what's visible?"*
+If two snapshot attempts don't surface a valid token, stop and ask the user: *"I'm having trouble finding the access key on the page. Could you describe what's visible?"*
 
 ### Step 9 — Save the connection (silent)
 
@@ -162,7 +168,7 @@ Silently register the MCP server with the PAT as a Bearer header. **Prefer `clau
 claude mcp add airtable \
   --scope user \
   --transport http \
-  --header "Authorization: Bearer <token captured in Step H>" \
+  --header "Authorization: Bearer <token captured in Step 8>" \
   -- https://mcp.airtable.com/mcp
 ```
 
@@ -175,6 +181,7 @@ claude mcp add airtable \
 {
   "mcpServers": {
     "airtable": {
+      "type": "http",
       "url": "https://mcp.airtable.com/mcp",
       "headers": { "Authorization": "Bearer <token>" }
     }
@@ -191,18 +198,18 @@ Never echo the access key back to the user. Never include it in any output visib
 
 `mcp__playwright__browser_close()`.
 
-Tell the user: *"Saved — let me check it works."*
+Tell the user: *"Saved. Let me check it works."*
 
 - **If `mcp__airtable__*` tools are available**: call `mcp__airtable__list_bases`. If it returns a result (even empty), capture the count and use the same success message as the OAuth path.
 - **If tools not available**: *"All saved. Please close and reopen Claude Code once, then say 'test my Airtable' and I'll verify."*
 
-If verification returns `401`, the most likely causes are a partial token capture or a missing scope. Re-run Steps B–I to mint a fresh token with all four scopes ticked.
+If verification returns `401`, the most likely causes are a partial token capture or a missing scope. Re-run Steps 2–9 to mint a fresh token with all required scopes ticked.
 
 ---
 
 ## PHASE 2 — Use Tools
 
-Once the connector is configured, use the `mcp__airtable__*` MCP tools below to answer questions and make changes in Airtable. The hosted Airtable MCP server provides **13 first-party tools** covering base discovery, records, schema mutations, and connection health.
+Once the connector is configured, use the `mcp__airtable__*` MCP tools below to answer questions and make changes in Airtable. The hosted Airtable MCP server exposes a set of first-party tools covering base/workspace discovery, records, schema mutations, and connection health. The most common ones are documented below; the server also exposes additional tools (e.g. `search_records`, `create_base`, `list_workspaces`, and page tools) — if you need one that is not in the tables below, list the available tools with the `mcp__airtable__` prefix to discover the current set rather than assuming a name.
 
 ### Tool Reference
 
@@ -223,6 +230,7 @@ The official MCP server exposes tools with the prefix `mcp__airtable__`. If a to
 |---|---|---|
 | `list_records_for_table` | Fetch records from a table | User asks to read entries — default page size 25 |
 | `display_records_for_table` | Fetch records formatted for display | When the user wants a readable table rather than raw data |
+| `search_records` | Find records matching a query within a table | User asks to find a specific row ("find the lead named Acme") without reading the whole table |
 | `create_records_for_table` | Create up to 10 records in a table | User asks to add rows — **confirm first, max 10 per batch** |
 | `update_records_for_table` | Update existing records in a table | User asks to change a row — **confirm first** |
 
@@ -256,6 +264,7 @@ The official MCP server exposes tools with the prefix `mcp__airtable__`. If a to
 | "What fields does the Leads table have?" | `list_tables_for_base` → `get_table_schema` |
 | "Show me all records in my Leads table" | `list_tables_for_base` → `list_records_for_table` |
 | "Show the latest 10 records in Leads" | `list_records_for_table` (limit 10, sorted by created time desc) |
+| "Find the lead named Acme in my Leads table" | `search_records` (avoids paging the whole table) |
 | "Display the Contacts table nicely" | `display_records_for_table` |
 | "Add this lead to the Leads table" | `get_table_schema` → `create_records_for_table` — **confirm first** |
 | "Import these 30 contacts into Airtable" | Split into batches of 10 → loop `create_records_for_table` — **confirm first** |
@@ -274,14 +283,14 @@ When an Airtable tool call fails, diagnose and respond in plain English. Never s
 
 | Error | What to say | How to fix |
 |---|---|---|
-| 401 Unauthorized / Not authenticated | "Your Airtable sign-in has expired — let me reconnect you." | Browser path: re-trigger Phase 1 Step 3. PAT path: ask the user to generate a fresh token and paste it. |
+| 401 Unauthorized / Not authenticated | "Your Airtable sign-in has expired. Let me reconnect you." | Re-run Phase 1 (Steps 2–9) to mint a fresh access key via the browser automation. Never ask the user to generate or paste a token by hand — the autonomy rules forbid it. |
 | 403 Forbidden | "Your Airtable user doesn't have permission for that. The base owner may need to share it with you, or an admin may need to grant access." | User talks to the base owner or workspace admin |
-| 404 Not Found (base / table / record) | "I couldn't find that record — let me refresh the list." | Use `list_bases` / `list_tables_for_base` / `list_records_for_table` to refresh |
-| 422 Invalid request | "Airtable rejected the change — usually a field type mismatch. Let me check the schema and try again." | Call `get_table_schema` and re-format the write |
+| 404 Not Found (base / table / record) | "I couldn't find that record. Let me refresh the list." | Use `list_bases` / `list_tables_for_base` / `list_records_for_table` to refresh |
+| 422 Invalid request | "Airtable rejected the change. This is usually a field type mismatch. Let me check the schema and try again." | Call `get_table_schema` and re-format the write |
 | 429 Rate limited | "Airtable is asking me to slow down. I'll wait a moment and try again." | Wait 10 seconds and retry once. Airtable's standard limit is 5 requests per second per base. |
 | MCP server not running | "The Airtable connection isn't active yet. Please restart Claude Code so it picks up the new settings." | User restarts Claude Code |
-| Admin approval required (Enterprise) | "Your workspace administrator has restricted this sign-in. No problem — I can connect it using an access key instead." | Switch to the PAT fallback path above |
-| Any other API error | "Something went wrong with Airtable — let me try again." | Retry once; if still failing, re-do the sign-in |
+| Admin approval required (Enterprise) | "Your workspace administrator has restricted this sign-in. No problem, I can connect it a different way." | This skill already uses the access-key (PAT) path, which bypasses the OAuth admin-allowlist. Re-run Phase 1 to mint the key via the browser. |
+| Any other API error | "Something went wrong with Airtable. Let me try again." | Retry once; if still failing, re-do the sign-in |
 
 ---
 
@@ -298,7 +307,7 @@ The Airtable MCP connector **can** do (via the official Airtable MCP server):
 
 The Airtable MCP connector **cannot** do (needs the Airtable UI or other tools):
 
-- **Delete** records, tables, or fields — none of the 13 tools supports deletion
+- **Delete** records, tables, or fields — none of the connector's tools supports deletion
 - Batch-create more than 10 records in a single call (loop with batches of 10)
 - Attach files to record cells via the MCP (use the Airtable UI or REST API directly)
 - Access **Interfaces**, **Automations**, or **Extensions** — schema-level access only
