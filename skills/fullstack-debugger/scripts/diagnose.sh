@@ -71,7 +71,7 @@ fi
 # 6. Build Check
 echo -e "\n${YELLOW}=== Build Test ===${NC}"
 echo "Running build (this may take a moment)..."
-BUILD_OUTPUT=$(npm run build 2>&1)
+BUILD_OUTPUT=$(npm run build 2>&1) || true
 if echo "$BUILD_OUTPUT" | grep -q "Export successful\|Compiled successfully\|Build completed"; then
   echo -e "${GREEN}Build successful${NC}"
 else

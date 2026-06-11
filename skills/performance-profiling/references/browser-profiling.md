@@ -369,7 +369,7 @@ function Search({ data }) {
 ### webpack-bundle-analyzer
 
 ```bash
-npm install --save-dev webpack-bundle-analyzer
+npm install --save-dev @next/bundle-analyzer
 
 # Next.js
 ANALYZE=true next build

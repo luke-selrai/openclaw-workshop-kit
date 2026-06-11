@@ -13,7 +13,7 @@ If the native team must not need Node, Yarn, or React Native tooling, use [./bro
 
 ## Prerequisites
 
-- **Expo SDK 54 or later** — the `ExpoReactHostFactory`, `ExpoReactNativeFactory`, and `ApplicationLifecycleDispatcher` entry points used below require SDK 54+. Earlier SDKs do not support this setup.
+- **Expo SDK 55 or later** — the `ExpoReactHostFactory`, `ExpoReactNativeFactory`, and `ApplicationLifecycleDispatcher` entry points used below require SDK 55+. Earlier SDKs do not support this setup.
 - **Node.js (LTS)** — runs JavaScript and the Expo CLI.
 - **Yarn** — manages JavaScript dependencies.
 - **CocoaPods** (iOS) — `sudo gem install cocoapods`.

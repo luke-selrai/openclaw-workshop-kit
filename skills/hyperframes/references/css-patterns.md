@@ -227,7 +227,7 @@ Wavy SVG underlines and strikethroughs that draw themselves via `stroke-dashoffs
       stroke-linecap="round"
     />
   </svg>
-</div>
+</span>
 ```
 
 ```css

@@ -62,12 +62,15 @@ Replaces the manual pattern of `onNavigate` + `startTransition` + `addTransition
 import { useRouter } from 'next/navigation';
 import { startTransition, addTransitionType } from 'react';
 
-function handleNavigate(href: string) {
+function NavigateButton({ href }: { href: string }) {
   const router = useRouter();
-  startTransition(() => {
-    addTransitionType('nav-forward');
-    router.push(href);
-  });
+  function handleNavigate() {
+    startTransition(() => {
+      addTransitionType('nav-forward');
+      router.push(href);
+    });
+  }
+  return <button onClick={handleNavigate}>Go</button>;
 }
 ```
 
@@ -83,11 +86,14 @@ For search/sort/filter that re-renders on the server (via URL params), use `star
 import { useRouter } from 'next/navigation';
 import { startTransition } from 'react';
 
-function handleSort(sort: string) {
+function SortControls() {
   const router = useRouter();
-  startTransition(() => {
-    router.replace(`?sort=${sort}`);
-  });
+  function handleSort(sort: string) {
+    startTransition(() => {
+      router.replace(`?sort=${sort}`);
+    });
+  }
+  return <button onClick={() => handleSort('asc')}>Sort ascending</button>;
 }
 ```
 

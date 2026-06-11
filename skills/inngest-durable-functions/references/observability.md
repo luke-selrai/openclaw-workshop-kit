@@ -75,7 +75,7 @@ import {
   InngestSpanProcessor
 } from "inngest/experimental";
 import { BasicTracerProvider } from "@opentelemetry/sdk-trace-base";
-import { NodeSDK } from "@opentelemetry/auto-instrumentations-node";
+import { NodeSDK } from "@opentelemetry/sdk-node";
 
 // Create client with disabled auto-instrumentation
 export const inngest = new Inngest({
@@ -560,6 +560,7 @@ const debugFunction = inngest.createFunction(
         });
       }
 
+      const startTime = Date.now();
       try {
         const result = await someOperation(event.data);
 
