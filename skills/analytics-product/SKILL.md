@@ -218,14 +218,20 @@ Year 2 Target: 100,000 WAC
 
 ```python
 def calculate_north_star(db):
+    # Count the users who qualify as WAC. The HAVING/GROUP BY runs in a
+    # subquery so the outer COUNT(*) totals the qualifying users. (Doing
+    # COUNT(DISTINCT user_id) alongside GROUP BY user_id would return one
+    # row of value 1 per user, and .scalar() would always read back 1.)
     wac = db.query("""
-        SELECT COUNT(DISTINCT user_id) as wac
-        FROM conversations
-        WHERE
-            created_at >= NOW() - INTERVAL '7 days'
-            AND duration_seconds >= 120
-        GROUP BY user_id
-        HAVING COUNT(*) >= 3
+        SELECT COUNT(*) AS wac FROM (
+            SELECT user_id
+            FROM conversations
+            WHERE
+                created_at >= NOW() - INTERVAL '7 days'
+                AND duration_seconds >= 120
+            GROUP BY user_id
+            HAVING COUNT(*) >= 3
+        ) qualifying_users
     """).scalar()
 
     return {
