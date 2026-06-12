@@ -387,7 +387,7 @@ Ultra-low latency voice generation built for real-time applications.
 Free, local-first voice synthesis studio powered by Qwen3-TTS. The open-source alternative to ElevenLabs.
 
 **Best for:** Free voice cloning, local/private generation, zero-cost batch production
-**API:** Local REST API at `http://localhost:8000`
+**API:** Local REST API at `http://127.0.0.1:17493`
 **Pricing:** Free (MIT license). Runs entirely on your machine.
 **Stack:** Tauri (Rust) + React + FastAPI (Python)
 
@@ -407,7 +407,7 @@ Free, local-first voice synthesis studio powered by Qwen3-TTS. The open-source a
 
 **API example:**
 ```bash
-curl -X POST http://localhost:8000/generate \
+curl -X POST http://127.0.0.1:17493/generate \
   -H "Content-Type: application/json" \
   -d '{"text": "Stop wasting hours on manual reporting.", "profile_id": "abc123", "language": "en"}'
 ```
@@ -415,7 +415,7 @@ curl -X POST http://localhost:8000/generate \
 **Install:** Desktop apps for macOS and Windows at [voicebox.sh](https://voicebox.sh), or build from source:
 ```bash
 git clone https://github.com/jamiepine/voicebox.git
-cd voicebox && make setup && make dev
+cd voicebox && just setup && just dev
 ```
 
 **Docs:** [GitHub](https://github.com/jamiepine/voicebox)

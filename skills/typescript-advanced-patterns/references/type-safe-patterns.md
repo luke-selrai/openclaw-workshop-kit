@@ -395,7 +395,7 @@ Test that your utility types produce the correct types:
 ```typescript
 // Install: npm install -D tsd
 // In a .test-d.ts file:
-import { expectType, expectError, expectAssignable } from 'tsd';
+import { expectType, expectError, expectAssignable, expectNotAssignable } from 'tsd';
 import type { DeepReadonly, PickByValue, RequireAtLeastOne } from './utils';
 
 // Test DeepReadonly
@@ -409,5 +409,5 @@ expectError(config.db.host = 'new-host');  // Should error: readonly
 declare const userId: UserId;
 declare const orderId: OrderId;
 expectAssignable<string>(userId);  // UserId extends string
-expectError<UserId>(orderId);      // OrderId not assignable to UserId
+expectNotAssignable<UserId>(orderId);  // OrderId not assignable to UserId
 ```

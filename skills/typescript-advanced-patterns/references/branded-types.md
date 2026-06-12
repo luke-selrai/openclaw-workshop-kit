@@ -199,13 +199,13 @@ class OrderRepository {
 
 ```typescript
 // Type-level tests with expect-type
-import { expectType, expectError } from 'tsd';
+import { expectType, expectNotAssignable } from 'tsd';
 
 const uid = UserId.from('user_abc');
 const oid = OrderId.from('order_xyz');
 
 expectType<UserId>(uid);
-expectError<OrderId>(uid);  // UserId should not be assignable to OrderId
+expectNotAssignable<OrderId>(uid);  // UserId should not be assignable to OrderId
 
 // Runtime tests
 describe('UserId', () => {

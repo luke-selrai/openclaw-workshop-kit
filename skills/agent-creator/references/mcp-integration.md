@@ -15,6 +15,7 @@ Creating custom MCP servers for agents.
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
 const server = new Server(
   {
@@ -30,7 +31,7 @@ const server = new Server(
 );
 
 // Define tools
-server.setRequestHandler("tools/list", async () => {
+server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
@@ -50,7 +51,7 @@ server.setRequestHandler("tools/list", async () => {
 });
 
 // Implement tool
-server.setRequestHandler("tools/call", async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   if (name === "analyze_code") {
@@ -142,7 +143,7 @@ Complete server with:
 
 ```typescript
 // performance-optimizer-server.ts
-server.setRequestHandler("tools/list", async () => {
+server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
