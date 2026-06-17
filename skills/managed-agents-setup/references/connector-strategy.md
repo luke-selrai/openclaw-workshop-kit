@@ -23,18 +23,20 @@ The user's Claude account already has OAuth connections for many services. Reuse
 
 **Decision:** if Tier 1 covers all required services, never go further.
 
-## Tier 2 — Rube (one OAuth → 500+ apps)
+## Tier 2 — Composio Tool Router (one OAuth → 1000+ apps)
 
-Default for services not in Tier 1. User does ONE OAuth dance and Rube proxies hundreds of apps (Slack, GHL, HubSpot, Stripe, Shopify, Calendly, Twilio, ManyChat, Telegram, Discord, ...).
+> **Migration note (2026-06):** This tier was **Rube** (`rube.app/mcp`) until Rube was discontinued (~May 15 2026; that endpoint is dead). Composio folded Rube into its main platform as **Tool Router** — same idea, new endpoint and tool prefix.
 
-**Why Rube as Tier 2 default:** new connections without per-service OAuth fatigue. Workshop attendee clicks "approve" once.
+Default for services not in Tier 1. User does ONE OAuth dance and Composio proxies 1000+ apps (Slack, GHL, HubSpot, Stripe, Shopify, Calendly, Twilio, ManyChat, Telegram, Discord, Salesforce, ...).
 
-**How we add it:** `claude mcp add --transport http rube https://rube.app/mcp` then `mcp__rube__authenticate` → user approves → `mcp__rube__complete_authentication`.
+**Why Composio as Tier 2 default:** new connections without per-service OAuth fatigue. Workshop attendee clicks "approve" once.
 
-**When to skip Rube:**
+**How we add it:** `claude mcp add composio --transport http --url https://connect.composio.dev/mcp` — OAuth is automatic (no API-key header, no separate authenticate step). User approves the one-time OAuth URL on the first Composio tool call.
+
+**When to skip Composio:**
 - Service is in Tier 1 already
-- Latency-sensitive sub-second loops (Rube adds 300-800ms)
-- Service isn't in Rube's catalog (rare)
+- Latency-sensitive sub-second loops (Composio adds 300-800ms)
+- Service isn't in Composio's catalog (rare)
 
 ## Tier 3 — Direct MCP server
 
@@ -67,8 +69,8 @@ If nothing above works, walk the user through getting a key:
 For each required service S in build.services_required:
   if S in (claude mcp list | grep claude_ai_):
       use Tier 1 (passthrough)
-  elif S in RUBE_CATALOG:
-      use Tier 2 (Rube — prompt OAuth if not yet connected)
+  elif S in COMPOSIO_CATALOG:
+      use Tier 2 (Composio Tool Router — prompt OAuth if not yet connected)
   elif S has direct MCP entry in mcp-servers-catalog.md:
       use Tier 3 (install + authenticate via vault-seeder)
   else:
@@ -80,7 +82,7 @@ The skill prints a one-line decision per service:
 ```text
 Gmail        → Tier 1 (claude.ai connector, reused)
 GHL          → Tier 3 (community MCP, needs PIT token)
-Slack        → Tier 2 (Rube, needs one-time OAuth)
+Slack        → Tier 2 (Composio, needs one-time OAuth)
 SomeNiche    → Tier 4 (manual paste, guide opening)
 ```
 
