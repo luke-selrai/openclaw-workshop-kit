@@ -6,7 +6,7 @@ new connector, start here, then read the per-pattern reference SKILL it points
 to.
 
 If a connector does not fit one of the three patterns below
-(CLI-based: `gws`, `gh`, `qbo`, `notion` (`ntn`); direct REST: `ghl`, `myob`, `servicem8`, `cliniko`, `deputy`, `starshipit`, `pipedrive`; first-party stdio:
+(CLI-based: `gws`, `gh`, `qbo`, `notion` (`ntn`); direct REST: `ghl`, `myob`, `servicem8`, `cliniko`, `deputy`, `starshipit`, `pipedrive`, `asana`; first-party stdio:
 `hubspot`, `paypal`, `slack`, `square`, `stripe`, `shopify`, `xero`,
 `voice-transcription`, `whatsapp`, `wordpress`), it has its own shape and is
 out of scope for this doc — see the SKILL itself.
