@@ -36,8 +36,6 @@ Find native memory leaks using Xcode Leaks and Android Studio Memory Profiler.
 
 ### Deep Analysis: Instruments Leaks
 
-![Xcode Instruments Templates](images/xcode-instruments-templates.png)
-
 1. **Xcode → Product → Profile** (or Cmd+I)
 2. Select **Leaks** template (highlighted with orange triangle icon in the grid)
 3. Click **Choose**

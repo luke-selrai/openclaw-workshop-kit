@@ -49,3 +49,37 @@ These are content-decision drift — the script reports them so a human can clas
 - Any marker-bracketed number doesn't match the disk-true value
 
 **CI wiring:** `.github/workflows/audit-skills.yml` runs `--check` on every PR that touches `skills/`, `docs/`, `visuals/`, or any of the count-bearing top-level docs.
+
+## check-snapshot-shape.mjs
+
+Asserts the kit stays under Loup's snapshot caps, so re-snapshotting the private repo never breaks an attendee's install live. Loup ships the kit as a verbatim repo snapshot; this is the kit's own size invariant (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385), slice [#389](https://github.com/selrai-company/claude-workshop-kit/issues/389)).
+
+**Usage:**
+
+```bash
+# Human report, exit 1 if any cap is breached (used by the workshop-preflight harness)
+node scripts/check-snapshot-shape.mjs
+
+# Machine-readable report
+node scripts/check-snapshot-shape.mjs --json
+```
+
+Measures the committed tree at `HEAD` (what Loup actually publishes) and gates on:
+
+- **File count** < 2000
+- **Archive bytes** (gzipped tar, proxy for Loup's archive cap) < 45 MB
+- **Unpacked bytes** < 80 MB
+- The post-unpack **verify-gate paths** the bootstrap checks — `my-assistant/CLAUDE.md` and `skills/` — present at the repo root
+
+Caps are exclusive (a value AT the cap fails); it WARNs at 90% so there's early signal before a cap is hit. Exit codes: `0` within caps, `1` a cap breached, `2` could not read git.
+
+**Harness wiring:** the `workshop-preflight` skill runs this as a Phase 1 gating check during the pre-workshop dry run.
+
+## Tests
+
+Plain Node, no framework — each prints `PASS`/`FAIL` and exits non-zero on any failure.
+
+```bash
+node scripts/test-anti-patterns.mjs     # regression for audit-skills anti-pattern rules
+node scripts/test-snapshot-shape.mjs    # cap-boundary + real-repo checks for the snapshot invariant
+```

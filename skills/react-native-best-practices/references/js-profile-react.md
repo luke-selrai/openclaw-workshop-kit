@@ -70,8 +70,6 @@ For AI-agent workflows, treat this as a required sequence:
 
 ### 4. Analyze the Flame Graph
 
-![React DevTools Flamegraph](images/devtools-flamegraph.png)
-
 The flame graph shows component render hierarchy with timing:
 
 **Color indicators:**

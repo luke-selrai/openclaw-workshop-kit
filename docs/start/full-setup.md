@@ -73,50 +73,6 @@ Done when: You see the main Claude window and can start a new chat.
 
 ---
 
-## Windows Users Only — Install Git
-
-> **Mac users: skip this section entirely.** Git installs automatically on Mac when needed.
-
-### Download and Install
-
-1. Go to [git-scm.com/download/win](https://git-scm.com/download/win)
-2. The download should start automatically. If not, click **"Click here to download"**
-3. Run the installer
-4. Click **Next** through every screen — all default settings are fine
-5. Click **Install**, then **Finish**
-
-### Close and reopen Claude Desktop after installing Git
-
-**This step is not optional.** Windows only picks up the new Git location in Claude Desktop's terminal after a full restart of the app. Completely quit Claude Desktop (don't just minimise) and reopen it before you move on.
-
-### Verify It Worked
-
-1. Open **Claude Desktop**, start a new **Code** session, and show the terminal panel at the bottom (use the View menu if you don't see it)
-2. Type: `git --version`
-3. You should see something like: `git version 2.43.0.windows.1`
-
-If you see `git is not recognized`, the installer didn't add Git to your system PATH. Follow the fallback below.
-
-### Fallback — If Git still isn't recognised after restarting Claude Desktop
-
-Some Git installers do not add themselves to the system PATH. If the verification above failed, add it manually. The assistant cannot fix this for you — `git` must be available before the bootstrap can run its first command.
-
-1. Press the **Windows key** on your keyboard
-2. Type: **Environment Variables**
-3. Click **"Edit the system environment variables"**
-4. Click the **"Environment Variables"** button at the bottom of the window
-5. In the bottom section (System variables), find the row called **Path** and click it
-6. Click **Edit**
-7. Click **New**
-8. Type exactly: `C:\Program Files\Git\cmd`
-9. Click **OK**, **OK**, **OK** to close all windows
-10. **Completely quit Claude Desktop and reopen it** — the PATH change only takes effect in new processes
-11. Re-run `git --version` in a new Code session to confirm
-
-> **Why can't Claude fix this itself?** If `git` isn't on the PATH when Claude Desktop starts, the assistant's first command (`git clone …`) fails before the conversation can even begin. There's no in-session fix — the app has to restart with the new PATH before anything else works.
-
----
-
 ## Step 4 — Install Node.js (and Bun if you want messaging)
 
 **Node.js is required for everyone.** Your assistant needs it to connect Gmail, Calendar, browser automation, and most other tools.
@@ -823,7 +779,6 @@ Your assistant has <!-- skills-audit:total -->204<!-- /skills-audit:total --> sp
 |---|---|
 | Claude.ai | [claude.ai](https://claude.ai) |
 | Claude Desktop | [claude.ai/download](https://claude.ai/download) |
-| Git for Windows | [git-scm.com/download/win](https://git-scm.com/download/win) |
 | Node.js | [nodejs.org](https://nodejs.org) |
 | Claude Code Docs | [docs.anthropic.com/en/docs/claude-code](https://docs.anthropic.com/en/docs/claude-code) |
 | MCP Documentation | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
@@ -839,8 +794,6 @@ Your assistant has <!-- skills-audit:total -->204<!-- /skills-audit:total --> sp
 
 | Problem | Solution |
 |---|---|
-| "git is not recognized" (Windows) | Install [Git for Windows](https://git-scm.com/download/win), then **fully quit and reopen Claude Desktop** (required — the new PATH only applies to Claude Desktop after a restart). If it still isn't recognised, Git's installer didn't add itself to PATH — follow the [Fallback section](#fallback--if-git-still-isnt-recognised-after-restarting-claude-desktop) above, then restart Claude Desktop again. |
-| Mac popup: "command line tools are required" | Click **Install** (NOT "Get Xcode") and wait 3–5 minutes. Your assistant pauses until the install finishes. |
 | Claude Desktop sign-in loop | Sign out of claude.ai in your browser, then sign in again inside Claude Desktop. If the loop continues, restart the app. |
 | Skills not showing up | Close Claude Desktop completely and reopen it. Skills load on fresh start. |
 | Claude keeps asking to set up | Start a new conversation — your assistant will remember your setup status automatically |
