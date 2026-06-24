@@ -49,3 +49,27 @@ These are content-decision drift — the script reports them so a human can clas
 - Any marker-bracketed number doesn't match the disk-true value
 
 **CI wiring:** `.github/workflows/audit-skills.yml` runs `--check` on every PR that touches `skills/`, `docs/`, `visuals/`, or any of the count-bearing top-level docs.
+
+## verify-conform.mjs
+
+Asserts the Loup-deliverable invariants (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386)). The kit home is `~/.loup/selr-ai/workshop-kit`.
+
+**Usage:**
+
+```bash
+node scripts/verify-conform.mjs            # exit 1 on any hard failure (used by CI)
+node scripts/verify-conform.mjs --verbose  # also print every passing check
+```
+
+**Hard failures (fail CI):**
+
+- **path-conform** — any stale kit-home reference survives (`~/workshop-kit`, `$HOME/workshop-kit`, `%USERPROFILE%\workshop-kit`, `C:\Users\…\workshop-kit`, or the old `~/claude-workshop-kit/whatsapp` fallback).
+- **bootstrap-consistency** — the bootstrap prompt body is not byte-identical between `docs/start/bootstrap.md` and `docs/start/full-setup.md` (taken between the start/end anchors).
+- **install-method** — the bootstrap doesn't install via `npx @louphq/install`, or still `git clone`s the kit.
+- **verify-gate-paths** — `my-assistant/CLAUDE.md` or `skills/` is missing at the repo root.
+
+**Informational (never fails):** snapshot file count vs Loup's `< 2000` cap.
+
+## test-verify-conform.mjs
+
+Regression test for `verify-conform.mjs`'s stale-ref rules. Reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each rule fires on the expected line. Run with `node scripts/test-verify-conform.mjs`.

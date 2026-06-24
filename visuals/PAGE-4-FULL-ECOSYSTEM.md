@@ -181,8 +181,8 @@ You just did. You set it up today. The hard part is done.
 
 ## Getting Help After the Workshop
 
-- **Full guide:** `~/workshop-kit/docs/use/completion-guide.md`
-- **Skills reference:** `~/workshop-kit/docs/skills/README.md`
+- **Full guide:** `~/.loup/selr-ai/workshop-kit/docs/use/completion-guide.md`
+- **Skills reference:** `~/.loup/selr-ai/workshop-kit/docs/skills/README.md`
 - **Selr AI:** selrai.com.au
 
 > The best way to learn is to just try things. Ask Claude to do something for your business right now. You can't break anything that can't be fixed in 30 seconds.

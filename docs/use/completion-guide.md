@@ -231,8 +231,8 @@ You can talk to your AI assistant instead of typing, using tools like Wispr Flow
 
 ## Support
 
-- **Workshop resources:** All documents in `~/workshop-kit/docs/`
-- **Skills reference:** `~/workshop-kit/skills/SKILLS-LIST.md`
+- **Workshop resources:** All documents in `~/.loup/selr-ai/workshop-kit/docs/`
+- **Skills reference:** `~/.loup/selr-ai/workshop-kit/skills/SKILLS-LIST.md`
 - **Luke / Selr AI:** selrai.com.au
 
 ---
