@@ -87,17 +87,17 @@ Before reading code examples, determine which language the user is working in:
 What does your application need?
 
 1. Single LLM call (classification, summarization, extraction, Q&A)
-   └── Claude API — one request, one response
+   └── Claude API: one request, one response
 
 2. Does Claude need to read/write files, browse the web, or run shell commands
-   as part of its work? (Not: does your app read a file and hand it to Claude —
+   as part of its work? (Not: does your app read a file and hand it to Claude,
    does Claude itself need to discover and access files/web/shell?)
-   └── Yes → Agent SDK — built-in tools, don't reimplement them
+   └── Yes → Agent SDK: built-in tools, don't reimplement them
        Examples: "scan a codebase for bugs", "summarize every file in a directory",
                  "find bugs using subagents", "research a topic via web search"
 
 3. Workflow (multi-step, code-orchestrated, with your own tools)
-   └── Claude API with tool use — you control the loop
+   └── Claude API with tool use: you control the loop
 
 4. Open-ended agent (model decides its own trajectory, your own tools)
    └── Claude API agentic loop (maximum flexibility)
