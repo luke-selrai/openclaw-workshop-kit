@@ -4,3 +4,10 @@ docs/NOTION-PAGE-DRAFT.md
 # Workshop-shipped connector credentials — never commit
 skills/myob-connector/.workshop-credentials
 /pr-qa-stack/
+
+# Managed-agents secrets — real values live here, never committed (.env.example carries the names)
+secrets.env
+**/secrets.env
+.env
+**/.env
+!**/.env.example

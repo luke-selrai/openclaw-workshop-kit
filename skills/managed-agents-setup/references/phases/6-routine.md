@@ -1,4 +1,4 @@
-# Phase 6 — Schedule via Routine
+# Phase 6, Schedule via Routine
 
 **Goal:** wire the agent to a `claude.ai/code/routines` schedule so it fires on cron.
 
@@ -9,8 +9,8 @@ bash ~/.claude/skills/managed-agents-setup/scripts/create-routine.sh \
 ```
 
 **Cron rules** (full cheatsheet: `references/routines-cron-cheatsheet.md`):
-- Cadence ≥ 1 hour — Routines is correct
-- Cadence < 1 hour — use server-cron + agents-cc helper
+- Cadence ≥ 1 hour, Routines is correct
+- Cadence < 1 hour, use server-cron + agents-cc helper
 - All times UTC. Anthropic does not auto-localize.
 - Max 50 routines per workspace; if exceeded, consolidate by widening the agent's responsibility
 

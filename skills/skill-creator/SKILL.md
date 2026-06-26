@@ -29,14 +29,14 @@ This skill provides guidance for creating, validating, and packaging effective C
 
 ## About Skills
 
-Skills are modular, self-contained packages that extend Claude's capabilities by providing specialized knowledge, workflows, and tools. Think of them as "onboarding guides" for specific domains or tasks — they transform Claude from a general-purpose agent into a specialized agent equipped with procedural knowledge.
+Skills are modular, self-contained packages that extend Claude's capabilities by providing specialized knowledge, workflows, and tools. Think of them as "onboarding guides" for specific domains or tasks, they transform Claude from a general-purpose agent into a specialized agent equipped with procedural knowledge.
 
 ### What Skills Provide
 
-1. **Specialized workflows** — Multi-step procedures for specific domains
-2. **Tool integrations** — Instructions for working with specific file formats or APIs
-3. **Domain expertise** — Company-specific knowledge, schemas, business logic
-4. **Bundled resources** — Scripts, references, and assets for complex and repetitive tasks
+1. **Specialized workflows**, Multi-step procedures for specific domains
+2. **Tool integrations**, Instructions for working with specific file formats or APIs
+3. **Domain expertise**, Company-specific knowledge, schemas, business logic
+4. **Bundled resources**, Scripts, references, and assets for complex and repetitive tasks
 
 ### Anatomy of a Skill
 
@@ -94,7 +94,7 @@ Documentation loaded into context to inform Claude's process and thinking.
 
 ### assets/
 
-Files used within the output Claude produces — not loaded into context.
+Files used within the output Claude produces, not loaded into context.
 
 - **When to include**: When the skill needs templates, images, fonts, or boilerplate
 - **Examples**: `assets/logo.png`, `assets/slides.pptx`, `assets/hello-world/`
@@ -124,7 +124,7 @@ Follow these steps in order. Skip a step only if there is a clear reason it does
 Clarify how the skill will be used before writing anything. Ask the user:
 
 - "What should this skill enable Claude to do?"
-- "Can you give 2–3 examples of how a user would trigger it?"
+- "Can you give 2-3 examples of how a user would trigger it?"
 - "What would a user say that should activate this skill?"
 
 Conclude this step when the functionality and trigger phrases are clear.
@@ -153,11 +153,11 @@ Delete any example files not needed for the skill.
 
 ### Step 4: Edit the Skill
 
-Write for another Claude instance — include what is non-obvious and procedurally important.
+Write for another Claude instance, include what is non-obvious and procedurally important.
 
 **Writing style rules:**
-- Use **imperative/infinitive form** — verb-first instructions
-- Avoid second person ("you should") — use "To do X, run Y"
+- Use **imperative/infinitive form**, verb-first instructions
+- Avoid second person ("you should"), use "To do X, run Y"
 - Keep SKILL.md under 500 lines; move detailed content to `references/`
 
 **Description quality checklist:**

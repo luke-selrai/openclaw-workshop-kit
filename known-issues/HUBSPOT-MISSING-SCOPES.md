@@ -1,4 +1,4 @@
-# Known Issue — HubSpot: Missing Scopes After Initial Setup
+# Known Issue, HubSpot: Missing Scopes After Initial Setup
 
 **Status:** Known limitation
 **Affects:** hubspot-connector
@@ -8,9 +8,9 @@
 
 ## What Is Happening
 
-The HubSpot connector authenticates using a **Private App** that you create in your HubSpot account. During setup, you choose which **scopes** to give it — a scope is a permission that controls what your assistant is allowed to see or do (for example, "read contacts" or "create deals").
+The HubSpot connector authenticates using a **Private App** that you create in your HubSpot account. During setup, you choose which **scopes** to give it, a scope is a permission that controls what your assistant is allowed to see or do (for example, "read contacts" or "create deals").
 
-If you chose a narrow set of scopes during setup, any action that needs a permission you did not tick will return a `403 Forbidden` error — even though the connection itself is working fine.
+If you chose a narrow set of scopes during setup, any action that needs a permission you did not tick will return a `403 Forbidden` error, even though the connection itself is working fine.
 
 The most common cause is setting up the connector for read-only access and then trying to create or update records.
 
@@ -27,14 +27,14 @@ Or you may see an error mentioning `Missing scope` or `403 Forbidden`.
 
 ## How to Fix It
 
-You do **not** need to create a new Private App — you can edit the existing one.
+You do **not** need to create a new Private App, you can edit the existing one.
 
 1. Tell your assistant: *"My HubSpot connection is missing a permission. Can you help me add it?"*
 2. Your assistant will tell you exactly which permission is needed
 3. Go to **HubSpot → Settings → Integrations → Private Apps** → click your app name
 4. Click the **Scopes** tab (this is where permissions are listed)
 5. Tick the permission your assistant identified
-6. Click **Save changes** — the connection updates automatically, no need to copy anything new
+6. Click **Save changes**, the connection updates automatically, no need to copy anything new
 
 ---
 

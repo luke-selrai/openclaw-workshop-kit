@@ -112,7 +112,7 @@ Consider:
 ### Welcome Sequence (Post-Signup)
 
 **Email 1: Welcome (Immediate)**
-- Subject: Welcome to [Product] — here's your first step
+- Subject: Welcome to [Product], here's your first step
 - Deliver what was promised (lead magnet, access, etc.)
 - Single next action
 - Set expectations for future emails
@@ -136,7 +136,7 @@ Consider:
 - Soft CTA to explore
 
 **Email 5: Overcome Objection (Day 7-8)**
-- Subject: "I don't have time for X" — sound familiar?
+- Subject: "I don't have time for X", sound familiar?
 - Address common hesitation
 - Reframe the obstacle
 - Show easy path forward
@@ -216,7 +216,7 @@ Consider:
 - Quick CTA
 
 **Email 3: Incentive (Day 5-7 after)**
-- Subject: We miss you — here's something special
+- Subject: We miss you, here's something special
 - Offer if appropriate
 - Limited time
 - Clear CTA
@@ -275,8 +275,8 @@ Coordinate with in-app onboarding. Email supports, doesn't duplicate.
 
 ## Reference Files
 
-- **[Email Types Reference](references/email-types.md)** — Complete lifecycle and campaign email guide: onboarding, activation, nurture, re-engagement, transactional, and more
-- **[Audit Checklist and Copy Guidelines](references/audit-and-guidelines.md)** — Email audit checklist, copy guidelines, personalization tactics, segmentation strategies, and testing frameworks
+- **[Email Types Reference](references/email-types.md)**, Complete lifecycle and campaign email guide: onboarding, activation, nurture, re-engagement, transactional, and more
+- **[Audit Checklist and Copy Guidelines](references/audit-and-guidelines.md)**, Email audit checklist, copy guidelines, personalization tactics, segmentation strategies, and testing frameworks
 
 ## Output Format
 

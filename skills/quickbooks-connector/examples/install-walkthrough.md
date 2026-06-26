@@ -1,6 +1,6 @@
-# quickbooks-connector — install walkthrough
+# quickbooks-connector, install walkthrough
 
-> **Screencast available** — `qbo-installer-demo.mp4` (~2.9 MB, 1:30, 720p / 30fps) in this folder captures the Steps 8-10 portion of a real install (file writes, qbo auth login launch, the `✓ authenticated for company` log line, the Step 10 verification commands, the fresh-shell smoke test returning 18 invoices). Poster frame at `qbo-installer-poster.jpg`. The clip is terminal-side only; for the browser-side Playwright actions, read the walkthrough below.
+> **Screencast available**, `qbo-installer-demo.mp4` (~2.9 MB, 1:30, 720p / 30fps) in this folder captures the Steps 8-10 portion of a real install (file writes, qbo auth login launch, the `✓ authenticated for company` log line, the Step 10 verification commands, the fresh-shell smoke test returning 18 invoices). Poster frame at `qbo-installer-poster.jpg`. The clip is terminal-side only; for the browser-side Playwright actions, read the walkthrough below.
 
 This file shows what a successful Phase 1 install looks like end-to-end. It's a narrative reference for two audiences:
 
@@ -13,9 +13,9 @@ The walkthrough is synthesised from a verified-live dry-run on 2026-06-01 (Linux
 
 A workshop attendee says **"set up QuickBooks"** or **"connect my QuickBooks"** to Claude. From their perspective:
 
-1. A browser window opens. Claude says: *"Opening a browser window for you — please sign in to developer.intuit.com when it appears (and approve any 2FA prompt). I'll do the rest. About two minutes."*
+1. A browser window opens. Claude says: *"Opening a browser window for you, please sign in to developer.intuit.com when it appears (and approve any 2FA prompt). I'll do the rest. About two minutes."*
 2. The attendee signs in to their Intuit developer account (and handles 2FA if their account asks). They do nothing else.
-3. ~2 minutes later Claude says: *"All done — I'm now connected to your QuickBooks practice company **Sandbox Company AU e43d**. You can ask me things like 'show me my recent invoices' or 'what's my profit and loss this month?'."*
+3. ~2 minutes later Claude says: *"All done, I'm now connected to your QuickBooks practice company **Sandbox Company AU e43d**. You can ask me things like 'show me my recent invoices' or 'what's my profit and loss this month?'."*
 
 That's the whole user-facing experience. Everything else is autonomous.
 
@@ -23,7 +23,7 @@ That's the whole user-facing experience. Everything else is autonomous.
 
 Each step below corresponds to a section in `SKILL.md`. Times are from the 2026-06-01 dry-run on a returning Intuit account (Claude Assistant app already exists). A fresh-account install adds ~30 seconds for the create-app form.
 
-### Step 1 — Is qbo installed? (0s)
+### Step 1, Is qbo installed? (0s)
 
 ```
 $ qbo --version
@@ -37,14 +37,14 @@ Exit 0 → qbo is installed, skip to Step 4. (Note: qbo doesn't actually have a 
 
 If qbo wasn't installed (exit 127), Steps 2-3 install it via Homebrew / Scoop / Go install / binary download fallback. The 2026-06-01 dry-run skipped these because qbo was already on PATH.
 
-### Step 4 — Open developer.intuit.com and confirm a logged-in session (~30s on a returning account)
+### Step 4, Open developer.intuit.com and confirm a logged-in session (~30s on a returning account)
 
 Playwright navigates to `https://developer.intuit.com/workspaces`. One of two states:
 
 - **Already signed in** (persistent Playwright profile retained the session) → land on `/workspaces` showing your workspace cards. Continue silently.
 - **Signed out** (default for first-time fresh install or after Intuit session expiry) → land on `accounts.intuit.com/app/sign-in`. Claude polls `browser_wait_for({ text: "Workspaces" })` silently until the user signs in. No prompt to re-ask.
 
-### Step 5 — Find or create the "Claude Assistant" app (~10s)
+### Step 5, Find or create the "Claude Assistant" app (~10s)
 
 In the workspace dashboard at `developer.intuit.com/dashboard?id=<workspace-id>&tab=apps`:
 
@@ -53,16 +53,16 @@ In the workspace dashboard at `developer.intuit.com/dashboard?id=<workspace-id>&
 
 The 2026-06-01 dry-run found the existing app (created 05/08/2026 in a prior session). `appId=djQuMTo6OGQzYmJlYTI3Yg:4204facc-0232-491c-842d-44c19fcc03ab`, `workspace=9341456862813230`.
 
-### Step 6 — Redirect URI idempotent upsert (~5s)
+### Step 6, Redirect URI idempotent upsert (~5s)
 
 Claude navigates to `appdetail/settings?...&tab=redirect-uris`, reads all `input[aria-label="url-location"]` values from the Development tabpanel, and checks whether `http://localhost:8844/callback` is already in the list.
 
 - **Already present** → skip the Save click. No-op. (This was the dry-run path.)
 - **Not present** → click **Add URI**, fill the new input via a React-friendly setter (native HTMLInputElement.prototype.value setter + dispatched input/change events), click **Save**, reload and verify.
 
-The 2026-06-01 dry-run had 3 URIs already registered: `https://developer.intuit.com/v2/OAuth2Playground/RedirectUrl`, `http://localhost:3000/callback`, `http://localhost:8844/callback`. Idempotent — no Save triggered.
+The 2026-06-01 dry-run had 3 URIs already registered: `https://developer.intuit.com/v2/OAuth2Playground/RedirectUrl`, `http://localhost:3000/callback`, `http://localhost:8844/callback`. Idempotent, no Save triggered.
 
-### Step 7 — DOM-extract Client ID and Client Secret (~15s)
+### Step 7, DOM-extract Client ID and Client Secret (~15s)
 
 Claude navigates to `appdetail/keys?...`. The values are masked behind a "Show credentials" toggle.
 
@@ -75,14 +75,14 @@ The credential read uses a **clipboard-transit pattern** so the literal values n
 5. `wl-paste` reads the clipboard, `jq` formats the two `QBO_CLIENT_ID="..."` / `QBO_CLIENT_SECRET="..."` lines, redirected directly to `~/.config/qbo/credentials.env` (mode 600) without ever touching stdout.
 6. Restore the user's original clipboard.
 
-A workshop attendee never sees their Client ID or Client Secret — the SKILL design keeps them in the file system, not the conversation.
+A workshop attendee never sees their Client ID or Client Secret, the SKILL design keeps them in the file system, not the conversation.
 
-### Step 8 — Persist credentials (cross-platform shell-env write) (~2s)
+### Step 8, Persist credentials (cross-platform shell-env write) (~2s)
 
 Two writes happen in this order:
 
-1. **`~/.config/qbo/credentials.env`** — mode 600 backup file. Carries credentials across Claude Code's separate-`bash -c`-per-block invocations.
-2. **OS-appropriate shell startup file(s)** — with idempotent `# === BEGIN qbo credentials (managed by claude-workshop-kit) ===` / `# === END qbo credentials ===` marker block:
+1. **`~/.config/qbo/credentials.env`**, mode 600 backup file. Carries credentials across Claude Code's separate-`bash -c`-per-block invocations.
+2. **OS-appropriate shell startup file(s)**, with idempotent `# === BEGIN qbo credentials (managed by claude-workshop-kit) ===` / `# === END qbo credentials ===` marker block:
 
    | OS | rc file(s) |
    |---|---|
@@ -94,7 +94,7 @@ The helper iterates a fixed list `QBO_CLIENT_ID QBO_CLIENT_SECRET QBO_COMPANY_ID
 
 awk-based delete removes any prior marker block AND any leading blank-line drift, so re-running Phase 1 always leaves exactly one block, no matter how many times.
 
-### Step 9 — Run qbo auth login (~3s)
+### Step 9, Run qbo auth login (~3s)
 
 Claude launches `qbo auth login --sandbox --manual` in the background. The `--manual` flag is critical: without it, qbo's Go-side `openBrowser()` (`internal/auth/oauth.go:182`) calls `xdg-open` / `open` / `rundll32` to auto-launch the user's default browser, which would race the Playwright window. With `--manual`, that call is suppressed; the localhost:8844 OAuth listener still spawns and waits for the callback.
 
@@ -105,9 +105,9 @@ Claude reads the auth URL from `/tmp/qbo-auth.log`, navigates Playwright to it, 
 
 The dry-run hit path #1 in ~0.5s.
 
-A single bash block then captures `REALM_ID` from `/tmp/qbo-auth.log`, appends `QBO_COMPANY_ID="<realm-id>"` to the backup file (idempotent grep-or-append), and re-calls `write_qbo_block_bash` / `write_qbo_block_pwsh` to refresh the rc-file marker block with all 3 exports. The combined block is necessary because `REALM_ID` is a shell variable — it doesn't survive across separate `bash -c` invocations.
+A single bash block then captures `REALM_ID` from `/tmp/qbo-auth.log`, appends `QBO_COMPANY_ID="<realm-id>"` to the backup file (idempotent grep-or-append), and re-calls `write_qbo_block_bash` / `write_qbo_block_pwsh` to refresh the rc-file marker block with all 3 exports. The combined block is necessary because `REALM_ID` is a shell variable, it doesn't survive across separate `bash -c` invocations.
 
-### Step 10 — Verify the connection (~1s)
+### Step 10, Verify the connection (~1s)
 
 Two source-prefixed checks (Claude's Bash invocations don't inherit the rc file; the source prefix is needed inside Claude even though it's not needed for the participant's interactive shells):
 
@@ -129,13 +129,13 @@ qbo company info --sandbox --json | jq -r '.QueryResponse.CompanyInfo[0].Company
 
 Expected: the practice company's name. From the dry-run: `Sandbox Company AU e43d`.
 
-### Step 11 — Success message (~0s)
+### Step 11, Success message (~0s)
 
-Claude tells the user: *"All done — I'm now connected to your QuickBooks practice company **[company name]**. You can ask me things like 'show me my recent invoices' or 'what's my profit and loss this month?'."*
+Claude tells the user: *"All done, I'm now connected to your QuickBooks practice company **[company name]**. You can ask me things like 'show me my recent invoices' or 'what's my profit and loss this month?'."*
 
 That's the end of Phase 1. The skill saves to memory that qbo is installed and authenticated, so next session goes straight to Phase 2.
 
-## Phase 2 smoke test — fetching real data
+## Phase 2 smoke test, fetching real data
 
 After Phase 1 completes, an outsider can verify the install with these two commands. Run them in a fresh terminal (any new interactive shell sources the rc-file marker block and gets the QBO env vars without a prefix):
 
@@ -160,7 +160,7 @@ These aren't QBO-SKILL bugs. They're Claude Code / Playwright MCP behaviours tha
 
 1. **Skill-tool `$N` arg interpolation.** If a participant invokes the SKILL via `Skill quickbooks-connector` with multi-word args (e.g. "set up my QuickBooks"), Claude Code's Skill-tool display shell-interpolates `$N` positional refs in the SKILL.md content against the words of the args string. Bash positional parameters in the SKILL's code blocks get corrupted in what Claude sees. The disk file is unaffected. Workaround: Claude must Read the SKILL.md from disk for code blocks, not trust the loaded display.
 
-2. **Playwright `browser_snapshot` captures password values.** When the Playwright browser hits a sign-in page, password managers (Keeper, 1Password, browser autofill) populate the password field on page load — before the user clicks Sign in. A snapshot taken at that moment returns the literal password value in the accessibility tree. Mitigation: don't snapshot the sign-in page; use `browser_wait_for({ text: "<post-auth marker>" })` instead.
+2. **Playwright `browser_snapshot` captures password values.** When the Playwright browser hits a sign-in page, password managers (Keeper, 1Password, browser autofill) populate the password field on page load, before the user clicks Sign in. A snapshot taken at that moment returns the literal password value in the accessibility tree. Mitigation: don't snapshot the sign-in page; use `browser_wait_for({ text: "<post-auth marker>" })` instead.
 
 Both findings are logged as memory references for maintainers and have not yet been addressed upstream.
 
@@ -172,6 +172,6 @@ Both findings are logged as memory references for maintainers and have not yet b
 
 ## See also
 
-- `../SKILL.md` — the actual instructions Claude follows.
-- CWK PR #284 — the cross-platform shell-env persistence + `--manual` auth refactor that this walkthrough verifies.
-- selr-kit-index PR #170 — the initial Pass 1 vet that scored this SKILL 4/4/5/5/3 (Promising). This walkthrough is the artifact that bumps Evidence to 4 (or 5 when a screencast follows).
+- `../SKILL.md`, the actual instructions Claude follows.
+- CWK PR #284, the cross-platform shell-env persistence + `--manual` auth refactor that this walkthrough verifies.
+- selr-kit-index PR #170, the initial Pass 1 vet that scored this SKILL 4/4/5/5/3 (Promising). This walkthrough is the artifact that bumps Evidence to 4 (or 5 when a screencast follows).

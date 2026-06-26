@@ -29,19 +29,19 @@ metadata:
 
 This skill does two things:
 1. **Installs** the Google Workspace CLI (`gws`) on the user's computer (one-time setup)
-2. **Operates** the connector — sending messages, reading conversations, listing spaces, managing team communication via the Google Chat API
+2. **Operates** the connector, sending messages, reading conversations, listing spaces, managing team communication via the Google Chat API
 
 The connector uses the **Google Workspace CLI** (`@googleworkspace/cli`, invoked as `gws`) which wraps the Google Chat REST API with OAuth2 authentication. One tool, one auth flow, covers Chat, Gmail, Calendar, and Drive.
 
 > **Account support:** Requires a **Google Workspace** account (work/school domain).
-> Personal Gmail accounts (`@gmail.com`) are NOT supported — the Google Chat API is a Workspace-only feature.
-> If the user has a personal account, tell them this upfront and stop — do not waste time on setup that will fail at the end.
+> Personal Gmail accounts (`@gmail.com`) are NOT supported, the Google Chat API is a Workspace-only feature.
+> If the user has a personal account, tell them this upfront and stop, do not waste time on setup that will fail at the end.
 
 ---
 
-## Part 1 — Installation
+## Part 1, Installation
 
-Guide conversationally — one step at a time.
+Guide conversationally, one step at a time.
 
 ### Step 1: Confirm account type
 
@@ -93,10 +93,10 @@ If the install fails with a permission error on macOS/Linux, try `sudo npm insta
 
 ### Step 5: Set up the GCP project + OAuth client
 
-The Chat API needs a GCP project with OAuth credentials. There are three paths — pick one based on what the user has.
+The Chat API needs a GCP project with OAuth credentials. There are three paths, pick one based on what the user has.
 
-**Path A — Teammate already set it up (fastest):**
-If someone on the user's team already configured this, ask them for their `client_secret.json` file. It is safe to share within an org — it identifies the OAuth app, not any individual's login.
+**Path A, Teammate already set it up (fastest):**
+If someone on the user's team already configured this, ask them for their `client_secret.json` file. It is safe to share within an org, it identifies the OAuth app, not any individual's login.
 
 Save the file to:
 ```
@@ -105,14 +105,14 @@ Save the file to:
 
 Then skip to Step 6.
 
-**Path B — Automated (user has `gcloud` CLI authenticated):**
+**Path B, Automated (user has `gcloud` CLI authenticated):**
 ```bash
 gws auth setup --login
 ```
 
 This creates the GCP project, enables the Chat/Gmail/Calendar/Drive APIs, configures OAuth, and authenticates in one shot. If the user doesn't have `gcloud`, either install it via [gcloud-connector](../gcloud-connector/SKILL.md) first, or use Path C.
 
-**Path C — Manual:**
+**Path C, Manual:**
 1. Go to https://console.cloud.google.com
 2. Create a new project (or use an existing one)
 3. Enable these APIs: **Google Chat API**, Gmail API, Google Calendar API, Google Drive API
@@ -146,7 +146,7 @@ If this returns a list of spaces (even an empty one), installation is complete. 
 
 ---
 
-## Part 2 — Operation
+## Part 2, Operation
 
 Once installed, use these commands to read and write Google Chat data.
 
@@ -165,9 +165,9 @@ gws chat spaces list --page-all --page-limit 5
 ```
 
 **Space types** returned:
-- `SPACE` — named room/channel
-- `GROUP_CHAT` — multi-person chat without a name
-- `DIRECT_MESSAGE` — 1:1 DM
+- `SPACE`, named room/channel
+- `GROUP_CHAT`, multi-person chat without a name
+- `DIRECT_MESSAGE`, 1:1 DM
 
 ### Sending a message
 
@@ -246,7 +246,7 @@ URLs are auto-linked. For anything richer than basic formatting (buttons, images
 ### Output formats
 
 ```bash
---format json    # Default — full API response
+--format json    # Default, full API response
 --format table   # Human-readable table
 --format yaml    # YAML
 --format csv     # CSV

@@ -1,4 +1,4 @@
-# PAGE 4 — The Full Ecosystem: Tools, Connections, and What's Possible
+# PAGE 4, The Full Ecosystem: Tools, Connections, and What's Possible
 
 ---
 
@@ -49,7 +49,7 @@
 
 ## The Three Types of Tools
 
-### CLI Tools — Programs On Your Computer
+### CLI Tools, Programs On Your Computer
 Installed once, available forever. Claude uses them by typing commands.
 
 ```
@@ -60,11 +60,11 @@ claude    → Starts your AI assistant
 npm       → An app store for installing other tools
 ```
 
-> Think of CLI tools like kitchen appliances — installed in your kitchen, ready to use anytime.
+> Think of CLI tools like kitchen appliances, installed in your kitchen, ready to use anytime.
 
 ---
 
-### MCP Tools — Live Connections to Your Apps
+### MCP Tools, Live Connections to Your Apps
 Claude gets login access to your apps. Can read, write, and act in real time.
 
 ```
@@ -80,7 +80,7 @@ Slack             → Reads and sends messages
 
 ---
 
-### Business APIs — Direct Lines to Services
+### Business APIs, Direct Lines to Services
 Claude connects directly to services through their official programming interface.
 
 ```
@@ -166,7 +166,7 @@ LEVEL 4 — what Selr AI can build for you:
 Only what you give it access to. You control which tools connect. Nothing is accessed without your permission.
 
 **"Is it safe? What if it does something I didn't want?"**
-Claude asks before taking any significant action — sending emails, posting, deleting files. It confirms first.
+Claude asks before taking any significant action, sending emails, posting, deleting files. It confirms first.
 
 **"Does connecting more tools cost more?"**
 Most MCP connections are free. Business APIs (Stripe, GHL) have their own costs, but those exist whether you use AI or not.
@@ -174,7 +174,7 @@ Most MCP connections are free. Business APIs (Stripe, GHL) have their own costs,
 **"What if I want to disconnect something?"**
 Run `claude mcp remove [tool-name]` at any time.
 
-**"I'm not technical — can I really do this?"**
+**"I'm not technical, can I really do this?"**
 You just did. You set it up today. The hard part is done.
 
 ---
@@ -189,4 +189,4 @@ You just did. You set it up today. The hard part is done.
 
 ---
 
-*Claude Code Workshop — selrai.com.au*
+*Claude Code Workshop, selrai.com.au*

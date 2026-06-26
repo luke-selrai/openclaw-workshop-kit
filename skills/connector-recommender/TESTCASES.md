@@ -111,7 +111,7 @@
 - [x] Acknowledges existing tools
 - [x] Gmail and Notion NOT in recommendations
 - [x] Remaining recommendations still relevant
-- [x] Says something like "You're already using Gmail and Notion — great"
+- [x] Says something like "You're already using Gmail and Notion, great"
 
 ---
 
@@ -230,7 +230,7 @@
 
 ## TC-15: User Wants All At Once
 
-**Input:** "Set up everything — Gmail, Calendar, Sheets, Notion, Airtable, Stripe, GitHub all at once"
+**Input:** "Set up everything, Gmail, Calendar, Sheets, Notion, Airtable, Stripe, GitHub all at once"
 **Expected Behavior:**
 - Acknowledges the request
 - Suggests starting with top 3 for biggest impact

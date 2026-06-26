@@ -1,13 +1,13 @@
 ---
 name: ad-creative
-description: "When the user wants to generate, iterate, or scale ad creative — headlines, descriptions, primary text, or full ad variations — for any paid advertising platform. Also use when the user mentions 'ad copy variations,' 'ad creative,' 'generate headlines,' 'RSA headlines,' 'bulk ad copy,' 'ad iterations,' 'creative testing,' 'ad performance optimization,' 'write me some ads,' 'Facebook ad copy,' 'Google ad headlines,' 'LinkedIn ad text,' or 'I need more ad variations.' Use this whenever someone needs to produce ad copy at scale or iterate on existing ads. For campaign strategy and targeting, see paid-ads. For landing page copy, see copywriting."
+description: "When the user wants to generate, iterate, or scale ad creative, headlines, descriptions, primary text, or full ad variations, for any paid advertising platform. Also use when the user mentions 'ad copy variations,' 'ad creative,' 'generate headlines,' 'RSA headlines,' 'bulk ad copy,' 'ad iterations,' 'creative testing,' 'ad performance optimization,' 'write me some ads,' 'Facebook ad copy,' 'Google ad headlines,' 'LinkedIn ad text,' or 'I need more ad variations.' Use this whenever someone needs to produce ad copy at scale or iterate on existing ads. For campaign strategy and targeting, see paid-ads. For landing page copy, see copywriting."
 metadata:
   version: 1.1.0
 ---
 
 # Ad Creative
 
-You are an expert performance creative strategist. Your goal is to generate high-performing ad creative at scale — headlines, descriptions, and primary text that drive clicks and conversions — and iterate based on real performance data.
+You are an expert performance creative strategist. Your goal is to generate high-performing ad creative at scale, headlines, descriptions, and primary text that drive clicks and conversions, and iterate based on real performance data.
 
 ## Before Starting
 
@@ -121,18 +121,18 @@ For detailed specs and format variations, see [references/platform-specs.md](ref
 
 For image and video ad creative, use generative AI tools and code-based video rendering. See [references/generative-tools.md](references/generative-tools.md) for the complete guide covering:
 
-- **Image generation** — Nano Banana Pro (Gemini), Flux, Ideogram for static ad images
-- **Video generation** — Veo, Kling, Runway, Sora, Seedance, Higgsfield for video ads
-- **Voice & audio** — ElevenLabs, OpenAI TTS, Cartesia for voiceovers, cloning, multilingual
-- **Code-based video** — Remotion for templated, data-driven video at scale
-- **Platform image specs** — Correct dimensions for every ad placement
-- **Cost comparison** — Pricing for 100+ ad variations across tools
+- **Image generation**, Nano Banana Pro (Gemini), Flux, Ideogram for static ad images
+- **Video generation**, Veo, Kling, Runway, Sora, Seedance, Higgsfield for video ads
+- **Voice & audio**, ElevenLabs, OpenAI TTS, Cartesia for voiceovers, cloning, multilingual
+- **Code-based video**, Remotion for templated, data-driven video at scale
+- **Platform image specs**, Correct dimensions for every ad placement
+- **Cost comparison**, Pricing for 100+ ad variations across tools
 
 **Recommended workflow for scaled production:**
 1. Generate hero creative with AI tools (exploratory, high-quality)
 2. Build Remotion templates based on winning patterns
 3. Batch produce variations with Remotion using data feeds
-4. Iterate — AI for new angles, Remotion for scale
+4. Iterate, AI for new angles, Remotion for scale
 
 ---
 
@@ -140,7 +140,7 @@ For image and video ad creative, use generative AI tools and code-based video re
 
 ### Step 1: Define Your Angles
 
-Before writing individual headlines, establish 3-5 distinct **angles** — different reasons someone would click. Each angle should tap into a different motivation.
+Before writing individual headlines, establish 3-5 distinct **angles**, different reasons someone would click. Each angle should tap into a different motivation.
 
 **Common angle categories:**
 
@@ -158,10 +158,10 @@ Before writing individual headlines, establish 3-5 distinct **angles** — diffe
 ### Step 2: Generate Variations per Angle
 
 For each angle, generate multiple variations. Vary:
-- **Word choice** — synonyms, active vs. passive
-- **Specificity** — numbers vs. general claims
-- **Tone** — direct vs. question vs. command
-- **Structure** — short punch vs. full benefit statement
+- **Word choice**, synonyms, active vs. passive
+- **Specificity**, numbers vs. general claims
+- **Tone**, direct vs. question vs. command
+- **Structure**, short punch vs. full benefit statement
 
 ### Step 3: Validate Against Specs
 
@@ -179,19 +179,19 @@ When the user provides performance data, follow this process:
 
 ### Step 1: Analyze Winners
 
-Look at the top-performing creative (by CTR, conversion rate, or ROAS — ask which metric matters most) and identify:
+Look at the top-performing creative (by CTR, conversion rate, or ROAS, ask which metric matters most) and identify:
 
-- **Winning themes** — What topics or pain points appear in top performers?
-- **Winning structures** — Questions? Statements? Commands? Numbers?
-- **Winning word patterns** — Specific words or phrases that recur?
-- **Character utilization** — Are top performers shorter or longer?
+- **Winning themes**, What topics or pain points appear in top performers?
+- **Winning structures**, Questions? Statements? Commands? Numbers?
+- **Winning word patterns**, Specific words or phrases that recur?
+- **Character utilization**, Are top performers shorter or longer?
 
 ### Step 2: Analyze Losers
 
 Look at the worst performers and identify:
 
-- **Themes that fall flat** — What angles aren't resonating?
-- **Common patterns in low performers** — Too generic? Too long? Wrong tone?
+- **Themes that fall flat**, What angles aren't resonating?
+- **Common patterns in low performers**, Too generic? Too long? Wrong tone?
 
 ### Step 3: Generate New Variations
 
@@ -298,9 +298,9 @@ When iterating, include a summary:
 For large-scale creative production (Anthropic's growth team generates 100+ variations per cycle):
 
 ### 1. Break into sub-tasks
-- **Headline generation** — Focused on click-through
-- **Description generation** — Focused on conversion
-- **Primary text generation** — Focused on engagement (Meta/LinkedIn)
+- **Headline generation**, Focused on click-through
+- **Description generation**, Focused on conversion
+- **Primary text generation**, Focused on engagement (Meta/LinkedIn)
 
 ### 2. Generate in waves
 - Wave 1: Core angles (3-5 angles, 5 variations each)
@@ -317,14 +317,14 @@ For large-scale creative production (Anthropic's growth team generates 100+ vari
 
 ## Common Mistakes
 
-- **Writing headlines that only work together** — RSA headlines get combined randomly
-- **Ignoring character limits** — Platforms truncate without warning
-- **All variations sound the same** — Vary angles, not just word choice
-- **No CTA headlines** — RSAs need action-oriented headlines to drive clicks; include at least 2-3
-- **Generic descriptions** — "Learn more about our solution" wastes the slot
-- **Iterating without data** — Gut feelings are less reliable than metrics
-- **Testing too many things at once** — Change one variable per test cycle
-- **Retiring creative too early** — Allow 1,000+ impressions before judging
+- **Writing headlines that only work together**, RSA headlines get combined randomly
+- **Ignoring character limits**, Platforms truncate without warning
+- **All variations sound the same**, Vary angles, not just word choice
+- **No CTA headlines**, RSAs need action-oriented headlines to drive clicks; include at least 2-3
+- **Generic descriptions**, "Learn more about our solution" wastes the slot
+- **Iterating without data**, Gut feelings are less reliable than metrics
+- **Testing too many things at once**, Change one variable per test cycle
+- **Retiring creative too early**, Allow 1,000+ impressions before judging
 
 ---
 

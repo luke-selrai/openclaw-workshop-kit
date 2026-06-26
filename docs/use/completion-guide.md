@@ -1,4 +1,4 @@
-# Completion Guide — Finishing Your AI Setup After the Workshop
+# Completion Guide, Finishing Your AI Setup After the Workshop
 
 If you didn't get through everything today, this guide walks you through completing your setup at home. Take your time. There's no rush.
 
@@ -16,19 +16,19 @@ Tick these off:
 - [ ] Skills installed (check `~/.claude/skills/`)
 - [ ] Playwright (browser automation) connected
 - [ ] `~/Desktop/my-assistant/` folder created (via Desktop in the file picker → New Folder) and opened in Claude Desktop
-- [ ] Google Workspace connected (Gmail + Calendar) (optional — if you got to it)
+- [ ] Google Workspace connected (Gmail + Calendar) (optional, if you got to it)
 - [ ] Onboarding completed (told your assistant about your business)
 - [ ] Tested a first task with your assistant
 
 ---
 
-## Finishing at Home — Step by Step
+## Finishing at Home, Step by Step
 
 ### If you didn't finish the install:
 
-**Windows users:** Make sure [Git for Windows](https://gitforwindows.org) is installed first. Then open Claude Desktop, start a new Code session, and paste the bootstrap prompt from the workshop page — your assistant walks you through the whole install conversationally, including any Windows-specific snags.
+**Windows users:** Make sure [Git for Windows](https://gitforwindows.org) is installed first. Then open Claude Desktop, start a new Code session, and paste the bootstrap prompt from the workshop page, your assistant walks you through the whole install conversationally, including any Windows-specific snags.
 
-**Mac users:** Open Claude Desktop, start a new Code session, and paste the bootstrap prompt from the workshop page. If macOS prompts you to install the Xcode Command Line Tools during setup, click **Install** and wait for it to finish — your assistant will pick up from there.
+**Mac users:** Open Claude Desktop, start a new Code session, and paste the bootstrap prompt from the workshop page. If macOS prompts you to install the Xcode Command Line Tools during setup, click **Install** and wait for it to finish, your assistant will pick up from there.
 
 Your skills were installed during the workshop setup. They live at `~/.claude/skills/`
 
@@ -46,11 +46,11 @@ npm install -g @googleworkspace/cli
 gws auth login
 ```
 
-A browser window opens — pick your Google account and click Allow. Once connected, your assistant can read and send emails, check your calendar, access Drive, Docs, Sheets, and more.
+A browser window opens, pick your Google account and click Allow. Once connected, your assistant can read and send emails, check your calendar, access Drive, Docs, Sheets, and more.
 
 
 #### 2. Notion (knowledge base)
-Your assistant can help you set this up — just ask in the Claude chat:
+Your assistant can help you set this up, just ask in the Claude chat:
 > "Help me connect Notion so you can read and update my workspace."
 
 Great for keeping a business knowledge base.
@@ -64,18 +64,18 @@ m365 setup --interactive
 m365 login --authType browser
 ```
 
-A browser window opens — pick your Microsoft account and click Accept. Once connected, your assistant can read emails, manage calendar, access OneDrive, and more.
+A browser window opens, pick your Microsoft account and click Accept. Once connected, your assistant can read emails, manage calendar, access OneDrive, and more.
 
 
 #### 4. Slack or Microsoft Teams (if you use them)
-Your assistant can help you set this up — just ask in the Claude chat:
+Your assistant can help you set this up, just ask in the Claude chat:
 > "Help me connect Slack so you can send and read messages."
 
 ---
 
 ### Set Up Phone Notifications (Telegram, WhatsApp, or iMessage)
 
-This lets you chat with your assistant from your phone — ask questions, request tasks, and get replies wherever you are. Pick whichever app you already use.
+This lets you chat with your assistant from your phone, ask questions, request tasks, and get replies wherever you are. Pick whichever app you already use.
 
 #### Telegram
 
@@ -84,29 +84,29 @@ This lets you chat with your assistant from your phone — ask questions, reques
 **Step 3:** Copy the bot token BotFather gives you
 **Step 4:** In Claude Desktop's terminal (bottom panel of a Code session), run: `claude plugin install telegram@claude-plugins-official`
 **Step 5:** Save your token: `/telegram:configure [your token]`
-**Step 6:** Install Bun (required): Mac/Linux: `curl -fsSL https://bun.sh/install | bash` — Windows: `powershell -c "irm bun.sh/install.ps1 | iex"`
+**Step 6:** Install Bun (required): Mac/Linux: `curl -fsSL https://bun.sh/install | bash`, Windows: `powershell -c "irm bun.sh/install.ps1 | iex"`
 **Step 7:** Restart Claude Code with: `claude --channels plugin:telegram@claude-plugins-official`
 **Step 8:** Message your bot on Telegram, get a pairing code, then type: `/telegram:access pair [code]`
 
 
 #### WhatsApp
 
-Your assistant connects to WhatsApp via QR code — no Business API needed.
+Your assistant connects to WhatsApp via QR code, no Business API needed.
 
 **Step 1:** Make sure WhatsApp is installed on your phone
 **Step 2:** Tell your assistant: "I want to set up WhatsApp notifications"
-**Step 3:** Your assistant will show a QR code — scan it with WhatsApp (Settings > Linked Devices > Link a Device)
+**Step 3:** Your assistant will show a QR code, scan it with WhatsApp (Settings > Linked Devices > Link a Device)
 **Step 4:** Once linked, your assistant can send you messages and you can reply directly from WhatsApp
 
 #### iMessage (Mac Only)
 
-If you're on a Mac, you can use iMessage instead — no extra apps, no bots, just text yourself.
+If you're on a Mac, you can use iMessage instead, no extra apps, no bots, just text yourself.
 
 **Step 1:** Install Bun (required): `curl -fsSL https://bun.sh/install | bash`
 **Step 2:** Grant Full Disk Access to Claude Desktop (System Settings → Privacy & Security → Full Disk Access → add Claude)
 **Step 3:** In Claude Desktop's terminal (bottom panel of a Code session), run: `claude plugin install imessage@claude-plugins-official`
 **Step 4:** Restart Claude Code with: `claude --channels plugin:imessage@claude-plugins-official`
-**Step 5:** Open Messages and text yourself — your assistant replies instantly
+**Step 5:** Open Messages and text yourself, your assistant replies instantly
 
 > The first reply triggers a macOS prompt: "Claude wants to control Messages." Click **OK** to allow replies.
 
@@ -115,13 +115,13 @@ If you're on a Mac, you can use iMessage instead — no extra apps, no bots, jus
 
 ### Connect Your CRM (GoHighLevel or HubSpot)
 
-Your assistant can help you set this up — just ask in the Claude chat:
+Your assistant can help you set this up, just ask in the Claude chat:
 > "Help me connect my CRM so you can manage my contacts."
 
 Your assistant will walk you through the right steps for your CRM:
 
 - **GoHighLevel:** Needs your GHL API key from Settings → Integrations → API Keys. See `Connect GoHighLevel`
-- **HubSpot:** Creates a Private App in your HubSpot account — no API key to find manually. See `Connect HubSpot`
+- **HubSpot:** Creates a Private App in your HubSpot account, no API key to find manually. See `Connect HubSpot`
 
 ---
 
@@ -129,9 +129,9 @@ Your assistant will walk you through the right steps for your CRM:
 
 If you use any of these tools, your assistant can connect to them too:
 
-- **GitHub** — read issues, pull requests, code, and CI status across your repos. Tell your assistant: "Help me connect my GitHub account." See `Connect GitHub`
-- **Square** — read sales, orders, customers, and invoices from your Square account. Tell your assistant: "Connect my Square account." See `Connect Square`
-- **CircleCI** — check build status, read failure logs, trigger reruns. Tell your assistant: "Connect my CircleCI account." See `Connect CircleCI`
+- **GitHub**, read issues, pull requests, code, and CI status across your repos. Tell your assistant: "Help me connect my GitHub account." See `Connect GitHub`
+- **Square**, read sales, orders, customers, and invoices from your Square account. Tell your assistant: "Connect my Square account." See `Connect Square`
+- **CircleCI**, check build status, read failure logs, trigger reruns. Tell your assistant: "Connect my CircleCI account." See `Connect CircleCI`
 
 ---
 
@@ -173,7 +173,7 @@ More context = better results. Always include:
 ### Teach Your Assistant Over Time
 
 The more you tell your assistant, the better it gets. After any conversation, you can say:
-> "Remember that for future — I prefer emails to be under 200 words and always end with a question."
+> "Remember that for future, I prefer emails to be under 200 words and always end with a question."
 
 Your assistant will capture that in its memory automatically and apply it from that point on. You can always check what it remembers by typing `/memory` in a Code session.
 
@@ -194,8 +194,8 @@ Once you have tasks you do regularly, automate them:
 
 Your assistant uses `/schedule` and `/loop` to run these automatically.
 
-- **`/schedule`** — runs in the cloud. Your computer does not need to be on.
-- **`/loop`** — runs locally on your machine. Your computer must be on and Claude Code must be running.
+- **`/schedule`**, runs in the cloud. Your computer does not need to be on.
+- **`/loop`**, runs locally on your machine. Your computer must be on and Claude Code must be running.
 
 > For full details, see [automation-loop-and-schedule](../extend/automation-loop-and-schedule.md)
 
@@ -237,4 +237,4 @@ You can talk to your AI assistant instead of typing, using tools like Wispr Flow
 
 ---
 
-*Built for the Claude Code Workshop by Selr AI — selrai.com.au*
+*Built for the Claude Code Workshop by Selr AI, selrai.com.au*

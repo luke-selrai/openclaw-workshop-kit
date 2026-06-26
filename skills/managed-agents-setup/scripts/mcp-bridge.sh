@@ -154,7 +154,15 @@ jq -r 'to_entries[] | select(.key != "_meta") | .key' "$MANIFEST" | while read -
             token="$(jq -r '.projects["/Users/luke"].mcpServers.supabase.args[4]' ~/.claude.json 2>/dev/null)"
             ;;
           framer)
-            token="url-embedded"  # no separate token
+            # Secret + id are placeholders in the manifest URL; expand from the
+            # git-ignored secrets.env (sourced above). Never commit the real value.
+            ma_url="${ma_url//\$\{FRAMER_MCP_ID\}/${FRAMER_MCP_ID:-}}"
+            ma_url="${ma_url//\$\{FRAMER_MCP_SECRET\}/${FRAMER_MCP_SECRET:-}}"
+            if [[ "$ma_url" == *'${FRAMER_MCP_'* || -z "${FRAMER_MCP_SECRET:-}" ]]; then
+              token=""   # forces the MISSING-TOKEN block below — do not push a placeholder
+            else
+              token="url-embedded"  # no separate bearer; secret lives in the expanded url
+            fi
             ;;
           meta-ads)
             token="$(jq -r '.mcpServers["meta-ads"].env.META_ACCESS_TOKEN' ~/.mcp.json 2>/dev/null)"
@@ -178,6 +186,11 @@ jq -r 'to_entries[] | select(.key != "_meta") | .key' "$MANIFEST" | while read -
       # Build vault payload
       extra_headers="$(echo "$entry" | jq -c '.extra_headers // {}')"
       if [[ "$name" == "framer" ]]; then
+        # Final guard: never push a url that still carries an unexpanded secret placeholder.
+        if [[ "$ma_url" == *'${FRAMER_MCP_'* ]]; then
+          log_result "$name" "MISSING-TOKEN" "A" "FRAMER_MCP_ID / FRAMER_MCP_SECRET unset — add to $SECRETS_ENV (see .env.example)"
+          continue
+        fi
         payload=$(jq -cn --arg url "$ma_url" '{type:"url_embedded", mcp_server_url:$url}')
       else
         payload=$(jq -cn \

@@ -1,8 +1,8 @@
-# Known Issue — Notion: Plugin Marketplace Required
+# Known Issue, Notion: Plugin Marketplace Required
 
 **Status:** Known limitation (by design)
 **Affects:** notion-connector
-**Symptom:** Notion setup cannot be completed via the terminal — it requires the Claude Code plugin menu
+**Symptom:** Notion setup cannot be completed via the terminal, it requires the Claude Code plugin menu
 
 ---
 
@@ -18,8 +18,8 @@ This means the setup cannot be done from a terminal command. Your assistant will
 
 1. Your assistant asks you to open the **plugin menu** in Claude Code (the puzzle-piece icon in the sidebar)
 2. You search for "Notion" in the plugin list
-3. You click Install — Claude Code handles the authentication with your Notion account
-4. Once installed, Notion is available immediately — no restart needed
+3. You click Install, Claude Code handles the authentication with your Notion account
+4. Once installed, Notion is available immediately, no restart needed
 
 The whole process takes about two minutes. After that, your assistant can search pages, create new pages, query databases, and read meeting notes directly from your Notion workspace.
 
@@ -33,7 +33,7 @@ If you open the plugin menu and Notion is not listed:
 - This is a configuration issue with your Claude Code installation, not with Notion itself
 - Contact Selr AI at [selrai.com.au](https://selrai.com.au) to get the plugin marketplace enabled for your account
 
-**Do not** attempt to connect Notion by manually adding an MCP server entry to `~/.claude.json`. The plugin-based setup is the supported path — bypassing it can cause authentication issues.
+**Do not** attempt to connect Notion by manually adding an MCP server entry to `~/.claude.json`. The plugin-based setup is the supported path, bypassing it can cause authentication issues.
 
 ---
 

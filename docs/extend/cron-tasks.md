@@ -1,4 +1,4 @@
-# Cron Tasks — Claude Code Internal Tools
+# Cron Tasks, Claude Code Internal Tools
 
 > **See also:** `docs/extend/automation-loop-and-schedule.md` for the user-facing `/loop` and `/schedule` commands that sit on top of these tools.
 
@@ -6,7 +6,7 @@
 
 ## Overview
 
-Claude Code has 3 built-in cron tools that power the `/schedule` command. Users do not call them directly — Claude uses them internally when a user asks to create, list, or delete scheduled tasks. Understanding them helps when troubleshooting or building advanced automations.
+Claude Code has 3 built-in cron tools that power the `/schedule` command. Users do not call them directly, Claude uses them internally when a user asks to create, list, or delete scheduled tasks. Understanding them helps when troubleshooting or building advanced automations.
 
 ---
 
@@ -58,7 +58,7 @@ These run automatically when the user types `/schedule` or asks in plain languag
 | **Duration** | Permanent until deleted | Permanent until cancelled | Max 3 days |
 | **Minimum interval** | 1 hour | 1 hour | Seconds |
 
-`/schedule` is the conversational wrapper — it calls CronCreate under the hood. Both achieve the same result.
+`/schedule` is the conversational wrapper, it calls CronCreate under the hood. Both achieve the same result.
 
 ---
 
@@ -66,9 +66,9 @@ These run automatically when the user types `/schedule` or asks in plain languag
 
 Users can manage scheduled tasks in three ways:
 
-1. **Plain language** — "Show me my scheduled tasks" (Claude calls CronList)
-2. **Command** — `/schedule` in a Claude Code session
-3. **Web** — https://claude.ai/code/scheduled
+1. **Plain language**, "Show me my scheduled tasks" (Claude calls CronList)
+2. **Command**, `/schedule` in a Claude Code session
+3. **Web**, https://claude.ai/code/scheduled
 
 ---
 
@@ -78,7 +78,7 @@ Users can manage scheduled tasks in three ways:
 - Requires Claude Pro or Max subscription
 - Cron expressions use the user's local timezone
 - Task history and logs are at `claude.ai/code/scheduled`, not in the terminal
-- CronCreate/CronList/CronDelete are internal — users interact through plain language or `/schedule`
+- CronCreate/CronList/CronDelete are internal, users interact through plain language or `/schedule`
 
 ---
 

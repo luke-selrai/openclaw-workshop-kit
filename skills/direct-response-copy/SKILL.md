@@ -5,9 +5,9 @@ description: High-converting sales copy using classic direct response frameworks
 
 # The Direct Response Copy Skill
 
-**Write copy that converts. Landing pages, emails, sales copy, headlines, CTAs, social posts — anything persuasive.**
+**Write copy that converts. Landing pages, emails, sales copy, headlines, CTAs, social posts, anything persuasive.**
 
-This is an AI skill file. It turns any AI into a direct response copywriter trained on the frameworks of Schwartz, Hopkins, Ogilvy, Halbert, Caples, Sugarman, and Collier. Instead of getting generic AI copy, you get internet-native writing that sounds like a smart friend explaining something — while quietly deploying every persuasion principle in the book.
+This is an AI skill file. It turns any AI into a direct response copywriter trained on the frameworks of Schwartz, Hopkins, Ogilvy, Halbert, Caples, Sugarman, and Collier. Instead of getting generic AI copy, you get internet-native writing that sounds like a smart friend explaining something, while quietly deploying every persuasion principle in the book.
 
 ---
 
@@ -428,16 +428,16 @@ Patterns that signal "written by someone who lives online, not a marketing team"
 
 When building a complete landing page:
 
-1. **Hook** — Outcome headline with specific number or timeframe
-2. **Problem** — Quantify the pain (hours wasted, money lost)
-3. **Agitate** — Scenario or story that makes the problem vivid
-4. **Credibility** — Founder story, authority endorsements, or proof numbers
-5. **Solution** — What the product does, framed as transformation
-6. **Proof** — Testimonials with specific outcomes
-7. **Objections** — FAQ or "fit/not fit" section
-8. **Offer** — Pricing with value justification
-9. **Urgency** — Only if authentic
-10. **Final CTA** — Benefit-oriented, friction reducers below
+1. **Hook**, Outcome headline with specific number or timeframe
+2. **Problem**, Quantify the pain (hours wasted, money lost)
+3. **Agitate**, Scenario or story that makes the problem vivid
+4. **Credibility**, Founder story, authority endorsements, or proof numbers
+5. **Solution**, What the product does, framed as transformation
+6. **Proof**, Testimonials with specific outcomes
+7. **Objections**, FAQ or "fit/not fit" section
+8. **Offer**, Pricing with value justification
+9. **Urgency**, Only if authentic
+10. **Final CTA**, Benefit-oriented, friction reducers below
 
 You don't need all ten every time. But this is the complete arc when you need it.
 
@@ -545,9 +545,9 @@ The goal isn't to hide that you're selling. It's to sell like a human, with hone
 
 Deep-dive frameworks and extensive examples are in the `references/` folder:
 
-- **[Classic Direct Response Frameworks](references/classic-frameworks.md)** — Schwartz, Hopkins, Ogilvy, Halbert, Caples, Sugarman, Collier
-- **[Headline Formulas and Examples](references/headline-formulas.md)** — Master formula, story headlines, specificity, question, warning, transformation, and more
-- **[Opening Lines and Hooks](references/opening-lines.md)** — Direct challenge, story, confession, specific result, pattern interrupt
-- **[Curiosity Gaps and Open Loops](references/curiosity-gaps.md)** — Techniques, seeds of curiosity, subject line hooks
-- **[Flow Techniques: The Slippery Slide](references/flow-techniques.md)** — Bucket brigade, stutter technique, language of logic, momentum killers
-- **[Modern Internet-Native Examples](references/modern-examples.md)** — Founder stories, pain quantification, testimonials, disqualification, full sales page flow
+- **[Classic Direct Response Frameworks](references/classic-frameworks.md)**, Schwartz, Hopkins, Ogilvy, Halbert, Caples, Sugarman, Collier
+- **[Headline Formulas and Examples](references/headline-formulas.md)**, Master formula, story headlines, specificity, question, warning, transformation, and more
+- **[Opening Lines and Hooks](references/opening-lines.md)**, Direct challenge, story, confession, specific result, pattern interrupt
+- **[Curiosity Gaps and Open Loops](references/curiosity-gaps.md)**, Techniques, seeds of curiosity, subject line hooks
+- **[Flow Techniques: The Slippery Slide](references/flow-techniques.md)**, Bucket brigade, stutter technique, language of logic, momentum killers
+- **[Modern Internet-Native Examples](references/modern-examples.md)**, Founder stories, pain quantification, testimonials, disqualification, full sales page flow

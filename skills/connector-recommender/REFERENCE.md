@@ -2,7 +2,7 @@
 
 ## What Is It?
 
-**Connector Recommender** is a Claude Code skill that acts as a business integration advisor. When a user describes their business or asks about tools, this skill identifies what kind of business they run, recommends the most impactful integrations (connectors), and helps set them up — all in plain language.
+**Connector Recommender** is a Claude Code skill that acts as a business integration advisor. When a user describes their business or asks about tools, this skill identifies what kind of business they run, recommends the most impactful integrations (connectors), and helps set them up, all in plain language.
 
 It removes the guesswork of "what tools should I connect?" by mapping business types to proven connector stacks.
 
@@ -144,7 +144,7 @@ Search MCP registry (search_mcp_registry)
                         Confirm success → Next connector
 ```
 
-**Setup is always sequential** — one connector at a time to avoid overwhelming the user.
+**Setup is always sequential**, one connector at a time to avoid overwhelming the user.
 
 After all connectors are handled, a summary is shown:
 
@@ -242,7 +242,7 @@ Typical flow: **connector-recommender** (what to connect) → **automation-intel
 |------------|--------|
 | Connector availability | Can only recommend connectors available in the MCP registry |
 | Custom integrations | Cannot set up custom API integrations or webhooks directly |
-| Business type coverage | 7 predefined categories — unusual businesses fall back to operations-based mapping |
+| Business type coverage | 7 predefined categories, unusual businesses fall back to operations-based mapping |
 | Max recommendations | Hard cap of 5 per interaction |
 | Setup scope | Can present Connect buttons but actual OAuth/auth is done by the user |
 
@@ -261,7 +261,7 @@ Typical flow: **connector-recommender** (what to connect) → **automation-intel
 It can mention them as suggestions, but it can only facilitate setup for tools available as MCP connectors. For unavailable tools, it suggests alternatives.
 
 **Q: What if the user's business doesn't fit any category?**
-The skill falls back to operations-based mapping — it matches what the user *does* (manage leads, send emails, track data) to the right connectors, regardless of business type.
+The skill falls back to operations-based mapping, it matches what the user *does* (manage leads, send emails, track data) to the right connectors, regardless of business type.
 
 **Q: Does this skill install anything?**
 No. It presents Connect buttons that link to the MCP connector's authorization flow. The user clicks through and authorizes. Nothing is installed silently.

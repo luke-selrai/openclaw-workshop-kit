@@ -1,4 +1,4 @@
-# /managed-agents-setup — what this is
+# /managed-agents-setup, what this is
 
 > The driver agent prints this on first invocation, then asks the user "ready?" before Phase 0. After it prints, agent writes `.state/splash-shown` to skip on subsequent invocations.
 
@@ -56,10 +56,10 @@
 
 ## Built-in safeguards
 
-- **Cost cap** — agent stops itself at $5/day unless you raise it
-- **Kill switch** — `bash scripts/killswitch.sh --agent <id>` pauses one agent without affecting the others
-- **Daily monitor** — emails / Telegrams you if any agent goes weird
-- **Anthropic vault** — your API keys never live in plaintext on disk
+- **Cost cap**, agent stops itself at $5/day unless you raise it
+- **Kill switch**, `bash scripts/killswitch.sh --agent <id>` pauses one agent without affecting the others
+- **Daily monitor**, emails / Telegrams you if any agent goes weird
+- **Anthropic vault**, your API keys never live in plaintext on disk
 
 ## Ready?
 

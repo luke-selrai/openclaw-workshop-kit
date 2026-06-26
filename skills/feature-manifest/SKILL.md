@@ -1,6 +1,6 @@
 ---
 name: feature-manifest
-description: Manage feature manifests for code traceability — create features, validate manifest health, map features to code, update changelogs. Activates for 'feature manifest', 'feature tracking', 'code
+description: Manage feature manifests for code traceability, create features, validate manifest health, map features to code, update changelogs. Activates for 'feature manifest', 'feature tracking', 'code
   traceability'. NOT for project management, issue tracking, or git workflow.
 allowed-tools: Read,Write,Edit,Bash(npm:*,npx:*)
 metadata:

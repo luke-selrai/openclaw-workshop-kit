@@ -1,4 +1,4 @@
-# PAGE 3 — Skills & Agents: Your AI Team
+# PAGE 3, Skills & Agents: Your AI Team
 
 ---
 
@@ -61,7 +61,7 @@ Organised by what they do for your business:
 └────────────────────┴────────────────────────────────────────────┘
 ```
 
-> Claude chooses the right skill automatically based on what you ask. You don't need to know which skill does what — just ask in plain English.
+> Claude chooses the right skill automatically based on what you ask. You don't need to know which skill does what, just ask in plain English.
 
 ---
 
@@ -91,7 +91,7 @@ LEVEL 4 — AI RUNS THE SYSTEM (what Selr AI runs)
 
 ---
 
-## Level 4 in Action — Selr AI's Agent Team
+## Level 4 in Action, Selr AI's Agent Team
 
 This is what Luke has built for his own business using the same tools you're setting up today.
 
@@ -195,4 +195,4 @@ LEVEL 4 (Selr AI can build this for you)
 
 ---
 
-*Claude Code Workshop — selrai.com.au*
+*Claude Code Workshop, selrai.com.au*

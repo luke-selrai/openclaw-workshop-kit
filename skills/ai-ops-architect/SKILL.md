@@ -1,6 +1,6 @@
 ---
 name: ai-ops-architect
-description: Use when a user (especially a non-technical business owner or workshop attendee) wants to figure out what AI / automation to build for their business and actually deploy it. Runs an 8-question intake (or extracts from existing memory), produces an opportunity map ranked against their pains/tools/budget, then delegates building to /n8n or /managed-agents-setup based on the runtime decision matrix. Auto-invoke on phrases like "what should I automate", "where do I start", "audit my business for AI", "set up my AI ops", "what would you build for me", "I want to automate my business", "save me time on X", "I run a [business type] — what should I automate", "I want an AI assistant for my business but don't know where to start". Do NOT auto-invoke for narrow technical tasks already handled by /n8n or /managed-agents-setup directly.
+description: Use when a user (especially a non-technical business owner or workshop attendee) wants to figure out what AI / automation to build for their business and actually deploy it. Runs an 8-question intake (or extracts from existing memory), produces an opportunity map ranked against their pains/tools/budget, then delegates building to /n8n or /managed-agents-setup based on the runtime decision matrix. Auto-invoke on phrases like "what should I automate", "where do I start", "audit my business for AI", "set up my AI ops", "what would you build for me", "I want to automate my business", "save me time on X", "I run a [business type], what should I automate", "I want an AI assistant for my business but don't know where to start". Do NOT auto-invoke for narrow technical tasks already handled by /n8n or /managed-agents-setup directly.
 ---
 
 # AI Ops Architect
@@ -11,12 +11,12 @@ description: Use when a user (especially a non-technical business owner or works
 
 - New user / workshop attendee asks "what should I build?"
 - Existing user wants a fresh audit ("what am I missing?")
-- Onboarding a client — runs on their laptop, produces their plan
+- Onboarding a client, runs on their laptop, produces their plan
 
 ## When NOT to use
 
-- User already knows what they want and which runtime — go directly to `/n8n` or `/managed-agents-setup`
-- Narrow tweaks to existing workflows / agents — use the child skill that owns it
+- User already knows what they want and which runtime, go directly to `/n8n` or `/managed-agents-setup`
+- Narrow tweaks to existing workflows / agents, use the child skill that owns it
 - Pure research / strategy questions with no build intent
 
 ## Phases
@@ -25,7 +25,7 @@ The skill walks Phase 0 → 7 in sequence, with confirmation between each.
 
 | # | Phase | Script / output |
 |---|-------|----------------|
-| 0 | Pre-flight | We auto-check the few tools we need. If anything's missing, we tell you in plain English what to do — no command-line jargon. |
+| 0 | Pre-flight | We auto-check the few tools we need. If anything's missing, we tell you in plain English what to do, no command-line jargon. |
 | 1 | Intake | `bash scripts/audit.sh` → `.state/audit-result.json` |
 | 2 | Audit | `bash scripts/recommend.sh` → `.state/audit-output.md` |
 | 3 | Select | user picks 1-3 from top 5 opportunities |
@@ -42,7 +42,7 @@ bash ~/.claude/skills/ai-ops-architect/scripts/recommend.sh    # opportunity map
 # Then read .state/audit-output.md, pick 1-3, agent delegates the build
 ```
 
-## Reference index — load on demand
+## Reference index, load on demand
 
 | If user asks about | Load |
 |---|---|
@@ -53,10 +53,10 @@ bash ~/.claude/skills/ai-ops-architect/scripts/recommend.sh    # opportunity map
 
 ## Hard rules
 
-- **NEVER invent business facts** — if the audit can't tell whether a user has GHL or HubSpot, the skill asks. Sister to `feedback_never_fabricate_facts.md`.
-- **Quality over coverage** — better to recommend 3 strong opportunities than 10 mid ones.
-- **Free-the-user-from-typing** — every phase ends with a confirmation, not a prompt-pile. The user clicks "approve" on tool calls.
-- **Boundary card from /n8n still applies** — for Luke's own infra, n8n is for client work / explicit asks. The skill propagates this rule by reading `feedback_no_n8n.md` if it exists.
+- **NEVER invent business facts**, if the audit can't tell whether a user has GHL or HubSpot, the skill asks. Sister to `feedback_never_fabricate_facts.md`.
+- **Quality over coverage**, better to recommend 3 strong opportunities than 10 mid ones.
+- **Free-the-user-from-typing**, every phase ends with a confirmation, not a prompt-pile. The user clicks "approve" on tool calls.
+- **Boundary card from /n8n still applies**, for Luke's own infra, n8n is for client work / explicit asks. The skill propagates this rule by reading `feedback_no_n8n.md` if it exists.
 
 ## Decision matrix (collapsed)
 
@@ -106,8 +106,8 @@ Full version with comparison table and worked examples: `references/runtime-deci
 ## State
 
 `.state/` (chmod 700, gitignored) holds:
-- `audit-result.json` — the 8-question answers
-- `opportunities-ranked.json` — scored top-N
-- `audit-output.md` — human-readable recommendation
-- `selected-builds.json` — what the user picked to deploy this session
-- `ship.log` — append-only, one line per completed deploy
+- `audit-result.json`, the 8-question answers
+- `opportunities-ranked.json`, scored top-N
+- `audit-output.md`, human-readable recommendation
+- `selected-builds.json`, what the user picked to deploy this session
+- `ship.log`, append-only, one line per completed deploy
