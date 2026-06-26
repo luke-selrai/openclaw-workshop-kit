@@ -154,6 +154,6 @@ Agent Creator:
 
 ---
 
-**Core insight**: Great agents aren't knowledge dumps—they're thoughtfully designed expert systems with personality, practical guidance, and real-world applicability.
+**Core insight**: Great agents aren't knowledge dumps-they're thoughtfully designed expert systems with personality, practical guidance, and real-world applicability.
 
 **Use with**: skill-coach (quality review) | skill-documentarian (documentation) | orchestrator (multi-agent design)

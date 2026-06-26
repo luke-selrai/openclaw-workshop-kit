@@ -35,7 +35,7 @@ For AEDT (daylight saving, UTC+11): subtract 11 hours instead of 10.
 ```bash
 python3 -c "from croniter import croniter; croniter('0 23 * * *', return_type=str)"
 ```
-Or use https://crontab.guru/ (UTC only — don't trust the local-time preview).
+Or use https://crontab.guru/ (UTC only, don't trust the local-time preview).
 
 ## Minimum Interval Rule
 
@@ -60,6 +60,6 @@ Auto-disables after firing.
 
 - **All fields in UTC.** No timezone field. Brisbane user saying "9am daily" means `0 23 * * *`, NOT `0 9 * * *`.
 - **No seconds field.** 5-field cron only.
-- **Stagger** — routines get a deterministic per-id offset, so `0 * * * *` across many routines doesn't slam the backend at :00.
+- **Stagger**, routines get a deterministic per-id offset, so `0 * * * *` across many routines doesn't slam the backend at :00.
 - **Schedule changes** require editing via `/schedule update` or web UI. API partial updates supported.
 - **Paused routines** still accept `/fire` calls but return `400` until resumed.

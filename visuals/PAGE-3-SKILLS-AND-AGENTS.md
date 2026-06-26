@@ -1,4 +1,4 @@
-# PAGE 3 — Skills & Agents: Your AI Team
+# PAGE 3, Skills & Agents: Your AI Team
 
 ---
 
@@ -20,7 +20,7 @@ Result: Forgettable               Result: Emails people actually reply to
 
 ---
 
-## Your <!-- skills-audit:total -->180<!-- /skills-audit:total --> Installed Skills
+## Your <!-- skills-audit:total -->181<!-- /skills-audit:total --> Installed Skills
 
 Organised by what they do for your business:
 
@@ -61,7 +61,7 @@ Organised by what they do for your business:
 └────────────────────┴────────────────────────────────────────────┘
 ```
 
-> Claude chooses the right skill automatically based on what you ask. You don't need to know which skill does what — just ask in plain English.
+> Claude chooses the right skill automatically based on what you ask. You don't need to know which skill does what, just ask in plain English.
 
 ---
 
@@ -91,7 +91,7 @@ LEVEL 4 — AI RUNS THE SYSTEM (what Selr AI runs)
 
 ---
 
-## Level 4 in Action — Selr AI's Agent Team
+## Level 4 in Action, Selr AI's Agent Team
 
 This is what Luke has built for his own business using the same tools you're setting up today.
 
@@ -171,7 +171,7 @@ You stay in control. AI does the work. You make the calls.
 ```
 TODAY (Workshop)
   ✅ Claude Code set up on your laptop
-  ✅ <!-- skills-audit:total -->180<!-- /skills-audit:total --> skills installed
+  ✅ <!-- skills-audit:total -->181<!-- /skills-audit:total --> skills installed
   ✅ Memory of your business saved
   ✅ Browser automation connected
   ✅ First real task done live
@@ -195,4 +195,4 @@ LEVEL 4 (Selr AI can build this for you)
 
 ---
 
-*Claude Code Workshop — selrai.com.au*
+*Claude Code Workshop, selrai.com.au*

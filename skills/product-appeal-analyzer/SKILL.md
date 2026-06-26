@@ -1,6 +1,6 @@
 ---
 name: product-appeal-analyzer
-description: Evaluate product desirability, market positioning, and emotional resonance—the complement to friction analysis. Assess whether users will WANT a product (not just use it), identity fit, trust
+description: Evaluate product desirability, market positioning, and emotional resonance-the complement to friction analysis. Assess whether users will WANT a product (not just use it), identity fit, trust
   signals, and value proposition clarity. Activate on "will they like it", "market positioning", "appeal analysis", "product desirability", "value proposition", "why would someone choose this", "landing
   page review", "conversion optimization", "messaging strategy". NOT for UX friction analysis (use ux-friction-analyzer), visual design implementation (use web-design-expert), or A/B test setup (use frontend-developer).
 allowed-tools: Read,Write,Edit,WebFetch
@@ -24,9 +24,9 @@ metadata:
 
 # Product Appeal Analyzer
 
-Evaluate whether users will *want* a product—not just use it. The complement to friction analysis.
+Evaluate whether users will *want* a product-not just use it. The complement to friction analysis.
 
-**Core insight**: Users don't choose the best product—they choose the product that feels most like it was made for them.
+**Core insight**: Users don't choose the best product-they choose the product that feels most like it was made for them.
 
 ## When to Use
 
@@ -87,7 +87,7 @@ Within 5 seconds of landing, a visitor should know:
 **How to run it:**
 - Show landing page to someone unfamiliar for exactly 5 seconds
 - Hide it, then ask: "What was that? Who's it for? What would you do there?"
-- Record verbatim—don't coach or clarify
+- Record verbatim-don't coach or clarify
 
 **Scoring:**
 

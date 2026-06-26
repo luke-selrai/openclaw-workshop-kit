@@ -1,8 +1,8 @@
-# Known Issue — QuickBooks: Sandbox Mode Only
+# Known Issue, QuickBooks: Sandbox Mode Only
 
 **Status:** Known limitation (by design)
 **Affects:** quickbooks-connector
-**Symptom:** Connector connects successfully but does not show real business data — only test/demo data
+**Symptom:** Connector connects successfully but does not show real business data, only test/demo data
 
 ---
 
@@ -34,11 +34,11 @@ At this time, there is no supported path to point the connector at a live QuickB
 
 **Options:**
 
-1. **Use the Xero connector instead** — if you have a Xero account, the xero-connector fully supports live production data.
+1. **Use the Xero connector instead**, if you have a Xero account, the xero-connector fully supports live production data.
 
-2. **Use the QuickBooks Online web interface** — for live data queries, ask your assistant to use Playwright to navigate the QuickBooks web UI directly.
+2. **Use the QuickBooks Online web interface**, for live data queries, ask your assistant to use Playwright to navigate the QuickBooks web UI directly.
 
-3. **Wait for a production-mode update** — tracking this at `github.com/voska/qbo-cli`. When production support is added, the connector will be updated.
+3. **Wait for a production-mode update**, tracking this at `github.com/voska/qbo-cli`. When production support is added, the connector will be updated.
 
 ---
 

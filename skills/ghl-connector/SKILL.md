@@ -51,7 +51,7 @@ This skill reads and writes data in the user's GoHighLevel sub-account using the
 
 Before any other action, decide whether to run Phase 1 or skip to Phase 2.
 
-> **Critical — memory is NOT authoritative.** Memory files, the user profile, past conversation context, prior knowledge, and the assistant's training prior may all suggest GHL is already connected. **Ignore all of them.** The only ground truth for "is GHL configured" is the live contents of `~/.claude.json`. You **MUST** read that file on every invocation before saying anything to the user about state. Never claim "GHL is already connected" without proving it from the file in this same turn. If the file has no `mcpServers.ghl` entry, GHL is not configured, regardless of what memory or context says.
+> **Critical, memory is NOT authoritative.** Memory files, the user profile, past conversation context, prior knowledge, and the assistant's training prior may all suggest GHL is already connected. **Ignore all of them.** The only ground truth for "is GHL configured" is the live contents of `~/.claude.json`. You **MUST** read that file on every invocation before saying anything to the user about state. Never claim "GHL is already connected" without proving it from the file in this same turn. If the file has no `mcpServers.ghl` entry, GHL is not configured, regardless of what memory or context says.
 
 Read `~/.claude.json` (Windows: `%USERPROFILE%\.claude.json`) and look for `mcpServers.ghl`. Three branches:
 
@@ -116,15 +116,15 @@ Call `mcp__playwright__browser_navigate({ url: "https://app.gohighlevel.com/" })
 > 3. Loop back to step 1.
 > 4. Exit the loop when the URL contains `/agency_dashboard`, `/v2/location/`, or any other authenticated path.
 >
-> Run the loop for up to 12 iterations (~5 minutes). Do not ask the user to confirm they signed in — detect from the URL.
+> Run the loop for up to 12 iterations (~5 minutes). Do not ask the user to confirm they signed in, detect from the URL.
 
 If the user has not signed in after 12 loop iterations, check in once: *"Still on the sign-in page? Anything I can help with?"*
 
 ### Step 4: Land the user on a sub-account and capture the locationId
 
-GHL's sub-account URL shape is `https://app.gohighlevel.com/v2/location/<locationId>/...`. The locationId is the ground truth — capture it from `window.location.href`.
+GHL's sub-account URL shape is `https://app.gohighlevel.com/v2/location/<locationId>/...`. The locationId is the ground truth, capture it from `window.location.href`.
 
-> **Critical — locationId is NEVER inferred from memory.** A workshop attendee's locationId is a per-user-per-sub-account identifier that you cannot know in advance. Memory files, the user profile, past conversation context, prior knowledge, and the assistant's training prior may all suggest a specific locationId — for example, because the kit author once connected their own GoHighLevel during testing. **Ignore all of them.** The locationId you save MUST be the one captured from `window.location.href` in **this** turn, after the user has actively named a sub-account in **this** session (or after they were already inside one when they signed in). Never type a locationId into a URL from memory; the only correct way to get a locationId is to extract it from the live browser. If you find yourself about to navigate to `/v2/location/<some-id>/...` without having just read that ID from the browser, stop and ask the user for the sub-account name instead.
+> **Critical, locationId is NEVER inferred from memory.** A workshop attendee's locationId is a per-user-per-sub-account identifier that you cannot know in advance. Memory files, the user profile, past conversation context, prior knowledge, and the assistant's training prior may all suggest a specific locationId, for example, because the kit author once connected their own GoHighLevel during testing. **Ignore all of them.** The locationId you save MUST be the one captured from `window.location.href` in **this** turn, after the user has actively named a sub-account in **this** session (or after they were already inside one when they signed in). Never type a locationId into a URL from memory; the only correct way to get a locationId is to extract it from the live browser. If you find yourself about to navigate to `/v2/location/<some-id>/...` without having just read that ID from the browser, stop and ask the user for the sub-account name instead.
 
 Call:
 
@@ -165,12 +165,12 @@ Three branches based on the URL:
   }` })
   ```
 
-  The `href` is `/accounts/detail/<locationId>`. Extract the locationId from there and skip clicking — you have what you need. Continue to Step 5 with this locationId.
+  The `href` is `/accounts/detail/<locationId>`. Extract the locationId from there and skip clicking, you have what you need. Continue to Step 5 with this locationId.
 
   If the search returns zero matches, ask the user for a more distinguishing word (or the exact name) and retry. If it returns multiple matches, ask the user to disambiguate.
 - **URL is some other authenticated path.** Navigate to `https://app.gohighlevel.com/sub-accounts` and handle as the agency case above.
 
-The locationId is 20+ alphanumeric chars (a base62-style identifier; do not hardcode any specific value here as an example — the SKILL itself must not seed any concrete locationId, since the assistant may later quote the example as if it were the user's). If the regex returns something shorter or with hyphens/slashes, re-snapshot and re-read `window.location.href` after a brief `browser_wait_for`.
+The locationId is 20+ alphanumeric chars (a base62-style identifier; do not hardcode any specific value here as an example, the SKILL itself must not seed any concrete locationId, since the assistant may later quote the example as if it were the user's). If the regex returns something shorter or with hyphens/slashes, re-snapshot and re-read `window.location.href` after a brief `browser_wait_for`.
 
 ### Step 5: Navigate to Private Integrations
 
@@ -186,7 +186,7 @@ Wait for the heading "Private Integrations" to be visible (`browser_wait_for({ t
 
 Snapshot the integrations table. Look for a row whose name cell is exactly "Claude Code" (case-insensitive).
 
-- **Found.** Each integration row has a three-dots icon button whose **accessible name is exactly** `Actions for integration <name>` (so for the Claude Code row, it's `Actions for integration Claude Code`). The button has no visible text — match it by `aria-label`, not by text content:
+- **Found.** Each integration row has a three-dots icon button whose **accessible name is exactly** `Actions for integration <name>` (so for the Claude Code row, it's `Actions for integration Claude Code`). The button has no visible text, match it by `aria-label`, not by text content:
 
   ```
   mcp__playwright__browser_evaluate({ function: `() => {
@@ -197,7 +197,7 @@ Snapshot the integrations table. Look for a row whose name cell is exactly "Clau
   }` })
   ```
 
-  A popup menu appears with a destructive option (label varies: "Delete", "Revoke"). Snapshot the page, find that button by text, click it. A confirmation modal then appears with Cancel and Confirm buttons — click Confirm. Re-snapshot the integrations table and verify the "Claude Code" row is gone before continuing. If the row is still there, retry once.
+  A popup menu appears with a destructive option (label varies: "Delete", "Revoke"). Snapshot the page, find that button by text, click it. A confirmation modal then appears with Cancel and Confirm buttons, click Confirm. Re-snapshot the integrations table and verify the "Claude Code" row is gone before continuing. If the row is still there, retry once.
 - **Not found.** Continue to Step 7.
 
 If the deletion fails or the row reappears after re-snapshot, retry once. If still failing, stop and tell the user: *"There's an old Claude Code connection that I can't remove. Could you delete it manually and let me know when it's done?"* Wait for them, then re-snapshot.
@@ -206,14 +206,14 @@ If the deletion fails or the row reappears after re-snapshot, retry once. If sti
 
 The Create flow is a **two-step wizard**, not a single form. The skill walks both steps.
 
-**Step 7a — Basic info.** Click the `Create new integration` button. A side panel opens with two tabs at the top: "Basic info" (active) and "Scopes". Fill the form:
+**Step 7a, Basic info.** Click the `Create new integration` button. A side panel opens with two tabs at the top: "Basic info" (active) and "Scopes". Fill the form:
 
 - **Name field** (labelled "Enter name", required, marked with `*`). Type `Claude Code`. The Next button is disabled until this is filled.
 - **Description field** (labelled "Provide a description of your integration"). Leave blank or type `Claude Code workshop install`.
 
 Click the `Next` button. The panel transitions to the Scopes step.
 
-**Step 7b — Scopes.** The scopes selector is a custom searchable dropdown with a single `Select all` checkbox that ticks every available scope in one click. The dropdown trigger has CSS class `.hr-base-selection` and the checkboxes have class `.hr-checkbox`.
+**Step 7b, Scopes.** The scopes selector is a custom searchable dropdown with a single `Select all` checkbox that ticks every available scope in one click. The dropdown trigger has CSS class `.hr-base-selection` and the checkboxes have class `.hr-checkbox`.
 
 Open the dropdown:
 
@@ -248,11 +248,11 @@ mcp__playwright__browser_evaluate({ function: `() => {
 }` })
 ```
 
-The counter should read "N of N selected" (both numbers equal — currently 146, but the GHL surface grows; don't hardcode 146). If the counter still shows `0 of N selected`, the click missed — re-snapshot and retry. If it shows `K of N selected` with K between 0 and N, the click toggled into half-selected; click `Select all` once more.
+The counter should read "N of N selected" (both numbers equal, currently 146, but the GHL surface grows; don't hardcode 146). If the counter still shows `0 of N selected`, the click missed, re-snapshot and retry. If it shows `K of N selected` with K between 0 and N, the click toggled into half-selected; click `Select all` once more.
 
 Press `Escape` to close the dropdown. The selected scopes now render as chips in the field, and the bottom `Create` button is enabled.
 
-Click the bottom `Create` button (match by visible text `Create`, not by class — there are usually two Cancel buttons + Create + Confirm on the page at this point, find the one in the form footer):
+Click the bottom `Create` button (match by visible text `Create`, not by class, there are usually two Cancel buttons + Create + Confirm on the page at this point, find the one in the form footer):
 
 ```
 mcp__playwright__browser_evaluate({ function: `() => {
@@ -267,7 +267,7 @@ mcp__playwright__browser_evaluate({ function: `() => {
 }` })
 ```
 
-**Step 7c — Security Risk confirmation.** GHL pops a "Security Risk" confirmation modal whenever sensitive scopes are part of the grant. The modal heading reads "Security Risk — Are you sure you want to proceed with creating the private integration token with sensitive scopes?" with Cancel and Confirm buttons. This is **expected** on every all-scopes mint, **not** an error — click the Confirm button:
+**Step 7c, Security Risk confirmation.** GHL pops a "Security Risk" confirmation modal whenever sensitive scopes are part of the grant. The modal heading reads "Security Risk, Are you sure you want to proceed with creating the private integration token with sensitive scopes?" with Cancel and Confirm buttons. This is **expected** on every all-scopes mint, **not** an error, click the Confirm button:
 
 ```
 mcp__playwright__browser_evaluate({ function: `() => {
@@ -369,14 +369,14 @@ Tell the user: *"I've saved your connection. Let me check it works."*
 
 Two paths from here:
 
-- **`mcp__ghl__locations_get-location` is callable in this session.** Call it (no arguments needed — `locationId` is sourced from the header). The response includes `data.location.name` (the sub-account name). Capture the name and go to Step 11. **Note: in most cases this tool will NOT be visible immediately after install** because Claude Code reconciles new MCP servers on session start. The path below is the common one.
+- **`mcp__ghl__locations_get-location` is callable in this session.** Call it (no arguments needed, `locationId` is sourced from the header). The response includes `data.location.name` (the sub-account name). Capture the name and go to Step 11. **Note: in most cases this tool will NOT be visible immediately after install** because Claude Code reconciles new MCP servers on session start. The path below is the common one.
 - **`mcp__ghl__*` tools are not yet visible in this session.** Tell the user, in one message:
 
   > "All saved. Please close and reopen Claude Code once so the connection becomes active, then say 'test my GoHighLevel' and I'll confirm it's working."
 
   Stop. The user will return and trigger Phase 0, which will run the smoke call and surface success.
 
-**If you want to confirm the connection works without waiting for a restart**, do a direct HTTP smoke test (don't show this to the user — it's just a sanity check Claude can run silently). The Cloudflare front on `services.leadconnectorhq.com` **blocks** the default Python `urllib` user-agent (returns `Error 1010: browser_signature_banned`). Use `curl` with a browser-like User-Agent, **not** Python `urllib.request`:
+**If you want to confirm the connection works without waiting for a restart**, do a direct HTTP smoke test (don't show this to the user, it's just a sanity check Claude can run silently). The Cloudflare front on `services.leadconnectorhq.com` **blocks** the default Python `urllib` user-agent (returns `Error 1010: browser_signature_banned`). Use `curl` with a browser-like User-Agent, **not** Python `urllib.request`:
 
 ```bash
 curl -s -X POST https://services.leadconnectorhq.com/mcp/ \
@@ -465,7 +465,7 @@ User: "Move the Acme Co deal to Proposal Sent"
 → mcp__ghl__opportunities_update-opportunity (opportunityId, pipelineStageId)
 ```
 
-#### Calendars (2 tools — read-only)
+#### Calendars (2 tools, read-only)
 
 | Tool | Purpose |
 |---|---|
@@ -485,14 +485,14 @@ User: "Move the Acme Co deal to Proposal Sent"
 
 **Use when.** Confirming which sub-account is connected (run at the start of a session), or discovering field IDs before an update.
 
-#### Payments (2 tools — read-only)
+#### Payments (2 tools, read-only)
 
 | Tool | Purpose |
 |---|---|
 | `payments_get-order-by-id` | Fetch a single order by ID |
 | `payments_list-transactions` | List transactions with filtering options |
 
-**Use when.** "What did Jane pay last month?", "Show me the order for this contact." Payment mutations (refunds, invoice writes, subscription edits) are not in the MCP surface — fall back to Playwright or the GHL UI.
+**Use when.** "What did Jane pay last month?", "Show me the order for this contact." Payment mutations (refunds, invoice writes, subscription edits) are not in the MCP surface, fall back to Playwright or the GHL UI.
 
 #### Blogs (7 tools)
 
@@ -515,7 +515,7 @@ User: "Move the Acme Co deal to Proposal Sent"
 | `emails_fetch-template` | List email templates with filtering |
 | `emails_create-template` | Create a new email template (HTML, builder, blank, folder, etc.) |
 
-**Use when.** Authoring a template. Sending a one-off email uses `conversations_send-a-new-message`, not these tools. Full visual-builder campaign authoring is not in the MCP surface — fall back to Playwright.
+**Use when.** Authoring a template. Sending a one-off email uses `conversations_send-a-new-message`, not these tools. Full visual-builder campaign authoring is not in the MCP surface, fall back to Playwright.
 
 #### Social Media Posting (6 tools)
 
@@ -579,7 +579,7 @@ For any of these, fall back to the GHL UI via the Playwright fallback section be
 | "What's on the calendar tomorrow?" | `calendars_get-calendar-events` |
 | "Read the notes on appointment X" | `calendars_get-appointment-notes` |
 | "Show me recent conversations with Jane" | `conversations_search-conversation` → `conversations_get-messages` |
-| "Send Jane a follow-up email" | `conversations_send-a-new-message` (type: Email) — **confirm body and recipient first** |
+| "Send Jane a follow-up email" | `conversations_send-a-new-message` (type: Email), **confirm body and recipient first** |
 | "What custom fields do I have?" | `locations_get-custom-fields` |
 | "Show me Jane's order" | `payments_get-order-by-id` |
 | "List transactions last month" | `payments_list-transactions` |
@@ -628,7 +628,7 @@ When a GHL MCP tool call fails, diagnose and respond in plain English. Never sho
 | 429 / rate limit | "GoHighLevel is asking me to slow down. I'll wait a moment." | Wait 5s, retry once. On a mutating call, re-confirm with the user before retry |
 | MCP server unreachable | "I can't reach GoHighLevel right now." | Check `curl -I https://services.leadconnectorhq.com/mcp/`, retry in a minute |
 | MCP tools not visible after install | "Please restart Claude Code so the connection becomes active." | User restarts, Phase 0 will smoke-test on return |
-| "Security Risk" modal in Phase 1 Step 7c | This is expected — click Confirm to proceed | Not an error |
+| "Security Risk" modal in Phase 1 Step 7c | This is expected, click Confirm to proceed | Not an error |
 
 ---
 

@@ -15,21 +15,21 @@ Do NOT invoke any implementation skill, write any code, scaffold any project, or
 
 ## Anti-Pattern: "This Is Too Simple To Need A Design"
 
-Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+Every project goes through this process. A todo list, a single-function utility, a config change, all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
 
 ## Checklist
 
 You MUST create a task for each of these items and complete them in order:
 
-1. **Explore project context** — check files, docs, recent commits
-2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
-3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
-4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
-7. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 5 iterations, then surface to human)
-8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke superpowers:writing-plans skill to create implementation plan
+1. **Explore project context**, check files, docs, recent commits
+2. **Offer visual companion** (if topic will involve visual questions), this is its own message, not combined with a clarifying question. See the Visual Companion section below.
+3. **Ask clarifying questions**, one at a time, understand purpose/constraints/success criteria
+4. **Propose 2-3 approaches**, with trade-offs and your recommendation
+5. **Present design**, in sections scaled to their complexity, get user approval after each section
+6. **Write design doc**, save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+7. **Spec review loop**, dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 5 iterations, then surface to human)
+8. **User reviews written spec**, ask user to review the spec file before proceeding
+9. **Transition to implementation**, invoke superpowers:writing-plans skill to create implementation plan
 
 ## Process Flow
 
@@ -66,9 +66,9 @@ digraph brainstorming {
 }
 ```
 
-**The terminal state is invoking `superpowers:writing-plans`** (from the official Anthropic Superpowers plugin — optional but strongly recommended in this kit). Do NOT invoke frontend-design, mcp-creator, or any other implementation skill. The ONLY skill you invoke after brainstorming is `superpowers:writing-plans`.
+**The terminal state is invoking `superpowers:writing-plans`** (from the official Anthropic Superpowers plugin, optional but strongly recommended in this kit). Do NOT invoke frontend-design, mcp-creator, or any other implementation skill. The ONLY skill you invoke after brainstorming is `superpowers:writing-plans`.
 
-**If Superpowers is not installed,** do not silently halt or invoke an implementation skill. Tell the user: *"The Superpowers plugin isn't installed — that's the piece that turns a design into a step-by-step plan. Want to install it now? Paste `/plugin marketplace add anthropics/claude-plugins-official` and then `/plugin install superpowers@claude-plugins-official` in a Code session, then come back here. If you'd rather skip it for now, I can walk through the plan conversationally with you instead."* Wait for their decision before proceeding.
+**If Superpowers is not installed,** do not silently halt or invoke an implementation skill. Tell the user: *"The Superpowers plugin isn't installed, that's the piece that turns a design into a step-by-step plan. Want to install it now? Paste `/plugin marketplace add anthropics/claude-plugins-official` and then `/plugin install superpowers@claude-plugins-official` in a Code session, then come back here. If you'd rather skip it for now, I can walk through the plan conversationally with you instead."* Wait for their decision before proceeding.
 
 ## The Process
 
@@ -148,7 +148,7 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 ## Visual Companion
 
-A browser-based companion for showing mockups, diagrams, and visual options during brainstorming. Available as a tool — not a mode. Accepting the companion means it's available for questions that benefit from visual treatment; it does NOT mean every question goes through the browser.
+A browser-based companion for showing mockups, diagrams, and visual options during brainstorming. Available as a tool, not a mode. Accepting the companion means it's available for questions that benefit from visual treatment; it does NOT mean every question goes through the browser.
 
 **Offering the companion:** When you anticipate that upcoming questions will involve visual content (mockups, layouts, diagrams), offer it once for consent:
 > "Some of what we're working on might be easier to explain if I can show it to you in a web browser. I can put together mockups, diagrams, comparisons, and other visuals as we go. This feature is still new and can be token-intensive. Want to try it? (Requires opening a local URL)"
@@ -157,10 +157,10 @@ A browser-based companion for showing mockups, diagrams, and visual options duri
 
 **Per-question decision:** Even after the user accepts, decide FOR EACH QUESTION whether to use the browser or the terminal. The test: **would the user understand this better by seeing it than reading it?**
 
-- **Use the browser** for content that IS visual — mockups, wireframes, layout comparisons, architecture diagrams, side-by-side visual designs
-- **Use the terminal** for content that is text — requirements questions, conceptual choices, tradeoff lists, A/B/C/D text options, scope decisions
+- **Use the browser** for content that IS visual, mockups, wireframes, layout comparisons, architecture diagrams, side-by-side visual designs
+- **Use the terminal** for content that is text, requirements questions, conceptual choices, tradeoff lists, A/B/C/D text options, scope decisions
 
-A question about a UI topic is not automatically a visual question. "What does personality mean in this context?" is a conceptual question — use the terminal. "Which wizard layout works better?" is a visual question — use the browser.
+A question about a UI topic is not automatically a visual question. "What does personality mean in this context?" is a conceptual question, use the terminal. "Which wizard layout works better?" is a visual question, use the browser.
 
 If they agree to the companion, read the detailed guide before proceeding:
 `skills/brainstorming/visual-companion.md`

@@ -1,6 +1,6 @@
 # scripts/
 
-Repo maintenance scripts. Plain Node, no dependencies — run with `node scripts/<name>.mjs`.
+Repo maintenance scripts. Plain Node, no dependencies, run with `node scripts/<name>.mjs`.
 
 ## audit-skills.mjs
 
@@ -21,9 +21,9 @@ node scripts/audit-skills.mjs --check --verbose
 
 **Source of truth:**
 
-- **Total skills** — count of `skills/*/SKILL.md` files
-- **Connectors** — `skills/*-connector/` directories
-- **CORE / ADVANCED / DEV-ONLY** — tier column in `skills/SKILLS-LIST.md`
+- **Total skills**, count of `skills/*/SKILL.md` files
+- **Connectors**, `skills/*-connector/` directories
+- **CORE / ADVANCED / DEV-ONLY**, tier column in `skills/SKILLS-LIST.md`
 
 **Marker shapes** (case-sensitive, inline):
 
@@ -42,7 +42,7 @@ To add a new claim that should stay in sync, wrap the number in the appropriate 
 - Skills on disk but not classified in `SKILLS-LIST.md`
 - Skills in `SKILLS-LIST.md` but missing from disk
 
-These are content-decision drift — the script reports them so a human can classify, but it doesn't block PRs that didn't touch classification.
+These are content-decision drift, the script reports them so a human can classify, but it doesn't block PRs that didn't touch classification.
 
 **Hard failures (fail CI):**
 

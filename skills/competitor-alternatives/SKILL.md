@@ -41,7 +41,7 @@ Before creating competitor pages, understand:
 - Acknowledge competitor strengths
 - Be accurate about your limitations
 - Don't misrepresent competitor features
-- Readers are comparing—they'll verify claims
+- Readers are comparing-they'll verify claims
 
 ### 2. Depth Over Surface
 - Go beyond feature checklists
@@ -242,8 +242,8 @@ Comparing your options? Our guides cover the top alternatives:
 
 **Page structure**:
 1. Headline: "Compare [Your Product]"
-2. Section: "[Your Product] vs Competitors" — list of direct comparisons
-3. Section: "Head-to-Head Comparisons" — list of [A] vs [B] pages
+2. Section: "[Your Product] vs Competitors", list of direct comparisons
+3. Section: "Head-to-Head Comparisons", list of [A] vs [B] pages
 4. Brief methodology note
 5. CTA
 
@@ -387,7 +387,7 @@ migration_from:
 
 ### Your Product Data
 
-Same structure for yourself—be honest:
+Same structure for yourself-be honest:
 
 ```yaml
 name: [Your Product]

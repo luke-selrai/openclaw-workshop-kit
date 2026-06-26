@@ -1,8 +1,8 @@
-# Phase 1 — Anthropic Console
+# Phase 1, Anthropic Console
 
 **Goal:** workspace + API key. Skip if user has a key.
 
-**Option A — Playwright driven:**
+**Option A, Playwright driven:**
 1. Open https://platform.claude.com/login
 2. User authenticates (OAuth or email). Wait for dashboard.
 3. Settings > Workspaces. Create workspace named `AGENTS-<user>`.
@@ -13,7 +13,7 @@
    ```
 6. Billing > verify payment method (user approves).
 
-**Option B — User provides key:**
+**Option B, User provides key:**
 ```bash
 security add-generic-password -a "$USER" -s "anthropic-managed-agents" -w "$KEY" -U
 export ANTHROPIC_API_KEY=$(security find-generic-password -a "$USER" -s "anthropic-managed-agents" -w)

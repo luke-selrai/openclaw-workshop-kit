@@ -150,7 +150,7 @@ The first line determines whether anyone reads the rest.
 ### Curiosity Hooks
 - "I was wrong about [common belief]."
 - "The real reason [outcome] happens isn't what you think."
-- "[Impressive result] — and it only took [surprisingly short time]."
+- "[Impressive result], and it only took [surprisingly short time]."
 - "Nobody talks about [insider knowledge]."
 
 ### Story Hooks

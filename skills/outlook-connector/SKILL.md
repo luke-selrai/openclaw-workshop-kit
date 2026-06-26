@@ -1,6 +1,6 @@
 ---
 name: outlook-connector
-description: Install and operate the Microsoft Outlook & 365 connector. Use this skill when the user asks to set up Outlook, connect Microsoft 365, or interact with emails, calendar, OneDrive, Teams, SharePoint, OneNote, Excel, Contacts, or To Do. Drives the entire OAuth flow inside a Playwright MCP browser — never opens the user's own browser.
+description: Install and operate the Microsoft Outlook & 365 connector. Use this skill when the user asks to set up Outlook, connect Microsoft 365, or interact with emails, calendar, OneDrive, Teams, SharePoint, OneNote, Excel, Contacts, or To Do. Drives the entire OAuth flow inside a Playwright MCP browser, never opens the user's own browser.
 allowed-tools: Bash,Read,Write,Edit,mcp__playwright__*,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -26,7 +26,7 @@ metadata:
 
 This skill does two things:
 1. **Installs** the connector on the user's computer (one-time setup)
-2. **Operates** the connector — reading emails, calendar, files, Teams, etc.
+2. **Operates** the connector, reading emails, calendar, files, Teams, etc.
 
 The connector uses the **PnP CLI for Microsoft 365** (`@pnp/cli-microsoft365`).
 Full command reference: https://pnp.github.io/cli-microsoft365/
@@ -37,9 +37,9 @@ Full command reference: https://pnp.github.io/cli-microsoft365/
 
 ---
 
-## Golden rule — do not open the user's own browser
+## Golden rule, do not open the user's own browser
 
-Every OAuth step in this skill runs inside the **Playwright MCP** browser (`mcp__plugin_playwright_playwright__browser_*`). Never shell out to `--authType browser` or anything that launches the user's default browser. The only human-in-the-loop moment is **password entry** — the user types their password into the Playwright-controlled window. Claude navigates, clicks, and reads results; nothing bounces back to the user's own Chrome/Safari.
+Every OAuth step in this skill runs inside the **Playwright MCP** browser (`mcp__plugin_playwright_playwright__browser_*`). Never shell out to `--authType browser` or anything that launches the user's default browser. The only human-in-the-loop moment is **password entry**, the user types their password into the Playwright-controlled window. Claude navigates, clicks, and reads results; nothing bounces back to the user's own Chrome/Safari.
 
 If a CLI command is about to open the user's own browser, stop and switch to the device-code path.
 
@@ -47,13 +47,13 @@ If a CLI command is about to open the user's own browser, stop and switch to the
 
 ## No-deviation rule
 
-If a step in this skill fails, follow the `if X fails, try Y` branch documented for that step. **Do not improvise** with `gcloud`, `mgc` (Microsoft Graph CLI), `az`, or any other tool this skill does not name. If you hit a failure with no documented recovery, tell the user exactly what failed and stop — don't silently pivot to a different toolchain.
+If a step in this skill fails, follow the `if X fails, try Y` branch documented for that step. **Do not improvise** with `gcloud`, `mgc` (Microsoft Graph CLI), `az`, or any other tool this skill does not name. If you hit a failure with no documented recovery, tell the user exactly what failed and stop, don't silently pivot to a different toolchain.
 
 ---
 
-## Part 1 — Installation
+## Part 1, Installation
 
-Guide conversationally — one step at a time.
+Guide conversationally, one step at a time.
 
 ### Step 0: Admin role preflight (do this FIRST)
 
@@ -68,8 +68,8 @@ https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuB
 
 **Branches:**
 - **User has Application Administrator or Global Administrator** → continue to Step 1.
-- **User does NOT have either role but has a tenant admin available** → two options. Either the tenant admin grants them one of those roles once (preferred — they own the registration), or the tenant admin runs `m365 setup` themselves while signed in as admin, then transfers use to the user. Pause here until resolved.
-- **User is on a personal Microsoft account** (outlook.com / hotmail.com) → the CLI doesn't support personal accounts at all. Skip to **Part 9 — Playwright Fallback** and stop.
+- **User does NOT have either role but has a tenant admin available** → two options. Either the tenant admin grants them one of those roles once (preferred, they own the registration), or the tenant admin runs `m365 setup` themselves while signed in as admin, then transfers use to the user. Pause here until resolved.
+- **User is on a personal Microsoft account** (outlook.com / hotmail.com) → the CLI doesn't support personal accounts at all. Skip to **Part 9, Playwright Fallback** and stop.
 
 ### Step 1: Check if already installed
 ```bash
@@ -126,12 +126,12 @@ This registers a custom Entra app against the user's tenant (the default PnP app
 | # | Prompt | Answer |
 |---|---|---|
 | 1 | Create a new app registration / use existing / skip | **Create new** |
-| 2 | What scopes do you want to use? | **All** (second option — `User.Read` alone will cause 403s later) |
+| 2 | What scopes do you want to use? | **All** (second option, `User.Read` alone will cause 403s later) |
 | 3 | How do you plan to use the CLI? | **Scripting for automation, Interactively for daily use** |
 | 4 | Use PowerShell? | **No** (Mac/Linux/unless the user is specifically on Windows PowerShell) |
 | 5 | How experienced are you? | **Beginner** (controls help verbosity only) |
 | 6 | Apply these settings? | **Yes** |
-| 7 | Sign in now to create the app registration? | **Yes** (default is No — easy to miss, and you need Yes here to actually register) |
+| 7 | Sign in now to create the app registration? | **Yes** (default is No, easy to miss, and you need Yes here to actually register) |
 
 **If the wizard needs to be run unattended**, pipe answers via an expect-style script:
 
@@ -159,14 +159,14 @@ When the CLI prints something like `To sign in, use a web browser to open https:
 2. `mcp__plugin_playwright_playwright__browser_navigate` to `https://microsoft.com/devicelogin`.
 3. `mcp__plugin_playwright_playwright__browser_snapshot` to see the form.
 4. `mcp__plugin_playwright_playwright__browser_type` the code into the code input, then click Next.
-5. `mcp__plugin_playwright_playwright__browser_snapshot` — the user will see an email input. Ask the user for their M365 email, type it in, click Next.
-6. **Ask the user to type their password into the Playwright browser.** This is the one unavoidable human step — do not type passwords on behalf of the user.
+5. `mcp__plugin_playwright_playwright__browser_snapshot`, the user will see an email input. Ask the user for their M365 email, type it in, click Next.
+6. **Ask the user to type their password into the Playwright browser.** This is the one unavoidable human step, do not type passwords on behalf of the user.
 7. After password, handle MFA if prompted (user completes on phone / authenticator).
-8. `mcp__plugin_playwright_playwright__browser_snapshot` — click Accept / Allow / Yes on any consent screens.
+8. `mcp__plugin_playwright_playwright__browser_snapshot`, click Accept / Allow / Yes on any consent screens.
 9. Wait for the "You have signed in" / device-code success page.
-10. Return to the terminal — the CLI should have completed the app registration by now.
+10. Return to the terminal, the CLI should have completed the app registration by now.
 
-**Save the `clientId`** from the wizard output — you'll need it in Step 8. If lost, retrieve with:
+**Save the `clientId`** from the wizard output, you'll need it in Step 8. If lost, retrieve with:
 ```bash
 m365 status --output json
 ```
@@ -174,17 +174,17 @@ The `appId` field is your `clientId`.
 
 ### Step 7: Verify sign-in (stable check)
 
-Do NOT parse the login command's live output — it's brittle. Run `m365 status` separately and check its structured output.
+Do NOT parse the login command's live output, it's brittle. Run `m365 status` separately and check its structured output.
 
 ```bash
 m365 status --output json
 ```
 
-Expect a JSON blob with `connectedAs` set to the user's email and `appId` present. If `connectedAs` is empty or the command errors, sign-in failed — go back to Step 6 and retry, or fall back to device-code path (Step 8 of Part 8).
+Expect a JSON blob with `connectedAs` set to the user's email and `appId` present. If `connectedAs` is empty or the command errors, sign-in failed, go back to Step 6 and retry, or fall back to device-code path (Step 8 of Part 8).
 
-### Step 8: Verify scopes were granted (mandatory — `m365 setup` lies about this)
+### Step 8: Verify scopes were granted (mandatory, `m365 setup` lies about this)
 
-The setup wizard *registers* ~50 delegated permissions, but it does **not always grant admin consent** for them — `--grantAdminConsent` silently skips when the permission is already present without consent. Calls to Graph endpoints return 403 until consent is actually applied.
+The setup wizard *registers* ~50 delegated permissions, but it does **not always grant admin consent** for them, `--grantAdminConsent` silently skips when the permission is already present without consent. Calls to Graph endpoints return 403 until consent is actually applied.
 
 Check what's consented:
 ```bash
@@ -207,7 +207,7 @@ The response has a `value` array where each entry has a `scope` string. Look for
   3. Open **API permissions**
   4. Click **Grant admin consent for [tenant]**
   5. Confirm
-  6. Then in terminal: `m365 logout && m365 login` — old token keeps 403-ing until you re-login.
+  6. Then in terminal: `m365 logout && m365 login`, old token keeps 403-ing until you re-login.
 - **Scopes missing, user is NOT tenant admin** → print a clean forwarded message for the user to send to their tenant admin. Include:
   - The direct consent URL: `https://login.microsoftonline.com/{tenantId}/adminconsent?client_id={clientId}`
   - The list of scopes requested
@@ -227,11 +227,11 @@ If this fails with 403 and Step 8 reported scopes as granted, run `m365 logout &
 
 If the user's only domain is `<tenant>.onmicrosoft.com` (no verified custom domain), tell them:
 
-> "Your tenant doesn't have a verified custom domain, so outbound mail comes from a low-reputation address. Emails to Gmail, Yahoo, or other external providers may be delayed 1–5 minutes or filtered to spam. That's a tenant-level thing, not a connector bug. Check your Outlook Sent Items to confirm the send succeeded regardless of where it lands externally."
+> "Your tenant doesn't have a verified custom domain, so outbound mail comes from a low-reputation address. Emails to Gmail, Yahoo, or other external providers may be delayed 1-5 minutes or filtered to spam. That's a tenant-level thing, not a connector bug. Check your Outlook Sent Items to confirm the send succeeded regardless of where it lands externally."
 
 ---
 
-## Part 2 — Email (Outlook)
+## Part 2, Email (Outlook)
 
 > **CLI note:** In v11.x the command is `m365 outlook message ...`, not `m365 outlook mail ...`. Older docs show the deprecated form.
 
@@ -266,7 +266,7 @@ m365 outlook mail send \
 ```
 > Always confirm recipient, subject, and body with the user before sending.
 
-### Reply to an email (v11 — uses Graph API directly)
+### Reply to an email (v11, uses Graph API directly)
 
 The CLI no longer ships `m365 outlook mail reply` in v11.x. Use Graph via `m365 request`:
 
@@ -294,11 +294,11 @@ m365 outlook message move --id "<messageId>" --targetFolderName "Archive"
 
 ### Audit rule for every command above
 
-Before running any `m365 outlook ...` command in a new session, sanity-check with `m365 <command> --help` — v11 occasionally renames subcommands between point releases. If `--help` shows a different shape, use the shape `--help` shows, not the shape documented here, and flag the drift to the user.
+Before running any `m365 outlook ...` command in a new session, sanity-check with `m365 <command> --help`, v11 occasionally renames subcommands between point releases. If `--help` shows a different shape, use the shape `--help` shows, not the shape documented here, and flag the drift to the user.
 
 ---
 
-## Part 3 — Calendar (via Graph API)
+## Part 3, Calendar (via Graph API)
 
 > **Note:** m365 CLI v11.x has no built-in calendar event commands. Everything goes through `m365 request` with the Microsoft Graph API. `Calendars.ReadWrite` is in the default "All" scope set (Part 1, Step 5, prompt 2) and should have been consented in Part 1, Step 8.
 
@@ -346,7 +346,7 @@ m365 request \
 
 ---
 
-## Part 4 — OneDrive
+## Part 4, OneDrive
 
 ```bash
 # List files
@@ -364,7 +364,7 @@ m365 onedrive file download --sourceUrl "/Documents/report.xlsx" --targetFile ".
 
 ---
 
-## Part 5 — SharePoint
+## Part 5, SharePoint
 
 ```bash
 # Search documents
@@ -378,7 +378,7 @@ m365 spo file list \
 
 ---
 
-## Part 6 — Microsoft Teams
+## Part 6, Microsoft Teams
 
 ```bash
 # List teams
@@ -399,7 +399,7 @@ m365 teams chat message send \
 
 ---
 
-## Part 7 — Contacts, OneNote, To Do
+## Part 7, Contacts, OneNote, To Do
 
 ```bash
 # Contacts
@@ -419,20 +419,20 @@ m365 todo task set --listId "<listId>" --id "<taskId>" --status "completed"
 
 ---
 
-## Part 8 — Auth & Session
+## Part 8, Auth & Session
 
 ### Check who is signed in
 ```bash
 m365 status
 ```
-This is also the canonical success check after any login — do not parse login output directly.
+This is also the canonical success check after any login, do not parse login output directly.
 
 ### Sign out
 ```bash
 m365 logout
 ```
 
-### Sign in (device-code, Playwright-driven — the default for this skill)
+### Sign in (device-code, Playwright-driven, the default for this skill)
 ```bash
 m365 login
 ```
@@ -442,29 +442,29 @@ With `authType` pre-configured to `deviceCode` (Part 1, Step 4), this prints a U
 | Error code | Meaning | Fix |
 |---|---|---|
 | AADSTS53003 | Conditional Access blocks sign-in | Ask tenant admin to whitelist the Entra app |
-| AADSTS90094 | Admin consent required | Part 1, Step 8 — grant consent in Entra portal |
+| AADSTS90094 | Admin consent required | Part 1, Step 8, grant consent in Entra portal |
 | AADSTS70043 | Token expired | `m365 logout && m365 login` |
-| AADSTS50020 | Account doesn't exist in tenant | Personal account — switch to Part 9 Playwright fallback |
+| AADSTS50020 | Account doesn't exist in tenant | Personal account, switch to Part 9 Playwright fallback |
 
 ### If sign-in hangs on the device-code page
 - Confirm `autoOpenLinksInBrowser` is `false` (`m365 cli config list`).
 - Confirm Playwright MCP is actually on the code-entry page (`mcp__plugin_playwright_playwright__browser_snapshot`).
-- If Playwright isn't installed, stop and tell the user — do not fall back to opening their own browser.
+- If Playwright isn't installed, stop and tell the user, do not fall back to opening their own browser.
 
 ---
 
-## Part 9 — Playwright Fallback (personal accounts only)
+## Part 9, Playwright Fallback (personal accounts only)
 
 Use this ONLY when the CLI genuinely cannot help:
-- Personal Microsoft account (outlook.com / hotmail.com) — CLI does not support these at all
+- Personal Microsoft account (outlook.com / hotmail.com), CLI does not support these at all
 - A CLI command returns `access denied` on a work account for Teams or SharePoint after consent has been verified
 
-This is different from Part 1, Step 6. In Step 6, Playwright drives the OAuth device-code flow to authenticate the CLI. In Part 9, Playwright is the connector itself — no CLI involved — because the account type isn't supported.
+This is different from Part 1, Step 6. In Step 6, Playwright drives the OAuth device-code flow to authenticate the CLI. In Part 9, Playwright is the connector itself, no CLI involved, because the account type isn't supported.
 
-### Personal account — read emails via Playwright
+### Personal account, read emails via Playwright
 Navigate to `https://outlook.live.com`. Sign in, navigate to Inbox, extract the email list from the DOM.
 
-### Personal account — read calendar via Playwright
+### Personal account, read calendar via Playwright
 Navigate to `https://outlook.live.com/calendar`. Extract events from the calendar view.
 
 ### Work account Playwright fallback (Teams/SharePoint access denied)
@@ -476,10 +476,10 @@ Always try the CLI command first on work accounts. Only switch to Playwright-as-
 
 ## Behaviour Guidelines
 
-- **Always run `m365 status` first** at the start of a session to confirm the user is signed in. Do NOT parse login command output to infer success — `m365 status` is the source of truth.
+- **Always run `m365 status` first** at the start of a session to confirm the user is signed in. Do NOT parse login command output to infer success, `m365 status` is the source of truth.
 - **Never open the user's own browser** for OAuth. Use Playwright MCP. This is a hard rule.
-- **Confirm before acting** — always confirm recipient/subject/time with the user before sending emails, creating meetings, or deleting anything.
-- **Use ISO 8601 dates** — format: `2026-04-08T10:00:00`. Confirm timezone if ambiguous.
-- **Get IDs from list commands** — most action commands need an item ID; run the list first.
-- **No deviation** — if a documented step fails, follow the documented `if X fails` branch. Do not improvise with `gcloud`, `mgc`, `az`, or any other tool. If you hit an undocumented failure, report it clearly and stop.
+- **Confirm before acting**, always confirm recipient/subject/time with the user before sending emails, creating meetings, or deleting anything.
+- **Use ISO 8601 dates**, format: `2026-04-08T10:00:00`. Confirm timezone if ambiguous.
+- **Get IDs from list commands**, most action commands need an item ID; run the list first.
+- **No deviation**, if a documented step fails, follow the documented `if X fails` branch. Do not improvise with `gcloud`, `mgc`, `az`, or any other tool. If you hit an undocumented failure, report it clearly and stop.
 - **Personal accounts** → skip CLI entirely, go straight to Part 9.

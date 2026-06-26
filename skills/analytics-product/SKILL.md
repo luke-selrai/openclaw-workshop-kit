@@ -1,6 +1,6 @@
 ---
 name: analytics-product
-description: 'Product analytics — PostHog, Mixpanel, events, funnels, cohorts, retention, north star metric, OKRs, and product dashboards. Use for: event tracking setup, conversion funnel analysis, cohort retention, DAU/MAU, feature flags, A/B testing, north star metrics, OKRs, product dashboards.'
+description: 'Product analytics, PostHog, Mixpanel, events, funnels, cohorts, retention, north star metric, OKRs, and product dashboards. Use for: event tracking setup, conversion funnel analysis, cohort retention, DAU/MAU, feature flags, A/B testing, north star metrics, OKRs, product dashboards.'
 risk: none
 source: community
 date_added: '2026-03-06'
@@ -16,13 +16,13 @@ tools:
 - gemini-cli
 ---
 
-# ANALYTICS-PRODUCT — Decide With Data
+# ANALYTICS-PRODUCT, Decide With Data
 
 ## Overview
 
 Product analytics skill covering PostHog, Mixpanel, events, funnels, cohorts, retention, north star metric, OKRs, and product dashboards. Use for: event tracking setup, conversion funnel analysis, cohort retention, DAU/MAU, feature flags, A/B testing, north star metrics, OKRs, and product dashboards.
 
-> Note: Code examples throughout this skill use a sample SaaS product as reference — adapt event names, metrics, and targets to your own product.
+> Note: Code examples throughout this skill use a sample SaaS product as reference, adapt event names, metrics, and targets to your own product.
 
 ## When to Use This Skill
 
@@ -43,9 +43,9 @@ Correct:  user_signed_up, conversation_started, upgrade_completed
 Wrong:    signup, click, conversion
 ```
 
-## Analytics-Product — Decide With Data
+## Analytics-Product, Decide With Data
 
-> "In God we trust. All others must bring data." — W. Edwards Deming
+> "In God we trust. All others must bring data.", W. Edwards Deming
 
 ---
 

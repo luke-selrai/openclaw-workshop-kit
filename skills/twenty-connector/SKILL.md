@@ -1,6 +1,6 @@
 ---
 name: twenty-connector
-description: "Connect the user's Twenty CRM workspace to Claude Code so Claude can list and manage Companies, People, Opportunities, Notes, Tasks, custom objects, workflows, and the Skills/AI-Agent surface on their behalf — and so a Phase 3 build-your-own-CRM team can extend Twenty with custom objects and automations. Drives the entire setup autonomously through the user's Twenty workspace in a Playwright MCP browser: the user logs in to their Twenty workspace once, then Claude navigates to Settings → API & Webhooks, creates a long-lived API key, and writes it to ~/.claude/twenty-connector.env plus a credentials-only ~/.claude.json entry — no copy-paste. The only human moment is the user logging in once. Use this skill when the user says 'connect my Twenty', 'set up Twenty CRM', 'connect my CRM', 'I'm using Twenty', 'I want to build my own CRM', or asks about Twenty API key, Twenty webhooks, Twenty workspace, Twenty self-host, or the AGPL open-source CRM alternative to Salesforce."
+description: "Connect the user's Twenty CRM workspace to Claude Code so Claude can list and manage Companies, People, Opportunities, Notes, Tasks, custom objects, workflows, and the Skills/AI-Agent surface on their behalf, and so a Phase 3 build-your-own-CRM team can extend Twenty with custom objects and automations. Drives the entire setup autonomously through the user's Twenty workspace in a Playwright MCP browser: the user logs in to their Twenty workspace once, then Claude navigates to Settings → API & Webhooks, creates a long-lived API key, and writes it to ~/.claude/twenty-connector.env plus a credentials-only ~/.claude.json entry, no copy-paste. The only human moment is the user logging in once. Use this skill when the user says 'connect my Twenty', 'set up Twenty CRM', 'connect my CRM', 'I'm using Twenty', 'I want to build my own CRM', or asks about Twenty API key, Twenty webhooks, Twenty workspace, Twenty self-host, or the AGPL open-source CRM alternative to Salesforce."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: CRM & Integrations
@@ -33,15 +33,15 @@ metadata:
 
 ## Overview
 
-This skill captures the credentials Claude needs to talk to the user's **Twenty CRM workspace** and persists them so any later Claude Code session — agent or interactive — can operate the workspace via REST or GraphQL.
+This skill captures the credentials Claude needs to talk to the user's **Twenty CRM workspace** and persists them so any later Claude Code session, agent or interactive, can operate the workspace via REST or GraphQL.
 
 One credential is captured:
 
-- **API key** — `Authorization: Bearer <jwt>` on `/rest/*` and `/graphql` endpoints. Permission-inherits from the role of the user who created it (no per-object scopes — see Troubleshooting). This is what every Phase 3 build-your-own-CRM team will use to create custom objects, log activities, and read pipeline data.
+- **API key**, `Authorization: Bearer <jwt>` on `/rest/*` and `/graphql` endpoints. Permission-inherits from the role of the user who created it (no per-object scopes, see Troubleshooting). This is what every Phase 3 build-your-own-CRM team will use to create custom objects, log activities, and read pipeline data.
 
 > **Account support:** Twenty self-hosted (any version from v0.50+, recommended v1.0+) OR Twenty Cloud at `app.twenty.com`. The user must have a Twenty workspace with admin permissions on it. For self-host, the workspace lives at whatever URL the user provides (e.g. `https://crm.example.com` or `http://localhost:3000`).
 
-> **No upstream MCP for Twenty** as of January 2026. Twenty's "Skills & Agents" feature is an *internal* AI surface running Claude *inside* Twenty's own product — not a public MCP server external Claude Code sessions can register. This SKILL captures credentials and documents the curl-based / GraphQL operation pattern; for deep introspection of the workspace schema, agents call Twenty's metadata API at runtime.
+> **No upstream MCP for Twenty** as of January 2026. Twenty's "Skills & Agents" feature is an *internal* AI surface running Claude *inside* Twenty's own product, not a public MCP server external Claude Code sessions can register. This SKILL captures credentials and documents the curl-based / GraphQL operation pattern; for deep introspection of the workspace schema, agents call Twenty's metadata API at runtime.
 
 **The user does exactly TWO things across the entire setup. Everything else is autonomous.**
 
@@ -60,29 +60,29 @@ Identical contract to `medusa-connector` and `shopify-connector`. Summary:
 - **Plain English only.** No jargon. Never say Bearer, Authorization header, REST, GraphQL, JWT, JSON, env var, claude.json, mcpServers, jq, AGPL, NestJS, Postgres, Redis, docker-compose. Say "the CRM key" or "your Twenty connection".
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start, once when you need them ("please sign in"), once when you're done. No commentary in between.
 - **Short responses.** Max 8 lines per message during install phase.
-- **React warmly.** Good: "That worked — your Twenty CRM is now connected." Bad: "POST /rest/apiKeys 201 Created."
-- **Never echo the API key.** Once written to disk, the key's job is done. Do not re-read the env file, do not include the key in any later tool-call return value the user can see. Same rule for the user's Twenty login password — Claude never sees it (it goes to the Twenty login form), and Claude must never ask for it.
+- **React warmly.** Good: "That worked, your Twenty CRM is now connected." Bad: "POST /rest/apiKeys 201 Created."
+- **Never echo the API key.** Once written to disk, the key's job is done. Do not re-read the env file, do not include the key in any later tool-call return value the user can see. Same rule for the user's Twenty login password, Claude never sees it (it goes to the Twenty login form), and Claude must never ask for it.
 
 ---
 
-## PHASE A — Bootstrap a new Twenty workspace (skip if user already has one)
+## PHASE A, Bootstrap a new Twenty workspace (skip if user already has one)
 
 Before anything else, ask the user exactly once:
 
-> *"Do you already have a Twenty workspace — self-hosted or on twenty.com — or do we need to create one?"*
+> *"Do you already have a Twenty workspace, self-hosted or on twenty.com, or do we need to create one?"*
 
 Branch:
 
 - **Already have one** → ask for the URL (e.g. `https://crm.example.com` or `https://app.twenty.com`). Skip to **Phase 0**.
 - **Want to create one** → continue with the rest of Phase A. Two sub-paths:
-  - **A.1 — Twenty Cloud trial** (fastest, no infra; 30-day free trial, then $9/seat/mo Pro or $19/seat/mo Org)
-  - **A.2 — Self-host via Docker Compose** (free, AGPL-3.0; ~10 min on a laptop, ~30 min on a server)
+  - **A.1, Twenty Cloud trial** (fastest, no infra; 30-day free trial, then $9/seat/mo Pro or $19/seat/mo Org)
+  - **A.2, Self-host via Docker Compose** (free, AGPL-3.0; ~10 min on a laptop, ~30 min on a server)
 
-### Step A.1 — Twenty Cloud trial signup (managed path)
+### Step A.1, Twenty Cloud trial signup (managed path)
 
 Open `https://app.twenty.com/sign-up` in Playwright. Walk the user through the signup form:
 
-- Email + password OR "Continue with Google" (workshop-friendlier — fewer credentials)
+- Email + password OR "Continue with Google" (workshop-friendlier, fewer credentials)
 - Workspace name (default: `<user-first-name>-workspace` if they don't have one in mind)
 - Wait for the consent screen on Google OAuth → user clicks Allow
 - Twenty lands on the default workspace home at `https://<workspace-slug>.twenty.com/`
@@ -105,7 +105,7 @@ Capture the workspace URL from the address bar. Set `TWENTY_BACKEND_URL` to that
 
 Continue to Phase 0 with `TWENTY_DEPLOY_TARGET="cloud"`.
 
-### Step A.2 — Self-host via Docker Compose
+### Step A.2, Self-host via Docker Compose
 
 Twenty's canonical self-host path uses the `twenty-docker` package's docker-compose.yml. Two sub-paths:
 
@@ -145,7 +145,7 @@ The first start runs database migrations + seeds the demo workspace. Once the he
 
 - Workspace URL: `http://localhost:3000`
 - Sign up at `http://localhost:3000/sign-up` to create the workspace admin
-- Tell the user *"Twenty is running locally. Open the browser I just launched and create your admin account — that's the only thing I can't automate (Twenty requires the password to be set by you, not generated by us)."*
+- Tell the user *"Twenty is running locally. Open the browser I just launched and create your admin account, that's the only thing I can't automate (Twenty requires the password to be set by you, not generated by us)."*
 
 Drive the signup form in Playwright. Capture the workspace URL after the admin is created.
 
@@ -164,13 +164,13 @@ EOF
 chmod 600 "$HOME/.claude/state/twenty-connector-bootstrap.json"
 ```
 
-> **The local docker-compose stack will die on laptop reboot.** To restart: `cd ~/projects/twenty/packages/twenty-docker && docker compose up -d`. To stop: `docker compose down`. To wipe and re-bootstrap from scratch: `docker compose down -v` (the `-v` removes volumes — data loss).
+> **The local docker-compose stack will die on laptop reboot.** To restart: `cd ~/projects/twenty/packages/twenty-docker && docker compose up -d`. To stop: `docker compose down`. To wipe and re-bootstrap from scratch: `docker compose down -v` (the `-v` removes volumes, data loss).
 
 Continue to Phase 0 with `TWENTY_DEPLOY_TARGET="self-host"` and `TWENTY_DEPLOY_BACKEND_HOST="local"`. For a persistent server, the user re-runs the connector with `MEDUSA_DEPLOY_BACKEND_HOST` empty and lets Step 10B's platform menu handle it.
 
 ---
 
-## PHASE 0 — Resume check
+## PHASE 0, Resume check
 
 Read `~/.claude/twenty-connector.env` if it exists:
 
@@ -184,9 +184,9 @@ test -f "$HOME/.claude/twenty-connector.env" && grep -E '^TWENTY_(BACKEND_URL|AP
 
 ---
 
-## PHASE 1 — Capture the API key via Playwright
+## PHASE 1, Capture the API key via Playwright
 
-### Step 1 — Sanity-check the URL is reachable
+### Step 1, Sanity-check the URL is reachable
 
 ```bash
 HTTP=$(curl -sS -m 10 -o /dev/null -w "%{http_code}" "$TWENTY_BACKEND_URL/healthz")
@@ -196,17 +196,17 @@ HTTP=$(curl -sS -m 10 -o /dev/null -w "%{http_code}" "$TWENTY_BACKEND_URL/health
 - `200` → proceed.
 - Connection refused / timeout → tell the user *"I can't reach your Twenty workspace from your computer. Is it running? If self-hosted, is the server up?"* Stop.
 
-### Step 2 — Open the workspace in Playwright, the user signs in
+### Step 2, Open the workspace in Playwright, the user signs in
 
 Open `${TWENTY_BACKEND_URL}/sign-in` in Playwright. Tell the user:
 
-> *"I've opened your Twenty workspace. Please sign in — I'll take it from there."*
+> *"I've opened your Twenty workspace. Please sign in, I'll take it from there."*
 
 Poll with `browser_snapshot` until the URL changes to a path inside the workspace (typically `/objects/company` or `/`). That's the success signal.
 
-If the user is already signed in (persistent profile from a prior session — see `playwright_persistent_profile` memory), Playwright lands straight on the workspace home. No login step needed; proceed to Step 3.
+If the user is already signed in (persistent profile from a prior session, see `playwright_persistent_profile` memory), Playwright lands straight on the workspace home. No login step needed; proceed to Step 3.
 
-### Step 3 — Navigate to API & Webhooks settings
+### Step 3, Navigate to API & Webhooks settings
 
 Navigate to `${TWENTY_BACKEND_URL}/settings/developers`. The page lists existing API keys + webhooks.
 
@@ -214,16 +214,16 @@ Take `browser_snapshot` to verify the page loaded. Look for the **"Create key"**
 
 > **UI drift caveat.** Twenty's settings menu structure has changed across releases. If "API & Webhooks" isn't at `/settings/developers`, look for: Settings → Developers, Settings → API & Webhooks, Settings → Integrations → API. The page is unique by the presence of an "API Keys" table and a "Create key" button.
 
-### Step 4 — Create the API key
+### Step 4, Create the API key
 
 Click **"Create key"**. In the modal:
 
-- **Name:** `Claude Code agent (${date_iso})` — workshop-friendly default with the current date so the user can recognize it later
+- **Name:** `Claude Code agent (${date_iso})`, workshop-friendly default with the current date so the user can recognize it later
 - **Expiration:** if a select appears, pick "Never" or the longest-available option (Twenty's default is no-expiry for API keys; if the user later wants rotation they revoke + recreate)
 
 Click **Create**. The token reveals once.
 
-Read the token via `browser_evaluate` on the input's `.value` property (NOT innerHTML, NOT textContent — the input may be masked but the underlying value is still readable):
+Read the token via `browser_evaluate` on the input's `.value` property (NOT innerHTML, NOT textContent, the input may be masked but the underlying value is still readable):
 
 ```javascript
 // Run this in Playwright via browser_evaluate
@@ -232,7 +232,7 @@ document.querySelector('[data-testid="api-key-value"]')?.textContent?.trim() ||
 'NOT_FOUND'
 ```
 
-Twenty's API keys are JWTs — they start with `eyJ` and contain dots (`eyJhbGciOi...payload...signature`). Validate the shape:
+Twenty's API keys are JWTs, they start with `eyJ` and contain dots (`eyJhbGciOi...payload...signature`). Validate the shape:
 
 ```bash
 echo "$TWENTY_API_KEY" | grep -qE '^eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$' || echo "INVALID_JWT"
@@ -240,11 +240,11 @@ echo "$TWENTY_API_KEY" | grep -qE '^eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-
 
 **Mask immediately**: treat `TWENTY_API_KEY` like `MEDUSA_ADMIN_SECRET_KEY` in medusa-connector. Do not print to chat. Do not include in any tool-call return value. The first thing Step 5 does is persist it.
 
-### Step 5 — Persist the API key to disk
+### Step 5, Persist the API key to disk
 
 Two writes:
 
-**Write 1: plain env file at `~/.claude/twenty-connector.env`** — source of truth for Bash recipes and agent invocations:
+**Write 1: plain env file at `~/.claude/twenty-connector.env`**, source of truth for Bash recipes and agent invocations:
 
 ```bash
 mkdir -p "$HOME/.claude"
@@ -260,7 +260,7 @@ EOF
 chmod 600 "$HOME/.claude/twenty-connector.env"
 ```
 
-**Write 2: credentials-only stub in `~/.claude.json`** under `mcpServers.twenty`. This is **not** a launchable MCP entry (Twenty has no upstream MCP) — it's a parking spot so future skills can detect the install:
+**Write 2: credentials-only stub in `~/.claude.json`** under `mcpServers.twenty`. This is **not** a launchable MCP entry (Twenty has no upstream MCP), it's a parking spot so future skills can detect the install:
 
 ```bash
 cp -p "$HOME/.claude.json" "$HOME/.claude.json.backup-$(date -u +%Y%m%dT%H%M%SZ)" 2>/dev/null
@@ -285,9 +285,9 @@ Then merge into `mcpServers`:
 
 Preserve every other `mcpServers` entry. Use `Write` (not `Edit`) so the merge happens via parsed-JSON → re-serialize.
 
-Verify both files: re-read each, parse, confirm all vars are present and non-empty. If either fails, do not proceed to Step 6 — tell the user something went wrong with saving and offer to retry.
+Verify both files: re-read each, parse, confirm all vars are present and non-empty. If either fails, do not proceed to Step 6, tell the user something went wrong with saving and offer to retry.
 
-### Step 6 — Wipe local variables
+### Step 6, Wipe local variables
 
 ```bash
 unset TWENTY_API_KEY
@@ -295,7 +295,7 @@ unset TWENTY_API_KEY
 
 The key now lives only on disk in mode-600 files. The shell context has no copy.
 
-### Step 7 — Smoke-test the connection
+### Step 7, Smoke-test the connection
 
 ```bash
 source "$HOME/.claude/twenty-connector.env"
@@ -313,7 +313,7 @@ META_HTTP=$(curl -sS -m 10 -o /tmp/twenty-meta-smoke.json -w "%{http_code}" \
 echo "rest=$COMPANIES_HTTP metadata=$META_HTTP"
 ```
 
-- `rest=200 metadata=200` → fully connected. Tell the user: *"All set — your Twenty CRM is now connected. I can read and create Companies, People, Opportunities, and custom objects, and I can see your workspace's full schema."*
+- `rest=200 metadata=200` → fully connected. Tell the user: *"All set, your Twenty CRM is now connected. I can read and create Companies, People, Opportunities, and custom objects, and I can see your workspace's full schema."*
 - `rest=401` → the API key didn't authenticate. Most common cause: the user revoked the key between Step 4 and Step 7. Re-run Phase 1 from Step 4.
 - `rest=403` → permission issue. The API key inherits from the creator's role; if the user's role doesn't have CRUD on Companies, the key won't either. Tell them.
 - Connection error → backend stopped responding. Suggest checking the server.
@@ -327,7 +327,7 @@ unset TWENTY_API_KEY
 
 ---
 
-## PHASE 2 — Operate the workspace
+## PHASE 2, Operate the workspace
 
 Source the env file, then call REST or GraphQL.
 
@@ -385,7 +385,7 @@ curl -sS -X POST -H "Authorization: Bearer $TWENTY_API_KEY" \
   "$TWENTY_BACKEND_URL/graphql" | jq
 ```
 
-For any endpoint not in this list, the agent runs `curl -sS -H "Authorization: Bearer $TWENTY_API_KEY" "$TWENTY_BACKEND_URL/rest/metadata/objects/$OBJECT_NAME"` to introspect the schema at runtime — Twenty's metadata API is the canonical source of truth, more current than any frozen recipe sheet.
+For any endpoint not in this list, the agent runs `curl -sS -H "Authorization: Bearer $TWENTY_API_KEY" "$TWENTY_BACKEND_URL/rest/metadata/objects/$OBJECT_NAME"` to introspect the schema at runtime, Twenty's metadata API is the canonical source of truth, more current than any frozen recipe sheet.
 
 ### Hand-off to a Phase 3 build-your-own-CRM team
 
@@ -398,16 +398,16 @@ source ~/.claude/twenty-connector.env
 
 ---
 
-## PHASE 9 — Self-host or Twenty Cloud? (skip if Phase A already set the target)
+## PHASE 9, Self-host or Twenty Cloud? (skip if Phase A already set the target)
 
 If `TWENTY_DEPLOY_TARGET` is already set in the env file (Phase A set it), skip this phase. Otherwise ask exactly once:
 
-> *"For your Twenty workspace's host, do you want to **self-host it** — you own the server, the database, and the deploy pipeline; no monthly Twenty fee; AGPL-3.0 open source — or use **Twenty Cloud** — Twenty Labs hosts it for you, managed deploy, $9-19/seat/mo, 30-day free trial?"*
+> *"For your Twenty workspace's host, do you want to **self-host it**, you own the server, the database, and the deploy pipeline; no monthly Twenty fee; AGPL-3.0 open source, or use **Twenty Cloud**, Twenty Labs hosts it for you, managed deploy, $9-19/seat/mo, 30-day free trial?"*
 
 Two short bullets if they ask for clarification:
 
-- **Self-host** — pick this if you want full ownership, no per-seat fees, and don't mind running Docker Compose. Workflow credits are unlimited (no per-period metering like Cloud's 5-credit Pro tier). Setup is ~30 min on the workshop default stack (Railway).
-- **Twenty Cloud** — pick this if you want zero infra and are OK with $9/seat/mo Pro (or $19/seat/mo Org for SSO + row-level perms). Workflow credits metered to 5/period on Pro.
+- **Self-host**, pick this if you want full ownership, no per-seat fees, and don't mind running Docker Compose. Workflow credits are unlimited (no per-period metering like Cloud's 5-credit Pro tier). Setup is ~30 min on the workshop default stack (Railway).
+- **Twenty Cloud**, pick this if you want zero infra and are OK with $9/seat/mo Pro (or $19/seat/mo Org for SSO + row-level perms). Workflow credits metered to 5/period on Pro.
 
 Branch:
 
@@ -416,24 +416,24 @@ Branch:
 
 ---
 
-## PHASE 10B — Self-host platform menu (if Phase 9 answered "self-host")
+## PHASE 10B, Self-host platform menu (if Phase 9 answered "self-host")
 
 Three pieces of infrastructure are needed for self-hosted Twenty: **backend host** (runs the Twenty server + worker), **Postgres** (Twenty's persistence), **Redis** (Twenty requires it for queues/cache). File storage is optional and only needed if users upload attachments (Twenty supports local-disk by default; S3-compatible for production).
 
-### Path 1 — Workshop default stack (~20 min, all Playwright-drivable)
+### Path 1, Workshop default stack (~20 min, all Playwright-drivable)
 
 Same recommended stack as Medusa's Step 10B Path 1:
 
 | Piece | Platform | Why | Skill to dispatch into |
 |---|---|---|---|
-| Backend + Postgres + Redis | **Railway** | Has a Twenty template via twenty-docker; one-click; ~3 min | [`railway-deployment`](../railway-deployment/SKILL.md) (Phase 3B — custom Git repo path; fork `twentyhq/twenty` and deploy) |
+| Backend + Postgres + Redis | **Railway** | Has a Twenty template via twenty-docker; one-click; ~3 min | [`railway-deployment`](../railway-deployment/SKILL.md) (Phase 3B, custom Git repo path; fork `twentyhq/twenty` and deploy) |
 | File storage (optional) | **Cloudflare R2** | S3-compatible; free tier; only needed if attachments are in scope | [`cloudflare-deployment`](../cloudflare-deployment/SKILL.md) |
 
 > *"My recommendation: Railway for the backend (database, Redis, and server all in one project), Cloudflare R2 for any file uploads (skip if you're not handling attachments). Want me to set those up now? You'll click 'Allow' a couple times in a browser window."*
 
-After confirmation, dispatch into the platform skills. Each writes back to `~/.claude/twenty-connector.env`. Same chain pattern as `medusa-connector` — read `feedback_dispatch_architecture` memory for the rationale.
+After confirmation, dispatch into the platform skills. Each writes back to `~/.claude/twenty-connector.env`. Same chain pattern as `medusa-connector`, read `feedback_dispatch_architecture` memory for the rationale.
 
-### Path 2 — BYO platforms (user already has cloud accounts)
+### Path 2, BYO platforms (user already has cloud accounts)
 
 | Backend host | Postgres | Redis | Skill to dispatch into |
 |---|---|---|---|
@@ -442,10 +442,10 @@ After confirmation, dispatch into the platform skills. Each writes back to `~/.c
 | **Azure** Container Apps / AKS | Azure DB for Postgres | Azure Cache for Redis | [`azure-connector`](../azure-connector/SKILL.md) |
 | **Render** | Render Postgres | Render Key-Value (Redis) | [`render-deployment`](../render-deployment/SKILL.md) |
 | **Supabase + Render combo** | Supabase Postgres | Render Redis or Upstash | [`supabase-admin`](../supabase-admin/SKILL.md) + [`render-deployment`](../render-deployment/SKILL.md) |
-| **Fly.io** | Fly Postgres | Fly Upstash Redis | (no kit skill — CLI-driven; `flyctl launch`) |
-| **DigitalOcean** App Platform | Managed Postgres | Managed Redis | (no kit skill — defer to user) |
-| **GCP** Cloud Run / GKE | Cloud SQL Postgres | Memorystore | (no kit skill — defer to user) |
-| **Self-managed VPS** | self-managed | self-managed | (no kit skill — user owns the infra) |
+| **Fly.io** | Fly Postgres | Fly Upstash Redis | (no kit skill, CLI-driven; `flyctl launch`) |
+| **DigitalOcean** App Platform | Managed Postgres | Managed Redis | (no kit skill, defer to user) |
+| **GCP** Cloud Run / GKE | Cloud SQL Postgres | Memorystore | (no kit skill, defer to user) |
+| **Self-managed VPS** | self-managed | self-managed | (no kit skill, user owns the infra) |
 
 Ask which one. Persist:
 
@@ -496,20 +496,20 @@ If the API key appears in any chat output, tool-call return, or screen recording
 
 ## What this SKILL does NOT cover
 
-- **Twenty's internal Skills & Agents system.** That's Twenty's *own* AI feature — workspace admins define skills + agents that run inside Twenty's product, using Twenty's own Claude integration. It is NOT a public MCP an external Claude Code session can call. If you want to extend Twenty's *internal* AI with new skills, do that via Twenty's admin UI per their developer docs at https://docs.twenty.com/developers/extend/apps/logic/skills-and-agents — outside this connector's scope.
+- **Twenty's internal Skills & Agents system.** That's Twenty's *own* AI feature, workspace admins define skills + agents that run inside Twenty's product, using Twenty's own Claude integration. It is NOT a public MCP an external Claude Code session can call. If you want to extend Twenty's *internal* AI with new skills, do that via Twenty's admin UI per their developer docs at https://docs.twenty.com/developers/extend/apps/logic/skills-and-agents, outside this connector's scope.
 - **Migrating data into Twenty from another CRM.** Twenty has CSV import in the admin UI; for programmatic import, use the REST recipes above. Schema-mapping decisions (Salesforce fields → Twenty fields) are out of scope for this SKILL.
-- **Custom-object schema design.** That's the Phase 3 build-your-own-CRM team's job — see `prompts/08-crm-twenty-team.md` in `claude-workshop-v3-building`. This SKILL captures credentials; the team designs the workspace.
+- **Custom-object schema design.** That's the Phase 3 build-your-own-CRM team's job, see `prompts/08-crm-twenty-team.md` in `claude-workshop-v3-building`. This SKILL captures credentials; the team designs the workspace.
 - **Twenty's workflow / automation surface.** Twenty has a visual workflow builder with credit-metered execution. Workflows are designed in the workspace UI, not via this connector. The connector exposes the API so external automations (n8n, Zapier, etc.) can react to webhook events.
 
 ---
 
 ## See also
 
-- [`../medusa-connector/SKILL.md`](../medusa-connector/SKILL.md) — sibling self-host-or-Cloud open-source platform connector; mirror reference for this SKILL's shape.
-- [`../ghl-connector/SKILL.md`](../ghl-connector/SKILL.md) — hosted-CRM alternative (GoHighLevel). Route here if the user wants a CRM but does NOT want to build/own one.
-- [`../railway-deployment/SKILL.md`](../railway-deployment/SKILL.md) — Step 10B Path 1 dispatch target for the workshop-default stack.
-- [`../CLAUDE.md`](../CLAUDE.md) — Twenty is "first-party-stdio / out-of-pattern" classification, same bucket as `medusa-connector`, `wordpress-connector`, `shopify-connector`.
-- [Twenty REST API reference](https://docs.twenty.com/developers/extend/api) — endpoint docs.
-- [Twenty Skills & Agents docs](https://docs.twenty.com/developers/extend/apps/logic/skills-and-agents) — Twenty's INTERNAL AI system (not relevant for this connector; provided for context).
-- [twentyhq/twenty on GitHub](https://github.com/twentyhq/twenty) — source repo, AGPL-3.0 + commercial-licensed enterprise files. 47K stars, actively maintained.
-- [`packages/twenty-claude-skills/`](https://github.com/twentyhq/twenty/tree/main/packages/twenty-claude-skills) — Twenty's published Claude skills (1 skill: `twenty-record-presentation`). AGPL-3.0; mirroring into our kit is permitted with attribution. Not done in this version; would pair with a future MCP wrapper if we build one.
+- [`../medusa-connector/SKILL.md`](../medusa-connector/SKILL.md), sibling self-host-or-Cloud open-source platform connector; mirror reference for this SKILL's shape.
+- [`../ghl-connector/SKILL.md`](../ghl-connector/SKILL.md), hosted-CRM alternative (GoHighLevel). Route here if the user wants a CRM but does NOT want to build/own one.
+- [`../railway-deployment/SKILL.md`](../railway-deployment/SKILL.md), Step 10B Path 1 dispatch target for the workshop-default stack.
+- [`../CLAUDE.md`](../CLAUDE.md), Twenty is "first-party-stdio / out-of-pattern" classification, same bucket as `medusa-connector`, `wordpress-connector`, `shopify-connector`.
+- [Twenty REST API reference](https://docs.twenty.com/developers/extend/api), endpoint docs.
+- [Twenty Skills & Agents docs](https://docs.twenty.com/developers/extend/apps/logic/skills-and-agents), Twenty's INTERNAL AI system (not relevant for this connector; provided for context).
+- [twentyhq/twenty on GitHub](https://github.com/twentyhq/twenty), source repo, AGPL-3.0 + commercial-licensed enterprise files. 47K stars, actively maintained.
+- [`packages/twenty-claude-skills/`](https://github.com/twentyhq/twenty/tree/main/packages/twenty-claude-skills), Twenty's published Claude skills (1 skill: `twenty-record-presentation`). AGPL-3.0; mirroring into our kit is permitted with attribution. Not done in this version; would pair with a future MCP wrapper if we build one.

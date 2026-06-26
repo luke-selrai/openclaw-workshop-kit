@@ -1,14 +1,14 @@
-# Bootstrap Prompt — Claude Code AI Business Assistant
+# Bootstrap Prompt, Claude Code AI Business Assistant
 
 This prompt is used by workshop attendees to set up their AI Business Assistant.
 
-**Primary source:** The workshop Notion page (selrai.notion.site) — attendees copy from there.
+**Primary source:** The workshop Notion page (selrai.notion.site), attendees copy from there.
 **This file:** Version-controlled backup. Update here whenever the Notion page is updated.
-**Also appears in:** `docs/start/full-setup.md` Step 5 — keep both in sync.
+**Also appears in:** `docs/start/full-setup.md` Step 5, keep both in sync.
 
 ---
 
-## Before pasting — open Claude Code in the right folder
+## Before pasting, open Claude Code in the right folder
 
 Workshop attendees are told (on the slide / Notion page) to do this BEFORE pasting the prompt:
 
@@ -39,13 +39,13 @@ folder. Do not create a separate workspace anywhere else.
 
    git clone https://github.com/selrai-company/claude-workshop-kit.git ~/workshop-kit
 
-   (On Windows in PowerShell or Git Bash, the same command works — `~` resolves
+   (On Windows in PowerShell or Git Bash, the same command works, `~` resolves
    to my home folder.) If `~/workshop-kit` already exists, pause and ask me
    before overwriting it.
 
    After cloning, sanity-check that BOTH `~/workshop-kit/my-assistant/CLAUDE.md`
    and `~/workshop-kit/skills/` exist. If either is missing, the clone did not
-   work — stop, tell me what happened, and ask me to retry.
+   work, stop, tell me what happened, and ask me to retry.
 
 2. Copy the assistant's instructions file into my current folder:
      - `~/workshop-kit/my-assistant/CLAUDE.md` → `./CLAUDE.md`
@@ -56,9 +56,9 @@ folder. Do not create a separate workspace anywhere else.
      - touch `./.first-run-pending`
    (On Windows PowerShell: `New-Item -ItemType File -Path .\.first-run-pending`.)
 
-4. Install all <!-- skills-audit:total -->180<!-- /skills-audit:total --> skills: copy every folder from `~/workshop-kit/skills/`
+4. Install all <!-- skills-audit:total -->181<!-- /skills-audit:total --> skills: copy every folder from `~/workshop-kit/skills/`
    into `~/.claude/skills/` (create the skills directory if it does not exist).
-   Do not copy `SKILLS-LIST.md` — only the folders.
+   Do not copy `SKILLS-LIST.md`, only the folders.
 
 5. When everything is done, print this exact block to me, formatted as shown
    (the diagram inside a fenced code block, then the markdown banner below it),
@@ -75,7 +75,7 @@ Here's what your assistant can now do for you:
          ┌────────────────────┬───────────┴───────────┬────────────────────┐
          ▼                    ▼                       ▼                    ▼
 ┌─────────────────┐  ┌─────────────────┐     ┌─────────────────┐  ┌─────────────────┐
-│   120 SKILLS    │  │  35 CONNECTORS  │     │     BROWSER     │  │     MEMORY      │
+│   181 SKILLS    │  │  34 CONNECTORS  │     │     BROWSER     │  │     MEMORY      │
 │                 │  │                 │     │                 │  │                 │
 │ Saves hours on: │  │ Plugs into:     │     │ On the web:     │  │ Learns you:     │
 │                 │  │                 │     │                 │  │                 │

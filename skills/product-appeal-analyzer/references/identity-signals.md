@@ -4,7 +4,7 @@ People choose products that reinforce who they are or want to be. This reference
 
 ## The Identity Principle
 
-**Users don't choose the best product—they choose the product that feels most made for them.**
+**Users don't choose the best product-they choose the product that feels most made for them.**
 
 Identity signals answer:
 - "Is this for people like me?"

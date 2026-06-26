@@ -1,4 +1,4 @@
-# /ai-ops-architect — what this is
+# /ai-ops-architect, what this is
 
 > The driver agent prints this on first invocation in a session, then asks the user "ready?" before starting Phase 0. After it prints, the agent writes `.state/splash-shown` so subsequent invocations skip straight to the work.
 

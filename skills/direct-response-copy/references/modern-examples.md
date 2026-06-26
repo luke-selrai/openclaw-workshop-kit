@@ -12,7 +12,7 @@ How the classics translate to landing pages, tweets, and creator brands.
 >
 > In 2018, I believed I was Mark Zuckerberg, built a startup for 1 year, and got 0 users...
 >
-> A few years after my burnout, I restarted the journey differently: I shipped like a madman—16 startups in 2 years.
+> A few years after my burnout, I restarted the journey differently: I shipped like a madman-16 startups in 2 years.
 >
 > Now I'm happy and earn $45,000 a month."
 
@@ -24,7 +24,7 @@ How the classics translate to landing pages, tweets, and creator brands.
 
 ### Codie Sanchez (Contrarian Thinking)
 
-> "After nearly two decades on Wall Street, I realized the real path to wealth is in unsexy businesses—laundromats, car washes, HVAC."
+> "After nearly two decades on Wall Street, I realized the real path to wealth is in unsexy businesses-laundromats, car washes, HVAC."
 
 **Why it works:**
 - Credibility (Wall Street)
@@ -274,4 +274,4 @@ The fundamentals are 100 years old. The packaging is 2024.
 
 ---
 
-*Built by [The Boring Marketer](https://thevibemarketer.com). This is one of 17 AI skills in the Vibe Skills Pack — covering copywriting, SEO, email sequences, content strategy, ad creative, and more.*
+*Built by [The Boring Marketer](https://thevibemarketer.com). This is one of 17 AI skills in the Vibe Skills Pack, covering copywriting, SEO, email sequences, content strategy, ad creative, and more.*
