@@ -64,7 +64,7 @@
   "framer": {
     "mac_source": ".claude.json:projects./Users/luke.mcpServers.framer-mcp",
     "mac_type": "http",
-    "ma_url": "https://mcp.unframer.co/mcp?id=3640a5fe5ac76dad06ddec1f88448614814f05688e4e3796e4d23a84f1515571&secret=uQ1qmVsxbSsOyWgg63kpMJ6Nm2bktmbr",
+    "ma_url": "https://mcp.unframer.co/mcp?id=<FRAMER_MCP_ID>&secret=<FRAMER_MCP_SECRET>",
     "ma_url_verified": true,
     "auth_type": "url_embedded",
     "local_token_source": "inline:framer-mcp.url",
