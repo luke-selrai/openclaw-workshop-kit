@@ -96,6 +96,29 @@ node scripts/verify-conform.mjs --verbose  # also print every passing check
 
 **Informational (never fails):** snapshot file count vs Loup's `< 2000` cap.
 
+## check-resilient-install.mjs
+
+Asserts the bootstrap's **failure-recovery** contract — the resilient-install slice (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#388](https://github.com/selrai-company/claude-workshop-kit/issues/388)). Slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386) gave the bootstrap a hard-stop verify-gate; this checker is the cheap backstop that the **self-resolve loop** (diagnose → targeted fix → retry → repeat, no human in the loop) stays intact in **both** copies of the bootstrap body (`docs/start/bootstrap.md` and the `docs/start/full-setup.md` Step 5 duplicate).
+
+**Usage:**
+
+```bash
+node scripts/check-resilient-install.mjs            # exit 1 on any failure
+node scripts/check-resilient-install.mjs --verbose  # also print every passing check
+```
+
+**Failures (exit 1)** — each checked against every copy's bootstrap body:
+
+- **hard-stop** — on a failed verify-gate the bootstrap stops and does not cascade into steps 3–7.
+- **real-output** — the real, unedited command output is shown to the attendee, never swallowed.
+- **partial-report** — a half-finished download (folder present but a checked path missing) is reported, not silently treated as success.
+- **rejected-diagnosis** — a refused install is named as the common cause, with both of its causes (a stale command and a grant not yet active). Plain English — §3 of `CONTRIBUTING.md` bans jargon like `token`/`401` from attendee-facing prose, so the rule guards the diagnosis, not the error string.
+- **remint-fix** — the primary fix is re-minting via "Get install command" and retrying.
+- **no-retry-cap** — the loop states there is no limit on retries.
+- **no-escalation** — no human-escalation wording (`notify` / `facilitator` / `Luke` / `Harvey` / `escalate`) appears in the body.
+
+**Harness wiring:** runs in CI on every event via `.github/workflows/audit-skills.yml`, alongside `verify-conform.mjs`.
+
 ## Tests
 
 Plain Node, no framework — each prints `PASS`/`FAIL` and exits non-zero on any failure.
@@ -104,6 +127,9 @@ Plain Node, no framework — each prints `PASS`/`FAIL` and exits non-zero on any
 node scripts/test-anti-patterns.mjs     # regression for audit-skills anti-pattern rules
 node scripts/test-snapshot-shape.mjs    # cap-boundary + real-repo checks for the snapshot invariant
 node scripts/test-verify-conform.mjs    # stale-ref + bootstrap-consistency rules for verify-conform
+node scripts/test-resilient-install.mjs # resilience rules pass on both copies; fire on a bad fixture
 ```
 
 `test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line.
+
+`test-resilient-install.mjs` imports `evaluateResilience()` from the checker, confirms both real bootstrap copies pass every rule, and asserts a deliberately non-resilient fixture (`scripts/__fixtures__/resilient-install-bad.md`) fails every one — so each detector is proven to fire.

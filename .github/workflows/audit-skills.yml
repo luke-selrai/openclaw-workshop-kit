@@ -84,3 +84,13 @@ jobs:
 
       - name: Test conform checker (regression)
         run: node scripts/test-verify-conform.mjs
+
+      # Resilient-install invariants (PRD #385 / slice #388): assert the
+      # bootstrap's failure-recovery loop (hard-stop, real output shown, re-mint
+      # fix, no retry cap, no human-escalation wording) stays intact in both
+      # in-repo copies. Read-only; runs on every event.
+      - name: Verify resilient-install invariants
+        run: node scripts/check-resilient-install.mjs
+
+      - name: Test resilient-install checker (regression)
+        run: node scripts/test-resilient-install.mjs

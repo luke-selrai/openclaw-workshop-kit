@@ -102,12 +102,36 @@ folder. Do not create a separate workspace anywhere else.
      `~/.loup/selr-ai/workshop-kit/skills/` exist inside it.
    - If that check passes, carry on to step 3.
    - If it does NOT pass, STOP here. Do not run any of steps 3–7 — they all
-     depend on the kit being downloaded, so running them now would only create
-     confusing errors. Show me the real output of the install command (do not
-     hide it), tell me in plain English what went wrong, and let me fix it and
-     try again. The most common cause is a stale command: I reopen my Loup
-     dashboard, click "Get install command" to mint a fresh one, copy the whole
-     line, and paste it back. Re-run it and re-check until the kit is there.
+     depend on the kit being downloaded, so running them now would only pile
+     confusing errors on top of the real one. From here you and I fix this
+     together, in this chat, until the check passes. There is no limit on how
+     many tries we take, and there is no one else to bring in — we sort it out
+     between us. Loop through this until the kit is there:
+
+       a. Show me the real, unedited output of the install command — every line
+          it printed, word for word. Never swallow it, shorten it, or hide it
+          behind a summary; that output is what tells us what went wrong.
+       b. Tell me in plain English exactly which part of the check failed:
+          whether the `~/.loup/selr-ai/workshop-kit` folder is missing
+          altogether, or it exists but `my-assistant/CLAUDE.md` or `skills/`
+          inside it is missing — a partial, half-finished download.
+       c. Give me the one targeted fix that matches what you saw:
+            - If the install was refused and the kit did not download — my
+              command was not accepted (by far the most common cause: my command
+              has gone stale, or my access had not switched on yet) — then the
+              fix is to mint a fresh command. Ask me to open my Loup dashboard,
+              click "Get install command" again, copy the whole new line, and
+              paste it back to you. A freshly minted command almost always
+              clears it on the next try.
+            - If it looks like a network or download problem — a timeout, a
+              dropped connection, a half-finished download — have me check I am
+              online and run the same command again.
+            - For anything else, tell me plainly what the output points to and
+              the single next thing to try.
+       d. Let me run the fix, then re-check the folder exactly as above.
+
+     Keep repeating a–d — with no cap on attempts — until the check passes.
+     Only then carry on to step 3.
 
 3. Copy the assistant's instructions file into my current folder:
      - `~/.loup/selr-ai/workshop-kit/my-assistant/CLAUDE.md` → `./CLAUDE.md`
