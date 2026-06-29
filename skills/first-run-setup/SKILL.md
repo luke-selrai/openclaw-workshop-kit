@@ -5,7 +5,7 @@ description: First-run setup and onboarding for the AI Business Assistant. MUST 
 
 # First Run Setup
 
-<!-- Path conventions: most file paths in this skill resolve relative to the user's home folder. .claude/skills/ means $HOME/.claude/skills/ on Mac and Linux, and %USERPROFILE%\.claude\skills\ on Windows. workshop-kit/ lives at $HOME/workshop-kit/. The user's WORKSPACE — where the .first-run-pending state file and the per-workspace CLAUDE.md sit — is at $HOME/Desktop/my-assistant/ on all platforms. When reading or copying files, always resolve paths relative to the user's home folder — never hardcode an absolute path or a username. Shell commands inside fenced bash blocks may use ~/ and $HOME natively (the shell expands them); shell commands inside fenced PowerShell blocks must use $HOME or $env:USERPROFILE. -->
+<!-- Path conventions: most file paths in this skill resolve relative to the user's home folder. .claude/skills/ means $HOME/.claude/skills/ on Mac and Linux, and %USERPROFILE%\.claude\skills\ on Windows. .loup/selr-ai/workshop-kit/ lives at $HOME/.loup/selr-ai/workshop-kit/. The user's WORKSPACE — where the .first-run-pending state file and the per-workspace CLAUDE.md sit — is at $HOME/Desktop/my-assistant/ on all platforms. When reading or copying files, always resolve paths relative to the user's home folder — never hardcode an absolute path or a username. Shell commands inside fenced bash blocks may use ~/ and $HOME natively (the shell expands them); shell commands inside fenced PowerShell blocks must use $HOME or $env:USERPROFILE. -->
 
 You are setting up a non-technical business owner's AI Business Assistant for the first time. Follow these phases in order. Do not skip steps. Do not add extra checks beyond what is listed here.
 
@@ -24,13 +24,12 @@ Check the user-level Claude skills folder — `.claude/skills/` inside the user'
 
 - If it has skill directories inside it → "Your skills are ready." Move to Step 2.
 - If empty or missing → "It looks like your skills did not copy correctly. Let me fix that."
-  1. Check if the workshop kit's skills folder exists at `workshop-kit/skills/` inside the user's home folder.
+  1. Check if the workshop kit's skills folder exists at `.loup/selr-ai/workshop-kit/skills/` inside the user's home folder.
   2. If yes → copy all skill folders (but not `SKILLS-LIST.md`) from the workshop kit's `skills/` folder into the user-level Claude skills folder. Use the correct copy command for the user's operating system — `cp -R` on Mac/Linux, `Copy-Item -Recurse` (or `xcopy /E /I`) on Windows.
-  3. If no → the workshop kit folder is missing and must be re-cloned from GitHub. The repo is public:
-     - Run `git clone https://github.com/selrai-company/claude-workshop-kit.git ~/workshop-kit` (or the PowerShell equivalent on Windows — `~` resolves to home in PowerShell 6+, Git Bash, and zsh/bash).
-     - Sanity-check that both `workshop-kit/my-assistant/CLAUDE.md` and `workshop-kit/skills/` exist inside the user's home folder. If either is missing, the clone failed — stop, tell the user what happened, and ask them to retry.
+  3. If no → the workshop kit folder is missing. The kit is delivered privately through Loup, so it is re-fetched by re-running the user's personalised install command — not by cloning from GitHub:
+     - Tell the user plainly: "The kit folder isn't on your computer — let's download it again." Ask them to open their Loup dashboard, click "Get install command", copy the whole line (it looks like `npx @louphq/install selr-ai/workshop-kit --token loupit_...`), and paste it to you here. Run exactly what they paste.
+     - Sanity-check that both `.loup/selr-ai/workshop-kit/my-assistant/CLAUDE.md` and `.loup/selr-ai/workshop-kit/skills/` exist inside the user's home folder. If either is missing, the download did not land — show the user the real command output, tell them in plain English what went wrong, and let them re-mint a fresh install command from the Loup dashboard and retry.
      - Once the workshop kit is in place, copy the skill folders into `.claude/skills/` as in step 2 above.
-     - If `git clone` fails (e.g. `git: command not found` on Windows), the user needs Git for Windows installed first. Tell them: "I need Git installed before I can fetch the kit. On Windows, install it from https://git-scm.com/download/win, click through with the default settings, then fully quit and reopen Claude Desktop and tell me you're ready." On Mac, the first `git` invocation will trigger a popup to install the Xcode Command Line Tools — tell the user to click Install and wait 3–5 minutes, then retry.
 
 ### Step 2 — Detect Operating System
 
@@ -283,7 +282,7 @@ The `skills-discovery` skill already contains the full selection logic, opening 
 ### Step 2 — Guardrails
 
 - Exactly 3 recommendations. Not 2, not 5, not the whole catalogue.
-- Only pick from rows marked `CORE` in `~/workshop-kit/skills/SKILLS-LIST.md`. Never surface ADVANCED or DEV-ONLY skills in this phase.
+- Only pick from rows marked `CORE` in `~/.loup/selr-ai/workshop-kit/skills/SKILLS-LIST.md`. Never surface ADVANCED or DEV-ONLY skills in this phase.
 - Bias the 3 picks toward whichever of their onboarding answers was most specific — their biggest frustration, the tools they use, or their "win today" answer.
 - If the user already showed strong interest in a particular area during the live demo, bias one of the 3 picks toward that area.
 - Do not mention the total number of skills installed unless the user asks. The audit item this phase is solving is "the list feels overwhelming" — naming the big number works against that.

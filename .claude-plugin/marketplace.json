@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "selrai-workshop-kit",
   "version": "1.0.0",
-  "description": "Selr AI workshop kit marketplace. First-party plugins bundled with the kit and installed from the cloned kit at ~/workshop-kit.",
+  "description": "Selr AI workshop kit marketplace. First-party plugins bundled with the kit and installed from the kit at ~/.loup/selr-ai/workshop-kit.",
   "owner": {
     "name": "Selr AI",
     "email": "harvey@selrai.com.au"

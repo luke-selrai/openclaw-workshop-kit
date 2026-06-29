@@ -187,7 +187,7 @@ resolve_ws_kit() {
   local c
   c="$(git rev-parse --show-toplevel 2>/dev/null)"
   [ -n "$c" ] && [ -d "$c/whatsapp-channel" ] && { echo "$c"; return 0; }
-  [ -d "$HOME/claude-workshop-kit/whatsapp-channel" ] && { echo "$HOME/claude-workshop-kit"; return 0; }
+  [ -d "$HOME/.loup/selr-ai/workshop-kit/whatsapp-channel" ] && { echo "$HOME/.loup/selr-ai/workshop-kit"; return 0; }
   [ -d "$PWD/whatsapp-channel" ] && { echo "$PWD"; return 0; }
   return 1
 }
@@ -449,8 +449,8 @@ def resolve_ws_kit():
             return c
     except Exception:
         pass
-    # 2. conventional clone location
-    c = os.path.expanduser("~/claude-workshop-kit")
+    # 2. conventional install location
+    c = os.path.expanduser("~/.loup/selr-ai/workshop-kit")
     if os.path.isdir(os.path.join(c, "whatsapp-channel")):
         return c
     # 3. cwd

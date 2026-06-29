@@ -75,6 +75,26 @@ Caps are exclusive (a value AT the cap fails); it WARNs at 90% so there's early 
 
 **Harness wiring:** the `workshop-preflight` skill runs this as a Phase 1 gating check during the pre-workshop dry run.
 
+## verify-conform.mjs
+
+Asserts the Loup-deliverable invariants (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386)). The kit home is `~/.loup/selr-ai/workshop-kit`.
+
+**Usage:**
+
+```bash
+node scripts/verify-conform.mjs            # exit 1 on any hard failure (used by CI)
+node scripts/verify-conform.mjs --verbose  # also print every passing check
+```
+
+**Hard failures (fail CI):**
+
+- **path-conform** — any stale kit-home reference survives (`~/workshop-kit`, `$HOME/workshop-kit`, `%USERPROFILE%\workshop-kit`, `C:\Users\…\workshop-kit`, or the old `~/claude-workshop-kit/whatsapp` fallback).
+- **bootstrap-consistency** — the bootstrap prompt body is not byte-identical between `docs/start/bootstrap.md` and `docs/start/full-setup.md` (taken between the start/end anchors).
+- **install-method** — the bootstrap doesn't install via `npx @louphq/install`, or still `git clone`s the kit.
+- **verify-gate-paths** — `my-assistant/CLAUDE.md` or `skills/` is missing at the repo root.
+
+**Informational (never fails):** snapshot file count vs Loup's `< 2000` cap.
+
 ## Tests
 
 Plain Node, no framework — each prints `PASS`/`FAIL` and exits non-zero on any failure.
@@ -82,4 +102,7 @@ Plain Node, no framework — each prints `PASS`/`FAIL` and exits non-zero on any
 ```bash
 node scripts/test-anti-patterns.mjs     # regression for audit-skills anti-pattern rules
 node scripts/test-snapshot-shape.mjs    # cap-boundary + real-repo checks for the snapshot invariant
+node scripts/test-verify-conform.mjs    # stale-ref + bootstrap-consistency rules for verify-conform
 ```
+
+`test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line.

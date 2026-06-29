@@ -94,8 +94,8 @@ Claude Code needs to know where the server lives. Add this to your project's `.m
 
 **What to put for `/full/path/to/whatsapp-channel/src/index.ts`:**
 
-- **macOS / Linux:** an absolute path like `/Users/you/workshop-kit/whatsapp-channel/src/index.ts`
-- **Windows:** use forward slashes or escaped backslashes, e.g. `C:/Users/you/workshop-kit/whatsapp-channel/src/index.ts`. JSON does not allow raw backslashes. You can get the absolute path quickly:
+- **macOS / Linux:** an absolute path like `/Users/you/.loup/selr-ai/workshop-kit/whatsapp-channel/src/index.ts`
+- **Windows:** use forward slashes or escaped backslashes, e.g. `C:/Users/you/.loup/selr-ai/workshop-kit/whatsapp-channel/src/index.ts`. JSON does not allow raw backslashes. You can get the absolute path quickly:
   - **PowerShell:** `(Resolve-Path .\src\index.ts).Path`
   - **Command Prompt:** `cd src && echo %cd%\index.ts`
   - **macOS / Linux:** `realpath src/index.ts`

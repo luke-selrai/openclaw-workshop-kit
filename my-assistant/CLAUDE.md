@@ -3,7 +3,7 @@
 
 <!-- Last shrunk 2026-04-08. Target: <200 lines. Cold-path content lives in skills/ and docs/ — do not re-inline it here. -->
 
-<!-- Path conventions: most file paths in this document are relative to the user's home folder. workshop-kit/docs/FOO.md means $HOME/workshop-kit/docs/FOO.md on Mac and Linux, and C:\Users\<username>\workshop-kit\docs\FOO.md on Windows. The kit lives at $HOME/workshop-kit/ on all platforms. The user's WORKSPACE — where this CLAUDE.md sits — is $HOME/Desktop/my-assistant/ (the Desktop is universally findable in any file picker); that's what the bootstrap creates and what the docs assume. A small number of users will have renamed the folder or put it somewhere else — if Claude is loaded in a folder that isn't my-assistant on the Desktop, use the actual current working folder instead of the canonical path. Don't insist on the default name. When reading files, resolve paths relative to $HOME (or %USERPROFILE% on Windows) — never hardcode an absolute path or a username. -->
+<!-- Path conventions: most file paths in this document are relative to the user's home folder. .loup/selr-ai/workshop-kit/docs/FOO.md means $HOME/.loup/selr-ai/workshop-kit/docs/FOO.md on Mac and Linux, and C:\Users\<username>\.loup\selr-ai\workshop-kit\docs\FOO.md on Windows. The kit lives at $HOME/.loup/selr-ai/workshop-kit/ on all platforms. The user's WORKSPACE — where this CLAUDE.md sits — is $HOME/Desktop/my-assistant/ (the Desktop is universally findable in any file picker); that's what the bootstrap creates and what the docs assume. A small number of users will have renamed the folder or put it somewhere else — if Claude is loaded in a folder that isn't my-assistant on the Desktop, use the actual current working folder instead of the canonical path. Don't insist on the default name. When reading files, resolve paths relative to $HOME (or %USERPROFILE% on Windows) — never hardcode an absolute path or a username. -->
 
 ---
 
@@ -80,7 +80,7 @@ After using Playwright to take a screenshot, describe what you see in plain Engl
 
 Before you reply to ANYTHING the user types — even a one-word "hi" or "hello" — check whether the file `.first-run-pending` exists in the workspace (`$HOME/Desktop/my-assistant/` by default; if Claude is loaded in a differently-named or relocated folder, check there instead — never assume a hardcoded path if the working folder differs).
 
-- If `.first-run-pending` EXISTS → you MUST run `first-run-setup` end to end immediately. Do NOT greet generically. Do NOT skip. Do NOT ask the user if they want setup. Read `workshop-kit/skills/first-run-setup/SKILL.md` (in the user's home folder) and follow it from Phase 1 through Phase 4. The skill itself deletes `.first-run-pending` at the end.
+- If `.first-run-pending` EXISTS → you MUST run `first-run-setup` end to end immediately. Do NOT greet generically. Do NOT skip. Do NOT ask the user if they want setup. Read `.loup/selr-ai/workshop-kit/skills/first-run-setup/SKILL.md` (in the user's home folder) and follow it from Phase 1 through Phase 4. The skill itself deletes `.first-run-pending` at the end.
 - If `.first-run-pending` does NOT exist → setup is already done. Greet the user by name (memory will have it) and continue normally.
 
 This check is non-negotiable and runs on every first-message-of-a-new-session that comes in while `.first-run-pending` exists. The state file is the single source of truth for "setup not yet done" — do not try to infer setup state from memory contents alone.
@@ -90,7 +90,7 @@ How to check (use the right command for the OS):
 - Mac/Linux: `test -f ./.first-run-pending && echo PENDING`
 - Windows PowerShell: `Test-Path .\.first-run-pending`
 
-If the check shows the file exists, immediately read `~/workshop-kit/skills/first-run-setup/SKILL.md` and execute it.
+If the check shows the file exists, immediately read `~/.loup/selr-ai/workshop-kit/skills/first-run-setup/SKILL.md` and execute it.
 
 ---
 
@@ -141,23 +141,23 @@ All paths below are relative to the user's home folder (see the path conventions
 
 | Tool | Read this first |
 |---|---|
-| Google Workspace (Gmail, Calendar, Drive) | `workshop-kit/skills/google-workspace-connector/SKILL.md` |
-| Microsoft 365 / Outlook | `workshop-kit/skills/outlook-connector/SKILL.md` |
-| Telegram | `workshop-kit/skills/telegram-connector/SKILL.md` |
-| iMessage | `workshop-kit/skills/imessage-connector/SKILL.md` |
-| WhatsApp | `workshop-kit/skills/whatsapp-connector/SKILL.md` |
-| Dispatch (phone → desktop) | `workshop-kit/skills/claude-dispatch/SKILL.md` |
-| Shopify | `workshop-kit/skills/shopify-connector/SKILL.md` |
-| GoHighLevel (GHL, HighLevel) | `workshop-kit/skills/ghl-connector/SKILL.md` |
-| Google Cloud (gcloud) | `workshop-kit/skills/gcloud-connector/SKILL.md` |
-| AWS | `workshop-kit/skills/aws-connector/SKILL.md` |
-| Azure | `workshop-kit/skills/azure-connector/SKILL.md` |
-| PayPal | `workshop-kit/skills/paypal-connector/SKILL.md` |
-| Airtable | `workshop-kit/skills/airtable-connector/SKILL.md` |
-| Atlassian (Jira + Confluence) | `workshop-kit/skills/atlassian-connector/SKILL.md` (setup reference: `workshop-kit/docs/ATLASSIAN-SETUP.md`) |
-| Calendly | `workshop-kit/skills/calendly-connector/SKILL.md` |
-| Canva | `workshop-kit/skills/canva-connector/SKILL.md` |
-| Linear | `workshop-kit/skills/linear-connector/SKILL.md` |
+| Google Workspace (Gmail, Calendar, Drive) | `.loup/selr-ai/workshop-kit/skills/google-workspace-connector/SKILL.md` |
+| Microsoft 365 / Outlook | `.loup/selr-ai/workshop-kit/skills/outlook-connector/SKILL.md` |
+| Telegram | `.loup/selr-ai/workshop-kit/skills/telegram-connector/SKILL.md` |
+| iMessage | `.loup/selr-ai/workshop-kit/skills/imessage-connector/SKILL.md` |
+| WhatsApp | `.loup/selr-ai/workshop-kit/skills/whatsapp-connector/SKILL.md` |
+| Dispatch (phone → desktop) | `.loup/selr-ai/workshop-kit/skills/claude-dispatch/SKILL.md` |
+| Shopify | `.loup/selr-ai/workshop-kit/skills/shopify-connector/SKILL.md` |
+| GoHighLevel (GHL, HighLevel) | `.loup/selr-ai/workshop-kit/skills/ghl-connector/SKILL.md` |
+| Google Cloud (gcloud) | `.loup/selr-ai/workshop-kit/skills/gcloud-connector/SKILL.md` |
+| AWS | `.loup/selr-ai/workshop-kit/skills/aws-connector/SKILL.md` |
+| Azure | `.loup/selr-ai/workshop-kit/skills/azure-connector/SKILL.md` |
+| PayPal | `.loup/selr-ai/workshop-kit/skills/paypal-connector/SKILL.md` |
+| Airtable | `.loup/selr-ai/workshop-kit/skills/airtable-connector/SKILL.md` |
+| Atlassian (Jira + Confluence) | `.loup/selr-ai/workshop-kit/skills/atlassian-connector/SKILL.md` (setup reference: `.loup/selr-ai/workshop-kit/docs/ATLASSIAN-SETUP.md`) |
+| Calendly | `.loup/selr-ai/workshop-kit/skills/calendly-connector/SKILL.md` |
+| Canva | `.loup/selr-ai/workshop-kit/skills/canva-connector/SKILL.md` |
+| Linear | `.loup/selr-ai/workshop-kit/skills/linear-connector/SKILL.md` |
 
 Each guide is the source of truth. If a guide contradicts something you remember, the guide wins.
 
@@ -180,11 +180,11 @@ Ask the user to type **ready** when they're back, then run one smoke call agains
 
 ## Browser Automation — Playwright MCP Is The Primary Browser Tool
 
-For ANY task that requires a browser — opening a webpage, filling a form, reading content, automating a login flow, scraping, checking a screenshot, driving a SaaS settings page — use Playwright MCP (`mcp__playwright__*` tools). Do NOT reach for `mcp__computer-use__*`, Claude in Chrome, or any other browser surface. Playwright MCP is installed at setup specifically for this; it is faster, more reliable, and the only browser tool the connector skills are written against. Every connector SKILL in `workshop-kit/skills/` assumes Playwright MCP — using anything else will break those flows.
+For ANY task that requires a browser — opening a webpage, filling a form, reading content, automating a login flow, scraping, checking a screenshot, driving a SaaS settings page — use Playwright MCP (`mcp__playwright__*` tools). Do NOT reach for `mcp__computer-use__*`, Claude in Chrome, or any other browser surface. Playwright MCP is installed at setup specifically for this; it is faster, more reliable, and the only browser tool the connector skills are written against. Every connector SKILL in `.loup/selr-ai/workshop-kit/skills/` assumes Playwright MCP — using anything else will break those flows.
 
 **Session persistence — the Playwright browser remembers logins.** Playwright MCP runs against a persistent user-data directory at `$HOME/.cache/playwright-mcp-profile` (or `%USERPROFILE%\.cache\playwright-mcp-profile` on Windows). Once the user signs in to a site inside the Playwright browser, the session cookie sticks — next time you open that site, they are still logged in. Treat the Playwright browser like the user's own logged-in browser. Do NOT pre-emptively ask the user to log in again; only walk them through a fresh login if a snapshot shows a sign-in screen. This is one of the biggest friction points if it is ignored.
 
-**Snapshot before telling the user where to click.** Vendor settings pages (Notion, Atlassian, GitHub, monday, Linear, etc.) change constantly — what you remember from training may no longer exist. If a connector SKILL exists for the tool (`workshop-kit/skills/<tool>-connector/SKILL.md`), follow the SKILL — its steps are kept current and you can trust them without re-snapshotting. If no SKILL exists for that tool, take a Playwright snapshot of the live page first and read the actual labels off the DOM before narrating any "click X" instruction. Same rule when the user is driving their own browser and you're coaching them: snapshot the equivalent page in Playwright as a reference, or ask them to share what they see.
+**Snapshot before telling the user where to click.** Vendor settings pages (Notion, Atlassian, GitHub, monday, Linear, etc.) change constantly — what you remember from training may no longer exist. If a connector SKILL exists for the tool (`.loup/selr-ai/workshop-kit/skills/<tool>-connector/SKILL.md`), follow the SKILL — its steps are kept current and you can trust them without re-snapshotting. If no SKILL exists for that tool, take a Playwright snapshot of the live page first and read the actual labels off the DOM before narrating any "click X" instruction. Same rule when the user is driving their own browser and you're coaching them: snapshot the equivalent page in Playwright as a reference, or ask them to share what they see.
 
 **If the Playwright browser closes mid-flow, diagnose before narrating.** Never tell the user "don't close the browser" unless you have evidence they closed it — a snapshot showing the browser alive followed by a user action that closed it. Default assumption is that you, a script, or a timeout closed it; re-open the browser silently and continue. Blaming the user when the failure was upstream of them is one of the most corrosive disposition bugs because it teaches them they are doing something wrong when they are not.
 
@@ -200,13 +200,13 @@ After install, tell the user to fully quit and reopen Claude Desktop once so the
 
 ## Skills Discovery
 
-After setup, run the `skills-discovery` skill to recommend the most useful skills based on the user's profile. The full catalogue lives at `workshop-kit/docs/skills/README.md` (in the user's home folder) — read it when the user asks "what can you do?".
+After setup, run the `skills-discovery` skill to recommend the most useful skills based on the user's profile. The full catalogue lives at `.loup/selr-ai/workshop-kit/docs/skills/README.md` (in the user's home folder) — read it when the user asks "what can you do?".
 
 ---
 
 ## Automation — /loop and /schedule
 
-When the user asks for recurring tasks: `/loop` runs while the computer is on; `/schedule` runs even when it is off. Full guidance — syntax, intervals, edge cases, the cron tools — lives in `workshop-kit/docs/extend/automation-loop-and-schedule.md` and `workshop-kit/docs/extend/cron-tasks.md`.
+When the user asks for recurring tasks: `/loop` runs while the computer is on; `/schedule` runs even when it is off. Full guidance — syntax, intervals, edge cases, the cron tools — lives in `.loup/selr-ai/workshop-kit/docs/extend/automation-loop-and-schedule.md` and `.loup/selr-ai/workshop-kit/docs/extend/cron-tasks.md`.
 
 ---
 
@@ -221,4 +221,4 @@ Then diagnose silently. If the Superpowers plugin is installed, use `superpowers
 
 ## File Locations
 
-Paths use `$HOME` on Mac/Linux and `%USERPROFILE%` on Windows — never hardcode a username or absolute path. The workspace this file sits in is `Desktop/my-assistant/` by default (the actual folder Claude is loaded in if renamed). Kit source is at `workshop-kit/`; skills at `.claude/skills/`; Playwright browser profile (logins persist here) at `.cache/playwright-mcp-profile/`. Full skill catalogue: `workshop-kit/docs/skills/README.md`.
+Paths use `$HOME` on Mac/Linux and `%USERPROFILE%` on Windows — never hardcode a username or absolute path. The workspace this file sits in is `Desktop/my-assistant/` by default (the actual folder Claude is loaded in if renamed). Kit source is at `.loup/selr-ai/workshop-kit/`; skills at `.claude/skills/`; Playwright browser profile (logins persist here) at `.cache/playwright-mcp-profile/`. Full skill catalogue: `.loup/selr-ai/workshop-kit/docs/skills/README.md`.
