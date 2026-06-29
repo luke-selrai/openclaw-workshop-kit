@@ -64,8 +64,6 @@ useEffect(() => {
 
 ### 4. Investigate Leaking Objects
 
-![Memory Heap Snapshot](images/memory-heap-snapshot.png)
-
 The Memory tab shows:
 - **Timeline** (top): Blue bars = allocations, select time range to filter
 - **Summary view** (bottom): Lists constructors with allocation counts

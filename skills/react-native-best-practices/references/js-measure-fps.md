@@ -59,8 +59,6 @@ flashlight measure
 
 > Android only. Provides detailed reports and JSON export.
 
-![Flashlight FlatList vs FlashList Comparison](images/flashlight-flatlist-vs-flashlist.png)
-
 Flashlight shows comparative performance data:
 - **Score** (0-100): Overall performance rating (higher is better)
 - **Average FPS**: Target 60 FPS for smooth scrolling

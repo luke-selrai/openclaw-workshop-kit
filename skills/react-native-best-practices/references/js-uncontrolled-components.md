@@ -36,8 +36,6 @@ Fix TextInput synchronization and flickering issues by using uncontrolled compon
 
 ## Problem Description
 
-![Controlled TextInput Ping-Pong Communication](images/controlled-textinput-pingpong.png)
-
 The diagram shows what happens when typing "TEST" with a controlled `TextInput`:
 
 1. User types "T" → `onChangeText('T')` fires

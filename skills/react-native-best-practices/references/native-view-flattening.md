@@ -83,8 +83,6 @@ Now native side always receives exactly 3 children.
 
 ## Debugging View Hierarchy
 
-![View Hierarchy Flattening](images/view-hierarchy-flattening.png)
-
 Use native debugging tools to see the actual view hierarchy:
 
 ### Xcode (iOS)

@@ -50,8 +50,6 @@ Replace ScrollView with FlatList or FlashList for performant large list renderin
 
 ### 1. Identify the Problem
 
-![FPS Drop Graph](images/fps-drop-graph.png)
-
 The FPS graph shows a severe performance problem during list rendering:
 - FPS starts at ~60 (smooth)
 - Drops to ~3 FPS during heavy list operation
