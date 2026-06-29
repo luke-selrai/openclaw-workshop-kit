@@ -16,6 +16,8 @@ Why it matters: the PR check runs `node scripts/audit-skills.mjs --check` and fa
 
 You can verify your tree is clean at any time with `node scripts/audit-skills.mjs --check` (read-only, exits non-zero on drift).
 
+Note: the same check also enforces anti-pattern content rules over every `SKILL.md` (a content check `--write` does NOT auto-fix). If `--check` fails on a content rule rather than marker drift, read its output and fix the flagged `SKILL.md` by hand.
+
 ## Everything else
 
 See `CONTRIBUTING.md` for the rest: the no-copy skill rule, right-sized tooling, plain-English user-facing text, and the repo structure.

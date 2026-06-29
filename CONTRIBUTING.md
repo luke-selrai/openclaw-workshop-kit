@@ -75,6 +75,7 @@ Each kit repo follows this shape (scaled to the kit — not every kit needs ever
 <kit>/
 ├── README.md              ← participant-facing pitch + read order
 ├── CONTRIBUTING.md         ← canonical here (CWK); a pointer in other kits
+├── CLAUDE.md              ← author guidance auto-loaded by Claude Code sessions
 ├── VERSION                ← semver, see §6
 ├── docs/
 │   ├── install/           ← what to buy / install before the workshop
