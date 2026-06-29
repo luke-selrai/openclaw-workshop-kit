@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - "skills/**"
-      - "scripts/audit-skills.mjs"
+      - "scripts/**"
       - ".github/workflows/audit-skills.yml"
       - "README.md"
       - "docs/**"
       - "visuals/**"
+      - "my-assistant/**"
+      - ".claude-plugin/**"
   push:
     branches:
       - main
@@ -72,3 +74,13 @@ jobs:
           [skip ci]"
           git push
           echo "::notice::Auto-fixed skill-count drift on main and pushed correction."
+
+      # Loup-conform invariants (PRD #385 / slice #386): assert no stale
+      # legacy kit-home path reference survives and the bootstrap prompt stays
+      # byte-identical across its in-repo copies. Read-only; runs on every event
+      # so a stale straggler can't reach an attendee live.
+      - name: Verify Loup-conform invariants
+        run: node scripts/verify-conform.mjs
+
+      - name: Test conform checker (regression)
+        run: node scripts/test-verify-conform.mjs

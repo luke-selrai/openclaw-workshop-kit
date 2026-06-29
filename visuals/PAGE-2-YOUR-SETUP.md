@@ -79,9 +79,11 @@ YOUR COMPUTER (your home folder, plus Desktop)
 │       ├── CLAUDE.md                ← Claude's instructions (loads every session)
 │       └── .first-run-pending       ← Marker file — gone once setup is done
 │
-├── workshop-kit/                    ← Cloned from GitHub during install (out of sight)
-│   ├── skills/                      ← Source for the <!-- skills-audit:total -->204<!-- /skills-audit:total --> skill files
-│   └── docs/                        ← Guides and reference docs
+├── .loup/
+│   └── selr-ai/
+│       └── workshop-kit/            ← Installed by Loup during setup (out of sight)
+│           ├── skills/              ← Source for the <!-- skills-audit:total -->204<!-- /skills-audit:total --> skill files
+│           └── docs/                ← Guides and reference docs
 │
 └── .claude/
     ├── skills/                      ← Where Claude looks for your installed skills

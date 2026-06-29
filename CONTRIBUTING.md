@@ -100,7 +100,7 @@ Every kit MUST have:
 - A git tag per release (`v1.2.0`).
 - A GitHub release per tag.
 
-Downstream kits declare a compatibility floor in their README ("Phase 3 v1 needs Phase 1 ≥ v2"). The progression flow reads the installed version from the attendee's **local** clone (`~/workshop-kit/VERSION`), never a remote call. **Missing-`VERSION` fallback:** a clone with no `VERSION` file predates tagging — treat it as "pre-v1, oldest" and warn the attendee, do not crash.
+Downstream kits declare a compatibility floor in their README ("Phase 3 v1 needs Phase 1 ≥ v2"). The progression flow reads the installed version from the attendee's **local** clone (`~/.loup/selr-ai/workshop-kit/VERSION`), never a remote call. **Missing-`VERSION` fallback:** a clone with no `VERSION` file predates tagging — treat it as "pre-v1, oldest" and warn the attendee, do not crash.
 
 ## 7. Cross-phase state & the installer
 

@@ -204,44 +204,84 @@ Do these steps one at a time, telling me what you are doing in plain English.
 Use the correct commands for my operating system (detect whether I am on Mac or Windows).
 
 The Code session you are running in right now is open at my workspace folder
-(~/Desktop/my-assistant/). All of the file drops below go INTO this current
+(`~/Desktop/my-assistant/`). All of the file drops below go INTO this current
 folder. Do not create a separate workspace anywhere else.
 
-1. Clone the workshop kit from GitHub into my home folder:
+1. Make sure Node.js is installed. First check by running `node --version`.
+   If that prints a version number, Node is already installed — skip the rest of
+   this step. If it says "command not found" (or similar), install it now. This
+   is part of setup, not something I needed to do beforehand:
 
-   git clone https://github.com/selrai-company/claude-workshop-kit.git ~/workshop-kit
+   - On **Mac or Linux**, install it with nvm (the Node Version Manager). nvm
+     installs Node into my home folder, so it never needs admin rights and never
+     hits the permission errors a manual install can. Run:
 
-   (On Windows in PowerShell or Git Bash, the same command works — ~ resolves
-   to my home folder.) If ~/workshop-kit already exists, pause and ask me
-   before overwriting it.
+         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+         export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+         nvm install --lts
+         nvm use --lts
 
-   After cloning, sanity-check that BOTH ~/workshop-kit/my-assistant/CLAUDE.md
-   and ~/workshop-kit/skills/ exist. If either is missing, the clone did not
-   work — stop, tell me what happened, and ask me to retry.
+     Then confirm with `node --version`. Node, npm, and npx are usable in this
+     same session straight away — nothing needs to be reopened.
 
-2. Copy the assistant's instructions file into my current folder:
-     - ~/workshop-kit/my-assistant/CLAUDE.md → ./CLAUDE.md
-   (./CLAUDE.md means the current folder, which is ~/Desktop/my-assistant/.)
+   - On **Windows**, install it with winget:
 
-3. Create a small marker file in my current folder so the assistant knows to
+         winget install --id OpenJS.NodeJS.LTS -e --source winget
+
+     A Windows "allow this app to make changes?" box may appear — I just click
+     Yes. After it finishes, tell me to fully quit and reopen Claude Desktop so
+     the new tools are picked up, then come back to this chat and tell you I'm
+     ready. Once I'm back, confirm with `node --version`.
+
+   - If neither package manager is available, open https://nodejs.org in the
+     browser (Playwright) and download the LTS installer for me automatically.
+     Never ask me to click through a download myself.
+
+2. Get and run my personalised install command. The workshop kit is delivered
+   privately through Loup, so I paste in my own command rather than cloning
+   anything:
+
+   - Ask me to open my Loup dashboard, click "Get install command", copy the
+     whole line — it looks like
+     `npx @louphq/install selr-ai/workshop-kit --token loupit_...` — and paste it
+     to you here.
+   - Run exactly the command I paste. The same command works on Mac and Windows.
+   - Then check the kit actually downloaded before going any further. The kit
+     folder is `~/.loup/selr-ai/workshop-kit`. Confirm that this folder exists
+     AND that BOTH `~/.loup/selr-ai/workshop-kit/my-assistant/CLAUDE.md` and
+     `~/.loup/selr-ai/workshop-kit/skills/` exist inside it.
+   - If that check passes, carry on to step 3.
+   - If it does NOT pass, STOP here. Do not run any of steps 3–7 — they all
+     depend on the kit being downloaded, so running them now would only create
+     confusing errors. Show me the real output of the install command (do not
+     hide it), tell me in plain English what went wrong, and let me fix it and
+     try again. The most common cause is a stale command: I reopen my Loup
+     dashboard, click "Get install command" to mint a fresh one, copy the whole
+     line, and paste it back. Re-run it and re-check until the kit is there.
+
+3. Copy the assistant's instructions file into my current folder:
+     - `~/.loup/selr-ai/workshop-kit/my-assistant/CLAUDE.md` → `./CLAUDE.md`
+   (Note: `./CLAUDE.md` means the current folder, which is `~/Desktop/my-assistant/`.)
+
+4. Create a small marker file in my current folder so the assistant knows to
    run first-run setup the next time I say hello:
-     - touch ./.first-run-pending
-   (On Windows PowerShell: New-Item -ItemType File -Path .\.first-run-pending)
+     - touch `./.first-run-pending`
+   (On Windows PowerShell: `New-Item -ItemType File -Path .\.first-run-pending`.)
 
-4. Install all 192 skills: copy every folder from ~/workshop-kit/skills/
-   into ~/.claude/skills/ (create the skills directory if it does not exist).
-   Do not copy SKILLS-LIST.md — only the folders.
+5. Install all <!-- skills-audit:total -->204<!-- /skills-audit:total --> skills: copy every folder from `~/.loup/selr-ai/workshop-kit/skills/`
+   into `~/.claude/skills/` (create the skills directory if it does not exist).
+   Do not copy `SKILLS-LIST.md` — only the folders.
 
-5. Install the routine packager. The kit bundles a plugin that lets me turn one
+6. Install the routine packager. The kit bundles a plugin that lets me turn one
    of my skills into a scheduled cloud routine. Set it up now so it is ready
    when I need it. Run both commands:
-     - claude plugin marketplace add ~/workshop-kit
+     - claude plugin marketplace add ~/.loup/selr-ai/workshop-kit
      - claude plugin install routine-installer-plugin@selrai-workshop-kit
    If either reports it is already added or installed, that is fine. Carry on.
    (The packager only becomes active after the next Claude Desktop restart;
    nothing else is needed now. Do not try to use it yet.)
 
-6. When everything is done, print this exact block to me, formatted as shown
+7. When everything is done, print this exact block to me, formatted as shown
    (the diagram inside a fenced code block, then the markdown banner below it),
    with no extra paragraphs after it:
 
@@ -284,7 +324,7 @@ Your assistant will introduce itself and walk you through the rest from there.
 Talk to me like I am not technical. Plain English, one step at a time.
 ````
 
-**What happens next:** Claude clones the kit, installs all <!-- skills-audit:total -->204<!-- /skills-audit:total --> skills, sets up the routine packager plugin, and writes its instructions into your `my-assistant` folder. This takes 1–2 minutes. When it finishes, it prints the **INSTALL COMPLETE** block — follow it.
+**What happens next:** Claude installs Node if it's missing, downloads the kit with your personalised install command, installs all <!-- skills-audit:total -->204<!-- /skills-audit:total --> skills, sets up the routine packager plugin, and writes its instructions into your `my-assistant` folder. This takes 1–2 minutes. When it finishes, it prints the **INSTALL COMPLETE** block — follow it.
 
 ---
 
@@ -573,7 +613,7 @@ Open Claude Desktop's terminal (the panel at the bottom of a Code session — us
 
 *Mac / Linux (bash, zsh):*
 ```bash
-cd ~/workshop-kit/whatsapp-channel && bun install
+cd ~/.loup/selr-ai/workshop-kit/whatsapp-channel && bun install
 ```
 
 *Windows (PowerShell):*
@@ -584,7 +624,7 @@ bun install
 
 *Windows (Command Prompt):*
 ```cmd
-cd %USERPROFILE%\workshop-kit\whatsapp-channel
+cd %USERPROFILE%\.loup\selr-ai\workshop-kit\whatsapp-channel
 bun install
 ```
 
@@ -594,7 +634,7 @@ No extra config needed — the whatsapp-channel folder already has its own confi
 
 *Mac / Linux (bash, zsh):*
 ```bash
-cd ~/workshop-kit/whatsapp-channel
+cd ~/.loup/selr-ai/workshop-kit/whatsapp-channel
 WA_AUTO_OPEN_QR=1 claude --dangerously-load-development-channels server:whatsapp
 ```
 
@@ -607,7 +647,7 @@ claude --dangerously-load-development-channels server:whatsapp
 
 *Windows (Command Prompt):*
 ```cmd
-cd %USERPROFILE%\workshop-kit\whatsapp-channel
+cd %USERPROFILE%\.loup\selr-ai\workshop-kit\whatsapp-channel
 set WA_AUTO_OPEN_QR=1
 claude --dangerously-load-development-channels server:whatsapp
 ```
