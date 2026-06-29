@@ -92,6 +92,7 @@ node scripts/verify-conform.mjs --verbose  # also print every passing check
 - **bootstrap-consistency** — the bootstrap prompt body is not byte-identical between `docs/start/bootstrap.md` and `docs/start/full-setup.md` (taken between the start/end anchors).
 - **install-method** — the bootstrap doesn't install via `npx @louphq/install`, or still `git clone`s the kit.
 - **verify-gate-paths** — `my-assistant/CLAUDE.md` or `skills/` is missing at the repo root.
+- **windows-node-path** — the bootstrap's Windows branch doesn't install Node via `winget`, refresh the session PATH from the registry (machine + user) in the same PowerShell invocation as `node --version` / `npx`, gate the quit/reopen step behind a failing post-refresh `node --version` (never speculative), and keep the Playwright nodejs.org last-resort fallback. (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385), slice [#387](https://github.com/selrai-company/claude-workshop-kit/issues/387).)
 
 **Informational (never fails):** snapshot file count vs Loup's `< 2000` cap.
 
