@@ -180,14 +180,34 @@ folder. Do not create a separate workspace anywhere else.
      Then confirm with `node --version`. Node, npm, and npx are usable in this
      same session straight away — nothing needs to be reopened.
 
-   - On **Windows**, install it with winget:
+   - On **Windows**, install it with winget, then make it usable in THIS session
+     without reopening anything:
 
          winget install --id OpenJS.NodeJS.LTS -e --source winget
 
      A Windows "allow this app to make changes?" box may appear — I just click
-     Yes. After it finishes, tell me to fully quit and reopen Claude Desktop so
-     the new tools are picked up, then come back to this chat and tell you I'm
-     ready. Once I'm back, confirm with `node --version`.
+     Yes. When winget finishes, Node is on disk but this session's PATH has not
+     picked it up yet. Refresh the PATH from the registry (machine + user) and
+     check Node in ONE PowerShell command — both halves must run in the SAME
+     invocation, because a fresh shell would lose the refreshed PATH:
+
+         $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User'); node --version
+
+     That assignment changes the PATH for THIS process only — it never writes to
+     the registry, so nothing on my machine is permanently changed and a later
+     reopen behaves exactly as the proven baseline. If `node --version` now
+     prints a version, Node is ready immediately and I do NOT need to reopen
+     anything. For the rest of setup, prepend that same `$env:Path = ...;`
+     refresh to every PowerShell command you run (each command is a new shell
+     that has not seen the new PATH) — e.g. the `npx` install in step 2 becomes:
+
+         $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User'); npx @louphq/install selr-ai/workshop-kit --token loupit_...
+
+     ONLY if `node --version` still fails after that refresh: tell me to fully
+     quit and reopen Claude Desktop so the new tools are picked up, then come
+     back to this chat and tell you I'm ready. Once I'm back, confirm with
+     `node --version`. Do not ask me to reopen unless the refresh actually
+     failed — it almost always works without it.
 
    - If neither package manager is available, open https://nodejs.org in the
      browser (Playwright) and download the LTS installer for me automatically.

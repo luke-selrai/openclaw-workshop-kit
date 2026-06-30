@@ -7,6 +7,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkWindowsNodePath } from "./verify-conform.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURE = join(HERE, "__fixtures__", "conform-stale.md");
@@ -50,6 +51,57 @@ if (!conformSrc.includes("scripts/__fixtures__/conform-stale.md")) {
   failed = true;
 } else {
   console.log("PASS allowlist: fixture is allowlisted");
+}
+
+// ---- checkWindowsNodePath (slice #387) -----------------------------------
+// A body in the correct gated in-session-refresh shape.
+const GOOD_WIN = [
+  "   - On **Windows**, install it with winget, then make it usable in THIS session:",
+  "",
+  "         winget install --id OpenJS.NodeJS.LTS -e --source winget",
+  "",
+  "     Refresh the PATH and check Node in ONE PowerShell command:",
+  "",
+  "         $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User'); node --version",
+  "",
+  "     That changes the PATH for this process only — it never writes to the registry.",
+  "     For the rest of setup, prepend the same refresh — e.g. the npx install becomes:",
+  "",
+  "         $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User'); npx @louphq/install selr-ai/workshop-kit --token loupit_...",
+  "",
+  "     ONLY if `node --version` still fails after that refresh: tell me to fully quit",
+  "     and reopen Claude Desktop, then say I'm ready.",
+  "",
+  "   - If neither package manager works, open https://nodejs.org in the browser",
+  "     (Playwright) and download the LTS installer for me automatically.",
+].join("\n");
+
+// Each mutation should break exactly the property it removes.
+const BAD_CASES = [
+  ["no winget", GOOD_WIN.replace(/winget install --id OpenJS\.NodeJS\.LTS/, "choco install nodejs-lts")],
+  ["no user-scope refresh", GOOD_WIN.replaceAll(" + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')", "")],
+  ["split node invocation", GOOD_WIN.replace("'); node --version", "')\n         node --version")],
+  ["split npx invocation", GOOD_WIN.replace("'); npx @louphq/install", "')\n         npx @louphq/install")],
+  ["speculative reopen", GOOD_WIN.replace(/ONLY if `node --version` still fails after that refresh: tell me to fully quit\n     and reopen/, "tell me to fully quit\n     and reopen")],
+  ["no playwright fallback", GOOD_WIN.replace(/\(Playwright\) and download the LTS installer for me automatically\./, "and download it.")],
+];
+
+const good = checkWindowsNodePath(GOOD_WIN);
+if (!good.ok) {
+  console.error(`FAIL windows-node-path good-body: expected ok, got — ${good.detail}`);
+  failed = true;
+} else {
+  console.log("PASS windows-node-path: well-formed Windows branch accepted");
+}
+
+for (const [name, body] of BAD_CASES) {
+  const res = checkWindowsNodePath(body);
+  if (res.ok) {
+    console.error(`FAIL windows-node-path "${name}": expected the check to fail, but it passed`);
+    failed = true;
+  } else {
+    console.log(`PASS windows-node-path "${name}": rejected as expected`);
+  }
 }
 
 process.exit(failed ? 1 : 0);
