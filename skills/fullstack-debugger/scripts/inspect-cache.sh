@@ -24,6 +24,8 @@ if ! npx wrangler whoami > /dev/null 2>&1; then
   exit 1
 fi
 
+command -v jq >/dev/null 2>&1 || { echo "jq not found: install jq (https://jqlang.github.io/jq/)"; exit 1; }
+
 # Function to list KV keys
 list_kv_keys() {
   local NS_ID=$1
@@ -32,7 +34,7 @@ list_kv_keys() {
   echo "Namespace ID: $NS_ID"
   echo ""
 
-  KEYS=$(npx wrangler kv:key list --namespace-id="$NS_ID" 2>/dev/null || echo "[]")
+  KEYS=$(npx wrangler kv key list --namespace-id="$NS_ID" 2>/dev/null || echo "[]")
 
   if [ "$KEYS" = "[]" ]; then
     echo "  (empty)"
@@ -53,7 +55,7 @@ get_kv_value() {
   local NS_ID=$1
   local KEY=$2
   echo -e "\n${BLUE}=== Value for '$KEY' ===${NC}"
-  VALUE=$(npx wrangler kv:key get --namespace-id="$NS_ID" "$KEY" 2>/dev/null)
+  VALUE=$(npx wrangler kv key get --namespace-id="$NS_ID" "$KEY" 2>/dev/null)
 
   if [ -z "$VALUE" ]; then
     echo "(not found or empty)"
@@ -131,7 +133,7 @@ case "${1:-list}" in
       exit 1
     fi
     echo "Deleting key: $2"
-    npx wrangler kv:key delete --namespace-id="$MEETING_CACHE_NS" "$2"
+    npx wrangler kv key delete --namespace-id="$MEETING_CACHE_NS" "$2"
     echo -e "${GREEN}Deleted${NC}"
     ;;
 

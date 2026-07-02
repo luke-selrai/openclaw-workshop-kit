@@ -15,6 +15,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 // Change to skill directory for proper module resolution
+const origCwd = process.cwd();
 process.chdir(__dirname);
 
 /**
@@ -52,11 +53,11 @@ function installPlaywright() {
 function getCodeToExecute() {
   const args = process.argv.slice(2);
 
-  // Case 1: File path provided
-  if (args.length > 0 && fs.existsSync(args[0])) {
-    const filePath = path.resolve(args[0]);
-    console.log(`📄 Executing file: ${filePath}`);
-    return fs.readFileSync(filePath, 'utf8');
+  // Case 1: File path provided (resolved against the user's original cwd, not the skill dir)
+  const candidate = args.length > 0 ? path.resolve(origCwd, args[0]) : null;
+  if (candidate && fs.existsSync(candidate)) {
+    console.log(`📄 Executing file: ${candidate}`);
+    return fs.readFileSync(candidate, 'utf8');
   }
 
   // Case 2: Inline code provided as argument
@@ -111,9 +112,17 @@ function wrapCodeIfNeeded(code) {
   const hasRequire = code.includes('require(');
   const hasAsyncIIFE = code.includes('(async () => {') || code.includes('(async()=>{');
 
-  // If it's already a complete script, return as-is
+  // If it's already a complete script, prepend the header helper so file scripts can call getContextOptionsWithHeaders()
   if (hasRequire && hasAsyncIIFE) {
-    return code;
+    return `
+const helpers = require('./lib/helpers');
+const __extraHeaders = helpers.getExtraHeadersFromEnv();
+function getContextOptionsWithHeaders(options = {}) {
+  if (!__extraHeaders) return options;
+  return { ...options, extraHTTPHeaders: { ...__extraHeaders, ...(options.extraHTTPHeaders || {}) } };
+}
+${code}
+`;
   }
 
   // If it's just Playwright commands, wrap in full template

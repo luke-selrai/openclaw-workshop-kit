@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # state.sh
 # Read / write the state file at ~/.claude/state/cloudflare-deployment.json
 # Requires jq.

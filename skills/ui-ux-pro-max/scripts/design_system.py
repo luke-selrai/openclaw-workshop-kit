@@ -327,7 +327,7 @@ def format_ascii_box(design_system: dict) -> str:
     if typography.get("google_fonts_url"):
         lines.append(f"|     Google Fonts: {typography.get('google_fonts_url', '')}".ljust(BOX_WIDTH) + "|")
     if typography.get("css_import"):
-        lines.append(f"|     CSS Import: {typography.get('css_import', '')[:70]}...".ljust(BOX_WIDTH) + "|")
+        css_imp = typography.get('css_import', ''); lines.append(f'|     CSS Import: {(css_imp[:70] + "...") if len(css_imp) > 70 else css_imp}'.ljust(BOX_WIDTH) + '|')
     lines.append("|" + " " * BOX_WIDTH + "|")
 
     # Key Effects section

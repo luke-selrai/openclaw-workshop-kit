@@ -339,15 +339,15 @@ Configure custom headers for all HTTP requests via environment variables. Useful
 **Single header (common case):**
 
 ```bash
-PW_HEADER_NAME=X-Automated-By PW_HEADER_VALUE=playwright-skill \
-  cd $SKILL_DIR && node run.js /tmp/my-script.js
+cd $SKILL_DIR
+PW_HEADER_NAME=X-Automated-By PW_HEADER_VALUE=playwright-skill node run.js /tmp/my-script.js
 ```
 
 **Multiple headers (JSON format):**
 
 ```bash
-PW_EXTRA_HEADERS='{"X-Automated-By":"playwright-skill","X-Debug":"true"}' \
-  cd $SKILL_DIR && node run.js /tmp/my-script.js
+cd $SKILL_DIR
+PW_EXTRA_HEADERS='{"X-Automated-By":"playwright-skill","X-Debug":"true"}' node run.js /tmp/my-script.js
 ```
 
 ### How It Works

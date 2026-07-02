@@ -20,6 +20,11 @@ CSV_CONFIG = {
         "search_cols": ["Style Category", "Keywords", "Best For", "Type", "AI Prompt Keywords"],
         "output_cols": ["Style Category", "Type", "Keywords", "Primary Colors", "Effects & Animation", "Best For", "Performance", "Accessibility", "Framework Compatibility", "Complexity", "AI Prompt Keywords", "CSS/Technical Keywords", "Implementation Checklist", "Design System Variables"]
     },
+    "prompt": {
+        "file": "styles.csv",
+        "search_cols": ["AI Prompt Keywords", "CSS/Technical Keywords", "Style Category"],
+        "output_cols": ["Style Category", "AI Prompt Keywords", "CSS/Technical Keywords", "Implementation Checklist"]
+    },
     "color": {
         "file": "colors.csv",
         "search_cols": ["Product Type", "Notes"],

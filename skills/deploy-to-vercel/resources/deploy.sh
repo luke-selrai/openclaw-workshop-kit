@@ -263,7 +263,7 @@ MAX_ATTEMPTS=60  # 5 minutes max (60 * 5 seconds)
 ATTEMPT=0
 
 while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PREVIEW_URL")
+    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PREVIEW_URL" || echo "000")
 
     if [ "$HTTP_STATUS" -eq 200 ]; then
         echo "" >&2
@@ -290,6 +290,7 @@ done
 if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
     echo "" >&2
     echo "Warning: Timed out waiting for deployment, but it may still be building." >&2
+    exit 1
 fi
 
 echo "" >&2

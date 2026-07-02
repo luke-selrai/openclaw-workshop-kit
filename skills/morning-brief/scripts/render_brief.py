@@ -158,9 +158,16 @@ def renderNeedsActionSection(needsAction, error):
     return sectionCard(title, "".join(parts))
 
 
-def renderFyiSection(fyi, hiddenCount):
+def renderFyiSection(fyi, hiddenCount, error=None):
     n = len(fyi) if fyi else 0
     title = f"FYI · {n} TO BE ACROSS"
+
+    if error:
+        inner = (
+            f'<div style="color:{GRAPHITE};font-style:italic;font-size:14px;font-weight:500;">'
+            f"Could not load — {html.escape(error)}</div>"
+        )
+        return sectionCard(title, inner)
 
     if not fyi:
         inner = (
@@ -269,6 +276,7 @@ def renderBody(data):
     fyiCard = renderFyiSection(
         data.get("fyi") or [],
         data.get("hidden_count") or 0,
+        data.get("inbox_error"),
     )
     triageCallout = renderTriageCallout(data.get("triage") or {})
 

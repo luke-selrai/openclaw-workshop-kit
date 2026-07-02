@@ -18,7 +18,7 @@ def validate_skill(skill_path):
         return False, "SKILL.md not found"
     
     # Read and validate frontmatter
-    content = skill_md.read_text()
+    content = skill_md.read_text().replace('\r\n', '\n').replace('\r', '\n')
     if not content.startswith('---'):
         return False, "No YAML frontmatter found"
     
@@ -36,7 +36,7 @@ def validate_skill(skill_path):
         return False, "Missing 'description' in frontmatter"
     
     # Extract name for validation
-    name_match = re.search(r'name:\s*(.+)', frontmatter)
+    name_match = re.search(r'^name:\s*(.+)', frontmatter, re.MULTILINE)
     if name_match:
         name = name_match.group(1).strip()
         # Check naming convention (hyphen-case: lowercase with hyphens)
@@ -46,7 +46,7 @@ def validate_skill(skill_path):
             return False, f"Name '{name}' cannot start/end with hyphen or contain consecutive hyphens"
 
     # Extract and validate description
-    desc_match = re.search(r'description:\s*(.+)', frontmatter)
+    desc_match = re.search(r'^description:\s*(.+)', frontmatter, re.MULTILINE)
     if desc_match:
         description = desc_match.group(1).strip()
         # Check for angle brackets

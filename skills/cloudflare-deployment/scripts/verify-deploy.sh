@@ -41,7 +41,7 @@ fi
 
 echo ""
 echo "Deleting test Worker: $NAME ..."
-wrangler delete --name "$NAME" --force 2>&1 || wrangler delete --name "$NAME" 2>&1
+echo y | wrangler delete --name "$NAME" 2>&1 || true
 
 # Cleanup local dir
 cd "$HOME"
