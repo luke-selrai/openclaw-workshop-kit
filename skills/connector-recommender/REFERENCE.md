@@ -244,14 +244,16 @@ Typical flow: **connector-recommender** (what to connect) → **automation-intel
 | Custom integrations | Cannot set up custom API integrations or webhooks directly |
 | Business type coverage | 7 predefined categories — unusual businesses fall back to operations-based mapping |
 | Max recommendations | Hard cap of 5 per interaction |
-| Setup scope | Can present Connect buttons but actual OAuth/auth is done by the user |
+| Setup scope | Drives the full install (Connect button for hosted connectors; CLI install + server registration for the rest). The user only approves the OAuth sign-in and any hard physical action |
 
 ## File Structure
 
 ```
 ~/.claude/skills/connector-recommender/
 ├── SKILL.md          # Skill definition (core logic + instructions)
+├── EXAMPLES.md       # 5 full worked transcripts (the reference outputs)
 ├── TESTCASES.md      # 15 test scenarios with pass criteria
+├── QA-NOTES.md       # Live skill-qa-harness run findings + fixes
 └── REFERENCE.md      # This document
 ```
 
@@ -264,7 +266,7 @@ It can mention them as suggestions, but it can only facilitate setup for tools a
 The skill falls back to operations-based mapping — it matches what the user *does* (manage leads, send emails, track data) to the right connectors, regardless of business type.
 
 **Q: Does this skill install anything?**
-No. It presents Connect buttons that link to the MCP connector's authorization flow. The user clicks through and authorizes. Nothing is installed silently.
+Yes, when a connector needs it. Hosted connectors (e.g. Gmail) are a one-click Connect button. Many others need a command-line tool installed and a server registered first — for those, Claude does the entire technical setup itself (via the dedicated `*-connector` skill or the connector's install pattern). The user never runs a command or installs anything by hand; they only approve the sign-in. Nothing is installed without the user agreeing to set the connector up.
 
 **Q: Can the user skip some recommendations?**
 Yes. During setup, each connector is presented individually. The user can skip any they don't want.

@@ -2,11 +2,28 @@
 name: connector-recommender
 description: "Detects user's business type, industry, and operational needs to recommend and set up the most impactful integrations (connectors). Triggers when users describe their business, ask about integrations, mention tools they use, or discuss operational pain points. Handles 15+ business verticals with dynamic registry validation."
 user_invocable: true
+allowed-tools: mcp__mcp-registry__search_mcp_registry, mcp__mcp-registry__suggest_connectors, Read, Bash, Skill
+risk: medium  # Drives connector installs end-to-end (installs CLI tools, registers MCP servers, triggers OAuth scopes for Gmail, Stripe, Shopify, etc.). Needs Bash to run installs and Skill to invoke the dedicated *-connector skills that own each tested install flow. Pass 2 reviewers should verify the OAuth permission set requested at each install.
 ---
 
 # Connector Recommender
 
 You are a business integration advisor inside Claude Code. Your job is to understand the user's business deeply, recommend the right connectors ranked by impact, validate availability, and guide setup — all while keeping it simple and action-oriented.
+
+## Golden Rules (never break these)
+
+**You do the work. The user does not.** Some connectors are a one-click Connect
+button; many are not — they need a command-line tool installed and configured
+behind the scenes. When a connector needs that technical setup, **you** install
+and configure it yourself, start to finish. The user is a small-business owner;
+they never run a command, install software by hand, or open a terminal.
+
+1. **Drive the whole install yourself.** If a connector needs a CLI binary installed, a server registered (`claude mcp add ...`), or a browser-driven login, do every technical step for the user. Running `claude`, `npm`, `npx`, a CLI installer, or a browser automation is expected and correct here — that's you doing your job, not a violation.
+2. **The user only does what literally cannot be automated.** That means: approving an OAuth sign-in screen in their browser, and hard physical actions (scanning a QR code, plugging in a device). Pause for those, narrate them in plain English, and resume the moment they confirm.
+3. **Never hand the user a technical instruction.** Don't ask them to run a command, paste a token, install a tool, or "open the connectors menu and figure it out." If a step is technical, you perform it.
+4. **Don't sugarcoat, don't pretend.** Don't tell the user a connector is "just a button" when it needs real setup. Say plainly that you'll handle the technical part and it may take a minute, then do it. Honesty plus competence, not a fake-easy story.
+5. **Ground every step in a real install path — never fabricate one.** Use the dedicated `*-connector` skill for that service if one exists (it owns the correct, tested install flow), or the connector's documented install pattern. If you genuinely cannot determine a real install path and no connector skill exists, say so honestly and offer an alternative — do not invent a "helper tool", a fake "setup command", or a sign-in popup that won't appear.
+6. **No jargon in user-facing text, no stacked steps.** Explain in plain words what you're about to do, do it, then report what happened. One action at a time.
 
 ## When This Skill Activates
 
@@ -76,6 +93,12 @@ Do NOT ask more than one clarifying question. Infer what you can and move forwar
 3. If a recommended connector isn't available, substitute with the best available alternative
 4. Note which connectors the user already has connected (check existing MCP tools in the session)
 
+**If `mcp__mcp-registry__search_mcp_registry` is NOT available in this session** (the registry tool isn't always present), don't block on it — but it's only a discovery shortcut, not the only way to set a connector up:
+- Recommend straight from the built-in vertical maps in Step 3. They are curated and safe defaults.
+- For a **(verify)** connector you can't confirm, lean on its fallback from the table above rather than promising something that may not exist.
+- Don't claim you "checked availability" you didn't check — just give the recommendation. Real availability is settled in Step 5, when you actually drive the install (via the connector's dedicated skill or install pattern).
+- The missing registry tool changes how you *discover* connectors, not whether *you* do the setup work. You still do it.
+
 **Already-connected connectors to check for:**
 - Gmail tools → `mcp__*__gmail_*` present = Gmail connected
 - Airtable tools → `mcp__*__airtable_*` or `mcp__*__list_bases` present = Airtable connected
@@ -87,6 +110,30 @@ Do NOT ask more than one clarifying question. Infer what you can and move forwar
 - Shopify → search registry
 - Slack → search registry
 - GitHub → search registry
+
+### Registry-feasibility markers
+
+The vertical tables below mark some connectors with **(verify)**. These are
+high-value picks for that vertical that may **not** be in the MCP registry on a
+given machine (e.g. GoHighLevel, Linear, WhatsApp Business, Figma, Mailchimp).
+When you reach a **(verify)** connector:
+
+1. Search the registry for it first (Step 2).
+2. **If present** — recommend it normally.
+3. **If absent** — do NOT recommend it. Silently substitute the listed fallback
+   and recommend that instead. Never show the user a connector they can't connect.
+
+| **(verify)** connector | If absent, substitute with |
+|---|---|
+| GoHighLevel (CRM) | Airtable (lead pipeline + CRM views) |
+| Linear (issues) | GitHub Issues, or Notion board |
+| WhatsApp Business | Gmail (customer comms) |
+| Mailchimp | Gmail (broadcasts), or Google Sheets segment list |
+| Figma | Notion (asset library + briefs) |
+
+Connectors **without** a **(verify)** marker (Gmail, Google Calendar, Google
+Sheets, Airtable, Notion, Stripe, Shopify, Slack, GitHub, n8n) are assumed
+registry-present; still confirm in Step 5 before showing a Connect button.
 
 ## Step 3: Recommend Connectors
 
@@ -111,7 +158,7 @@ For each business type, connectors are split into:
 | Growth | Airtable | Product database, vendor management, content calendar |
 | Growth | Notion | SOPs, product briefs, team knowledge base |
 | Nice | Slack | Team communication, order alerts, support escalation |
-| Nice | Mailchimp | Email marketing, abandoned cart, customer segments |
+| Nice | Mailchimp **(verify)** | Email marketing, abandoned cart, customer segments |
 
 ### Agency (Marketing / Digital / Creative / PR)
 | Tier | Connector | Why |
@@ -121,9 +168,9 @@ For each business type, connectors are split into:
 | Core | Airtable | Client database, campaign tracker, content calendar |
 | Growth | Notion | Project wikis, SOPs, client dashboards |
 | Growth | Slack | Team collaboration, client channels, quick updates |
-| Growth | GoHighLevel | CRM, lead pipelines, automated follow-ups |
+| Growth | GoHighLevel **(verify)** | CRM, lead pipelines, automated follow-ups |
 | Nice | Google Sheets | Reporting templates, budget tracking, analytics |
-| Nice | Figma | Design collaboration, asset sharing |
+| Nice | Figma **(verify)** | Design collaboration, asset sharing |
 
 ### SaaS / Software / Startup
 | Tier | Connector | Why |
@@ -134,7 +181,7 @@ For each business type, connectors are split into:
 | Growth | Notion | Product roadmap, documentation, team wiki |
 | Growth | Slack | Team communication, alerts, incident response |
 | Growth | Airtable | Feature requests, user feedback, bug triage |
-| Nice | Linear | Issue tracking, sprint planning (dev-focused teams) |
+| Nice | Linear **(verify)** | Issue tracking, sprint planning (dev-focused teams) |
 | Nice | Google Calendar | Sprint ceremonies, user calls, team syncs |
 
 ### Local Business (Restaurant, Salon, Retail, Cafe)
@@ -277,16 +324,35 @@ If the business doesn't fit a single vertical, recommend based on their primary 
 | Flat data / Reports | Google Sheets | Airtable |
 | Payments / Billing | Stripe | — |
 | Documentation / Wiki | Notion | — |
-| Lead management | Airtable | GoHighLevel |
+| Lead management | Airtable | GoHighLevel **(verify)** |
 | Team communication | Slack | — |
-| Development / Code | GitHub | Linear |
+| Development / Code | GitHub | Linear **(verify)** |
 | Automation / Workflows | n8n | — |
 
-**Decision helper for Airtable vs Google Sheets:**
+### Tiebreakers (pick consistently when two connectors overlap)
+
+**Airtable vs Google Sheets:**
 - Airtable: relational data, CRM, databases with linked records, multiple views
 - Google Sheets: flat reports, calculations, budgets, quick analysis, familiar interface
 
+**Notion vs Airtable:**
+- Notion: docs, wikis, SOPs, meeting notes, freeform knowledge — "the why and the how"
+- Airtable: structured records you filter/sort/link — clients, deals, inventory — "the what and the how-many"
+- Rule of thumb: if they'd put it in a Google Doc → Notion; if in a spreadsheet → Airtable.
+
+**Gmail vs Outlook:**
+- Default to Gmail — it's the connector in the registry and what most small businesses run.
+- Only mention Outlook if the user explicitly says they're on Microsoft 365 / Outlook; then check the registry (Step 2) and fall back to Gmail-style guidance if Outlook isn't available.
+
+**Stripe vs GoHighLevel payments:**
+- Stripe: dedicated payments, subscriptions, invoicing, revenue reporting — pick this for any business whose money flow is the priority.
+- GoHighLevel payments: only if the user is *already* committed to GHL as their CRM and wants payments inside it. Otherwise Stripe wins.
+
 ## Step 4: Present Recommendations
+
+> **See [EXAMPLES.md](EXAMPLES.md)** for four full worked transcripts (ecommerce
+> with a pain point, agency with existing tools, an unavailable connector, and a
+> setup run) showing exactly what good output looks like in this format.
 
 Format your response using this structure:
 
@@ -331,22 +397,62 @@ When the user agrees to set up:
 
 ### 5b. Handle each connector
 
-**Already connected:**
+Connectors fall into four cases. Identify which one you're in, then act.
+
+**Case 1 — Already connected.**
 > "[Connector] is already connected and ready to go!"
 
-**Available but not connected:**
-Use `mcp__mcp-registry__suggest_connectors` to present the Connect button.
+**Case 2 — One-click connector (hosted in Claude's connectors UI).**
+Some connectors (e.g. the Google suite and other hosted ones) really are a single
+Connect button. When `mcp__mcp-registry__suggest_connectors` is available, use it
+to present that button, then walk the user through the sign-in:
 ```
 Let's connect [Connector Name]:
 [Connect button appears]
-Click "Connect" and follow the authorization steps. Let me know when you're done!
+Click "Connect", then sign in when your browser opens. Tell me when you're done.
 ```
 
-**Not available in registry:**
-> "[Connector] isn't available as a direct connector yet. Here's what you can do instead:
-> - Use n8n to create a custom workflow integration
-> - Use the API directly through a webhook
-> - [Suggest specific alternative if one exists]"
+**Case 3 — Needs technical setup (this is common — don't pretend otherwise).**
+Many connectors are NOT a button: they need a small command-line tool installed
+and registered before they work. **You do this — all of it.** Do not hand the
+steps to the user.
+1. If a dedicated **`<service>-connector` skill** exists in this kit, invoke it —
+   it owns the correct, tested install flow (install the CLI, register the server,
+   drive the browser login). That is the grounded path; prefer it over improvising.
+2. If there's no dedicated skill, follow the connector's documented install
+   pattern yourself: install the tool, run the registration command
+   (`claude mcp add ...`), and drive or hand off the OAuth login.
+3. Narrate plainly before each action ("I'm installing the tool that connects
+   [service] — about a minute"), run it, then report the result.
+4. Pause **only** for the user's sign-in approval or a hard physical action.
+
+**Case 4 — Genuinely unavailable, no real install path.**
+> "[Connector] isn't available as a direct connector yet. Here's what I can do instead:
+> - set up [closest available alternative] to cover the same job, or
+> - build a custom workflow with n8n.
+> Want me to go with [alternative]?"
+
+### 5b-alt. When you can't summon a Connect button
+
+Not being able to programmatically present a Connect button (e.g.
+`suggest_connectors` isn't loaded) is not a reason to dump the work on the user.
+Decide which kind of connector it is:
+
+- **Hosted / one-click** (Gmail, Google Drive, other Claude-hosted connectors) —
+  there's no tool to install; the only real action is the user's OAuth click. It's
+  fine to point them to the connectors menu for that single click and walk the
+  sign-in. That's the irreducible user action (Golden Rule 2), not a punt.
+- **Needs technical setup** (a CLI tool + server registration — Linear, monday,
+  Airtable-via-CLI, Telegram, etc.) — you're in **Case 3**: drive the install
+  yourself via the dedicated `<service>-connector` skill or its install pattern.
+
+Either way, do NOT:
+- ask the user to run a command, install a tool, or paste a token,
+- claim a generic "helper tool" / Node.js is the dependency without a real install path behind it,
+- promise a sign-in window "will pop up" after a command you haven't actually run.
+
+Tell the user in one plain sentence what you're about to do, then do it. The only
+thing that should land in their lap is the browser sign-in.
 
 ### 5c. Setup flow
 1. Start with Core connectors (most important first)
@@ -376,18 +482,23 @@ Want me to help you automate any workflows between these tools?
 
 ### Quick wins by connector (use in post-setup):
 
-| Connector | Quick win suggestion |
-|-----------|-------------------|
-| Gmail | "Try searching your inbox — I can read and draft emails for you now" |
-| Google Calendar | "I can check your schedule or create events" |
-| Google Sheets | "I can build you a tracking spreadsheet or pull data from one" |
-| Airtable | "Let's set up your first base — what do you want to track?" |
-| Notion | "I can create pages, databases, or project boards for you" |
-| Stripe | "I can check your recent transactions or revenue" |
-| Shopify | "I can pull your orders, products, or inventory data" |
-| Slack | "I can send messages or check channels for you" |
-| GitHub | "I can manage repos, issues, and PRs" |
-| n8n | "I can build automation workflows connecting your tools" |
+**Tailor every quick win to the user's vertical and their own words.** The
+generic line is a fallback — always prefer the vertical-specific version. If
+they said "track orders", the Gmail win is about order emails, not "search your
+inbox".
+
+| Connector | Generic fallback | Vertical-specific examples (pick by inferred vertical) |
+|-----------|------------------|--------------------------------------------------------|
+| Gmail | "I can read and draft emails for you now" | Ecommerce: "I can draft a refund-handling reply template" · Agency: "I can draft a client status-update email" · Freelancer: "I can draft a follow-up for an unpaid invoice" · Healthcare: "I can draft an appointment-reminder template" |
+| Google Calendar | "I can check your schedule or create events" | Local biz: "I can block out your staff shifts for next week" · Real estate: "I can add this week's viewings and set reminders" · Fitness: "I can lay out your recurring class timetable" |
+| Google Sheets | "I can build you a tracking spreadsheet or pull data from one" | Construction: "I can build a job-costing sheet with material lines" · Logistics: "I can build a shipment tracker with cost-per-route" · Nonprofit: "I can build a donation log with running totals" |
+| Airtable | "Let's set up your first base" | Agency: "I can build a client + campaign tracker base" · Real estate: "I can build a listings + leads pipeline base" · Media: "I can build an editorial calendar base" |
+| Notion | "I can create pages, databases, or project boards" | SaaS: "I can scaffold your product roadmap page" · Education: "I can build a course-content workspace" · Pro services: "I can set up a matter/case knowledge base" |
+| Stripe | "I can check your recent transactions or revenue" | SaaS: "I can pull your current MRR and active subscriptions" · Freelancer: "I can show which invoices are still unpaid" · Hospitality: "I can show this month's booking revenue" |
+| Shopify | "I can pull your orders, products, or inventory data" | Ecommerce: "I can show today's orders and which products are low on stock" |
+| Slack | "I can send messages or check channels for you" | Any team: "I can post a daily summary to your team channel" |
+| GitHub | "I can manage repos, issues, and PRs" | SaaS: "I can triage your open issues by priority" |
+| n8n | "I can build automation workflows connecting your tools" | Any: "I can wire up the automation we just talked about" |
 
 ## Step 6: Post-Setup Automation Suggestions
 
