@@ -233,9 +233,7 @@ Categorize into:
 
 ### Appeal Scorer Script
 
-Run: `python scripts/appeal_scorer.py <url>`
-
-Produces structured JSON output with scores and recommendations.
+Run: `python scripts/appeal_scorer.py --template` to emit an empty zero-score JSON template for Claude to populate, then `python scripts/appeal_scorer.py --input <filled.json> --summary` to render the human-readable scores. The bare `<url>` form only prints the target URL and the same empty template (Claude does the scoring/WebFetch); it does NOT itself produce populated scores or recommendations.
 
 ### Reference Files (See for deep dives)
 

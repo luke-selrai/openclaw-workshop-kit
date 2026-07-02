@@ -12,6 +12,7 @@ Examples:
 """
 
 import sys
+import re
 from pathlib import Path
 
 
@@ -203,6 +204,9 @@ def init_skill(skill_name, path):
         Path to created skill directory, or None if error
     """
     # Determine skill directory path
+    if not re.match(r'^[a-z0-9]+(-[a-z0-9]+)*$', skill_name) or len(skill_name) > 40:
+        print(f"❌ Error: invalid skill name {skill_name!r}: use lowercase letters, digits, single hyphens, max 40 chars")
+        return None
     skill_dir = Path(path).resolve() / skill_name
 
     # Check if directory already exists

@@ -17,21 +17,12 @@ function validateBrackets(filePath) {
 
     // Check for unescaped < followed by digit or > followed by digit
     const lessThanMatch = line.match(/<(\d+)/);
-    const greaterThanMatch = line.match(/>(\d+)/);
 
-    if (lessThanMatch && !line.includes('&lt;')) {
+    if (lessThanMatch) {
       errors.push({
         line: idx + 1,
         text: lessThanMatch[0],
         fix: lessThanMatch[0].replace('<', '&lt;')
-      });
-    }
-
-    if (greaterThanMatch && !line.includes('&gt;')) {
-      errors.push({
-        line: idx + 1,
-        text: greaterThanMatch[0],
-        fix: greaterThanMatch[0].replace('>', '&gt;')
       });
     }
   });

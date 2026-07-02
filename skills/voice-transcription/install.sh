@@ -59,7 +59,7 @@ case "$OS_KIND" in
       echo "       Wait for it to finish, then re-run this script."
       exit 2
     fi
-    run brew install cmake ffmpeg git || true   # brew install is idempotent (re-installs are no-ops)
+    run brew install cmake ffmpeg git
     ;;
   linux)
     if [[ $DRY_RUN -eq 0 && "$EUID" -ne 0 ]]; then

@@ -2,7 +2,7 @@
 # install-node-unix.sh
 # Install Node.js 22 LTS on macOS or Linux. Idempotent.
 
-set -e
+set -eo pipefail
 
 # Detect existing Node version
 if command -v node >/dev/null 2>&1; then

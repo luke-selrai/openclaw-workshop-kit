@@ -24,36 +24,35 @@ check_readme() {
         # Check for required sections
         if ! grep -qi "## Installation\|## Quick Start\|## Getting Started" "$readme" 2>/dev/null; then
             echo "⚠️  WARN: $readme missing installation/quick start section"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS+1))
         fi
 
         # Check for code examples
         if ! grep -q '```' "$readme" 2>/dev/null; then
             echo "⚠️  WARN: $readme has no code examples"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS+1))
         fi
 
         # Check for license info
         if ! grep -qi "license" "$readme" 2>/dev/null; then
             echo "⚠️  WARN: $readme missing license information"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS+1))
         fi
 
         # Check for broken markdown links
         while IFS= read -r line; do
-            link=$(echo "$line" | grep -oE '\[.*\]\([^)]+\)' | head -1)
-            file=$(echo "$link" | sed 's/.*(\([^)]*\)).*/\1/' | sed 's/#.*//')
-
-            # Skip URLs
-            if echo "$file" | grep -qE '^https?://'; then
-                continue
-            fi
-
-            # Check if file exists
-            if [ -n "$file" ] && [ ! -f "$file" ]; then
-                echo "❌ ERROR: Broken link in $readme: $file"
-                ((ERRORS++))
-            fi
+            while IFS= read -r m; do
+                file=$(echo "$m" | sed 's/^](\([^)]*\)).*/\1/' | sed 's/#.*//')
+                # Skip URLs
+                if echo "$file" | grep -qE '^https?://'; then
+                    continue
+                fi
+                # Check if file exists
+                if [ -n "$file" ] && [ ! -f "$file" ]; then
+                    echo "❌ ERROR: Broken link in $readme: $file"
+                    ERRORS=$((ERRORS+1))
+                fi
+            done < <(echo "$line" | grep -oE '\]\([^)]+\)')
         done < "$readme"
     done
 }
@@ -69,7 +68,7 @@ check_docs_structure() {
         # Check for index/getting started
         if [ ! -f "docs/index.md" ] && [ ! -f "docs/getting-started.md" ]; then
             echo "⚠️  WARN: docs/ missing index.md or getting-started.md"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS+1))
         fi
 
         # Count documentation files
@@ -104,12 +103,12 @@ check_adrs() {
 
                 if ! grep -qi "## Status" "$adr" 2>/dev/null; then
                     echo "⚠️  WARN: $adr missing Status section"
-                    ((WARNINGS++))
+                    WARNINGS=$((WARNINGS+1))
                 fi
 
                 if ! grep -qi "## Context\|## Decision\|## Consequences" "$adr" 2>/dev/null; then
                     echo "⚠️  WARN: $adr missing required ADR sections"
-                    ((WARNINGS++))
+                    WARNINGS=$((WARNINGS+1))
                 fi
             done
         fi
@@ -138,7 +137,7 @@ check_api_docs() {
 
             if ! grep -qi "## Authentication\|## Endpoints\|## Error" "$api_doc" 2>/dev/null; then
                 echo "⚠️  WARN: $api_doc may be missing key sections (Authentication, Endpoints, Errors)"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS+1))
             fi
         done
     fi
@@ -162,13 +161,13 @@ check_runbooks() {
                 # Check for required runbook sections
                 if ! grep -qi "## Prerequisites\|## Procedure" "$runbook" 2>/dev/null; then
                     echo "⚠️  WARN: $runbook missing Prerequisites or Procedure section"
-                    ((WARNINGS++))
+                    WARNINGS=$((WARNINGS+1))
                 fi
 
                 # Check for rollback section (critical for ops)
                 if ! grep -qi "## Rollback\|## Recovery" "$runbook" 2>/dev/null; then
                     echo "⚠️  WARN: $runbook missing Rollback section"
-                    ((WARNINGS++))
+                    WARNINGS=$((WARNINGS+1))
                 fi
             done
         fi
@@ -188,11 +187,11 @@ check_changelog() {
             echo "  ✅ Follows Keep a Changelog format"
         else
             echo "⚠️  WARN: CHANGELOG.md may not follow Keep a Changelog format"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS+1))
         fi
     else
         echo "⚠️  WARN: No CHANGELOG.md found"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS+1))
     fi
 }
 
@@ -205,14 +204,14 @@ check_common_issues() {
     todo_count=$(grep -ri "TODO\|FIXME\|TBD" docs/ README.md 2>/dev/null | wc -l)
     if [ "$todo_count" -gt 0 ]; then
         echo "⚠️  WARN: Found $todo_count TODO/FIXME/TBD markers in documentation"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS+1))
     fi
 
     # Check for placeholder text
     placeholder_count=$(grep -ri "lorem ipsum\|example.com\|foo@bar" docs/ README.md 2>/dev/null | wc -l)
     if [ "$placeholder_count" -gt 5 ]; then
         echo "⚠️  WARN: Found $placeholder_count instances of placeholder text"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS+1))
     fi
 
     # Check for very short files (likely incomplete)
@@ -221,7 +220,7 @@ check_common_issues() {
         lines=$(wc -l < "$doc")
         if [ "$lines" -lt 10 ]; then
             echo "⚠️  WARN: $doc is very short ($lines lines) - may be incomplete"
-            ((WARNINGS++))
+            WARNINGS=$((WARNINGS+1))
         fi
     done
 }

@@ -46,7 +46,8 @@ async function main() {
   const results = {
     accessible: [],
     blocked: [],
-    errors: []
+    errors: [],
+    empty_or_blocked: []
   };
 
   for (const table of TABLES_TO_CHECK) {
@@ -59,7 +60,7 @@ async function main() {
         .limit(1);
 
       if (error) {
-        if (error.code === 'PGRST204') {
+        if (error.code === 'PGRST205' || error.code === '42P01') {
           // Table doesn't exist
           console.log(`⚠️  TABLE NOT FOUND`);
         } else if (error.code === '42501') {
@@ -71,8 +72,8 @@ async function main() {
           results.errors.push({ table, error: error.message });
         }
       } else if (count === 0) {
-        console.log(`✅ OK (0 rows - empty or filtered)`);
-        results.accessible.push({ table, count: 0 });
+        console.log(`⚠️  0 rows (empty table OR RLS-filtered: verify SELECT policies)`);
+        results.empty_or_blocked.push({ table, count: 0, note: 'empty OR RLS-filtered: verify policies' });
       } else {
         console.log(`✅ OK (${count} rows accessible)`);
         results.accessible.push({ table, count });

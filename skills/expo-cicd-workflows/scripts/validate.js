@@ -19,7 +19,7 @@ async function fetchSchema() {
 }
 
 function createValidator(schema) {
-  const ajv = new Ajv2020({ allErrors: true, strict: true });
+  const ajv = new Ajv2020({ allErrors: true, strict: false });
   addFormats(ajv);
   return ajv.compile(schema);
 }
@@ -60,7 +60,7 @@ if (import.meta.main) {
     console.log(`Usage: validate <workflow.yml> [workflow2.yml ...]
 
 Validates EAS workflow YAML files against the official schema.`);
-    process.exit(files.length === 0 ? 1 : 0);
+    process.exit(args.includes('--help') || args.includes('-h') ? 0 : 1);
   }
 
   const schema = await fetchSchema();
