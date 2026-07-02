@@ -126,7 +126,8 @@ When a migration would cause data loss:
 ```bash
 prisma migrate dev --name remove_field
 # Warning: You are about to delete data...
-# Accept with: --accept-data-loss
+# migrate dev prompts interactively to confirm (answer y); there is no bypass flag.
+# (--accept-data-loss is a `prisma db push` option, not valid for migrate dev.)
 ```
 
 ## Shadow Database

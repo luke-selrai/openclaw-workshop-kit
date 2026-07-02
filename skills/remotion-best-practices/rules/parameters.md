@@ -44,10 +44,10 @@ export const MyCompositionSchema = z.object({
   title: z.string(),
 });
 
-const MyComponent: React.FC<z.infer<typeof MyCompositionSchema>> = () => {
+const MyComponent: React.FC<z.infer<typeof MyCompositionSchema>> = ({ title }) => {
   return (
     <div>
-      <h1>{props.title}</h1>
+      <h1>{title}</h1>
     </div>
   );
 };

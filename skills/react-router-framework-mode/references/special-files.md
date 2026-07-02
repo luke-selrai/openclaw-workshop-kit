@@ -272,9 +272,11 @@ Pre-render routes to static HTML at build time:
 
 ```ts
 export default {
-  async prerender({ getStaticPaths }) {
-    const dynamicPaths = await getStaticPaths();
-    return ["/", "/about", ...dynamicPaths];
+  async prerender() {
+    // Return every path to pre-render. Append dynamic paths from your data source, e.g.
+    // const products = await db.getAllProducts();
+    // return ["/", "/about", ...products.map((p) => `/products/${p.id}`)];
+    return ["/", "/about"];
   },
 } satisfies Config;
 ```

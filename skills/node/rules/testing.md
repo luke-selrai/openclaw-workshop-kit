@@ -207,7 +207,7 @@ node --test
 # Run specific file
 node --test src/user/user.service.test.ts
 
-# With TypeScript (Node.js 22.6+)
+# With TypeScript (Node.js 22.19+, 23.6+, 24+; on 22.6-22.18 add --experimental-strip-types)
 node --test src/**/*.test.ts
 
 # With coverage

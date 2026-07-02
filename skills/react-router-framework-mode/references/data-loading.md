@@ -144,7 +144,7 @@ React Router loads data for all matched routes in parallel. Parent and child loa
 Stream slow data while rendering fast data immediately:
 
 ```tsx
-import { defer, Await } from "react-router";
+import { Await } from "react-router";
 import { Suspense } from "react";
 
 export async function loader({ params }: Route.LoaderArgs) {
