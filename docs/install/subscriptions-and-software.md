@@ -86,7 +86,7 @@ Right now your assistant only runs when your laptop is open. A server lets it ru
 
 | Tool | Cost | What It Is | Get It |
 |---|---|---|---|
-| **Git for Windows** | Free | Includes Git Bash - needed to run setup scripts | [git-scm.com/downloads/win](https://git-scm.com/downloads/win) |
+| **Git for Windows** | Free | Provides Git, used by the install and update steps behind the scenes | [git-scm.com/downloads/win](https://git-scm.com/downloads/win) |
 
 ---
 
