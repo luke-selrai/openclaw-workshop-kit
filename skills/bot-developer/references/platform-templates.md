@@ -140,12 +140,21 @@ async def telegram_webhook(token: str, request: Request):
 # Set webhook on startup
 @app.on_event("startup")
 async def setup_webhook():
+    # Application must be initialized + started before process_update() is called
+    await telegram_app.initialize()
+    await telegram_app.start()
     await telegram_app.bot.set_webhook(
         url=f"https://mybot.com/webhook/{WEBHOOK_TOKEN}",
         secret_token=TELEGRAM_SECRET,
         allowed_updates=["message", "callback_query"],
         drop_pending_updates=True
     )
+
+# Clean shutdown
+@app.on_event("shutdown")
+async def shutdown_telegram():
+    await telegram_app.stop()
+    await telegram_app.shutdown()
 ```
 
 ## Security Checklist

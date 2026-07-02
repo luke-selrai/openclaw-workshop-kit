@@ -156,7 +156,7 @@ import (
 
 func InitTracer(ctx context.Context) (func(context.Context) error, error) {
     exporter, err := otlptracehttp.New(ctx,
-        otlptracehttp.WithEndpoint(os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")),
+        otlptracehttp.WithEndpointURL(os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")),
     )
     if err != nil {
         return nil, err
