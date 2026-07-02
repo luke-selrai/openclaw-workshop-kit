@@ -261,12 +261,19 @@ async function withAuth<T>(
 ### Structured Error Responses
 ```typescript
 // Define error types
-enum ServiceError {
-  NOT_FOUND = "NOT_FOUND",
-  UNAUTHORIZED = "UNAUTHORIZED",
-  RATE_LIMITED = "RATE_LIMITED",
-  VALIDATION_ERROR = "VALIDATION_ERROR",
-  EXTERNAL_SERVICE_ERROR = "EXTERNAL_SERVICE_ERROR",
+class ServiceError extends Error {
+  constructor(
+    public code:
+      | "NOT_FOUND"
+      | "UNAUTHORIZED"
+      | "RATE_LIMITED"
+      | "VALIDATION_ERROR"
+      | "EXTERNAL_SERVICE_ERROR",
+    message: string
+  ) {
+    super(message);
+    this.name = "ServiceError";
+  }
 }
 
 // Map to MCP errors
