@@ -332,7 +332,7 @@ const processWithFailureHandler = inngest.createFunction(
 ```typescript
 const structuredErrorLogging = inngest.createFunction(
   { id: "structured-error-logging", triggers: [{ event: "process/with-logging" }] },
-  async ({ event, step, logger }) => {
+  async ({ event, step, logger, attempt }) => {
     const baseContext = {
       eventName: event.name,
       eventId: event.id,
@@ -368,7 +368,7 @@ const structuredErrorLogging = inngest.createFunction(
               status: error.response?.status,
               headers: error.response?.headers
             },
-            retryAttempt: step.attempt || 0
+            retryAttempt: attempt || 0
           };
 
           logger.error("API call failed", errorContext);

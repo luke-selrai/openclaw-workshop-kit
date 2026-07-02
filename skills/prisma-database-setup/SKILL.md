@@ -71,7 +71,7 @@ The standard SQL workflow uses a driver adapter. Choose the adapter and driver f
 | MySQL / MariaDB | `@prisma/adapter-mariadb` | `mariadb` |
 | SQLite | `@prisma/adapter-better-sqlite3` | `better-sqlite3` |
 | SQLite (Turso/LibSQL) | `@prisma/adapter-libsql` | `@libsql/client` |
-| SQL Server | `@prisma/adapter-mssql` | `node-mssql` |
+| SQL Server | `@prisma/adapter-mssql` | `mssql` |
 
 MongoDB should not follow the Prisma 7 SQL adapter workflow. Use the latest Prisma 6.x release for MongoDB projects and do not install a SQL `@prisma/adapter-*` package for it.
 

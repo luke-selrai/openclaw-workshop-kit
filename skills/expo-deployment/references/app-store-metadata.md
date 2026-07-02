@@ -461,12 +461,11 @@ Automate metadata updates in your deployment pipeline:
 # .eas/workflows/release.yml
 jobs:
   submit-and-metadata:
-    steps:
-      - name: Submit to App Store
-        run: eas submit -p ios --latest
-
-      - name: Push Metadata
-        run: eas metadata:push
+    type: run
+    params:
+      command: |
+        eas submit -p ios --latest
+        eas metadata:push
 ```
 
 ## Tips

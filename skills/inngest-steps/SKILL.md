@@ -147,7 +147,7 @@ if (!approval) {
 
 ### Expression Syntax
 
-In expressions, `event` = the **original** triggering event, `async` = the **new** event being matched. See [Expression Syntax Reference](../references/expressions.md) for full syntax, operators, and patterns.
+In expressions, `event` = the **original** triggering event, `async` = the **new** event being matched. See the Inngest documentation on expression syntax for full syntax, operators, and patterns.
 
 ## step.waitForSignal()
 
