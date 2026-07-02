@@ -45,7 +45,7 @@ Answer 3 questions. Done in ~10 minutes. You'll have: API key stored in Mac keyc
 ### `references/` — data + docs
 | File | What it has |
 |------|-------------|
-| `agent-templates.json` | 9 general presets: general, rube-universal, rube-headless, ghl-sales, content-creator, ops-monitor, research-assistant, supabase-dba, multi-agent-coordinator |
+| `agent-templates.json` | 8 general presets: general, rube-universal, rube-headless, ghl-sales, content-creator, ops-monitor, research-assistant, supabase-dba |
 | `business-outcome-presets.json` | 7 Aussie small-business presets (real estate, coach, trades, consultant, e-com, IG content, bookkeeper). The **workshop moat**. |
 | `environment-templates.json` | 4 env presets (primary, full-stack, locked-down, content-engine) |
 | `mcp-servers-catalog.md` | Remote MCP directory with Rube vs direct guidance |

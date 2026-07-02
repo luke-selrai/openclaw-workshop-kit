@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # mcp-bridge.sh — Push local Claude Code MCP configs into Managed Agents vaults.
 #
-# Reads: /Users/luke/.claude/skills/managed-agents-setup/references/mcp-bridge.json
+# Reads: <script_dir>/../references/mcp-bridge.json (override with MCP_BRIDGE_MANIFEST)
 # Writes: ~/.claude/managed-agents/bridge-log.json (idempotent)
 # Depends: jq, anthropic CLI (installed via install-cli.sh), security (macOS keychain)
 #
@@ -16,10 +16,11 @@
 
 set -euo pipefail
 
-MANIFEST="/Users/luke/.claude/skills/managed-agents-setup/references/mcp-bridge.json"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MANIFEST="${MCP_BRIDGE_MANIFEST:-$SCRIPT_DIR/../references/mcp-bridge.json}"
 LOG_DIR="$HOME/.claude/managed-agents"
 LOG_FILE="$LOG_DIR/bridge-log.json"
-SECRETS_ENV="$HOME/.claude/managed-agents/secrets.env"
+SECRETS_ENV="${MCP_BRIDGE_SECRETS_ENV:-$HOME/agents-cc/shared/secrets.env}"
 VAULT_ID=""
 ONLY=""
 DRY_RUN=false
@@ -67,7 +68,7 @@ keychain_get() {
 
 resolve_token() {
   # resolve_token "<source_spec>"  → prints token or empty
-  local spec="$1" token=""
+  local spec="$1" token="" name=""
   IFS='|' read -ra SOURCES <<<"$spec"
   for src in "${SOURCES[@]}"; do
     src="$(echo "$src" | xargs)"  # trim
@@ -79,7 +80,7 @@ resolve_token() {
         token="$(keychain_get "${src#keychain:}")"
         ;;
       env:*)
-        token="${!src#env:}" || token=""
+        name="${src#env:}"; token="${!name:-}"
         ;;
       oauth_flow|none|*)
         continue ;;
@@ -94,12 +95,39 @@ push_vault_entry() {
   # push_vault_entry <key> <json_payload>
   local key="$1" payload="$2"
   if $DRY_RUN; then
-    echo "    DRY-RUN would push $key → vault $VAULT_ID: $(echo "$payload" | jq -c .)"
+    # S8: redact ALL secret-bearing fields before printing the dry-run payload:
+    #   - .token                       → ***REDACTED***
+    #   - secret=/token=/key= query params inside ANY *url* field → ***REDACTED***
+    #     (covers framer's url_embedded payload where the secret lives in the URL)
+    #   - .extra_headers values        → ***REDACTED*** (keys kept so shape is visible)
+    local redacted
+    redacted="$(echo "$payload" | jq -c '
+      def redact_url:
+        gsub("(?<k>(secret|token|key|password|access_token|api_key)=)[^&\"]+"; .k + "***REDACTED***");
+      ( if has("token") then .token = "***REDACTED***" else . end )
+      | ( to_entries
+          | map( if (.key | test("url"; "i")) and (.value | type == "string")
+                 then .value |= redact_url else . end )
+          | from_entries )
+      | ( if (.extra_headers | type) == "object"
+          then .extra_headers |= with_entries(.value = "***REDACTED***")
+          else . end )
+    ')"
+    echo "    DRY-RUN would push $key → vault $VAULT_ID: $redacted"
     return 0
   fi
-  # Idempotent: upsert via anthropic CLI (managed-agents)
-  anthropic agents vaults update "$VAULT_ID" --secret-key "$key" --secret-json "$payload" 2>&1 \
-    || { echo "    WARN: vault push failed for $key"; return 1; }
+  # Idempotent: upsert via anthropic CLI (managed-agents).
+  # SECURITY (M9): keep the bearer token OFF argv (out of ps / process table).
+  # We stage the payload in a mode-600 temp file and hand the CLI the PATH, not
+  # the secret value. NOTE: the exact CLI flag for a file-valued secret is
+  # UNVERIFIED against the live managed-agents CLI — confirm before running.
+  local secret_tmp
+  secret_tmp="$(mktemp)"
+  chmod 600 "$secret_tmp"
+  printf '%s' "$payload" > "$secret_tmp"
+  anthropic agents vaults update "$VAULT_ID" --secret-key "$key" --secret-json-file "$secret_tmp" 2>&1 \
+    && { rm -f "$secret_tmp"; return 0; } \
+    || { rm -f "$secret_tmp"; echo "    WARN: vault push failed for $key"; return 1; }
 }
 
 # ---- main loop ----
@@ -151,7 +179,7 @@ jq -r 'to_entries[] | select(.key != "_meta") | .key' "$MANIFEST" | while read -
             token="$(jq -r '.mcpServers["ghl-official"].headers.Authorization | sub("^Bearer "; "")' ~/.claude.json 2>/dev/null)"
             ;;
           supabase-agents)
-            token="$(jq -r '.projects["/Users/luke"].mcpServers.supabase.args[4]' ~/.claude.json 2>/dev/null)"
+            token="$(jq -r --arg home "$HOME" '.projects[$home].mcpServers.supabase.args[4]' ~/.claude.json 2>/dev/null)"
             ;;
           framer)
             token="url-embedded"  # no separate token
@@ -160,7 +188,9 @@ jq -r 'to_entries[] | select(.key != "_meta") | .key' "$MANIFEST" | while read -
             token="$(jq -r '.mcpServers["meta-ads"].env.META_ACCESS_TOKEN' ~/.mcp.json 2>/dev/null)"
             ;;
           n8n)
-            token="$(jq -r '.mcpServers.n8n.env.N8N_API_KEY' ~/.claude/projects/-Users-luke/.mcp.json 2>/dev/null)"
+            # Claude Code slugs the project path (slashes -> dashes) for the projects dir.
+            proj_slug="${HOME//\//-}"
+            token="$(jq -r '.mcpServers.n8n.env.N8N_API_KEY' "$HOME/.claude/projects/$proj_slug/.mcp.json" 2>/dev/null)"
             ;;
         esac
       fi

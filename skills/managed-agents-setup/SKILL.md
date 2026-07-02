@@ -33,7 +33,7 @@ The skill walks Phase 0 → 7 in sequence with confirmation between each. Phase 
 | 3 | Vault seeding | `python3 scripts/vault-seeder.py` + `bash scripts/mcp-bridge.sh` |
 | 4 | First environment | `bash scripts/create-environment.sh primary` |
 | 5 | Create the agent | `bash scripts/create-agent.sh <preset-id>` (presets in `references/business-outcome-presets.json`) |
-| 6 | Schedule via Routine | `bash scripts/create-routine.sh <agent-id> <cron>` |
+| 6 | Schedule via Routine | `bash scripts/create-routine.sh --name NAME --cron "0 9 * * *" --prompt PROMPT --repo URL --env-id ENV` |
 | 7 | Handoff | `bash scripts/smoke-test.sh` + 1-pager + kill switch + daily cost monitor |
 
 ## Quick start
@@ -45,7 +45,10 @@ python3 ~/.claude/skills/managed-agents-setup/scripts/vault-seeder.py \
   --secrets-env ~/agents-cc/shared/secrets.env --vault-name primary     # Phase 3
 bash ~/.claude/skills/managed-agents-setup/scripts/create-environment.sh primary
 bash ~/.claude/skills/managed-agents-setup/scripts/create-agent.sh trades-quote-triage
-bash ~/.claude/skills/managed-agents-setup/scripts/create-routine.sh "$(cat ~/.claude/managed-agents/agents/trades-quote-triage.txt)" "0 9 * * *"
+bash ~/.claude/skills/managed-agents-setup/scripts/create-routine.sh \
+  --name trades-quote-triage --cron "0 9 * * *" \
+  --prompt "Triage today's quote requests" \
+  --repo https://github.com/<org>/<repo> --env-id "$(cat ~/.claude/managed-agents/env-id.txt)"
 bash ~/.claude/skills/managed-agents-setup/scripts/smoke-test.sh
 bash ~/.claude/skills/managed-agents-setup/scripts/verify.sh             # 5-AC verifier
 ```
@@ -57,7 +60,7 @@ bash ~/.claude/skills/managed-agents-setup/scripts/verify.sh             # 5-AC 
 | "What's in each phase?" | `references/phases/<n>-*.md` |
 | "Which MCP servers does it support?" | `references/mcp-servers-catalog.md` |
 | "How does the connector setup decide which path?" | `references/connector-strategy.md` (4-tier) |
-| "What presets are available?" | `references/business-outcome-presets.json` (35 presets across 8 verticals) |
+| "What presets are available?" | `references/business-outcome-presets.json` (40 presets across 8 verticals) |
 | "How are environments configured?" | `references/environment-templates.json` |
 | "Which agent template fits my use case?" | `references/agent-templates.json` |
 | "How much will this cost?" | `references/cost-calculator.md` |
@@ -100,6 +103,8 @@ Tier 4: Manual API key paste (last resort, masked, vault-stored)
 Full version: `references/connector-strategy.md`.
 
 ## Refusal rules
+
+> The `feedback_*.md` files cited below (and in Hard rules) are optional internal-kit reinforcements; the rules stand alone and this skill doesn't ship them.
 
 - **"Build me 10 agents"** → refuse bulk. Cap 1-3 per session.
 - **"Use n8n for Luke's infra"** → refuse, route to server-cron + agents-cc.

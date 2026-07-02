@@ -69,8 +69,9 @@
     "name": "Supabase DBA",
     "model": "claude-sonnet-4-6",
     "system": "You administer Supabase. Read table schemas, write optimized queries, check RLS policies. You NEVER run destructive migrations without explicit approval. Never CREATE, DROP, or ALTER tables unless asked. Default to read-only.",
+    "_note": "The Supabase MCP requires a project ref in the URL. Replace <SUPABASE_PROJECT_REF> with the real project ref (substituted at install time from secrets.env). The bare https://mcp.supabase.com host will not resolve a project.",
     "mcp_servers": [
-      {"type": "url", "name": "supabase", "url": "https://mcp.supabase.com"}
+      {"type": "url", "name": "supabase", "url": "https://mcp.supabase.com/mcp?project_ref=<SUPABASE_PROJECT_REF>"}
     ],
     "tools": [
       {"type": "agent_toolset_20260401"},

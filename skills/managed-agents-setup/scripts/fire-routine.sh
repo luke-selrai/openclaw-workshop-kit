@@ -17,14 +17,17 @@ fi
 
 echo "[fire] POST /v1/claude_code/routines/$TRIG_ID/fire"
 RESP=$(curl -sS -X POST "https://api.anthropic.com/v1/claude_code/routines/$TRIG_ID/fire" \
-  -H "Authorization: Bearer $ROUTINE_OAT_TOKEN" \
+  --config - \
   -H "anthropic-version: 2023-06-01" \
   -H "anthropic-beta: experimental-cc-routine-2026-04-01" \
   -H "content-type: application/json" \
-  -d "$(python3 -c "import json,sys; print(json.dumps({'text': sys.argv[1]}))" "$PAYLOAD")")
+  -d "$(python3 -c "import json,sys; print(json.dumps({'text': sys.argv[1]}))" "$PAYLOAD")" <<EOF
+header = "Authorization: Bearer ${ROUTINE_OAT_TOKEN}"
+EOF
+)
 
-echo "$RESP" | jq .
-SESSION_URL=$(echo "$RESP" | jq -r '.claude_code_session_url // empty')
+echo "$RESP" | jq . 2>/dev/null || echo "$RESP"
+SESSION_URL=$(echo "$RESP" | jq -r '.claude_code_session_url // empty' 2>/dev/null || true)
 if [ -n "$SESSION_URL" ]; then
   echo "[ok] Session: $SESSION_URL"
 fi

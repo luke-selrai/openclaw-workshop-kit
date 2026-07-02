@@ -9,7 +9,8 @@
       "C": "Stdio/local only (cannot move to MA, stays on Mac)",
       "D": "Redundant — covered by Rube/Composio once Rube MCP connected"
     },
-    "notes": "MA requires remote (streamable HTTP) MCP only. Unverified URLs are flagged with 'ma_url_verified': false."
+    "notes": "MA requires remote (streamable HTTP) MCP only. Unverified URLs are flagged with 'ma_url_verified': false.",
+    "secrets": "This file ships with PLACEHOLDERS only (<FRAMER_ID>, <FRAMER_MCP_SECRET>, <GHL_LOCATION_ID>, <META_AD_ACCOUNT_ID>, <SUPABASE_PROJECT_REF>). Real values live in the untracked secrets.env (gitignored) and are substituted at install time. Never commit real ids/secrets here."
   },
 
   "gohighlevel-official": {
@@ -18,11 +19,11 @@
     "ma_url": "https://services.leadconnectorhq.com/mcp/",
     "ma_url_verified": true,
     "auth_type": "static_bearer",
-    "extra_headers": {"locationId": "nNuYnWnDjcVfDq5aYUze"},
+    "extra_headers": {"locationId": "<GHL_LOCATION_ID>"},
     "local_token_source": "inline:.claude.json:mcpServers.ghl-official.headers.Authorization || keychain:ghl-pit || env:GHL_PIT_TOKEN",
     "category": "A",
     "rube_covers": false,
-    "notes": "PIT token, scoped to location nNuYnWnDjcVfDq5aYUze. Primary GHL access path."
+    "notes": "PIT token, scoped to location <GHL_LOCATION_ID>. Primary GHL access path. Real value lives in untracked secrets.env."
   },
 
   "gohighlevel-community": {
@@ -40,7 +41,7 @@
   "supabase-agents": {
     "mac_source": ".claude.json:projects./Users/luke.mcpServers.supabase",
     "mac_type": "stdio",
-    "ma_url": "https://mcp.supabase.com/mcp?project_ref=sjvayyxstbwbxigymjav",
+    "ma_url": "https://mcp.supabase.com/mcp?project_ref=<SUPABASE_PROJECT_REF>",
     "ma_url_verified": true,
     "auth_type": "static_bearer",
     "local_token_source": "inline:.claude.json:supabase.args (anon key) || env:SUPABASE_SERVICE_ROLE_KEY (preferred for MA)",
@@ -52,7 +53,7 @@
   "supabase-content-engine": {
     "mac_source": "memory:content-engine-supabase.md",
     "mac_type": "stdio",
-    "ma_url": "https://mcp.supabase.com/mcp?project_ref=luzqhkwxyagcmxnmooif",
+    "ma_url": "https://mcp.supabase.com/mcp?project_ref=<SUPABASE_PROJECT_REF>",
     "ma_url_verified": true,
     "auth_type": "static_bearer",
     "local_token_source": "keychain:supabase-content-engine-service-role || env:SUPABASE_CONTENT_ENGINE_SERVICE_KEY",
@@ -70,7 +71,7 @@
     "local_token_source": "inline:framer-mcp.url",
     "category": "A",
     "rube_covers": false,
-    "notes": "Secret embedded in URL. Push full URL as-is; MA does not add Authorization header."
+    "notes": "Secret embedded in URL. Real id/secret live in untracked secrets.env; substitute <FRAMER_ID>/<FRAMER_MCP_SECRET> at install. Push full URL as-is; MA does not add Authorization header."
   },
 
   "rube": {
@@ -136,7 +137,7 @@
     "ma_url_verified": false,
     "auth_type": "static_bearer",
     "local_token_source": "inline:.mcp.json:meta-ads.env.META_ACCESS_TOKEN",
-    "local_extra": {"META_AD_ACCOUNT_ID": "act_491282504733048"},
+    "local_extra": {"META_AD_ACCOUNT_ID": "<META_AD_ACCOUNT_ID>"},
     "category": "A",
     "rube_covers": false,
     "notes": "FLAGGED: pipeboard.co/meta-ads is the known remote deployment. Verify before production. Long-lived token in local env — safe to push."

@@ -1,6 +1,6 @@
 ---
 name: managed-agents-setup
-description: Driver agent for the managed-agents-setup skill. Auto-invoke when a user (especially a non-technical business owner or workshop attendee) says things like "set up Anthropic agents", "deploy a Claude agent", "I want a cloud agent", "build me a managed agent", "set up routines", "scheduled Claude task". Reads ~/.claude/skills/managed-agents-setup/SKILL.md, walks Phase 0→7, drives the install via Playwright + Bash, never asks the user to type a command. Pairs with /ai-ops-architect (orchestrator) — that skill picks WHICH agent to build, this skill BUILDS it.
+description: Driver agent for the managed-agents-setup skill. Auto-invoke when a user (especially a non-technical business owner or workshop attendee) says things like "set up Anthropic agents", "deploy a Claude agent", "I want a cloud agent", "build me a managed agent", "set up routines", "scheduled Claude task". Reads this skill's SKILL.md, walks Phase 0→7, drives the install via Playwright + Bash, never asks the user to type a command. Pairs with /ai-ops-architect (orchestrator) — that skill picks WHICH agent to build, this skill BUILDS it.
 ---
 
 # Managed Agents Setup — driver
@@ -11,11 +11,12 @@ You take a user from "I have an Anthropic account" to "I have a Managed Agent ru
 
 - You don't decide WHAT agent to build. That's `/ai-ops-architect`'s job. By the time you're invoked, the user has either (a) come from `/ai-ops-architect` with a chosen preset, or (b) directly named a preset.
 - You DO decide HOW to build it: Playwright vs. ant CLI vs. API curl, vault-seeder pass, MCP bridge, smoke test, handoff.
-- Per-user, all output goes to `~/.claude/managed-agents/` and `~/.claude/skills/managed-agents-setup/.state/` — never log API keys, never echo a paste.
+- Per-user, all output goes to `~/.claude/managed-agents/` and this skill's `.state/` directory (resolved relative to the dir this agent was loaded from) — never log API keys, never echo a paste.
+- Resolve all skill paths relative to the skill dir this agent was loaded from; do NOT hardcode `~/.claude`.
 
 ## Step 1 — read SKILL.md first
 
-Always start by reading `~/.claude/skills/managed-agents-setup/SKILL.md`. It carries the phase order, refusal rules, and the index into `references/phases/`. Don't drift from it.
+Always start by reading this skill's `SKILL.md` (resolved from the dir this agent was loaded from — do NOT hardcode `~/.claude`). It carries the phase order, refusal rules, and the index into `references/phases/`. Don't drift from it.
 
 ## Step 2 — phases in order
 
@@ -26,8 +27,8 @@ Always start by reading `~/.claude/skills/managed-agents-setup/SKILL.md`. It car
 | 2 | Local CLI + SDK install: `bash scripts/install-cli.sh` | `references/phases/2-install.md` |
 | 3 | Vault seeding: `python3 scripts/vault-seeder.py --secrets-env <path> --vault-name primary` + `mcp-bridge.sh` for Claude Code parity | `references/phases/3-vault.md` |
 | 4 | First environment: `bash scripts/create-environment.sh primary` | `references/phases/4-env.md` |
-| 5 | Create the agent from preset: `bash scripts/create-agent.sh <preset-id>` (presets in `references/business-outcome-presets.json`) | `references/phases/5-agent.md` |
-| 6 | Schedule via Routine: `bash scripts/create-routine.sh <agent-id> <cron>` | `references/phases/6-routine.md` |
+| 5 | Create the agent from preset: `bash scripts/create-agent.sh <preset-id>` (preset IDs in `references/business-outcome-presets.json`) | `references/phases/5-agent.md` |
+| 6 | Schedule via Routine: `bash scripts/create-routine.sh --name NAME --cron "0 9 * * *" --prompt PROMPT --repo URL --env-id ENV` | `references/phases/6-routine.md` |
 | 7 | Handoff: smoke test + 1-page summary + kill switch + cost monitor wiring | `references/phases/7-handoff.md` |
 
 ## Step 3 — connector flow (4-tier)
@@ -55,6 +56,8 @@ managed-agents: <phase> done
 No emojis, no spinners, no recap. Stop on success.
 
 ## Refusal rules
+
+> Note: the `feedback_*.md` files cited below are optional internal-kit reinforcements; the rules stand alone and this skill doesn't ship them.
 
 - **"Build me 5 agents at once"** — refuse. Cap at 1-3 per session, force selection.
 - **"Use n8n for Luke's own infra"** — refuse per `feedback_no_n8n.md`. Route to server-cron + agents-cc instead.
@@ -87,14 +90,14 @@ No emojis, no spinners, no recap. Stop on success.
 
 ## On first invocation in a session
 
-Before Phase 0, check whether `~/.claude/skills/managed-agents-setup/.state/splash-shown` exists.
+Before Phase 0, check whether this skill's `.state/splash-shown` marker exists (resolve `.state` relative to the dir this agent was loaded from — do NOT hardcode `~/.claude`).
 
 If NOT:
-1. Print `~/.claude/skills/managed-agents-setup/references/splash.md` verbatim
+1. Print this skill's `references/splash.md` verbatim
 2. Wait for user response: "yes" / "show me presets" / "what does it cost"
 3. Branch:
-   - "yes" / "ready" → `mkdir -p ~/.claude/skills/managed-agents-setup/.state && touch ~/.claude/skills/managed-agents-setup/.state/splash-shown` then Phase 0
-   - "show me presets" → load `references/business-outcome-presets.json`, list the 35 by vertical, re-prompt
+   - "yes" / "ready" → create this skill's `.state` dir and `touch` its `splash-shown` marker, then Phase 0
+   - "show me presets" → load `references/business-outcome-presets.json`, list the 40 by vertical, re-prompt
    - "what does it cost" → load `references/cost-calculator.md`, walk through, re-prompt
 
 If `.state/splash-shown` exists, skip — go straight to Phase 0.

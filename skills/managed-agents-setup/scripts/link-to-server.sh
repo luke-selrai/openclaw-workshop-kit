@@ -23,17 +23,19 @@ if ! $SSH_CMD 'test -d ~/agents-cc' 2>/dev/null; then
   exit 3
 fi
 
-echo "[link] Backing up server secrets.env..."
-$SSH_CMD 'cp ~/agents-cc/shared/secrets.env ~/agents-cc/shared/secrets.env.bak 2>/dev/null || true'
+echo "[link] Backing up server secrets.env (locked 600, removed after success)..."
+$SSH_CMD 'umask 077; cp ~/agents-cc/shared/secrets.env ~/agents-cc/shared/secrets.env.bak 2>/dev/null && chmod 600 ~/agents-cc/shared/secrets.env.bak 2>/dev/null || true'
 
-echo "[link] Injecting ANTHROPIC_API_KEY..."
+echo "[link] Injecting ANTHROPIC_API_KEY (key piped over stdin, not argv)..."
 $SSH_CMD "sed -i '/^# --- Managed Agents ---/,/^# --- End Managed Agents ---/d' ~/agents-cc/shared/secrets.env 2>/dev/null || true"
-$SSH_CMD "cat >> ~/agents-cc/shared/secrets.env <<ENV
-
-# --- Managed Agents ---
-export ANTHROPIC_API_KEY=\"$ANTHROPIC_API_KEY\"
-# --- End Managed Agents ---
-ENV"
+# Pipe the API key in over stdin so it never appears in the ssh argv / server process list.
+# The remote command is single-quoted so the local shell does not expand $__MA_KEY;
+# the value arrives only via the piped stdin line read by the remote `read -r`.
+printf '%s\n' "$ANTHROPIC_API_KEY" | $SSH_CMD 'umask 077; read -r __MA_KEY; {
+  printf "\n# --- Managed Agents ---\n"
+  printf "export ANTHROPIC_API_KEY=%s\n" "\"$__MA_KEY\""
+  printf "# --- End Managed Agents ---\n"
+} >> ~/agents-cc/shared/secrets.env; chmod 600 ~/agents-cc/shared/secrets.env'
 
 echo "[link] Installing call_managed_agent helper..."
 $SSH_CMD 'cat > ~/agents-cc/shared/scripts/managed-agents.sh << '\''SCRIPT'\''
@@ -53,12 +55,16 @@ if [ -n "$VAULT_ID" ]; then
 fi
 BODY="$BODY}"
 
+# S12: secret x-api-key header fed via curl --config on stdin (never on argv/ps)
 RESP=$(curl -sS -X POST "https://api.anthropic.com/v1/sessions" \
-  -H "x-api-key: $ANTHROPIC_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "anthropic-beta: managed-agents-2026-04-01" \
   -H "content-type: application/json" \
-  -d "$BODY")
+  -d "$BODY" \
+  --config - <<CURLCFG
+header = "x-api-key: ${ANTHROPIC_API_KEY}"
+CURLCFG
+)
 
 SESSION_ID=$(echo "$RESP" | jq -r '.id // empty')
 if [ -z "$SESSION_ID" ]; then
@@ -69,12 +75,15 @@ fi
 
 # Send user message
 MSG_ESCAPED=$(python3 -c "import json,sys; print(json.dumps(sys.argv[1]))" "$MESSAGE")
+# S12: secret x-api-key header fed via curl --config on stdin (never on argv/ps)
 curl -sS -X POST "https://api.anthropic.com/v1/sessions/$SESSION_ID/events" \
-  -H "x-api-key: $ANTHROPIC_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "anthropic-beta: managed-agents-2026-04-01" \
   -H "content-type: application/json" \
-  -d "{\"events\":[{\"type\":\"user.message\",\"content\":[{\"type\":\"text\",\"text\":$MSG_ESCAPED}]}]}" >/dev/null
+  -d "{\"events\":[{\"type\":\"user.message\",\"content\":[{\"type\":\"text\",\"text\":$MSG_ESCAPED}]}]}" \
+  --config - <<CURLCFG >/dev/null
+header = "x-api-key: ${ANTHROPIC_API_KEY}"
+CURLCFG
 
 echo "session_id=$SESSION_ID"
 echo "url=https://platform.claude.com/sessions/$SESSION_ID"
@@ -96,6 +105,9 @@ fi
 
 echo "[link] Testing helper on server..."
 $SSH_CMD 'ls ~/agents-cc/shared/scripts/managed-agents.sh && echo "helper installed"'
+
+echo "[link] Removing plaintext secrets backup..."
+$SSH_CMD 'rm -f ~/agents-cc/shared/secrets.env.bak 2>/dev/null || true'
 
 echo "[ok] Server linked to Managed Agents."
 echo "[ok] On the server, call: ~/agents-cc/shared/scripts/managed-agents.sh <agent_id> <env_id> \"msg\""

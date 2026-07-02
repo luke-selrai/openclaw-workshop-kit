@@ -76,7 +76,7 @@ Full troubleshooting tree: `references/troubleshooting.md`.
 ~/.claude/skills/managed-agents-setup/
 ├── SKILL.md                              # entry, decision matrix, refusal rules
 ├── INSTALL.md                            # this file
-├── plugin.json                           # Claude Code plugin manifest
+├── .claude-plugin/plugin.json            # Claude Code plugin manifest
 ├── references/
 │   ├── phases/0..7-*.md                  # phase-by-phase walkthroughs
 │   ├── connector-strategy.md             # 4-tier doc

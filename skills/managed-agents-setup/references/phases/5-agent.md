@@ -3,8 +3,10 @@
 **Goal:** create a Managed Agent from a preset and bind it to the vault + environment.
 
 ```bash
-bash ~/.claude/skills/managed-agents-setup/scripts/create-agent.sh <preset-id>
+bash ~/.claude/skills/managed-agents-setup/scripts/create-agent.sh trades-quote-triage
 ```
+
+The argument is a preset **id** (a top-level key in `references/business-outcome-presets.json`) — the script reads that file, looks up the id, and POSTs the preset's config. Run with no/unknown id and it prints the available ids.
 
 Presets live in `references/business-outcome-presets.json` (canonical, 40 presets across 10 verticals). Examples:
 - `trades-quote-triage`
