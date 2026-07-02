@@ -1,4 +1,4 @@
-# PAGE 4 — The Full Ecosystem: Tools, Connections, and What's Possible
+# PAGE 4 - The Full Ecosystem: Tools, Connections, and What's Possible
 
 ---
 
@@ -18,9 +18,9 @@
 │  │                        CLAUDE CODE                                   │    │
 │  │                  (Your AI Brain + Hands)                             │    │
 │  │                                                                       │    │
-│  │   Reads:  CLAUDE.md — your instructions                              │    │
-│  │   Knows:  auto-memory — your business permanently (via /memory)      │    │
-│  │   Uses:   <!-- skills-audit:total -->204<!-- /skills-audit:total --> skills — specialist capabilities on demand              │    │
+│  │   Reads:  CLAUDE.md - your instructions                              │    │
+│  │   Knows:  auto-memory - your business permanently (via /memory)      │    │
+│  │   Uses:   <!-- skills-audit:total -->204<!-- /skills-audit:total --> skills - specialist capabilities on demand              │    │
 │  │   Via:    CLI tools · MCP connections · Browser automation           │    │
 │  └───────┬──────────────┬───────────────────┬────────────────┬─────────┘    │
 │          │              │                   │                │               │
@@ -49,7 +49,7 @@
 
 ## The Three Types of Tools
 
-### CLI Tools — Programs On Your Computer
+### CLI Tools - Programs On Your Computer
 Installed once, available forever. Claude uses them by typing commands.
 
 ```
@@ -60,11 +60,11 @@ claude    → Starts your AI assistant
 npm       → An app store for installing other tools
 ```
 
-> Think of CLI tools like kitchen appliances — installed in your kitchen, ready to use anytime.
+> Think of CLI tools like kitchen appliances - installed in your kitchen, ready to use anytime.
 
 ---
 
-### MCP Tools — Live Connections to Your Apps
+### MCP Tools - Live Connections to Your Apps
 Claude gets login access to your apps. Can read, write, and act in real time.
 
 ```
@@ -80,7 +80,7 @@ Slack             → Reads and sends messages
 
 ---
 
-### Business APIs — Direct Lines to Services
+### Business APIs - Direct Lines to Services
 Claude connects directly to services through their official programming interface.
 
 ```
@@ -101,7 +101,7 @@ Any service   → If it has an API, Claude can connect to it
 1. Install the tool           →    npm install -g @googleworkspace/cli
 2. Sign in                    →    gws auth login (browser opens, click "Allow")
 3. Connection saved           →    Claude can now use Gmail, Calendar, Drive, and more
-4. Permanent                  →    Works every session — no re-logging in
+4. Permanent                  →    Works every session - no re-logging in
 ```
 
 ---
@@ -132,26 +132,26 @@ Any service   → If it has an API, Claude can connect to it
 ## What This All Makes Possible
 
 ```
-TODAY — with what you have set up:
+TODAY - with what you have set up:
   → Research any topic in depth
   → Write copy, emails, social posts, proposals
   → Analyse competitors
   → Control your browser to do repetitive tasks
   → Build content calendars, strategies, plans
 
-NEXT MONTH — with a few more connections:
+NEXT MONTH - with a few more connections:
   → Draft and search your emails
   → Build and schedule social media content
   → Monitor your pipeline and follow up leads
   → Generate weekly business reports automatically
 
-IN 90 DAYS — with automation set up:
+IN 90 DAYS - with automation set up:
   → Leads identified and contacted without you touching it
   → Content posted to all platforms on schedule
   → Invoices scanned and filed automatically
   → Weekly summaries sent to your phone every Monday
 
-LEVEL 4 — what Selr AI can build for you:
+LEVEL 4 - what Selr AI can build for you:
   → A full team of AI agents running your business
   → Each agent specialised in one area of your operations
   → You receive decisions, not task lists
@@ -166,7 +166,7 @@ LEVEL 4 — what Selr AI can build for you:
 Only what you give it access to. You control which tools connect. Nothing is accessed without your permission.
 
 **"Is it safe? What if it does something I didn't want?"**
-Claude asks before taking any significant action — sending emails, posting, deleting files. It confirms first.
+Claude asks before taking any significant action - sending emails, posting, deleting files. It confirms first.
 
 **"Does connecting more tools cost more?"**
 Most MCP connections are free. Business APIs (Stripe, GHL) have their own costs, but those exist whether you use AI or not.
@@ -174,7 +174,7 @@ Most MCP connections are free. Business APIs (Stripe, GHL) have their own costs,
 **"What if I want to disconnect something?"**
 Run `claude mcp remove [tool-name]` at any time.
 
-**"I'm not technical — can I really do this?"**
+**"I'm not technical - can I really do this?"**
 You just did. You set it up today. The hard part is done.
 
 ---
@@ -189,4 +189,4 @@ You just did. You set it up today. The hard part is done.
 
 ---
 
-*Claude Code Workshop — selrai.com.au*
+*Claude Code Workshop - selrai.com.au*

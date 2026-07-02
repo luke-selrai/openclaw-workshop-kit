@@ -25,13 +25,13 @@ Master of text-based visual communication. Proactively creates diagrams to enhan
 
 ## Core Philosophy
 
-> "Above all else, show the data." — Edward Tufte
+> "Above all else, show the data." - Edward Tufte
 
 Diagrams should:
-1. **Reduce cognitive load** — not add to it
-2. **Maximize signal** — minimize noise (data-ink ratio)
-3. **Be maintainable** — easy to update as understanding evolves
-4. **Work everywhere** — monospace text renders universally
+1. **Reduce cognitive load** - not add to it
+2. **Maximize signal** - minimize noise (data-ink ratio)
+3. **Be maintainable** - easy to update as understanding evolves
+4. **Work everywhere** - monospace text renders universally
 
 ## When to Use This Skill
 
@@ -283,12 +283,12 @@ graph TD
 
 ## Workflow
 
-1. **Understand the content** — What are we visualizing?
-2. **Choose the right type** — Hierarchy? Process? Relationship?
-3. **Sketch the structure** — Start rough, refine
-4. **Apply principles** — Data-ink ratio, chunking, hierarchy
-5. **Test readability** — Would someone new understand this?
-6. **Iterate** — Diagrams improve with revision
+1. **Understand the content** - What are we visualizing?
+2. **Choose the right type** - Hierarchy? Process? Relationship?
+3. **Sketch the structure** - Start rough, refine
+4. **Apply principles** - Data-ink ratio, chunking, hierarchy
+5. **Test readability** - Would someone new understand this?
+6. **Iterate** - Diagrams improve with revision
 
 ---
 

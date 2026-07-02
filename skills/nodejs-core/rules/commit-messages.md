@@ -31,7 +31,7 @@ Use canonical Node.js-style prefixes such as:
 
 ## Footer rules (`Fixes:` vs `Refs:`)
 
-Use footer lines deliberately — they are not interchangeable.
+Use footer lines deliberately - they are not interchangeable.
 
 - Use `Fixes: <issue-url>` when the commit should close an issue.
 - Use `Refs: <issue-or-pr-url>` when linking related work that is **not** closed by this commit.

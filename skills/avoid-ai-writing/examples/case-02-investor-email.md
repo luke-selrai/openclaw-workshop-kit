@@ -1,4 +1,4 @@
-# Case 02 — Investor email with significance inflation
+# Case 02 - Investor email with significance inflation
 
 ## Input
 
@@ -28,8 +28,8 @@ revolutionary, game-changer, ecosystem, thought leader, spearheading, paradigm, 
 
 ## Reference rewrite
 
-> We help fintech teams move money faster and reconcile in real time. Two of our customers — one early-stage, one public — cut settlement times by more than half this quarter. We'd like 20 minutes to walk you through the numbers.
+> We help fintech teams move money faster and reconcile in real time. Two of our customers - one early-stage, one public - cut settlement times by more than half this quarter. We'd like 20 minutes to walk you through the numbers.
 
 ## Notes
 
-This input has 15+ flagged terms and zero concrete claims. The reference rewrite replaces inflated language with one named metric and one specific ask. If the model rewrites by swapping flagged words 1:1 without adding substance, that is itself a flag — the second-pass audit should catch that the rewrite is still vague.
+This input has 15+ flagged terms and zero concrete claims. The reference rewrite replaces inflated language with one named metric and one specific ask. If the model rewrites by swapping flagged words 1:1 without adding substance, that is itself a flag - the second-pass audit should catch that the rewrite is still vague.

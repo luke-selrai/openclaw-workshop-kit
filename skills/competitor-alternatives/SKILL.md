@@ -47,7 +47,7 @@ Before creating competitor pages, understand:
 - Acknowledge competitor strengths
 - Be accurate about your limitations
 - Don't misrepresent competitor features
-- Readers are comparing—they'll verify claims
+- Readers are comparing-they'll verify claims
 
 ### 2. Depth Over Surface
 - Go beyond feature checklists
@@ -205,9 +205,9 @@ Each format needs an index page that lists all pages of that type. These hub pag
 
 Looking to switch? See how [Your Product] compares to the tools you're evaluating:
 
-- **[Notion Alternative](#)** — Better for teams who need [X]
-- **[Airtable Alternative](#)** — Better for teams who need [Y]
-- **[Monday Alternative](#)** — Better for teams who need [Z]
+- **[Notion Alternative](#)** - Better for teams who need [X]
+- **[Airtable Alternative](#)** - Better for teams who need [Y]
+- **[Monday Alternative](#)** - Better for teams who need [Z]
 ```
 
 ---
@@ -233,9 +233,9 @@ Looking to switch? See how [Your Product] compares to the tools you're evaluatin
 
 Comparing your options? Our guides cover the top alternatives:
 
-- **[Best Notion Alternatives](#)** — 7 tools compared
-- **[Best Airtable Alternatives](#)** — 6 tools compared
-- **[Best Monday Alternatives](#)** — 5 tools compared
+- **[Best Notion Alternatives](#)** - 7 tools compared
+- **[Best Airtable Alternatives](#)** - 6 tools compared
+- **[Best Monday Alternatives](#)** - 5 tools compared
 ```
 
 ---
@@ -248,8 +248,8 @@ Comparing your options? Our guides cover the top alternatives:
 
 **Page structure**:
 1. Headline: "Compare [Your Product]"
-2. Section: "[Your Product] vs Competitors" — list of direct comparisons
-3. Section: "Head-to-Head Comparisons" — list of [A] vs [B] pages
+2. Section: "[Your Product] vs Competitors" - list of direct comparisons
+3. Section: "Head-to-Head Comparisons" - list of [A] vs [B] pages
 4. Brief methodology note
 5. CTA
 
@@ -259,9 +259,9 @@ Comparing your options? Our guides cover the top alternatives:
 
 ### [Your Product] vs. the Competition
 
-- **[[Your Product] vs Notion](#)** — Best for [differentiator]
-- **[[Your Product] vs Airtable](#)** — Best for [differentiator]
-- **[[Your Product] vs Monday](#)** — Best for [differentiator]
+- **[[Your Product] vs Notion](#)** - Best for [differentiator]
+- **[[Your Product] vs Airtable](#)** - Best for [differentiator]
+- **[[Your Product] vs Monday](#)** - Best for [differentiator]
 
 ### Other Comparisons
 
@@ -393,7 +393,7 @@ migration_from:
 
 ### Your Product Data
 
-Same structure for yourself—be honest:
+Same structure for yourself-be honest:
 
 ```yaml
 name: [Your Product]
@@ -569,7 +569,7 @@ We offer [migration support details]:
 ### What customers say about switching
 
 > "[Quote from customer who switched]"
-> — [Name], [Role] at [Company]
+> - [Name], [Role] at [Company]
 ```
 
 ### Social Proof Section
@@ -582,10 +582,10 @@ Focus on switchers:
 ### Switched from [Competitor]
 
 > "[Specific quote about why they switched and outcome]"
-> — [Name], [Role] at [Company]
+> - [Name], [Role] at [Company]
 
 > "[Another quote]"
-> — [Name], [Role] at [Company]
+> - [Name], [Role] at [Company]
 
 ### Results after switching
 - [Company] saw [specific result]

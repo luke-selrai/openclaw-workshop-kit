@@ -142,7 +142,7 @@ Common causes:
 ### Running Lighthouse
 
 ```bash
-# CLI (most reproducible — eliminates browser extension interference)
+# CLI (most reproducible - eliminates browser extension interference)
 npm install -g lighthouse
 lighthouse https://example.com --output html --output-path report.html
 
@@ -236,7 +236,7 @@ items.forEach((item, i) => {
 In the Performance tab, look for:
 - Purple "Recalculate Style" or "Layout" bars that repeat rapidly in a loop
 - "Forced reflow" warnings in the console
-- The "Recalculate Style" annotation "Recalculate style — Forced reflow is a likely performance bottleneck"
+- The "Recalculate Style" annotation "Recalculate style - Forced reflow is a likely performance bottleneck"
 
 ### Using requestAnimationFrame
 
@@ -314,7 +314,7 @@ const StableContext = createContext(null);
 
 function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  // dispatch is stable — memoize separately from state
+  // dispatch is stable - memoize separately from state
   const stable = useMemo(() => ({ dispatch }), []);
 
   return (
@@ -392,7 +392,7 @@ npx vite-bundle-visualizer
 ### What to Look For
 
 - Duplicate packages (lodash and lodash-es both bundled)
-- Large libraries used for a small feature (moment.js for date formatting — use date-fns instead)
+- Large libraries used for a small feature (moment.js for date formatting - use date-fns instead)
 - Missing tree-shaking (entire library imported when only one function is used)
 - Large third-party scripts (tracking, analytics) in the critical path
 

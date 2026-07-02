@@ -1,16 +1,16 @@
 # validate-api-spec.sh
 
 A zero-dependency linter for the API contract files in a directory. It
-catches the structural mistakes the SKILL's anti-pattern list warns about —
+catches the structural mistakes the SKILL's anti-pattern list warns about -
 verb-based URLs, missing pagination/error schemas, unsigned webhooks,
-missing versioning — before they reach review.
+missing versioning - before they reach review.
 
 ## Dependencies
 
-- **Bash** (4.x+) and **grep** — that's it. No `npm install`, no network.
+- **Bash** (4.x+) and **grep** - that's it. No `npm install`, no network.
 - Runs on macOS, Linux, WSL, and Git Bash on Windows.
 
-It does *not* parse YAML/SDL/proto semantically — it's a fast grep-based
+It does *not* parse YAML/SDL/proto semantically - it's a fast grep-based
 gate, not a replacement for a real validator. Pair it with
 `npx @redocly/cli lint` (OpenAPI), `npx graphql` (SDL), or `protoc`
 (proto) for full schema validation. See "Deeper validation" below.
@@ -51,11 +51,11 @@ subdirectories.
 Errors are blockers (verb URLs, missing `info`/`package`, field-number 0,
 `nullable` in an OpenAPI 3.1 spec). Warnings are advisories you should review
 but that won't fail CI. Exit `2` means the script ran against a directory with
-no API specs — a green pass on nothing would be misleading, so it's called out
+no API specs - a green pass on nothing would be misleading, so it's called out
 separately. The summary prints a `Files checked:` count so you can confirm it
 actually inspected what you expected.
 
-## Sample run — PASS
+## Sample run - PASS
 
 Against the bundled `references/` directory:
 
@@ -80,7 +80,7 @@ $ echo $?
 0
 ```
 
-## Sample run — FAIL
+## Sample run - FAIL
 
 Against a directory with a verb-based, info-less spec and an unsigned
 one-shot webhook config:

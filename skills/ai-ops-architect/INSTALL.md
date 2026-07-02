@@ -2,13 +2,13 @@
 
 > Private skill. Requires GitHub auth on the `luke-selrai` org or invitation.
 
-> **Already got this via `claude-workshop-kit`?** You're already installed — the workshop kit bundles
+> **Already got this via `claude-workshop-kit`?** You're already installed - the workshop kit bundles
 > this skill and wires it during its bootstrap-prompt setup. The `gh repo clone` + `chmod` steps below
 > are ONLY for standalone install directly from the `luke-selrai` org; skip them otherwise.
 
 ## What you get
 
-- `/ai-ops-architect` — guided 8-question audit → opportunity map → 1-3 builds in one session
+- `/ai-ops-architect` - guided 8-question audit → opportunity map → 1-3 builds in one session
 - 250 curated n8n workflow templates (sticky-note headers + meta sidecars)
 - 32 managed-agent presets across 8 verticals (real-estate, trades, coaches, etc.)
 - 4-tier connector strategy (Claude.ai passthrough → Rube → direct MCP → manual)
@@ -20,12 +20,12 @@
 - Claude Code CLI installed (`brew install claude` or follow Anthropic install)
 - `gh` CLI authenticated (`gh auth login`)
 - `python3`, `bash`, `jq` on PATH
-- An existing Anthropic key (for managed-agent builds) — set via `claude /login`
+- An existing Anthropic key (for managed-agent builds) - set via `claude /login`
 
 ## Install
 
 ```bash
-# Clone (private repo — gh handles auth)
+# Clone (private repo - gh handles auth)
 gh repo clone luke-selrai/ai-ops-architect ~/.claude/skills/ai-ops-architect
 
 # Make scripts executable
@@ -58,15 +58,15 @@ cd ~/.claude/skills/ai-ops-architect && git pull
 rm -rf ~/.claude/skills/ai-ops-architect
 ```
 
-(The `/n8n` and `/managed-agents-setup` skills remain — they're independent.)
+(The `/n8n` and `/managed-agents-setup` skills remain - they're independent.)
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---|---|
-| `/ai-ops-architect` not found | Restart Claude Code — skills are scanned on startup |
+| `/ai-ops-architect` not found | Restart Claude Code - skills are scanned on startup |
 | `audit.sh: command not found` | Run `chmod +x scripts/*.sh` |
-| Memory extraction returns nothing | Skill falls back to interactive 8Q intake — that's fine |
+| Memory extraction returns nothing | Skill falls back to interactive 8Q intake - that's fine |
 | Rube auth fails | `claude mcp remove rube` then re-run `connect-via-rube.sh --force` |
 | Template count < 250 | n8n.io rate-limited the curate run. Re-run `python3 scripts/curate-templates.py` |
 
@@ -86,5 +86,5 @@ rm -rf ~/.claude/skills/ai-ops-architect
 ## Privacy
 
 - `.state/` is per-laptop and gitignored. It holds the audit answers and selected builds. Never pushed.
-- API keys typed at Tier 4 prompts are written to `.state/secrets/` (chmod 600) — same gitignore rule.
+- API keys typed at Tier 4 prompts are written to `.state/secrets/` (chmod 600) - same gitignore rule.
 - The skill never logs secrets to stdout, the Claude transcript, or telemetry.

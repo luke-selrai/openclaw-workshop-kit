@@ -1,4 +1,4 @@
-# Cost Calculator — Managed Agents + Routines
+# Cost Calculator - Managed Agents + Routines
 
 ## Managed Agents (Platform API)
 
@@ -17,22 +17,22 @@
 
 ### Web Search
 
-**$10 per 1,000 searches** on top of tokens. Budget this tight — research-heavy agents can easily rack up $10s/day.
+**$10 per 1,000 searches** on top of tokens. Budget this tight - research-heavy agents can easily rack up $10s/day.
 
 ### Worked Examples
 
-**Example 1 — Light daily task (Sonnet 4.6, 15 min/day, low tokens)**:
+**Example 1 - Light daily task (Sonnet 4.6, 15 min/day, low tokens)**:
 - 15 min runtime × 30 days = 7.5 session-hours × $0.08 = **$0.60**
 - 5K input + 2K output per run × 30 = 150K in + 60K out × $3/M + $15/M = **$1.35**
 - Total: **~$2/month**
 
-**Example 2 — Moderate research (Opus 4.7, 1hr/day, mid tokens)**:
+**Example 2 - Moderate research (Opus 4.7, 1hr/day, mid tokens)**:
 - 30 session-hours × $0.08 = **$2.40**
 - 50K in + 15K out per run × 30 = 1.5M in + 450K out × $5/M + $25/M = **$18.75**
 - Plus 100 web searches × $0.01 = **$1**
 - Total: **~$22/month**
 
-**Example 3 — Heavy workload (Opus 4.7, 8hr/day)**:
+**Example 3 - Heavy workload (Opus 4.7, 8hr/day)**:
 - 240 session-hours × $0.08 = **$19.20**
 - 500K in + 150K out per run × 30 = 15M in + 4.5M out × $5/M + $25/M = **$187.50**
 - Total: **~$210/month**
@@ -77,7 +77,7 @@ Expected cost: ~$0.10/day
 ```
 
 ### Archive idle agents + sessions
-Sessions in `idle` status do not accrue runtime — but they hold resources. Archive:
+Sessions in `idle` status do not accrue runtime - but they hold resources. Archive:
 ```bash
 curl -X POST "https://api.anthropic.com/v1/sessions/$ID/archive" -H ...
 ```

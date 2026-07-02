@@ -1,4 +1,4 @@
-# Opportunity Catalog — 60 SMB automation patterns
+# Opportunity Catalog - 60 SMB automation patterns
 
 Each pattern is one row of a static catalog the audit phase ranks against the user's intake. Match score uses: industry tag overlap × pain-keyword match × tools-they-have coverage.
 
@@ -7,7 +7,7 @@ Schema for each entry:
 - **title** (one-line outcome)
 - **industries** (tags)
 - **trigger** (one line)
-- **runtime** (n8n / managed-agent / routine / server-cron — per decision matrix)
+- **runtime** (n8n / managed-agent / routine / server-cron - per decision matrix)
 - **services** (required external services)
 - **value** (estimated hrs/mo saved at typical SMB volume)
 - **difficulty** (auto-deploy / 5min-config / 30min-custom)
@@ -53,7 +53,7 @@ Schema for each entry:
 - **trigger**: VoIP/Twilio missed-call webhook
 - **runtime**: n8n
 - **services**: VoIP/Twilio, SMS, CRM
-- **value**: 6-10 hrs/mo (huge for trades — most missed calls = lost jobs)
+- **value**: 6-10 hrs/mo (huge for trades - most missed calls = lost jobs)
 - **difficulty**: 30min-custom
 - **pain_keywords**: missed, call, phone, callback
 
@@ -423,7 +423,7 @@ Schema for each entry:
 
 ---
 
-## AI Agents — high leverage (5)
+## AI Agents - high leverage (5)
 
 ### support-triage-agent
 - **title**: Inbound support ticket → categorise + draft reply
@@ -562,11 +562,11 @@ score = +3   if the user's industry is in the opportunity's industries (or indus
       + 1    if difficulty is "auto-deploy"
 ```
 
-Opportunities scoring > 0 are ranked highest-first; the top 5 are shown. (No budget term is applied today — keep this block in sync with `recommend.sh` `score()`.)
+Opportunities scoring > 0 are ranked highest-first; the top 5 are shown. (No budget term is applied today - keep this block in sync with `recommend.sh` `score()`.)
 
 ## How this catalog grows
 
-This is v1 — 50 patterns. Each new client engagement should produce 1-2 new patterns observed from real workflows. PR them into this file with the same schema. The catalog is the moat: the more patterns we have, the better the matching, the more value users get on first run.
+This is v1 - 50 patterns. Each new client engagement should produce 1-2 new patterns observed from real workflows. PR them into this file with the same schema. The catalog is the moat: the more patterns we have, the better the matching, the more value users get on first run.
 
 ## Sister skills (delegate, don't reinvent)
 
@@ -582,7 +582,7 @@ When an opportunity is heavy on a single domain, delegate to the sister skill ra
 
 ## Professional services patterns (legal, accounting, consultants)
 
-Service businesses bill on time, not products. The general catalog skews e-commerce/SaaS — these are the patterns that actually fit a 5-10 person professional firm.
+Service businesses bill on time, not products. The general catalog skews e-commerce/SaaS - these are the patterns that actually fit a 5-10 person professional firm.
 
 ### legal-conflict-check
 - **title**: New matter intake → search client/matter DB → flag conflicts → hold for partner sign-off
@@ -629,7 +629,7 @@ Service businesses bill on time, not products. The general catalog skews e-comme
 - **difficulty**: 5min-config
 - **pain_keywords**: document chase, reminder, follow-up, awaiting docs, outstanding
 
-`runtime: hybrid` entries are offered, not forced — see `hybrid-pattern.md`. Pure-`n8n` entries deploy as a single workflow with no agent.
+`runtime: hybrid` entries are offered, not forced - see `hybrid-pattern.md`. Pure-`n8n` entries deploy as a single workflow with no agent.
 
 ## Hybrid opportunities (Agent + n8n tools)
 
@@ -686,10 +686,10 @@ When the user picks a hybrid opportunity, the orchestrator runs `/n8n` first (bu
 
 The 60 opportunities here are the curated starter set. The 290+ n8n templates under `templates/n8n/` cover most ground. If a workshop attendee wants to keep going after their first 1-3 builds:
 
-- **Local skill discovery first**: `/skills-discovery` (workshop attendee tour) and `/find-skill` (search across 130+ installed skills) — already invoked at Phase 7 handoff.
-- **Browse n8n.io directly**: <https://n8n.io/workflows/> — 9,000+ templates, search by integration name (Stripe, Xero, Shopify, etc.). Templates curated here are filtered for ≥3 nodes + non-empty description; n8n.io has plenty more for niche needs.
-- **Awesome Claude Code** (community curated, MIT): <https://github.com/hesreallyhim/awesome-claude-code> — definitive list of skills, hooks, slash commands, agent orchestrators, and plugins.
-- **Awesome Claude Skills** (Composio): <https://github.com/ComposioHQ/awesome-claude-skills> — 1000+ skills/plugins. Composio MCP is already wired so installing one is low-friction.
-- **Anthropic plugin marketplace docs**: <https://code.claude.com/docs/en/plugin-marketplaces> — official guide. As of 2026 there are 2,500+ marketplaces with 4,200+ skills + 770+ MCP servers.
+- **Local skill discovery first**: `/skills-discovery` (workshop attendee tour) and `/find-skill` (search across 130+ installed skills) - already invoked at Phase 7 handoff.
+- **Browse n8n.io directly**: <https://n8n.io/workflows/> - 9,000+ templates, search by integration name (Stripe, Xero, Shopify, etc.). Templates curated here are filtered for ≥3 nodes + non-empty description; n8n.io has plenty more for niche needs.
+- **Awesome Claude Code** (community curated, MIT): <https://github.com/hesreallyhim/awesome-claude-code> - definitive list of skills, hooks, slash commands, agent orchestrators, and plugins.
+- **Awesome Claude Skills** (Composio): <https://github.com/ComposioHQ/awesome-claude-skills> - 1000+ skills/plugins. Composio MCP is already wired so installing one is low-friction.
+- **Anthropic plugin marketplace docs**: <https://code.claude.com/docs/en/plugin-marketplaces> - official guide. As of 2026 there are 2,500+ marketplaces with 4,200+ skills + 770+ MCP servers.
 
 **Rule for attendees**: install ONE thing at a time, run it, decide if it earns its keep, then add the next. Don't pre-load 20 skills before the first build pays off.

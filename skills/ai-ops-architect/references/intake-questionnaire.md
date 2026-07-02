@@ -1,6 +1,6 @@
-# Intake Questionnaire — 8 questions
+# Intake Questionnaire - 8 questions
 
-The skill asks these in order, one screen at a time. Each answer is captured into `.state/audit-result.json` so subsequent phases can reference them. Skip-to-default is allowed if the user already has a populated `~/.claude/projects/-Users-<name>/memory/MEMORY.md` — `audit.sh` extracts what it can and only asks for gaps.
+The skill asks these in order, one screen at a time. Each answer is captured into `.state/audit-result.json` so subsequent phases can reference them. Skip-to-default is allowed if the user already has a populated `~/.claude/projects/-Users-<name>/memory/MEMORY.md` - `audit.sh` extracts what it can and only asks for gaps.
 
 ## The 8 questions
 
@@ -67,7 +67,7 @@ The skill asks these in order, one screen at a time. Each answer is captured int
 - $2,000+
 
 ### 8. If you could fix ONE thing in the next 90 days, what would it be?
-**Why we ask**: the north-star outcome. Phase 3 (select) defaults to whichever opportunity-catalog match has the highest correlation with this answer. Free text — examples shown:
+**Why we ask**: the north-star outcome. Phase 3 (select) defaults to whichever opportunity-catalog match has the highest correlation with this answer. Free text - examples shown:
 - "Stop missing inbound leads"
 - "Automate quote follow-ups"
 - "Get my inbox to zero by Friday"
@@ -114,7 +114,7 @@ The 8 answers produce `.state/audit-result.json`:
 - `industry` → from `selrai-business-model.md` heading or known patterns
 - `tools` → from MEMORY.md "Tools Connected" section
 - `tech_comfort` → 5 if memory exists at all
-- Defaults the rest to "answer me" — so even Luke gets asked the pains + north-star, because those change.
+- Defaults the rest to "answer me" - so even Luke gets asked the pains + north-star, because those change.
 
 ## Edit / update
 

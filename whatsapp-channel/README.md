@@ -6,15 +6,15 @@ A two-way WhatsApp channel for Claude Code sessions, built on [Baileys](https://
 
 ## Features
 
-- **QR Code Login** — scan with your phone to link (no Business API needed)
-- **Two-way messaging** — receive messages in Claude, Claude replies via WhatsApp
-- **Persistent history** — every message is logged to disk so Claude can read past conversations on demand, even from before the current session started
-- **Permission relay** — approve/deny Claude's tool use from WhatsApp
-- **Self-only by default** — only *your own* linked phone can message Claude until you explicitly allow more numbers
-- **Group chat support** — works in group chats with group metadata
-- **Reactions** — Claude can react to messages with emoji
-- **Deduplication** — prevents duplicate message processing
-- **Auto-reconnect** — Claude Code restarts the server on disconnect
+- **QR Code Login** - scan with your phone to link (no Business API needed)
+- **Two-way messaging** - receive messages in Claude, Claude replies via WhatsApp
+- **Persistent history** - every message is logged to disk so Claude can read past conversations on demand, even from before the current session started
+- **Permission relay** - approve/deny Claude's tool use from WhatsApp
+- **Self-only by default** - only *your own* linked phone can message Claude until you explicitly allow more numbers
+- **Group chat support** - works in group chats with group metadata
+- **Reactions** - Claude can react to messages with emoji
+- **Deduplication** - prevents duplicate message processing
+- **Auto-reconnect** - Claude Code restarts the server on disconnect
 
 ## Requirements
 
@@ -26,11 +26,11 @@ A two-way WhatsApp channel for Claude Code sessions, built on [Baileys](https://
 
 ## Setup
 
-The steps below use **tabs for your operating system**. Pick the tab that matches the terminal you're in — the commands differ between **PowerShell** (Windows default), **Command Prompt** (Windows classic), and **macOS / Linux** (bash or zsh).
+The steps below use **tabs for your operating system**. Pick the tab that matches the terminal you're in - the commands differ between **PowerShell** (Windows default), **Command Prompt** (Windows classic), and **macOS / Linux** (bash or zsh).
 
 > **How to tell which shell you're in on Windows:**
-> - If your prompt looks like `PS C:\Users\you>` — you're in **PowerShell**.
-> - If it looks like `C:\Users\you>` — you're in **Command Prompt (cmd.exe)**.
+> - If your prompt looks like `PS C:\Users\you>` - you're in **PowerShell**.
+> - If it looks like `C:\Users\you>` - you're in **Command Prompt (cmd.exe)**.
 > - We recommend **PowerShell** on Windows. It's installed by default (search "PowerShell" in the Start menu).
 
 ### 1. Install Bun
@@ -100,11 +100,11 @@ Claude Code needs to know where the server lives. Add this to your project's `.m
   - **Command Prompt:** `cd src && echo %cd%\index.ts`
   - **macOS / Linux:** `realpath src/index.ts`
 
-> **Why `WA_AUTO_OPEN_QR=0` in `.mcp.json`:** when Claude Code opens a normal chat it loads MCP servers quietly in the background. You don't want a QR page popping up every time — so we leave auto-open *off* here and turn it *on* only for the first-run CLI command in step 4.
+> **Why `WA_AUTO_OPEN_QR=0` in `.mcp.json`:** when Claude Code opens a normal chat it loads MCP servers quietly in the background. You don't want a QR page popping up every time - so we leave auto-open *off* here and turn it *on* only for the first-run CLI command in step 4.
 
 ### 4. First-run: start Claude Code with the channel and scan the QR code
 
-This is the only command that differs across shells — environment variables are set differently in each one.
+This is the only command that differs across shells - environment variables are set differently in each one.
 
 **macOS / Linux (bash, zsh):**
 ```bash
@@ -134,7 +134,7 @@ Once linked, your session persists across restarts. Credentials are stored in:
 - **macOS / Linux:** `~/.claude/whatsapp-channel/auth/`
 - **Windows:** `%USERPROFILE%\.claude\whatsapp-channel\auth\`
 
-You only need `WA_AUTO_OPEN_QR=1` for the first run. On subsequent runs the saved credentials are reused and no QR is needed — so you can drop the env var and just run `claude --dangerously-load-development-channels server:whatsapp`.
+You only need `WA_AUTO_OPEN_QR=1` for the first run. On subsequent runs the saved credentials are reused and no QR is needed - so you can drop the env var and just run `claude --dangerously-load-development-channels server:whatsapp`.
 
 ### 5. Send yourself a message
 
@@ -198,7 +198,7 @@ Parameters (all optional):
 | `since_ts` | Only messages at or after this Unix timestamp (ms) |
 | `until_ts` | Only messages at or before this Unix timestamp (ms) |
 | `direction` | `"in"` (received) or `"out"` (sent by you/Claude) |
-| `limit` | Max results, 1–500 (default 50) |
+| `limit` | Max results, 1-500 (default 50) |
 
 Example prompts:
 - *"Read the last 20 WhatsApp messages I've received."*
@@ -211,7 +211,7 @@ List all chats that have appeared in the history log, sorted by most recent acti
 
 Example prompt: *"What WhatsApp chats have I received messages in recently?"*
 
-> **Note on scope:** The history log only contains messages the server has *observed while running*. It is not a dump of your entire WhatsApp account — Baileys cannot fetch historical messages from WhatsApp's servers. Think of it as "everything the channel has seen since you first installed it."
+> **Note on scope:** The history log only contains messages the server has *observed while running*. It is not a dump of your entire WhatsApp account - Baileys cannot fetch historical messages from WhatsApp's servers. Think of it as "everything the channel has seen since you first installed it."
 
 ---
 
@@ -237,7 +237,7 @@ List files in the current directory
 Reply yes abcde or no abcde
 ```
 
-Reply with `yes <code>` or `no <code>` to approve or deny. You can also answer in the Claude Code terminal — whichever comes first is used.
+Reply with `yes <code>` or `no <code>` to approve or deny. You can also answer in the Claude Code terminal - whichever comes first is used.
 
 ---
 
@@ -260,17 +260,17 @@ index.ts (MCP channel server) ──── stdio ──── Claude Code
     └── reply tool ◄───────────────────────────────┘
 ```
 
-- **session.ts** — Baileys socket creation, QR auth, credential management
-- **monitor.ts** — Inbound message listener, deduplication, access control
-- **history.ts** — JSONL persistence and query for past messages
-- **index.ts** — MCP server with channel capability, reply/react/history tools, permission relay
+- **session.ts** - Baileys socket creation, QR auth, credential management
+- **monitor.ts** - Inbound message listener, deduplication, access control
+- **history.ts** - JSONL persistence and query for past messages
+- **index.ts** - MCP server with channel capability, reply/react/history tools, permission relay
 
 ---
 
 ## Troubleshooting
 
 ### I'm on Windows and the README gave me `curl | bash` commands
-Earlier versions of this README were Unix-only. Make sure you're reading the version in this branch, and use the **Windows (PowerShell)** tabs above — they use `$env:NAME = "value"` for environment variables instead of `NAME=value`.
+Earlier versions of this README were Unix-only. Make sure you're reading the version in this branch, and use the **Windows (PowerShell)** tabs above - they use `$env:NAME = "value"` for environment variables instead of `NAME=value`.
 
 ### `bun` is not recognised after installing
 Close and reopen your terminal window. On Windows you may need to open a *new* PowerShell session (not the one you installed from).
@@ -299,9 +299,9 @@ Your Team or Enterprise admin needs to enable channels in the Claude Code settin
 
 - Media files are detected but not downloaded (shown as placeholders like `<media:image>`)
 - WhatsApp Web requires your phone to have internet access
-- Uses the unofficial WhatsApp Web protocol (Baileys) — not endorsed by Meta
+- Uses the unofficial WhatsApp Web protocol (Baileys) - not endorsed by Meta
 - Custom channels need `--dangerously-load-development-channels` during the research preview
-- The `whatsapp_history` tool can only return messages that the server observed while running — it cannot back-fill messages from before you installed the channel
+- The `whatsapp_history` tool can only return messages that the server observed while running - it cannot back-fill messages from before you installed the channel
 
 ## License
 

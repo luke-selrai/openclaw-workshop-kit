@@ -49,7 +49,7 @@ Specialized visual patterns for depth psychology work.
 ├─────────────────────────────────────────────────────────────────────────┤
 │                              EGO                                        │
 │                                                                         │
-│    Center of consciousness. "I" — but NOT the whole Self.               │
+│    Center of consciousness. "I" - but NOT the whole Self.               │
 │    Mediates between inner and outer worlds.                             │
 │                                                                         │
 ├─────────────────────────────────────────────────────────────────────────┤
@@ -104,7 +104,7 @@ Specialized visual patterns for depth psychology work.
 ┌────────────────────────────────────────────────────────────────────────┐
 │                           THE SHADOW                                   │
 │                                                                        │
-│   "Where there is light, there is shadow" — Jung                       │
+│   "Where there is light, there is shadow" - Jung                       │
 │                                                                        │
 ├───────────────────────────────────┬────────────────────────────────────┤
 │                                   │                                    │
@@ -228,7 +228,7 @@ CONTEMPORARY UNDERSTANDING OF ANIMA/ANIMUS
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                                                                         │
 │   Not bound by biological sex or gender identity                        │
-│   Represents the "Other" — the complementary force in the psyche        │
+│   Represents the "Other" - the complementary force in the psyche        │
 │                                                                         │
 │                        ┌───────────────────┐                            │
 │                        │                   │                            │
@@ -331,7 +331,7 @@ CONTEMPORARY UNDERSTANDING OF ANIMA/ANIMUS
 
 NOTE: This is a spiral, not linear.
       Each stage revisited at deeper levels.
-      Progress is not smooth — expect regression.
+      Progress is not smooth - expect regression.
 ```
 
 ### Ego-Self Axis
@@ -709,7 +709,7 @@ RECOVERY: Build relationship between WISE SELF and all parts.
 │   • Ego MUST maintain values                                      │
 │   • You can disagree with the figure                              │
 │   • Don't be swallowed by the unconscious                         │
-│   • "The unconscious is not God" — ego maintains responsibility   │
+│   • "The unconscious is not God" - ego maintains responsibility   │
 │                                                                   │
 └────────────────────────────────┬──────────────────────────────────┘
                                  │

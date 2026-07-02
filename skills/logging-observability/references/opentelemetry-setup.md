@@ -16,7 +16,7 @@ npm install @opentelemetry/sdk-node \
   @opentelemetry/semantic-conventions
 ```
 
-`src/telemetry.ts` — must be the first import in your entrypoint:
+`src/telemetry.ts` - must be the first import in your entrypoint:
 ```typescript
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
@@ -63,7 +63,7 @@ process.on('SIGTERM', async () => {
 });
 ```
 
-`src/index.ts` — always import telemetry first:
+`src/index.ts` - always import telemetry first:
 ```typescript
 import './telemetry';  // Must be first
 import express from 'express';
@@ -254,7 +254,7 @@ service:
       exporters: [prometheus]
 ```
 
-## Span Attributes — Semantic Conventions
+## Span Attributes - Semantic Conventions
 
 Use the OpenTelemetry semantic conventions for span attributes. Do not invent your own attribute names.
 
@@ -274,7 +274,7 @@ db.operation       = "INSERT"
 db.sql.table       = "orders"
 ```
 
-**Custom business spans** — add to your code:
+**Custom business spans** - add to your code:
 ```typescript
 const tracer = trace.getTracer('payment-service');
 

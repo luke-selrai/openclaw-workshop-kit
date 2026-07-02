@@ -1,10 +1,10 @@
-# Your First 5 Prompts — Copy and Paste These
+# Your First 5 Prompts - Copy and Paste These
 
 *Cut this card out and keep it on your desk.*
 
 ---
 
-## Prompt 1 — Research Your Competitors
+## Prompt 1 - Research Your Competitors
 
 ```
 Research my top 3 competitors in [your industry] and tell me:
@@ -17,11 +17,11 @@ Research my top 3 competitors in [your industry] and tell me:
 
 ---
 
-## Prompt 2 — Write a LinkedIn Post
+## Prompt 2 - Write a LinkedIn Post
 
 ```
 Write me 3 LinkedIn posts about [your topic or recent win].
-Make them sound like a real person wrote them — casual but professional.
+Make them sound like a real person wrote them - casual but professional.
 Each post should be under 200 words.
 ```
 
@@ -29,10 +29,10 @@ Each post should be under 200 words.
 
 ---
 
-## Prompt 3 — Write a Follow-Up Email
+## Prompt 3 - Write a Follow-Up Email
 
 ```
-Write a follow-up email to [describe the person] who [what they did — attended my event / enquired about my service / etc].
+Write a follow-up email to [describe the person] who [what they did - attended my event / enquired about my service / etc].
 Keep it short (under 150 words), casual, and end with a clear next step.
 ```
 
@@ -40,7 +40,7 @@ Keep it short (under 150 words), casual, and end with a clear next step.
 
 ---
 
-## Prompt 4 — Map Out Your Biggest Time Wasters
+## Prompt 4 - Map Out Your Biggest Time Wasters
 
 ```
 I want to understand which tasks in my business I could hand to an AI assistant.
@@ -52,14 +52,14 @@ Tell me the top 5 things I could automate or delegate to you, and why.
 
 ---
 
-## Prompt 5 — Create a Content Plan
+## Prompt 5 - Create a Content Plan
 
 ```
 Create a 4-week content plan for my business.
 My business: [what you do]
 My audience: [who your customers are]
 Platforms: [LinkedIn / Instagram / Facebook / etc]
-Goal: [what you want people to do — book a call / buy / follow / etc]
+Goal: [what you want people to do - book a call / buy / follow / etc]
 Include post ideas for each week with topics and hooks.
 ```
 
@@ -76,7 +76,7 @@ Include post ideas for each week with topics and hooks.
 
 ---
 
-## Bonus — If You've Connected Your Tools
+## Bonus - If You've Connected Your Tools
 
 Once you've connected your CRM, inbox, or payment tools, try these:
 
@@ -114,4 +114,4 @@ How many new customers did I get this month?
 
 ---
 
-*Claude Code Workshop — selrai.com.au*
+*Claude Code Workshop - selrai.com.au*

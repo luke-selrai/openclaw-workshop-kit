@@ -1,4 +1,4 @@
-# Brevo connector — live Phase 1 walkthrough (verified)
+# Brevo connector - live Phase 1 walkthrough (verified)
 
 A real, verified run of Phase 1 on 2026-06-22 (key redacted).
 
@@ -17,7 +17,7 @@ A real, verified run of Phase 1 on 2026-06-22 (key redacted).
    - Clicked the modal **Generate**.
 4. **reCAPTCHA gate.** Brevo gates key generation behind reCAPTCHA (invisible this run). After Generate, the create modal closed and a **reveal modal** appeared: *"copy this key and save it somewhere safe. For security reasons, we cannot show it to you again."*
 5. **Key-capture timing + format gotchas:**
-   - The reveal field took a moment to render — an immediate scan found nothing; a re-check found it.
+   - The reveal field took a moment to render - an immediate scan found nothing; a re-check found it.
    - The key is **~89 chars and contains hyphens** (`xkeysib-<hex>-<suffix>`), so a `[A-Za-z0-9]`-only regex failed to match it. Switched to `xkeysib-[A-Za-z0-9-]+`.
    - Captured via the modal's **Copy** button (authoritative; key shown once).
 6. **Verify + store.** Read clipboard, `GET /account` → 200 (SelrAI / rodolfo@selrai.com.au). Wrote `~/.config/brevo/credentials.env` (mode 600), scrubbed Playwright snapshots.
@@ -29,8 +29,8 @@ A real, verified run of Phase 1 on 2026-06-22 (key redacted).
 - **Key contains hyphens, ~89 chars** → use `xkeysib-[A-Za-z0-9-]+`; shown once → Copy-button capture.
 - **reCAPTCHA gates generation** (usually invisible; user solves if a challenge appears).
 - **Pick "No expiration"** (default is 1 year).
-- **Reveal modal renders with a slight delay** — re-check before concluding the key isn't there.
-- **`/smtp/email` and campaign sends actually deliver** — confirm with the user; reads + contact CRUD are safe.
+- **Reveal modal renders with a slight delay** - re-check before concluding the key isn't there.
+- **`/smtp/email` and campaign sends actually deliver** - confirm with the user; reads + contact CRUD are safe.
 
 ## Verification facts
 

@@ -1,4 +1,4 @@
-# Case 03 — Technical doc, domain-term preservation
+# Case 03 - Technical doc, domain-term preservation
 
 ## Input
 
@@ -13,9 +13,9 @@
 
 ## Must-NOT-flag (domain preservation)
 
-- **robust** — in a reliability/networking doc, "robust" is the precise term of art for fault-tolerance. Preserve it.
-- **failover** — domain term, not promotional.
-- **exponential backoff** — domain term.
+- **robust** - in a reliability/networking doc, "robust" is the precise term of art for fault-tolerance. Preserve it.
+- **failover** - domain term, not promotional.
+- **exponential backoff** - domain term.
 
 ## Must-not-survive
 

@@ -1,8 +1,8 @@
-# Employment Hero Connector — Install Walkthrough
+# Employment Hero Connector - Install Walkthrough
 
-> **Status: partial capture 2026-06-02 (sign-in flow + Hub-only pre-flight verified live; Payroll-product steps still illustrative).** First half (Steps 0-2.5) captured against Rodolfo's platinum free trial — confirmed the Hub-only trial does NOT include the Payroll product (`app.yourpayroll.com.au` returns the "Welcome to Payroll / contact your payroll administrator" dead-end). Steps 3-9 remain projected; the walkthrough will be replaced with a full captured reference run once smoke is performed on a real Payroll-enabled account.
+> **Status: partial capture 2026-06-02 (sign-in flow + Hub-only pre-flight verified live; Payroll-product steps still illustrative).** First half (Steps 0-2.5) captured against Rodolfo's platinum free trial - confirmed the Hub-only trial does NOT include the Payroll product (`app.yourpayroll.com.au` returns the "Welcome to Payroll / contact your payroll administrator" dead-end). Steps 3-9 remain projected; the walkthrough will be replaced with a full captured reference run once smoke is performed on a real Payroll-enabled account.
 
-This walkthrough documents the **default install path** (Phase 0 → Phase 1 → smoke). Single-mode SKILL — Employment Hero Payroll has no API sandbox; the participant's real payroll account is the data target.
+This walkthrough documents the **default install path** (Phase 0 → Phase 1 → smoke). Single-mode SKILL - Employment Hero Payroll has no API sandbox; the participant's real payroll account is the data target.
 
 **Pre-conditions:**
 
@@ -15,7 +15,7 @@ Projected total: ~60 seconds cached / ~120 seconds cold.
 
 ---
 
-## Step 0 — Credential check
+## Step 0 - Credential check
 
 ```bash
 $ test -f "$HOME/.config/employment-hero/credentials.json" \
@@ -28,27 +28,27 @@ missing
 
 ---
 
-## Step 1 — Welcome
+## Step 1 - Welcome
 
 Claude sends the 60-second expectation message.
 
 ---
 
-## Step 2 — Sign in (captured 2026-06-02)
+## Step 2 - Sign in (captured 2026-06-02)
 
 ```
 mcp__playwright__browser_navigate({ url: "https://secure.employmenthero.com/" })
 ```
 
-Captured: page is two-step. First page shows "Welcome, please enter your email address" with a single email field. After Next, password page renders, then optional 2FA (and first-time 2FA enrolment also auto-downloads `eh_recovery_code.txt` to `.playwright-mcp/` which must be quarantined to `~/.config/employment-hero/recovery-code.txt` mode 600 — see SKILL Step 2).
+Captured: page is two-step. First page shows "Welcome, please enter your email address" with a single email field. After Next, password page renders, then optional 2FA (and first-time 2FA enrolment also auto-downloads `eh_recovery_code.txt` to `.playwright-mcp/` which must be quarantined to `~/.config/employment-hero/recovery-code.txt` mode 600 - see SKILL Step 2).
 
-Probe post-sign-in via `browser_evaluate` returning `{ on_dashboard: !/\/users\/sign_in/.test(location.href) && !document.querySelector('input[type="password"]') }`. Don't use `browser_wait_for({ text: "Dashboard", time: 60 })` — the `time` parameter is ignored and the tool hard-caps at 30s.
+Probe post-sign-in via `browser_evaluate` returning `{ on_dashboard: !/\/users\/sign_in/.test(location.href) && !document.querySelector('input[type="password"]') }`. Don't use `browser_wait_for({ text: "Dashboard", time: 60 })` - the `time` parameter is ignored and the tool hard-caps at 30s.
 
 Captured Hub dashboard URL: `https://secure.employmenthero.com/app/v2/organisations/<org_id>/dashboard`. Top nav: Start Guide / Home / People / Billing / More. Expanded "More" menu adds: Recruitment / Benefits & Perks / Compliance / Time / **Pay** / Engagement / Development / Performance / Reports / Workflows / Settings.
 
 ---
 
-## Step 2.5 — Pre-flight: is Payroll product enabled? (captured 2026-06-02)
+## Step 2.5 - Pre-flight: is Payroll product enabled? (captured 2026-06-02)
 
 ```
 mcp__playwright__browser_navigate({ url: "https://app.yourpayroll.com.au/" })
@@ -56,12 +56,12 @@ mcp__playwright__browser_navigate({ url: "https://app.yourpayroll.com.au/" })
 
 Reference outputs (both captured 2026-06-02):
 
-- **Hub-only / Hub free trial**: page text begins *"Welcome to Payroll. Please check that the page you're trying to access is the correct address for accessing your payroll information."* — the Payroll module is not enabled. **Halt Phase 1 here** with the friendly message in SKILL Step 2.5; do not proceed to Step 3.
-- **Payroll-enabled** (projected — not yet captured live): page redirects to `https://app.yourpayroll.com.au/business/<id>/...` or similar tenant-scoped URL. Region detect can proceed.
+- **Hub-only / Hub free trial**: page text begins *"Welcome to Payroll. Please check that the page you're trying to access is the correct address for accessing your payroll information."* - the Payroll module is not enabled. **Halt Phase 1 here** with the friendly message in SKILL Step 2.5; do not proceed to Step 3.
+- **Payroll-enabled** (projected - not yet captured live): page redirects to `https://app.yourpayroll.com.au/business/<id>/...` or similar tenant-scoped URL. Region detect can proceed.
 
 ---
 
-## Step 3 — Launch Payroll product (skip if Step 2.5 already landed in it)
+## Step 3 - Launch Payroll product (skip if Step 2.5 already landed in it)
 
 ```js
 // Click Pay / Payroll / Launch Payroll (Hub v2 UI uses just "Pay")
@@ -83,7 +83,7 @@ For NZ: `yourpayroll.co.nz` → `api.yourpayroll.co.nz`, region `nz`. UK: `yourp
 
 ---
 
-## Step 4 — Business Settings → API
+## Step 4 - Business Settings → API
 
 ```
 mcp__playwright__browser_navigate({ url: "https://app.yourpayroll.com.au/management/api" })
@@ -93,24 +93,24 @@ mcp__playwright__browser_navigate({ url: "https://app.yourpayroll.com.au/managem
 
 ---
 
-## Step 5 — Generate API Key
+## Step 5 - Generate API Key
 
 Reference: page shows either no existing key + a **Generate** button, OR an existing key with a **Re-generate** button.
 
 If re-generating: Claude warns the participant about breaking other integrations before clicking:
 
 ```
-Claude: Quick heads-up — if you've connected Employment Hero Payroll
+Claude: Quick heads-up - if you've connected Employment Hero Payroll
         to any other tool, generating a new connection key will break
         that other connection. Are you sure to continue?
-Participant: Yes — no other tools using it.
+Participant: Yes - no other tools using it.
 ```
 
 Click Generate. Projected wall-clock: ~3 seconds.
 
 ---
 
-## Step 6 — DOM-extract via clipboard transit
+## Step 6 - DOM-extract via clipboard transit
 
 Save prior clipboard, then extract:
 
@@ -125,11 +125,11 @@ async () => {
 
 Projected return: `{ ok: true, key_len: 36 }` (GUIDs are 36 chars including 4 hyphens; some Employment Hero keys may be longer base64-flavoured strings).
 
-If the key is hidden behind a "Show" button, Claude tells the participant (using only allowed terms — "connection key" not "API key"): *"I need to see your connection key on the page to capture it — could you click 'Show' if there's a hidden-by-default option, please?"* Then retries.
+If the key is hidden behind a "Show" button, Claude tells the participant (using only allowed terms - "connection key" not "API key"): *"I need to see your connection key on the page to capture it - could you click 'Show' if there's a hidden-by-default option, please?"* Then retries.
 
 ---
 
-## Step 7 — Detect business_id
+## Step 7 - Detect business_id
 
 ```js
 () => {
@@ -142,7 +142,7 @@ Projected: returns the participant's business UUID or numeric ID from the URL Pa
 
 ---
 
-## Step 8 — Save credentials.json
+## Step 8 - Save credentials.json
 
 ```bash
 $ jq -r 'keys | join(",")' ~/.config/employment-hero/credentials.json
@@ -168,7 +168,7 @@ Restore prior clipboard.
 
 ---
 
-## Step 9 — Smoke test
+## Step 9 - Smoke test
 
 ```bash
 $ curl -sf -u "api:<key>" "https://api.yourpayroll.com.au/api/v2/business/<id>" | jq -r .name
@@ -178,7 +178,7 @@ Selrai Pty Ltd
 Claude tells the participant:
 
 ```
-Claude: All connected — your Employment Hero Payroll Selrai Pty Ltd
+Claude: All connected - your Employment Hero Payroll Selrai Pty Ltd
         is ready. Ask me things like 'list my employees' or 'show me
         last week's pay run'.
 ```
@@ -192,7 +192,7 @@ Participant: List my employees.
 Claude:      # Real-data gate
              eh_get "/business/<id>" | jq -r .name
              # → "Selrai Pty Ltd"
-Claude:      Just confirming — you're connected to your real Employment
+Claude:      Just confirming - you're connected to your real Employment
              Hero Payroll for Selrai Pty Ltd with 12 employees. Anything
              I do here changes your live payroll. OK to list employees?
 Participant: Yes.
@@ -246,9 +246,9 @@ Claude:      Approved Alice's 40 hours of Annual Leave starting July 15.
 
 | Failure | Cause | Fix |
 |---|---|---|
-| Step 3 Payroll launch button missing | Participant's role doesn't include Payroll access | Tell participant: "I don't see Payroll in your account — your role might not include it. Check with whoever owns your Employment Hero." |
+| Step 3 Payroll launch button missing | Participant's role doesn't include Payroll access | Tell participant: "I don't see Payroll in your account - your role might not include it. Check with whoever owns your Employment Hero." |
 | Step 4 API tab returns "Not Available" | Participant's Payroll role is view-only | Tell participant (allowed terms only): "I need Full Access to set up the connection. Could you ask the account owner to upgrade your role, or have them set up the connection and share the connection key with you?" |
-| Step 5 Generate button generates without warning prompt | UI variant — direct generate, no confirm dialog | Apply the warning prose preemptively before clicking |
+| Step 5 Generate button generates without warning prompt | UI variant - direct generate, no confirm dialog | Apply the warning prose preemptively before clicking |
 | Step 6 `{ ok: false }` (no key found) | Key is hidden behind "Show" button | Tell participant to click Show; retry the extract |
 | Step 7 business_id is null | URL doesn't contain `/business/<id>` (some Payroll URL patterns differ) | Navigate to `app.yourpayroll.*/business/` (list page) and extract from the first card's link |
 | Step 9 HTTP 401 immediately | API key region mismatch (e.g., AU host with NZ key) | Verify `api_endpoint` host matches the region of the participant's Payroll account |

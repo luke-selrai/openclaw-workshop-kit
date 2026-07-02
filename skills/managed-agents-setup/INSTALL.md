@@ -4,11 +4,11 @@
 
 ## What you get
 
-- `/managed-agents-setup` — Phase 0→7 guided setup of an Anthropic Managed Agent + Routine, with vault-backed MCP credentials
-- 35 business-outcome presets across 8 verticals (real-estate, trades, coaches, consultants, ecommerce, agencies, prof-services, hospitality, creators) — canonical preset file
+- `/managed-agents-setup` - Phase 0→7 guided setup of an Anthropic Managed Agent + Routine, with vault-backed MCP credentials
+- 35 business-outcome presets across 8 verticals (real-estate, trades, coaches, consultants, ecommerce, agencies, prof-services, hospitality, creators) - canonical preset file
 - 25 working scripts (preflight, install, vault-seeder, mcp-bridge, create-agent/env/routine, smoke-test, killswitch, daily-cost-monitor, ...)
 - 4-tier connector strategy (Claude.ai passthrough → Rube → direct MCP → manual paste)
-- Pairs with `/ai-ops-architect` and `/n8n` — same connector strategy, same refusal rules, single source of truth for presets
+- Pairs with `/ai-ops-architect` and `/n8n` - same connector strategy, same refusal rules, single source of truth for presets
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@
 ## Install
 
 ```bash
-# Clone (private repo — gh handles auth)
+# Clone (private repo - gh handles auth)
 gh repo clone luke-selrai/managed-agents-setup ~/.claude/skills/managed-agents-setup
 
 # Make scripts executable
@@ -42,7 +42,7 @@ In Claude Code, type:
 
 The driver agent walks Phase 0 → 7 with confirmation between each. You only approve prompts.
 
-If you don't already know which agent to build, run `/ai-ops-architect` first — it handles the discovery + audit and hands off to this skill with a chosen preset.
+If you don't already know which agent to build, run `/ai-ops-architect` first - it handles the discovery + audit and hands off to this skill with a chosen preset.
 
 ## Updating
 
@@ -60,7 +60,7 @@ rm -rf ~/.claude/skills/managed-agents-setup
 
 | Symptom | Fix |
 |---|---|
-| `/managed-agents-setup` not found | Restart Claude Code — skills scanned on startup |
+| `/managed-agents-setup` not found | Restart Claude Code - skills scanned on startup |
 | `ant: command not found` | Phase 2 install failed; `bash scripts/install-cli.sh` again |
 | API call returns 401 | Wrong API key; check keychain `security find-generic-password -a $USER -s anthropic-managed-agents -w` |
 | `vault-seeder.py` errors on a service | That service isn't in `references/mcp-servers-catalog.md`; either add it or use Tier 2 (Rube) |
@@ -96,10 +96,10 @@ Full troubleshooting tree: `references/troubleshooting.md`.
 
 - `~/.claude/managed-agents/` is per-laptop; never pushed to git.
 - Pasted API keys go to Mac keychain or Anthropic Vault; never logged or echoed.
-- Server pairing (Phase 9 in the full reference) is OPTIONAL — skill works standalone.
+- Server pairing (Phase 9 in the full reference) is OPTIONAL - skill works standalone.
 
 ## Pairs with
 
-- **`/ai-ops-architect`** — discovery + audit + opportunity map → delegates here for Managed Agent builds
-- **`/n8n`** — sister skill for workflow runtime; chosen when 2+ SaaS + webhook + no reasoning
-- **`server-setup`** — AWS infra layer; optional but enables sub-hourly cron + webhook glue
+- **`/ai-ops-architect`** - discovery + audit + opportunity map → delegates here for Managed Agent builds
+- **`/n8n`** - sister skill for workflow runtime; chosen when 2+ SaaS + webhook + no reasoning
+- **`server-setup`** - AWS infra layer; optional but enables sub-hourly cron + webhook glue

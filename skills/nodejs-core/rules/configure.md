@@ -1,6 +1,6 @@
 ---
 name: configure
-description: The ./configure script — when to run it and common flags
+description: The ./configure script - when to run it and common flags
 metadata:
   tags: configure, build, flags, debug, asan, ninja
 ---
@@ -96,7 +96,7 @@ make -j$(nproc)
 
 This produces both `./node` (release) and `./node_g` (debug, symlink to
 `out/Debug/node`). Use `./node_g` for debugging with gdb/lldb. It has
-DCHECKs enabled and is unoptimized — slower but catches bugs that release
+DCHECKs enabled and is unoptimized - slower but catches bugs that release
 builds miss.
 
 ## When You Must Reconfigure
@@ -104,7 +104,7 @@ builds miss.
 After running `./configure`, the config is stored in `config.gypi` and
 `config.mk`. You do **not** need to reconfigure when:
 
-- Editing existing `src/` or `lib/` files — just `make -j$(nproc)`
+- Editing existing `src/` or `lib/` files - just `make -j$(nproc)`
 - Editing `doc/` files
 - Editing test files
 

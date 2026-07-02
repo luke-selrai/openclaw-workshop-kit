@@ -4,7 +4,7 @@ Side-file companion to [SKILL.md](../SKILL.md). Each category names one tell, gi
 
 ## 1. Em dashes (P1)
 More than 1 per 1000 words signals AI rhythm.
-Example: "The project — a sweeping reimagining of the field — embarks on a journey."
+Example: "The project - a sweeping reimagining of the field - embarks on a journey."
 
 ## 2. Bold overuse (P1)
 **Random words** bolded for emphasis instead of structural use.
@@ -17,11 +17,11 @@ Section headers with leading emoji (🚀 Introduction, 💡 Key Insights).
 Bullet lists of 8+ items in under 200 words, or bare noun phrases as bullets.
 
 ## 5. Hedging
-"Perhaps," "could potentially," "may indicate" — uncertainty padding.
+"Perhaps," "could potentially," "may indicate" - uncertainty padding.
 Example: "This could potentially be a useful approach."
 
 ## 6. Hollow intensifiers
-"Genuine," "truly," "frankly," "really" — adds nothing.
+"Genuine," "truly," "frankly," "really" - adds nothing.
 Example: "This is truly a genuinely useful tool."
 
 ## 7. Rule of three (P2)
@@ -29,7 +29,7 @@ Compulsive "X, Y, and Z" triplets even when two or four would be honest.
 Example: "Fast, reliable, and scalable."
 
 ## 8. Word/phrase replacements (P1)
-Flagged vocabulary — see [replacements.md](replacements.md).
+Flagged vocabulary - see [replacements.md](replacements.md).
 Example: "Leverage cutting-edge tools to streamline workflows."
 
 ## 9. Template phrases (P1)
@@ -53,7 +53,7 @@ Restating the same noun three different ways in nearby sentences (tool/solution/
 Example: "Our tool is fast. The solution is scalable. The platform is reliable."
 
 ## 14. Vague attribution (P0)
-"Experts say," "studies suggest," "many believe" — no named source.
+"Experts say," "studies suggest," "many believe" - no named source.
 Example: "Studies suggest that this approach works well."
 
 ## 15. Filler phrases (P1)
@@ -70,17 +70,17 @@ Example: "Great question! Let me break this down for you."
 Four prestigious sources stacked without context (Harvard, MIT, Forbes, McKinsey in one paragraph).
 
 ## 19. Superficial -ing analyses
-"Understanding the dynamics," "exploring the implications," "examining the trends" — gerund titles that promise more than the content delivers.
+"Understanding the dynamics," "exploring the implications," "examining the trends" - gerund titles that promise more than the content delivers.
 
 ## 20. Promotional language
 "Nestled," "vibrant hub," "thriving ecosystem" without specifics.
 Example: "Nestled in a vibrant hub of innovation..."
 
 ## 21. Formulaic challenges
-"Despite challenges, [X] continues to thrive" — unnamed challenge, unnamed response.
+"Despite challenges, [X] continues to thrive" - unnamed challenge, unnamed response.
 
 ## 22. False ranges
-"From A to Z," "from startups to enterprises" — implied breadth that isn't real.
+"From A to Z," "from startups to enterprises" - implied breadth that isn't real.
 Example: "From small businesses to Fortune 500 companies, everyone benefits."
 
 ## 23. Inline-header lists
@@ -91,34 +91,34 @@ Example: "**Speed:** The tool is fast." (header just restates the line)
 Every word capitalized in headings ("How To Use This Tool" vs. "How to use this tool").
 
 ## 25. Cutoff disclaimers (P0)
-"As of my knowledge cutoff," "I cannot verify recent events" — explicit chatbot scaffolding.
+"As of my knowledge cutoff," "I cannot verify recent events" - explicit chatbot scaffolding.
 
 ## 26. "It's not X, it's Y" constructions
-Example: "It's not just a framework — it's a way of thinking."
+Example: "It's not just a framework - it's a way of thinking."
 
 ## 27. Hashtag stuffing (P0)
 6+ hashtags clustered at the end of a post.
 
 ## 28. Hedge-stacked predictions
-"May potentially become one of the most important..." — three hedges in one clause.
+"May potentially become one of the most important..." - three hedges in one clause.
 
 ## 29. "Let's" constructions
-"Let's explore," "Let's break this down," "Let's dive in" — filler transition disguised as invitation.
+"Let's explore," "Let's break this down," "Let's dive in" - filler transition disguised as invitation.
 
 ## 30. Reasoning chain artifacts
-"Let me think step by step," "Breaking this down," "Step 1:" — scaffolding leaking into output.
+"Let me think step by step," "Breaking this down," "Step 1:" - scaffolding leaking into output.
 
 ## 31. Rhetorical question openers
-"But what does this mean for developers?" — stalling tactic before the real point.
+"But what does this mean for developers?" - stalling tactic before the real point.
 
 ## 32. Sycophantic tone
-"Excellent point!" "You're absolutely right!" — reward framing from chat training.
+"Excellent point!" "You're absolutely right!" - reward framing from chat training.
 
 ## 33. Confidence calibration
-"It's worth noting," "Interestingly," "Surprisingly," "Importantly" — pre-interpreting significance for the reader.
+"It's worth noting," "Interestingly," "Surprisingly," "Importantly" - pre-interpreting significance for the reader.
 
 ## See also
 
-- [replacements.md](replacements.md) — the tiered word table
-- [../SKILL.md](../SKILL.md) — invocation flow and second-pass gate
-- [../examples/](../examples/) — before/after regression cases
+- [replacements.md](replacements.md) - the tiered word table
+- [../SKILL.md](../SKILL.md) - invocation flow and second-pass gate
+- [../examples/](../examples/) - before/after regression cases

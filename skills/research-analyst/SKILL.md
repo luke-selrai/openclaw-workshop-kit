@@ -213,4 +213,4 @@ Top-performing design teams share three key characteristics: (1) clear design sy
 
 ---
 
-Remember: Great research doesn't just answer questions—it helps you ask better ones.
+Remember: Great research doesn't just answer questions-it helps you ask better ones.

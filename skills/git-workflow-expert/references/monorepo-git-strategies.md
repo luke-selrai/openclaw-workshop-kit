@@ -49,7 +49,7 @@ git config core.fsmonitor.hookversion 2
 ```
 # .github/CODEOWNERS
 
-# Global — catch-all reviewers
+# Global - catch-all reviewers
 * @org/platform-team
 
 # Package-specific
@@ -179,6 +179,6 @@ git lfs migrate import --include="*.bin" --everything
 ### Cost Warning
 
 Git LFS has storage and bandwidth limits on GitHub. For ML models (&gt;1GB), consider:
-- DVC (Data Version Control) — pointers in git, data in S3/GCS
-- Hugging Face Hub — purpose-built for model versioning
-- Artifact registries — separate from git entirely
+- DVC (Data Version Control) - pointers in git, data in S3/GCS
+- Hugging Face Hub - purpose-built for model versioning
+- Artifact registries - separate from git entirely

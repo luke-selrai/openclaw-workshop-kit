@@ -1,4 +1,4 @@
-# /managed-agents-setup — what this is
+# /managed-agents-setup - what this is
 
 > The driver agent prints this on first invocation, then asks the user "ready?" before Phase 0. After it prints, agent writes `.state/splash-shown` to skip on subsequent invocations.
 
@@ -56,10 +56,10 @@
 
 ## Built-in safeguards
 
-- **Cost cap** — set a hard monthly spend limit in the Anthropic console; the daily monitor's cap is checked only against a verified cost figure (not the session-count estimate)
-- **Kill switch** — `bash scripts/killswitch.sh --agent <id>` interrupts that one agent's running sessions without affecting the others (disable its Routine separately at `claude.ai/code/routines` — stopping sessions does not disable the schedule)
-- **Daily monitor** — Telegrams / emails you an estimated activity report (session count) each morning
-- **Anthropic vault** — your API keys never live in plaintext on disk
+- **Cost cap** - set a hard monthly spend limit in the Anthropic console; the daily monitor's cap is checked only against a verified cost figure (not the session-count estimate)
+- **Kill switch** - `bash scripts/killswitch.sh --agent <id>` interrupts that one agent's running sessions without affecting the others (disable its Routine separately at `claude.ai/code/routines` - stopping sessions does not disable the schedule)
+- **Daily monitor** - Telegrams / emails you an estimated activity report (session count) each morning
+- **Anthropic vault** - your API keys never live in plaintext on disk
 
 ## Ready?
 

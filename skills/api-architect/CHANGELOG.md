@@ -4,17 +4,17 @@ All notable changes to the api-architect skill will be documented in this file.
 
 ## [2.1.0] - 2026-06-01
 
-Production-hardening pass — closes the five vetting weaknesses that held the
+Production-hardening pass - closes the five vetting weaknesses that held the
 skill at "Promising" (Evidence=3).
 
 ### Added
-- `references/webhook-delivery.yaml` — at-least-once delivery, backoff
+- `references/webhook-delivery.yaml` - at-least-once delivery, backoff
   retries + dead-letter, HMAC signing, event envelope, consumer contract
 - 11th anti-pattern: "Webhooks Without Retries or Signing" + a checklist item
 - "Choosing a Paradigm" decision matrix (payload shape, latency, public vs
   internal, streaming, caching, tooling maturity) replacing the one-line
   REST/GraphQL/gRPC guidance
-- `scripts/README.md` — dependencies, usage, and real PASS/FAIL sample runs
+- `scripts/README.md` - dependencies, usage, and real PASS/FAIL sample runs
 - Skim-able "What's inside" preamble at the top of every reference file
 - Webhook retry/signing checks in `validate-api-spec.sh`
 - Concrete generate-from-contract commands for the API docs, SDK, and
@@ -32,7 +32,7 @@ skill at "Promising" (Evidence=3).
   (removed in 3.1; the grep validator previously passed specs a real parser
   rejects). Surfaced by a skill-qa-harness live run.
 - `validate-api-spec.sh` no longer prints a green pass when it inspected zero
-  specs — it reports `Files checked:` and exits `2` (INCONCLUSIVE) instead
+  specs - it reports `Files checked:` and exits `2` (INCONCLUSIVE) instead
 
 ## [2.0.0] - 2024-12-12
 

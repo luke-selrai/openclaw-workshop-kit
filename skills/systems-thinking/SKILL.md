@@ -153,22 +153,22 @@ When caught in system trap:
 **Key insight:** "The Slinky bounces because of its internal spring structure, not because your hand released it"
 
 ### Parameter Obsession
-**Novice approach:** Spend 95% of effort adjusting numbers—taxes, budgets, standards, interest rates—while leaving structure unchanged  
+**Novice approach:** Spend 95% of effort adjusting numbers-taxes, budgets, standards, interest rates-while leaving structure unchanged  
 **Expert approach:** Focus on information flows, feedback loop strength, rules, self-organization, goals, and paradigms; recognize parameters as lowest leverage  
 **Timeline to mastery:** 1-2 years recognizing that "rearranging deck chairs on the Titanic" accomplishes nothing structural  
 **Key insight:** "Real leverage comes from who gets what information when, not from tweaking numbers"
 
 ### Blaming Individuals
 **Novice approach:** Attribute system failures to character flaws; fire and replace people; assume new actors will behave differently  
-**Expert approach:** Recognize bounded rationality—locally rational decisions produce collectively irrational outcomes due to information structure, not character  
+**Expert approach:** Recognize bounded rationality-locally rational decisions produce collectively irrational outcomes due to information structure, not character  
 **Timeline to mastery:** 3-6 months experiencing that replacement actors generate identical behaviors in unchanged structures  
-**Key insight:** "The invisible foot—individually sensible actions create systemic disasters when information is missing"
+**Key insight:** "The invisible foot-individually sensible actions create systemic disasters when information is missing"
 
 ### Linear Causality Assumption
 **Novice approach:** See only straight-line cause-effect (A causes B); expect proportional responses; surprised by sudden behavioral shifts  
 **Expert approach:** Recognize circular causality through feedback; understand nonlinearity means small changes flip system behavior; expect shifting loop dominance  
 **Timeline to mastery:** 6-18 months working with feedback models and observing exponential growth, collapse, and oscillation  
-**Key insight:** "Systems cause their own behavior through circular feedback—the answer lies within the system"
+**Key insight:** "Systems cause their own behavior through circular feedback-the answer lies within the system"
 
 ### Faster-Is-Better Fallacy
 **Novice approach:** Assume reducing delays always improves performance; speed up response times without considering oscillation  
@@ -186,23 +186,23 @@ When caught in system trap:
 **Novice approach:** Implement quick interventions addressing symptoms; prevent harder work of root cause solution; create dependency  
 **Expert approach:** Strengthen original system capacity; remove obstacles to natural correction; avoid creating dependencies; plan capability restoration before withdrawal  
 **Timeline to mastery:** 1-2 years recognizing "shifting burden to intervenor" pattern across multiple domains  
-**Key insight:** "Intervention atrophies the system's own corrective capacity—like muscles unused"
+**Key insight:** "Intervention atrophies the system's own corrective capacity-like muscles unused"
 
 ## Mental Models
 
-**The Bathtub (Stocks & Flows):** Water level changes based on faucet and drain, which can be temporarily decoupled—understanding that inflows and outflows operate independently is the foundation of all system analysis
+**The Bathtub (Stocks & Flows):** Water level changes based on faucet and drain, which can be temporarily decoupled-understanding that inflows and outflows operate independently is the foundation of all system analysis
 
-**The Slinky:** Demonstrates system behavior emerges from internal structure (the spring) rather than external manipulation (your hand)—the system causes its own behavior
+**The Slinky:** Demonstrates system behavior emerges from internal structure (the spring) rather than external manipulation (your hand)-the system causes its own behavior
 
-**Dancing vs. Conquering:** Mastery requires full engagement and responsiveness to feedback rather than prediction and control—letting go strategically, not pushing harder
+**Dancing vs. Conquering:** Mastery requires full engagement and responsiveness to feedback rather than prediction and control-letting go strategically, not pushing harder
 
-**The Boiling Frog:** Gradual changes evade notice because memory of past conditions erodes—drift to low performance happens slowly enough to reset expectations downward
+**The Boiling Frog:** Gradual changes evade notice because memory of past conditions erodes-drift to low performance happens slowly enough to reset expectations downward
 
 **Invisible Foot vs. Invisible Hand:** Adam Smith assumed perfect information creates collective good; bounded rationality means rational local decisions produce irrational collective outcomes
 
-**Playing Field Leveling:** Like starting a new Monopoly game—antitrust, progressive taxation, and wealth redistribution counter "success to the successful" reinforcing loops
+**Playing Field Leveling:** Like starting a new Monopoly game-antitrust, progressive taxation, and wealth redistribution counter "success to the successful" reinforcing loops
 
-**Three Fairy Tale Wishes:** Systems produce exactly and only what you ask for, not what you want—measure wrong things, get wrong outcomes perfectly delivered
+**Three Fairy Tale Wishes:** Systems produce exactly and only what you ask for, not what you want-measure wrong things, get wrong outcomes perfectly delivered
 
 ## Shibboleths
 - "Systems cause their own behavior" (not external events)
@@ -212,7 +212,7 @@ When caught in system trap:
 - "Shifting loop dominance explains complex behaviors"
 - "Parameters are the lowest leverage despite attracting most attention"
 - "Self-organization is the strongest form of resilience"
-- "There are no separate systems—boundaries depend on purpose"
+- "There are no separate systems-boundaries depend on purpose"
 
 ## References
 - Source: *Thinking in Systems: A Primer* by Donella H. Meadows (2008)

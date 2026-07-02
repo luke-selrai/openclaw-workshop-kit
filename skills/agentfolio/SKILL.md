@@ -69,7 +69,7 @@ This skill helps you:
 
 - If you plan to add a new skill (e.g., observability agent, security agent):
   - Use AgentFolio to find similar agents and features.
-  - Extract 3–5 concrete patterns you want to emulate or avoid.
+  - Extract 3-5 concrete patterns you want to emulate or avoid.
   - Translate those patterns into clear requirements for your own skill.
 
 ### 3) Vendor shortlisting

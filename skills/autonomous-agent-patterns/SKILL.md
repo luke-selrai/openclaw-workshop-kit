@@ -424,9 +424,9 @@ class SandboxedExecution:
 
 Implementation patterns with full code examples are in the `references/` folder:
 
-- **[Browser Automation](references/browser-automation.md)** — BrowserTool class, screenshot/click/form patterns, navigation state management
-- **[Context Management](references/context-management.md)** — ContextManager class, injection patterns, memory window strategies, token budgeting
-- **[MCP Integration](references/mcp-integration.md)** — MCP Server pattern, tool registration, server lifecycle, client connection patterns
+- **[Browser Automation](references/browser-automation.md)** - BrowserTool class, screenshot/click/form patterns, navigation state management
+- **[Context Management](references/context-management.md)** - ContextManager class, injection patterns, memory window strategies, token budgeting
+- **[MCP Integration](references/mcp-integration.md)** - MCP Server pattern, tool registration, server lifecycle, client connection patterns
 
 ## Best Practices Checklist
 

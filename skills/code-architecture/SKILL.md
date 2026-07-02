@@ -1,6 +1,6 @@
 ---
 name: code-architecture
-description: Application architecture patterns and code organization — clean architecture, hexagonal architecture, feature-based structure, dependency inversion, module boundaries, SOLID principles at module
+description: Application architecture patterns and code organization - clean architecture, hexagonal architecture, feature-based structure, dependency inversion, module boundaries, SOLID principles at module
   scale. Activate on "clean architecture", "hexagonal architecture", "feature-based structure", "dependency inversion", "module boundaries", "architecture pattern", "folder structure", "fat controller",
   "circular dependency", "IoC container". NOT for microservice decomposition (use microservices-patterns) or database schema design.
 allowed-tools: Read,Write,Edit,Bash,Grep,Glob
@@ -21,7 +21,7 @@ metadata:
 
 # Code Architecture
 
-Architecture patterns and code organization that survive contact with reality. The goal is code you can still understand, test, and change 18 months after it was written. This covers the decisions made at the module and application level — not how to split services, not how to design schemas, but how to organize the code within a single deployable unit.
+Architecture patterns and code organization that survive contact with reality. The goal is code you can still understand, test, and change 18 months after it was written. This covers the decisions made at the module and application level - not how to split services, not how to design schemas, but how to organize the code within a single deployable unit.
 
 ## When to Use
 
@@ -78,7 +78,7 @@ flowchart TD
 
 ## Clean Architecture Layers
 
-The classic onion — each ring depends only inward, never outward.
+The classic onion - each ring depends only inward, never outward.
 
 ```mermaid
 graph TB
@@ -227,7 +227,7 @@ src/
 **Novice**: "Controllers are where requests come in, so I'll put the logic there too. It's convenient."
 
 ```typescript
-// Fat controller — don't do this
+// Fat controller - don't do this
 app.post('/orders', async (req, res) => {
   const { userId, items } = req.body;
 
@@ -309,7 +309,7 @@ Ask: "What does this abstraction enable that I couldn't do otherwise?"
 
 **Detection**: Files named `*Interface.ts`, `*Abstract.ts`, `*Factory.ts` that have only one implementer and one caller, and that implementer never changes.
 
-**Timeline**: Enterprise Java (2005-2015) made abstract-everything the default. Spring Framework encouraged this. The post-2015 Node.js and Go communities pushed back with "boring technology" principles. In 2026, the right level of abstraction is contextual — neither zero nor maximum.
+**Timeline**: Enterprise Java (2005-2015) made abstract-everything the default. Spring Framework encouraged this. The post-2015 Node.js and Go communities pushed back with "boring technology" principles. In 2026, the right level of abstraction is contextual - neither zero nor maximum.
 
 ---
 
@@ -403,7 +403,7 @@ class InMemoryOrderRepository implements OrderRepository {
 Each feature/module should expose a public API via `index.ts`:
 
 ```typescript
-// features/orders/index.ts — public API
+// features/orders/index.ts - public API
 export { CreateOrderUseCase } from './create-order.use-case';
 export { OrderRepository } from './order.repository.interface';
 export type { Order, OrderStatus } from './order.entity';
@@ -445,5 +445,5 @@ Each architecture layer has a natural test type:
 
 ## References
 
-- `references/architecture-patterns.md` — Consult for detailed patterns: clean architecture layers, hexagonal ports and adapters, vertical slice, feature-based organization with worked examples
-- `references/dependency-inversion.md` — Consult for IoC containers in TypeScript and Python, constructor injection patterns, when DI is overkill, common DI anti-patterns
+- `references/architecture-patterns.md` - Consult for detailed patterns: clean architecture layers, hexagonal ports and adapters, vertical slice, feature-based organization with worked examples
+- `references/dependency-inversion.md` - Consult for IoC containers in TypeScript and Python, constructor injection patterns, when DI is overkill, common DI anti-patterns

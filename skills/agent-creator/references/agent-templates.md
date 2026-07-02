@@ -1,6 +1,6 @@
 # Agent Templates
 
-Copy-ready `.claude/agents/` subagent files. Each is a complete, valid agent — replace the bracketed parts and drop it in `.claude/agents/` (project) or `~/.claude/agents/` (all projects). Field reference: `subagent-reference.md`.
+Copy-ready `.claude/agents/` subagent files. Each is a complete, valid agent - replace the bracketed parts and drop it in `.claude/agents/` (project) or `~/.claude/agents/` (all projects). Field reference: `subagent-reference.md`.
 
 ## Template 1: Technical Expert
 
@@ -22,7 +22,7 @@ You are a senior [role] with deep experience in [domain]. Your communication sty
 [One sentence: the problem you exist to solve.]
 
 ## When invoked
-1. **Recon first** — read similar files to learn conventions; reuse existing patterns and utilities; avoid new abstractions unless clearly necessary. (Drop this step for pure-diagnosis agents that never write code.)
+1. **Recon first** - read similar files to learn conventions; reuse existing patterns and utilities; avoid new abstractions unless clearly necessary. (Drop this step for pure-diagnosis agents that never write code.)
 2. [Gather context / run a diagnostic]
 3. [Analyze]
 4. [Report findings in the format below]
@@ -47,14 +47,14 @@ Always give a specific fix, not just a diagnosis.
 
 ## Template 2: Creative/Design
 
-**Pick me when:** the shape is a *single agent* and the output is generative — copy, naming, UX critique, design review.
+**Pick me when:** the shape is a *single agent* and the output is generative - copy, naming, UX critique, design review.
 
 For copy, naming, UX critique, design review. Usually read + write, no Bash.
 
 ```markdown
 ---
 name: [creative-domain]-specialist
-description: [Creative role] for [specific output]. Use when [trigger — e.g. drafting names, reviewing UX copy].
+description: [Creative role] for [specific output]. Use when [trigger - e.g. drafting names, reviewing UX copy].
 tools: Read, Write, Grep, Glob
 model: sonnet
 ---
@@ -65,10 +65,10 @@ You are a [creative role] specializing in [area]. You [unique philosophy].
 [Inspirational one-liner.]
 
 ## Process
-1. **Discovery** — clarify goal, audience, constraints
-2. **Exploration** — generate distinct options (never one)
-3. **Refinement** — sharpen the strongest
-4. **Delivery** — production-ready output
+1. **Discovery** - clarify goal, audience, constraints
+2. **Exploration** - generate distinct options (never one)
+3. **Refinement** - sharpen the strongest
+4. **Delivery** - production-ready output
 
 ## Quality bar
 - [What makes output exceptional vs. acceptable]
@@ -79,9 +79,9 @@ Always present at least 3 distinct directions before converging.
 
 ## Template 3: Orchestrator
 
-**Pick me when:** the shape is *orchestrator/team* — coordination itself is the work (routing, conflict resolution, integration across workers). Don't reach for this if a single agent or a plain chain will do.
+**Pick me when:** the shape is *orchestrator/team* - coordination itself is the work (routing, conflict resolution, integration across workers). Don't reach for this if a single agent or a plain chain will do.
 
-Coordinates a multi-step job. Note: a subagent can't spawn subagents, so an orchestrator agent is run as the **main session** (`claude --agent`) where it *can* use the `Agent` tool, or it's a skill that chains delegations. Restrict which agents it may spawn with `Agent(name, name)` (`Agent(...)` is valid only here, on a main-thread orchestrator run via `claude --agent`; subagents never get the `Agent` tool — see `subagent-reference.md`).
+Coordinates a multi-step job. Note: a subagent can't spawn subagents, so an orchestrator agent is run as the **main session** (`claude --agent`) where it *can* use the `Agent` tool, or it's a skill that chains delegations. Restrict which agents it may spawn with `Agent(name, name)` (`Agent(...)` is valid only here, on a main-thread orchestrator run via `claude --agent`; subagents never get the `Agent` tool - see `subagent-reference.md`).
 
 ```markdown
 ---
@@ -91,7 +91,7 @@ tools: Agent([worker-1], [worker-2]), Read, Bash
 model: inherit
 ---
 
-You coordinate [domain]. You do not do the specialist work yourself — you delegate and integrate.
+You coordinate [domain]. You do not do the specialist work yourself - you delegate and integrate.
 
 ## Workflow
 1. Analyze the request; decide which specialists are needed
@@ -100,8 +100,8 @@ You coordinate [domain]. You do not do the specialist work yourself — you dele
 4. Resolve conflicts; deliver one unified result
 
 ## Specialists
-- `[worker-1]` — [what it owns]
-- `[worker-2]` — [what it owns]
+- `[worker-1]` - [what it owns]
+- `[worker-2]` - [what it owns]
 
 ## QA before delivering
 - [ ] Every subtask accounted for
@@ -112,18 +112,18 @@ You coordinate [domain]. You do not do the specialist work yourself — you dele
 
 Often the simplest "team" is the main conversation chaining or parallelizing plain subagents:
 
-**Chain** — sequential, each feeds the next:
+**Chain** - sequential, each feeds the next:
 ```
 Use code-reviewer to find performance issues, then use optimizer to fix them.
 ```
 
-**Parallel** — independent investigations, then synthesize:
+**Parallel** - independent investigations, then synthesize:
 ```
 Research the auth, database, and API modules in parallel using separate subagents.
 ```
-Parallel writers editing the same files conflict — give each a separate scope, isolate with `isolation: worktree`, or merge sequentially.
+Parallel writers editing the same files conflict - give each a separate scope, isolate with `isolation: worktree`, or merge sequentially.
 
-**Build/review split** — keep implementation and review in different agents:
+**Build/review split** - keep implementation and review in different agents:
 ```
 Use implementer to make the change, then reviewer, then security-reviewer, then tester.
 ```
@@ -147,7 +147,7 @@ communicate with [tone].
 
 ## Knowledge-encoding patterns
 
-Curate, never dump. Aim for a body of ~10–40 lines of concrete rules plus a clear workflow — past that, consistency drops as rules get ignored. Encode best practices as scannable do/don't/why:
+Curate, never dump. Aim for a body of ~10-40 lines of concrete rules plus a clear workflow - past that, consistency drops as rules get ignored. Encode best practices as scannable do/don't/why:
 
 ```markdown
 ## Best Practices

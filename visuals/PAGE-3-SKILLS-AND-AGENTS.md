@@ -1,4 +1,4 @@
-# PAGE 3 — Skills & Agents: Your AI Team
+# PAGE 3 - Skills & Agents: Your AI Team
 
 ---
 
@@ -61,29 +61,29 @@ Organised by what they do for your business:
 └────────────────────┴────────────────────────────────────────────┘
 ```
 
-> Claude chooses the right skill automatically based on what you ask. You don't need to know which skill does what — just ask in plain English.
+> Claude chooses the right skill automatically based on what you ask. You don't need to know which skill does what - just ask in plain English.
 
 ---
 
 ## The Levels of AI in Your Business
 
 ```
-LEVEL 1 — YOU DRIVE (where you start today)
+LEVEL 1 - YOU DRIVE (where you start today)
 ─────────────────────────────────────────────
   You ask → Claude answers → You act on it
   Like: "Research my top 3 competitors and summarise their pricing"
 
-LEVEL 2 — AI ASSISTS (next 30 days)
+LEVEL 2 - AI ASSISTS (next 30 days)
 ─────────────────────────────────────────────
   You ask → Claude does the task → You review and approve
   Like: "Draft 5 Instagram posts for next week based on my brand"
 
-LEVEL 3 — AI AUTOMATES (60-90 days)
+LEVEL 3 - AI AUTOMATES (60-90 days)
 ─────────────────────────────────────────────
   You set up a process → Claude runs it → Alerts you when done
   Like: Every Monday, research top industry news and send a summary
 
-LEVEL 4 — AI RUNS THE SYSTEM (what Selr AI runs)
+LEVEL 4 - AI RUNS THE SYSTEM (what Selr AI runs)
 ─────────────────────────────────────────────────
   Multiple AI agents work 24/7 on your business automatically
   You get phone notifications only when a decision is needed
@@ -91,13 +91,13 @@ LEVEL 4 — AI RUNS THE SYSTEM (what Selr AI runs)
 
 ---
 
-## Level 4 in Action — Selr AI's Agent Team
+## Level 4 in Action - Selr AI's Agent Team
 
 This is what Luke has built for his own business using the same tools you're setting up today.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    SELR AI — AGENT TEAM                          │
+│                    SELR AI - AGENT TEAM                          │
 │                  Runs 24/7 on a cloud server                    │
 │                                                                   │
 │  Harry (Lead Hunter)    ──▶  Finds new prospects daily          │
@@ -137,7 +137,7 @@ This is what Luke has built for his own business using the same tools you're set
                               ▼
                     📱 Luke's Phone (Telegram / WhatsApp)
               Notifications only when a decision
-              is needed — approve, skip, or redirect
+              is needed - approve, skip, or redirect
 ```
 
 ---
@@ -153,7 +153,7 @@ Agent finishes a task or finds something important
 Sends a message to your phone (Telegram or WhatsApp)
         │
         ▼
-📱 You get a notification — read it like a text
+📱 You get a notification - read it like a text
         │
         ▼
 Reply "Yes, send it" / "Skip" / "Book the meeting"
@@ -195,4 +195,4 @@ LEVEL 4 (Selr AI can build this for you)
 
 ---
 
-*Claude Code Workshop — selrai.com.au*
+*Claude Code Workshop - selrai.com.au*

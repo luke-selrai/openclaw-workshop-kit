@@ -1,9 +1,9 @@
-# Resilient-install checker fixture — intentionally NON-resilient bootstrap
+# Resilient-install checker fixture - intentionally NON-resilient bootstrap
 
 Feeds scripts/test-resilient-install.mjs. The block between the canonical
 anchors below deliberately violates every resilient-install rule in
 check-resilient-install.mjs, so the test can prove each detector fires. Do not
-"fix" the prose — it is broken on purpose.
+"fix" the prose - it is broken on purpose.
 
 I am setting up my Claude Code AI Business Assistant with Selr AI.
 

@@ -1,4 +1,4 @@
-# Phase 2 — Local CLI + SDK install
+# Phase 2 - Local CLI + SDK install
 
 ```bash
 bash ~/.claude/skills/managed-agents-setup/scripts/install-cli.sh

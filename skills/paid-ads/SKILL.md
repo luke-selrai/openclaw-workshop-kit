@@ -122,7 +122,7 @@ LI_LeadGen_CMOs-SaaS_Whitepaper_Mar24
 
 - **Lookalikes**: Base on best customers (by LTV), not all customers
 - **Retargeting**: Segment by funnel stage (visitors vs. cart abandoners)
-- **Exclusions**: Exclude existing customers and recent converters — showing ads to people who already bought wastes spend
+- **Exclusions**: Exclude existing customers and recent converters - showing ads to people who already bought wastes spend
 
 **For detailed targeting strategies by platform**: See [references/audience-targeting.md](references/audience-targeting.md)
 
@@ -307,7 +307,7 @@ To pull performance or manage campaigns from here:
 - **Meta (Facebook / Instagram):** use the [meta-business-suite-connector](../meta-business-suite-connector/SKILL.md) if it's set up; otherwise work in Meta Ads Manager and bring the numbers back.
 - **Google Ads, LinkedIn, TikTok:** the kit has no direct connection for these yet. Manage them in each platform's own Ads Manager and export reports when you need the data here.
 
-For conversion tracking, set it up in the platform itself (Google Ads / GA4, Meta Pixel, LinkedIn Insight Tag) — there's no tracking connector in the kit.
+For conversion tracking, set it up in the platform itself (Google Ads / GA4, Meta Pixel, LinkedIn Insight Tag) - there's no tracking connector in the kit.
 
 ---
 

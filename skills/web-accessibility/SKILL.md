@@ -450,7 +450,7 @@ describe('AccessibleButton', () => {
    - e.g., "Click red item" → "Click ⚠️ Error item"
 
 
-For full working implementations see **[references/examples.md](references/examples.md)** — Accessible Form (React with validation, ARIA live regions, error handling) and Accessible Tab UI (keyboard navigation, focus management, ARIA roles).
+For full working implementations see **[references/examples.md](references/examples.md)** - Accessible Form (React with validation, ARIA live regions, error handling) and Accessible Tab UI (keyboard navigation, focus management, ARIA roles).
 
 ## Best practices
 

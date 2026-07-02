@@ -1,12 +1,12 @@
-# ActiveCampaign v3 REST API — connector reference
+# ActiveCampaign v3 REST API - connector reference
 
 Companion to `activecampaign-connector/SKILL.md`. Verified live against a real account (selrai.activehosted.com, admin / rodolfo@selrai.com.au) on 2026-06-22.
 
 ## Auth
 
 - **Two credentials** (both from Settings → Developer, shown persistently):
-  - **API URL** — account-specific base, e.g. `https://selrai.api-us1.com` (region suffix varies: `api-us1`, etc.). Not secret.
-  - **API Key** — long hex (~72 chars). Secret. Sent in the **`Api-Token`** header.
+  - **API URL** - account-specific base, e.g. `https://selrai.api-us1.com` (region suffix varies: `api-us1`, etc.). Not secret.
+  - **API Key** - long hex (~72 chars). Secret. Sent in the **`Api-Token`** header.
 - **Header:** `Api-Token: <key>` (NOT `Authorization`, not a query param).
 - **Base URL:** `<API_URL>/api/3`
 - **Verify:** `GET /api/3/users/me` → `{ "user": { id, username, email } }`.
@@ -15,8 +15,8 @@ Companion to `activecampaign-connector/SKILL.md`. Verified live against a real a
 
 | Entity | Endpoint(s) | Verbs | Body key | Notes |
 |---|---|---|---|---|
-| User | `/users/me`, `/users` | GET | — | verify / token owner |
-| Contacts | `/contacts`, `/contacts/<id>` | GET/POST/PUT/DELETE | `contact` | DELETE → 200; POST upserts-ish (409 if exists — use `/contact/sync` to upsert) |
+| User | `/users/me`, `/users` | GET | - | verify / token owner |
+| Contacts | `/contacts`, `/contacts/<id>` | GET/POST/PUT/DELETE | `contact` | DELETE → 200; POST upserts-ish (409 if exists - use `/contact/sync` to upsert) |
 | Contact sync | `/contact/sync` | POST | `contact` | create-or-update by email |
 | Lists | `/lists`, `/lists/<id>` | GET/POST | `list` | mailing lists |
 | List membership | `/contactLists` | POST | `contactList` | subscribe/unsubscribe (`status`: 1=active, 2=unsub) |
@@ -24,17 +24,17 @@ Companion to `activecampaign-connector/SKILL.md`. Verified live against a real a
 | Contact tags | `/contactTags` | GET/POST/DELETE | `contactTag` | link contact↔tag |
 | Deals (CRM) | `/deals`, `/dealStages`, `/pipelines` | GET/POST/PUT | `deal` | light CRM |
 | Campaigns | `/campaigns` | GET/POST | `campaign` | **sending delivers real email** |
-| Automations | `/automations`, `/contactAutomations` | GET/POST | — | enroll contacts into automations |
+| Automations | `/automations`, `/contactAutomations` | GET/POST | - | enroll contacts into automations |
 | Custom fields | `/fields`, `/fieldValues` | GET/POST/PUT | `field`/`fieldValue` | |
 
 ## Conventions
 
 - **Pagination:** `?limit=N&offset=M` (limit max 100; default 20). Response carries `meta.total`.
-- **Write envelope:** every create/update wraps the payload in the singular entity key — `{"contact":{...}}`, `{"tag":{...}}`, `{"deal":{...}}`.
+- **Write envelope:** every create/update wraps the payload in the singular entity key - `{"contact":{...}}`, `{"tag":{...}}`, `{"deal":{...}}`.
 - **DELETE returns 200** (with a body), not 204.
 - **Filtering:** many list endpoints support `filters[<field>]=value` (e.g. `/contacts?filters[email]=jane@example.com`) and `?search=`.
 - **Upsert contacts:** plain `POST /contacts` errors if the email exists; use `POST /contact/sync` to create-or-update.
-- **Sending is real:** campaign send + automation enrollment email actual contacts — gate behind explicit user confirmation.
+- **Sending is real:** campaign send + automation enrollment email actual contacts - gate behind explicit user confirmation.
 
 ## Recipes
 

@@ -37,7 +37,7 @@ make -j$(nproc)   # Must still build once with this flag
 ```
 
 After this one-time build, changes to `lib/` files take effect immediately
-without rebuilding. This does NOT work for `src/` changes — those always
+without rebuilding. This does NOT work for `src/` changes - those always
 require a rebuild.
 
 **When in doubt, rebuild.** A rebuild of unchanged files is fast. Testing
@@ -70,7 +70,7 @@ For configure flags (debug builds, ASan, Ninja, etc.), see
 
 If a build fails partway through:
 - Fix the error
-- Run `make -j$(nproc)` again — it picks up where it left off
+- Run `make -j$(nproc)` again - it picks up where it left off
 - Only recompiles changed files and their dependents
 
 If the build is completely broken:
@@ -78,7 +78,7 @@ If the build is completely broken:
 make clean          # Remove object files, keep config
 make -j$(nproc)     # Full rebuild
 
-# Nuclear option — removes everything including config:
+# Nuclear option - removes everything including config:
 make distclean
 ./configure          # Must reconfigure (see configure.md for flags)
 make -j$(nproc)
@@ -115,7 +115,7 @@ This runs all linters: JavaScript (ESLint), C++ (cpplint), Markdown
 After making C++ changes, format them with `clang-format`:
 
 ```bash
-# First time only — install the clang-format tooling:
+# First time only - install the clang-format tooling:
 make format-cpp-build
 
 # Format staged changes (default):
@@ -255,7 +255,7 @@ make list-gtests
 # 1. Make your changes to lib/
 $EDITOR lib/internal/streams/transform.js
 
-# 2. Rebuild (MANDATORY — JS is embedded in the binary)
+# 2. Rebuild (MANDATORY - JS is embedded in the binary)
 make -j$(nproc)
 
 # 3. Lint JavaScript
@@ -320,7 +320,7 @@ make test
 ### Testing without rebuilding
 
 ```bash
-# WRONG — tests the old binary, not your changes:
+# WRONG - tests the old binary, not your changes:
 $EDITOR lib/internal/streams/transform.js
 ./node test/parallel/test-stream-transform.js    # ← STALE CODE
 
