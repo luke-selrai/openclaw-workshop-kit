@@ -2,7 +2,7 @@
 name: code-architecture
 description: Application architecture patterns and code organization — clean architecture, hexagonal architecture, feature-based structure, dependency inversion, module boundaries, SOLID principles at module
   scale. Activate on "clean architecture", "hexagonal architecture", "feature-based structure", "dependency inversion", "module boundaries", "architecture pattern", "folder structure", "fat controller",
-  "circular dependency", "IoC container". NOT for microservice decomposition (use microservices-patterns) or database schema design (use database-design-patterns).
+  "circular dependency", "IoC container". NOT for microservice decomposition (use microservices-patterns) or database schema design.
 allowed-tools: Read,Write,Edit,Bash,Grep,Glob
 metadata:
   category: Code Quality & Testing
@@ -13,10 +13,6 @@ metadata:
   - hexagonal-architecture
   - feature-based-structure
   pairs-with:
-  - skill: refactoring-surgeon
-    reason: Refactoring implements the architectural patterns that code-architecture prescribes
-  - skill: monorepo-management
-    reason: Monorepo workspace boundaries enforce architectural module separation
   - skill: microservices-patterns
     reason: Service decomposition decisions depend on application architecture patterns
   - skill: typescript-advanced-patterns
@@ -41,7 +37,7 @@ Architecture patterns and code organization that survive contact with reality. T
 
 **NOT for**:
 - Splitting a monolith into microservices (use `microservices-patterns`)
-- Database schema design, normalization, query optimization (use `database-design-patterns`)
+- Database schema design, normalization, query optimization
 - Framework-specific routing or middleware setup
 - CI/CD pipeline architecture
 
