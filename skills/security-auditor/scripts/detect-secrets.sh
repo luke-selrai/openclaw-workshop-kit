@@ -109,7 +109,7 @@ while IFS=: read -r file line content; do
             ((HIGH_COUNT++))
         fi
     fi
-done < <(eval "find '$TARGET_DIR' -type f $FIND_EXCLUDES -exec grep -HinE '(api[_-]?key|apikey)[[:space:]]*[:=][[:space:]]*[\"'"'"'][A-Za-z0-9_-]{20,}[\"'"'"']' {} \; 2>/dev/null" || true)
+done < <(eval "find '$TARGET_DIR' -type f $FIND_EXCLUDES -exec grep -HinE '(api[_-]?key|apikey)[[:space:]]*[:=][[:space:]]*[\"'\\''][A-Za-z0-9_-]{20,}[\"'\\'']' {} \; 2>/dev/null" || true)
 
 # JWT tokens
 while IFS=: read -r file line content; do
@@ -144,7 +144,7 @@ while IFS=: read -r file line content; do
             ((MEDIUM_COUNT++))
         fi
     fi
-done < <(eval "find '$TARGET_DIR' -type f $FIND_EXCLUDES -exec grep -HinE 'password[[:space:]]*[:=][[:space:]]*[\"'"'"'][^\"'"'"']{8,}[\"'"'"']' {} \; 2>/dev/null" || true)
+done < <(eval "find '$TARGET_DIR' -type f $FIND_EXCLUDES -exec grep -HinE 'password[[:space:]]*[:=][[:space:]]*[\"'\\''][^\"'\\'']{8,}[\"'\\'']' {} \; 2>/dev/null" || true)
 
 # Generate report
 REPORT=$(jq -n \

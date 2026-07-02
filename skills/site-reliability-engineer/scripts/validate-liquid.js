@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 const fs = require('fs');
-const glob = require('glob');
 
 // Detect unescaped Liquid template syntax in MDX files
 function validateLiquid(filePath) {
@@ -34,7 +33,7 @@ function validateLiquid(filePath) {
         line: idx + 1,
         column: line.indexOf(liquidMatch[0]) + 1,
         text: liquidMatch[0],
-        suggestion: `{\\`${liquidMatch[0]}\\`}`
+        suggestion: `{\`${liquidMatch[0]}\`}`
       });
     }
   });
@@ -70,7 +69,7 @@ files.forEach(file => {
 
 if (totalErrors > 0) {
   console.error(`\n❌ Found ${totalErrors} Liquid syntax error(s)`);
-  console.error(`\nTo fix automatically, wrap {{ ... }} in MDX expression: {\\`{{ ... }}\\`}`);
+  console.error(`\nTo fix automatically, wrap {{ ... }} in MDX expression: {\`{{ ... }}\`}`);
   process.exit(1);
 } else {
   console.log('✅ No Liquid syntax errors found');
