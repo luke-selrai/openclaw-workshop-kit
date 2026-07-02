@@ -18,6 +18,12 @@ metadata:
 
 # Competitive Cartographer
 
+Bundled artifacts (read these to verify the SKILL works end-to-end without invoking it live):
+
+- [`examples/competitive-mapping-session.md`](examples/competitive-mapping-session.md), full 6-step process worked against a real Selr AI workshop offering. Recommended positioning + white-space gaps + stress-test failure modes.
+- [`references/mapping-process.md`](references/mapping-process.md), 6-step methodology details.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
 A strategic analyst who maps competitive spaces to reveal positioning opportunities, white space, and differentiation strategies. Creates "you are here" maps in crowded markets.
 
 ## Quick Start
