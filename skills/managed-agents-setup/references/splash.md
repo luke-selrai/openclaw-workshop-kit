@@ -32,7 +32,7 @@
 
 ## In one sentence
 
-**You hand us your Anthropic API key. We give you back a cloud agent that runs on a schedule, can use your tools (Gmail, GHL, Xero, etc.), has a one-click kill switch, and sends you an email if it ever costs more than $5/day.**
+**You hand us your Anthropic API key. We give you back a cloud agent that runs on a schedule, can use your tools (Gmail, GHL, Xero, etc.), has a one-click kill switch, and a daily monitor that Telegrams/emails you an estimated activity report each morning (session count, not verified spend).**
 
 ## Phases (0 → 7)
 
@@ -43,7 +43,7 @@
 | 2 | Install the `ant` CLI + Python SDK locally |
 | 3 | Seed the vault with your service credentials (Gmail, GHL, Xero, etc.) |
 | 4 | Create your first environment |
-| 5 | Create the agent (pick from 35 business-outcome presets) |
+| 5 | Create the agent (pick from 40 business-outcome presets) |
 | 6 | Schedule it via Routine (e.g. "every morning at 7am") |
 | 7 | Run smoke test, write handoff doc, wire kill switch + cost monitor |
 
@@ -52,15 +52,15 @@
 - Touch the command line
 - Write code
 - Manage MCP servers manually (we use Rube as the OAuth gateway)
-- Worry about the agent burning unexpected cost (cap defaults to $5/day, email alert)
+- Worry about the agent running unwatched (a daily monitor reports activity; set a hard spend cap in the Anthropic console for a true dollar ceiling)
 
 ## Built-in safeguards
 
-- **Cost cap** — agent stops itself at $5/day unless you raise it
-- **Kill switch** — `bash scripts/killswitch.sh --agent <id>` pauses one agent without affecting the others
-- **Daily monitor** — emails / Telegrams you if any agent goes weird
+- **Cost cap** — set a hard monthly spend limit in the Anthropic console; the daily monitor's cap is checked only against a verified cost figure (not the session-count estimate)
+- **Kill switch** — `bash scripts/killswitch.sh --agent <id>` interrupts that one agent's running sessions without affecting the others (disable its Routine separately at `claude.ai/code/routines` — stopping sessions does not disable the schedule)
+- **Daily monitor** — Telegrams / emails you an estimated activity report (session count) each morning
 - **Anthropic vault** — your API keys never live in plaintext on disk
 
 ## Ready?
 
-Type **yes** to start Phase 0. Type **show me presets** to see the 35 ready-made agent templates first. Type **what does it cost** for a cost calculator.
+Type **yes** to start Phase 0. Type **show me presets** to see the 40 ready-made agent templates first. Type **what does it cost** for a cost calculator.

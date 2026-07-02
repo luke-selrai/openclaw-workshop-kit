@@ -15,29 +15,37 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-STATE = Path(os.path.expanduser("~/.claude/managed-agents"))
-TEMPLATE = Path(os.path.expanduser("~/.claude/skills/managed-agents-setup/references/handoff-template.md"))
-PRESETS = Path(os.path.expanduser("~/.claude/skills/managed-agents-setup/references/business-outcome-presets.json"))
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+# Resolve script-relative paths (scripts/ -> skill root). Never hardcode ~/.claude.
+SKILL_ROOT = Path(
+    os.environ.get("MANAGED_AGENTS_SKILL_ROOT", "")
+    or Path(__file__).resolve().parent.parent
+)
+STATE = Path(os.environ.get("MANAGED_AGENTS_STATE", "") or os.path.expanduser("~/.claude/managed-agents"))
+TEMPLATE = SKILL_ROOT / "references" / "handoff-template.md"
+PRESETS = SKILL_ROOT / "references" / "business-outcome-presets.json"
 OUT = STATE / "handoff.md"
 
 
 def read_id(name):
     f = STATE / name
-    return f.read_text().strip() if f.exists() else None
+    return f.read_text(encoding="utf-8").strip() if f.exists() else None
 
 
 def list_agents():
     d = STATE / "agents"
     if not d.exists():
         return []
-    return [(p.stem, p.read_text().strip()) for p in d.glob("*.txt")]
+    return [(p.stem, p.read_text(encoding="utf-8").strip()) for p in d.glob("*.txt")]
 
 
 def list_routines(agent_id):
     d = STATE / "routines"
     if not d.exists():
         return []
-    return [p.read_text().strip() for p in d.glob(f"{agent_id}.txt")]
+    return [p.read_text(encoding="utf-8").strip() for p in d.glob(f"{agent_id}.txt")]
 
 
 def main():
@@ -53,7 +61,7 @@ def main():
     presets = {}
     if PRESETS.exists():
         try:
-            data = json.loads(PRESETS.read_text())
+            data = json.loads(PRESETS.read_text(encoding="utf-8"))
             presets = {k: v for k, v in data.items() if k != "_meta"}
         except (json.JSONDecodeError, KeyError):
             pass
@@ -66,18 +74,27 @@ def main():
     # Build the agents table
     agent_rows = []
     services_set = set()
-    for i, (preset_id, agent_id) in enumerate(agents[:5], 1):
+    for i, (preset_id, agent_id) in enumerate(agents, 1):
         preset = presets.get(preset_id, {})
-        name = preset.get("title") or preset_id
+        name = preset.get("name") or preset_id
         model = preset.get("model") or "claude-sonnet-4-6"
         cost = preset.get("estimated_cost_per_month") or "$5-30/mo"
-        for s in preset.get("services_required", []):
-            services_set.add(s)
+        for s in preset.get("mcp_servers", []):
+            svc = s.get("name") if isinstance(s, dict) else None
+            if svc:
+                services_set.add(svc)
         routines = list_routines(agent_id)
         routine_id = routines[0] if routines else "(none)"
+        # killswitch.sh --agent <id> scopes to THIS agent's sessions only (fail-safe
+        # filter). It does NOT stop every agent and does NOT disable Routines —
+        # see killswitch.sh --help. Phrase honestly so the owner is not told a
+        # command that halts the whole account.
+        kill = (
+            f"`bash scripts/killswitch.sh --agent {agent_id}` "
+            f"(stops sessions for this agent; see killswitch.sh --help)"
+        )
         agent_rows.append(
-            f"| {i} | {name} | `{model}` | `{agent_id}` | {cost} | "
-            f"`bash ~/.claude/skills/managed-agents-setup/scripts/killswitch.sh --agent {agent_id}` |"
+            f"| {i} | {name} | `{model}` | `{agent_id}` | {cost} | {kill} |"
         )
 
     services_table = "\n".join(
@@ -85,7 +102,7 @@ def main():
     ) or "| (none recorded) | | |"
 
     # Read template, do mustache-style substitution
-    src = TEMPLATE.read_text()
+    src = TEMPLATE.read_text(encoding="utf-8")
     out = src
     out = out.replace("{{DATE}}", today)
     out = out.replace("{{vault_id}}", vault_id)
@@ -118,7 +135,7 @@ def main():
 
     STATE.mkdir(parents=True, exist_ok=True)
     tmp = OUT.with_suffix(".md.tmp")
-    tmp.write_text(out)
+    tmp.write_text(out, encoding="utf-8")
     os.replace(tmp, OUT)
     OUT.chmod(0o600)
     print(f"Rendered handoff: {OUT}")

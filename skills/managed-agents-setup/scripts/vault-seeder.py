@@ -43,6 +43,10 @@ STATE_DIR = pathlib.Path.home() / ".claude" / "managed-agents"
 STATE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Map env var name -> (MCP server URL, auth type, credential display name)
+# SECURITY: every MCP host here must be a REAL remote MCP endpoint — seeding a credential to a
+# fabricated/typo host sends a live secret to a server that may not be who you think. Verify each
+# host against references/mcp-bridge.json (the source-of-truth connection map) before enabling it;
+# entries whose mcp-bridge ma_url is null are commented out below rather than seeded.
 # Multiple env vars can point to the same URL — vault-seeder dedupes by URL so
 # whichever one is populated wins. This makes the seeder tolerant of varied naming
 # conventions (Luke's server uses HIGHLEVEL_TOKEN; others use GHL_API_KEY).
@@ -51,14 +55,14 @@ MAPPINGS = {
     "GHL_API_KEY":           ("https://services.leadconnectorhq.com/mcp/",            "static_bearer", "GoHighLevel"),
     "GHL_PIT_TOKEN":         ("https://services.leadconnectorhq.com/mcp/",            "static_bearer", "GoHighLevel PIT"),
     "HIGHLEVEL_TOKEN":       ("https://services.leadconnectorhq.com/mcp/",            "static_bearer", "HighLevel Token"),
-    # Supabase
-    "SUPABASE_SERVICE_KEY":  ("https://mcp.supabase.com",               "static_bearer", "Supabase Service"),
-    "SUPABASE_ANON_KEY":     ("https://mcp.supabase.com",               "static_bearer", "Supabase Anon"),
-    # Meta Ads aliases
-    "META_ADS_TOKEN":        ("https://mcp.meta.com/ads",               "static_bearer", "Meta Ads"),
-    "META_CAPI_TOKEN":       ("https://mcp.meta.com/ads",               "static_bearer", "Meta CAPI Token"),
-    # ManyChat
-    "MANYCHAT_API_KEY":      ("https://mcp.manychat.com",               "static_bearer", "ManyChat"),
+    # Supabase (host needs a project_ref — bare host does not resolve; matches mcp-bridge.json)
+    "SUPABASE_SERVICE_KEY":  ("https://mcp.supabase.com/mcp?project_ref=<SUPABASE_PROJECT_REF>", "static_bearer", "Supabase Service"),
+    "SUPABASE_ANON_KEY":     ("https://mcp.supabase.com/mcp?project_ref=<SUPABASE_PROJECT_REF>", "static_bearer", "Supabase Anon"),
+    # Meta Ads — real remote MCP is pipeboard (per mcp-bridge.json); mcp.meta.com/ads was fabricated
+    "META_ADS_TOKEN":        ("https://mcp.pipeboard.co/meta-ads-mcp",  "static_bearer", "Meta Ads"),
+    "META_CAPI_TOKEN":       ("https://mcp.pipeboard.co/meta-ads-mcp",  "static_bearer", "Meta CAPI Token"),
+    # ManyChat — DISABLED: mcp-bridge.json flags ma_url:null (no real remote MCP host). Reach via Rube.
+    # "MANYCHAT_API_KEY":    ("https://mcp.manychat.com", "static_bearer", "ManyChat"),  # fabricated host — do not seed
     # Notion aliases
     "NOTION_TOKEN":          ("https://mcp.notion.com/mcp",             "static_bearer", "Notion"),
     "NOTION_API_KEY":        ("https://mcp.notion.com/mcp",             "static_bearer", "Notion API"),
@@ -67,11 +71,12 @@ MAPPINGS = {
     # Stripe aliases
     "STRIPE_API_KEY":        ("https://mcp.stripe.com",                 "static_bearer", "Stripe"),
     "STRIPE_SECRET_KEY":     ("https://mcp.stripe.com",                 "static_bearer", "Stripe Secret"),
-    # Telegram
-    "TELEGRAM_BOT_TOKEN":    ("https://mcp.telegram.org",               "static_bearer", "Telegram"),
+    # Telegram — DISABLED: mcp-bridge.json flags ma_url:null (mcp.telegram.org is not a real MCP host).
+    # "TELEGRAM_BOT_TOKEN":  ("https://mcp.telegram.org", "static_bearer", "Telegram"),  # fabricated host — do not seed
     # Hubstaff / Xero / n8n
     "HUBSTAFF_API_TOKEN":    ("https://mcp.hubstaff.com",               "static_bearer", "Hubstaff"),
-    "XERO_ACCESS_TOKEN":     ("https://mcp.xero.com",                   "static_bearer", "Xero"),
+    # Xero — DISABLED: mcp-bridge.json has no verified Xero remote MCP (ma_url:null). Re-enable when one exists.
+    # "XERO_ACCESS_TOKEN":   ("https://mcp.xero.com", "static_bearer", "Xero"),  # fabricated host — do not seed
     "N8N_API_KEY":           ("https://selrai.app.n8n.cloud/mcp",       "static_bearer", "n8n"),
     # GitHub
     "GITHUB_TOKEN":          ("https://api.githubcopilot.com/mcp/",     "static_bearer", "GitHub"),

@@ -70,7 +70,7 @@ Go to https://platform.claude.com/settings/usage → Billing → Monthly spend l
 Create a Haiku 4.5 agent that runs daily, pulls the last 24h of usage via the Admin API, and Telegrams/emails a summary:
 
 ```
-Prompt: "Check yesterday's usage via /v1/usage_report. If total > $5, send Telegram alert."
+Prompt: "Check yesterday's spend via GET /v1/organizations/cost_report. If total > $5, send Telegram alert."
 Schedule: daily at 9am
 Model: claude-haiku-4-5
 Expected cost: ~$0.10/day

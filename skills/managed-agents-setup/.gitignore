@@ -4,3 +4,5 @@
 __pycache__/
 *.pyc
 SKILL.md.full
+secrets.env
+references/mcp-bridge.real.json

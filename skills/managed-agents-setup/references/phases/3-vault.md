@@ -20,10 +20,11 @@ bash ~/.claude/skills/managed-agents-setup/scripts/mcp-bridge.sh \
 | Env var | MCP URL | Auth |
 |---|---|---|
 | `GHL_API_KEY` | `https://services.leadconnectorhq.com/mcp/` | static_bearer |
-| `SUPABASE_SERVICE_KEY` | `https://mcp.supabase.com` | static_bearer |
-| `META_ADS_TOKEN` | `https://mcp.meta.com/ads` | static_bearer |
-| `MANYCHAT_API_KEY` | `https://mcp.manychat.com` | static_bearer |
+| `SUPABASE_SERVICE_KEY` | `https://mcp.supabase.com/mcp?project_ref=<SUPABASE_PROJECT_REF>` | static_bearer |
+| `META_ADS_TOKEN` | `https://mcp.pipeboard.co/meta-ads-mcp` | static_bearer |
 | `COMPOSIO_API_KEY` | `https://backend.composio.dev/v3/mcp` | static_bearer (Rube headless) |
+
+> ManyChat / Telegram / Xero are NOT auto-seeded — `mcp-bridge.json` flags them with no verified remote MCP host (`ma_url: null`). Reach those services via Rube/Composio instead; do not seed a credential to a fabricated host.
 
 **Rube as cheat code:** if user adds `COMPOSIO_API_KEY`, vault-seeder wires Composio's "500+ apps via one credential" gateway. Confirm pricing at rube.app/pricing before workshop rollout.
 

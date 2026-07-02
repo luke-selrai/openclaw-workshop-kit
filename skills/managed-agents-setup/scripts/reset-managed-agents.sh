@@ -17,6 +17,25 @@ set -uo pipefail
 
 : "${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY not set}"
 
+# DESTRUCTIVE + IRREVERSIBLE: archives cloud resources and clears local state.
+# Require explicit confirmation. With --yes, proceed; otherwise demand a TTY
+# confirmation and refuse outright when there is no TTY (e.g. headless/CI).
+ASSUME_YES=0
+for arg in "$@"; do
+  case "$arg" in
+    --yes|-y) ASSUME_YES=1 ;;
+  esac
+done
+if [ "$ASSUME_YES" != "1" ]; then
+  [ -t 0 ] || { echo "[reset] refusing: destructive run needs --yes (no TTY to confirm)" >&2; exit 3; }
+  printf '[reset] This ARCHIVES every resource this skill created and is IRREVERSIBLE. Type "yes" to proceed: ' >&2
+  read -r REPLY
+  case "$REPLY" in
+    [yY][eE][sS]) : ;;
+    *) echo "[reset] aborted" >&2; exit 3 ;;
+  esac
+fi
+
 STATE_DIR="$HOME/.claude/managed-agents"
 LOG="$STATE_DIR/reset.log"
 BETA="anthropic-beta: managed-agents-2026-04-01"
@@ -37,9 +56,15 @@ archive() {
   local id="$2"
   [ -z "$id" ] && return 0
   local code
-  code=$(curl -sS -o /dev/null -w '%{http_code}' \
-    -X POST "https://api.anthropic.com/v1/$kind/$id/archive" \
-    -H "$KEY" -H "$VERSION" -H "$BETA")
+  # Headers off argv: feed them via --config on stdin so $KEY never appears in
+  # the process list / argv.
+  code=$(curl -sS -o /dev/null -w '%{http_code}' --config - \
+    -X POST "https://api.anthropic.com/v1/$kind/$id/archive" <<CURLCFG
+header = "$KEY"
+header = "$VERSION"
+header = "$BETA"
+CURLCFG
+)
   if [ "$code" = "200" ] || [ "$code" = "204" ]; then
     echo "  [ok]   $kind/$id" | tee -a "$LOG"
   elif [ "$code" = "404" ]; then
@@ -59,16 +84,19 @@ if [ -d "$STATE_DIR/sessions" ]; then
     [ -f "$f" ] && SESSIONS="$SESSIONS $(cat $f)"
   done
 fi
-# Also query the API for any "primary" vault'd session still running
-LIVE=$(curl -sS "https://api.anthropic.com/v1/sessions?status=running" \
-  -H "$KEY" -H "$VERSION" -H "$BETA" | jq -r '.data[]?.id // empty')
-SESSIONS="$SESSIONS $LIVE"
+# NOTE: do NOT discover sessions org-wide. We only ever touch ids this skill
+# stored under $STATE_DIR, so we never archive resources we did not create.
 for SID in $SESSIONS; do
   [ -z "$SID" ] && continue
-  # Interrupt first
-  curl -sS -X POST "https://api.anthropic.com/v1/sessions/$SID/events" \
-    -H "$KEY" -H "$VERSION" -H "$BETA" -H "content-type: application/json" \
-    -d '{"events":[{"type":"user.interrupt"}]}' >/dev/null 2>&1 || true
+  # Interrupt first. Headers off argv via --config on stdin; body stays on argv
+  # (not secret).
+  curl -sS -X POST "https://api.anthropic.com/v1/sessions/$SID/events" --config - \
+    -d '{"events":[{"type":"user.interrupt"}]}' >/dev/null 2>&1 <<CURLCFG || true
+header = "$KEY"
+header = "$VERSION"
+header = "$BETA"
+header = "content-type: application/json"
+CURLCFG
   sleep 1
   archive "sessions" "$SID"
 done
