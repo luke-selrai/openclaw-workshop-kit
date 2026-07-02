@@ -13,10 +13,6 @@ metadata:
     - selr-ai
     - claude-workshop
   pairs-with:
-    - skill: skill-architect
-      reason: Architecture patterns inform the creation workflow for structurally sound skills
-    - skill: skill-grader
-      reason: Grading criteria guide creators toward higher-quality skill implementations
     - skill: prompt-engineer
       reason: Skill descriptions and trigger phrases benefit from prompt engineering optimization
 ---

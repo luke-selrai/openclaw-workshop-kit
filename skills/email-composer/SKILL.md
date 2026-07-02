@@ -11,10 +11,6 @@ metadata:
   pairs-with:
   - skill: technical-writer
     reason: Technical writing principles improve clarity and structure in professional emails
-  - skill: partner-text-coach
-    reason: Both skills analyze communication tone and suggest empathetic, effective messaging
-  - skill: job-application-optimizer
-    reason: Job application emails and follow-ups require the same persuasive writing skills
 ---
 
 # Email Composer

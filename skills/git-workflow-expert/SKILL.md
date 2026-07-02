@@ -13,10 +13,6 @@ metadata:
   pairs-with:
   - skill: github-actions-pipeline-builder
     reason: Git branching strategies determine which CI/CD pipelines trigger on which events
-  - skill: monorepo-management
-    reason: Monorepo git workflows require specialized branching, tagging, and merge strategies
-  - skill: code-review-checklist
-    reason: PR-based code review workflows depend on sound git branching practices
 ---
 
 # Git Workflow Expert

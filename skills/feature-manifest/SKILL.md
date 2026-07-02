@@ -14,8 +14,6 @@ metadata:
     reason: Feature branches map to manifest entries for tracking code-to-feature traceability
   - skill: technical-writer
     reason: Feature manifest documentation feeds into changelogs and release notes
-  - skill: launch-readiness-auditor
-    reason: Feature manifests provide the checklist for launch readiness feature completeness
 ---
 
 # Feature Manifest Management

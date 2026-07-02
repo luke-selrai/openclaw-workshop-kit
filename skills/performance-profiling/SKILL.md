@@ -12,10 +12,6 @@ metadata:
   - performance-bottleneck
   - flame-graph
   pairs-with:
-  - skill: react-performance-optimizer
-    reason: React DevTools profiling identifies component re-render bottlenecks for optimization
-  - skill: caching-strategies
-    reason: Profiling reveals cache miss patterns that inform caching architecture decisions
   - skill: postgresql-optimization
     reason: Database query profiling with EXPLAIN ANALYZE identifies slow query bottlenecks
   - skill: logging-observability

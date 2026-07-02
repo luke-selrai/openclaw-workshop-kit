@@ -12,13 +12,6 @@ metadata:
   - decompose-task
   - break-down-problem
   - plan-workflow
-  pairs-with:
-  - skill: output-contract-enforcer
-    reason: Decomposed tasks define output schemas that the enforcer validates between nodes
-  - skill: skillful-subagent-creator
-    reason: Decomposed tasks map to subagent specializations with curated skill sets
-  - skill: human-gate-designer
-    reason: Task decomposition identifies which stages need human review gates
 ---
 
 # Task Decomposer

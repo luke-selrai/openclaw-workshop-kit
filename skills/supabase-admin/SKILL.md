@@ -25,10 +25,6 @@ metadata:
     reason: Supabase runs PostgreSQL; performance tuning applies directly to Supabase databases
   - skill: modern-auth-2026
     reason: Supabase Auth provides the backend for passkey, OAuth, and magic link implementation
-  - skill: database-design-patterns
-    reason: Supabase schema and RLS policy design follows relational database design patterns
-  - skill: drizzle-migrations
-    reason: Drizzle ORM manages schema migrations against Supabase PostgreSQL databases
 ---
 
 # Supabase Administration Expert
