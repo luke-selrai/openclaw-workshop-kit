@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.0] - 2025-01-XX
+## [1.1.0] - 2026-03-17
 
 ### Changed
 - **Frontmatter**: Added `allowed-tools:` (was missing tools entirely)
