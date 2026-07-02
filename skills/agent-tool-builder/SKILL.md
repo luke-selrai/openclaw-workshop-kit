@@ -56,9 +56,5 @@ Returning errors that help the LLM recover
 
 ### ❌ Too Many Tools
 
-## Related Skills
-
-Works well with: `multi-agent-orchestration`, `api-designer`, `llm-architect`, `backend`
-
 ## When to Use
 This skill is applicable to execute the workflow or actions described in the overview.

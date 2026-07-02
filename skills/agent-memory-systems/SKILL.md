@@ -72,7 +72,7 @@ Breaking documents into retrievable chunks
 
 ## Related Skills
 
-Works well with: `autonomous-agents`, `multi-agent-orchestration`, `llm-architect`, `agent-tool-builder`
+Works well with: `agent-tool-builder`
 
 ## When to Use
 This skill is applicable to execute the workflow or actions described in the overview.
