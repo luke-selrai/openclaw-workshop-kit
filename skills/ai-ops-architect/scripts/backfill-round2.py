@@ -11,15 +11,15 @@ named by service: Stripe/, Xero/, Zendesk/, Openai/, Acuityscheduling/, etc.)
 so we hit categories the keyword regex missed.
 """
 import concurrent.futures as cf
+import hashlib
 import json
 import os
 import re
 import sys
-import time
 import urllib.request
 from pathlib import Path
 
-ROOT = Path(os.path.expanduser("~/.claude/skills/ai-ops-architect/templates/n8n"))
+ROOT = Path(os.environ.get('AOA_TEMPLATES_ROOT') or (Path(__file__).resolve().parent.parent / 'templates' / 'n8n'))
 
 QUOTAS = {
     "finance-invoicing": 18, "ai-agents": 30,
@@ -54,6 +54,21 @@ FOLDER_MAP = {
     "Hotel": "industry-specific", "Restaurant": "industry-specific",
     "Clinic": "industry-specific", "Gym": "industry-specific",
 }
+
+# Lowercased prefix → category map. Real czlonkowski folder names vary in case and
+# carry suffixes (e.g. "stripe", "Stripe_v2", "openaiAssistant"), so exact-match
+# misses them. Match the lowercased folder by prefix against these keys.
+FOLDER_MAP_LC = {k.lower(): v for k, v in FOLDER_MAP.items()}
+
+
+def match_category(folder):
+    """Case-insensitive prefix match of a folder name against FOLDER_MAP."""
+    f = (folder or "").lower()
+    for prefix, cat in FOLDER_MAP_LC.items():
+        if f.startswith(prefix):
+            return cat
+    return None
+
 
 JUNK = re.compile(r"^(my workflow|test|untitled|copy of|sample|example|demo)\b", re.I)
 MAX_WORKERS = 12
@@ -124,6 +139,8 @@ def add_sticky_note(workflow_json, meta):
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
     seen = existing_ids()
     counts = count_per_cat()
     needed = {c: QUOTAS[c] - counts[c] for c in QUOTAS if counts[c] < QUOTAS[c]}
@@ -146,10 +163,10 @@ def main():
         if len(parts) < 3:
             continue
         folder = parts[1]
-        cat = FOLDER_MAP.get(folder)
+        cat = match_category(folder)
         if not cat or cat not in needed:
             continue
-        wid = abs(hash(path)) % (10**8) + 100_000_000
+        wid = int(hashlib.sha1(path.encode('utf-8')).hexdigest()[:8], 16) % (10**8) + 100_000_000
         if wid in seen:
             continue
         buckets[cat].append((wid, path))
@@ -175,15 +192,13 @@ def main():
         # Take 3x candidates to allow lint failures
         sample = candidates[:max(target * 3, 30)]
         print(f"\n=== {cat}: need {target}, fetching {len(sample)} ===", flush=True)
+        cat_count = counts[cat]   # in-memory tally — avoids re-globbing disk every iteration
         for fut in cf.as_completed([pool.submit(fetch_one, c) for c in sample]):
             res = fut.result()
             if not res:
                 continue
             wid, path, wf = res
             seen.add(wid)
-            cur = count_per_cat()
-            if cur[cat] >= QUOTAS[cat]:
-                break
             nodes = wf.get("nodes", []) or []
             if len(nodes) < 3:
                 continue
@@ -231,12 +246,15 @@ def main():
                 meta
             )
             cat_dir = ROOT / cat
-            cat_dir.mkdir(exist_ok=True)
+            cat_dir.mkdir(parents=True, exist_ok=True)
             base = f"{wid}__{slug(wf_name)}"
-            (cat_dir / f"{base}.json").write_text(json.dumps(wf_with_note, indent=2))
-            (cat_dir / f"{base}.meta.json").write_text(json.dumps(meta, indent=2))
+            (cat_dir / f"{base}.json").write_text(json.dumps(wf_with_note, indent=2), encoding='utf-8')
+            (cat_dir / f"{base}.meta.json").write_text(json.dumps(meta, indent=2), encoding='utf-8')
             saved += 1
-            counts = count_per_cat()
+            cat_count += 1
+            if cat_count >= QUOTAS[cat]:   # save first, THEN stop — don't discard the fetched workflow
+                break
+        counts[cat] = cat_count
         print(f"  cat now {counts[cat]}/{QUOTAS[cat]}", flush=True)
     pool.shutdown(wait=False)
 

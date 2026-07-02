@@ -21,13 +21,19 @@ CATALOG="$ROOT/references/opportunity-catalog.md"
 
 [ -f "$AUDIT" ] || { echo "REFUSE: run audit.sh first ($AUDIT not found)"; exit 1; }
 
-python3 <<'PYEOF'
+# Export script-relative paths so the Python heredoc resolves the SAME install location.
+# Do NOT hardcode ~/.claude — the skill may be bundled inside a kit or run from a project workspace.
+export STATE ROOT CATALOG AUDIT
+
+# PYTHONUTF8=1 (UTF-8 Mode) forces utf-8 for BOTH stdout and file I/O — so reading the UTF-8
+# opportunity-catalog.md never mojibakes arrows/separators on a Windows cp1252 locale.
+PYTHONUTF8=1 python3 <<'PYEOF'
 import json, re, os, sys
 from pathlib import Path
 
-state = Path(os.path.expanduser("~/.claude/skills/ai-ops-architect/.state"))
+state = Path(os.environ["STATE"])
 audit = json.loads((state / "audit-result.json").read_text())
-catalog_path = Path(os.path.expanduser("~/.claude/skills/ai-ops-architect/references/opportunity-catalog.md"))
+catalog_path = Path(os.environ["CATALOG"])
 catalog_text = catalog_path.read_text()
 
 # Parse the catalog markdown into structured opportunities
@@ -50,6 +56,8 @@ for line in catalog_text.split("\n"):
         current["services"] = [s.strip() for s in m.group(1).split(",")]
     elif m := re.match(r"^\- \*\*value\*\*: (.+)$", line):
         current["value"] = m.group(1)
+    elif m := re.match(r"^\- \*\*trigger\*\*: (.+)$", line):
+        current["trigger"] = m.group(1)
     elif m := re.match(r"^\- \*\*difficulty\*\*: (.+)$", line):
         current["difficulty"] = m.group(1)
     elif m := re.match(r"^\- \*\*pain_keywords\*\*: (.+)$", line):
@@ -59,28 +67,40 @@ if current and current.get("title"):
 
 # Score each opportunity
 def score(op, audit):
+    # Audit fields can be "TBC" strings (from --auto, or --ingest when the caller omits a
+    # field) instead of their natural type. Coerce defensively so scoring never crashes.
     s = 0
     # Industry overlap
     industries = op.get("industries", [])
     if "all" in industries or audit.get("industry") in industries:
         s += 3
-    # Pain keyword match
-    pains_text = " ".join(audit.get("pains", []) or []).lower()
-    north_star = (audit.get("north_star") or "").lower()
+    # Pain keyword match (pains may be a list, or "TBC"/missing)
+    pains = audit.get("pains")
+    pains_text = " ".join(str(p) for p in pains).lower() if isinstance(pains, list) else ""
+    ns = audit.get("north_star")
+    north_star = ns.lower() if isinstance(ns, str) else ""
     pain_text_combined = pains_text + " " + north_star
     for kw in op.get("pain_keywords", []):
         if kw in pain_text_combined:
             s += 5
-    # Tools coverage — does the user already have the services this needs?
+    # Tools coverage — does the user already have the services this needs? (tools may be a dict, or "TBC")
     user_tools = []
-    for v in (audit.get("tools") or {}).values():
-        if isinstance(v, list):
-            user_tools.extend([t.lower() for t in v])
+    tools = audit.get("tools")
+    if isinstance(tools, dict):
+        for v in tools.values():
+            if isinstance(v, list):
+                # drop empty / 1-char noise so a "" or "x" tool can't substring-match every service
+                user_tools.extend([t.lower().strip() for t in v if isinstance(t, str) and len(t.strip()) >= 2])
     services = [s.lower() for s in op.get("services", [])]
     coverage = sum(1 for svc in services if any(t in svc or svc in t for t in user_tools))
     s += coverage * 2
-    # Difficulty alignment with tech_comfort
-    tc = audit.get("tech_comfort", 3)
+    # Difficulty alignment with tech_comfort. Coerce numerically: "2" (string from --ingest) and 2
+    # both yield 2 so the low-tech penalty fires; "TBC"/missing fall back to 3.
+    tc_raw = audit.get("tech_comfort", 3)
+    try:
+        tc = int(tc_raw)
+    except (TypeError, ValueError):
+        tc = 3
     diff = op.get("difficulty", "5min-config")
     if diff == "30min-custom" and tc <= 2: s -= 3
     if diff == "auto-deploy": s += 1
@@ -99,23 +119,30 @@ md = []
 md.append("# Your AI Ops Audit\n")
 md.append(f"**Industry**: {audit.get('industry','?')}  ·  **Team**: {audit.get('team_size','?')}  ·  **Tech comfort**: {audit.get('tech_comfort','?')}/5  ·  **Budget**: {audit.get('budget','?')}")
 md.append(f"\n**North star**: {audit.get('north_star') or '(not set)'}\n")
-if audit.get("pains"):
+pains_list = audit.get("pains")
+if isinstance(pains_list, list) and pains_list:
     md.append("**Pains:**")
-    for p in audit["pains"]: md.append(f"- {p}")
+    for p in pains_list: md.append(f"- {p}")
     md.append("")
 
-md.append("## Top opportunities for you\n")
-md.append("Ranked by industry fit + pain match + tools you already have.\n")
-for i, op in enumerate(ranked[:5], 1):
-    md.append(f"### {i}. {op['title']}")
-    md.append(f"- **Runtime**: {op.get('runtime','?')}")
-    md.append(f"- **Needs**: {', '.join(op.get('services', []))}")
-    md.append(f"- **Estimated value**: {op.get('value','?')}")
-    md.append(f"- **Difficulty**: {op.get('difficulty','?')}")
-    md.append(f"- **Score**: {op['score']}\n")
+if not ranked:
+    md.append("## No opportunities matched\n")
+    md.append("_The opportunity catalog may be missing/empty, or your audit answers are all TBC. "
+              "Re-run the intake with concrete answers, and confirm references/opportunity-catalog.md is present._")
+else:
+    md.append("## Top opportunities for you\n")
+    md.append("Ranked by industry fit + pain match + tools you already have.\n")
+    for i, op in enumerate(ranked[:5], 1):
+        md.append(f"### {i}. {op['title']}")
+        md.append(f"- **Runtime**: {op.get('runtime','?')}")
+        if op.get('trigger'): md.append(f"- **Trigger**: {op['trigger']}")
+        md.append(f"- **Needs**: {', '.join(op.get('services', []))}")
+        md.append(f"- **Estimated value**: {op.get('value','?')}")
+        md.append(f"- **Difficulty**: {op.get('difficulty','?')}")
+        md.append(f"- **Score**: {op['score']}\n")
 
 md.append("---\n## Next: pick 1-3 to build")
-md.append("Run `bash scripts/select.sh` to choose which to deploy in this session.")
+md.append("Confirm the owner's 1-3 picks, then run `bash scripts/select.sh --auto <indices>` (e.g. `--auto 1,3`) — the bare interactive form needs a TTY.")
 
 (state / "audit-output.md").write_text("\n".join(md))
 print((state / "audit-output.md").read_text())

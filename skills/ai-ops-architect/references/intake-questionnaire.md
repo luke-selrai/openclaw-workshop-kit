@@ -118,4 +118,4 @@ The 8 answers produce `.state/audit-result.json`:
 
 ## Edit / update
 
-The user can re-run `bash scripts/audit.sh --reset` to wipe and start over, or `--update <field>` to change one answer. The audit-result is a living doc; opportunities re-rank when it changes.
+The user can re-run `bash scripts/audit.sh --reset` to wipe and start over, or `--update <field> <value>` to change one answer (e.g. `--update tech_comfort 4`). The audit-result is a living doc; opportunities re-rank when it changes.

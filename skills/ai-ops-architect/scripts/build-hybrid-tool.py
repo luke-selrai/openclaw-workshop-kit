@@ -26,11 +26,29 @@ per line.
 """
 import argparse
 import json
+import re
+import shlex
 import sys
 from pathlib import Path
 
 
 SUPPORTED_TYPES = {"string", "number", "integer", "boolean", "array", "object"}
+NAME_RE = re.compile(r"^[a-zA-Z0-9_-]{1,64}$")
+
+
+def validate_name(name, kind):
+    """Validate a tool/property name against ^[a-zA-Z0-9_-]{1,64}$.
+
+    Errors with a clear message instead of producing a malformed tool spec.
+    """
+    if name is None or not NAME_RE.match(name):
+        print(
+            f"ERROR: {kind} name {name!r} is invalid; must match "
+            f"^[a-zA-Z0-9_-]{{1,64}}$ (1-64 chars, letters/digits/_/- only)",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    return name
 
 
 def parse_inputs(inputs_csv):
@@ -56,6 +74,7 @@ def parse_inputs(inputs_csv):
         if typ not in SUPPORTED_TYPES:
             print(f"WARN: unsupported type '{typ}' for '{name}', defaulting to string", file=sys.stderr)
             typ = "string"
+        validate_name(name, "property")
         properties[name] = {"type": typ}
         if not optional:
             required.append(name)
@@ -73,6 +92,7 @@ def build_tool(name, description, webhook_url, inputs_csv, output_shape):
       where to POST when this tool fires. The caller code dispatches the
       actual webhook after receiving the tool_use block.
     """
+    validate_name(name, "tool")
     properties, required = parse_inputs(inputs_csv)
     tool = {
         "name": name,
@@ -105,20 +125,7 @@ def parse_bundle_line(line):
     line = line.strip()
     if not line or line.startswith("#"):
         return None
-    parts = []
-    in_quote = False
-    cur = ""
-    for ch in line:
-        if ch == '"':
-            in_quote = not in_quote
-        elif ch == " " and not in_quote:
-            if cur:
-                parts.append(cur)
-                cur = ""
-        else:
-            cur += ch
-    if cur:
-        parts.append(cur)
+    parts = shlex.split(line)
     for p in parts:
         if p.startswith("--name="):
             kwargs["name"] = p[len("--name="):]
@@ -134,6 +141,8 @@ def parse_bundle_line(line):
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--name", help="Tool name (snake_case), e.g. qualify_lead")
     ap.add_argument("--description", help="One-line description Claude reads to decide when to call this tool")
@@ -151,7 +160,7 @@ def main():
         if not path.exists():
             print(f"ERROR: bundle file not found: {path}", file=sys.stderr)
             sys.exit(2)
-        for line in path.read_text().splitlines():
+        for line in path.read_text(encoding='utf-8').splitlines():
             kwargs = parse_bundle_line(line)
             if not kwargs:
                 continue
@@ -165,7 +174,24 @@ def main():
                 inputs_csv=kwargs.get("inputs_csv", ""),
                 output_shape=kwargs.get("output_shape", ""),
             ))
-    elif args.name and args.description and args.webhook_url:
+    elif args.name is not None or args.description is not None or args.webhook_url is not None:
+        # Single-tool path: name the missing/blank field instead of falling
+        # through to the unhelpful full help text.
+        missing = [
+            field
+            for field, value in (
+                ("--name", args.name),
+                ("--description", args.description),
+                ("--webhook-url", args.webhook_url),
+            )
+            if value is None or not value.strip()
+        ]
+        if missing:
+            print(
+                f"ERROR: missing or empty required field(s): {', '.join(missing)}",
+                file=sys.stderr,
+            )
+            sys.exit(2)
         tools.append(build_tool(
             name=args.name,
             description=args.description,
@@ -177,10 +203,24 @@ def main():
         ap.print_help()
         sys.exit(2)
 
+    # Reject duplicate tool names before writing anything.
+    seen = set()
+    for t in tools:
+        n = t["name"]
+        if n in seen:
+            print(f"ERROR: duplicate tool name: {n!r}", file=sys.stderr)
+            sys.exit(2)
+        seen.add(n)
+
+    # A --bundle that yields no tools is an error, not an empty success.
+    if not tools:
+        print("ERROR: no tools produced (bundle had no valid tool lines)", file=sys.stderr)
+        sys.exit(2)
+
     output = json.dumps({"tools": tools}, indent=2)
 
     if args.out:
-        Path(args.out).write_text(output + "\n")
+        Path(args.out).write_text(output + "\n", encoding='utf-8')
         print(f"Wrote {len(tools)} tool(s) to {args.out}")
     else:
         print(output)

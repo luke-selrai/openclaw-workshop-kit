@@ -40,7 +40,7 @@ For services not in Tier 1, default to **Composio Tool Router** (`https://connec
 
 For services Rube doesn't cover or where we need first-party tools:
 - **n8n itself** (`https://selrai.app.n8n.cloud/mcp` or the user's own n8n.cloud URL)
-- **GHL / LeadConnector** (`mcp__ghl-community__*` and `mcp__ghl-official__*` — official requires per-location PIT token)
+- **GHL / LeadConnector** (the GHL MCP server as shown in `claude mcp list` — typically `mcp__ghl__*`; PIT-scoped connections require a per-location Private Integration Token)
 - **ManyChat** (`mcp__manychat__*` — needs page-scoped API token)
 - **Meta Ads / LinkedIn Ads / Google Ads** (per-platform MCPs with first-party APIs)
 - **Apify** (workflow scraping)
@@ -89,7 +89,7 @@ SomeNiche    → Tier 4 (manual paste, guide opening)
 - `scripts/claude-passthrough.sh` — Tier 1 detector
 - `scripts/connect-via-composio.sh` — Tier 2 OAuth driver
 - `references/mcp-servers-catalog.md` — Tier 3 catalog (lives in managed-agents-setup, referenced from here)
-- Manual fallbacks: per-service `.md` in managed-agents-setup `references/connector-walkthroughs/`
+- Manual fallbacks: the Tier-4 manual-paste flow above (clickable URL + masked `read -s` paste); service endpoints in managed-agents-setup `references/mcp-servers-catalog.md`
 
 ## Failure handling
 

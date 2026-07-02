@@ -2,6 +2,10 @@
 
 > Private skill. Requires GitHub auth on the `luke-selrai` org or invitation.
 
+> **Already got this via `claude-workshop-kit`?** You're already installed — the workshop kit bundles
+> this skill and wires it during its bootstrap-prompt setup. The `gh repo clone` + `chmod` steps below
+> are ONLY for standalone install directly from the `luke-selrai` org; skip them otherwise.
+
 ## What you get
 
 - `/ai-ops-architect` — guided 8-question audit → opportunity map → 1-3 builds in one session
