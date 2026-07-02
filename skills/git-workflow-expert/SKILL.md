@@ -2,7 +2,7 @@
 name: git-workflow-expert
 description: Git branching strategies, conflict resolution, rebase workflows, monorepo patterns, and advanced operations like cherry-pick, bisect, and reflog recovery. Activate on "git", "branching strategy",
   "merge conflict", "rebase", "cherry-pick", "monorepo git", "git bisect", "git reflog", "squash commits". NOT for GitHub Actions CI/CD (use github-actions-pipeline-builder), GitHub API/webhooks, or PR
-  review processes (use code-review-checklist).
+  review processes.
 allowed-tools: Read,Write,Edit,Bash,Grep,Glob
 metadata:
   tags:
@@ -39,7 +39,7 @@ Master git operations from daily workflow to disaster recovery. Covers branching
 
 **NOT for**:
 - GitHub Actions / CI/CD pipelines (use `github-actions-pipeline-builder`)
-- PR review process and checklists (use `code-review-checklist`)
+- PR review process and checklists
 - GitHub API / webhooks / repository management
 - Git LFS setup (mention it, but not the core focus)
 

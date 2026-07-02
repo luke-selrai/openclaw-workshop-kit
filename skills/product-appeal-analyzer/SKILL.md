@@ -2,7 +2,7 @@
 name: product-appeal-analyzer
 description: Evaluate product desirability, market positioning, and emotional resonance-the complement to friction analysis. Assess whether users will WANT a product (not just use it), identity fit, trust
   signals, and value proposition clarity. Activate on "will they like it", "market positioning", "appeal analysis", "product desirability", "value proposition", "why would someone choose this", "landing
-  page review", "conversion optimization", "messaging strategy". NOT for UX friction analysis (use ux-friction-analyzer), visual design implementation (use web-design-expert), or A/B test setup (use frontend-developer).
+  page review", "conversion optimization", "messaging strategy". NOT for UX friction analysis, visual design implementation, or A/B test setup.
 allowed-tools: Read,Write,Edit,WebFetch
 metadata:
   category: Research & Analysis
@@ -38,9 +38,9 @@ Evaluate whether users will *want* a product-not just use it. The complement to 
 - Pre-launch "will this convert?" analysis
 
 ❌ **NOT for:**
-- UX friction audits (→ use ux-friction-analyzer)
-- Visual design execution (→ use web-design-expert)
-- A/B test implementation (→ use frontend-developer)
+- UX friction audits
+- Visual design execution
+- A/B test implementation
 - Market size estimation or financial forecasting
 - Feature comparison matrices
 
@@ -255,21 +255,6 @@ When running this skill, produce:
 3. **5-Second Test Assessment** - What's clear, what's not
 4. **Top 3 Objections** - And how to address them
 5. **Priority Recommendations** - Immediate / Medium / Long-term
-
----
-
-## Integration with ux-friction-analyzer
-
-**Appeal + Friction = Complete picture**
-
-| This Skill Answers | ux-friction-analyzer Answers |
-|--------------------|------------------------------|
-| "Do they want it?" | "Can they use it?" |
-| Will they choose this over alternatives? | Can they complete the task? |
-| Does it feel made for them? | Does the flow make sense? |
-| Is the promise compelling? | Is the experience smooth? |
-
-**Run both**: High appeal + high friction = frustrated users. Low friction + low appeal = abandoned product.
 
 ---
 

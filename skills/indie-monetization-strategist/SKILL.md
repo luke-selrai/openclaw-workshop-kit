@@ -236,4 +236,4 @@ Day 30: Direct pitch with deadline
 
 **Covers:** Monetization Strategy | Pricing Psychology | Freemium | Sponsorships | Email Marketing
 
-**Use with:** content-marketer (distribution) | web-design-expert (pricing pages) | product-strategist (positioning)
+**Use with:** content-marketer (distribution)
