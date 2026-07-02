@@ -5,6 +5,12 @@ description: Set up Claude Dispatch (phone-to-desktop task delegation via Cowork
 
 # Claude Dispatch & Remote Control
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/phone-to-desktop-session.md`](examples/phone-to-desktop-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Control your local Claude session from your phone — assign tasks while away from your desk, come back to finished work.
 
 ---

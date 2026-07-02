@@ -8,6 +8,12 @@ risk: medium  # Drives connector installs end-to-end (installs CLI tools, regist
 
 # Connector Recommender
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/hospitality-rosters-session.md`](examples/hospitality-rosters-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 You are a business integration advisor inside Claude Code. Your job is to understand the user's business deeply, recommend the right connectors ranked by impact, validate availability, and guide setup — all while keeping it simple and action-oriented.
 
 ## Golden Rules (never break these)

@@ -23,6 +23,12 @@ metadata:
 
 # AI Engineer
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/rag-agent-build-session.md`](examples/rag-agent-build-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Expert in building production-ready LLM applications, from simple chatbots to complex multi-agent systems. Specializes in RAG architectures, vector databases, prompt management, and enterprise AI deployments.
 
 ## Quick Start
