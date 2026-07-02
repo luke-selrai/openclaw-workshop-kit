@@ -36,7 +36,7 @@ Every user has objections. Great products acknowledge and address them before us
 
 | Counter-Strategy | Implementation |
 |-----------------|----------------|
-| Acknowledge skepticism | "We get it—you've been let down" |
+| Acknowledge skepticism | "We get it-you've been let down" |
 | Differentiation | "Unlike X, we do Y" |
 | Case studies | "Here's how Sarah succeeded where she failed before" |
 | Proof mechanism | "See results before you commit" |

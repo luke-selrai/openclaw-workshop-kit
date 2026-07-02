@@ -27,25 +27,25 @@ metadata:
 
 This skill connects a user's WhatsApp to Claude Code so they can message their assistant from their phone. Once paired, the user texts the assistant from WhatsApp on their phone and Claude replies as if it were a chat thread.
 
-**The user only ever talks to ONE Claude Code session — this one.** Setup, install, pairing, verification all happen here. There is a second `claude` process running in another terminal (started with `--dangerously-load-development-channels`) but that is just the WhatsApp listener — a background server. The user pastes ONE word to start it, then leaves it alone. No two-session handoff, no resume flow, no "switch to the other window".
+**The user only ever talks to ONE Claude Code session - this one.** Setup, install, pairing, verification all happen here. There is a second `claude` process running in another terminal (started with `--dangerously-load-development-channels`) but that is just the WhatsApp listener - a background server. The user pastes ONE word to start it, then leaves it alone. No two-session handoff, no resume flow, no "switch to the other window".
 
 **The user does at most THREE things across the entire setup. Two are always required; one is conditional. Everything else is autonomous.**
 
-1. Scan a QR code with their phone to pair WhatsApp Web (Step 7) — **always**.
-2. Type `claude-wa` in a fresh terminal to start the WhatsApp listener (Step 7) — **always**. Claude creates the `claude-wa` shortcut autonomously before this. The user never types or pastes the long `claude --dangerously-load-development-channels …` form, and Claude does NOT auto-open a terminal via `osascript`, `gnome-terminal`, or `Start-Process`.
-3. Restart the host app (Claude Desktop or VS Code) — **only if** Step 3 had to install Bun or Node. Skipped entirely when a working dependency installer (`bun` or `npm`) is already present.
+1. Scan a QR code with their phone to pair WhatsApp Web (Step 7) - **always**.
+2. Type `claude-wa` in a fresh terminal to start the WhatsApp listener (Step 7) - **always**. Claude creates the `claude-wa` shortcut autonomously before this. The user never types or pastes the long `claude --dangerously-load-development-channels …` form, and Claude does NOT auto-open a terminal via `osascript`, `gnome-terminal`, or `Start-Process`.
+3. Restart the host app (Claude Desktop or VS Code) - **only if** Step 3 had to install Bun or Node. Skipped entirely when a working dependency installer (`bun` or `npm`) is already present.
 
-That is the complete list. **The user does NOT search for the linking screen on their phone, does NOT paste the launch command, does NOT edit any config files for the allowlist.** Claude drives every install-side action; the user's phone only does what it has to do — scan the QR shown by the local QR page.
+That is the complete list. **The user does NOT search for the linking screen on their phone, does NOT paste the launch command, does NOT edit any config files for the allowlist.** Claude drives every install-side action; the user's phone only does what it has to do - scan the QR shown by the local QR page.
 
 If you find yourself about to ask the user to "paste this into your terminal" with anything longer than `claude-wa`, or to "edit `.mcp.json` and add this line", stop. That is the wrong path. Drive the install via Bash and Write tools instead. The phone is a WhatsApp authentication device, not a workflow step.
 
-**Which phase to run.** Phase 1 is first-time setup. Phase 2 is day-to-day operation — sending messages, reading inbound messages, querying history, and managing the allowlist.
+**Which phase to run.** Phase 1 is first-time setup. Phase 2 is day-to-day operation - sending messages, reading inbound messages, querying history, and managing the allowlist.
 
 **Resume check.** Before any WhatsApp action, check whether the channel is already paired. Read `~/.claude/whatsapp-channel/auth/creds.json`. If it exists and is non-empty, treat the channel as paired and skip to Phase 2. If it is missing or empty, run Phase 1.
 
 ---
 
-## Golden rule — Claude drives the install autonomously
+## Golden rule - Claude drives the install autonomously
 
 **Claude does the work; the user only does what genuinely requires them.** Across Phase 1, the user's only physical actions are:
 
@@ -53,7 +53,7 @@ If you find yourself about to ask the user to "paste this into your terminal" wi
 - Typing `claude-wa` in a fresh terminal once, to start the listener (Step 7).
 - Restarting the host app *only* if Step 3 had to install a dependency installer (Bun) into a fresh PATH (Step 3). Skipped when `npm` is already present.
 
-Everything else — detecting OS and shell, installing Bun, running `bun install` for the channel, writing the launch shortcut, ensuring PATH, killing stale listeners, polling for `creds.json` — Claude does via Bash and Write tools without asking the user to type or paste anything else.
+Everything else - detecting OS and shell, installing Bun, running `bun install` for the channel, writing the launch shortcut, ensuring PATH, killing stale listeners, polling for `creds.json` - Claude does via Bash and Write tools without asking the user to type or paste anything else.
 
 **Do NOT, at any point in Phase 1, ask the user to:**
 
@@ -69,18 +69,18 @@ The Phone Fallback section at the bottom of this file is the contingency for whe
 
 ---
 
-## Autonomy rule — Claude edits state files in place, the user does not paste commands
+## Autonomy rule - Claude edits state files in place, the user does not paste commands
 
 The WhatsApp channel reads its state from on-disk files inside the workshop-kit checkout and inside the user's home directory. **This skill does not ask the user to edit any of them.** Instead, Claude edits them directly via Bash, Write, and python3:
 
-- `whatsapp-channel/.mcp.json` — channel config including the `WA_ALLOW_FROM` env var (instead of "open `.mcp.json` and add a number")
-- `~/.claude/whatsapp-channel/auth/creds.json` — pairing credentials (written by the Baileys listener after a successful QR scan; Claude only reads it to check pair state, never writes it)
-- `~/.claude/whatsapp-channel/history.jsonl` — on-demand message log (written by the listener; Claude reads via the `whatsapp_history` tool in Phase 2)
-- `~/.local/bin/claude-wa` — the launch shortcut (Claude writes this once in Step 5)
+- `whatsapp-channel/.mcp.json` - channel config including the `WA_ALLOW_FROM` env var (instead of "open `.mcp.json` and add a number")
+- `~/.claude/whatsapp-channel/auth/creds.json` - pairing credentials (written by the Baileys listener after a successful QR scan; Claude only reads it to check pair state, never writes it)
+- `~/.claude/whatsapp-channel/history.jsonl` - on-demand message log (written by the listener; Claude reads via the `whatsapp_history` tool in Phase 2)
+- `~/.local/bin/claude-wa` - the launch shortcut (Claude writes this once in Step 5)
 
 Same end result, no paste required. The Baileys listener re-reads `.mcp.json` on every restart and uses `creds.json` for session continuity, so direct edits take effect without the user touching anything.
 
-The only command the user runs themselves is the listener launch in Step 7 — they type `claude-wa` (one word) into a fresh terminal. The current Claude Code session cannot start that listener from inside itself (it would lock up the Bash tool with a long-running interactive child), and auto-opening a terminal via `osascript` / `gnome-terminal` / `Start-Process` is explicitly banned in Step 7 because it is flaky and confusing. The user opens their own terminal deliberately and runs the one-word shortcut. That is the entire user-side terminal interaction across Phase 1.
+The only command the user runs themselves is the listener launch in Step 7 - they type `claude-wa` (one word) into a fresh terminal. The current Claude Code session cannot start that listener from inside itself (it would lock up the Bash tool with a long-running interactive child), and auto-opening a terminal via `osascript` / `gnome-terminal` / `Start-Process` is explicitly banned in Step 7 because it is flaky and confusing. The user opens their own terminal deliberately and runs the one-word shortcut. That is the entire user-side terminal interaction across Phase 1.
 
 If you find yourself about to type "paste this into the chat", stop. Either run it via Bash, write the file directly, or note that this is a true exception and explain why.
 
@@ -88,11 +88,11 @@ If you find yourself about to type "paste this into the chat", stop. Either run 
 
 ## No-deviation rule
 
-If a step in this skill fails, follow the documented `if X fails, try Y` branch for that step. Do not improvise — do not start a standalone `bun src/index.ts` outside Claude (it polls WhatsApp Web but has no Claude attached), do not edit the channel server source, do not invent new env vars. If you hit an undocumented failure, tell the user exactly what failed in plain English and stop. Do not silently pivot.
+If a step in this skill fails, follow the documented `if X fails, try Y` branch for that step. Do not improvise - do not start a standalone `bun src/index.ts` outside Claude (it polls WhatsApp Web but has no Claude attached), do not edit the channel server source, do not invent new env vars. If you hit an undocumented failure, tell the user exactly what failed in plain English and stop. Do not silently pivot.
 
 ---
 
-## ⚠️ Safety gate — run this BEFORE Phase 1
+## ⚠️ Safety gate - run this BEFORE Phase 1
 
 The WhatsApp channel uses an unofficial Web protocol (Baileys). Meta can **permanently ban** the linked number, losing all chats, groups, and history. Before touching any install step, say this to the user in plain English and wait for explicit acknowledgement:
 
@@ -118,13 +118,13 @@ The user is a non-technical business owner. Phase 1 is autonomous: Claude does t
 
 ---
 
-## PHASE 1 — Install & Pair
+## PHASE 1 - Install & Pair
 
 **Run Steps 1 through 10 in order, all in this one Claude Code session.** Step 5 creates the `claude-wa` shortcut; Step 7 asks the user to run it in a fresh terminal and scan the QR. That one word is the only thing the user types in a terminal across the whole flow. The Phone Fallback section at the bottom of this file is only for when Step 7 fails twice in a row. Do not start there.
 
 **Resume check.** If the user is starting a new conversation but `~/.claude/whatsapp-channel/auth/creds.json` already exists and is non-empty, the channel was paired by an earlier run. Verify the listener is up (Step 8's health check) and skip to Phase 2. If `creds.json` is missing, start at Step 1.
 
-### Step 1 — Prerequisite check
+### Step 1 - Prerequisite check
 
 Before any technical step, confirm the user has what they need. Send:
 
@@ -132,7 +132,7 @@ Before any technical step, confirm the user has what they need. Send:
 
 Wait for confirmation on both. If they say no to (1), pause until they have WhatsApp on their phone. If (2) is unresolved, return to the safety gate.
 
-### Step 2 — Detect OS and shell
+### Step 2 - Detect OS and shell
 
 Silently run, in order:
 
@@ -152,9 +152,9 @@ On Windows native (if the `uname -s` line fails), the user is almost certainly i
 
 Remember the detected OS (Mac, Linux, WSL2, Windows-native). Step 5 needs it to write the right shortcut and Step 7 needs it to give the right "fresh terminal" instruction.
 
-### Step 3 — Check the dependency installer
+### Step 3 - Check the dependency installer
 
-The WhatsApp channel server is a TypeScript program. Its `.mcp.json` runs the listener via `node` plus the `tsx` loader (already in `node_modules` after Step 4). Claude itself runs on Node, so Node is always present whenever this skill is loaded; what we need is a working **dependency installer** to populate `node_modules/`. Either `bun` or `npm` is sufficient — Step 4 picks whichever is available.
+The WhatsApp channel server is a TypeScript program. Its `.mcp.json` runs the listener via `node` plus the `tsx` loader (already in `node_modules` after Step 4). Claude itself runs on Node, so Node is always present whenever this skill is loaded; what we need is a working **dependency installer** to populate `node_modules/`. Either `bun` or `npm` is sufficient - Step 4 picks whichever is available.
 
 Silently check, in order:
 
@@ -176,7 +176,7 @@ bun --version 2>/dev/null && INSTALLER=bun || (npm --version 2>/dev/null && INST
 
   Wait for the user to confirm. Then re-verify with `bun --version`. If it still fails after the restart, apply the PATH fix guidance in `skills/first-run-setup/SKILL.md` ("Windows Snags Reference" section). Set `INSTALLER=bun` once verified.
 
-### Step 4 — Install the WhatsApp channel's packages
+### Step 4 - Install the WhatsApp channel's packages
 
 Tell the user: *"I'm installing the WhatsApp pieces now. About 30 seconds."*
 
@@ -218,7 +218,7 @@ fi
 
 Remember `$WS_KIT` for Step 5 and Phase 2's allowlist mutation.
 
-### Step 5 — Create the `claude-wa` shortcut autonomously
+### Step 5 - Create the `claude-wa` shortcut autonomously
 
 The user's only terminal action across this entire setup is one word: `claude-wa`. To make that possible, Claude creates the `claude-wa` shortcut autonomously **before** asking the user to do anything in a terminal. The user never types or pastes the long `WA_AUTO_OPEN_QR=1 claude --dangerously-load-development-channels server:whatsapp` form.
 
@@ -255,7 +255,7 @@ fi
 
 Don't run `which claude-wa` in this Bash session to verify. The current shell's PATH was set at session start and won't see the new entry. The user's fresh terminal in Step 7 will pick it up. Verification is the user successfully running `claude-wa` in Step 7.
 
-**Why `WA_AUTO_OPEN_QR=1` is baked in:** verified against `whatsapp-channel/src/index.ts` lines 42 and 402-408 — the listener consumes this env var and calls `start` (Windows) / `open` (Mac) / `xdg-open` (Linux) to launch the user's default browser at `http://127.0.0.1:8787` when a QR scan is needed. Without the env var, the listener still serves the QR page but does NOT auto-open the browser; the user would have to navigate manually. After pairing, `creds.json` exists, `needsQr` becomes false, and the auto-open is skipped on subsequent runs. Leaving the env var on permanently is correct.
+**Why `WA_AUTO_OPEN_QR=1` is baked in:** verified against `whatsapp-channel/src/index.ts` lines 42 and 402-408 - the listener consumes this env var and calls `start` (Windows) / `open` (Mac) / `xdg-open` (Linux) to launch the user's default browser at `http://127.0.0.1:8787` when a QR scan is needed. Without the env var, the listener still serves the QR page but does NOT auto-open the browser; the user would have to navigate manually. After pairing, `creds.json` exists, `needsQr` becomes false, and the auto-open is skipped on subsequent runs. Leaving the env var on permanently is correct.
 
 **WSL2 note:** if Step 2 detected WSL2, use the Mac/Linux path above (POSIX shell script in WSL filesystem). Do not use the Windows variant below. The user's "fresh terminal" in Step 7 must also be a WSL terminal.
 
@@ -281,7 +281,7 @@ if (-not $userPath -or ($userPath -split ';' -notcontains $newEntry)) {
 
 New cmd / PowerShell windows inherit the user PATH on next launch.
 
-### Step 6 — Kill any stale listener (silent, autonomous)
+### Step 6 - Kill any stale listener (silent, autonomous)
 
 Before asking the user to start a new listener, kill any pre-existing one. Two listeners polling the same WhatsApp Web session is always wrong (the Baileys session lock corrupts; the second listener will tear down the first).
 
@@ -294,7 +294,7 @@ sleep 1
 
 The regex spans both the `--import` arg and the script path, which together are unique enough on a workshop attendee's machine that no other process matches. This is silent. No need to mention it to the user. It either kills a stale process or does nothing.
 
-### Step 7 — User starts the listener with the shortcut
+### Step 7 - User starts the listener with the shortcut
 
 Tell the user, in one short message. The wording depends on whether Step 2 detected WSL2 or Windows-native:
 
@@ -318,7 +318,7 @@ Wait for the user to confirm.
 
 **Fallback only if `claude-wa` is not found in their fresh terminal** (PATH didn't propagate): tell them to paste the long form from the Phone Fallback section at the bottom of this file, just for this launch. Debug PATH later. Degraded path, not the default.
 
-### Step 8 — MANDATORY: verify the listener actually spawned
+### Step 8 - MANDATORY: verify the listener actually spawned
 
 Once the user says "scanned", **do not proceed to Step 9 yet.** Verify the listener process actually exists. This is non-negotiable: if `node_modules/` is missing or corrupt, or if a stale-environment terminal masks the runtime tooling, `claude --dangerously-load-development-channels` will silently fail to spawn the channel server. The Claude session looks fine, the prompt is responsive, but no WhatsApp listener is actually running.
 
@@ -337,7 +337,7 @@ The matcher uses the same regex as Step 6: it spans the `--import` arg and the s
 
 - **No process found** → silent-spawn failure. Two most-likely causes, in order:
 
-  1. **Stale-environment terminal.** If Step 3 had to install Bun and the user's app wasn't fully restarted after, the terminal the user ran `claude-wa` from inherited the pre-Bun PATH. `claude` itself is on PATH (always), so the prompt comes up — but anything `claude` tries to spawn that depends on the freshly-installed tooling silently fails. This applies even when the channel's `.mcp.json` currently runs via `node` and Node was already on PATH, because future `.mcp.json` revisions or any tsx-loader-side resolution may pull from the same shell environment.
+  1. **Stale-environment terminal.** If Step 3 had to install Bun and the user's app wasn't fully restarted after, the terminal the user ran `claude-wa` from inherited the pre-Bun PATH. `claude` itself is on PATH (always), so the prompt comes up - but anything `claude` tries to spawn that depends on the freshly-installed tooling silently fails. This applies even when the channel's `.mcp.json` currently runs via `node` and Node was already on PATH, because future `.mcp.json` revisions or any tsx-loader-side resolution may pull from the same shell environment.
 
   2. **Missing or corrupt `node_modules/`.** Step 4's `bun install` may have failed silently. Check via `test -d "$WS_KIT/whatsapp-channel/node_modules/tsx" && echo OK || echo MISSING`. If `MISSING`, re-run `cd "$WS_KIT/whatsapp-channel" && bun install`, ask user to re-run `claude-wa`, re-check.
 
@@ -360,7 +360,7 @@ The matcher uses the same regex as Step 6: it spans the `--import` arg and the s
 
 **Why this gate matters:** without it, Step 9 polls `creds.json` for up to 60 seconds, finds nothing, and reports a generic "pair didn't complete". The user has no idea why (looks like phone-camera issue or wrong QR). The health check turns a silent failure into an honest one.
 
-### Step 9 — Wait for the QR scan to complete pairing
+### Step 9 - Wait for the QR scan to complete pairing
 
 The Baileys listener writes `~/.claude/whatsapp-channel/auth/creds.json` during the pair handshake. A simple `[ -s file ]` check is too loose: Baileys writes the noise-key fields BEFORE the user's phone confirms the link, so size-greater-than-zero can fire mid-handshake. Mirror the channel's own `hasCredentials` bar (`size > 1`) and additionally require `me.id` to be populated, which only happens after Baileys observes `connection: 'open'` (verified in `whatsapp-channel/src/session.ts` lines 36-39 and 191-258):
 
@@ -393,7 +393,7 @@ done
 - **`PAIRED` printed** → tell the user *"Linked. WhatsApp is paired."* and continue to Step 10.
 - **Timeout (loop completes without `PAIRED`)** → either the QR expired (Baileys QRs expire after about 60 seconds), or the user hasn't scanned yet, or the phone-side scan failed. Tell the user: *"Looks like the QR scan didn't complete. Want to try again?"* If yes, restart the listener (Step 6's pkill, then Step 7), and a fresh QR will appear.
 
-### Step 10 — Verbal verification
+### Step 10 - Verbal verification
 
 Setup session has no `--channels` of its own, so it cannot see WhatsApp inbound. Verification is verbal: ask the user to send themselves a test message, and trust their report.
 
@@ -407,14 +407,14 @@ Wait for their report.
 
 ---
 
-## PHASE 2 — Use the Channel
+## PHASE 2 - Use the Channel
 
-Once paired, the channel exposes these tools via the workshop-kit's `whatsapp-channel` MCP server (loaded in the user's `claude-wa` session, not in this setup session — Phase 2 instructions describe how the listener-side Claude handles tool calls):
+Once paired, the channel exposes these tools via the workshop-kit's `whatsapp-channel` MCP server (loaded in the user's `claude-wa` session, not in this setup session - Phase 2 instructions describe how the listener-side Claude handles tool calls):
 
 | Tool | Use when the user wants to... |
 |---|---|
 | `whatsapp_send` | Send a message to a chat (self or allowlisted number) |
-| `whatsapp_history` | Read past messages, filter by `chat_id`, `sender_phone`, `contains`, `since_ts`, `until_ts`, `direction`, `limit` (1–500) |
+| `whatsapp_history` | Read past messages, filter by `chat_id`, `sender_phone`, `contains`, `since_ts`, `until_ts`, `direction`, `limit` (1-500) |
 | `whatsapp_list_chats` | List chats the assistant has seen, sorted by most recent activity |
 
 ### Common patterns
@@ -429,7 +429,7 @@ Once paired, the channel exposes these tools via the workshop-kit's `whatsapp-ch
 
 **History predates the current session.** The history log at `~/.claude/whatsapp-channel/history.jsonl` persists across sessions. You can answer questions about messages from days ago, not just the current chat.
 
-### Allowlist management — autonomous via direct file edit
+### Allowlist management - autonomous via direct file edit
 
 The channel is **self-only by default**: only the linked phone can message the assistant. To add other numbers, Claude edits the `WA_ALLOW_FROM` env var in `whatsapp-channel/.mcp.json` directly via python3. **Do NOT ask the user to open `.mcp.json` themselves.** Same autonomy rule as Phase 1: Claude edits state files in place; the user does not paste edits.
 
@@ -533,7 +533,7 @@ For anything not covered here, if the Superpowers plugin is installed, invoke `s
 
 ---
 
-## Reference — what lives where
+## Reference - what lives where
 
 - Channel source: `whatsapp-channel/` in the workshop-kit repo
 - Channel config (allowlist + env): `whatsapp-channel/.mcp.json`

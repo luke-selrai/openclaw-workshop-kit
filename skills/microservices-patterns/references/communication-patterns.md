@@ -20,7 +20,7 @@ Detailed reference for choosing and implementing communication patterns between 
 
 ### REST Patterns Worth Knowing
 
-**Idempotency Keys** — Prevent duplicate operations when retrying:
+**Idempotency Keys** - Prevent duplicate operations when retrying:
 
 ```http
 POST /api/payments HTTP/1.1
@@ -39,7 +39,7 @@ Server stores `(idempotency_key, response)` for some TTL (e.g., 24 hours). If sa
 GET /api/orders/123
 → ETag: "v4"
 
-# Update with precondition — fails if version changed
+# Update with precondition - fails if version changed
 PUT /api/orders/123
 If-Match: "v4"
 → 200 OK if version still v4
@@ -78,7 +78,7 @@ enum OrderStatus {
 }
 ```
 
-**Version your proto packages** (`order.v1`, `order.v2`) — never make breaking changes to an existing package. Add a new package version instead, run both simultaneously during migration, then retire the old version.
+**Version your proto packages** (`order.v1`, `order.v2`) - never make breaking changes to an existing package. Add a new package version instead, run both simultaneously during migration, then retire the old version.
 
 ---
 
@@ -113,12 +113,12 @@ Consumer Group A (Inventory Service):
 
 Consumer Group B (Analytics Service):
   Consumer 0 → reads all partitions independently
-  (fully separate offset — Analytics gets its own replay of all events)
+  (fully separate offset - Analytics gets its own replay of all events)
 ```
 
 **Key design decisions**:
-- **Partition key**: determines which partition receives a message. Use entity ID (order ID, user ID) to keep all events for an entity on one partition — guarantees ordering per entity.
-- **Consumer group**: one logical subscriber. Multiple consumer groups mean multiple independent subscribers — each gets every message.
+- **Partition key**: determines which partition receives a message. Use entity ID (order ID, user ID) to keep all events for an entity on one partition - guarantees ordering per entity.
+- **Consumer group**: one logical subscriber. Multiple consumer groups mean multiple independent subscribers - each gets every message.
 - **Retention**: set long enough to allow replay for new consumers. 7-30 days is common. Event sourcing systems set infinite retention.
 
 ### At-Least-Once vs At-Most-Once vs Exactly-Once
@@ -126,8 +126,8 @@ Consumer Group B (Analytics Service):
 | Guarantee | Consumer behavior | Use case |
 |-----------|------------------|---------|
 | **At-most-once** | Ack before processing | High-throughput, loss acceptable (metrics, analytics) |
-| **At-least-once** | Ack after processing | Default for business operations — requires idempotent handlers |
-| **Exactly-once** | Transactional — complex, expensive | Financial transactions, inventory |
+| **At-least-once** | Ack after processing | Default for business operations - requires idempotent handlers |
+| **Exactly-once** | Transactional - complex, expensive | Financial transactions, inventory |
 
 **Designing idempotent consumers** (at-least-once + idempotency = effectively exactly-once):
 
@@ -172,14 +172,14 @@ async function handleOrderShipped(event) {
 ### Choreography
 
 **Pros**:
-- Services are fully decoupled — no service knows about the overall flow
+- Services are fully decoupled - no service knows about the overall flow
 - Naturally fault-tolerant: events are persisted, services catch up independently
 - No central coordinator to scale or fail
 
 **Cons**:
 - Difficult to understand: you must trace events across services to understand the flow
 - Harder to add steps: each new step requires modifying multiple services to emit/consume new events
-- Cyclic dependencies possible: Service A emits event that B consumes, which emits event that A consumes — subtle ordering bugs
+- Cyclic dependencies possible: Service A emits event that B consumes, which emits event that A consumes - subtle ordering bugs
 - Compensation in choreography is complex: each service must listen for failure events and decide when to compensate
 
 **Rule of thumb**: Use choreography for simple 2-3 step sagas. Use orchestration for complex multi-step workflows with branching logic, timeouts, and parallel steps.
@@ -219,7 +219,7 @@ async function handleOrderEvent(event) {
 }
 ```
 
-The read model (`order_summaries`) is denormalized and optimized for queries. It can be rebuilt from scratch by replaying all events from the event store — this is the "time travel" benefit of event sourcing.
+The read model (`order_summaries`) is denormalized and optimized for queries. It can be rebuilt from scratch by replaying all events from the event store - this is the "time travel" benefit of event sourcing.
 
 ### Multiple Read Models from the Same Events
 
@@ -227,10 +227,10 @@ The same event stream feeds different read models for different use cases:
 
 ```
 Order Events
-  ├─→ order_summaries (status, dates, tracking)    — customer-facing order status
-  ├─→ order_analytics (revenue, product counts)    — finance dashboard
-  ├─→ customer_order_history (per-customer view)   — account page
-  └─→ fulfillment_queue (items to pick and ship)   — warehouse system
+  ├─→ order_summaries (status, dates, tracking)    - customer-facing order status
+  ├─→ order_analytics (revenue, product counts)    - finance dashboard
+  ├─→ customer_order_history (per-customer view)   - account page
+  └─→ fulfillment_queue (items to pick and ship)   - warehouse system
 ```
 
 Each read model is a projection of the same events, optimized differently.
@@ -240,7 +240,7 @@ Each read model is a projection of the same events, optimized differently.
 After a command, the read model is updated asynchronously. If the client immediately queries after a write, they might see stale data.
 
 Solutions:
-1. **Read your own writes**: After a write, poll until the read model reflects the change (optimistic — works most of the time)
+1. **Read your own writes**: After a write, poll until the read model reflects the change (optimistic - works most of the time)
 2. **Version-based reads**: Write returns the version written; client requests that version or later (`GET /orders/123?min_version=42`)
 3. **Accept eventual consistency**: Show "Your order is being processed" instead of the final state immediately
 
@@ -249,7 +249,7 @@ Solutions:
 ## Retry and Backoff Patterns
 
 ```js
-// Exponential backoff with jitter — prevents thundering herd
+// Exponential backoff with jitter - prevents thundering herd
 async function callWithRetry(fn, { maxRetries = 3, baseDelayMs = 100 } = {}) {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {

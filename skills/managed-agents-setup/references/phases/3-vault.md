@@ -1,4 +1,4 @@
-# Phase 3 — Vault seeding
+# Phase 3 - Vault seeding
 
 **Goal:** push third-party credentials into Anthropic Vaults so MCP calls authenticate without re-prompting.
 
@@ -10,7 +10,7 @@ python3 ~/.claude/skills/managed-agents-setup/scripts/vault-seeder.py \
 
 Reads `secrets.env`, matches known keys to MCP server URLs (see `references/mcp-servers-catalog.md`), creates a vault, and adds one credential per MCP server.
 
-**Companion: `mcp-bridge.sh`** — mirrors local Claude Code MCPs into the same vault so hosted agents get parity:
+**Companion: `mcp-bridge.sh`** - mirrors local Claude Code MCPs into the same vault so hosted agents get parity:
 ```bash
 bash ~/.claude/skills/managed-agents-setup/scripts/mcp-bridge.sh \
   --vault "$(cat ~/.claude/managed-agents/vault-id.txt)" --category A
@@ -24,7 +24,7 @@ bash ~/.claude/skills/managed-agents-setup/scripts/mcp-bridge.sh \
 | `META_ADS_TOKEN` | `https://mcp.pipeboard.co/meta-ads-mcp` | static_bearer |
 | `COMPOSIO_API_KEY` | `https://backend.composio.dev/v3/mcp` | static_bearer (Rube headless) |
 
-> ManyChat / Telegram / Xero are NOT auto-seeded — `mcp-bridge.json` flags them with no verified remote MCP host (`ma_url: null`). Reach those services via Rube/Composio instead; do not seed a credential to a fabricated host.
+> ManyChat / Telegram / Xero are NOT auto-seeded - `mcp-bridge.json` flags them with no verified remote MCP host (`ma_url: null`). Reach those services via Rube/Composio instead; do not seed a credential to a fabricated host.
 
 **Rube as cheat code:** if user adds `COMPOSIO_API_KEY`, vault-seeder wires Composio's "500+ apps via one credential" gateway. Confirm pricing at rube.app/pricing before workshop rollout.
 

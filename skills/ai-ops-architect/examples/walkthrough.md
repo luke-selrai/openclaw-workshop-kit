@@ -1,4 +1,4 @@
-# Worked walkthrough — a real ai-ops-architect session
+# Worked walkthrough - a real ai-ops-architect session
 
 What an audit → opportunity-map session actually looks like, captured from a real run
 (qa-harness, 2026-06-08). Use it to see the flow before you sit down with an owner.
@@ -11,13 +11,13 @@ This is the intended, hardened flow: **conversational intake → persist via `au
 should be using AI but honestly I don't even know where to start. What should I automate?"
 
 **ai-ops-architect:** Auto-invokes. It already knows the industry (mobile detailing) and team size
-(you + 2), so it skips those and asks the rest **conversationally — plain text, reply however you
+(you + 2), so it skips those and asks the rest **conversationally - plain text, reply however you
 like** (it does NOT pop a multiple-choice UI):
 
 > 1. What tools do you already use? (bookings, email, payments, accounting, customer chat)
 > 2. Your top 3 time-wasters?
 > 3. Rough monthly volumes (enquiries / jobs / messages-a-day)?
-> 4. How techy are you, 1–5?
+> 4. How techy are you, 1-5?
 > 5. Monthly budget for tools + AI?
 > 6. If you could magically fix ONE thing in 90 days, what would it be?
 
@@ -50,7 +50,7 @@ bash scripts/recommend.sh                              # → .state/audit-output
 ...
 ```
 
-The owner confirms 1–3 to build; `bash scripts/select.sh --auto 1,2` writes
+The owner confirms 1-3 to build; `bash scripts/select.sh --auto 1,2` writes
 `.state/selected-builds.json` with the runtime + `delegate_to` per pick, and Phase 5 hands each to
 `/n8n` or `/managed-agents-setup`.
 

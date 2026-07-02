@@ -1,4 +1,4 @@
-# Brevo (Sendinblue) REST API — connector reference
+# Brevo (Sendinblue) REST API - connector reference
 
 Companion to `brevo-connector/SKILL.md`. Verified live against a real account (SelrAI, rodolfo@selrai.com.au, free plan) on 2026-06-22.
 
@@ -27,10 +27,10 @@ Companion to `brevo-connector/SKILL.md`. Verified live against a real account (S
 
 ## Conventions
 
-- **Pagination:** `?limit=N&offset=M` (limit max typically 50–1000 per endpoint); responses include a top-level `count`.
+- **Pagination:** `?limit=N&offset=M` (limit max typically 50-1000 per endpoint); responses include a top-level `count`.
 - **Contact identifier** in the path can be the email (URL-encoded) or the numeric `id`.
 - **Upsert:** `POST /contacts` with `updateEnabled:true` updates if the email exists instead of erroring.
-- **Sending is real:** `/smtp/email` and campaign send/schedule actually deliver to recipients — gate behind explicit user confirmation.
+- **Sending is real:** `/smtp/email` and campaign send/schedule actually deliver to recipients - gate behind explicit user confirmation.
 
 ## Recipes
 
@@ -52,7 +52,7 @@ curl -s -X POST -H "$H" -H "Content-Type: application/json" \
   -d '{"email":"jane@example.com","attributes":{"FNAME":"Jane"},"listIds":[2],"updateEnabled":true}' "$B/contacts" | jq '.id'
 # delete a contact (204)
 curl -s -o /dev/null -w '%{http_code}\n' -X DELETE -H "$H" "$B/contacts/jane@example.com"
-# send transactional (CONFIRM first — this sends)
+# send transactional (CONFIRM first - this sends)
 curl -s -X POST -H "$H" -H "Content-Type: application/json" \
   -d '{"sender":{"email":"rodolfo@selrai.com.au"},"to":[{"email":"jane@example.com"}],"subject":"Hi","htmlContent":"<p>Hello</p>"}' "$B/smtp/email" | jq '.messageId'
 ```

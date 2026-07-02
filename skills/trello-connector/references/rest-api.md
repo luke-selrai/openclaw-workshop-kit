@@ -1,19 +1,19 @@
-# Trello REST API — connector reference
+# Trello REST API - connector reference
 
 Companion to `trello-connector/SKILL.md`. Verified live against a real account (user `rodolforaquion`) on 2026-06-22.
 
 ## Auth
 
 - **Two secrets, both as query params on every call:** `?key=<API_KEY>&token=<TOKEN>`.
-  - **API key** — 32-char hex, **public-safe** ("intended to be publicly accessible" per Trello docs).
-  - **Token** — `ATTA`-prefixed, ~76 chars, mixed-case, **secret**. Regex: `ATTA[A-Za-z0-9]{50,}` (the legacy 64-hex format is gone).
+  - **API key** - 32-char hex, **public-safe** ("intended to be publicly accessible" per Trello docs).
+  - **Token** - `ATTA`-prefixed, ~76 chars, mixed-case, **secret**. Regex: `ATTA[A-Za-z0-9]{50,}` (the legacy 64-hex format is gone).
 - **Base URL:** `https://api.trello.com/1`
 - **No OAuth refresh.** Token minted with `expiration=never`, `scope=read,write,account`.
 
 ## Getting credentials (setup)
 
 1. Accept Trello Developer Terms (one-time) at `trello.com/power-ups/admin`.
-2. **Create a Power-Up** at `trello.com/power-ups/admin/new` — **this form resists automation; the user must complete it by hand** (App name, Workspace, Email → form's bottom-right Create).
+2. **Create a Power-Up** at `trello.com/power-ups/admin/new` - **this form resists automation; the user must complete it by hand** (App name, Workspace, Email → form's bottom-right Create).
 3. On the app's **API Key** tab → "Generate a new API key" → confirm → 32-hex key.
 4. Token: open `https://trello.com/1/authorize?expiration=never&scope=read,write,account&response_type=token&key=<KEY>&name=Claude%20Code` → **Allow** → token shown on `https://trello.com/1/token/approve` for copy.
 

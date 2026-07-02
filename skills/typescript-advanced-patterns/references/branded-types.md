@@ -4,13 +4,13 @@ Nominal typing in TypeScript using phantom brand types.
 
 ## The Core Pattern
 
-TypeScript uses structural typing: two types are compatible if they have the same shape. Branded types add a phantom property that creates nominal compatibility — two brands are never assignable to each other even if the underlying type is the same.
+TypeScript uses structural typing: two types are compatible if they have the same shape. Branded types add a phantom property that creates nominal compatibility - two brands are never assignable to each other even if the underlying type is the same.
 
 ```typescript
 // The brand utility
 type Brand<T, B extends string> = T & { readonly __brand: B };
 
-// Never export __brand directly — it's a phantom type marker, not a real field
+// Never export __brand directly - it's a phantom type marker, not a real field
 ```
 
 ## Branded Primitives Catalog
@@ -24,7 +24,7 @@ type ProductId = Brand<string, 'ProductId'>;
 type SessionId = Brand<string, 'SessionId'>;
 type TransactionId = Brand<string, 'TransactionId'>;
 
-// Constructor pattern — all validation happens here
+// Constructor pattern - all validation happens here
 const UserId = {
   from: (id: string): UserId => {
     if (!id.startsWith('user_')) throw new Error(`Invalid UserId: ${id}`);
@@ -46,7 +46,7 @@ getUser(oid);  // Error: OrderId is not assignable to UserId
 ### Money and Numeric Types
 
 ```typescript
-// Always store money as integer cents/pence — never floats
+// Always store money as integer cents/pence - never floats
 type Cents = Brand<number, 'Cents'>;
 type USD = Brand<number, 'USD'>;       // use Cents internally, USD at display layer
 type Percentage = Brand<number, 'Percentage'>;
@@ -157,7 +157,7 @@ type CreateOrderInput = z.infer<typeof CreateOrderSchema>;
 // API handler
 async function createOrder(rawInput: unknown) {
   const input = CreateOrderSchema.parse(rawInput);
-  // input is now fully typed with brands — no raw strings or numbers
+  // input is now fully typed with brands - no raw strings or numbers
   await chargeUser(input.userId, input.amountCents);
 }
 ```
@@ -176,7 +176,7 @@ export const orders = pgTable('orders', {
   amountCents: integer('amount_cents').notNull(),
 });
 
-// Repository pattern — brand at the boundary
+// Repository pattern - brand at the boundary
 class OrderRepository {
   async findById(id: OrderId): Promise<Order | null> {
     const rows = await db

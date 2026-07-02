@@ -22,12 +22,12 @@ For AEDT (daylight saving, UTC+11): subtract 11 hours instead of 10.
 ## Common Patterns
 
 ```
-0 * * * *       — every hour on the hour
-0 23 * * *      — daily at 9am Brisbane
-0 23 * * 0-4    — weekdays only 9am Brisbane (see UTC-rollover gotcha below)
-0 0,12 * * *    — twice daily (midnight + noon UTC)
-0 8 * * 1       — Mondays 6pm Brisbane
-0 1 1 * *       — 1st of every month, 11am Brisbane
+0 * * * *       - every hour on the hour
+0 23 * * *      - daily at 9am Brisbane
+0 23 * * 0-4    - weekdays only 9am Brisbane (see UTC-rollover gotcha below)
+0 0,12 * * *    - twice daily (midnight + noon UTC)
+0 8 * * 1       - Mondays 6pm Brisbane
+0 1 1 * *       - 1st of every month, 11am Brisbane
 ```
 
 ## Validating a Cron Expression
@@ -35,7 +35,7 @@ For AEDT (daylight saving, UTC+11): subtract 11 hours instead of 10.
 ```bash
 python3 -c "from croniter import croniter; print(croniter.is_valid('0 23 * * *'))"
 ```
-Prints `True` for a valid 5-field expression, `False` otherwise. Or use https://crontab.guru/ (UTC only — don't trust the local-time preview).
+Prints `True` for a valid 5-field expression, `False` otherwise. Or use https://crontab.guru/ (UTC only - don't trust the local-time preview).
 
 ## Minimum Interval Rule
 
@@ -61,6 +61,6 @@ Auto-disables after firing.
 - **All fields in UTC.** No timezone field. Brisbane user saying "9am daily" means `0 23 * * *`, NOT `0 9 * * *`.
 - **UTC day-of-week rollover.** Because Brisbane 9am is `23:00 UTC the *previous* day`, the day-of-week field also rolls back one. "Weekdays (Mon-Fri) 9am Brisbane" is **`0 23 * * 0-4`** (UTC Sun-Thu), NOT `0 23 * * 1-5`. The naive `1-5` actually fires Tue-Sat Brisbane (it misses Monday and adds Saturday). Any time-of-day that crosses midnight UTC shifts the weekday set back by one.
 - **No seconds field.** 5-field cron only.
-- **Stagger** — routines get a deterministic per-id offset, so `0 * * * *` across many routines doesn't slam the backend at :00.
+- **Stagger** - routines get a deterministic per-id offset, so `0 * * * *` across many routines doesn't slam the backend at :00.
 - **Schedule changes** require editing via `/schedule update` or web UI. API partial updates supported.
 - **Paused routines** still accept `/fire` calls but return `400` until resumed.

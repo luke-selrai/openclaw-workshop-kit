@@ -40,7 +40,7 @@ Structured logging, distributed tracing, and metrics for production systems. Cov
 flowchart TD
     E[Event Occurs] --> Q1{Does it represent\na system failure?}
     Q1 -->|Yes| Q2{Is it recoverable\nwithout human?}
-    Q2 -->|No| FATAL[FATAL: Service cannot\ncontinue — trigger pager]
+    Q2 -->|No| FATAL[FATAL: Service cannot\ncontinue - trigger pager]
     Q2 -->|Yes| ERROR[ERROR: Operation failed,\nwill retry or degrade]
     Q1 -->|No| Q3{Is it unexpected\nbut not failing?}
     Q3 -->|Yes| WARN[WARN: Unusual condition,\ncircuit breaker open,\ndeprecation used]
@@ -193,11 +193,11 @@ The W3C `traceparent` header format: `00-{traceId}-{spanId}-{flags}`. Always pro
 
 **Novice thinking**: "I'll just log the full request body to debug this auth issue."
 
-**Why wrong**: GDPR/CCPA violations carry fines up to 4% of global revenue. Secrets in logs propagate to log aggregators, S3 exports, audit trails — all places with different access controls. A single `console.log(req.body)` can expose thousands of user passwords in your Datadog dashboard.
+**Why wrong**: GDPR/CCPA violations carry fines up to 4% of global revenue. Secrets in logs propagate to log aggregators, S3 exports, audit trails - all places with different access controls. A single `console.log(req.body)` can expose thousands of user passwords in your Datadog dashboard.
 
 **Detection signature**: Search your logs for `password`, `ssn`, `cardNumber`, `authorization` as field values (not keys). If any appear, you have a PII leak.
 
-**Fix — Allowlist approach:**
+**Fix - Allowlist approach:**
 ```typescript
 // Never log what you don't explicitly approve
 const SAFE_BODY_FIELDS = ['orderId', 'productId', 'quantity', 'currency'];
@@ -209,7 +209,7 @@ logger.info({
 }, 'Request received');
 ```
 
-**Fix — Redaction in logger config:**
+**Fix - Redaction in logger config:**
 ```typescript
 // Pino's redact runs before any transport
 const logger = pino({
@@ -237,16 +237,16 @@ const logger = pino({
 
 **Novice thinking**: `logger.info('User ' + userId + ' purchased ' + productId + ' for $' + amount)`
 
-**Why wrong**: You cannot filter, aggregate, or alert on string-interpolated data in any log aggregator. A Grafana query for `amount > 1000` requires `amount` to be a numeric field, not embedded in a sentence. String logs are write-only — you can read them but not query them at scale.
+**Why wrong**: You cannot filter, aggregate, or alert on string-interpolated data in any log aggregator. A Grafana query for `amount > 1000` requires `amount` to be a numeric field, not embedded in a sentence. String logs are write-only - you can read them but not query them at scale.
 
 **Impact**: Your 10 million daily log lines become unsearchable. MTTR (mean time to recovery) during incidents doubles because engineers grep through strings instead of filtering structured fields.
 
 **Fix:**
 ```typescript
-// Bad: string log — amount is buried in text
+// Bad: string log - amount is buried in text
 logger.info(`User ${userId} purchased ${productId} for $${amount}`);
 
-// Good: structured — every field is queryable
+// Good: structured - every field is queryable
 logger.info({ userId, productId, amountDollars: amount / 100 }, 'purchase_completed');
 ```
 
@@ -281,9 +281,9 @@ async function handleCheckout(req, res) {
 }
 ```
 
-**Why wrong**: Every error appears 2-5 times in your logs depending on call depth. Alerting on error count becomes unreliable. Incident review is confusing — engineers think there were multiple failures. Log volume costs money (Datadog charges per ingested GB).
+**Why wrong**: Every error appears 2-5 times in your logs depending on call depth. Alerting on error count becomes unreliable. Incident review is confusing - engineers think there were multiple failures. Log volume costs money (Datadog charges per ingested GB).
 
-**Fix — Log only at the boundary where you handle the error:**
+**Fix - Log only at the boundary where you handle the error:**
 ```typescript
 // Good: log only where you decide what to do with the error
 async function processPayment(orderId: string) {
@@ -326,9 +326,9 @@ async function handleCheckout(req, res) {
 
 ## Output Artifacts
 
-1. **Logger configuration** — Pino/Winston/structlog setup with redaction rules
-2. **OTel bootstrap file** — SDK init with auto-instrumentation
-3. **Correlation middleware** — AsyncLocalStorage request context
-4. **Prometheus metrics module** — Counter/histogram/gauge definitions
-5. **Grafana dashboard JSON** — Four golden signals panels
-6. **Alertmanager rules YAML** — SLO-based alert definitions
+1. **Logger configuration** - Pino/Winston/structlog setup with redaction rules
+2. **OTel bootstrap file** - SDK init with auto-instrumentation
+3. **Correlation middleware** - AsyncLocalStorage request context
+4. **Prometheus metrics module** - Counter/histogram/gauge definitions
+5. **Grafana dashboard JSON** - Four golden signals panels
+6. **Alertmanager rules YAML** - SLO-based alert definitions

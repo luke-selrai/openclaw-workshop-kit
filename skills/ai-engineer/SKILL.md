@@ -261,6 +261,6 @@ function routeQuery(query: string, context: any): ModelId {
 
 ---
 
-**Core insight**: Production AI systems need more than good prompts—they need robust retrieval, intelligent routing, comprehensive monitoring, and graceful failure handling.
+**Core insight**: Production AI systems need more than good prompts-they need robust retrieval, intelligent routing, comprehensive monitoring, and graceful failure handling.
 
 **Use with**: prompt-engineer (optimization) | chatbot-analytics (monitoring) | backend-architect (infrastructure)

@@ -6,4 +6,4 @@ Invoke the `package-as-routine` skill to drive the full packaging flow.
 
 If the user supplied a skill name (or names) in arguments, pass them along: `$ARGUMENTS`. Otherwise, let the skill discover what's available locally and ask the user which to package.
 
-Follow the skill exactly. The flow is intentionally sequential with "tell me when done" checkpoints — do not collapse steps or skip helpers.
+Follow the skill exactly. The flow is intentionally sequential with "tell me when done" checkpoints - do not collapse steps or skip helpers.

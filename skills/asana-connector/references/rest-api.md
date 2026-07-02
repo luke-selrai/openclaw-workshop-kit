@@ -1,11 +1,11 @@
-# Asana REST API — connector reference
+# Asana REST API - connector reference
 
 Companion to `asana-connector/SKILL.md`. Everything here was verified live against a real Asana account (workspace `selrai.com.au`) on 2026-06-22.
 
 ## Auth + base URL
 
 - **Header:** `Authorization: Bearer <PAT>` on every request. No query-param token form.
-- **PAT format:** `<version>/<user_gid>/<token_gid>:<hex>` — **three segments**, e.g. `2/1215919238271902/1215924623120615:52144db…` (68 chars in the verified case). A two-segment regex truncates it → silent 401. Created at the developer console `https://app.asana.com/0/my-apps` → Personal access tokens → Create new token. Shown **once**; grab it from the Token-details dialog's **Copy** button.
+- **PAT format:** `<version>/<user_gid>/<token_gid>:<hex>` - **three segments**, e.g. `2/1215919238271902/1215924623120615:52144db…` (68 chars in the verified case). A two-segment regex truncates it → silent 401. Created at the developer console `https://app.asana.com/0/my-apps` → Personal access tokens → Create new token. Shown **once**; grab it from the Token-details dialog's **Copy** button.
 - **Base URL:** `https://app.asana.com/api/1.0`
 
 ## The two universal conventions
@@ -28,7 +28,7 @@ Offset-based opaque cursor. Pass `limit` (max **100**) and, for subsequent pages
 
 ## Listing scope rules
 
-- `GET /tasks` **requires a scope** — one of: `project=<gid>`, `section=<gid>`, `tag=<gid>`, or `workspace=<gid>`+`assignee=<gid|me>`. A bare `GET /tasks` returns 400.
+- `GET /tasks` **requires a scope** - one of: `project=<gid>`, `section=<gid>`, `tag=<gid>`, or `workspace=<gid>`+`assignee=<gid|me>`. A bare `GET /tasks` returns 400.
 - Most workspace-level collections (projects, tags, custom_fields) require `workspace=<gid>`.
 - `assignee=me` and `completed_since=now` (incomplete only) are handy task filters.
 
@@ -36,7 +36,7 @@ Offset-based opaque cursor. Pass `limit` (max **100**) and, for subsequent pages
 
 | Entity | Endpoint(s) | Verbs | Notes |
 |---|---|---|---|
-| Workspaces | `/workspaces`, `/workspaces/<gid>` | GET | Top-level container. Grab the gid first — most listings need it. |
+| Workspaces | `/workspaces`, `/workspaces/<gid>` | GET | Top-level container. Grab the gid first - most listings need it. |
 | Users | `/users?workspace=<ws>`, `/users/me`, `/users/<gid>` | GET | `/me` = token owner; default fields incl. `email`, `workspaces`. |
 | Teams | `/organizations/<ws>/teams`, `/teams/<gid>`, `/teams/<gid>/projects` | GET/POST | Org-tier (Division/Enterprise) grouping. |
 | Projects | `/projects?workspace=<ws>`, `/projects/<gid>` | GET/POST/PUT/DELETE | Task containers. `opt_fields=name,archived,owner.name`. |
@@ -83,7 +83,7 @@ curl -s -X PUT -H "Authorization: Bearer $ASANA_PAT" -H "Content-Type: applicati
 
 # Comment on a task
 curl -s -X POST -H "Authorization: Bearer $ASANA_PAT" -H "Content-Type: application/json" \
-  -d '{"data":{"text":"Done — moving to review."}}' \
+  -d '{"data":{"text":"Done - moving to review."}}' \
   "https://app.asana.com/api/1.0/tasks/<task_gid>/stories" | jq '.data.gid'
 ```
 
@@ -99,5 +99,5 @@ curl -s -X POST -H "Authorization: Bearer $ASANA_PAT" -H "Content-Type: applicat
 
 ## Source
 
-- Live verification: workspace `selrai.com.au` (gid `1214794193114114`), 2026-06-22 — Bearer auth, three-segment PAT, `opt_fields` default-minimal behavior, `next_page` offset pagination all confirmed.
+- Live verification: workspace `selrai.com.au` (gid `1214794193114114`), 2026-06-22 - Bearer auth, three-segment PAT, `opt_fields` default-minimal behavior, `next_page` offset pagination all confirmed.
 - For full field schemas, see the official docs (`https://developers.asana.com/reference`) or request `opt_fields` incrementally per entity.

@@ -5,7 +5,7 @@
 > it if it misbehaves. Append-only at `.state/ship.log` records the same.
 
 ```markdown
-# Your AI ops setup — built {{DATE}}
+# Your AI ops setup - built {{DATE}}
 
 ## What's running
 
@@ -25,7 +25,7 @@
 
 - {{daily_check_1}}
 - {{daily_check_2}}
-- Any failure email from `daily-cost-monitor` — runs every morning, alerts if any build crosses {{cost_cap}}/day
+- Any failure email from `daily-cost-monitor` - runs every morning, alerts if any build crosses {{cost_cap}}/day
 
 ## Connectors connected
 
@@ -43,7 +43,7 @@
 ## If something breaks
 
 1. Re-run `/ai-ops-architect` and pick "diagnose existing build"
-2. Check the kill switch in the table above — it stops the offender without affecting the others
+2. Check the kill switch in the table above - it stops the offender without affecting the others
 3. Check daily-cost-monitor for spend anomalies
 4. Worst case: `claude mcp remove <service>` removes the connector cleanly
 

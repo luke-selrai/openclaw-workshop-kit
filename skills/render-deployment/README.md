@@ -2,7 +2,7 @@
 
 Hands-off assistant for connecting Claude Code to a Render.com account through the Render CLI.
 
-After the user runs this skill once, the agent (Claude) can run any `render` CLI command on the user's behalf — list services, trigger redeploys, tail logs, open psql sessions — without further setup or human input.
+After the user runs this skill once, the agent (Claude) can run any `render` CLI command on the user's behalf - list services, trigger redeploys, tail logs, open psql sessions - without further setup or human input.
 
 ## What this skill IS
 
@@ -11,14 +11,14 @@ After the user runs this skill once, the agent (Claude) can run any `render` CLI
 
 ## What this skill is NOT
 
-- It is **not** a wrapper around the official Render skills bundle (`render-deploy`, `render-debug`, `render-monitor`, plus 18 more). That bundle scatters 21 top-level directories under `~/.claude/skills/`, and `render skills remove --all` deletes any folder whose name matches Render's catalogue — including this one. We don't run `render skills install` from this skill.
-- It does **not** deploy from a local folder. Render's v2.17 CLI has no `render deploy <yaml>` command — every service is connected to a git repository. Pushing to git is what triggers deploys; this skill only gets the CLI talking to Render.
+- It is **not** a wrapper around the official Render skills bundle (`render-deploy`, `render-debug`, `render-monitor`, plus 18 more). That bundle scatters 21 top-level directories under `~/.claude/skills/`, and `render skills remove --all` deletes any folder whose name matches Render's catalogue - including this one. We don't run `render skills install` from this skill.
+- It does **not** deploy from a local folder. Render's v2.17 CLI has no `render deploy <yaml>` command - every service is connected to a git repository. Pushing to git is what triggers deploys; this skill only gets the CLI talking to Render.
 
 ## File tree
 
 ```
 render-deployment/
-  SKILL.md                          # entrypoint — orchestration steps, plain-English flow
+  SKILL.md                          # entrypoint - orchestration steps, plain-English flow
   README.md                         # this file
   troubleshooting.md                # plain-English fix reference
   scripts/
@@ -26,7 +26,7 @@ render-deployment/
     install-render-windows.ps1      # Windows installer: winget → scoop → direct GitHub release zip. Idempotent.
 ```
 
-Everything else (login polling, workspace selection, dashboard-driven API-key minting via Playwright, read-only verification) runs as short shell snippets inline from `SKILL.md` — no extra wrapper scripts needed.
+Everything else (login polling, workspace selection, dashboard-driven API-key minting via Playwright, read-only verification) runs as short shell snippets inline from `SKILL.md` - no extra wrapper scripts needed.
 
 ## Flow
 

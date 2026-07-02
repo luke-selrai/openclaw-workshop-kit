@@ -1,20 +1,20 @@
-# Starshipit REST API — reference
+# Starshipit REST API - reference
 
-Loaded on demand during Phase 2. Authoritative source: https://api-docs.starshipit.com/ — consult it for any endpoint/field not covered here.
+Loaded on demand during Phase 2. Authoritative source: https://api-docs.starshipit.com/ - consult it for any endpoint/field not covered here.
 
 ## Base + auth
 
 - **Base URL:** `https://api.starshipit.com/api`
 - **Auth (two keys, both required on every request):**
-  - `StarShipIT-Api-Key: <api key>` — the account API key (Settings → API).
-  - `Ocp-Apim-Subscription-Key: <subscription key>` — the Azure-APIM subscription key (Settings → API).
+  - `StarShipIT-Api-Key: <api key>` - the account API key (Settings → API).
+  - `Ocp-Apim-Subscription-Key: <subscription key>` - the Azure-APIM subscription key (Settings → API).
 - **Format:** JSON. Send `Content-Type: application/json` on requests with a body.
 
 ## Verification status
 
 The **dual-key auth and these reads were live-verified 2026-06-16** (HTTP 200): `GET /orders` (paged), `GET /orders/unshipped`, `GET /addressbook`. Other endpoints below are from Starshipit's official docs and should be confirmed live before being relied on for writes.
 
-**Telling auth from path errors:** a wrong path returns `{"statusCode":404,"message":"Resource not found"}` (auth still OK); a real auth failure is **401/403**. `GET /deliveryservices` returns 404 — it is not the correct path; use the documented resources below.
+**Telling auth from path errors:** a wrong path returns `{"statusCode":404,"message":"Resource not found"}` (auth still OK); a real auth failure is **401/403**. `GET /deliveryservices` returns 404 - it is not the correct path; use the documented resources below.
 
 ## Resource catalogue (per Starshipit docs)
 
@@ -62,6 +62,6 @@ SS "$STARSHIPIT_API_BASE/orders?order_number=TEST-001" | jq '.order // .orders'
 - **200** OK. **2xx** on create/update.
 - **401 / 403** invalid/missing keys (remember: BOTH headers).
 - **404** with a JSON body → wrong path, auth still valid.
-- **429** rate limited — ~2 req/s (Developer subscription) / ~20 req/s (Production). Back off and retry.
+- **429** rate limited - ~2 req/s (Developer subscription) / ~20 req/s (Production). Back off and retry.
 
 Official docs: https://api-docs.starshipit.com/ · "How to find your Starshipit API Key": https://support.starshipit.com/hc/en-us/articles/360001893576

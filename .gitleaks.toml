@@ -1,0 +1,35 @@
+# gitleaks configuration for claude-workshop-kit
+#
+# Inherits gitleaks' full default ruleset (extend.useDefault = true) and adds two
+# narrowly-scoped allowlists for pre-existing DOCUMENTATION placeholders that the
+# default rules false-positive on. Each allowlist is bound to BOTH the specific file
+# (via paths) AND the specific literal string (via regexes), so it cannot suppress a
+# real secret elsewhere. We deliberately do NOT use a blanket top-level
+# `[allowlist] paths` skip: that blanket-skips whole files and is a known blind spot.
+
+title = "claude-workshop-kit gitleaks config"
+
+[extend]
+useDefault = true
+
+# --- Allowlist 1: cliniko-connector SKILL.md HTTP Basic auth teaching example ---
+# The `curl -u "$CLINIKO_API_KEY:"` line documents Cliniko's auth scheme (API key as
+# username, blank password). The "credential" is a shell variable reference, not a
+# literal secret. Scoped to the cliniko SKILL.md and the curl-auth-user rule only.
+[[rules]]
+id = "curl-auth-user"
+[rules.allowlist]
+description = "Cliniko HTTP Basic auth doc example (shell-var placeholder, not a real secret)"
+paths = ['''skills/cliniko-connector/SKILL\.md''']
+regexes = ['''curl -u "\\?\$CLINIKO_API_KEY:"''']
+
+# --- Allowlist 2: shopify-connector SKILL.md canonical example UUID ---
+# `123e4567-e89b-12d3-a456-426614174000` is the RFC-4122 / Shopify-docs canonical
+# example UUID used to illustrate the @idempotent(key:) directive. Not a secret.
+# Scoped to the shopify SKILL.md and the generic-api-key rule only.
+[[rules]]
+id = "generic-api-key"
+[rules.allowlist]
+description = "Shopify @idempotent canonical example UUID (RFC-4122 placeholder, not a real secret)"
+paths = ['''skills/shopify-connector/SKILL\.md''']
+regexes = ['''123e4567-e89b-12d3-a456-426614174000''']

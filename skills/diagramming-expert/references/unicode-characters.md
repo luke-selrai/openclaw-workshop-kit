@@ -2,7 +2,7 @@
 
 Complete reference for text-based diagram creation.
 
-## Box Drawing (U+2500–U+257F)
+## Box Drawing (U+2500-U+257F)
 
 ### Light Lines
 

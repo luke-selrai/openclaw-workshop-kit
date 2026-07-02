@@ -95,7 +95,7 @@ cost_report:
     sonnet: { calls: 3, cost: 0.036 }
     opus: { calls: 1, cost: 0.33 }
   savings_recommendations:
-    - "Node 'deep-analysis' used Opus ($0.33) but downstream accepted on first try. Try Sonnet next time — potential saving: $0.32"
+    - "Node 'deep-analysis' used Opus ($0.33) but downstream accepted on first try. Try Sonnet next time - potential saving: $0.32"
     - "Nodes 'validate-a' and 'validate-b' are sequential but independent. Parallelize to reduce wall-clock time."
 ```
 

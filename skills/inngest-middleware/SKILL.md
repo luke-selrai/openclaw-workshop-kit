@@ -1,6 +1,6 @@
 ---
 name: inngest-middleware
-description: Use when adding cross-cutting concerns to durable functions — structured logging or tracing across all functions, error tracking with Sentry, payload encryption for sensitive data, dependency injection of clients (DB, Stripe, etc.) into function handlers, custom telemetry, or behavior that should apply uniformly across many functions. Covers Inngest middleware lifecycle, creating custom middleware, dependencyInjectionMiddleware, @inngest/middleware-encryption, @inngest/middleware-sentry, and custom middleware patterns.
+description: Use when adding cross-cutting concerns to durable functions - structured logging or tracing across all functions, error tracking with Sentry, payload encryption for sensitive data, dependency injection of clients (DB, Stripe, etc.) into function handlers, custom telemetry, or behavior that should apply uniformly across many functions. Covers Inngest middleware lifecycle, creating custom middleware, dependencyInjectionMiddleware, @inngest/middleware-encryption, @inngest/middleware-sentry, and custom middleware patterns.
 ---
 
 # Inngest Middleware
@@ -11,7 +11,7 @@ Master Inngest middleware to handle cross-cutting concerns like logging, error t
 
 > **Note:** The middleware system was significantly rewritten in v4. The lifecycle hooks documented here reflect the v4 API. If migrating from v3, consult the [migration guide](https://www.inngest.com/docs-markdown/reference/typescript/v4/migrations/v3-to-v4) for details on breaking changes.
 
-> **⚠ For Realtime use the `inngest-realtime` skill, NOT this one.** Inngest v3 used `realtimeMiddleware()` from `@inngest/realtime` to inject a `publish` arg into function handlers. **v4 ships realtime natively** — `step.realtime.publish` is built-in, no middleware required. Do NOT install `@inngest/realtime` on a v4 project (it's a v3-era package and produces `TypeError: Cls is not a constructor` at runtime). See the `inngest-realtime` skill for the v4 pattern.
+> **⚠ For Realtime use the `inngest-realtime` skill, NOT this one.** Inngest v3 used `realtimeMiddleware()` from `@inngest/realtime` to inject a `publish` arg into function handlers. **v4 ships realtime natively** - `step.realtime.publish` is built-in, no middleware required. Do NOT install `@inngest/realtime` on a v4 project (it's a v3-era package and produces `TypeError: Cls is not a constructor` at runtime). See the `inngest-realtime` skill for the v4 pattern.
 
 ## What is Middleware?
 

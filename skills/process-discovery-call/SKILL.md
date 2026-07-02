@@ -101,8 +101,8 @@ If a signal genuinely wasn't surfaced on the call, mark it "not surfaced" - don'
 
 Use the GHL MCP tools (`mcp__ghl__*`) for most operations. **Important exception: the MCP is currently broken for `customFields` writes** - it accepts the parameter, returns success, but silently drops the data. Until that's fixed, use direct `curl` calls to the GHL API for any customFields write. See section 3.1.5 for the curl pattern.
 
-Location ID: `<YOUR_GHL_LOCATION_ID>` // Replace this with your own GHL location ID — find it in your GHL sub-account URL or via the ghl-connector skill.
-Pipeline ID: `<YOUR_PIPELINE_ID>` (the sales pipeline you want discovery-call opportunities to live in — grab the ID via `mcp__ghl__opportunities_get-pipelines`).
+Location ID: `<YOUR_GHL_LOCATION_ID>` // Replace this with your own GHL location ID - find it in your GHL sub-account URL or via the ghl-connector skill.
+Pipeline ID: `<YOUR_PIPELINE_ID>` (the sales pipeline you want discovery-call opportunities to live in - grab the ID via `mcp__ghl__opportunities_get-pipelines`).
 PIT lives in `~/.claude.json` under `mcpServers.ghl.headers.Authorization` (Bearer token).
 
 ### 3.1 Find or upsert the contact
@@ -112,7 +112,7 @@ Search for the contact via `mcp__ghl__contacts_get-contacts` by name + company (
 **GHL upsert requires email OR phone.** If the transcript didn't surface a real email or phone:
 
 - **Do not spend time hunting for one** across Gmail, Calendar, other CRMs. That wastes 2-3 minutes and rarely succeeds for a brand-new prospect.
-- **Use a placeholder email immediately:** `firstname.lastname+pending@example.com` (lower-case, no spaces). Use your own domain — the `+pending` plus-tag works on Gmail/Workspace addresses. Gmail plus-addressing routes safely back to you if the draft is sent accidentally, and `+pending` flags it as a placeholder.
+- **Use a placeholder email immediately:** `firstname.lastname+pending@example.com` (lower-case, no spaces). Use your own domain - the `+pending` plus-tag works on Gmail/Workspace addresses. Gmail plus-addressing routes safely back to you if the draft is sent accidentally, and `+pending` flags it as a placeholder.
 - **Always flag the placeholder in the Telegram TL;DR** so the user replaces it before sending.
 
 Upsert with basic info only (firstName, lastName, email or placeholder, phone if available, companyName, city, state, country, timezone, source, tags). **Do not include customFields in the upsert** - they will be silently dropped. Set them via curl in section 3.1.5.
@@ -296,7 +296,7 @@ The body ends with just:
 Kind Regards,
 ```
 
-**Do NOT type the user's name after "Kind Regards,"** — the user's name is already in the signature block (the image card / signature shows their name and role). Typing the name plus appending the signature produces a duplicated name on screen.
+**Do NOT type the user's name after "Kind Regards,"** - the user's name is already in the signature block (the image card / signature shows their name and role). Typing the name plus appending the signature produces a duplicated name on screen.
 
 **Critical:** Gmail signatures do NOT auto-append to API-created drafts. You must fetch the signature HTML and append it yourself. Do this every run (don't hardcode - the user may update their signature).
 

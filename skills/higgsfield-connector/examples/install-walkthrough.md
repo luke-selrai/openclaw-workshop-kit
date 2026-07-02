@@ -1,4 +1,4 @@
-# Higgsfield Connector — Install Walkthrough
+# Higgsfield Connector - Install Walkthrough
 
 > **Status: fully captured, 2026-06-08 against rodolfo@selrai.com.au's Higgsfield account** (`@higgsfield/cli` v0.1.40). Phase 1 (install + device login) plus **both** a Phase 2 image-generation smoke **and** an image-to-video smoke were run live end-to-end. The login was approved in a Playwright browser; a `nano_banana_2` image was generated (2 credits) and a `seedance1_5` image-to-video clip was generated (2.4 credits, 4.05s MP4), with real response shapes captured. The platform's input content-safety guardrail (`Error: NSFW content detected`) was also observed live.
 
@@ -8,7 +8,7 @@ This walkthrough documents the default path: Phase 0 → Phase 1 → a Phase 2 s
 
 ---
 
-## Step 0 — Resume check
+## Step 0 - Resume check
 
 ```bash
 $ command -v higgsfield && higgsfield --version
@@ -16,17 +16,17 @@ $ higgsfield account status
 Error: Not authenticated.
 Hint: Run: hf auth login
 ```
-→ not connected — run Phase 1. (When already connected, `account status` prints `email — plan, N credits` and you skip to Phase 2.)
+→ not connected - run Phase 1. (When already connected, `account status` prints `email - plan, N credits` and you skip to Phase 2.)
 
 ---
 
-## Step 1 — Welcome
+## Step 1 - Welcome
 
-> "I'll connect your Higgsfield now so I can generate video and image creative for you. I'll open a sign-in window in a moment — just approve it there and I'll handle the rest. About a minute."
+> "I'll connect your Higgsfield now so I can generate video and image creative for you. I'll open a sign-in window in a moment - just approve it there and I'll handle the rest. About a minute."
 
 ---
 
-## Step 2 — Install the CLI
+## Step 2 - Install the CLI
 
 ```bash
 $ npm install -g @higgsfield/cli
@@ -38,7 +38,7 @@ Binary: `higgsfield` (aliases `higgs`, `hf`).
 
 ---
 
-## Step 3 — Log in (device flow, Playwright-driven) — captured live
+## Step 3 - Log in (device flow, Playwright-driven) - captured live
 
 ```bash
 $ higgsfield auth login > /tmp/hf_login.out 2>&1 &     # blocks, polling, until approval
@@ -57,30 +57,30 @@ mcp__playwright__browser_navigate({ url: "https://higgsfield.ai/device?code=<COD
 ```
 Successfully authenticated.
 ```
-- Token saved to `~/.config/higgsfield/credentials.json` (mode `0600`) — **not** in `~/.claude.json`.
+- Token saved to `~/.config/higgsfield/credentials.json` (mode `0600`) - **not** in `~/.claude.json`.
 
 Verify:
 ```bash
 $ higgsfield account status
-rodolfo@selrai.com.au — free plan, 10 credits
+rodolfo@selrai.com.au - free plan, 10 credits
 ```
 
 ---
 
-## Step 4 — Success message
+## Step 4 - Success message
 
-> "All done — your Higgsfield is connected! You've got **10 credits**. You can ask me to 'make a cinematic product video', 'turn this photo into a 5-second video ad', or 'generate 3 image variations for a social ad'. (Each generation uses a few credits — I'll always tell you the cost first.)"
+> "All done - your Higgsfield is connected! You've got **10 credits**. You can ask me to 'make a cinematic product video', 'turn this photo into a 5-second video ad', or 'generate 3 image variations for a social ad'. (Each generation uses a few credits - I'll always tell you the cost first.)"
 
 ---
 
-## Phase 2 sample — image generation (captured live, 2 credits)
+## Phase 2 sample - image generation (captured live, 2 credits)
 
 ```bash
 # 1) Estimate cost first
 $ higgsfield generate cost nano_banana_2 --prompt "a single red cube on a plain white background, minimal product photo"
 2 credits
 
-# (Claude confirms: "This will use 2 credits — you have 10. Go ahead?")
+# (Claude confirms: "This will use 2 credits - you have 10. Go ahead?")
 
 # 2) Generate, blocking until done → prints the result URL
 $ higgsfield generate create nano_banana_2 \
@@ -89,7 +89,7 @@ https://d8j0ntlcm91z4.cloudfront.net/user_…/hf_20260608_104233_bbd02f1f-….pn
 
 # 3) Balance dropped by exactly the estimate
 $ higgsfield account status
-rodolfo@selrai.com.au — free plan, 8 credits
+rodolfo@selrai.com.au - free plan, 8 credits
 ```
 
 **Captured response shape** (`generate get <id> --json`):
@@ -123,13 +123,13 @@ seedance1_5 --image <photo> … --duration 4 --resolution 480p` → `2.4 credits
 MP4) is verified end-to-end, not just images.
 
 **Input content safety (captured 2026-06-08).** Higgsfield enforces a content filter on
-**input media** — `generate cost`/`create` return `Error: NSFW content detected` and refuse
+**input media** - `generate cost`/`create` return `Error: NSFW content detected` and refuse
 to proceed (e.g. when the source image is of a minor). This is the platform's guardrail;
 do not attempt to bypass it (re-cropping, rewording, switching models). Surface it plainly
 and stop. Adults / products pass normally.
 
 **Not exercised** (free plan, limited credits): `soul-id` training and the Marketing Studio /
-product-photoshoot / marketplace-card flows — documented from `--help` + `model`/`--help`
+product-photoshoot / marketplace-card flows - documented from `--help` + `model`/`--help`
 contracts, not live-smoked.
 
 ---

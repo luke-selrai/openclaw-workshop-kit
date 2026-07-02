@@ -97,7 +97,7 @@ files (`openapi`, `graphql`, `grpc`) pass `scripts/validate-api-spec.sh`.
 
 | File | What's inside |
 |------|---------------|
-| `openapi-spec.yaml` | OpenAPI 3.1 User Service — versioned server, JWT auth, cursor pagination, `data`/`meta` envelope, `ValidationError` schema. Copy as a REST starting point. |
+| `openapi-spec.yaml` | OpenAPI 3.1 User Service - versioned server, JWT auth, cursor pagination, `data`/`meta` envelope, `ValidationError` schema. Copy as a REST starting point. |
 | `graphql-schema.graphql` | SDL with Query/Mutation/Subscription, Relay `Connection`/`PageInfo` pagination, and mutation payloads that return an `errors` array. |
 | `grpc-service.proto` | proto3 `UserService` showing all four RPC shapes (unary, server-, client-, bidi-streaming) plus `FieldMask` partial updates and `oneof`. |
 | `rate-limiting.yaml` | Four-tier policy, `X-RateLimit-*` headers, sliding-log vs token-bucket, per-endpoint overrides, the 429 body. Config, not a contract. |
@@ -158,7 +158,7 @@ have consumers verify; stable event IDs so consumers stay idempotent. See
 ## Validation Script
 
 `./scripts/validate-api-spec.sh` lints the spec files in the current
-directory. It's **pure Bash + grep — no install step**. Run it from the
+directory. It's **pure Bash + grep - no install step**. Run it from the
 folder holding your specs:
 
 ```bash
@@ -205,24 +205,24 @@ docs, dependencies, and a sample failure are in
 ## Output Artifacts
 
 The first three are written by hand from the references above. The last
-three are **generated from the contract** — never hand-maintained, so they
+three are **generated from the contract** - never hand-maintained, so they
 can't drift from the spec.
 
-1. **OpenAPI Specifications** — Complete API contracts (start from `references/openapi-spec.yaml`)
-2. **GraphQL Schemas** — Type definitions with connections (start from `references/graphql-schema.graphql`)
-3. **Protocol Buffers** — gRPC service definitions (start from `references/grpc-service.proto`)
-4. **API Documentation** — Render the OpenAPI spec; don't write docs by hand:
+1. **OpenAPI Specifications** - Complete API contracts (start from `references/openapi-spec.yaml`)
+2. **GraphQL Schemas** - Type definitions with connections (start from `references/graphql-schema.graphql`)
+3. **Protocol Buffers** - gRPC service definitions (start from `references/grpc-service.proto`)
+4. **API Documentation** - Render the OpenAPI spec; don't write docs by hand:
    ```bash
    npx @redocly/cli build-docs openapi-spec.yaml -o docs.html   # static HTML
    # or serve interactive Swagger UI from the same spec
    ```
-5. **SDK Examples** — Generate typed clients from the contract:
+5. **SDK Examples** - Generate typed clients from the contract:
    ```bash
    npx @openapitools/openapi-generator-cli generate \
      -i openapi-spec.yaml -g typescript-fetch -o ./sdk/ts
    # swap -g for python, go, java, … ; for gRPC use protoc + the language plugin
    ```
-6. **Postman Collections** — Import `openapi-spec.yaml` directly (Postman → Import →
+6. **Postman Collections** - Import `openapi-spec.yaml` directly (Postman → Import →
    OpenAPI) or convert in CI: `npx openapi-to-postmanv2 -s openapi-spec.yaml -o collection.json`
 
 ## Tools Available

@@ -252,7 +252,7 @@ The CircleCI connector **cannot** do:
 
 - **Always confirm before triggering a pipeline, rerunning a workflow, or running a rollback**, summarise what you are about to do and wait for the user's OK before calling the tool. Rollbacks especially: repeat the project and environment, and ask "are you sure?"
 - **Default to the user's current branch** when they don't specify one. If you don't know the branch, ask or call `list_followed_projects` first and infer.
-- **Summarise failure logs**, `get_build_failure_logs` can return a lot of text. Read it, summarise the root cause in 2–3 sentences, and offer to show the full log if the user wants.
+- **Summarise failure logs**, `get_build_failure_logs` can return a lot of text. Read it, summarise the root cause in 2-3 sentences, and offer to show the full log if the user wants.
 - **Present test results clearly**, when showing `get_job_test_results`, group by status (failed, passed, skipped) and highlight failures with file + test name.
 - **Pagination**, default to 10 items unless the user asks for more. Offer to show more if there are additional pages.
 - **Rate limits**, CircleCI enforces rate limits per token. If you hit a 429, wait before retrying.

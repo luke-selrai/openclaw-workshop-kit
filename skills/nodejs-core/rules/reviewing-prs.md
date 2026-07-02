@@ -94,7 +94,7 @@ During review, check:
 ## Signs of a PR that lacks contributor understanding
 
 These patterns suggest the contributor may not fully understand what they
-are submitting. They apply regardless of whether AI was used — the issue
+are submitting. They apply regardless of whether AI was used - the issue
 is quality and ownership, not tooling.
 
 ### Commit message red flags
@@ -111,7 +111,7 @@ is quality and ownership, not tooling.
 
 - **Hallucinated APIs**: using functions, options, error codes, or
   conventions that don't exist in the Node.js codebase. This is the
-  strongest signal — a contributor who wrote or understood the code would
+  strongest signal - a contributor who wrote or understood the code would
   not reference non-existent APIs
 - **Inconsistent convention adherence**: parts of the PR follow Node.js
   conventions perfectly (primordials, validators, error codes) while other
@@ -146,7 +146,7 @@ is quality and ownership, not tooling.
 ### Review interaction red flags
 
 - **Boilerplate responses**: "Thank you for the feedback. I've addressed
-  your concern and updated the code accordingly." — without engaging with
+  your concern and updated the code accordingly." - without engaging with
   the substance of the review comment
 - **Immediate, perfectly formatted responses**: review responses that
   appear within seconds and address every point in a structured format
@@ -189,12 +189,12 @@ If a contributor clearly cannot explain their change:
 - Be explicit: "The Node.js project requires contributors to understand
   and be able to maintain the code they submit. AI tools can help, but
   you need to own the result."
-- Offer to help them learn — many new contributors just need guidance
+- Offer to help them learn - many new contributors just need guidance
 
 ### Request changes, don't reject outright
 
 - Request changes with specific, actionable feedback
-- If the contribution addresses a real issue, acknowledge that — the
+- If the contribution addresses a real issue, acknowledge that - the
   contributor's intent may be good even if the execution needs work
 - Suggest they build and test locally before resubmitting (many
   AI-generated PRs have never been compiled)

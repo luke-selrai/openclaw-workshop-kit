@@ -333,7 +333,7 @@ export async function action({ request }: Route.ActionArgs) {
 
 ## Session Flash Data
 
-Flash data is automatically cleared after being read—useful for one-time messages:
+Flash data is automatically cleared after being read-useful for one-time messages:
 
 ```tsx
 // In action - set flash message

@@ -1,8 +1,8 @@
-# Case 04 — LinkedIn post with chatbot artifacts
+# Case 04 - LinkedIn post with chatbot artifacts
 
 ## Input
 
-> Great question! Let's dive into this. I recently had the pleasure of working with an amazing team on a pivotal project. It's not just a product — it's a movement. We're embarking on a journey to revolutionize the space. Hope this helps!
+> Great question! Let's dive into this. I recently had the pleasure of working with an amazing team on a pivotal project. It's not just a product - it's a movement. We're embarking on a journey to revolutionize the space. Hope this helps!
 >
 > \#AI #Innovation #Leadership #Future #Tech #Startup #Growth
 
@@ -12,7 +12,7 @@
 - "Let's dive" (Let's construction)
 - "I recently had the pleasure of" (template phrase)
 - pivotal (Tier 1)
-- "It's not just X — it's Y" (sentence-structure pattern)
+- "It's not just X - it's Y" (sentence-structure pattern)
 - embarking (Tier 1)
 - journey (significance inflation)
 - revolutionize (Tier 2 + significance inflation)
@@ -30,4 +30,4 @@ Great question, Let's dive, had the pleasure, pivotal, embarking, journey, revol
 
 ## Notes
 
-The reference replaces filler-heavy "movement" rhetoric with two named metrics and two named decisions. If the rewrite keeps the post's shape but only swaps vocabulary, the second-pass audit should flag it as still vague — the underlying problem (no facts) is not solved by word substitution. Hashtag stuffing must be cut entirely or reduced to ≤3.
+The reference replaces filler-heavy "movement" rhetoric with two named metrics and two named decisions. If the rewrite keeps the post's shape but only swaps vocabulary, the second-pass audit should flag it as still vague - the underlying problem (no facts) is not solved by word substitution. Hashtag stuffing must be cut entirely or reduced to ≤3.

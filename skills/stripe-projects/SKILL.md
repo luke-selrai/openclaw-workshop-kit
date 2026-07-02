@@ -21,7 +21,7 @@ allowed-tools:
 
 ---
 
-## Stripe Projects — Service Provisioning
+## Stripe Projects - Service Provisioning
 
 Provision third-party services and retrieve API keys/tokens using the Stripe Projects CLI plugin.
 

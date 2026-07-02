@@ -12,7 +12,7 @@ allowed-tools:
   - Glob
 ---
 
-# /retro — Weekly Engineering Retrospective
+# /retro - Weekly Engineering Retrospective
 
 Generates a comprehensive engineering retrospective analyzing commit history, work patterns, and code quality metrics. Team-aware: identifies the user running the command, then analyzes every contributor with per-person praise and growth opportunities. Designed for a senior IC/CTO-level builder using Claude Code as a force multiplier.
 
@@ -20,12 +20,12 @@ Generates a comprehensive engineering retrospective analyzing commit history, wo
 When the user types `/retro`, run this skill.
 
 ## Arguments
-- `/retro` — default: last 7 days
-- `/retro 24h` — last 24 hours
-- `/retro 14d` — last 14 days
-- `/retro 30d` — last 30 days
-- `/retro compare` — compare current window vs prior same-length window
-- `/retro compare 14d` — compare with explicit window
+- `/retro` - default: last 7 days
+- `/retro 24h` - last 24 hours
+- `/retro 14d` - last 14 days
+- `/retro 30d` - last 30 days
+- `/retro compare` - compare current window vs prior same-length window
+- `/retro compare 14d` - compare with explicit window
 
 ## Instructions
 
@@ -34,12 +34,12 @@ Parse the argument to determine the time window. Default to 7 days if no argumen
 **Argument validation:** If the argument doesn't match a number followed by `d`, `h`, or `w`, the word `compare`, or `compare` followed by a number and `d`/`h`/`w`, show this usage and stop:
 ```
 Usage: /retro [window]
-  /retro              — last 7 days (default)
-  /retro 24h          — last 24 hours
-  /retro 14d          — last 14 days
-  /retro 30d          — last 30 days
-  /retro compare      — compare this period vs prior period
-  /retro compare 14d  — compare with explicit window
+  /retro              - last 7 days (default)
+  /retro 24h          - last 24 hours
+  /retro 14d          - last 14 days
+  /retro 30d          - last 30 days
+  /retro compare      - compare this period vs prior period
+  /retro compare 14d  - compare with explicit window
 ```
 
 ### Step 1: Gather Raw Data
@@ -52,7 +52,7 @@ git config user.name
 git config user.email
 ```
 
-The name returned by `git config user.name` is **"you"** — the person reading this retro. All other authors are teammates. Use this to orient the narrative: "your" commits vs teammate contributions.
+The name returned by `git config user.name` is **"you"** - the person reading this retro. All other authors are teammates. Use this to orient the narrative: "your" commits vs teammate contributions.
 
 Run ALL of these git commands in parallel (they are independent):
 
@@ -156,7 +156,7 @@ fix:      27  (54%)  ███████████████████�
 refactor:  2  ( 4%)  ██
 ```
 
-Flag if fix ratio exceeds 50% — this signals a "ship fast, fix fast" pattern that may indicate review gaps.
+Flag if fix ratio exceeds 50% - this signals a "ship fast, fix fast" pattern that may indicate review gaps.
 
 ### Step 6: Hotspot Analysis
 
@@ -171,7 +171,7 @@ From commit diffs, estimate PR sizes and bucket them:
 - **Small** (<100 LOC)
 - **Medium** (100-500 LOC)
 - **Large** (500-1500 LOC)
-- **XL** (1500+ LOC) — flag these with file counts
+- **XL** (1500+ LOC) - flag these with file counts
 
 ### Step 8: Focus Score + Ship of the Week
 
@@ -186,23 +186,23 @@ From commit diffs, estimate PR sizes and bucket them:
 
 For each contributor (including the current user), compute:
 
-1. **Commits and LOC** — total commits, insertions, deletions, net LOC
-2. **Areas of focus** — which directories/files they touched most (top 3)
-3. **Commit type mix** — their personal feat/fix/refactor/test breakdown
-4. **Session patterns** — when they code (their peak hours), session count
-5. **Test discipline** — their personal test LOC ratio
-6. **Biggest ship** — their single highest-impact commit or PR in the window
+1. **Commits and LOC** - total commits, insertions, deletions, net LOC
+2. **Areas of focus** - which directories/files they touched most (top 3)
+3. **Commit type mix** - their personal feat/fix/refactor/test breakdown
+4. **Session patterns** - when they code (their peak hours), session count
+5. **Test discipline** - their personal test LOC ratio
+6. **Biggest ship** - their single highest-impact commit or PR in the window
 
-**For the current user ("You"):** This section gets the deepest treatment. Include all the detail from the solo retro — session analysis, time patterns, focus score. Frame it in first person: "Your peak hours...", "Your biggest ship..."
+**For the current user ("You"):** This section gets the deepest treatment. Include all the detail from the solo retro - session analysis, time patterns, focus score. Frame it in first person: "Your peak hours...", "Your biggest ship..."
 
 **For each teammate:** Write 2-3 sentences covering what they worked on and their pattern. Then:
 
-- **Praise** (1-2 specific things): Anchor in actual commits. Not "great work" — say exactly what was good. Examples: "Shipped the entire auth middleware rewrite in 3 focused sessions with 45% test coverage", "Every PR under 200 LOC — disciplined decomposition."
-- **Opportunity for growth** (1 specific thing): Frame as a leveling-up suggestion, not criticism. Anchor in actual data. Examples: "Test ratio was 12% this week — adding test coverage to the payment module before it gets more complex would pay off", "5 fix commits on the same file suggest the original PR could have used a review pass."
+- **Praise** (1-2 specific things): Anchor in actual commits. Not "great work" - say exactly what was good. Examples: "Shipped the entire auth middleware rewrite in 3 focused sessions with 45% test coverage", "Every PR under 200 LOC - disciplined decomposition."
+- **Opportunity for growth** (1 specific thing): Frame as a leveling-up suggestion, not criticism. Anchor in actual data. Examples: "Test ratio was 12% this week - adding test coverage to the payment module before it gets more complex would pay off", "5 fix commits on the same file suggest the original PR could have used a review pass."
 
-**If only one contributor (solo repo):** Skip the team breakdown and proceed as before — the retro is personal.
+**If only one contributor (solo repo):** Skip the team breakdown and proceed as before - the retro is personal.
 
-**If there are Co-Authored-By trailers:** Parse `Co-Authored-By:` lines in commit messages. Credit those authors for the commit alongside the primary author. Note AI co-authors (e.g., `noreply@anthropic.com`) but do not include them as team members — instead, track "AI-assisted commits" as a separate metric.
+**If there are Co-Authored-By trailers:** Parse `Co-Authored-By:` lines in commit messages. Credit those authors for the commit alongside the primary author. Note AI co-authors (e.g., `noreply@anthropic.com`) but do not include them as team members - instead, track "AI-assisted commits" as a separate metric.
 
 ### Step 10: Week-over-Week Trends (if window >= 14d)
 
@@ -218,14 +218,14 @@ If the time window is 14 days or more, split into weekly buckets and show trends
 Count consecutive days with at least 1 commit to origin/main, going back from today. Track both team streak and personal streak:
 
 ```bash
-# Team streak: all unique commit dates (Pacific time) — no hard cutoff
+# Team streak: all unique commit dates (Pacific time) - no hard cutoff
 TZ=America/Los_Angeles git log origin/main --format="%ad" --date=format:"%Y-%m-%d" | sort -u
 
 # Personal streak: only the current user's commits
 TZ=America/Los_Angeles git log origin/main --author="<user_name>" --format="%ad" --date=format:"%Y-%m-%d" | sort -u
 ```
 
-Count backward from today — how many consecutive days have at least one commit? This queries the full history so streaks of any length are reported accurately. Display both:
+Count backward from today - how many consecutive days have at least one commit? This queries the full history so streaks of any length are reported accurately. Display both:
 - "Team shipping streak: 47 consecutive days"
 - "Your shipping streak: 32 consecutive days"
 
@@ -248,7 +248,7 @@ Commits:            32     →    47          ↑47%
 Deep sessions:      3      →    5           ↑2
 ```
 
-**If no prior retros exist:** Skip the comparison section and append: "First retro recorded — run again next week to see trends."
+**If no prior retros exist:** Skip the comparison section and append: "First retro recorded - run again next week to see trends."
 
 ### Step 13: Save Retro History
 
@@ -318,7 +318,7 @@ Week of Mar 1: 47 commits (3 contributors), 3.2k LOC, 38% tests, 12 PRs, peak: 1
 (from Step 2)
 
 ### Trends vs Last Retro
-(from Step 11, loaded before save — skip if first retro)
+(from Step 11, loaded before save - skip if first retro)
 
 ### Time & Session Patterns
 (from Steps 3-4)
@@ -360,22 +360,22 @@ This is the section the user cares most about. Include:
 - **Where to level up** (1-2 specific, actionable suggestions)
 
 ### Team Breakdown
-(from Step 9, for each teammate — skip if solo repo)
+(from Step 9, for each teammate - skip if solo repo)
 
 For each teammate (sorted by commits descending), write a section:
 
 #### [Name]
 - **What they shipped**: 2-3 sentences on their contributions, areas of focus, and commit patterns
-- **Praise**: 1-2 specific things they did well, anchored in actual commits. Be genuine — what would you actually say in a 1:1? Examples:
-  - "Cleaned up the entire auth module in 3 small, reviewable PRs — textbook decomposition"
+- **Praise**: 1-2 specific things they did well, anchored in actual commits. Be genuine - what would you actually say in a 1:1? Examples:
+  - "Cleaned up the entire auth module in 3 small, reviewable PRs - textbook decomposition"
   - "Added integration tests for every new endpoint, not just happy paths"
   - "Fixed the N+1 query that was causing 2s load times on the dashboard"
 - **Opportunity for growth**: 1 specific, constructive suggestion. Frame as investment, not criticism. Examples:
-  - "Test coverage on the payment module is at 8% — worth investing in before the next feature lands on top of it"
-  - "3 of the 5 PRs were 800+ LOC — breaking these up would catch issues earlier and make review easier"
-  - "All commits land between 1-4am — sustainable pace matters for code quality long-term"
+  - "Test coverage on the payment module is at 8% - worth investing in before the next feature lands on top of it"
+  - "3 of the 5 PRs were 800+ LOC - breaking these up would catch issues earlier and make review easier"
+  - "All commits land between 1-4am - sustainable pace matters for code quality long-term"
 
-**AI collaboration note:** If many commits have `Co-Authored-By` AI trailers (e.g., Claude, Copilot), note the AI-assisted commit percentage as a team metric. Frame it neutrally — "N% of commits were AI-assisted" — without judgment.
+**AI collaboration note:** If many commits have `Co-Authored-By` AI trailers (e.g., Claude, Copilot), note the AI-assisted commit percentage as a team metric. Frame it neutrally - "N% of commits were AI-assisted" - without judgment.
 
 ### Top 3 Team Wins
 Identify the 3 highest-impact things shipped in the window across the whole team. For each:
@@ -407,15 +407,15 @@ When the user runs `/retro compare` (or `/retro compare 14d`):
 ## Tone
 
 - Encouraging but candid, no coddling
-- Specific and concrete — always anchor in actual commits/code
-- Skip generic praise ("great job!") — say exactly what was good and why
+- Specific and concrete - always anchor in actual commits/code
+- Skip generic praise ("great job!") - say exactly what was good and why
 - Frame improvements as leveling up, not criticism
-- **Praise should feel like something you'd actually say in a 1:1** — specific, earned, genuine
-- **Growth suggestions should feel like investment advice** — "this is worth your time because..." not "you failed at..."
+- **Praise should feel like something you'd actually say in a 1:1** - specific, earned, genuine
+- **Growth suggestions should feel like investment advice** - "this is worth your time because..." not "you failed at..."
 - Never compare teammates against each other negatively. Each person's section stands on its own.
 - Keep total output around 3000-4500 words (slightly longer to accommodate team sections)
 - Use markdown tables and code blocks for data, prose for narrative
-- Output directly to the conversation — do NOT write to filesystem (except the `.context/retros/` JSON snapshot)
+- Output directly to the conversation - do NOT write to filesystem (except the `.context/retros/` JSON snapshot)
 
 ## Important Rules
 
@@ -425,5 +425,5 @@ When the user runs `/retro compare` (or `/retro compare 14d`):
 - If the window has zero commits, say so and suggest a different window
 - Round LOC/hour to nearest 50
 - Treat merge commits as PR boundaries
-- Do not read CLAUDE.md or other docs — this skill is self-contained
+- Do not read CLAUDE.md or other docs - this skill is self-contained
 - On first run (no prior retros), skip comparison sections gracefully

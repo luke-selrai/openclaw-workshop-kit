@@ -191,6 +191,6 @@ Fix: Add periodic context summaries + clear role reminders
 
 ---
 
-**Core insight**: Great prompts are like great specifications—specific enough to eliminate ambiguity, flexible enough to handle variation, and tested against adversarial inputs.
+**Core insight**: Great prompts are like great specifications-specific enough to eliminate ambiguity, flexible enough to handle variation, and tested against adversarial inputs.
 
 **Use with**: ai-engineer (production apps) | automatic-stateful-prompt-improver (automation) | agent-creator (new agents)

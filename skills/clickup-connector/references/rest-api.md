@@ -1,11 +1,11 @@
-# ClickUp REST API — connector reference
+# ClickUp REST API - connector reference
 
 Companion to `clickup-connector/SKILL.md`. Verified live against a real account (workspace "Selrai", user `Rodolfo Raquion` id 312738239) on 2026-06-22.
 
 ## Auth
 
 - **Personal API token**, prefix `pk_`, self-serve at Settings → Apps (`app.clickup.com/settings/apps`).
-- **Sent as a RAW `Authorization` header — NO `Bearer` prefix:** `Authorization: pk_123_ABC…`. (Bearer fails.)
+- **Sent as a RAW `Authorization` header - NO `Bearer` prefix:** `Authorization: pk_123_ABC…`. (Bearer fails.)
 - **Base URL:** `https://api.clickup.com/api/v2`
 - **Verify:** `GET /user` → `{"user":{"id",...}}`.
 - Token generation may pop a **"Sign in with Google to generate API Token"** modal (SSO accounts); the value is masked → use the **Copy** button. Re-clicking **Generate** regenerates (invalidates old).
@@ -30,7 +30,7 @@ Companion to `clickup-connector/SKILL.md`. Verified live against a real account 
 
 - **Pagination:** task lists take `?page=0` (0-indexed); response includes `"last_page": true|false`. Loop incrementing `page` until `last_page` is true.
 - **Dates are epoch milliseconds** (e.g. `due_date: 1781827200000`), not ISO. Set `due_date_time:true` if the time matters.
-- **Status** on create/update is the status *name* string (e.g. `"to do"`, `"complete"`) — must be a status that exists in that list's workflow.
+- **Status** on create/update is the status *name* string (e.g. `"to do"`, `"complete"`) - must be a status that exists in that list's workflow.
 - **Custom fields:** `/list/<id>/field` to discover; set via `/task/<id>/field/<fieldId>`.
 
 ## Recipes

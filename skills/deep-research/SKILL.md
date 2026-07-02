@@ -1,6 +1,6 @@
 ---
 name: deep-research
-description: "Deep research on any topic — market analysis, competitor research, industry trends, due diligence. Searches, reads, and synthesises multiple sources into a structured report. Takes 2-10 minutes and costs $2-5 per task. Requires a free Gemini API key (one-time setup)."
+description: "Deep research on any topic - market analysis, competitor research, industry trends, due diligence. Searches, reads, and synthesises multiple sources into a structured report. Takes 2-10 minutes and costs $2-5 per task. Requires a free Gemini API key (one-time setup)."
 risk: safe
 source: "https://github.com/sanjay3290/ai-skills/tree/main/skills/deep-research"
 date_added: "2026-02-27"

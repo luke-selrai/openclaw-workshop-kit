@@ -1,4 +1,4 @@
-# Case 01 — Marketing blog opener
+# Case 01 - Marketing blog opener
 
 ## Input
 
@@ -30,4 +30,4 @@ landscape, embark, pivotal, leverage, cutting-edge, streamline, Moreover, robust
 
 ## Notes
 
-13 flagged terms in 38 words — density 34%. Two-sentence rewrite is acceptable; the reference loses no factual content because the input had none.
+13 flagged terms in 38 words - density 34%. Two-sentence rewrite is acceptable; the reference loses no factual content because the input had none.

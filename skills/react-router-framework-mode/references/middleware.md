@@ -91,7 +91,7 @@ async function loggingMiddleware(
 
 - Call `next()` only once
 - If you don't need post-processing, skip calling `next()` (called automatically)
-- `next()` never throws—errors return as error responses
+- `next()` never throws-errors return as error responses
 
 ## Context API
 

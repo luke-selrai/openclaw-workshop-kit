@@ -64,7 +64,7 @@ GET /v1/projects?cursor=clx7abc123&limit=10
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `cursor` | string | — | Opaque cursor from `nextCursor` |
+| `cursor` | string | - | Opaque cursor from `nextCursor` |
 | `limit` | number | 100 | Maximum items per page |
 
 Continue fetching while `pagination.hasMore` is `true`, using `pagination.nextCursor` as the `cursor` parameter.
@@ -92,11 +92,11 @@ All errors follow this shape:
 | 404 | `resource-not-found` | Resource does not exist or is not accessible |
 | 422 | `validation-error` | Request body failed validation |
 | 429 | `rate-limit-exceeded` | Too many requests |
-| 500 | `internal-server-error` | Server error — retry after a delay |
+| 500 | `internal-server-error` | Server error - retry after a delay |
 
 ### Self-correction patterns
 
 - **401**: Token is invalid or expired. Create a new service token in Console → Workspace Settings → Service Tokens.
 - **404**: Verify the resource ID includes the correct prefix (`proj_`, `db_`, `con_`). Use `GET /v1/projects` or `GET /v1/databases` to list available resources.
 - **422**: Check the request body against the endpoint schema. Common issues: missing required fields, invalid region ID, empty `name`.
-- **429**: Wait 2–5 seconds and retry. If repeated, increase the backoff interval.
+- **429**: Wait 2-5 seconds and retry. If repeated, increase the backoff interval.

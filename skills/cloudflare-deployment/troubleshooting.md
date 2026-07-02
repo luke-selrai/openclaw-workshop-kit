@@ -1,6 +1,6 @@
-# Cloudflare Deployment — Troubleshooting
+# Cloudflare Deployment - Troubleshooting
 
-Plain-English fixes for the most common problems. The skill itself should diagnose silently and never paste raw errors at the user — this doc is the agent's reference, not the user's.
+Plain-English fixes for the most common problems. The skill itself should diagnose silently and never paste raw errors at the user - this doc is the agent's reference, not the user's.
 
 ---
 
@@ -70,7 +70,7 @@ If env var is set, also clear it before re-login:
 
 ### Login completes but `wrangler whoami` still fails
 
-Two-account confusion — wrangler may have written credentials to a path that's not on its search path. Check both:
+Two-account confusion - wrangler may have written credentials to a path that's not on its search path. Check both:
 
 - macOS/Linux: `~/.config/.wrangler/config/default.toml` and `~/.wrangler/config/default.toml`
 - Windows: `$env:USERPROFILE\.wrangler\config\default.toml` and `$env:APPDATA\.wrangler\config\default.toml`
@@ -96,7 +96,7 @@ If the proxy intercepts TLS (MITM corporate certs), set:
 export NODE_EXTRA_CA_CERTS=/path/to/corp-ca-bundle.pem
 ```
 
-If wrangler can't reach `localhost:8976` for the OAuth callback (rare — corp firewall blocking loopback), generate a manual API token via Playwright at https://dash.cloudflare.com/profile/api-tokens and write it to `CLOUDFLARE_API_TOKEN`.
+If wrangler can't reach `localhost:8976` for the OAuth callback (rare - corp firewall blocking loopback), generate a manual API token via Playwright at https://dash.cloudflare.com/profile/api-tokens and write it to `CLOUDFLARE_API_TOKEN`.
 
 ---
 
@@ -109,7 +109,7 @@ If wrangler can't reach `localhost:8976` for the OAuth callback (rare — corp f
 account_id = "abc123def456..."
 ```
 
-To switch interactively in a session: there's no built-in switcher — log out and log back in with a different account, or use an API token scoped to the specific account.
+To switch interactively in a session: there's no built-in switcher - log out and log back in with a different account, or use an API token scoped to the specific account.
 
 ---
 
@@ -132,7 +132,7 @@ Update `compatibility_date` in `wrangler.toml` to today's date in YYYY-MM-DD for
 Usually wrangler bundles via esbuild. Common causes:
 - Missing dependencies: `npm install`
 - Wrong main entry path in `wrangler.toml`
-- TypeScript syntax that needs compilation — add `tsconfig.json` and use `main = "src/index.ts"`
+- TypeScript syntax that needs compilation - add `tsconfig.json` and use `main = "src/index.ts"`
 
 ---
 
@@ -150,7 +150,7 @@ Restart Claude Code. The plugin loader reads on startup. After restart, the skil
 
 ## State file corruption
 
-If `~/.claude/state/cloudflare-deployment.json` is malformed JSON, the skill should detect and overwrite with a fresh state object. Worst case, the user can delete the file and re-run the skill — it's safe to start fresh.
+If `~/.claude/state/cloudflare-deployment.json` is malformed JSON, the skill should detect and overwrite with a fresh state object. Worst case, the user can delete the file and re-run the skill - it's safe to start fresh.
 
 ---
 
@@ -158,10 +158,10 @@ If `~/.claude/state/cloudflare-deployment.json` is malformed JSON, the skill sho
 
 | Problem | Auto-fix | Ask user |
 |---|---|---|
-| `wrangler` not found | Re-install silently | — |
-| Token expired (401) | `wrangler logout` + `wrangler login` | — |
-| Browser doesn't open | Switch to Playwright | — |
+| `wrangler` not found | Re-install silently | - |
+| Token expired (401) | `wrangler logout` + `wrangler login` | - |
+| Browser doesn't open | Switch to Playwright | - |
 | Corporate proxy | Set proxy env vars from system config | If unknown: ask what proxy URL their corp uses |
 | Multiple accounts | Show list | "Which account do you want as default?" |
-| No Cloudflare account | — | "Want me to walk you through creating one?" |
-| Free-plan blocker | — | "This feature needs the paid Workers plan. Upgrade?" |
+| No Cloudflare account | - | "Want me to walk you through creating one?" |
+| Free-plan blocker | - | "This feature needs the paid Workers plan. Upgrade?" |

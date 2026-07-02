@@ -16,7 +16,7 @@ metadata:
     - skill: google-ads-connector
       reason: Sibling Tier-1 ads connector. Google Ads + TikTok Ads are the two most common SMB paid-acquisition channels in 2026; SMBs running both want unified reporting. Same Phase 0 sandbox/production split.
     - skill: paid-ads
-      reason: Strategy advisor — pair when participant wants advice on what to DO with the data this connector returns.
+      reason: Strategy advisor - pair when participant wants advice on what to DO with the data this connector returns.
     - skill: myob-connector
       reason: Reference Direct-REST + Playwright pattern (loopback OAuth listener, atomic credentials.json).
     - skill: superpowers:systematic-debugging
@@ -27,12 +27,12 @@ metadata:
 
 ## Overview
 
-This skill lets you read and operate a user's TikTok For Business Ads account on their behalf using **TikTok Marketing API v1.3** (no MCP server, no first-party CLI — Direct-REST + Playwright pattern).
+This skill lets you read and operate a user's TikTok For Business Ads account on their behalf using **TikTok Marketing API v1.3** (no MCP server, no first-party CLI - Direct-REST + Playwright pattern).
 
 It has two phases:
 
-- **Phase 1 — Install & Connect (autonomous via Playwright + REST).** Claude drives `business-api.tiktok.com` via Playwright MCP to sign the participant in, create a developer App in the TikTok For Business Developer Portal, capture `app_id` + `secret` + `redirect_uri` configuration, run the OAuth2 flow via a local loopback listener on `localhost:8765`, exchange the auth code for a long-lived `access_token`, list accessible `advertiser_id`s, and persist everything to `~/.config/tiktok-ads/credentials.json` (mode 0600). The participant's manual moments: signing in to TikTok For Business once + approving the OAuth consent.
-- **Phase 2 — Use Tools (Direct-REST via curl).** Once `credentials.json` is configured, you `curl` TikTok Marketing API endpoints with the `Access-Token: <token>` header and the appropriate `advertiser_id` query param. Writes (pause/resume campaigns, adjust budgets) gated by per-call confirmation prose in Production mode.
+- **Phase 1 - Install & Connect (autonomous via Playwright + REST).** Claude drives `business-api.tiktok.com` via Playwright MCP to sign the participant in, create a developer App in the TikTok For Business Developer Portal, capture `app_id` + `secret` + `redirect_uri` configuration, run the OAuth2 flow via a local loopback listener on `localhost:8765`, exchange the auth code for a long-lived `access_token`, list accessible `advertiser_id`s, and persist everything to `~/.config/tiktok-ads/credentials.json` (mode 0600). The participant's manual moments: signing in to TikTok For Business once + approving the OAuth consent.
+- **Phase 2 - Use Tools (Direct-REST via curl).** Once `credentials.json` is configured, you `curl` TikTok Marketing API endpoints with the `Access-Token: <token>` header and the appropriate `advertiser_id` query param. Writes (pause/resume campaigns, adjust budgets) gated by per-call confirmation prose in Production mode.
 
 **Two modes, picked at Phase 0:**
 
@@ -41,11 +41,11 @@ It has two phases:
 | **Sandbox** | Default for first-time install. | TikTok's Sandbox advertiser (auto-provisioned). Fake spend data, no real money, all endpoints work. | Immediate (TikTok auto-creates a Sandbox advertiser on first app creation). |
 | **Production** | When the participant says "I want my real TikTok Ads data." | Real advertiser account, real spend. Some scopes (e.g., audience targeting, conversion event access) may require TikTok app review (~1-2 weeks). Read-only scopes for performance reports typically don't require review. | Immediate for basic read scopes; ~1-2 weeks for write scopes that touch audience/conversion data. |
 
-**Sandbox-by-default** matches the Google Ads test-mode framing — instant access for workshop participants. Production mode is opt-in; for the workshop's most common case (reading spend + performance), Production access is usually self-serve once the App is created.
+**Sandbox-by-default** matches the Google Ads test-mode framing - instant access for workshop participants. Production mode is opt-in; for the workshop's most common case (reading spend + performance), Production access is usually self-serve once the App is created.
 
 > **Status: design-pending-smoke.** This SKILL was authored without an end-to-end run against TikTok's live developer portal (TikTok's docs are JavaScript-rendered SPAs not reachable from WebFetch). The Playwright selectors, exact button copy, and Sandbox-advertiser auto-provisioning behaviour below are projected from TikTok Marketing API v1.3 documented behaviour at design time. A smoke run will likely surface UI variants that need adjustment. The auth header (`Access-Token: <token>`), base URL (`https://business-api.tiktok.com/open_api/v1.3/`), and OAuth flow shape are well-documented and high-confidence.
 
-**Which phase to run** — Before any tool call:
+**Which phase to run** - Before any tool call:
 
 ```bash
 test -f "$HOME/.config/tiktok-ads/credentials.json" && jq -r '.mode // "missing"' "$HOME/.config/tiktok-ads/credentials.json" 2>/dev/null || echo missing
@@ -56,7 +56,7 @@ test -f "$HOME/.config/tiktok-ads/credentials.json" && jq -r '.mode // "missing"
 
 ---
 
-## Golden rule — do not open the participant's own browser
+## Golden rule - do not open the participant's own browser
 
 Every Phase 1 step that requires sign-in runs inside Playwright MCP. Never tell the participant to "open TikTok in your browser." Claude navigates; the participant signs in directly in the Playwright window. Same as every other connector in this kit.
 
@@ -70,12 +70,12 @@ Plain English only. The participant runs a small business and wants ad performan
 
 - **One step at a time.** Never stack instructions.
 - **Plain English only.** Never say API, token, OAuth, scope, refresh, Bearer, Access-Token, header, REST, endpoint, JSON, advertiser_id, app_id, env var, curl, terminal, CLI, MCP, callback, loopback, sandbox (use "test mode" / "practice mode"), file path. If you must, say "your connection details" or "your TikTok Ads connection".
-- **Tell them what is about to happen.** *"I'm opening TikTok For Business now — sign in when you see the page. About 90 seconds."*
-- **React warmly.** Good: *"Connected to your TikTok Ads — **3 advertisers** loaded."* Bad: *"Access-Token persisted, advertiser_ids: [123, 456, 789]."*
+- **Tell them what is about to happen.** *"I'm opening TikTok For Business now - sign in when you see the page. About 90 seconds."*
+- **React warmly.** Good: *"Connected to your TikTok Ads - **3 advertisers** loaded."* Bad: *"Access-Token persisted, advertiser_ids: [123, 456, 789]."*
 - **Never show error messages directly.** Translate.
 - **Short responses.** Max 8 lines per message.
-- **Never echo credentials** — app_id, secret, access_token. None of them ever appears in participant-visible output.
-- **Sandbox vs Production** — say "test mode" / "practice mode" / "real Ads data" rather than the technical labels.
+- **Never echo credentials** - app_id, secret, access_token. None of them ever appears in participant-visible output.
+- **Sandbox vs Production** - say "test mode" / "practice mode" / "real Ads data" rather than the technical labels.
 
 ---
 
@@ -85,9 +85,9 @@ Verify Playwright MCP tools are available (`ToolSearch +playwright`). If absent,
 
 ---
 
-## PHASE 0 — Mode + state detection
+## PHASE 0 - Mode + state detection
 
-### Step 0.1 — Read existing credentials
+### Step 0.1 - Read existing credentials
 
 ```bash
 CREDS="$HOME/.config/tiktok-ads/credentials.json"
@@ -103,7 +103,7 @@ echo "$STATE"
 - `sandbox` → Phase 2 with no gates (fake data).
 - `production` → Phase 2 with real-data gate + per-write gate.
 
-### Step 0.2 — Ask Sandbox or Production
+### Step 0.2 - Ask Sandbox or Production
 
 > "Want me to start in **test mode** so you can use the connection today (fake spend numbers, no real money), or do you want **real TikTok Ads data** for your actual advertiser account? Real data is usually instant for basic reports, but if your TikTok account has any restricted features, those might need TikTok's approval (1-2 weeks). Most people pick test mode first to play with the features."
 
@@ -112,21 +112,21 @@ Map:
 - "test", "practice", "today", default → `MODE=sandbox`.
 - "real", "live", "production", "actual" → `MODE=production`.
 
-Do NOT say "sandbox" to the participant — say "test mode".
+Do NOT say "sandbox" to the participant - say "test mode".
 
 ---
 
-## PHASE 1 — Install & Connect
+## PHASE 1 - Install & Connect
 
-### Step 1 — Welcome
+### Step 1 - Welcome
 
-> "Great — connecting your TikTok Ads. Three quick things:
+> "Great - connecting your TikTok Ads. Three quick things:
 > 1. Sign in to TikTok For Business when I open the page.
 > 2. Approve the connection when it asks.
 > 3. If this is your first time, TikTok creates a developer account automatically.
 > About 90 seconds total."
 
-### Step 2 — Sign in to TikTok For Business Developer Portal
+### Step 2 - Sign in to TikTok For Business Developer Portal
 
 ```
 mcp__playwright__browser_navigate({ url: "https://business-api.tiktok.com/portal/docs?id=1738855099573250" })
@@ -140,9 +140,9 @@ mcp__playwright__browser_navigate({ url: "https://business-api.tiktok.com/portal
 mcp__playwright__browser_wait_for({ text: "Apps", time: 60 })
 ```
 
-(or "My Apps", "Developer Console" — TikTok labels the post-sign-in page variably).
+(or "My Apps", "Developer Console" - TikTok labels the post-sign-in page variably).
 
-### Step 3 — Create or find an App
+### Step 3 - Create or find an App
 
 Navigate to the My Apps page (typically `business-api.tiktok.com/portal/app/list`). Check for existing `Claude Workshop Connector`:
 
@@ -164,11 +164,11 @@ Fill the new-app form:
 | App name | `Claude Workshop Connector` |
 | App description | "Personal Claude-assisted connection to my TikTok Ads for reading reports and managing campaigns." |
 | Redirect URI | `http://localhost:8765/callback` |
-| Scopes | Read-only basic: `Ad Account Management`, `Campaign Management`, `Reporting`. Avoid restricted scopes (Audience, Pixel/Event API write) in v1 — those need TikTok review. |
+| Scopes | Read-only basic: `Ad Account Management`, `Campaign Management`, `Reporting`. Avoid restricted scopes (Audience, Pixel/Event API write) in v1 - those need TikTok review. |
 
 Submit. TikTok issues `app_id` and `secret` immediately.
 
-### Step 4 — DOM-extract app_id and secret via clipboard transit
+### Step 4 - DOM-extract app_id and secret via clipboard transit
 
 Save prior clipboard:
 
@@ -210,7 +210,7 @@ async () => {
 
 Validation: `app_id` typically 7-19 numeric chars; `secret` 40-64 alphanumeric.
 
-### Step 5 — Start loopback listener
+### Step 5 - Start loopback listener
 
 ```bash
 PORT=8765
@@ -237,7 +237,7 @@ echo "$PORT" > /tmp/tiktok-ads-listener.port
 
 > TikTok uses `auth_code` as the query parameter name (not `code`) in some flows; the listener accepts either.
 
-### Step 6 — Drive OAuth consent
+### Step 6 - Drive OAuth consent
 
 ```bash
 APP_ID="$(wl-paste | jq -r '.app_id')"
@@ -266,7 +266,7 @@ done
 AUTH_CODE="$(cat /tmp/tiktok-ads-auth-code)"
 ```
 
-### Step 7 — Exchange auth code for access token
+### Step 7 - Exchange auth code for access token
 
 ```bash
 APP_ID="$(wl-paste | jq -r '.app_id')"
@@ -296,9 +296,9 @@ Response shape:
 }
 ```
 
-TikTok returns `advertiser_ids` directly in the token exchange response — no separate discovery call needed. The list includes all advertisers the OAuth grant authorized.
+TikTok returns `advertiser_ids` directly in the token exchange response - no separate discovery call needed. The list includes all advertisers the OAuth grant authorized.
 
-### Step 8 — Pick advertiser_id
+### Step 8 - Pick advertiser_id
 
 ```bash
 ACCESS_TOKEN="$(echo "$RESP" | jq -r '.data.access_token')"
@@ -307,7 +307,7 @@ ADV_IDS=($(echo "$RESP" | jq -r '.data.advertiser_ids[]'))
 if [ ${#ADV_IDS[@]} -eq 1 ]; then
   ADVERTISER_ID="${ADV_IDS[0]}"
 elif [ ${#ADV_IDS[@]} -gt 1 ]; then
-  # Multiple advertisers — ask the participant
+  # Multiple advertisers - ask the participant
   echo "Multiple advertisers: ${ADV_IDS[*]}"
   # Pattern: ask participant which to connect
 fi
@@ -315,7 +315,7 @@ fi
 
 For Sandbox mode, expect 1 auto-provisioned Sandbox advertiser. For Production, the participant may have multiple real advertisers if they manage clients.
 
-### Step 9 — Save credentials.json
+### Step 9 - Save credentials.json
 
 ```bash
 umask 077
@@ -346,7 +346,7 @@ rm -f /tmp/tiktok-ads-prev-clipboard.b64
 unset APP_ID SECRET ACCESS_TOKEN
 ```
 
-### Step 10 — Smoke test
+### Step 10 - Smoke test
 
 ```bash
 ACCESS_TOKEN="$(jq -r .access_token "$HOME/.config/tiktok-ads/credentials.json")"
@@ -359,13 +359,13 @@ curl -sf "$API_ENDPOINT/advertiser/info/?advertiser_ids=[\"$ADV\"]" \
 
 Returns the advertiser name. Tell the participant:
 
-> "All connected — your TikTok Ads **[advertiser name]** is ready. Ask me things like *'what's my TikTok ad spend this month?'* or *'show me my top campaigns'*."
+> "All connected - your TikTok Ads **[advertiser name]** is ready. Ask me things like *'what's my TikTok ad spend this month?'* or *'show me my top campaigns'*."
 
 ---
 
-## PHASE 2 — Use Tools
+## PHASE 2 - Use Tools
 
-### Helper — base curl shape
+### Helper - base curl shape
 
 ```bash
 tk_get() {
@@ -383,18 +383,18 @@ tk_post() {
 
 ### Mode-aware behaviour
 
-- `MODE=sandbox` — fake data, freely callable.
-- `MODE=production` — real ad spend, real conversions. Real-data gate + per-write gate apply.
+- `MODE=sandbox` - fake data, freely callable.
+- `MODE=production` - real ad spend, real conversions. Real-data gate + per-write gate apply.
 
-### Production-mode gate 1 — Real-data confirmation (first call per session)
+### Production-mode gate 1 - Real-data confirmation (first call per session)
 
 ```bash
 ADV_NAME="$(tk_get "/advertiser/info/" "advertiser_ids=[\"$ADV\"]" | jq -r '.data.list[0].name')"
 ```
 
-Tell participant: *"Just confirming — you're connected to your real TikTok Ads account **[ADV_NAME]**. Anything I do here changes your live campaigns. OK to proceed with **[summary]**?"* ONCE per session.
+Tell participant: *"Just confirming - you're connected to your real TikTok Ads account **[ADV_NAME]**. Anything I do here changes your live campaigns. OK to proceed with **[summary]**?"* ONCE per session.
 
-### Production-mode gate 2 — Destructive-op confirmation (every write)
+### Production-mode gate 2 - Destructive-op confirmation (every write)
 
 | Operation | Prompt |
 |---|---|
@@ -402,7 +402,7 @@ Tell participant: *"Just confirming — you're connected to your real TikTok Ads
 | Resume campaign | "I'm about to **resume** campaign **[Name]**. It will start showing ads as soon as TikTok processes the change. OK?" |
 | Change daily budget | "I'm about to change the daily budget of campaign **[Name]** from **$[old]** to **$[new]**. This affects your spend starting tomorrow. OK?" |
 
-### Common Pattern 1 — Spend this month
+### Common Pattern 1 - Spend this month
 
 ```bash
 tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_level=AUCTION_ADVERTISER&dimensions=[\"advertiser_id\"]&metrics=[\"spend\"]&start_date=$(date +%Y-%m-01)&end_date=$(date +%Y-%m-%d)" | jq '.data.list[0].metrics.spend'
@@ -412,7 +412,7 @@ Returns total spend this month for the connected advertiser. Format as currency.
 
 **Use when:** "TikTok spend this month", "how much have I spent on TikTok?"
 
-### Common Pattern 2 — Top campaigns by conversions
+### Common Pattern 2 - Top campaigns by conversions
 
 ```bash
 tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_level=AUCTION_CAMPAIGN&dimensions=[\"campaign_id\"]&metrics=[\"campaign_name\",\"spend\",\"conversions\",\"cost_per_conversion\"]&start_date=$(date -d '30 days ago' +%Y-%m-%d)&end_date=$(date +%Y-%m-%d)&page_size=10&page=1" | jq '.data.list | sort_by(-.metrics.conversions | tonumber) | .[:10]'
@@ -422,7 +422,7 @@ Last 30 days top 10 by conversions. Present as table.
 
 **Use when:** "best TikTok campaigns", "top performers", "what's working?"
 
-### Common Pattern 3 — List campaigns
+### Common Pattern 3 - List campaigns
 
 ```bash
 tk_get "/campaign/get/" "advertiser_id=$ADV&page_size=50" | jq '.data.list[] | {campaign_id, campaign_name, status: .operation_status, budget, budget_mode, objective_type}'
@@ -432,7 +432,7 @@ tk_get "/campaign/get/" "advertiser_id=$ADV&page_size=50" | jq '.data.list[] | {
 
 **Use when:** "list my TikTok campaigns", "show all campaigns"
 
-### Common Pattern 4 — List ad groups in a campaign
+### Common Pattern 4 - List ad groups in a campaign
 
 ```bash
 CAMPAIGN_ID="<from Pattern 3>"
@@ -441,7 +441,7 @@ tk_get "/adgroup/get/" "advertiser_id=$ADV&filtering={\"campaign_ids\":[\"$CAMPA
 
 **Use when:** "ad groups in [campaign]", "[campaign] details"
 
-### Common Pattern 5 — List ads in an ad group
+### Common Pattern 5 - List ads in an ad group
 
 ```bash
 ADGROUP_ID="<from Pattern 4>"
@@ -450,7 +450,7 @@ tk_get "/ad/get/" "advertiser_id=$ADV&filtering={\"adgroup_ids\":[\"$ADGROUP_ID\
 
 **Use when:** "ads in [adgroup]", "show me the actual ads"
 
-### Common Pattern 6 — This month vs last month spend
+### Common Pattern 6 - This month vs last month spend
 
 Two queries, compute deltas client-side:
 
@@ -461,7 +461,7 @@ tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_leve
 
 **Use when:** "compare to last month", "TikTok month over month"
 
-### Common Pattern 7 — Audience performance
+### Common Pattern 7 - Audience performance
 
 ```bash
 tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=AUDIENCE&data_level=AUCTION_ADGROUP&dimensions=[\"adgroup_id\",\"age\",\"gender\"]&metrics=[\"spend\",\"clicks\",\"conversions\"]&start_date=$(date -d '30 days ago' +%Y-%m-%d)&end_date=$(date +%Y-%m-%d)" | jq '.data.list'
@@ -471,7 +471,7 @@ Breaks down spend + conversions by age + gender. Useful for "who's converting?"
 
 **Use when:** "TikTok audience report", "who's converting on TikTok?"
 
-### Common Pattern 8 — Reach + engagement (creator-economy metric)
+### Common Pattern 8 - Reach + engagement (creator-economy metric)
 
 ```bash
 tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_level=AUCTION_AD&dimensions=[\"ad_id\"]&metrics=[\"ad_name\",\"reach\",\"impressions\",\"video_play_actions\",\"video_watched_2s\",\"video_watched_6s\",\"engaged_view\"]&start_date=$(date -d '30 days ago' +%Y-%m-%d)&end_date=$(date +%Y-%m-%d)" | jq '.data.list'
@@ -481,7 +481,7 @@ TikTok-specific metrics: video watch time at 2s / 6s, engaged views. Critical fo
 
 **Use when:** "TikTok video performance", "which ads hold attention?"
 
-### Common Pattern 9 — Pause or resume a campaign (write, gated)
+### Common Pattern 9 - Pause or resume a campaign (write, gated)
 
 `MODE=production`: run Gate 2 first.
 
@@ -497,7 +497,7 @@ Response has `code: 0` for success.
 
 **Use when:** "pause [campaign]", "stop my TikTok ads"
 
-### Common Pattern 10 — Adjust daily budget (write, gated)
+### Common Pattern 10 - Adjust daily budget (write, gated)
 
 `MODE=production`: run Gate 2 first.
 
@@ -538,13 +538,13 @@ tk_post "/campaign/update/" "$(jq -n --arg ai "$ADV" --arg cid "$CAMPAIGN_ID" --
 | Error | What it means | How to respond |
 |---|---|---|
 | HTTP 200 with `code: 40100` | Access token invalid / expired | Re-run Phase 1 (TikTok long-lived tokens occasionally rotate) |
-| HTTP 200 with `code: 40105` | Permission denied — token doesn't have scope for this operation | Tell participant: "I need extra access for that — let me reconnect with the right permissions." Re-run Phase 1 with broader scope. |
+| HTTP 200 with `code: 40105` | Permission denied - token doesn't have scope for this operation | Tell participant: "I need extra access for that - let me reconnect with the right permissions." Re-run Phase 1 with broader scope. |
 | HTTP 200 with `code: 40002` | Invalid advertiser_id | Re-fetch advertiser list from `/oauth2/advertiser/get/` |
-| HTTP 200 with `code: 41003` | Audience / restricted scope requires TikTok app review | Translate: "This part needs TikTok's approval first — usually 1-2 weeks. Want me to apply, or stick with the parts that work today?" |
+| HTTP 200 with `code: 41003` | Audience / restricted scope requires TikTok app review | Translate: "This part needs TikTok's approval first - usually 1-2 weeks. Want me to apply, or stick with the parts that work today?" |
 | HTTP 200 with `code: 50000` | TikTok internal server error | Retry once after 5s delay. |
 | HTTP 429 | Rate cap | Wait 30s, retry once. |
 
-**Note**: TikTok API returns HTTP 200 with a `code` field in the JSON body for ALL responses — both success (`code: 0`) and error. Always check `code` before treating a 200 as success.
+**Note**: TikTok API returns HTTP 200 with a `code` field in the JSON body for ALL responses - both success (`code: 0`) and error. Always check `code` before treating a 200 as success.
 
 Translate every error to plain English. Never show raw HTTP bodies.
 
@@ -560,11 +560,11 @@ This connector **can**:
 
 It **cannot**:
 
-- **Create campaigns / ad groups / ads from scratch** — ad creation requires creative assets (videos), audience definitions, tracking pixels, bid strategies. Out of v1; participant creates in TikTok Ads Manager.
-- **Upload creative assets** — multipart video upload to `/file/video/ad/upload/` is a separate workflow.
-- **Pixel / Event API write** — conversion event posting requires Pixel API access; out of v1.
-- **Audience management (custom audiences, lookalikes)** — requires TikTok app review for those scopes; out of v1.
-- **TikTok Creator Marketplace integration** — separate API surface.
+- **Create campaigns / ad groups / ads from scratch** - ad creation requires creative assets (videos), audience definitions, tracking pixels, bid strategies. Out of v1; participant creates in TikTok Ads Manager.
+- **Upload creative assets** - multipart video upload to `/file/video/ad/upload/` is a separate workflow.
+- **Pixel / Event API write** - conversion event posting requires Pixel API access; out of v1.
+- **Audience management (custom audiences, lookalikes)** - requires TikTok app review for those scopes; out of v1.
+- **TikTok Creator Marketplace integration** - separate API surface.
 
 It **requires** the participant to be an advertiser admin on at least one TikTok For Business account.
 
@@ -572,15 +572,15 @@ It **requires** the participant to be an advertiser admin on at least one TikTok
 
 ## Behaviour Guidelines (Phase 2)
 
-- **Mode awareness** — `MODE=sandbox` is freely callable; `MODE=production` applies Gate 1 (once per session) and Gate 2 (every write).
-- **TikTok response shape** — every TikTok API response has `code`, `message`, `data` at top level. Success = `code: 0`. Check `code` before treating a response as success.
-- **Currency** — TikTok returns spend / budget values in the advertiser's account currency (no micros). Format as `$X.XX <currency>`.
-- **Dates** — TikTok uses `YYYY-MM-DD` for report date ranges. The `+date` math in the examples works on Linux; macOS uses BSD `date` syntax (`date -v -30d +%Y-%m-%d` instead of `date -d '30 days ago'`).
-- **Pagination** — most list endpoints support `page` + `page_size`. Reports cap at `page_size=1000`. Multi-page operations should cap at 5 pages unless participant asks for more.
-- **Filtering** — TikTok filters are JSON-stringified objects, URL-encoded: `filtering={"campaign_ids":["123"]}`.
+- **Mode awareness** - `MODE=sandbox` is freely callable; `MODE=production` applies Gate 1 (once per session) and Gate 2 (every write).
+- **TikTok response shape** - every TikTok API response has `code`, `message`, `data` at top level. Success = `code: 0`. Check `code` before treating a response as success.
+- **Currency** - TikTok returns spend / budget values in the advertiser's account currency (no micros). Format as `$X.XX <currency>`.
+- **Dates** - TikTok uses `YYYY-MM-DD` for report date ranges. The `+date` math in the examples works on Linux; macOS uses BSD `date` syntax (`date -v -30d +%Y-%m-%d` instead of `date -d '30 days ago'`).
+- **Pagination** - most list endpoints support `page` + `page_size`. Reports cap at `page_size=1000`. Multi-page operations should cap at 5 pages unless participant asks for more.
+- **Filtering** - TikTok filters are JSON-stringified objects, URL-encoded: `filtering={"campaign_ids":["123"]}`.
 - **Auth errors** → re-run Phase 1.
-- **Never log or echo credentials** — app_id, secret, access_token.
-- **Writes are real** — Production-mode writes affect ad delivery within minutes. Gate firmly.
+- **Never log or echo credentials** - app_id, secret, access_token.
+- **Writes are real** - Production-mode writes affect ad delivery within minutes. Gate firmly.
 
 ---
 
@@ -589,12 +589,12 @@ It **requires** the participant to be an advertiser admin on at least one TikTok
 - **`google-ads-connector`**: Sibling Tier-1 ads connector. Same Phase 0 sandbox/production split. Pair when participant runs both Google Ads + TikTok Ads (very common for e-commerce SMBs in 2026).
 - **`paid-ads`**: Strategy advisor. Pair when participant wants advice on what to DO with the data (e.g., "should I pause this campaign?"). Advisor asks the strategy question; this connector answers it factually.
 - **`myob-connector`**: Reference Direct-REST + Playwright pattern.
-- **`mailchimp-connector`** / **`klaviyo-connector`**: Email-marketing connectors for the same e-commerce SMB stack — combine with TikTok Ads for full top-of-funnel + bottom-of-funnel visibility.
+- **`mailchimp-connector`** / **`klaviyo-connector`**: Email-marketing connectors for the same e-commerce SMB stack - combine with TikTok Ads for full top-of-funnel + bottom-of-funnel visibility.
 - **`superpowers:systematic-debugging`**: For TikTok-specific token-scope or response-code edge cases.
 
 ## See also
 
-- [`skills/CLAUDE.md`](../CLAUDE.md) — three-pattern decision tree.
-- [TikTok Marketing API v1.3 reference](https://business-api.tiktok.com/portal/docs) — official endpoint catalogue. Note: TikTok's docs are JavaScript-rendered SPAs; reading them requires a real browser, not WebFetch-style tools.
-- Memory `reference_playwright_snapshot_password_leak` — sign-in page snapshot rule.
-- Memory `feedback_workshop_kit_update_format` — say "test mode" / "real TikTok Ads" to participants, not "sandbox" / "production".
+- [`skills/CLAUDE.md`](../CLAUDE.md) - three-pattern decision tree.
+- [TikTok Marketing API v1.3 reference](https://business-api.tiktok.com/portal/docs) - official endpoint catalogue. Note: TikTok's docs are JavaScript-rendered SPAs; reading them requires a real browser, not WebFetch-style tools.
+- Memory `reference_playwright_snapshot_password_leak` - sign-in page snapshot rule.
+- Memory `feedback_workshop_kit_update_format` - say "test mode" / "real TikTok Ads" to participants, not "sandbox" / "production".

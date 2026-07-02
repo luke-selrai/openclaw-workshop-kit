@@ -1,14 +1,14 @@
-# Subscriptions & Software — Complete List
+# Subscriptions & Software - Complete List
 
 Everything you need for your AI Business Assistant, listed by priority with exact links.
 
 ---
 
-## Must Have — Required to Run Today
+## Must Have - Required to Run Today
 
 | Tool | Cost | What It Is | Get It |
 |---|---|---|---|
-| **Claude Max** | $100 USD/mo | The AI brain — powers everything | [claude.ai](https://claude.ai) → Settings → Billing |
+| **Claude Max** | $100 USD/mo | The AI brain - powers everything | [claude.ai](https://claude.ai) → Settings → Billing |
 | **Claude Desktop** | Free | The app where you chat with your assistant, open project folders, and run commands | [claude.ai/download](https://claude.ai/download) |
 | **Node.js LTS** | Free | Required for some connectors | [nodejs.org](https://nodejs.org) (auto-installed on Mac) |
 | **Git** | Free | Downloads the workshop kit | Auto-installed on Mac via Xcode tools |
@@ -18,20 +18,20 @@ Everything you need for your AI Business Assistant, listed by priority with exac
 
 ---
 
-## Free Accounts — Set Up Before the Workshop
+## Free Accounts - Set Up Before the Workshop
 
 | Account | What It Gives You | Get It |
 |---|---|---|
-| **Google Account (Gmail)** | Gmail + Calendar + Drive — connects to your assistant | [accounts.google.com/signup](https://accounts.google.com/signup) |
+| **Google Account (Gmail)** | Gmail + Calendar + Drive - connects to your assistant | [accounts.google.com/signup](https://accounts.google.com/signup) |
 | **GitHub** | Download the workshop kit | [github.com/signup](https://github.com/signup) |
 | **Telegram** | Phone notifications from your assistant | [telegram.org](https://telegram.org) (install on phone) |
-| **iMessage** (Mac only) | Text your assistant from iPhone — no extra app | Built into macOS (free) |
+| **iMessage** (Mac only) | Text your assistant from iPhone - no extra app | Built into macOS (free) |
 
 **Total: Free**
 
 ---
 
-## Recommended Connections — Add After the Workshop
+## Recommended Connections - Add After the Workshop
 
 These connect to Claude Code with one command (or a short setup walkthrough). No extra cost unless noted.
 
@@ -48,45 +48,45 @@ These connect to Claude Code with one command (or a short setup walkthrough). No
 
 ---
 
-## Optional Upgrades — For When You're Ready
+## Optional Upgrades - For When You're Ready
 
 Not needed today. Come back to these once your assistant is running well.
 
 | Tool | Cost | What It Does |
 |---|---|---|
-| **GoHighLevel (GHL)** | $97–297 USD/mo | All-in-one CRM — contacts, pipeline, marketing, messaging | [gohighlevel.com](https://www.gohighlevel.com) |
-| **n8n** | $24 USD/mo | Visual automation — run tasks in the background 24/7 | [n8n.io](https://n8n.io) |
-| **Make (Integromat)** | Free–$16 USD/mo | Connect apps and automate workflows | [make.com](https://make.com) |
-| **Zapier** | $20–$69 USD/mo | Similar to Make — simpler but more expensive | [zapier.com](https://zapier.com) |
+| **GoHighLevel (GHL)** | $97-297 USD/mo | All-in-one CRM - contacts, pipeline, marketing, messaging | [gohighlevel.com](https://www.gohighlevel.com) |
+| **n8n** | $24 USD/mo | Visual automation - run tasks in the background 24/7 | [n8n.io](https://n8n.io) |
+| **Make (Integromat)** | Free-$16 USD/mo | Connect apps and automate workflows | [make.com](https://make.com) |
+| **Zapier** | $20-$69 USD/mo | Similar to Make - simpler but more expensive | [zapier.com](https://zapier.com) |
 
 ---
 
-## Always-On Server — Run Your Assistant 24/7
+## Always-On Server - Run Your Assistant 24/7
 
-Right now your assistant only runs when your laptop is open. A server lets it run while you sleep — sending follow-ups, monitoring leads, processing invoices.
+Right now your assistant only runs when your laptop is open. A server lets it run while you sleep - sending follow-ups, monitoring leads, processing invoices.
 
 | Option | Cost | Notes |
 |---|---|---|
-| **AWS Lightsail** | $10 USD/mo | Luke's recommendation — simple and reliable |
-| **DigitalOcean Droplet** | $6–12 USD/mo | Great documentation for beginners |
-| **Hetzner VPS** | $4–8 USD/mo | Cheapest option |
-| **Vultr** | $6–12 USD/mo | Good performance |
+| **AWS Lightsail** | $10 USD/mo | Luke's recommendation - simple and reliable |
+| **DigitalOcean Droplet** | $6-12 USD/mo | Great documentation for beginners |
+| **Hetzner VPS** | $4-8 USD/mo | Cheapest option |
+| **Vultr** | $6-12 USD/mo | Good performance |
 
 **To set up a server yourself:**
 1. Create an account on your chosen provider (links above)
 2. Spin up the smallest Linux instance (Ubuntu 22.04)
-3. Tell your assistant: "Help me set up Claude Code on my new server — here are the SSH details: [paste your server IP and login]"
+3. Tell your assistant: "Help me set up Claude Code on my new server - here are the SSH details: [paste your server IP and login]"
 4. Your assistant will walk you through the rest step by step
 
 > Need help? Email [luke@selrai.com.au](mailto:luke@selrai.com.au) or ask your assistant to guide you through it.
 
 ---
 
-## Windows Users — Extra Required Software
+## Windows Users - Extra Required Software
 
 | Tool | Cost | What It Is | Get It |
 |---|---|---|---|
-| **Git for Windows** | Free | Includes Git Bash — needed to run setup scripts | [git-scm.com/downloads/win](https://git-scm.com/downloads/win) |
+| **Git for Windows** | Free | Includes Git Bash - needed to run setup scripts | [git-scm.com/downloads/win](https://git-scm.com/downloads/win) |
 
 ---
 
@@ -95,22 +95,22 @@ Right now your assistant only runs when your laptop is open. A server lets it ru
 | What | AUD/month (approx) |
 |---|---|
 | Claude Max (required) | ~$155 |
-| Server — AWS Lightsail (optional) | ~$15 |
-| GoHighLevel CRM (optional) | ~$150–450 |
+| Server - AWS Lightsail (optional) | ~$15 |
+| GoHighLevel CRM (optional) | ~$150-450 |
 | n8n automation (optional) | ~$37 |
 | **Minimum to get started** | **~$155/month** |
-| **Full recommended stack** | **~$200–250/month** |
+| **Full recommended stack** | **~$200-250/month** |
 
 ---
 
 ## What $155/Month Gets You
 
-- An AI assistant available 24/7 — never sick, never on leave, never distracted
+- An AI assistant available 24/7 - never sick, never on leave, never distracted
 - Writes, researches, and automates across your whole business
 - <!-- skills-audit:total -->204<!-- /skills-audit:total --> specialist skills built in from day one
 - Gets smarter every time you use it
-- Replaces 10–20 hours of admin and content work per month
+- Replaces 10-20 hours of admin and content work per month
 
 ---
 
-*Claude Code Workshop — selrai.com.au*
+*Claude Code Workshop - selrai.com.au*

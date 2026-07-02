@@ -11,17 +11,17 @@ How to identify service boundaries, decompose a monolith safely, and align techn
 Start by mapping where the same word means different things to different teams. Each language discontinuity is a bounded context boundary.
 
 **Workshop technique**: Run an Event Storming session. Put domain experts, developers, and product people in a room with sticky notes. Map:
-1. **Domain Events** (orange): things that happen — "OrderPlaced", "PaymentProcessed", "ItemShipped"
-2. **Commands** (blue): what triggered the event — "Place Order", "Charge Card"
-3. **Aggregates** (yellow): the thing that received the command — Order, Payment
-4. **External Systems** (pink): third parties — Stripe, FedEx
+1. **Domain Events** (orange): things that happen - "OrderPlaced", "PaymentProcessed", "ItemShipped"
+2. **Commands** (blue): what triggered the event - "Place Order", "Charge Card"
+3. **Aggregates** (yellow): the thing that received the command - Order, Payment
+4. **External Systems** (pink): third parties - Stripe, FedEx
 5. **Hotspots** (red): confusion, disputes, unclear areas
 
 Hotspots reveal bounded context boundaries. When two groups of people have different definitions of the same term or disagree about who owns a concept, you have found a boundary.
 
 ### Identifying Aggregate Roots
 
-An aggregate is a cluster of objects treated as a unit for data changes. The aggregate root is the only object accessible from outside the aggregate — all operations go through it.
+An aggregate is a cluster of objects treated as a unit for data changes. The aggregate root is the only object accessible from outside the aggregate - all operations go through it.
 
 ```
 Order Aggregate Root:
@@ -31,8 +31,8 @@ Order Aggregate Root:
     - BillingAddress
 
   External references:
-    - customerId (not the Customer object — just its ID)
-    - productId (not the Product object — just its ID)
+    - customerId (not the Customer object - just its ID)
+    - productId (not the Product object - just its ID)
 
 Rules enforced by the aggregate:
   - An order must have at least one item
@@ -40,13 +40,13 @@ Rules enforced by the aggregate:
   - Status transitions: PENDING → CONFIRMED → SHIPPED → DELIVERED
 ```
 
-If you find yourself loading multiple aggregates in a single transaction to enforce a business rule, reconsider your aggregate boundaries — the rule might belong in one of the aggregates, or in a domain service.
+If you find yourself loading multiple aggregates in a single transaction to enforce a business rule, reconsider your aggregate boundaries - the rule might belong in one of the aggregates, or in a domain service.
 
 ### Context Map Patterns
 
 When bounded contexts interact, document the relationship:
 
-**Shared Kernel**: Two contexts share a small subset of the domain model. Both teams agree to maintain this shared model together. Use sparingly — it creates coupling.
+**Shared Kernel**: Two contexts share a small subset of the domain model. Both teams agree to maintain this shared model together. Use sparingly - it creates coupling.
 
 **Customer/Supplier**: Upstream context (supplier) provides an API; downstream context (customer) conforms to it. Supplier owns the contract, but should consider customer needs.
 
@@ -62,7 +62,7 @@ When bounded contexts interact, document the relationship:
 
 Before extracting anything, make the monolith extraction-ready:
 
-1. **Add a routing facade**: All external traffic goes through an API gateway or proxy. This is the strangler — it decides whether to route to the monolith or the new service.
+1. **Add a routing facade**: All external traffic goes through an API gateway or proxy. This is the strangler - it decides whether to route to the monolith or the new service.
 
 2. **Identify the seam**: Find a module in the monolith with:
    - Clear, cohesive responsibility
@@ -109,7 +109,7 @@ async function updateOrder(order) {
 **Option D: Offline migration**
 - For tables with low write volume, take a snapshot, migrate, validate, then cut over with brief downtime
 
-Never share a database table between the old monolith and the new service at steady state — this creates tight coupling that defeats the purpose of extraction.
+Never share a database table between the old monolith and the new service at steady state - this creates tight coupling that defeats the purpose of extraction.
 
 ### Phase 4: Decommission
 
@@ -148,7 +148,7 @@ Each capability maps to one vertical slice of the business. Teams that own capab
 
 **Not fine-grained enough**: "Backend Service" that does everything. This is just the monolith given a new name.
 
-**Functional decomposition instead of domain decomposition**: Splitting by technology layer ("API Layer", "Business Logic Layer", "Data Layer") instead of by domain. This creates distributed coupling — a single feature change touches all three services simultaneously.
+**Functional decomposition instead of domain decomposition**: Splitting by technology layer ("API Layer", "Business Logic Layer", "Data Layer") instead of by domain. This creates distributed coupling - a single feature change touches all three services simultaneously.
 
 **Right size heuristic**: A service should be large enough to be deployed independently (has its own CI/CD pipeline, its own database, its own team ownership) and small enough to be understood by one team in one sprint.
 
@@ -174,7 +174,7 @@ Catalog Team  → Catalog Service, Search Service, Reviews Service
 
 **Platform Teams**: Own shared capabilities that stream-aligned teams consume as self-service: infrastructure, observability, CI/CD pipelines, service mesh. Platform teams reduce cognitive load for stream-aligned teams.
 
-**Enabling Teams**: Temporary teams that help stream-aligned teams adopt new practices (event sourcing, new testing framework). They teach and leave — they do not own services.
+**Enabling Teams**: Temporary teams that help stream-aligned teams adopt new practices (event sourcing, new testing framework). They teach and leave - they do not own services.
 
 **Warning signs of wrong alignment**:
 - Two teams must coordinate to release a single feature → their services are in the wrong places
@@ -191,7 +191,7 @@ Catalog Team  → Catalog Service, Search Service, Reviews Service
 Phase 1: Monolith owns all data, new service reads from monolith
   Client → [Monolith] → [New Service reads via Monolith API]
 
-Phase 2: Dual write — new service also writes to its own store
+Phase 2: Dual write - new service also writes to its own store
   Client → [New Service] ──writes─→ [New Service DB]
                          └─writes─→ [Monolith DB] (backwards compat)
 
@@ -255,7 +255,7 @@ function routeRequest(entityId) {
 
 **Header versioning** (`Accept: application/vnd.myapp+json;version=2`): Cleaner URLs, but requires headers on every request. Harder to test in a browser.
 
-**No versioning (evolutionary)**: Additive-only changes. New fields are optional, with defaults. Old consumers continue working without changes. Removals require a deprecation period. This is the most practical for internal services — coordinate with consumers rather than maintaining multiple versions.
+**No versioning (evolutionary)**: Additive-only changes. New fields are optional, with defaults. Old consumers continue working without changes. Removals require a deprecation period. This is the most practical for internal services - coordinate with consumers rather than maintaining multiple versions.
 
 ### Event Schema Evolution
 
@@ -273,10 +273,10 @@ Events are harder to version than APIs because consumers are often decoupled and
 // Order v1 event
 { "orderId": "123", "customerId": "456", "total": 99.99 }
 
-// Order v2 event — backward compatible (v1 consumers ignore new fields)
+// Order v2 event - backward compatible (v1 consumers ignore new fields)
 { "orderId": "123", "customerId": "456", "total": 99.99, "currency": "USD" }
 
-// BREAKING — do not do this:
+// BREAKING - do not do this:
 { "id": "123", "buyer": "456", "amount": 99.99 }  // Renamed fields
 ```
 

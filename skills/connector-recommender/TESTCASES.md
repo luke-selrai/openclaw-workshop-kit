@@ -4,12 +4,12 @@
 
 Two levels of evidence back these cases:
 
-1. **Recorded reference outputs** — [EXAMPLES.md](EXAMPLES.md) contains four full
+1. **Recorded reference outputs** - [EXAMPLES.md](EXAMPLES.md) contains four full
    transcripts (user message → registry calls → verbatim assistant output) for
    the core paths. TC-01, TC-02/TC-07, TC-08 and TC-11 each map to a recorded
    example you can read against the criteria below. This is the fastest check.
 
-2. **Live autonomous QA** — run the skill against a real Claude session with the
+2. **Live autonomous QA** - run the skill against a real Claude session with the
    [skill-qa-harness](https://github.com/selrai-company/skill-qa-harness). From a
    workspace where this skill is installed under `.claude/skills/`:
 
@@ -24,7 +24,7 @@ Two levels of evidence back these cases:
    conversation with the non-technical persona, then check the criteria below
    against the live turns. See [QA-NOTES.md](QA-NOTES.md) for the latest run's
    findings and known limitations (e.g. the MCP registry tools are absent in a
-   bare SDK session — the skill must degrade gracefully).
+   bare SDK session - the skill must degrade gracefully).
 
 The checkboxes below are **assertions to verify**, not a claim that they already
 passed. A box maps to "this must be true of the output."
@@ -140,7 +140,7 @@ passed. A box maps to "this must be true of the output."
 - [x] Acknowledges existing tools
 - [x] Gmail and Notion NOT in recommendations
 - [x] Remaining recommendations still relevant
-- [x] Says something like "You're already using Gmail and Notion — great"
+- [x] Says something like "You're already using Gmail and Notion - great"
 
 ---
 
@@ -259,7 +259,7 @@ passed. A box maps to "this must be true of the output."
 
 ## TC-15: User Wants All At Once
 
-**Input:** "Set up everything — Gmail, Calendar, Sheets, Notion, Airtable, Stripe, GitHub all at once"
+**Input:** "Set up everything - Gmail, Calendar, Sheets, Notion, Airtable, Stripe, GitHub all at once"
 **Expected Behavior:**
 - Acknowledges the request
 - Suggests starting with top 3 for biggest impact

@@ -1,22 +1,22 @@
-# Runtime Decision Matrix — single source of truth
+# Runtime Decision Matrix - single source of truth
 
-Used by **all three skills** (`ai-ops-architect`, `n8n`, `managed-agents-setup`) to pick the right runtime for any given task. No duplication — both child skills reference this file.
+Used by **all three skills** (`ai-ops-architect`, `n8n`, `managed-agents-setup`) to pick the right runtime for any given task. No duplication - both child skills reference this file.
 
 ## The 4 runtimes (+ 1 hybrid)
 
 | # | Runtime | Identity |
 |---|---------|----------|
 | 1 | **n8n** | Visual SaaS-to-SaaS plumbing, 1,650 connectors, client-handoff friendly |
-| 2 | **Managed Agents** | Durable cloud Claude with vault-auth'd MCP — long-lived stateful agents, billed per session-hour + tokens |
+| 2 | **Managed Agents** | Durable cloud Claude with vault-auth'd MCP - long-lived stateful agents, billed per session-hour + tokens |
 | 3 | **Routines** | Cron-scheduled cloud Claude on subscription, repo-aware, **1hr min interval** |
-| 4 | **Server cron + agents-cc** | EC2-owned, sub-hourly, free at margin (only available if user has an existing server — drops out for fresh attendees) |
+| 4 | **Server cron + agents-cc** | EC2-owned, sub-hourly, free at margin (only available if user has an existing server - drops out for fresh attendees) |
 | ★ | **Hybrid (Agent + n8n tools)** | Managed Agent calls n8n workflows as webhook tools. Agent does judgement, n8n does mechanical work. See `hybrid-pattern.md`. |
 
 ## Decision tree (stop at first match)
 
 ```text
 Q0. Build request (SaaS dashboard, mobile app, etc.)? → out-of-scope, exit and route to /feature-dev or general dev tools
-Q0b. Pure data scrape (no SaaS OAuth, no judgement)?  → n8n (Apify node) OR server-cron — not Routines (no fs state)
+Q0b. Pure data scrape (no SaaS OAuth, no judgement)?  → n8n (Apify node) OR server-cron - not Routines (no fs state)
 Q1. Visible/editable by a non-technical client?       → n8n
 Q2. Webhook from 3rd-party SaaS, transforms+routes?   → n8n
 Q3. Needs judgement AND 3+ SaaS mechanical actions?   → HYBRID (Agent + n8n tools)
@@ -55,7 +55,7 @@ flowchart TD
   Q8 -- no --> DEF([Default: server cron if available,<br/>else Routine])
 ```
 
-**Q3 unpacks**: if the opportunity needs LLM judgement (classify / decide / draft) AND mechanical actions across 3+ SaaS services, the hybrid pattern beats either pure runtime. The agent is cheaper because it only fires at decision points; n8n handles the deterministic rest. See `hybrid-pattern.md` for recipes. **Hybrid is offered, not forced** — the user can override to single-runtime if they want simpler.
+**Q3 unpacks**: if the opportunity needs LLM judgement (classify / decide / draft) AND mechanical actions across 3+ SaaS services, the hybrid pattern beats either pure runtime. The agent is cheaper because it only fires at decision points; n8n handles the deterministic rest. See `hybrid-pattern.md` for recipes. **Hybrid is offered, not forced** - the user can override to single-runtime if they want simpler.
 
 ## Comparison table
 
@@ -88,7 +88,7 @@ Priority-ordered rules:
 ```text
 IF client-facing                                 → n8n
 ELIF webhook + 2+ SaaS + no reasoning            → n8n
-ELIF reasoning + 3+ mechanical SaaS actions      → HYBRID (Agent + n8n tools) — offer this
+ELIF reasoning + 3+ mechanical SaaS actions      → HYBRID (Agent + n8n tools) - offer this
 ELIF webhook + reasoning                         → server → MA (or direct MA HTTP webhook if no server)
 ELIF cadence < 1hr + has server                  → server cron
 ELIF cadence < 1hr + no server                   → Routine on closest 1hr cadence + warn
@@ -102,7 +102,7 @@ ELSE                                             → server cron OR Routine fall
 
 ## Server-cron availability gate
 
-Server cron + agents-cc is **only available** if the user has an EC2 (or equivalent) server with the agents-cc framework installed. The `ai-ops-architect` Phase 0 detects this — if not present, it removes server-cron from the runtime menu and routes those decisions to Routines (closest cadence) or "skip and revisit when you have a server."
+Server cron + agents-cc is **only available** if the user has an EC2 (or equivalent) server with the agents-cc framework installed. The `ai-ops-architect` Phase 0 detects this - if not present, it removes server-cron from the runtime menu and routes those decisions to Routines (closest cadence) or "skip and revisit when you have a server."
 
 For workshop attendees with no server, the matrix collapses to **3 runtimes** (n8n / Managed Agents / Routines).
 
@@ -132,4 +132,4 @@ This is a living document. Update it when:
 - Pricing changes materially on any provider
 - A worked pattern proves a different runtime is better than originally classified
 
-All edits go through PR review — both child skills depend on it being correct.
+All edits go through PR review - both child skills depend on it being correct.

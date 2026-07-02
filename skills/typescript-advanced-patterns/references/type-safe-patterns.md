@@ -4,7 +4,7 @@ Exhaustive checking, builder pattern, type-safe event emitters, and mapped type 
 
 ## Exhaustive Checking with never
 
-The `never` type is the bottom type — nothing is assignable to it. This property makes it ideal for exhaustiveness checking.
+The `never` type is the bottom type - nothing is assignable to it. This property makes it ideal for exhaustiveness checking.
 
 ```typescript
 // The assertNever function
@@ -19,7 +19,7 @@ function getStatusMessage(status: PaymentStatus): string {
   switch (status) {
     case 'pending':   return 'Payment is being processed';
     case 'completed': return 'Payment successful';
-    case 'failed':    return 'Payment failed — please try again';
+    case 'failed':    return 'Payment failed - please try again';
     case 'refunded':  return 'Payment has been refunded';
     default:          return assertNever(status);
     // When 'cancelled' is added to PaymentStatus:
@@ -31,7 +31,7 @@ function getStatusMessage(status: PaymentStatus): string {
 const STATUS_MESSAGES: Record<PaymentStatus, string> = {
   pending: 'Payment is being processed',
   completed: 'Payment successful',
-  failed: 'Payment failed — please try again',
+  failed: 'Payment failed - please try again',
   refunded: 'Payment has been refunded',
   // Adding 'cancelled' to PaymentStatus causes a compile error here
 };
@@ -146,7 +146,7 @@ class OrderService extends TypedEventEmitter<OrderEvents> {
 
 const service = new OrderService();
 service.on('paid', (orderId, amountCents) => {
-  // orderId is OrderId, amountCents is Cents — fully typed
+  // orderId is OrderId, amountCents is Cents - fully typed
   console.log(`Order ${orderId} paid ${Cents.format(amountCents)}`);
 });
 
@@ -203,7 +203,7 @@ const q1 = new QueryBuilder()
 
 const q2 = new QueryBuilder()
   .where('status = pending')
-  .build();   // Error: build() not available — table not set
+  .build();   // Error: build() not available - table not set
 ```
 
 ## Mapped Type Utilities

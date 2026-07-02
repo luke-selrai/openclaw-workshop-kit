@@ -1,6 +1,6 @@
 ---
 name: video-editor
-description: "Edit video locally and for free with FFmpeg + auto-editor — no cloud, no account, no subscription, nothing uploaded. Use this skill to trim/cut clips, join/concatenate footage, automatically cut silences and dead air from podcasts and vlogs (auto-editor), burn in or attach captions/subtitles, reframe/resize aspect ratio (16:9 ↔ 9:16 ↔ 1:1), overlay a logo/watermark/lower-third, extract or replace audio and add a music bed, change speed, grab a thumbnail frame, and compress/export for web. Everything runs on the user's machine via the `ffmpeg`/`ffprobe` CLI and the `auto-editor` CLI. Use when the user wants to edit recorded footage (vlogs, ads, tutorials, podcasts, talking-head) rather than AI-generate new footage (for AI generation use higgsfield-connector; for programmatic/templated video use hyperframes-cli)."
+description: "Edit video locally and for free with FFmpeg + auto-editor - no cloud, no account, no subscription, nothing uploaded. Use this skill to trim/cut clips, join/concatenate footage, automatically cut silences and dead air from podcasts and vlogs (auto-editor), burn in or attach captions/subtitles, reframe/resize aspect ratio (16:9 ↔ 9:16 ↔ 1:1), overlay a logo/watermark/lower-third, extract or replace audio and add a music bed, change speed, grab a thumbnail frame, and compress/export for web. Everything runs on the user's machine via the `ffmpeg`/`ffprobe` CLI and the `auto-editor` CLI. Use when the user wants to edit recorded footage (vlogs, ads, tutorials, podcasts, talking-head) rather than AI-generate new footage (for AI generation use higgsfield-connector; for programmatic/templated video use hyperframes-cli)."
 allowed-tools: Bash, Read, Write
 metadata:
   category: Content & Writing
@@ -14,9 +14,9 @@ metadata:
     - local
   pairs-with:
     - skill: hyperframes-media
-      reason: Auto-generate captions — its Whisper transcription turns speech into an SRT this skill then burns in with FFmpeg
+      reason: Auto-generate captions - its Whisper transcription turns speech into an SRT this skill then burns in with FFmpeg
     - skill: hyperframes-cli
-      reason: Sibling local video tool — HyperFrames for programmatic/templated React video, this skill for editing recorded footage
+      reason: Sibling local video tool - HyperFrames for programmatic/templated React video, this skill for editing recorded footage
     - skill: higgsfield-connector
       reason: Generate AI B-roll / intro clips, then cut them into your recorded edit here
     - skill: ad-creative
@@ -29,12 +29,12 @@ metadata:
 
 ## Overview
 
-This skill does **proper, scriptable video editing on the user's own machine** — the right tool when they've *recorded* footage (vlogs, ads, tutorials, podcasts, talking-head) and want to edit it, as opposed to AI-*generating* new footage. Two tools, both CLI:
+This skill does **proper, scriptable video editing on the user's own machine** - the right tool when they've *recorded* footage (vlogs, ads, tutorials, podcasts, talking-head) and want to edit it, as opposed to AI-*generating* new footage. Two tools, both CLI:
 
-- **FFmpeg / FFprobe** — the universal engine: trim, join, captions, overlays, reframe/resize, audio, speed, thumbnails, compression.
-- **auto-editor** — analyses loudness and **automatically cuts silences / dead air**, the single biggest time-saver for podcasts and vlogs.
+- **FFmpeg / FFprobe** - the universal engine: trim, join, captions, overlays, reframe/resize, audio, speed, thumbnails, compression.
+- **auto-editor** - analyses loudness and **automatically cuts silences / dead air**, the single biggest time-saver for podcasts and vlogs.
 
-There is no account, no API key, no upload, and no per-render cost — it's free and offline.
+There is no account, no API key, no upload, and no per-render cost - it's free and offline.
 
 ### What this skill is NOT for
 
@@ -42,7 +42,7 @@ There is no account, no API key, no upload, and no per-render cost — it's free
 - **Programmatic / templated** React-rendered video (data-driven ads, animated lower-thirds at scale) → use `hyperframes-cli`.
 - A visual timeline GUI (this is CLI-driven; Claude composes the commands).
 
-## PHASE 0 — Tooling check (silent)
+## PHASE 0 - Tooling check (silent)
 
 ```bash
 ffmpeg -version | head -1 && ffprobe -version | head -1     # the engine
@@ -52,7 +52,7 @@ command -v auto-editor && auto-editor --version             # silence-cutter (op
 - FFmpeg present → ready for everything except auto silence-cut.
 - `auto-editor` missing → only needed for the silence-cut workflow; install it on demand (Phase 1).
 
-## PHASE 1 — Install (only what's missing)
+## PHASE 1 - Install (only what's missing)
 
 **FFmpeg** (almost always preinstalled; install per OS if not):
 ```bash
@@ -62,7 +62,7 @@ command -v auto-editor && auto-editor --version             # silence-cutter (op
 # Windows:       winget install Gyan.FFmpeg
 ```
 
-**auto-editor** — it's a Python app; **do not** use bare `pip install` (modern distros like Arch block it via PEP 668). Prefer, in order:
+**auto-editor** - it's a Python app; **do not** use bare `pip install` (modern distros like Arch block it via PEP 668). Prefer, in order:
 ```bash
 uv tool install auto-editor        # cleanest if `uv` is present (recommended)
 pipx install auto-editor           # else pipx  (Arch: sudo pacman -S python-pipx first)
@@ -70,9 +70,9 @@ pipx install auto-editor           # else pipx  (Arch: sudo pacman -S python-pip
 python3 -m venv ~/.venvs/auto-editor && ~/.venvs/auto-editor/bin/pip install auto-editor
 # then call ~/.venvs/auto-editor/bin/auto-editor
 ```
-auto-editor downloads a small platform binary on first run — that's expected.
+auto-editor downloads a small platform binary on first run - that's expected.
 
-## PHASE 2 — Operations (grounded recipes)
+## PHASE 2 - Operations (grounded recipes)
 
 > **Golden rule: never overwrite the source.** Always write to a NEW file (and confirm before replacing anything the user can't regenerate). Keep originals.
 
@@ -103,7 +103,7 @@ ffmpeg -i a.mp4 -i b.mov -filter_complex \
   "[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[v][a]" -map "[v]" -map "[a]" OUT_joined.mp4
 ```
 
-### Auto-cut silences / dead air (podcasts & vlogs) — `auto-editor`
+### Auto-cut silences / dead air (podcasts & vlogs) - `auto-editor`
 
 ```bash
 auto-editor INPUT.mp4 --stats                      # DRY RUN: shows how much will be cut, then halts
@@ -122,7 +122,7 @@ ffmpeg -i INPUT.mp4 -vf "subtitles=subs.srt:force_style='FontSize=24,OutlineColo
 # Soft subtitles (toggleable, smaller file):
 ffmpeg -i INPUT.mp4 -i subs.srt -c copy -c:s mov_text OUT_softsub.mp4
 ```
-**Auto-generate captions from speech:** this skill doesn't transcribe — hand the audio to **`hyperframes-media`** (Whisper transcription → `.srt`), then burn that SRT in with the command above. (Reuse, don't reinvent.)
+**Auto-generate captions from speech:** this skill doesn't transcribe - hand the audio to **`hyperframes-media`** (Whisper transcription → `.srt`), then burn that SRT in with the command above. (Reuse, don't reinvent.)
 
 ### Reframe / resize aspect ratio (e.g. 16:9 → 9:16 for Reels/Shorts, or → 1:1)
 
@@ -188,7 +188,7 @@ ffmpeg -i INPUT.mp4 -c:v libx264 -crf 23 -preset medium -c:a aac -b:a 128k -movf
 - **Dry-run destructive edits.** For auto-editor, run `--stats` and report the projected length change before rendering. For big cuts, confirm.
 - **Prefer lossless** (`-c copy`) for plain trims/joins; only re-encode when needed (codec mismatch, filters, frame-accuracy).
 - **Inspect before acting** (`ffprobe`) so you match resolution/codec/fps when joining.
-- **Report the result** — output path, new duration, and file size — and offer to preview a frame (`-vframes 1`) or open it.
+- **Report the result** - output path, new duration, and file size - and offer to preview a frame (`-vframes 1`) or open it.
 - **Long renders:** run in the background and poll; show progress, don't block silently.
 
 ## Error Handling
@@ -196,7 +196,7 @@ ffmpeg -i INPUT.mp4 -c:v libx264 -crf 23 -preset medium -c:a aac -b:a 128k -movf
 | Symptom | Cause | Fix |
 |---|---|---|
 | `ffmpeg: command not found` | not installed | Phase 1 (OS package manager) |
-| `auto-editor: command not found` | not installed | `uv tool install auto-editor` / pipx (not bare pip — PEP 668) |
+| `auto-editor: command not found` | not installed | `uv tool install auto-editor` / pipx (not bare pip - PEP 668) |
 | Concat output glitches / desync | clips have different codec/res/fps | use the concat **filter** (re-encode), not `-c copy` |
 | Trim starts at the wrong spot | `-c copy` cut to nearest keyframe | re-encode for frame accuracy |
 | Burned captions don't show | wrong path / style | check `subtitles=` path; escape special chars; verify the `.srt` is valid |
@@ -204,14 +204,14 @@ ffmpeg -i INPUT.mp4 -c:v libx264 -crf 23 -preset medium -c:a aac -b:a 128k -movf
 
 ## Scope Limitations
 
-- **CLI, not a GUI timeline** — Claude composes commands; there's no drag-and-drop editor here.
-- **Captions need a transcript** — auto-generation is delegated to `hyperframes-media` (Whisper); this skill burns in / attaches the resulting SRT.
-- **auto-editor cuts by loudness** (and a few other `--edit` methods), not by understanding content — review the `--stats` preview before committing.
-- For **transcript-based editing UX** (edit by deleting words, like Descript) there is no free CLI equivalent — that's a GUI-app workflow.
+- **CLI, not a GUI timeline** - Claude composes commands; there's no drag-and-drop editor here.
+- **Captions need a transcript** - auto-generation is delegated to `hyperframes-media` (Whisper); this skill burns in / attaches the resulting SRT.
+- **auto-editor cuts by loudness** (and a few other `--edit` methods), not by understanding content - review the `--stats` preview before committing.
+- For **transcript-based editing UX** (edit by deleting words, like Descript) there is no free CLI equivalent - that's a GUI-app workflow.
 
 ## Related Skills
 
-- **hyperframes-media** — Whisper transcription (→ SRT for captions), TTS, background removal
-- **hyperframes-cli** — programmatic/templated React video (data-driven ads, animated graphics)
-- **higgsfield-connector** — generate AI images/clips and B-roll to edit in
-- **ad-creative** / **copywriting** — script and plan the video before you cut it
+- **hyperframes-media** - Whisper transcription (→ SRT for captions), TTS, background removal
+- **hyperframes-cli** - programmatic/templated React video (data-driven ads, animated graphics)
+- **higgsfield-connector** - generate AI images/clips and B-roll to edit in
+- **ad-creative** / **copywriting** - script and plan the video before you cut it
