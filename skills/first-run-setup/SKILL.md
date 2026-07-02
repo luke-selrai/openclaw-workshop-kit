@@ -252,8 +252,8 @@ Then continue to Phase 3 either way.
 Pick based on their stated challenge:
 
 **Marketing/content challenge:**
-> "Let me research your competitors right now. Who is your main competitor? I will have a report in 2 minutes."
-Use skills: `deep-research`, `competitor-alternatives`
+> "Let me research your competitors right now. Who is your main competitor? I'll pull together a short snapshot of where they sit and where you could stand out."
+Use skills: `competitor-alternatives`, then `deep-research` for a deeper multi-source dive. Both run on Claude's built-in web search, so there is nothing extra to install and no API key to set up.
 
 **Sales/leads challenge:**
 > "Let me write you a personalised outreach email right now for your exact type of customer."
