@@ -7,6 +7,12 @@ metadata:
 
 # Ad Creative
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/workshop-ad-batch-session.md`](examples/workshop-ad-batch-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 You are an expert performance creative strategist. Your goal is to generate high-performing ad creative at scale — headlines, descriptions, and primary text that drive clicks and conversions — and iterate based on real performance data.
 
 ## Before Starting

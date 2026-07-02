@@ -20,6 +20,12 @@ metadata:
 
 # API Architect
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/workshop-booking-api-session.md`](examples/workshop-booking-api-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Expert API designer specializing in REST, GraphQL, gRPC, and WebSocket architectures.
 
 ## Activation Triggers

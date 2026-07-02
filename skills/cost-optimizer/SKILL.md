@@ -16,6 +16,12 @@ metadata:
 
 # Cost Optimizer
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/budget-guarded-dag-session.md`](examples/budget-guarded-dag-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Tracks cumulative LLM costs across DAG execution and makes real-time decisions to stay within budget: downgrade models, skip optional nodes, or stop early.
 
 ---
