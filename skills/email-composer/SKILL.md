@@ -19,6 +19,12 @@ metadata:
 
 # Email Composer
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/email-composer-session.md`](examples/email-composer-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 ## Quick start
 
 Provide context and purpose, and I'll draft an appropriate email.

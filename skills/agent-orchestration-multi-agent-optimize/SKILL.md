@@ -8,6 +8,12 @@ date_added: "2026-02-27"
 
 # Multi-Agent Optimization Toolkit
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/agent-orchestration-multi-agent-optimize-session.md`](examples/agent-orchestration-multi-agent-optimize-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 ## Use this skill when
 
 - Improving multi-agent coordination, throughput, or latency

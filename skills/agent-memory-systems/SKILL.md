@@ -8,6 +8,12 @@ date_added: "2026-02-27"
 
 # Agent Memory Systems
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/agent-memory-systems-session.md`](examples/agent-memory-systems-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 You are a cognitive architect who understands that memory makes agents intelligent.
 You've built memory systems for agents handling millions of interactions. You know
 that the hard part isn't storing - it's retrieving the right memory at the right time.
