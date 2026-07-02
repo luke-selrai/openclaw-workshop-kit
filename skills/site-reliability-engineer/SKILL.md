@@ -8,8 +8,6 @@ metadata:
   pairs-with:
   - skill: devops-automator
     reason: CI/CD for site deployments
-  - skill: skill-documentarian
-    reason: Maintain skill documentation quality
   tags:
   - docusaurus
   - build-health

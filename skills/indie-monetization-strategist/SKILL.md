@@ -9,8 +9,6 @@ metadata:
   pairs-with:
   - skill: tech-entrepreneur-coach-adhd
     reason: ADHD-friendly founder guidance
-  - skill: seo-visibility-expert
-    reason: Get traffic for monetization
   tags:
   - monetization
   - pricing

@@ -12,8 +12,6 @@ metadata:
   pairs-with:
   - skill: competitive-cartographer
     reason: Market-focused research
-  - skill: design-archivist
-    reason: Design-focused research
   tags:
   - research
   - analysis

@@ -13,11 +13,6 @@ allowed-tools:
 - Task
 metadata:
   category: Productivity & Meta
-  pairs-with:
-  - skill: team-builder
-    reason: Design skill teams for tasks
-  - skill: liaison
-    reason: Communicate orchestration results
   tags:
   - coordination
   - multi-skill

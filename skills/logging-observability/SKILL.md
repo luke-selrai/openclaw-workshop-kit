@@ -13,8 +13,6 @@ metadata:
     reason: API request tracing and correlation IDs
   - skill: devops-automator
     reason: Deploying collectors and dashboards
-  - skill: background-job-orchestrator
-    reason: Distributed job observability
   tags:
   - observability
   - logging

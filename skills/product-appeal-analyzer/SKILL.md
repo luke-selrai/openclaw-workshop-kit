@@ -7,12 +7,8 @@ allowed-tools: Read,Write,Edit,WebFetch
 metadata:
   category: Research & Analysis
   pairs-with:
-  - skill: ux-friction-analyzer
-    reason: Appeal asks "do they want it?" Friction asks "can they use it?" Use both.
   - skill: competitive-cartographer
     reason: Position against alternatives with strategic mapping
-  - skill: web-design-expert
-    reason: Implement visual identity recommendations
   tags:
   - product-strategy
   - marketing

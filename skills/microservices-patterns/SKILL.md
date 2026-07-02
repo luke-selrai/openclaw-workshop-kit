@@ -14,12 +14,8 @@ metadata:
   pairs-with:
   - skill: api-architect
     reason: Inter-service communication design (REST, gRPC, events) is core to microservice architecture
-  - skill: docker-containerization
-    reason: Each microservice is typically containerized and independently deployable
   - skill: code-architecture
     reason: Service internal architecture patterns (hexagonal, clean) apply within each microservice
-  - skill: background-job-orchestrator
-    reason: Saga patterns and event-driven workflows use background job queues for orchestration
 ---
 
 # Microservices Patterns

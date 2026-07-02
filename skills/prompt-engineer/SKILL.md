@@ -7,8 +7,6 @@ metadata:
   pairs-with:
   - skill: ai-engineer
     reason: Apply optimized prompts in production LLM applications
-  - skill: automatic-stateful-prompt-improver
-    reason: Automated prompt optimization with learning
   tags:
   - prompts
   - llm

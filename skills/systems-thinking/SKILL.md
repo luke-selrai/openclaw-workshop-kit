@@ -7,15 +7,6 @@ metadata:
   tags:
   - systems
   - thinking
-  pairs-with:
-  - skill: munger-worldly-wisdom
-    reason: Systems thinking is a core mental model in Munger latticework of worldly wisdom
-  - skill: checklist-discipline
-    reason: Systems analysis identifies which process failure points most benefit from checklist intervention
-  - skill: clinical-diagnostic-reasoning
-    reason: Diagnostic reasoning chains involve feedback loops and systemic interactions
-  - skill: research-craft
-    reason: Systems mapping complements research methodology for analyzing complex phenomena
 ---
 
 # Systems Thinking

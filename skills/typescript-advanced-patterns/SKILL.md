@@ -12,10 +12,6 @@ metadata:
   pairs-with:
   - skill: api-architect
     reason: Type-safe API contracts with Zod
-  - skill: vitest-testing-patterns
-    reason: Type-level testing with expect-type
-  - skill: react-performance-optimizer
-    reason: Type-safe React patterns
   tags:
   - typescript
   - type-system
