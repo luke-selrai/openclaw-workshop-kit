@@ -33,3 +33,15 @@ id = "generic-api-key"
 description = "Shopify @idempotent canonical example UUID (RFC-4122 placeholder, not a real secret)"
 paths = ['''skills/shopify-connector/SKILL\.md''']
 regexes = ['''123e4567-e89b-12d3-a456-426614174000''']
+
+# --- Allowlist 3: technical-writer api-reference-template.md Bearer placeholder ---
+# The api-reference documentation template shows the standard `curl -H "Authorization:
+# Bearer YOUR_API_TOKEN"` example three times. `YOUR_API_TOKEN` is a literal fill-in
+# placeholder, not a real secret. Scoped to this template file and the curl-auth-header
+# rule only, bound to the exact placeholder literal so it cannot mask a real token.
+[[rules]]
+id = "curl-auth-header"
+[rules.allowlist]
+description = "API reference template Bearer placeholder (YOUR_API_TOKEN fill-in, not a real secret)"
+paths = ['''skills/technical-writer/references/api-reference-template\.md''']
+regexes = ['''Bearer YOUR_API_TOKEN''']
