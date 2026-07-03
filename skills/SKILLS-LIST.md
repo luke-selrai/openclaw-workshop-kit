@@ -1,4 +1,4 @@
-# Skills Reference - Your <!-- skills-audit:total -->204<!-- /skills-audit:total --> Installed Skills
+# Skills Reference - Your <!-- skills-audit:total -->205<!-- /skills-audit:total --> Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need - Claude picks the right skill automatically.
 
@@ -63,6 +63,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `tailwind-4-docs` | Tailwind CSS v4 docs, gotchas, and upgrade patterns | "Help me with Tailwind v4 styling" | ADVANCED |
 | `web-accessibility` | WCAG 2.1 accessibility standards | "Make my site accessible" | ADVANCED |
 | `web-design-guidelines` | Web interface guidelines and accessibility | "Review my UI against best practices" | ADVANCED |
+| `website-builder` | Answer a few questions and get a full marketing website, then restyle or deploy it live | "Build a website for my business" | CORE |
 
 ## DevOps
 
@@ -209,8 +210,8 @@ See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for
 
 ---
 
-**Total: <!-- skills-audit:total -->204<!-- /skills-audit:total --> skills installed**
-- CORE: <!-- skills-audit:core -->24<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
+**Total: <!-- skills-audit:total -->205<!-- /skills-audit:total --> skills installed**
+- CORE: <!-- skills-audit:core -->25<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
 - ADVANCED: <!-- skills-audit:advanced -->95<!-- /skills-audit:advanced --> skills (available on request)
 - DEV-ONLY: <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> skills (for technical integrations - never surfaced in demos)
 

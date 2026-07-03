@@ -142,7 +142,7 @@ folder. Do not create a separate workspace anywhere else.
      - touch `./.first-run-pending`
    (On Windows PowerShell: `New-Item -ItemType File -Path .\.first-run-pending`.)
 
-5. Install all <!-- skills-audit:total -->204<!-- /skills-audit:total --> skills: copy every folder from `~/.loup/selr-ai/workshop-kit/skills/`
+5. Install all <!-- skills-audit:total -->205<!-- /skills-audit:total --> skills: copy every folder from `~/.loup/selr-ai/workshop-kit/skills/`
    into `~/.claude/skills/` (create the skills directory if it does not exist).
    Do not copy `SKILLS-LIST.md` - only the folders.
 
