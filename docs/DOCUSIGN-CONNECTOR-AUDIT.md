@@ -1,6 +1,6 @@
 # DocuSign Connector - Phase 0 audit
 
-**Source.** Issue [#148](https://github.com/selrai-company/claude-workshop-kit/issues/148) - connector skill for DocuSign eSign. Per @harvey-selr's 2026-04-27 connector directive (item #15: *"DocuSign | 1.5M+ customers, eSign API"*).
+**Source.** Issue [#148](https://github.com/selrai-company/claude-workshop-kit/issues/148) - connector skill for DocuSign eSign. Per the 2026-04-27 connector directive (item #15: *"DocuSign | 1.5M+ customers, eSign API"*).
 
 **Audit date.** 2026-05-04.
 

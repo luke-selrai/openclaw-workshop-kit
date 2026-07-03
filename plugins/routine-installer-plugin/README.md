@@ -88,6 +88,6 @@ routine-installer-plugin/
 ## Out of scope (V1)
 
 - Auth-refresh command (`/refresh-routine-auth`). V1.1.
-- Skill stripping mode (the public-distribution case Harvey did manually on morning-brief - strip assets, footer, hoist hardcoded recipients to CLAUDE.md). V1 assumes private routines for workshop attendees.
+- Skill stripping mode (the public-distribution case done manually on morning-brief - strip assets, footer, hoist hardcoded recipients to CLAUDE.md). V1 assumes private routines for workshop attendees.
 - brew-only CLIs (sandbox is Linux). Plugin warns + asks for alternative.
 - Routine session-content inspection (the API doesn't expose it). Verification = "did the side effect land?"

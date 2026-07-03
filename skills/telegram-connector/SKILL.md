@@ -238,7 +238,7 @@ If the contenteditable selector has changed, take a fresh snapshot and locate th
 
 **Send the bot name.** Take a snapshot to confirm BotFather replied with "Alright, a new bot. How are we going to call it?". If the user has told you a name preference earlier in the conversation, use that. Otherwise, use a sensible default like "My Assistant" - this is just the display name and can be anything. Send via the same `browser_evaluate` pattern.
 
-**Send the bot username.** BotFather replies asking for a unique username ending in `bot`. Propose one based on the user's first name if known: `<firstname>_assistant_bot`. If the user's name is not known, ask them now: *"BotFather needs a unique handle for your bot. Something short ending in 'bot', for example `harvey_assistant_bot`. What would you like?"*
+**Send the bot username.** BotFather replies asking for a unique username ending in `bot`. Propose one based on the user's first name if known: `<firstname>_assistant_bot`. If the user's name is not known, ask them now: *"BotFather needs a unique handle for your bot. Something short ending in 'bot', for example `jamie_assistant_bot`. What would you like?"*
 
 After sending the username, snapshot. BotFather either:
 - Replies with the bot token (success) - extract it
@@ -285,7 +285,7 @@ Expect `1`. The token is now in `.env` (chmod 600) and out of clipboard. It was 
 
 This captures and writes the token in one move; Step 7 is now just a sanity check.
 
-Remember the bot's username (the handle BotFather accepted in the `/newbot` exchange above, e.g. `harvey_assistant_bot` without the `@`). Keep it in conversation context - Step 9 needs it to navigate to the bot's chat.
+Remember the bot's username (the handle BotFather accepted in the `/newbot` exchange above, e.g. `jamie_assistant_bot` without the `@`). Keep it in conversation context - Step 9 needs it to navigate to the bot's chat.
 
 ### Step 6 - Install the Telegram plugin
 
@@ -731,7 +731,7 @@ This path puts BotFather creation back on the user's phone. It works, but it's s
 Walk the user through @BotFather one message at a time:
 
 1. *"On your phone, open Telegram and search for `@BotFather`. It has a blue checkmark next to its name. Tap it, then tap Start. Tell me when you've done that."*
-2. When they confirm: *"Now send `/newbot` to BotFather. It'll ask you two questions: a name (whatever you want, like 'My Assistant') and a username (must end in `bot`, for example `harvey_assistant_bot`). Go through those, then paste the whole token BotFather gives you back to me. It looks like a long string with a colon in the middle."*
+2. When they confirm: *"Now send `/newbot` to BotFather. It'll ask you two questions: a name (whatever you want, like 'My Assistant') and a username (must end in `bot`, for example `jamie_assistant_bot`). Go through those, then paste the whole token BotFather gives you back to me. It looks like a long string with a colon in the middle."*
 3. When they paste the token, do NOT echo it back. Acknowledge plainly: *"Got it. Saving that now."* Then immediately write it to `.env` with the same shell pipeline pattern, holding the token only long enough to write the file:
 
    ```bash

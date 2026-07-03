@@ -867,7 +867,6 @@ Your assistant has <!-- skills-audit:total -->204<!-- /skills-audit:total --> sp
 | Claude Code Docs | [docs.anthropic.com/en/docs/claude-code](https://docs.anthropic.com/en/docs/claude-code) |
 | MCP Documentation | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
 | Selr AI | [selrai.com.au](https://selrai.com.au) |
-| Email Luke | [luke@selrai.com.au](mailto:luke@selrai.com.au) |
 | VS Code (advanced fallback) | [code.visualstudio.com](https://code.visualstudio.com) - see [vscode](../extend/vscode.md) |
 
 ---
@@ -888,7 +887,7 @@ Your assistant has <!-- skills-audit:total -->204<!-- /skills-audit:total --> sp
 | Node.js "command not found" | Restart Claude Desktop completely, or reinstall from [nodejs.org](https://nodejs.org) |
 | Telegram bot not responding | Make sure Claude Code is running with `--channels plugin:telegram@claude-plugins-official`. See `Connect Telegram` |
 | WhatsApp not connecting | Make sure Claude Code is running with `--dangerously-load-development-channels server:whatsapp`. See `Connect WhatsApp` |
-| Something else | Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) |
+| Something else | Describe what happened to your assistant in plain English - it will figure it out |
 
 Your assistant is designed to handle problems too - just describe what happened in plain English and it will figure it out.
 

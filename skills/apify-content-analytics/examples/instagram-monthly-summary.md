@@ -43,7 +43,7 @@ Implication: the audience is engaging in the wind-down window. Default the works
 
 - *"Want me to drill into the 2026-05-14 reel - pull the comments and look at what the audience is actually saying?"*
 - *"Want me to run this same query next month and post a side-by-side delta so we can see what's moving?"*
-- *"Want me to pull the same metrics for @harvey_shaw - your co-founder - so we can compare account growth trajectories?"* (Note: that would route to apify-competitor-intelligence if Harvey's account isn't owned by you.)
+- *"Want me to pull the same metrics for your co-founder's account so we can compare account growth trajectories?"* (Note: that would route to apify-competitor-intelligence if the account isn't owned by you.)
 
 ---
 

@@ -78,7 +78,7 @@ Right now your assistant only runs when your laptop is open. A server lets it ru
 3. Tell your assistant: "Help me set up Claude Code on my new server - here are the SSH details: [paste your server IP and login]"
 4. Your assistant will walk you through the rest step by step
 
-> Need help? Email [luke@selrai.com.au](mailto:luke@selrai.com.au) or ask your assistant to guide you through it.
+> Need help? Ask your assistant to guide you through it.
 
 ---
 

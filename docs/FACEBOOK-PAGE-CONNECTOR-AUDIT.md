@@ -14,7 +14,7 @@
 
 **Caveat.** It is **Python-only** (installed via `uv pip install -r requirements.txt`), not npm-published. Wiring it into the workshop-kit means **introducing the first Python-MCP-server install path in the workshop-kit's connector inventory.** This is a precedent shift, not a blocker - the install adds ~1 minute to Phase 0 (`curl -LsSf https://astral.sh/uv/install.sh | sh`) and the SKILL can wrap the rest autonomously. The Page Access Token + Page ID auth model maps cleanly onto Claude Code's `~/.claude.json` `env` block once `uvx` is present.
 
-**Recommendation.** Build `skills/facebook-page-connector/` against HagaiHen's server. Add a Phase 0 prerequisite check that auto-installs `uv` if missing, mirroring the way `whatsapp-connector` Phase 0 auto-installs Bun if missing. Do not adopt `@supercorp/facebook-mcp` - its 2-tool surface is materially insufficient for Harvey's "ads + posting" framing, and its install model (Meta Developer App + Redirect URI + Upstash Redis) is heavier than HagaiHen's despite being npm-published.
+**Recommendation.** Build `skills/facebook-page-connector/` against HagaiHen's server. Add a Phase 0 prerequisite check that auto-installs `uv` if missing, mirroring the way `whatsapp-connector` Phase 0 auto-installs Bun if missing. Do not adopt `@supercorp/facebook-mcp` - its 2-tool surface is materially insufficient for the "ads + posting" framing, and its install model (Meta Developer App + Redirect URI + Upstash Redis) is heavier than HagaiHen's despite being npm-published.
 
 ---
 
@@ -140,7 +140,7 @@ Stored in a `.env` file in HagaiHen's repo, but the workshop-kit pattern would p
 - With those provided, requires `--storage` mode (memory or upstash-redis-rest) and a `--storageHeaderKey` for the in-memory or Redis-backed token store.
 - This is a full OAuth 2.0 server architecture: workshop attendees would need to (1) create a Meta Developer App, (2) generate App ID + App Secret, (3) configure a redirect URI, (4) either provision Upstash Redis or run with in-memory storage that loses tokens between restarts.
 
-**What it actually exposes** (from the package description; tool list not verified live since the install model fails the workshop-friendliness gate before tool surface matters): "list pages and post to a page" - 2 tools, materially below Harvey's "ads + posting" framing.
+**What it actually exposes** (from the package description; tool list not verified live since the install model fails the workshop-friendliness gate before tool surface matters): "list pages and post to a page" - 2 tools, materially below the "ads + posting" framing.
 
 **Adoption signal**: 2 stars, 1 fork, 31 npm downloads/month. Single-author project (`nedomas` / Domas Bitvinskas). 6 months since last commit.
 
@@ -162,7 +162,7 @@ Keywords on the npm package include `scraper`, `marketplace`, `facebook-pages` (
 
 ### 1. Should the workshop-kit ship a Facebook Page connector at all?
 
-**Yes.** Harvey's 2026-04-26 connector directive named "Meta Business Suite | ads + posting"; PR #152 explicitly carved out only the IG/Threads slice. The Facebook Page slice is real outstanding work and is currently a gap.
+**Yes.** The 2026-04-26 connector directive named "Meta Business Suite | ads + posting"; PR #152 explicitly carved out only the IG/Threads slice. The Facebook Page slice is real outstanding work and is currently a gap.
 
 ### 2. Which candidate should the SKILL wrap?
 
@@ -278,4 +278,4 @@ From issue #153 acceptance criteria, post-audit:
 
 **Build `skills/facebook-page-connector/` against `HagaiHen/facebook-mcp-server`.** Adopt a Phase 0 prerequisite that auto-installs `uv` if missing. Mirror `meta-business-suite-connector`'s Phase 1 token-mint pattern for the Page Access Token + Page ID extraction. Defer video posting to v2. Live-QA against the Meta App already approved for `meta-business-suite-connector`.
 
-If the workshop-kit team rejects introducing a Python-MCP install path, the alternative is **defer the connector** and revisit when an npm-installable best-in-class FB Page MCP emerges. `@supercorp/facebook-mcp` is not a viable fallback - its 2-tool surface is materially insufficient for the use case Harvey framed.
+If the workshop-kit team rejects introducing a Python-MCP install path, the alternative is **defer the connector** and revisit when an npm-installable best-in-class FB Page MCP emerges. `@supercorp/facebook-mcp` is not a viable fallback - its 2-tool surface is materially insufficient for the framed use case.

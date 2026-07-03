@@ -37,7 +37,7 @@ metadata:
 >
 > **Applies to**: OpenClaw workshop attendees. Non-technical business owners. They should never type a command, paste a value, or edit a file.
 >
-> **If Playwright MCP isn't available in this session, STOP.** Do not fall back to a manual walkthrough that asks the user to copy-paste Client ID and Secret. Instead, tell the user: *"I need browser control to set this up hands-off. Let me enable that - give me two minutes."* Then install Playwright MCP in this session and retry. If you genuinely cannot get Playwright working, escalate to luke@selrai.com.au rather than make the user do manual steps.
+> **If Playwright MCP isn't available in this session, STOP.** Do not fall back to a manual walkthrough that asks the user to copy-paste Client ID and Secret. Instead, tell the user: *"I need browser control to set this up hands-off. Let me enable that - give me two minutes."* Then install Playwright MCP in this session and retry. If you genuinely cannot get Playwright working, tell the user plainly and retry in a fresh session rather than make them do manual steps.
 
 ---
 
@@ -140,7 +140,7 @@ If already configured, skip to **Phase 6** and just verify. Never ask the user t
 | User provides | Agent does |
 |---|---|
 | Country (AU/NZ/UK/US) + org name + implicit cost consent | Proceed to Phase 2 with `ORG_NAME` set |
-| Country outside AU/NZ/UK/US | Stop cleanly: *"This path doesn't work for [country] Xero orgs. Email luke@selrai.com.au for the alternative."* |
+| Country outside AU/NZ/UK/US | Stop cleanly: *"This path doesn't work for [country] Xero orgs yet - it covers AU, NZ, UK and US."* |
 | Hesitant about cost | Answer questions calmly. Wait for explicit consent. Do not pressure. |
 | Refuses cost | *"No problem - say 'connect my Xero' any time."* |
 | Only one field given | Ask once for the missing field(s). Combine into one message, not multiple. |
@@ -662,4 +662,4 @@ This skill CANNOT:
 
 ---
 
-*Built by Selr AI. If Xero changes its UI and DOM extraction breaks, Luke wants to know: luke@selrai.com.au.*
+*Built by Selr AI.*

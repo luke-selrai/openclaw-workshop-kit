@@ -52,7 +52,7 @@ This week (Mon 19 May to Sun 25 May):
 - **selrai-company/claude-workshop-kit**: 2 failed builds out of 14. Both on PR branches.
   - PR #243 (upgrade/copywriting-skill): the "Shellcheck" job failed on `skills/copywriting/scripts/render.sh:42` (`SC2155: declare and assign separately`). Rest of the workflow green.
   - PR #248 (fix/agent-browser-fallback): the "Lint, validate, compose-check" job failed on `docker compose config --quiet` because a sibling kit shipped a `DIGEST_PENDING` placeholder. Unrelated to your branch.
-- **selrai-company/selr-kit-index**: 0 failures. All crawler PRs (auto-merge from harvey-selr) passed.
+- **selrai-company/selr-kit-index**: 0 failures. All crawler PRs (auto-merged) passed.
 - **luke-selrai/selr-finance**: 1 failure. The nightly `revolut-reconcile` cron job's CI tests broke because the test fixture expected a 200 response from `/v2/accounts` but Revolut returned 503 during the test window.
 
 Want me to pull the full log for any of those, or open a re-run on PR #248 since the cause is unrelated?

@@ -29,7 +29,7 @@ Your assistant will guide you to GitHub Settings → Developer Settings → Pers
 
 GitHub's hosted connection only works with standard **github.com** accounts. If your organisation runs its own private GitHub instance (sometimes called GitHub Enterprise Server, usually on a domain like `github.yourcompany.com`), the connector will fail to authenticate.
 
-**Workaround:** Self-hosted GitHub instances need a different setup that is not covered by this connector version. Contact Luke at [luke@selrai.com.au](mailto:luke@selrai.com.au) to discuss a custom setup.
+**Workaround:** Self-hosted GitHub instances need a different setup that is not covered by this connector version. Ask your assistant to research a custom setup for your instance.
 
 ---
 
