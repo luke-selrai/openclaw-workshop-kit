@@ -42,7 +42,7 @@ The difference from a repair run: there is no vendor schema to critique. You dra
       "reason": {
         "type": "string",
         "enum": ["customer_request", "fraud", "duplicate", "out_of_stock"],
-        "description": "Why the order is being cancelled. Best-guess set — confirm the accepted values (see flag #2)."
+        "description": "Why the order is being cancelled."
       }
     },
     "required": ["order_id"]

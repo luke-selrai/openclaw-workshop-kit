@@ -17,7 +17,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `agent-memory-mcp` | Hybrid memory systems with MCP | "Set up MCP-based memory for my agent" | ADVANCED |
 | `agent-memory-systems` | Persistent memory architecture for agents | "Design a memory system for my agent" | ADVANCED |
 | `agent-orchestration-multi-agent-optimize` | Coordinate and optimise multi-agent systems | "Optimise how my agents work together" | ADVANCED |
-| `agent-tool-builder` | Design tools for AI agents | "Build a tool my agent can use" | ADVANCED |
+| `agent-tool-builder` | Design or harden a tool's schema, description, and error contract | "My agent keeps misusing this tool - fix it" | ADVANCED |
 | `agentfolio` | Discover and research autonomous AI agents | "What agents exist for sales automation?" | ADVANCED |
 | `ai-engineer` | Production LLM apps, RAG systems, agents | "Build a RAG system for my knowledge base" | ADVANCED |
 | `autonomous-agent-patterns` | Design patterns for autonomous coding agents | "What patterns should I use for my agent?" | ADVANCED |

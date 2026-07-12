@@ -39,7 +39,7 @@ Extra defect surfaced across both: **terminology drift** — "tickets / ticket /
 - `limit` — default **50** (aligned with `list_tickets`).
 
 **`list_tickets`** — *"Browse tickets by stage when you have no search term. Returns subject, requester, the three SLA statuses (first-response · next-update · resolution), and key dates. Use to scan a stage; use `search_tickets` when you know a subject/ID/requester."*
-- `status` — enum. `open` (unassigned), `pending` (awaiting requester), `on hold` (blocked), `closed-won` (resolved). *Values kept verbatim — see flag #2.*
+- `status` — enum. `open` (unassigned), `pending` (awaiting requester), `on hold` (blocked), `closed-won` (resolved).
 - `limit` — default **50**.
 
 ## Control-surface flags — NOT changed, your call
