@@ -242,8 +242,8 @@ Hybrid memory systems using MCP for intelligent knowledge management.
 Example: "Set up a searchable memory system for my AI agent."
 
 ### Agent Tool Builder *(ADVANCED)*
-Well-structured tools for AI agents to use.
-Example: "Build a tool my agent can use to query my customer database."
+Designs or fixes the name, description, schema, and error messages an AI agent reads when deciding how to use a tool.
+Example: "My agent keeps misusing this tool - fix it."
 
 ### Agent Orchestration *(ADVANCED)*
 Coordinates and optimises systems where multiple AI agents work together.
