@@ -1,6 +1,6 @@
 # Claude Code Automation
 
-## /loop, /schedule, and Always-On Server - Full Documentation
+## /loop, /schedule (Cloud Routines), Desktop Scheduled Tasks, and the Routine Packager
 
 Prepared for: Claude Code Workshop Kit
 Built by: Selr AI - selrai.com.au
@@ -10,242 +10,194 @@ Built by: Selr AI - selrai.com.au
 ## Table of Contents
 
 1. [Overview](#1-overview)
-2. [The Three Tiers - At a Glance](#2-the-three-tiers--at-a-glance)
-3. [/loop - Temporary Recurring Tasks](#3-loop--temporary-recurring-tasks)
-4. [/schedule - Persistent Recurring Tasks](#4-schedule--persistent-recurring-tasks)
-5. [Always-On Server - Your Own Machine, Running 24/7](#5-always-on-server--your-own-machine-running-247)
-6. [How to Recommend the Right One](#6-how-to-recommend-the-right-one)
-7. [Official Documentation Reference](#7-official-documentation-reference)
-8. [Changelog - What We Updated](#8-changelog--what-we-updated)
+2. [The Four Options - At a Glance](#2-the-four-options--at-a-glance)
+3. [/loop - Recurring Tasks While the Session Is Open](#3-loop--recurring-tasks-while-the-session-is-open)
+4. [/schedule - Cloud Routines](#4-schedule--cloud-routines)
+5. [/package-as-routine - When the Task Needs Your Tools and Sign-ins](#5-package-as-routine--when-the-task-needs-your-tools-and-sign-ins)
+6. [Desktop Scheduled Tasks - Local, No Session Needed](#6-desktop-scheduled-tasks--local-no-session-needed)
+7. [Always-On Server - Continuous Listeners](#7-always-on-server--continuous-listeners)
+8. [How to Recommend the Right One](#8-how-to-recommend-the-right-one)
+9. [Official Documentation Reference](#9-official-documentation-reference)
 
 ---
 
 ## 1. Overview
 
-Claude Code supports automation at **three different tiers**, each suited to a different kind of task:
+Claude Code supports automation in four ways, each suited to a different kind of task:
 
-1. **`/loop`** - temporary, recurring tasks that run while your session is open
-2. **`/schedule`** - persistent, hourly-or-slower tasks that run on Anthropic's cloud and don't need your computer
-3. **Always-on server** ([`claude-cloud-kit`](https://github.com/selrai-company/claude-cloud-kit)) - Claude Code running 24/7 on a server you own, for things that need to listen continuously (Telegram bots, WhatsApp, headless Slack, daemon mode)
+1. **`/loop`** - recurring tasks that run while your session is open
+2. **`/schedule`** - creates a **cloud routine** that runs on Anthropic's infrastructure and does not need your computer. Each run starts fresh in the cloud, so it only suits self-contained tasks.
+3. **`/package-as-routine`** - the kit's routine packager plugin. Use it when the scheduled task needs your connectors, sign-ins, or installed tools. It packages those into the cloud routine so the run actually works.
+4. **Desktop scheduled task** - runs on your machine on a schedule without an open session, with full access to your local files and tools. Your computer must be on.
 
-The first two are built into Claude Code and need zero setup. The third is a separate workshop kit you deploy on your own infrastructure when you have an automation that genuinely needs to run continuously rather than periodically.
+The first two are built into Claude Code. The third is a plugin bundled with this kit and installed during setup. The fourth is created in the Claude Desktop app.
 
-This document covers all three, explains when to use which, and includes the changelog of updates made to the workshop assistant's CLAUDE.md file.
+**The single most important rule:** a plain `/schedule` cloud routine starts from a clean cloud machine. It cannot see your local files, your signed-in CLIs (like `gh` or `xero`), or MCP servers configured on your laptop. If the task depends on any of those, use `/package-as-routine` instead - otherwise the scheduled run fails silently.
 
 ---
 
-## 2. The Three Tiers - At a Glance
+## 2. The Four Options - At a Glance
 
-Claude Code automation comes in three tiers. Think of them as three different tools in a toolbox - one for quick jobs while you are at your desk, one for periodic jobs that need to run on their own, and one for jobs that have to listen continuously.
-
-| | /loop | /schedule | Always-on server |
-|---|---|---|---|
-| **What it does** | Runs a task on a timer while your session is open | Wakes up periodically and runs a task on Anthropic's cloud | Keeps Claude Code running continuously on a server you own |
-| **Where it runs** | On your computer, inside your current session | On Anthropic's cloud servers | On a server you provision (e.g. EC2, VM, home Linux box) |
-| **Setup needed** | None | None | Yes - provision a server, install Claude Code, run setup scripts from [`claude-cloud-kit`](https://github.com/selrai-company/claude-cloud-kit) |
-| **Needs your computer on?** | Yes | No | No |
-| **How often can it run?** | Every few seconds to every few days | Minimum once per hour | Continuously - runs all the time |
-| **Periodic or always-on?** | Periodic | Periodic | Always-on |
-| **How long does it last?** | Stops when you close the session (auto-expires after 3 days) | Runs indefinitely until you cancel it | Runs until you stop the server |
-| **How to create** | Type `/loop 5m /some-command` | Type `/schedule`, or use claude.ai/code/scheduled, or the Desktop app | Follow the deployment guide in [`claude-cloud-kit`](https://github.com/selrai-company/claude-cloud-kit) |
-| **Best for** | Quick checks, monitoring while you work, testing something | Daily reports, weekly posts, hourly-or-slower recurring tasks | 24/7 Telegram bots, headless WhatsApp/Slack listeners, daemon-mode Claude Code, server-hosted MCP listeners |
-| **Cost** | Free (your machine) | Free (Anthropic's cloud) | Whatever your server costs |
-| **Timezone** | Uses your local timezone | Uses your local timezone | Whatever the server is set to |
+| | /loop | /schedule (cloud routine) | /package-as-routine | Desktop scheduled task |
+|---|---|---|---|---|
+| **What it does** | Runs a task on a timer while your session is open | Runs a self-contained task in the cloud on a schedule | Packages a skill plus its tools and sign-ins into a cloud routine | Runs a task on your machine on a schedule, no open session needed |
+| **Where it runs** | Your computer, inside the session | Anthropic's cloud | Anthropic's cloud (after packaging) | Your computer |
+| **Needs your computer on?** | Yes | No | No | Yes |
+| **Access to local files, sign-ins, CLIs** | Yes (inherits the session) | **No - starts fresh every run** | Yes - carried across by the packager | Yes |
+| **Minimum interval** | 1 minute | 1 hour | 1 hour | 1 minute |
+| **How long does it last?** | Expires 7 days after creation | Until you pause or delete it | Until you pause or delete it | Until you delete it |
+| **How to create** | `/loop 5m <prompt>` | `/schedule`, or claude.ai/code/routines | `/package-as-routine` | Desktop app: Routines > New routine > Local |
+| **Best for** | Quick checks and monitoring while you work | Simple recurring prompts needing no local tools | Daily briefs, reports, and workflows that use your connectors or CLIs | Local-file tasks on a schedule while the machine is on |
 
 **Quick decision rule:**
 
-- Need it to run **only while you're working**? → `/loop`
-- Need it to **wake up periodically** (hourly or slower) when your computer is off? → `/schedule`
-- Need it to **listen continuously** (e.g. respond to inbound Telegram messages the moment they arrive)? → **Always-on server** via `claude-cloud-kit`
-
-**`/schedule` and the always-on server are not the same thing.** `/schedule` runs on Anthropic's infrastructure with zero setup but only fires periodically (minimum once per hour). The always-on server is a machine you own, running Claude Code as a continuous process - needed whenever a periodic wake-up is not enough.
+- Need it only **while you're working**? Use `/loop`.
+- Need it when the **computer is off**, and the task is fully self-contained? Use `/schedule`.
+- Need it when the **computer is off**, and the task uses your connectors, sign-ins, or installed tools? Use `/package-as-routine`.
+- Need **local files** on a schedule and the computer stays on? Use a Desktop scheduled task.
 
 ---
 
-## 3. /loop - Temporary Recurring Tasks
+## 3. /loop - Recurring Tasks While the Session Is Open
 
 ### What It Does
 
-Runs a task on a timer while your current session is open. When you close the session, the loop stops automatically. Think of it like setting a kitchen timer - it keeps going until you turn it off or leave the kitchen.
+Runs a task on a timer while your current session is open. When the session ends, the loop stops firing (resuming the same conversation restores a loop that has not expired).
 
 ### How to Use It
-
-Type this in your Claude Code session:
 
 ```
 /loop 5m /some-command
 ```
 
-This runs `/some-command` every 5 minutes. If you leave out the time, it defaults to every 10 minutes.
+This runs `/some-command` every 5 minutes. Supported units: `s` (seconds, rounded up to the nearest minute), `m` (minutes), `h` (hours), `d` (days).
 
-### Time Options
-
-| Unit | Meaning | Example |
-|---|---|---|
-| s | Seconds | `/loop 30s /check-status` |
-| m | Minutes | `/loop 5m /check-website` |
-| h | Hours | `/loop 2h /send-update` |
-| d | Days | `/loop 1d /daily-check` |
+If you leave out the interval, Claude paces itself: after each run it picks the next wait based on what it observed, checking more often while something is active and less often when things are quiet.
 
 ### Important Limitations
 
-- **Session-scoped** - stops when you close the session.
-- **Auto-expires after 3 days** - even if you leave the session open, the loop will stop after 3 days.
-- **Uses your local timezone** - not UTC or any other timezone.
-- **Only runs while your computer is on** and the session is active.
+- **Session-scoped** - fires only while the session is open and idle.
+- **Expires 7 days after creation**, even if the session stays open.
+- **Minimum interval is 1 minute** - cron has one-minute granularity.
+- **Uses your local timezone.**
 
 ### Best Use Cases
 
 - Checking a website every few minutes for changes
 - Watching for new messages or replies
 - Monitoring something while you work
-- Testing an automation before making it permanent with `/schedule`
+- Testing an automation before making it permanent as a routine
 
 ---
 
-## 4. /schedule - Persistent Recurring Tasks
+## 4. /schedule - Cloud Routines
 
 ### What It Does
 
-Creates a task that runs automatically on a schedule in the cloud. It keeps running even when your computer is off - Anthropic's servers handle it for you. Think of it like hiring someone to do a job on a set schedule, whether you are in the office or not.
+`/schedule` creates a **routine**: a saved prompt that runs automatically on Anthropic's cloud infrastructure. It keeps running when your computer is off. Manage routines at https://claude.ai/code/routines or with `/schedule list`, `/schedule update`, and `/schedule run`.
 
-### How to Create a Scheduled Task
+### What Each Run Actually Gets
 
-There are two ways to create a scheduled task:
+This is where automations most often go wrong, so be precise:
 
-**In Claude Desktop:** Type `/schedule` in the chat and follow the prompts, or use the scheduling feature in the app directly.
-
-**On the web:** Go to https://claude.ai/code/scheduled and create it there.
+- Each run starts a **fresh cloud machine**. Nothing from your laptop is there.
+- Your **claude.ai connectors** (the integrations connected on your claude.ai account) are included by default.
+- Your **local files, locally configured MCP servers, and signed-in CLIs are NOT available**. A routine cannot use `gh`, a local Xero token, a local database, or anything else that lives on your machine - unless it was packaged in (see the next section).
 
 ### Key Details
 
-- **Minimum interval:** once per hour - you cannot schedule anything more frequently than hourly.
-- **Each run starts a fresh session** with full access to your files, tools, skills, and connectors.
-- **Runs on Anthropic's cloud** - your computer does not need to be on.
-- **Runs indefinitely** until you cancel it.
-- **Uses your local timezone.**
+- **Minimum interval:** once per hour.
+- **Runs until you pause or delete it.**
+- **Requires a claude.ai subscription sign-in** (Pro, Max, Team, or Enterprise with Claude Code on the web enabled).
+- Times are entered in your local timezone.
 
 ### Best Use Cases
 
-- Posting to Notion every morning
-- Sending a weekly summary report every Monday
-- Daily social media content scheduling
-- Recurring maintenance or cleanup tasks
-- Anything that needs to run overnight or when you are away
-
-### Managing Scheduled Tasks
-
-You can view, edit, and cancel your scheduled tasks at any time by visiting https://claude.ai/code/scheduled or by typing `/schedule` in your Claude Code session.
+- A daily prompt that only needs claude.ai connectors (for example, summarise a Notion page each morning)
+- Recurring research or drafting tasks with no local dependencies
+- Anything self-contained that must run while you are away
 
 ---
 
-## 5. Always-On Server - Your Own Machine, Running 24/7
+## 5. /package-as-routine - When the Task Needs Your Tools and Sign-ins
 
 ### What It Does
 
-Runs Claude Code as a continuous process on a server you own - your own EC2 instance, a VM, a home Linux box, anything that stays on all the time. Unlike `/schedule` (which wakes up periodically on Anthropic's cloud), this is a **persistent process** that listens continuously and reacts the moment something happens.
+The routine packager is a plugin bundled with this kit (installed during setup; it activates after a Claude Desktop restart). It takes a skill that works on your laptop and produces a cloud routine that works the same way: it inspects what the skill depends on, generates the setup script and configuration the cloud machine needs, carries your credentials across as secret environment variables, and creates the routine end to end, finishing with a test run.
 
-Think of it like the difference between a postman who comes once an hour to check your mailbox (`/schedule`) and a receptionist who sits at the front desk all day waiting for someone to walk in (always-on server). For some jobs you only need the postman. For others - like answering a doorbell - you need someone there every second.
+### When to Use It
 
-### When You Actually Need This
+Use `/package-as-routine` instead of a plain `/schedule` whenever the task touches any of these:
 
-You only need an always-on server when a periodic `/schedule` wake-up is genuinely not enough. The honest answer is: most workshop users will never need this. The use cases that justify it are:
+- A connector or MCP server configured on your laptop
+- A signed-in CLI (for example `gh`, `wrangler`, `vercel`)
+- Local credentials, tokens, or files the task reads
 
-- **24/7 inbound message bots** - Telegram, WhatsApp, Slack, Discord listeners that need to reply within seconds of a user messaging them. `/schedule`'s 1-hour minimum is far too slow.
-- **Headless channel daemons** - running a WhatsApp or Slack connector continuously without a logged-in laptop holding the session open.
-- **Server-hosted MCP listeners** - MCP servers that need to be reachable from anywhere on the internet (e.g. webhooks from Stripe, Square, GHL).
-- **Daemon-mode Claude Code** - long-running agents that watch a queue, a webhook endpoint, or a real-time data feed.
+If you set up a plain `/schedule` for such a task, the routine starts clean, finds none of those things, and fails - usually silently.
 
-If your task is "do X every morning at 9am" or "run this every Monday", you do **not** need this - use `/schedule`.
+### How to Use It
 
-### Setup
+```
+/package-as-routine
+```
 
-The setup lives in a separate workshop kit: **[`claude-cloud-kit`](https://github.com/selrai-company/claude-cloud-kit)**. It includes provisioning scripts for AWS and Azure, a server auth flow for Google Workspace and Microsoft 365, systemd unit templates, and headless pairing guides for the channels.
-
-Setup is a real engineering task - you provision a server (cost: whatever the cloud bill is), install Claude Code on it, configure systemd to run it as a service, set up the channel pairings, and lock down access. Plan for 30-60 minutes for a first-time setup if you are familiar with cloud servers, and significantly more if you are not.
-
-### How to Decide vs `/schedule`
-
-Use this checklist. If any answer is yes, you probably need an always-on server:
-
-- Does it need to **respond within seconds** rather than within an hour?
-- Does it need to **listen continuously** for incoming events (messages, webhooks, real-time data)?
-- Is it a **channel daemon** (Telegram bot, WhatsApp listener, etc.) that has to maintain a live connection?
-- Does it need to be **reachable from the internet** (incoming webhooks)?
-
-If all answers are no - every job is "wake up at time X, do Y, exit" - `/schedule` is enough and you should use it instead.
+Or say it naturally: "package my morning-brief skill as a routine, run daily at 8am."
 
 ---
 
-## 6. How to Recommend the Right One
+## 6. Desktop Scheduled Tasks - Local, No Session Needed
 
-When a user asks about automating something, use this table to recommend the right approach:
+Created in the Claude Desktop app: **Routines > New routine > Local**. The task runs on your machine on a schedule, without you keeping a session open.
+
+- Full access to local files and tools, because it runs where they live.
+- Minimum interval: 1 minute.
+- The computer must be on and awake at run time.
+
+Use it when the task genuinely needs your local machine (local files, local software) and the machine is reliably on - for example an office desktop that never sleeps.
+
+---
+
+## 7. Always-On Server - Continuous Listeners
+
+All four options above are periodic: they wake up, run, and stop. If an automation must **listen continuously** and react within seconds - a 24/7 Telegram or WhatsApp bot, a webhook endpoint, a real-time queue watcher - a periodic wake-up is not enough. That calls for Claude Code running as a continuous process on a server you own.
+
+That setup is its own project and lives in a separate kit: [`advanced-claude-workshop-kit`](https://github.com/selrai-company/advanced-claude-workshop-kit), which deploys a 24/7 agent stack on AWS. Most workshop users never need this - if every job is "wake up at time X, do Y, exit", use a routine instead.
+
+---
+
+## 8. How to Recommend the Right One
+
+**If the request is ambiguous about when and where it should run** (for example "make this run every day at 7"), do not guess and do not create anything yet. Ask first, plainly and with no recommendation attached:
+
+> "What type of automation do you want? a) something that runs only in this chat, b) something that runs at your set time while your computer is awake, or c) something that runs even while your computer is off?"
+
+Route the answer: a = `/loop`, b = Desktop scheduled task, c = cloud routine (then check dependencies: connectors, sign-ins, or installed tools mean `/package-as-routine`; fully self-contained means `/schedule`).
+
+**When the request is already explicit**, ask yourself: **does the task use any of the user's connectors, sign-ins, or installed tools?** Then use this table:
 
 | User says... | Recommend |
 |---|---|
-| "Check this every few minutes" | `/loop` |
-| "Do this every morning" | `/schedule` |
+| "Check this every few minutes while I work" | `/loop` |
 | "Keep an eye on this while I work" | `/loop` |
-| "Send me a report every Monday" | `/schedule` |
 | "Poll this until it is done" | `/loop` |
-| "Run this even when my computer is off" | `/schedule` |
-| "I want a Telegram bot that replies to messages 24/7" | Always-on server ([`claude-cloud-kit`](https://github.com/selrai-company/claude-cloud-kit)) |
-| "Keep my WhatsApp / Slack / Discord listener running all the time" | Always-on server ([`claude-cloud-kit`](https://github.com/selrai-company/claude-cloud-kit)) |
-| "I need a webhook endpoint Claude can answer" | Always-on server ([`claude-cloud-kit`](https://github.com/selrai-company/claude-cloud-kit)) |
-| "Run this as a background daemon on a Linux box" | Always-on server ([`claude-cloud-kit`](https://github.com/selrai-company/claude-cloud-kit)) |
+| "Do this every morning" and the task is fully self-contained | `/schedule` |
+| "Do this every morning" and it uses Gmail, Xero, GHL, `gh`, or any local tool | `/package-as-routine` |
+| "Run this even when my computer is off" and it needs my sign-ins | `/package-as-routine` |
+| "Run this on my machine overnight" (machine stays on, needs local files) | Desktop scheduled task |
+| "I want a Telegram bot that replies to messages 24/7" | Always-on server (see Section 7) |
+| "I need a webhook endpoint Claude can answer" | Always-on server (see Section 7) |
 
-> **Important:** `/schedule` is for *periodic wake-ups* on Anthropic's cloud (no setup, hourly minimum). The always-on server is for *continuous listeners* on a server you own (real setup, runs 24/7). They are not the same thing - see Section 5 for the decision checklist.
-
----
-
-## 7. Official Documentation Reference
-
-For the full, up-to-date documentation on both /loop and /schedule, refer to the official Anthropic documentation:
-
-https://docs.anthropic.com/en/docs/claude-code/scheduled-tasks
-
-This documentation applies to all automation tasks including Telegram, iMessage, WhatsApp, Notion, and any other channel, plugin, or connector automation.
+> **Important:** the difference between `/schedule` and `/package-as-routine` is not the schedule - both create cloud routines. The difference is whether the run can reach what the task depends on. When in doubt, use `/package-as-routine`; it never hurts, while a plain `/schedule` fails silently when a dependency is missing.
 
 ---
 
-## 8. Changelog - What We Updated
+## 9. Official Documentation Reference
 
-**Date:** April 02, 2026
-**Branch:** cron-tasks
+- Routines (cloud): https://code.claude.com/docs/en/routines
+- In-session scheduling and /loop: https://code.claude.com/docs/en/scheduled-tasks
+- Desktop scheduled tasks: https://code.claude.com/docs/en/desktop-scheduled-tasks
 
-### Added: Automation Section
-
-Added a new "AUTOMATION - /loop and /schedule" section to `my-assistant/CLAUDE.md`, placed between Phase 4 (Skills Discovery) and the "If Something Breaks" section.
-
-This section includes:
-
-- Quick decision rule for choosing between /loop and /schedule
-- /loop documentation - syntax, time units, session-scoped behaviour, 3-day auto-expiry, local timezone
-- /schedule documentation - cloud-based execution, minimum 1-hour interval, three creation methods (CLI, web, Desktop app)
-- Plain-English examples for how to explain each feature to non-technical users
-- Recommendation table mapping common user phrases to the correct tool
-- "If You Get Stuck" pointer to official Anthropic docs with full URL
-
-### Revised: Plain English Pass
-
-Removed developer-facing jargon to match the non-technical tone of the rest of CLAUDE.md:
-
-| Removed | Replaced With |
-|---|---|
-| CronCreate, CronList, CronDelete | (removed entirely - internal tools, not user-facing) |
-| UTC | "your local timezone" |
-| "polling a build or deployment" | "checking a website", "watching for new messages" |
-| "remote agent" | "task that runs in the cloud" |
-| "Anthropic cloud infrastructure" | "the cloud" / "Anthropic's servers" |
-| "MCP servers" | "tools, skills, and connectors" |
-
-### Updated: Official Docs URL
-
-Changed the docs reference from the bare domain (`code.claude.com/docs/en/scheduled-tasks`) to the full clickable URL (`https://docs.anthropic.com/en/docs/claude-code/scheduled-tasks`).
-
-### Updated: Channel References
-
-Changed "Telegram, iMessage, Discord, and any other plugin or channel" to "Telegram, iMessage, WhatsApp, and any other channel, plugin, or connector" - matching the actual channels covered in the workshop kit.
+This guidance applies to all automation tasks including Telegram, iMessage, WhatsApp, Notion, and any other channel, plugin, or connector automation.
 
 ---
 
