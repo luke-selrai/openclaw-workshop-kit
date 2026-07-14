@@ -10,12 +10,12 @@ Built by: Selr AI - selrai.com.au
 ## Table of Contents
 
 1. [Overview](#1-overview)
-2. [The Four Options - At a Glance](#2-the-four-options--at-a-glance)
-3. [/loop - Recurring Tasks While the Session Is Open](#3-loop--recurring-tasks-while-the-session-is-open)
-4. [/schedule - Cloud Routines](#4-schedule--cloud-routines)
-5. [/package-as-routine - When the Task Needs Your Tools and Sign-ins](#5-package-as-routine--when-the-task-needs-your-tools-and-sign-ins)
-6. [Desktop Scheduled Tasks - Local, No Session Needed](#6-desktop-scheduled-tasks--local-no-session-needed)
-7. [Always-On Server - Continuous Listeners](#7-always-on-server--continuous-listeners)
+2. [The Four Options - At a Glance](#2-the-four-options---at-a-glance)
+3. [/loop - Recurring Tasks While the Session Is Open](#3-loop---recurring-tasks-while-the-session-is-open)
+4. [/schedule - Cloud Routines](#4-schedule---cloud-routines)
+5. [/package-as-routine - When the Task Needs Your Tools and Sign-ins](#5-package-as-routine---when-the-task-needs-your-tools-and-sign-ins)
+6. [Desktop Scheduled Tasks - Local, No Session Needed](#6-desktop-scheduled-tasks---local-no-session-needed)
+7. [Always-On Server - Continuous Listeners](#7-always-on-server---continuous-listeners)
 8. [How to Recommend the Right One](#8-how-to-recommend-the-right-one)
 9. [Official Documentation Reference](#9-official-documentation-reference)
 
@@ -32,7 +32,7 @@ Claude Code supports automation in four ways, each suited to a different kind of
 
 The first two are built into Claude Code. The third is a plugin bundled with this kit and installed during setup. The fourth is created in the Claude Desktop app.
 
-**The single most important rule:** a plain `/schedule` cloud routine starts from a clean cloud machine. It cannot see your local files, your signed-in CLIs (like `gh` or `xero`), or MCP servers configured on your laptop. If the task depends on any of those, use `/package-as-routine` instead - otherwise the scheduled run fails silently.
+**The single most important rule:** a plain `/schedule` cloud routine starts from a clean cloud machine. It cannot see your local files, tools you signed in to on your laptop (like `gh`), or connections this kit set up on your computer (like Gmail or Xero). If the task depends on any of those, use `/package-as-routine` instead - otherwise the scheduled run fails silently. Apps you connected directly on the claude.ai website are the exception: those carry over on their own.
 
 ---
 
@@ -101,8 +101,8 @@ If you leave out the interval, Claude paces itself: after each run it picks the 
 This is where automations most often go wrong, so be precise:
 
 - Each run starts a **fresh cloud machine**. Nothing from your laptop is there.
-- Your **claude.ai connectors** (the integrations connected on your claude.ai account) are included by default.
-- Your **local files, locally configured MCP servers, and signed-in CLIs are NOT available**. A routine cannot use `gh`, a local Xero token, a local database, or anything else that lives on your machine - unless it was packaged in (see the next section).
+- Apps you connected **directly on the claude.ai website** are included by default.
+- Your **local files, connections this kit set up on your computer, and tools you signed in to on your laptop are NOT available**. A routine cannot use `gh`, your computer's Xero connection, a local database, or anything else that lives on your machine - unless it was packaged in (see the next section).
 
 ### Key Details
 
@@ -123,15 +123,15 @@ This is where automations most often go wrong, so be precise:
 
 ### What It Does
 
-The routine packager is a plugin bundled with this kit (installed during setup; it activates after a Claude Desktop restart). It takes a skill that works on your laptop and produces a cloud routine that works the same way: it inspects what the skill depends on, generates the setup script and configuration the cloud machine needs, carries your credentials across as secret environment variables, and creates the routine end to end, finishing with a test run.
+The routine packager is a plugin bundled with this kit (installed during setup; it activates after a Claude Desktop restart). It takes a skill that works on your laptop and produces a cloud routine that works the same way: it inspects what the skill depends on, generates the setup steps the cloud machine needs, carries your account details across securely, and creates the routine end to end, finishing with a test run.
 
 ### When to Use It
 
 Use `/package-as-routine` instead of a plain `/schedule` whenever the task touches any of these:
 
-- A connector or MCP server configured on your laptop
-- A signed-in CLI (for example `gh`, `wrangler`, `vercel`)
-- Local credentials, tokens, or files the task reads
+- A connection this kit set up on your computer (Gmail, Xero, and so on)
+- A tool you signed in to on your laptop (for example `gh`, `wrangler`, `vercel`)
+- Account details or files that live on your machine
 
 If you set up a plain `/schedule` for such a task, the routine starts clean, finds none of those things, and fails - usually silently.
 
@@ -159,7 +159,7 @@ Use it when the task genuinely needs your local machine (local files, local soft
 
 ## 7. Always-On Server - Continuous Listeners
 
-All four options above are periodic: they wake up, run, and stop. If an automation must **listen continuously** and react within seconds - a 24/7 Telegram or WhatsApp bot, a webhook endpoint, a real-time queue watcher - a periodic wake-up is not enough. That calls for Claude Code running as a continuous process on a server you own.
+All four options above are periodic: they wake up, run, and stop. If an automation must **listen continuously** and react within seconds - a 24/7 Telegram or WhatsApp bot, a web address other services can call, a real-time queue watcher - a periodic wake-up is not enough. That calls for Claude Code running as a continuous process on a server you own.
 
 That setup is its own project and lives in a separate kit: [`advanced-claude-workshop-kit`](https://github.com/selrai-company/advanced-claude-workshop-kit), which deploys a 24/7 agent stack on AWS. Most workshop users never need this - if every job is "wake up at time X, do Y, exit", use a routine instead.
 
@@ -173,7 +173,7 @@ That setup is its own project and lives in a separate kit: [`advanced-claude-wor
 
 Route the answer: a = `/loop`, b = Desktop scheduled task, c = cloud routine (then check dependencies: connectors, sign-ins, or installed tools mean `/package-as-routine`; fully self-contained means `/schedule`).
 
-**When the request is already explicit**, ask yourself: **does the task use any of the user's connectors, sign-ins, or installed tools?** Then use this table:
+**When the request is already explicit**, ask yourself: **does the task use anything set up on the user's computer - the kit's connectors, sign-ins, or installed tools?** Then use this table:
 
 | User says... | Recommend |
 |---|---|
@@ -181,13 +181,11 @@ Route the answer: a = `/loop`, b = Desktop scheduled task, c = cloud routine (th
 | "Keep an eye on this while I work" | `/loop` |
 | "Poll this until it is done" | `/loop` |
 | "Do this every morning" and the task is fully self-contained | `/schedule` |
-| "Do this every morning" and it uses Gmail, Xero, GHL, `gh`, or any local tool | `/package-as-routine` |
+| "Do this every morning" and it uses Gmail, Xero, GHL, `gh`, or anything else set up on this computer | `/package-as-routine` |
 | "Run this even when my computer is off" and it needs my sign-ins | `/package-as-routine` |
 | "Run this on my machine overnight" (machine stays on, needs local files) | Desktop scheduled task |
 | "I want a Telegram bot that replies to messages 24/7" | Always-on server (see Section 7) |
-| "I need a webhook endpoint Claude can answer" | Always-on server (see Section 7) |
-
-> **Important:** the difference between `/schedule` and `/package-as-routine` is not the schedule - both create cloud routines. The difference is whether the run can reach what the task depends on. When in doubt, use `/package-as-routine`; it never hurts, while a plain `/schedule` fails silently when a dependency is missing.
+| "I need a web address other services can call and Claude answers" | Always-on server (see Section 7) |
 
 ---
 

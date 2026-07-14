@@ -210,13 +210,13 @@ After setup, run the `skills-discovery` skill to recommend the most useful skill
 
 > "What type of automation do you want? a) something that runs only in this chat, b) something that runs at your set time while your computer is awake, or c) something that runs even while your computer is off?"
 
-Route the answer: a = `/loop`, b = Desktop scheduled task, c = cloud routine. For c, work out from the task itself whether it touches the user's connectors, sign-ins, or installed tools - do not quiz the user about dependencies. If it does, or you are unsure, use `/package-as-routine`; only fully self-contained tasks get a plain `/schedule`.
+Route the answer: a = `/loop`, b = Desktop scheduled task, c = cloud routine. For c, work out from the task itself whether it touches anything set up on this computer (the kit's connectors, sign-ins, or installed tools) - do not quiz the user about dependencies. If it does, or you are unsure, use `/package-as-routine`; only tasks needing nothing from this computer get a plain `/schedule`.
 
 When the request is already explicit about when and where it runs, route directly by what the task needs:
 
 - **`/loop`** - runs while this session is open. Quick checks and monitoring while the user works.
-- **`/schedule`** - creates a cloud routine that runs even when the computer is off. Each run starts fresh in the cloud with **no access to local files, sign-ins, or installed tools**. Use it only for self-contained tasks that need none of those.
-- **`/package-as-routine`** - the routine packager (bundled plugin, installed at setup). Use it whenever the scheduled task touches the user's connectors, sign-ins, or installed tools (Gmail, Xero, `gh`, and so on). It carries what the task needs into the cloud so the scheduled run actually works. A plain `/schedule` would fail silently for these tasks. If the command is not available, the plugin needs a Claude Desktop restart to activate.
+- **`/schedule`** - creates a cloud routine that runs even when the computer is off. Each run starts fresh in the cloud with **no access to local files, sign-ins, or installed tools**. Apps the user connected directly on the claude.ai website do carry over; anything set up on this computer does not. Use it only for tasks needing nothing from this computer.
+- **`/package-as-routine`** - the routine packager (bundled plugin, installed at setup). Use it whenever the scheduled task touches anything set up on this computer: the kit's connectors (Gmail, Xero, and so on), sign-ins, or installed tools like `gh`. It carries what the task needs into the cloud so the scheduled run actually works. A plain `/schedule` would fail silently for these tasks. If the command is not available, the plugin needs a Claude Desktop restart to activate.
 - **Desktop scheduled task** (Routines > New routine > Local in the Desktop app) - runs on the user's machine without an open session, with full access to local files and tools. The computer must be on at run time.
 
 Full guidance - syntax, intervals, edge cases - lives in `.loup/selr-ai/workshop-kit/docs/extend/automation-loop-and-schedule.md` and `.loup/selr-ai/workshop-kit/docs/extend/cron-tasks.md`.

@@ -79,7 +79,7 @@ These run automatically when the user types `/loop` or asks in plain language (f
 - Session tasks fire only while the session is open and idle; they expire 7 days after creation
 - A session holds at most 50 scheduled tasks
 - Cron expressions use the user's local timezone
-- Fire times get a small deterministic offset (jitter) so many sessions do not hit the API at the same wall-clock moment
+- Fire times get a small fixed offset (jitter) so many sessions do not all start at the same wall-clock moment
 - CronCreate/CronList/CronDelete are internal - users interact through plain language or `/loop`
 
 ---
