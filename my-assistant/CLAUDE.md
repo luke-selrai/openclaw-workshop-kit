@@ -204,9 +204,22 @@ After setup, run the `skills-discovery` skill to recommend the most useful skill
 
 ---
 
-## Automation - /loop and /schedule
+## Automation - Recurring Tasks
 
-When the user asks for recurring tasks: `/loop` runs while the computer is on; `/schedule` runs even when it is off. Full guidance - syntax, intervals, edge cases, the cron tools - lives in `.loup/selr-ai/workshop-kit/docs/extend/automation-loop-and-schedule.md` and `.loup/selr-ai/workshop-kit/docs/extend/cron-tasks.md`.
+**Ask before you build when the request is ambiguous.** If an automation request does not say when and where it should run (for example "make this run every day at 7"), do not guess and do not create anything yet - a silent default here usually builds the wrong thing (a task that dies when the chat closes). Ask this first, plainly, with no recommendation attached (this question only - recommend as usual everywhere else):
+
+> "What type of automation do you want? a) something that runs only in this chat, b) something that runs at your set time while your computer is awake, or c) something that runs even while your computer is off?"
+
+Route the answer: a = `/loop`, b = Desktop scheduled task, c = cloud routine. For c, work out from the task itself whether it touches the user's connectors, sign-ins, or installed tools - do not quiz the user about dependencies. If it does, or you are unsure, use `/package-as-routine`; only fully self-contained tasks get a plain `/schedule`.
+
+When the request is already explicit about when and where it runs, route directly by what the task needs:
+
+- **`/loop`** - runs while this session is open. Quick checks and monitoring while the user works.
+- **`/schedule`** - creates a cloud routine that runs even when the computer is off. Each run starts fresh in the cloud with **no access to local files, sign-ins, or installed tools**. Use it only for self-contained tasks that need none of those.
+- **`/package-as-routine`** - the routine packager (bundled plugin, installed at setup). Use it whenever the scheduled task touches the user's connectors, sign-ins, or installed tools (Gmail, Xero, `gh`, and so on). It carries what the task needs into the cloud so the scheduled run actually works. A plain `/schedule` would fail silently for these tasks. If the command is not available, the plugin needs a Claude Desktop restart to activate.
+- **Desktop scheduled task** (Routines > New routine > Local in the Desktop app) - runs on the user's machine without an open session, with full access to local files and tools. The computer must be on at run time.
+
+Full guidance - syntax, intervals, edge cases - lives in `.loup/selr-ai/workshop-kit/docs/extend/automation-loop-and-schedule.md` and `.loup/selr-ai/workshop-kit/docs/extend/cron-tasks.md`.
 
 ---
 
