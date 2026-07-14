@@ -838,7 +838,7 @@ Your assistant can run tasks automatically. It picks the right method for the jo
 | What to Say | What It Does |
 |---|---|
 | "Check my emails every morning at 9am" | Packages your email connection into a cloud routine that runs daily |
-| "Post to social media every weekday at 10am" | Creates a recurring cloud routine |
+| "Post to social media every weekday at 10am" | Packages your social account connection into a cloud routine that runs on weekdays |
 | "Monitor my website every 5 minutes" | Runs a check on a loop while your session is open |
 
 **How it works:**

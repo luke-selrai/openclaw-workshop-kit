@@ -43,7 +43,7 @@ The first two are built into Claude Code. The third is a plugin bundled with thi
 | **What it does** | Runs a task on a timer while your session is open | Runs a self-contained task in the cloud on a schedule | Packages a skill plus its tools and sign-ins into a cloud routine | Runs a task on your machine on a schedule, no open session needed |
 | **Where it runs** | Your computer, inside the session | Anthropic's cloud | Anthropic's cloud (after packaging) | Your computer |
 | **Needs your computer on?** | Yes | No | No | Yes |
-| **Access to local files, sign-ins, CLIs** | Yes (inherits the session) | **No - starts fresh every run** | Yes - carried across by the packager | Yes |
+| **Access to local files, sign-ins, and tools on this computer** | Yes (inherits the session) | **No - starts fresh every run** | Yes - carried across by the packager | Yes |
 | **Minimum interval** | 1 minute | 1 hour | 1 hour | 1 minute |
 | **How long does it last?** | Expires 7 days after creation | Until you pause or delete it | Until you pause or delete it | Until you delete it |
 | **How to create** | `/loop 5m <prompt>` | `/schedule`, or claude.ai/code/routines | `/package-as-routine` | Desktop app: Routines > New routine > Local |
@@ -171,7 +171,7 @@ That setup is its own project and lives in a separate kit: [`advanced-claude-wor
 
 > "What type of automation do you want? a) something that runs only in this chat, b) something that runs at your set time while your computer is awake, or c) something that runs even while your computer is off?"
 
-Route the answer: a = `/loop`, b = Desktop scheduled task, c = cloud routine (then check dependencies: connectors, sign-ins, or installed tools mean `/package-as-routine`; fully self-contained means `/schedule`).
+Route the answer: a = `/loop`, b = Desktop scheduled task, c = cloud routine (then check dependencies: connectors, sign-ins, or installed tools mean `/package-as-routine`; fully self-contained means `/schedule`; when unsure, use `/package-as-routine`).
 
 **When the request is already explicit**, ask yourself: **does the task use anything set up on the user's computer - the kit's connectors, sign-ins, or installed tools?** Then use this table:
 
