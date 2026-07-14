@@ -7,7 +7,7 @@
 Software that can think, write, and learn. Trained on billions of pages of text from the internet. Not magic - just very sophisticated pattern matching at enormous scale.
 
 **Automation**
-When your assistant does a task on a schedule or in response to an event - without you having to ask each time. Example: "Every morning at 9am, check my emails and send me a summary on Telegram." The `/schedule` and `/loop` commands set this up.
+When your assistant does a task on a schedule or in response to an event - without you having to ask each time. Example: "Every morning at 9am, check my emails and send me a summary on Telegram." Set up with `/loop` (while Claude is open), `/schedule` (in the cloud, self-contained tasks only), or `/package-as-routine` (in the cloud, for tasks that need your connected apps and sign-ins).
 
 **API (Application Programming Interface)**
 A way for two apps to talk to each other. When your assistant connects to Gmail, it uses Gmail's API - like a special door that only apps can use, not humans. You do not need to understand APIs; your assistant handles them.
@@ -28,7 +28,10 @@ A text-based way to give instructions to your computer - instead of clicking, yo
 The AI made by Anthropic. The most capable AI for writing, research, and business tasks. Comes in different versions: Claude.ai (the website), Claude Code (runs on your computer), and Claude API (for developers building apps).
 
 **Cron / Cron Job**
-A scheduled task that runs automatically at a set time or interval. Named after the Unix `cron` system. When you use `/schedule`, it creates a cron job behind the scenes. You do not need to understand cron syntax - your assistant handles it.
+A scheduled task that runs automatically at a set time or interval. Named after the Unix `cron` system. Scheduling commands like `/loop` and `/schedule` create cron jobs behind the scenes. You do not need to understand cron syntax - your assistant handles it.
+
+**Routine**
+A saved task that runs in the cloud on a schedule, managed at claude.ai/code/routines. Created with `/schedule` (simple, self-contained tasks) or `/package-as-routine` (tasks that need your connected apps, sign-ins, or tools carried into the cloud). Runs even when your computer is off.
 
 **Claude Code**
 The version of Claude that runs on your computer. Much more powerful than the website version - it can install software, connect to your apps, control your browser, and automate tasks. You use it through the Claude Desktop app.
