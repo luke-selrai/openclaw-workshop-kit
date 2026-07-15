@@ -12,6 +12,8 @@ Used by **all three skills** (`ai-ops-architect`, `n8n`, `managed-agents-setup`)
 | 4 | **Server cron + agents-cc** | EC2-owned, sub-hourly, free at margin (only available if user has an existing server - drops out for fresh attendees) |
 | ★ | **Hybrid (Agent + n8n tools)** | Managed Agent calls n8n workflows as webhook tools. Agent does judgement, n8n does mechanical work. See `hybrid-pattern.md`. |
 
+**Routines is a tier here, not a command.** This matrix picks the runtime. Which command *builds* a Routine pick - `/package-as-routine` or a plain `/schedule` - and the Phase 4 `delegate_to` downgrade that goes with it are owned by `../SKILL.md`. Do not re-derive them here.
+
 ## Decision tree (stop at first match)
 
 ```text
