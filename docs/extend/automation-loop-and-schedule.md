@@ -47,7 +47,7 @@ The first two are built into Claude Code. The third is a plugin bundled with thi
 | **Minimum interval** | 1 minute | 1 hour | 1 hour | 1 minute |
 | **How long does it last?** | Expires 7 days after creation | Until you pause or delete it | Until you pause or delete it | Until you delete it |
 | **How to create** | `/loop 5m <prompt>` | `/schedule`, or claude.ai/code/routines | `/package-as-routine` | Desktop app: Routines > New routine > Local |
-| **Best for** | Quick checks and monitoring while you work | Simple recurring prompts needing no local tools | Daily briefs, reports, and workflows that use your connectors or CLIs | Local-file tasks on a schedule while the machine is on |
+| **Best for** | Quick checks and monitoring while you work | Simple recurring prompts needing no local tools | Daily briefs, reports, and workflows that use your connectors or installed tools | Local-file tasks on a schedule while the machine is on |
 
 **Quick decision rule:**
 
@@ -172,7 +172,7 @@ A routine and an always-on server are **not the same thing**. A routine wakes up
 
 If all four answers are no - every job is "wake up at time X, do Y, exit" - use a routine instead.
 
-That setup is its own project and lives in a separate kit: [`advanced-claude-workshop-kit`](https://github.com/selrai-company/advanced-claude-workshop-kit), which deploys a 24/7 agent stack on AWS. Most workshop users never need this.
+That setup is its own project and lives in a separate advanced workshop kit, which deploys a 24/7 agent stack on AWS. That kit is an internal resource and is not part of this workshop. Most workshop users never need this.
 
 ---
 
