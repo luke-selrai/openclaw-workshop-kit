@@ -161,7 +161,18 @@ Use it when the task genuinely needs your local machine (local files, local soft
 
 All four options above are periodic: they wake up, run, and stop. If an automation must **listen continuously** and react within seconds - a 24/7 Telegram or WhatsApp bot, a web address other services can call, a real-time queue watcher - a periodic wake-up is not enough. That calls for Claude Code running as a continuous process on a server you own.
 
-That setup is its own project and lives in a separate kit: [`advanced-claude-workshop-kit`](https://github.com/selrai-company/advanced-claude-workshop-kit), which deploys a 24/7 agent stack on AWS. Most workshop users never need this - if every job is "wake up at time X, do Y, exit", use a routine instead.
+### Do You Actually Need This? A Quick Check
+
+A routine and an always-on server are **not the same thing**. A routine wakes up, runs, and stops; a server listens all the time. Ask these four questions - if any answer is yes, you need the always-on server:
+
+- Does it need to **respond within seconds** rather than within an hour?
+- Does it need to **listen continuously** for incoming events (messages, real-time data)?
+- Is it a **channel listener** (a Telegram or WhatsApp bot) that must hold a live connection?
+- Does it need to be **reachable from the internet** so other services can call it?
+
+If all four answers are no - every job is "wake up at time X, do Y, exit" - use a routine instead.
+
+That setup is its own project and lives in a separate kit: [`advanced-claude-workshop-kit`](https://github.com/selrai-company/advanced-claude-workshop-kit), which deploys a 24/7 agent stack on AWS. Most workshop users never need this.
 
 ---
 
