@@ -85,6 +85,8 @@ cadence ≥ 1hr + bash? → server cron (else Routine)
 else → server cron (else Routine)
 ```
 
+`Routines` names the runtime tier, not the command that builds it. A build that touches the user's connectors, sign-ins, or installed tools goes to `/package-as-routine`, which carries those into the cloud; only fully self-contained builds go to a plain `/schedule`. When unsure, use `/package-as-routine` - a plain `/schedule` starts clean in the cloud and fails silently for the rest. This applies to the `delegate_to` value in `.state/selected-builds.json` too: for routine picks it defaults to `/package-as-routine`, so switch it to `/schedule` only once Phase 4 has confirmed the build needs nothing from the user's machine.
+
 Full version with comparison table and worked examples: `references/runtime-decision-matrix.md`.
 
 ## Worked examples
@@ -92,7 +94,7 @@ Full version with comparison table and worked examples: `references/runtime-deci
 **User: "I'm a plumber, what should I automate?"**
 → Audit: industry=trades, top pain=missed quote follow-ups
 → Recommend: trades-quote-triage (managed-agent), missed-call-sms (n8n), daily-leads-digest (routine)
-→ Build: managed-agents-setup creates the triage agent with Rube; n8n creates the SMS workflow; schedule skill creates the daily routine
+→ Build: managed-agents-setup creates the triage agent with Rube; n8n creates the SMS workflow; package-as-routine creates the daily routine (it reads leads from the owner's CRM, so it needs their connectors carried into the cloud)
 
 **User: "I'm a coach with 50 IG DMs/day"**
 → Audit: industry=coaches, top pain=DM volume

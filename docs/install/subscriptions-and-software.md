@@ -61,9 +61,13 @@ Not needed today. Come back to these once your assistant is running well.
 
 ---
 
-## Always-On Server - Run Your Assistant 24/7
+## Always-On Server - For Work That Must Listen Non-Stop
 
-Right now your assistant only runs when your laptop is open. A server lets it run while you sleep - sending follow-ups, monitoring leads, processing invoices.
+Most recurring work does not need a server. Anything that wakes up, runs, and stops - sending follow-ups, lead digests, processing invoices - runs as a cloud routine instead, which needs no server and keeps working while your laptop is off. Just ask your assistant for it; when the task uses apps and sign-ins set up on your computer, it packages those up for you with `/package-as-routine`.
+
+A server earns its cost only when a task must listen non-stop: reply within seconds, hold a live connection open (a Telegram or WhatsApp bot), or be reachable from the internet so other services can call it.
+
+> **Check before you buy:** [automation-loop-and-schedule.md - section 7](../extend/automation-loop-and-schedule.md#7-always-on-server---continuous-listeners) has a four-question test. If every answer is no, a routine does the job and you can skip this section.
 
 | Option | Cost | Notes |
 |---|---|---|

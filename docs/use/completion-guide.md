@@ -189,13 +189,14 @@ Your assistant will create and update the file for you.
 ### Automate Recurring Tasks
 
 Once you have tasks you do regularly, automate them:
-> "Check my emails every morning at 9am and send me a summary on Telegram"
-> "Post to LinkedIn every weekday at 10am using my saved content"
+> "Check my emails every morning at 9am and send me a summary on Telegram, even when my laptop is off"
+> "Post to LinkedIn every weekday at 10am using my saved content, even when my laptop is off"
 
-Your assistant uses `/schedule` and `/loop` to run these automatically.
+Say both when and where it should run, as above, and your assistant picks the right tool for you. Leave either out and it asks you first rather than guessing:
 
-- **`/schedule`** - runs in the cloud. Your computer does not need to be on.
-- **`/loop`** - runs locally on your machine. Your computer must be on and Claude Code must be running.
+- **`/loop`** - runs locally while Claude Code is open. For checks and monitoring while you work.
+- **`/schedule`** - runs in the cloud, so your computer does not need to be on. Only for tasks needing nothing from your computer: a cloud run starts fresh and cannot see sign-ins or tools set up on your machine.
+- **`/package-as-routine`** - also runs in the cloud, but first packages up the connections, sign-ins, and tools your task needs. Use this for anything involving apps this kit set up on your computer (email, Xero, and so on).
 
 > For full details, see [automation-loop-and-schedule](../extend/automation-loop-and-schedule.md)
 

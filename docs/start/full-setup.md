@@ -833,19 +833,20 @@ To check what is connected, ask your assistant: *"What tools do you have connect
 
 ## Automation - Schedules and Loops
 
-Your assistant can run tasks automatically on a schedule or in a loop.
+Your assistant can run tasks automatically. It picks the right method for the job, and if your request does not say when and where it should run, it asks you first.
 
 | What to Say | What It Does |
 |---|---|
-| "Check my emails every morning at 9am" | Creates a scheduled task that runs daily |
-| "Post to social media every weekday at 10am" | Creates a recurring automation |
-| "Monitor my website every 5 minutes" | Runs a check on a loop |
+| "Check my emails every morning at 9am, even when my laptop is off" | Packages your email connection into a cloud routine that runs daily |
+| "Post to social media every weekday at 10am, even when my laptop is off" | Packages your social account connection into a cloud routine that runs on weekdays |
+| "Monitor my website every 5 minutes while I have Claude open" | Runs a check on a loop while your session is open |
 
 **How it works:**
-- `/schedule` - creates a task that runs at set times (like a cron job)
-- `/loop` - runs something repeatedly on an interval
+- `/loop` - repeats something while your session is open
+- `/schedule` - a cloud routine that runs even when your computer is off, for tasks needing nothing from your computer
+- `/package-as-routine` - also a cloud routine, but it first carries across the connections and sign-ins your task needs (email, Xero, and so on)
 
-> **Note:** `/schedule` runs in the cloud - your computer does not need to be on. `/loop` runs locally and requires your computer to be on with Claude Code running.
+> **Note:** a plain `/schedule` starts fresh in the cloud and cannot see connections set up on your computer - that is what `/package-as-routine` is for.
 
 For full details, see [automation-loop-and-schedule](../extend/automation-loop-and-schedule.md)
 

@@ -12,7 +12,7 @@ You orchestrate the discovery → audit → select → build → connect → han
 - You don't build anything yourself. You collect signal, recommend, and delegate.
 - For workflow builds → `Task(subagent_type="general-purpose", prompt="invoke /n8n with these template + customisation params: ...")` or invoke `/n8n` directly.
 - For agent builds → invoke `/managed-agents-setup`.
-- For Routines → invoke `/schedule`.
+- For Routines → pick by what the build needs. If it touches the user's connectors, sign-ins, or installed tools, invoke `/package-as-routine` (the kit's routine packager, which carries those into the cloud). Invoke `/schedule` only for fully self-contained builds. When unsure, use `/package-as-routine` - a plain `/schedule` starts clean in the cloud and fails silently for connector-dependent builds. If `/package-as-routine` is not available, the bundled plugin needs a Claude Desktop restart to activate.
 - Per-user, all output goes to `.state/` - never log secrets, never echo a paste.
 
 ## Step 1 - read SKILL.md first
@@ -26,7 +26,7 @@ Always start by reading this skill's `SKILL.md` (it sits in the directory this a
 | 0 | Verify `python3`, `bash`, `claude` are on PATH. If not, halt and instruct install. |
 | 1 | Ask the 8 intake questions **conversationally in plain text** (never AskUserQuestion). Write the answers to a temp JSON, then run `bash scripts/audit.sh --ingest /tmp/aoa-answers.json`. NEVER run `audit.sh` bare (interactive `input()` has no TTY when you drive it → it hangs/crashes) and NEVER rely on `--auto` to capture answers (it marks everything TBC). For "I have memory", run `--auto` first to pre-extract, then still finish with `--ingest`. |
 | 2 | Run `bash scripts/recommend.sh`. Print `.state/audit-output.md` to the user. |
-| 3 | Confirm the owner's 1-3 picks (refuse "all of them" - quality over volume), then run `bash scripts/select.sh --auto <indices>` (e.g. `--auto 1,3`). It writes `.state/selected-builds.json` with the keyword-resolved `delegate_to` per pick that Phase 5 needs. Do NOT hand-write that JSON. |
+| 3 | Confirm the owner's 1-3 picks (refuse "all of them" - quality over volume), then run `bash scripts/select.sh --auto <indices>` (e.g. `--auto 1,3`). It writes `.state/selected-builds.json` with the keyword-resolved `delegate_to` per pick that Phase 5 needs. Do NOT fabricate that JSON yourself - always run the script. The one edit you may make to it is the Phase 4 `delegate_to` downgrade described in SKILL.md. |
 | 4 | Per selection, classify runtime via `references/runtime-decision-matrix.md`. Print one-line reasoning per pick. |
 | 5 | Delegate. For each pick, fire the right child skill. Do NOT inline build. |
 | 6 | Connector flow: try `claude mcp list` for Tier 1, then suggest Rube for any service not covered. Manual key paste is the last resort. |
@@ -64,7 +64,7 @@ No emojis, no spinners, no recap. Stop on success.
 - `Bash` to run audit / recommend / select / connect-via-rube / verify scripts
 - `Read` to load SKILL.md and references on demand
 - `Task` to spawn `/managed-agents-setup` or `/n8n` agents for the build
-- `Skill` for `/schedule` when a Routine is needed
+- `Skill` for `/package-as-routine` or `/schedule` when a Routine is needed - see Boundary for which
 - Never `Write` user secrets to logs or transcripts.
 
 ## On first invocation in a session
