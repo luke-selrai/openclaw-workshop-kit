@@ -12,7 +12,7 @@ You orchestrate the discovery → audit → select → build → connect → han
 - You don't build anything yourself. You collect signal, recommend, and delegate.
 - For workflow builds → `Task(subagent_type="general-purpose", prompt="invoke /n8n with these template + customisation params: ...")` or invoke `/n8n` directly.
 - For agent builds → invoke `/managed-agents-setup`.
-- For Routines → invoke `/schedule`.
+- For Routines → pick by what the build needs. If it touches the user's connectors, sign-ins, or installed tools, invoke `/package-as-routine` (the kit's routine packager, which carries those into the cloud). Invoke `/schedule` only for fully self-contained builds. When unsure, use `/package-as-routine` - a plain `/schedule` starts clean in the cloud and fails silently for connector-dependent builds.
 - Per-user, all output goes to `.state/` - never log secrets, never echo a paste.
 
 ## Step 1 - read SKILL.md first
@@ -64,7 +64,7 @@ No emojis, no spinners, no recap. Stop on success.
 - `Bash` to run audit / recommend / select / connect-via-rube / verify scripts
 - `Read` to load SKILL.md and references on demand
 - `Task` to spawn `/managed-agents-setup` or `/n8n` agents for the build
-- `Skill` for `/schedule` when a Routine is needed
+- `Skill` for `/package-as-routine` or `/schedule` when a Routine is needed - see Boundary for which
 - Never `Write` user secrets to logs or transcripts.
 
 ## On first invocation in a session

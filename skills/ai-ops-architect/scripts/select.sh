@@ -122,7 +122,7 @@ def delegate_for(runtime):
     if has_agent:
         return "/managed-agents-setup"
     if "routine" in rt:
-        return "/schedule"
+        return "/package-as-routine"
     if has_n8n:
         return "/n8n"
     return "/n8n"
