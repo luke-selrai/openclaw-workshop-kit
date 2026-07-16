@@ -219,27 +219,67 @@ Mention to yourself in memory which tools came online - Claude's memory will ret
 Say:
 > "One last tool step: I'm adding four power-user skills the Selr team uses every day. They help me stress-test your plans, dig into problems properly, hand work between sessions, and teach you anything step by step. Takes about thirty seconds."
 
+The four expected skills, all from the `mattpocock/skills` repo:
+
+- `grill-me` - stress-tests any plan by interviewing the user about it
+- `diagnosing-bugs` - works through bugs and problems in a disciplined loop
+- `handoff` - packages up a conversation so the next session picks up exactly where this one left off
+- `teach` - walks the user through learning any concept step by step
+
 Run (same command on Mac and Windows):
 
 ```bash
-npx -y skills@latest add mattpocock/skills -g -a claude-code -s grill-me -s handoff -s diagnose -s teach -y --copy
+npx -y skills@latest add mattpocock/skills -g -a claude-code -s grill-me -s handoff -s diagnosing-bugs -s teach -y --copy
 ```
 
-Verify all four landed - each of these files must exist:
+#### Verify on disk - every skill, every time
+
+Whatever the command printed, check the disk. Each of these files must exist:
 
 - `~/.claude/skills/grill-me/SKILL.md`
 - `~/.claude/skills/handoff/SKILL.md`
-- `~/.claude/skills/diagnose/SKILL.md`
+- `~/.claude/skills/diagnosing-bugs/SKILL.md`
 - `~/.claude/skills/teach/SKILL.md`
 
-If all four are present, say:
-> "Done. Here's what you just got: **grill-me** stress-tests any plan by interviewing you about it, **diagnose** works through bugs and problems in a disciplined loop, **handoff** packages up a conversation so your next session picks up exactly where we left off, and **teach** walks you through learning any concept step by step - just say `/teach`."
+If all four are present, skip straight to the summary below.
 
-**Failure branch - non-blocking.** If the command errors or any of the four files is missing, this is NOT a setup blocker (unlike the browser step above). Do not troubleshoot in the room. Say:
+#### Self-heal - resolve renames, then retry (run this whether SOME or ALL four are missing)
 
-> "The four extra skills didn't come through just now - probably a network hiccup. Everything else is set up fine. Any time later, just say 'install the power-user skills' and I'll try again."
+A missing skill usually means the repo **renamed or moved it** (it has happened: `diagnose` became `diagnosing-bugs`), not a network problem. A stale name can even make the whole install come back empty - the all-four-missing case goes through this same loop. Do not give up and do not guess:
 
-(If a later session is asked to "install the power-user skills", re-run the command above from this step - it is safe to repeat.)
+1. List what the repo actually offers right now:
+
+   ```bash
+   npx -y skills@latest add mattpocock/skills -l
+   ```
+
+2. For each missing skill, find its current name in that listing - match on the name and the description (for example, a "diagnosis loop for bugs" description identifies the diagnose-successor whatever it is called today).
+3. Re-run the install command with the **resolved** names - one `-s <name>` per still-missing skill, keeping `-g -a claude-code -y --copy`.
+4. Check the disk again at the resolved names (`~/.claude/skills/<resolved-name>/SKILL.md`).
+5. If the listing command itself fails, retry it once; if it fails twice, stop healing and report exactly what it printed in the summary - never invent a cause.
+
+Run this resolution pass once per setup (one listing, one retry install), then summarise whatever state you are in.
+
+#### Summary - always shown, at a glance
+
+Always end this step with a per-skill status line that the user - and anyone glancing at their screen - can read in one look. Use the resolved name if a skill was renamed:
+
+> "Power-user skills:
+> ✅ `grill-me` - installed
+> ✅ `diagnosing-bugs` - installed
+> ✅ `handoff` - installed
+> ✅ `teach` - installed"
+
+For any skill still missing, use `❌ <name> - not installed:` followed by the actual error the install or listing command reported (quote it; never paraphrase it into a guess).
+
+If all four are present, follow the summary with:
+> "Here's what you just got: **grill-me** stress-tests any plan by interviewing you about it, **diagnosing-bugs** works through bugs and problems in a disciplined loop, **handoff** packages up a conversation so your next session picks up exactly where we left off, and **teach** walks you through learning any concept step by step - just say `/teach`."
+
+**Missing skills are NOT a setup blocker** (unlike the browser step above). Do not troubleshoot beyond the self-heal pass above. If any are missing, add:
+
+> "Everything else is set up fine. Any time later, just say 'install the power-user skills' and I'll run this whole step again, including the rename check."
+
+(If a later session is asked to "install the power-user skills", re-run this step from the top - install, verify, self-heal, summary. It is safe to repeat.)
 
 Then continue to Phase 3 either way.
 

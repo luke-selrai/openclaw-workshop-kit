@@ -94,3 +94,15 @@ jobs:
 
       - name: Test resilient-install checker (regression)
         run: node scripts/test-resilient-install.mjs
+
+      # Matt Pocock skills-install contract (LOUP-19): assert first-run-setup
+      # Step 3 keeps current upstream skill names, on-disk verification, the
+      # self-heal (list → resolve renames → retry) pass, and the honest
+      # per-skill summary. --live also lists the live mattpocock/skills repo,
+      # so CI goes red at the next upstream rename instead of attendees
+      # silently losing skills. Read-only; runs on every event.
+      - name: Verify MP skills-install contract (incl. live upstream)
+        run: node scripts/check-mp-skills-install.mjs --live
+
+      - name: Test MP skills-install checker (regression)
+        run: node scripts/test-mp-skills-install.mjs
