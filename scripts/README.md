@@ -142,6 +142,31 @@ node scripts/check-install-narration.mjs --verbose  # also print every passing c
 
 **Harness wiring:** runs in CI on every event via `.github/workflows/audit-skills.yml`, after the resilient-install steps.
 
+## check-mp-skills-install.mjs
+
+Asserts the **Matt Pocock power-user-skills install contract** in `skills/first-run-setup/SKILL.md` Phase 2.5 Step 3 ([LOUP-19](https://linear.app/selr-ai/issue/LOUP-19)). Upstream renamed `diagnose` → `diagnosing-bugs` and the hardcoded selector silently stripped skills from attendees, with a "probably a network hiccup" hand-wave hiding it; this checker keeps the fixed contract intact.
+
+**Usage:**
+
+```bash
+node scripts/check-mp-skills-install.mjs            # static rules; exit 1 on any failure
+node scripts/check-mp-skills-install.mjs --verbose  # also print every passing check
+node scripts/check-mp-skills-install.mjs --live     # + list the live mattpocock/skills repo and
+                                                    #   assert every expected skill still exists
+```
+
+**Failures (exit 1)** - checked against the Step 3 body:
+
+- **current-selectors / verify-paths** - the install command selects, and the verify list checks, every skill in `EXPECTED_SKILLS` (`grill-me`, `handoff`, `diagnosing-bugs`, `teach`) under its current upstream name.
+- **no-stale-names** - no retired name (`diagnose`) survives as a selector, path, or bold mention.
+- **self-heal-listing / rename-resolution / zero-installed-case** - a miss triggers listing the repo's live skills (`skills add … -l`), resolving renames dynamically, and retrying - explicitly covering the all-four-missing case, not just partial misses.
+- **visible-summary / honest-reporting** - the step always ends with a per-skill ✅/❌ summary quoting real command output, never an invented cause.
+- **no-handwave / non-blocking** - no "network hiccup" hand-wave or facilitator escalation, and a miss never blocks the rest of setup.
+
+`--live` makes CI go red at the **next** upstream rename (an expected name vanishing from the live repo) instead of attendees silently losing skills. On a rename: re-resolve the new name, update `EXPECTED_SKILLS` and the Step 3 body together.
+
+**Harness wiring:** runs in CI (with `--live`) on every event via `.github/workflows/audit-skills.yml`.
+
 ## Tests
 
 Plain Node, no framework - each prints `PASS`/`FAIL` and exits non-zero on any failure.
@@ -152,8 +177,11 @@ node scripts/test-snapshot-shape.mjs    # cap-boundary + real-repo checks for th
 node scripts/test-verify-conform.mjs    # stale-ref + bootstrap-consistency rules for verify-conform
 node scripts/test-resilient-install.mjs # resilience rules pass on both copies; fire on a bad fixture
 node scripts/test-install-narration.mjs # narration rules pass on all surfaces; fire on a bad fixture
+node scripts/test-mp-skills-install.mjs # install-contract rules pass on Step 3; fire on a bad fixture
 ```
 
 `test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line.
 
 `test-resilient-install.mjs` imports `evaluateResilience()` from the checker, confirms both real bootstrap copies pass every rule, and asserts a deliberately non-resilient fixture (`scripts/__fixtures__/resilient-install-bad.md`) fails every one - so each detector is proven to fire.
+
+`test-mp-skills-install.mjs` does the same for `check-mp-skills-install.mjs`: the real Step 3 passes every rule, the pre-fix fixture (`scripts/__fixtures__/mp-skills-install-bad.md`) fails every one, and the live-listing parser is exercised against fake GitHub tree responses (flat + category-nested layouts, rename detection, API-failure throw) with no network.
