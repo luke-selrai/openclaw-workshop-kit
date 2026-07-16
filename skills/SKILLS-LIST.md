@@ -1,11 +1,11 @@
-# Skills Reference — Your <!-- skills-audit:total -->204<!-- /skills-audit:total --> Installed Skills
+# Skills Reference - Your <!-- skills-audit:total -->204<!-- /skills-audit:total --> Installed Skills
 
-Each skill is a specialist capability your AI assistant can use. Just describe what you need — Claude picks the right skill automatically.
+Each skill is a specialist capability your AI assistant can use. Just describe what you need - Claude picks the right skill automatically.
 
 **Tiers:**
-- **CORE** — surfaced to all attendees via skills-discovery
-- **ADVANCED** — available on request; ask for what you need
-- **DEV-ONLY** — for web app and technical integration use cases
+- **CORE** - surfaced to all attendees via skills-discovery
+- **ADVANCED** - available on request; ask for what you need
+- **DEV-ONLY** - for web app and technical integration use cases
 
 ---
 
@@ -27,7 +27,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `morning-brief` | Daily HTML email brief: today's calendar, new CRM contacts, inbox triage (needs Google Workspace connector) | "Run my morning brief" | CORE |
 | `n8n-mcp-tools-expert` | Expert guide for using n8n MCP tools | "Help me use n8n MCP effectively" | ADVANCED |
 | `n8n-workflow-patterns` | Proven n8n workflow architectural patterns | "Help me build this n8n workflow" | ADVANCED |
-| `orchestrator` | Master coordinator — delegates to specialist skills | "Orchestrate a multi-step research project" | ADVANCED |
+| `orchestrator` | Master coordinator - delegates to specialist skills | "Orchestrate a multi-step research project" | ADVANCED |
 | `prompt-engineer` | Improve AI instructions for better results | "Improve this prompt for better output" | CORE |
 | `skill-creator` | Create and improve Claude skills | "Create a new skill for my business" | ADVANCED |
 | `skills-discovery` | Shows all 22 core skills with personalised recommendations | "What can you do for my business?" | CORE |
@@ -44,9 +44,9 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `direct-response-copy` | High-converting sales copy using proven frameworks | "Write a direct response sales page" | CORE |
 | `email-composer` | Professional emails for any context | "Write a follow-up email to a client" | CORE |
 | `email-sequence` | Automated email campaigns and sequences | "Build a 5-email welcome sequence" | CORE |
-| `hyperframes` | Programmatic video — HTML compositions render to MP4 with captions, voiceovers, animation | "Make a 30-second product explainer video" | CORE |
+| `hyperframes` | Programmatic video - HTML compositions render to MP4 with captions, voiceovers, animation | "Make a 30-second product explainer video" | CORE |
 | `hyperframes-cli` | HyperFrames CLI commands: init, preview, render, lint, doctor | "Render my video composition to MP4" | ADVANCED |
-| `hyperframes-media` | Asset prep for HyperFrames — TTS narration, transcription, background removal | "Generate voiceover narration for my video" | ADVANCED |
+| `hyperframes-media` | Asset prep for HyperFrames - TTS narration, transcription, background removal | "Generate voiceover narration for my video" | ADVANCED |
 | `hyperframes-registry` | Install prebuilt HyperFrames blocks and components | "Add a lower-third caption block to my video" | ADVANCED |
 | `obs-recording-setup` | Set up OBS to record screen/webcam with a perfect circular cam | "Set up OBS so I can record my tutorials" | ADVANCED |
 | `social-content` | Social posts for LinkedIn, Instagram, Facebook | "Write 7 LinkedIn posts for this week" | CORE |
@@ -77,7 +77,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `finishing-a-development-branch` | Guide to integrate completed work cleanly | "Help me merge this branch" | ADVANCED |
 | `git-workflow-expert` | Git branching, conflict resolution, monorepo patterns | "Help me resolve this merge conflict" | ADVANCED |
 | `github-actions-pipeline-builder` | Production CI/CD pipelines with GitHub Actions | "Build a GitHub Actions pipeline" | ADVANCED |
-| `gstack-ship` | Ship workflow — merge, test, version, PR | "Ship this feature" | ADVANCED |
+| `gstack-ship` | Ship workflow - merge, test, version, PR | "Ship this feature" | ADVANCED |
 | `site-reliability-engineer` | SRE practices, deployment safety, build health | "Review my deployment process" | ADVANCED |
 | `subagent-driven-development` | Execute plans with parallel specialised agents | "Execute this plan with subagents" | ADVANCED |
 | `terraform-iac-expert` | Terraform and OpenTofu infrastructure as code | "Write Terraform for my AWS setup" | DEV-ONLY |
@@ -92,56 +92,56 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `building-native-ui` | Build native iOS/Android UI for Expo apps | "Build a native iOS screen in my Expo app" | ADVANCED |
 | `code-architecture` | Clean architecture and code organisation patterns | "Review my app architecture" | DEV-ONLY |
 | `eas-update-insights` | Expo EAS Update operations and rollout insights | "Roll out an over-the-air update to my Expo app" | DEV-ONLY |
-| `expo-api-routes` | Expo API routes — backend endpoints inside your Expo app | "Add an API endpoint to my Expo app" | ADVANCED |
+| `expo-api-routes` | Expo API routes - backend endpoints inside your Expo app | "Add an API endpoint to my Expo app" | ADVANCED |
 | `expo-brownfield` | Add Expo modules to existing native iOS/Android apps | "Add Expo to my existing native iOS app" | DEV-ONLY |
 | `expo-dev-client` | Custom Expo dev client for native debugging | "Build a custom dev client for my Expo app" | DEV-ONLY |
 | `expo-module` | Author native Expo modules in Swift / Kotlin | "Write a native Expo module" | DEV-ONLY |
 | `expo-tailwind-setup` | Tailwind CSS in Expo / React Native | "Set up Tailwind in my Expo app" | ADVANCED |
 | `expo-ui-jetpack-compose` | Expo UI with Jetpack Compose (Android-native) | "Build the Android UI for my Expo app with Compose" | DEV-ONLY |
 | `expo-ui-swiftui` | Expo UI with SwiftUI (iOS-native) | "Build the iOS UI for my Expo app with SwiftUI" | DEV-ONLY |
-| `fastify-best-practices` | Fastify Node.js backend — routes, plugins, schema validation, hooks | "Build a Fastify backend for my app" | ADVANCED |
+| `fastify-best-practices` | Fastify Node.js backend - routes, plugins, schema validation, hooks | "Build a Fastify backend for my app" | ADVANCED |
 | `feature-manifest` | Manage feature manifests for code traceability | "Track this feature in my manifest" | ADVANCED |
 | `fullstack-debugger` | Next.js + Cloudflare + Supabase debugging | "Fix this error in my app" | ADVANCED |
-| `inngest-durable-functions` | Inngest durable functions — long-running, retryable workflows | "Build a durable workflow with Inngest" | ADVANCED |
+| `inngest-durable-functions` | Inngest durable functions - long-running, retryable workflows | "Build a durable workflow with Inngest" | ADVANCED |
 | `inngest-events` | Inngest event-driven workflows | "Trigger workflows from events with Inngest" | ADVANCED |
 | `inngest-middleware` | Inngest middleware for cross-cutting concerns | "Add middleware to my Inngest functions" | ADVANCED |
 | `inngest-setup` | Set up Inngest for background jobs and workflows | "Set up Inngest in my Node.js app" | ADVANCED |
-| `inngest-steps` | Inngest step-based workflows — retry, sleep, parallelism | "Add retry logic to my Inngest workflow" | ADVANCED |
+| `inngest-steps` | Inngest step-based workflows - retry, sleep, parallelism | "Add retry logic to my Inngest workflow" | ADVANCED |
 | `linting-neostandard-eslint9` | ESLint v9 flat config + neostandard linting | "Set up ESLint v9 in my project" | DEV-ONLY |
 | `logging-observability` | Structured logging, tracing, metrics for production | "Set up logging for my app" | DEV-ONLY |
 | `microservices-patterns` | Service decomposition, API gateway, saga patterns | "Design my microservices architecture" | ADVANCED |
 | `modern-auth-2026` | Passkeys, OAuth, magic links, cross-platform auth | "Implement Google OAuth in my app" | ADVANCED |
 | `native-data-fetching` | Native data fetching patterns for React Native / Expo | "Fetch data efficiently in my Expo app" | ADVANCED |
 | `nextjs-app-router-expert` | Next.js 14/15 App Router, React Server Components | "Build this Next.js feature" | ADVANCED |
-| `node` | Node.js best practices — TypeScript-first, async, errors, streams | "Build a Node.js app the right way" | ADVANCED |
-| `nodejs-core` | Node.js internals — V8, libuv, C++ addons, runtime architecture | "How does Node.js run my code internally?" | DEV-ONLY |
+| `node` | Node.js best practices - TypeScript-first, async, errors, streams | "Build a Node.js app the right way" | ADVANCED |
+| `nodejs-core` | Node.js internals - V8, libuv, C++ addons, runtime architecture | "How does Node.js run my code internally?" | DEV-ONLY |
 | `oauth-oidc-implementer` | OAuth 2.0 and OpenID Connect implementation | "Implement OIDC in my app" | ADVANCED |
 | `performance-profiling` | Application performance and bottleneck identification | "Profile my app for performance issues" | ADVANCED |
 | `playwright-skill` | Browser automation with Playwright | "Automate this browser workflow" | ADVANCED |
 | `postgresql-optimization` | PostgreSQL performance tuning | "Optimise this database query" | DEV-ONLY |
-| `prisma-cli` | Prisma CLI commands — init, generate, migrate, db, studio | "Run a Prisma migration" | ADVANCED |
-| `prisma-client-api` | Prisma Client API — queries, mutations, relations | "Write a Prisma query for my schema" | ADVANCED |
+| `prisma-cli` | Prisma CLI commands - init, generate, migrate, db, studio | "Run a Prisma migration" | ADVANCED |
+| `prisma-client-api` | Prisma Client API - queries, mutations, relations | "Write a Prisma query for my schema" | ADVANCED |
 | `prisma-database-setup` | Prisma database setup and configuration | "Set up Prisma with my PostgreSQL database" | ADVANCED |
 | `prisma-driver-adapter-implementation` | Implement custom Prisma driver adapters | "Write a custom Prisma driver adapter" | DEV-ONLY |
-| `prisma-postgres` | Prisma with PostgreSQL — patterns and best practices | "Use Prisma with Postgres" | ADVANCED |
+| `prisma-postgres` | Prisma with PostgreSQL - patterns and best practices | "Use Prisma with Postgres" | ADVANCED |
 | `prisma-postgres-setup` | Prisma Postgres (hosted DB) setup | "Set up Prisma Postgres for my app" | ADVANCED |
 | `prisma-upgrade-v7` | Upgrade Prisma from v6 to v7 | "Upgrade my project to Prisma v7" | ADVANCED |
 | `radon-mcp` | Radon IDE debugging integration via MCP | "Debug my React Native app with Radon" | ADVANCED |
-| `react-native-best-practices` | React Native — workflow, perf, migration patterns | "Review my React Native app for best practices" | ADVANCED |
+| `react-native-best-practices` | React Native - workflow, perf, migration patterns | "Review my React Native app for best practices" | ADVANCED |
 | `react-native-brownfield-migration` | Migrate brownfield native iOS/Android apps to React Native | "Migrate my existing iOS app to React Native" | DEV-ONLY |
-| `react-router-data-mode` | React Router 7 — Data mode (routing + data loading) | "Build a React Router data-mode app" | ADVANCED |
-| `react-router-declarative-mode` | React Router 7 — Declarative mode (component-based routing) | "Set up basic React Router routing" | ADVANCED |
+| `react-router-data-mode` | React Router 7 - Data mode (routing + data loading) | "Build a React Router data-mode app" | ADVANCED |
+| `react-router-declarative-mode` | React Router 7 - Declarative mode (component-based routing) | "Set up basic React Router routing" | ADVANCED |
 | `react-router-framework-mode` | React Router 7 framework mode (formerly Remix) | "Build a Remix / React Router framework app" | ADVANCED |
 | `security-auditor` | OWASP vulnerability scanning and compliance | "Audit my app for security issues" | ADVANCED |
-| `stripe-best-practices` | Stripe SDK — current API patterns, common pitfalls | "Build Stripe Checkout into my app" | ADVANCED |
-| `stripe-projects` | Stripe project scaffolding — common patterns | "Scaffold a Stripe-powered project" | ADVANCED |
+| `stripe-best-practices` | Stripe SDK - current API patterns, common pitfalls | "Build Stripe Checkout into my app" | ADVANCED |
+| `stripe-projects` | Stripe project scaffolding - common patterns | "Scaffold a Stripe-powered project" | ADVANCED |
 | `supabase-admin` | Supabase RLS, migrations, schema design | "Design my Supabase schema" | ADVANCED |
 | `typescript-advanced-patterns` | Advanced TypeScript for production codebases | "Improve my TypeScript types" | DEV-ONLY |
 | `upgrade-stripe` | Upgrade Stripe SDK to the current API version | "Upgrade my Stripe SDK to the latest version" | ADVANCED |
 | `upgrading-expo` | Upgrade Expo SDK versions | "Upgrade my Expo SDK from 53 to 54" | ADVANCED |
 | `upgrading-react-native` | Upgrade React Native versions | "Upgrade my React Native from 0.75 to 0.76" | ADVANCED |
-| `use-dom` | use-dom — React Native DOM component support | "Use a web component inside my React Native app" | ADVANCED |
-| `vercel-composition-patterns` | React composition patterns — compound components, avoid prop bloat | "Refactor this component for better composition" | ADVANCED |
+| `use-dom` | use-dom - React Native DOM component support | "Use a web component inside my React Native app" | ADVANCED |
+| `vercel-composition-patterns` | React composition patterns - compound components, avoid prop bloat | "Refactor this component for better composition" | ADVANCED |
 | `vercel-optimize` | Audit Vercel projects for cost, performance, reliability | "Audit my Vercel project for optimisations" | ADVANCED |
 | `vercel-react-best-practices` | React + Next.js performance (Vercel Engineering) | "Improve my React app's performance" | ADVANCED |
 | `vercel-react-view-transitions` | React View Transitions API in Next.js App Router | "Add view transitions to my Next app" | ADVANCED |
@@ -183,19 +183,19 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | Skill | What It Does | Example Prompt | Tier |
 |---|---|---|---|
 | `ai-product` | AI product development strategy | "Help me design an AI-powered product" | ADVANCED |
-| `analytics-product` | Product analytics — funnels, retention, north star | "Help me define my key metrics" | ADVANCED |
+| `analytics-product` | Product analytics - funnels, retention, north star | "Help me define my key metrics" | ADVANCED |
 | `brainstorming` | Structured idea generation | "Give me 15 ideas to grow my revenue" | CORE |
-| `plan-ceo-review` | CEO-mode plan review — challenge premises | "Review this plan from a CEO perspective" | ADVANCED |
-| `plan-eng-review` | Engineering review — architecture, edge cases | "Review this technical plan" | ADVANCED |
+| `plan-ceo-review` | CEO-mode plan review - challenge premises | "Review this plan from a CEO perspective" | ADVANCED |
+| `plan-eng-review` | Engineering review - architecture, edge cases | "Review this technical plan" | ADVANCED |
 | `product-appeal-analyzer` | Product desirability and market positioning | "How can I make my offer more appealing?" | CORE |
 | `systems-thinking` | Maps complex systems to find high-leverage points | "Map out my sales process and find the bottlenecks" | ADVANCED |
-| `tech-entrepreneur-coach-adhd` | Founder strategy — validation, MVP, marketing | "Help me validate this business idea" | CORE |
+| `tech-entrepreneur-coach-adhd` | Founder strategy - validation, MVP, marketing | "Help me validate this business idea" | CORE |
 
 ---
 
-## Recommended Optional Plugin — Superpowers
+## Recommended Optional Plugin - Superpowers
 
-Four skills that used to ship with this kit — `writing-plans`, `systematic-debugging`, `test-driven-development`, and `verification-before-completion` — now live in Anthropic's official **Superpowers** plugin. Installing Superpowers is optional, but strongly recommended. In a Code session, paste:
+Four skills that used to ship with this kit - `writing-plans`, `systematic-debugging`, `test-driven-development`, and `verification-before-completion` - now live in Anthropic's official **Superpowers** plugin. Installing Superpowers is optional, but strongly recommended. In a Code session, paste:
 
 ```
 /plugin marketplace add anthropics/claude-plugins-official
@@ -212,8 +212,8 @@ See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for
 **Total: <!-- skills-audit:total -->204<!-- /skills-audit:total --> skills installed**
 - CORE: <!-- skills-audit:core -->24<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
 - ADVANCED: <!-- skills-audit:advanced -->95<!-- /skills-audit:advanced --> skills (available on request)
-- DEV-ONLY: <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> skills (for technical integrations — never surfaced in demos)
+- DEV-ONLY: <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> skills (for technical integrations - never surfaced in demos)
 
-> Ask your assistant to do anything — it will automatically use the right skill for the job.
+> Ask your assistant to do anything - it will automatically use the right skill for the job.
 
-*Built by Selr AI — selrai.com.au*
+*Built by Selr AI - selrai.com.au*

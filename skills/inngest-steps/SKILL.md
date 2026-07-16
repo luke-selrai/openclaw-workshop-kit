@@ -147,7 +147,7 @@ if (!approval) {
 
 ### Expression Syntax
 
-In expressions, `event` = the **original** triggering event, `async` = the **new** event being matched. See [Expression Syntax Reference](../references/expressions.md) for full syntax, operators, and patterns.
+In expressions, `event` = the **original** triggering event, `async` = the **new** event being matched. See the Inngest documentation on expression syntax for full syntax, operators, and patterns.
 
 ## step.waitForSignal()
 
@@ -352,7 +352,7 @@ export default inngest.createFunction(
 **🔢 Step Limits:** Max 1,000 steps per function, 4MB per step output, 32MB per function run in total
 **📨 HTTP Requests:** Checkpointing is enabled by default in v4, reducing HTTP overhead. For serverless platforms, configure `maxRuntime` on the client
 **🔁 Step IDs:** Can be reused in loops - Inngest handles counters
-**⚡ Parallelism:** Use Promise.all for parallel steps (optimized by default in v4). Note that Promise.race() waits for all promises to settle — use `group.parallel()` for true race semantics
+**⚡ Parallelism:** Use Promise.all for parallel steps (optimized by default in v4). Note that Promise.race() waits for all promises to settle - use `group.parallel()` for true race semantics
 
 ## Common Use Cases
 

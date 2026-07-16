@@ -1,4 +1,4 @@
-# Known Issue — Outlook: Personal Microsoft Accounts Not Supported by CLI
+# Known Issue - Outlook: Personal Microsoft Accounts Not Supported by CLI
 
 **Status:** Known limitation
 **Affects:** outlook-connector
@@ -29,7 +29,7 @@ If your email address is:
 
 ## Workaround: Playwright Browser Automation
 
-For personal Microsoft accounts, your assistant falls back to **Playwright browser automation** — controlling a real browser to read and send emails, view the calendar, and interact with OneDrive.
+For personal Microsoft accounts, your assistant falls back to **Playwright browser automation** - controlling a real browser to read and send emails, view the calendar, and interact with OneDrive.
 
 Just tell your assistant what you need:
 
@@ -37,7 +37,7 @@ Just tell your assistant what you need:
 > "Show me my calendar for this week."
 > "Send an email to [person] from my Outlook."
 
-Your assistant will open a browser, navigate to [outlook.live.com](https://outlook.live.com), and complete the task directly from the interface — no CLI required.
+Your assistant will open a browser, navigate to [outlook.live.com](https://outlook.live.com), and complete the task directly from the interface - no CLI required.
 
 ---
 

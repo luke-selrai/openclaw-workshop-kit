@@ -1,5 +1,14 @@
 # OpenAPI 3.1 Specification Reference
-# Complete REST API specification example
+# ─────────────────────────────────────────────────────────────────────
+# What's inside: a complete, valid OpenAPI 3.1 spec for a User Service.
+#   • Versioned server URL (/v1) and JWT bearer security scheme
+#   • /users collection (cursor-paginated GET, POST with 201 + Location)
+#   • /users/{userId} item resource (GET with 404)
+#   • Reusable schemas: User, CreateUserRequest, UserList (data + meta
+#     envelope), ValidationError (code / message / details[field, issue])
+# Copy this as the starting point for any REST contract, then rename the
+# resource and extend the schemas. Passes scripts/validate-api-spec.sh.
+# ─────────────────────────────────────────────────────────────────────
 
 openapi: 3.1.0
 info:
@@ -34,6 +43,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserList'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
     post:
       operationId: createUser
       summary: Create a new user
@@ -79,8 +94,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
         '404':
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
 
 components:
   schemas:

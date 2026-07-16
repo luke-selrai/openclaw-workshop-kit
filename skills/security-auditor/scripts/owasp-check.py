@@ -65,7 +65,7 @@ class OWASPScanner:
                 (r'pickle\.loads?\s*\(', "Pickle deserialization", "critical",
                  "Pickle can execute arbitrary code during deserialization",
                  "Use JSON or other safe serialization formats"),
-                (r'yaml\.load\s*\([^)]*\)(?!\s*,\s*Loader)', "Unsafe YAML load", "high",
+                (r'yaml\.load\s*\((?![^)]*Loader\s*=)', "Unsafe YAML load", "high",
                  "yaml.load() without SafeLoader can execute code",
                  "Use yaml.safe_load() or Loader=yaml.SafeLoader"),
                 (r'cursor\.execute\s*\([^)]*%', "SQL string formatting", "critical",

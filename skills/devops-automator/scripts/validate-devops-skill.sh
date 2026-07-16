@@ -2,7 +2,7 @@
 # DevOps Automator Skill Validation Script
 # Validates DevOps configurations for common issues
 
-set -e
+set -uo pipefail
 
 SKILL_DIR="$(dirname "$0")/.."
 ERRORS=0

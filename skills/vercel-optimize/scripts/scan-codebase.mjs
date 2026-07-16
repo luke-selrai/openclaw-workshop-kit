@@ -115,7 +115,7 @@ async function collectFiles(root) {
   const out = [];
   for (const e of entries) {
     if (!e.isFile()) continue;
-    const segments = (e.parentPath ?? e.path ?? root).split('/');
+    const segments = (e.parentPath ?? e.path ?? root).split(/[\\/]/);
     if (segments.some((s) => SKIP_DIRS.has(s))) continue;
     if (SKIP_FILE_PATTERNS.some((re) => re.test(e.name))) continue;
     if (!/\.(tsx?|jsx?|mjs|cjs|html|svelte|astro|vue|json)$/.test(e.name)) continue;
@@ -155,7 +155,7 @@ async function enumerateRoutes(root) {
   const routes = [];
   for (const e of entries) {
     if (!e.isFile()) continue;
-    const segments = (e.parentPath ?? e.path ?? root).split('/');
+    const segments = (e.parentPath ?? e.path ?? root).split(/[\\/]/);
     if (segments.some((s) => SKIP_DIRS.has(s))) continue;
 
     const full = join(e.parentPath ?? e.path ?? root, e.name);

@@ -1,14 +1,14 @@
-# Server Glue Patterns — Three Canonical Flows
+# Server Glue Patterns - Three Canonical Flows
 
 Your server (`~/agents-cc` installed by `server-setup`) is the glue layer. Three patterns cover everything a workflow platform would do.
 
-## Pattern A — Inbound Webhook Receiver
+## Pattern A - Inbound Webhook Receiver
 
 External service POSTs to your server → server fires a Managed Agent session.
 
 **Install**: `bash scripts/install-server-glue.sh`
 
-**Configure a hook** — edit `~/agents-cc/webhook-server/hooks.json` on the server:
+**Configure a hook** - edit `~/agents-cc/webhook-server/hooks.json` on the server:
 ```json
 {
   "new-lead": {
@@ -39,22 +39,22 @@ Response:
 
 ---
 
-## Pattern B — Server Cron Fires Routines
+## Pattern B - Server Cron Fires Routines
 
 Routines API has a 1-hour minimum on its own cron. For sub-hourly work, server cron hits the `/fire` endpoint.
 
 **Add to crontab** (`~/agents-cc/crontab.txt` on the server):
 ```cron
-# Every 15 min — quick sweep routine
+# Every 15 min - quick sweep routine
 */15 * * * * ~/agents-cc/shared/scripts/fire-routine.sh trig_quick_sweep "cron sweep"
 
-# Every 5 min during business hours — lead monitor
+# Every 5 min during business hours - lead monitor
 */5 9-17 * * 1-5 ~/agents-cc/shared/scripts/fire-routine.sh trig_lead_monitor "biz-hours sweep"
 ```
 
 Install: `crontab ~/agents-cc/crontab.txt`
 
-**`fire-routine.sh` on server** — push from this skill to the server:
+**`fire-routine.sh` on server** - push from this skill to the server:
 ```bash
 scp ~/.claude/skills/managed-agents-setup/scripts/fire-routine.sh ubuntu@SERVER:~/agents-cc/shared/scripts/
 ssh ubuntu@SERVER 'chmod +x ~/agents-cc/shared/scripts/fire-routine.sh'
@@ -64,11 +64,11 @@ The script reads `ROUTINE_OAT_TOKEN` from `~/agents-cc/shared/secrets.env`. Stor
 
 ---
 
-## Pattern C — Telegram Bot → Managed Agent Session
+## Pattern C - Telegram Bot → Managed Agent Session
 
 Existing `~/agents-cc/telegram-bot/bot.py` (from server-setup) already handles `/<agent_name> <message>` for local EC2 agents. Add `/ma <preset> <message>` for Managed Agent sessions.
 
-**Patch bot.py on the server** — add this handler block:
+**Patch bot.py on the server** - add this handler block:
 ```python
 # Inside handle_command(), after existing agent-name dispatch:
 if cmd == "ma":

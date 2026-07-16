@@ -1,4 +1,4 @@
-# ServiceM8 REST API — reference
+# ServiceM8 REST API - reference
 
 Loaded on demand during Phase 2 when a request needs an endpoint or field not covered by the SKILL's core-resources table.
 
@@ -9,7 +9,7 @@ Loaded on demand during Phase 2 when a request needs an endpoint or field not co
 - **Format:** JSON. Read with `GET /<resource>.json`; a single record is `GET /<resource>/<uuid>.json`.
 - **Create:** `POST /<resource>.json` with a JSON body; the new record's `uuid` is returned (also in the `x-record-uuid` response header).
 - **Update:** `PUT /<resource>/<uuid>.json` with the changed fields.
-- **Delete:** `DELETE /<resource>/<uuid>.json` (Full Access only; confirm with the user first). This is a **soft-delete** — ServiceM8 returns `200` and sets `active: 0`; the record is hidden from active lists, not purged. A create returns `{"errorCode":0,"message":"OK"}` with the new uuid in the `x-record-uuid` response header. (Create / read / note / delete all verified live 2026-06-16.)
+- **Delete:** `DELETE /<resource>/<uuid>.json` (Full Access only; confirm with the user first). This is a **soft-delete** - ServiceM8 returns `200` and sets `active: 0`; the record is hidden from active lists, not purged. A create returns `{"errorCode":0,"message":"OK"}` with the new uuid in the `x-record-uuid` response header. (Create / read / note / delete all verified live 2026-06-16.)
 
 ## Resource catalogue
 
@@ -30,7 +30,7 @@ Loaded on demand during Phase 2 when a request needs an endpoint or field not co
 
 ## Filtering, ordering, fields
 
-ServiceM8 supports OData-style query params (URL-encode them — `$` is `%24`, space is `%20`, single quotes wrap string literals):
+ServiceM8 supports OData-style query params (URL-encode them - `$` is `%24`, space is `%20`, single quotes wrap string literals):
 
 - **Filter:** `?%24filter=status%20eq%20'Work%20Order'` → `$filter=status eq 'Work Order'`
 - **Operators:** `eq`, `ne`, `gt`, `ge`, `lt`, `le`, and `and` / `or`.
@@ -74,7 +74,7 @@ curl -s -X POST -H "X-API-Key: $SERVICEM8_API_KEY" -H "Content-Type: application
 
 ## Rate limits & errors
 
-- **200** OK — including on create: `POST` returns `{"errorCode":0,"message":"OK"}` with the new record's uuid in the `x-record-uuid` response header (verified live 2026-06-16).
+- **200** OK - including on create: `POST` returns `{"errorCode":0,"message":"OK"}` with the new record's uuid in the `x-record-uuid` response header (verified live 2026-06-16).
 - **401** invalid/removed key, or trial/account lapsed → re-run the SKILL's Phase 1.
 - **403** the key is Read Only and the call was a write → mint a Full Access key.
 - **429** rate limited → back off and retry with a short sleep.

@@ -19,7 +19,7 @@ Key requirements for type stripping compatibility:
 - Avoid namespaces and parameter properties
 - Use `.ts` extensions in imports
 
-**Minimal example** — a valid type-stripped TypeScript file:
+**Minimal example** - a valid type-stripped TypeScript file:
 
 ```ts
 // greet.ts

@@ -11,7 +11,7 @@ Add a `claude-yolo` alias (or function) to the user's shell so they can launch C
 
 This is a one-shot install task. Do it, confirm it worked, and stop. Do not over-explain or add unrelated configuration.
 
-## Step 1 — Detect OS and shell
+## Step 1 - Detect OS and shell
 
 Run a single Bash command to gather the facts you need:
 
@@ -27,7 +27,7 @@ Interpret the output:
 
 For the active shell, read `$SHELL` (zsh, bash, fish). If you cannot determine it, ask the user.
 
-## Step 2 — Pick the right config file
+## Step 2 - Pick the right config file
 
 | Shell | Config file |
 |---|---|
@@ -39,11 +39,11 @@ For the active shell, read `$SHELL` (zsh, bash, fish). If you cannot determine i
 
 If the chosen file does not exist, create it.
 
-## Step 3 — Check for existing alias (idempotency)
+## Step 3 - Check for existing alias (idempotency)
 
 Before writing anything, grep the chosen file for `claude-yolo`. If it already exists, tell the user it is already installed and stop. Do not write a duplicate.
 
-## Step 4 — Append the right line for the shell
+## Step 4 - Append the right line for the shell
 
 Use a comment header so the user can find it later. Append (do not overwrite) the file.
 
@@ -62,20 +62,20 @@ Use a comment header so the user can find it later. Append (do not overwrite) th
     # Claude Code: launch with bypass permissions
     function claude-yolo { claude --dangerously-skip-permissions @args }
 
-## Step 5 — Verify and report
+## Step 5 - Verify and report
 
 1. Read the file back and confirm the line is present.
 2. Print one short confirmation telling the user:
    - Which file you wrote to (full path)
    - That they need to **open a new terminal** (or run `source <file>` for bash/zsh, or `. $PROFILE` for PowerShell) to activate it
    - That from then on they can type `claude-yolo` to launch Claude Code in bypass mode
-   - That bypass mode means **Claude will not ask for permission before running commands or editing files** — they should only use it when they are comfortable with that
+   - That bypass mode means **Claude will not ask for permission before running commands or editing files** - they should only use it when they are comfortable with that
 
 ## Things NOT to do
 
-- Do not modify `~/.claude/settings.json` — that is a separate concern.
+- Do not modify `~/.claude/settings.json` - that is a separate concern.
 - Do not install any packages.
 - Do not change the user's default shell.
 - Do not add any other aliases or environment variables.
 - Do not remove existing content from the config file.
-- If `claude` itself is not on the user's PATH, mention it but do not try to fix it — that is outside this skill's scope.
+- If `claude` itself is not on the user's PATH, mention it but do not try to fix it - that is outside this skill's scope.

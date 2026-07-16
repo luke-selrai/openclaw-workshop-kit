@@ -1,10 +1,10 @@
-# PAGE 1 — AI Models: Understanding What You're Working With
+# PAGE 1 - AI Models: Understanding What You're Working With
 
 ---
 
 ## What Is AI?
 
-AI (Artificial Intelligence) is software that can think, reason, write, and learn — trained on hundreds of billions of pages of text from the internet. Think of it like a brilliant employee who has read every book, article, and website ever written — and never forgets any of it.
+AI (Artificial Intelligence) is software that can think, reason, write, and learn - trained on hundreds of billions of pages of text from the internet. Think of it like a brilliant employee who has read every book, article, and website ever written - and never forgets any of it.
 
 ---
 
@@ -21,7 +21,7 @@ AI (Artificial Intelligence) is software that can think, reason, write, and lear
 │ Claude 4.6       │ GPT-o3           │ Gemini Flash              │
 │ (what we use)    │                  │                           │
 ├──────────────────┴──────────────────┴───────────────────────────┤
-│  These are all "Large Language Models" (LLMs) — AI brains       │
+│  These are all "Large Language Models" (LLMs) - AI brains       │
 │  trained on massive amounts of text data                         │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -49,7 +49,7 @@ AI (Artificial Intelligence) is software that can think, reason, write, and lear
 │   1. CLAUDE.AI (website)                                         │
 │      └── Chat with Claude in your browser                        │
 │          Like texting a brilliant friend                         │
-│          Resets after every chat — no memory                     │
+│          Resets after every chat - no memory                     │
 │                                                                   │
 │   2. CLAUDE CODE (what we're setting up today)                   │
 │      └── Claude runs ON your computer                            │
@@ -58,7 +58,7 @@ AI (Artificial Intelligence) is software that can think, reason, write, and lear
 │          Connects to Gmail, Calendar, CRM, and more              │
 │          <!-- skills-audit:total -->204<!-- /skills-audit:total --> specialist skills built in                           │
 │                                                                   │
-│   3. SERVER AGENTS (the advanced level — see Page 3)             │
+│   3. SERVER AGENTS (the advanced level - see Page 3)             │
 │      └── AI workers that run automatically 24/7                  │
 │          Find leads, follow up clients, track finances           │
 │          Send you phone notifications when decisions needed      │
@@ -80,7 +80,7 @@ Brainstorming ideas                   Replacing human judgement
 Following a repeatable process        Understanding your specific context
 Doing tasks at 3am without tiring        (until you tell it who you are)
 Analysing data and spotting patterns  Knowing your business details
-Drafting emails, proposals, copy         (until you set up memory — today)
+Drafting emails, proposals, copy         (until you set up memory - today)
 Competitor research
 Answering questions instantly
 ```
@@ -93,10 +93,10 @@ Answering questions instantly
 |---|---|---|
 | Claude Free | $0/month | Basic chat, limited messages |
 | Claude Pro | $20 USD/month | More messages, no Claude Code |
-| **Claude Max** | **$100 USD/month** | **Full Claude Code — what we use today** |
+| **Claude Max** | **$100 USD/month** | **Full Claude Code - what we use today** |
 | Claude Team | $30/user/month | Teams of 5+ people |
 
-> **Why Claude Max?** Claude Pro does not include Claude Code — the version that runs on your computer, remembers your business, and automates tasks. Max unlocks everything we are setting up today.
+> **Why Claude Max?** Claude Pro does not include Claude Code - the version that runs on your computer, remembers your business, and automates tasks. Max unlocks everything we are setting up today.
 
 ---
 
@@ -113,8 +113,8 @@ Answering questions instantly
             Casual tone, under 150 words, offer a free 30-min call."
 ```
 
-Your AI assistant already knows your business after setup — so you need far less context than starting from scratch every time.
+Your AI assistant already knows your business after setup - so you need far less context than starting from scratch every time.
 
 ---
 
-*Claude Code Workshop — selrai.com.au*
+*Claude Code Workshop - selrai.com.au*

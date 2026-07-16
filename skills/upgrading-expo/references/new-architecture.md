@@ -8,9 +8,9 @@ Full guide: https://docs.expo.dev/guides/new-architecture/
 
 ## What Changed
 
-- **JSI (JavaScript Interface)** — Direct synchronous calls between JS and native
-- **Fabric** — New rendering system with concurrent features
-- **TurboModules** — Lazy-loaded native modules with type safety
+- **JSI (JavaScript Interface)** - Direct synchronous calls between JS and native
+- **Fabric** - New rendering system with concurrent features
+- **TurboModules** - Lazy-loaded native modules with type safety
 
 ## SDK Compatibility
 
@@ -63,17 +63,15 @@ Some layout animations behave differently. Test thoroughly after upgrading.
 Check if New Architecture is active:
 
 ```tsx
-import { Platform } from "react-native";
-
 // Returns true if Fabric is enabled
-const isNewArch = global._IS_FABRIC !== undefined;
+const isNewArch = global.nativeFabricUIManager != null;
 ```
 
 Verify from the command line if the currently running app uses the New Architecture: `bunx xcobra expo eval "_IS_FABRIC"` -> `true`
 
 ## Troubleshooting
 
-1. **Clear caches** — `npx expo start --clear`
-2. **Clean prebuild** — `npx expo prebuild --clean`
-3. **Check native modules** — Ensure all dependencies support New Architecture
-4. **Review console warnings** — Legacy modules log compatibility warnings
+1. **Clear caches** - `npx expo start --clear`
+2. **Clean prebuild** - `npx expo prebuild --clean`
+3. **Check native modules** - Ensure all dependencies support New Architecture
+4. **Review console warnings** - Legacy modules log compatibility warnings

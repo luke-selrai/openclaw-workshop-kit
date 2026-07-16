@@ -28,10 +28,10 @@ describe('graceful server shutdown', () => {
     };
   }
 
-  before(() => {
+  before(() => new Promise<void>((resolve) => {
     server = createServer(createHandler());
-    server.listen(0); // Random available port
-  });
+    server.listen(0, () => resolve()); // Random available port
+  }));
 
   after(async () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));

@@ -1,6 +1,6 @@
 # scripts/
 
-Repo maintenance scripts. Plain Node, no dependencies — run with `node scripts/<name>.mjs`.
+Repo maintenance scripts. Plain Node, no dependencies - run with `node scripts/<name>.mjs`.
 
 ## audit-skills.mjs
 
@@ -21,9 +21,9 @@ node scripts/audit-skills.mjs --check --verbose
 
 **Source of truth:**
 
-- **Total skills** — count of `skills/*/SKILL.md` files
-- **Connectors** — `skills/*-connector/` directories
-- **CORE / ADVANCED / DEV-ONLY** — tier column in `skills/SKILLS-LIST.md`
+- **Total skills** - count of `skills/*/SKILL.md` files
+- **Connectors** - `skills/*-connector/` directories
+- **CORE / ADVANCED / DEV-ONLY** - tier column in `skills/SKILLS-LIST.md`
 
 **Marker shapes** (case-sensitive, inline):
 
@@ -42,7 +42,7 @@ To add a new claim that should stay in sync, wrap the number in the appropriate 
 - Skills on disk but not classified in `SKILLS-LIST.md`
 - Skills in `SKILLS-LIST.md` but missing from disk
 
-These are content-decision drift — the script reports them so a human can classify, but it doesn't block PRs that didn't touch classification.
+These are content-decision drift - the script reports them so a human can classify, but it doesn't block PRs that didn't touch classification.
 
 **Hard failures (fail CI):**
 
@@ -69,7 +69,7 @@ Measures the committed tree at `HEAD` (what Loup actually publishes) and gates o
 - **File count** < 2000
 - **Archive bytes** (gzipped tar, proxy for Loup's archive cap) < 45 MB
 - **Unpacked bytes** < 80 MB
-- The post-unpack **verify-gate paths** the bootstrap checks — `my-assistant/CLAUDE.md` and `skills/` — present at the repo root
+- The post-unpack **verify-gate paths** the bootstrap checks - `my-assistant/CLAUDE.md` and `skills/` - present at the repo root
 
 Caps are exclusive (a value AT the cap fails); it WARNs at 90% so there's early signal before a cap is hit. Exit codes: `0` within caps, `1` a cap breached, `2` could not read git.
 
@@ -88,17 +88,17 @@ node scripts/verify-conform.mjs --verbose  # also print every passing check
 
 **Hard failures (fail CI):**
 
-- **path-conform** — any stale kit-home reference survives (`~/workshop-kit`, `$HOME/workshop-kit`, `%USERPROFILE%\workshop-kit`, `C:\Users\…\workshop-kit`, or the old `~/claude-workshop-kit/whatsapp` fallback).
-- **bootstrap-consistency** — the bootstrap prompt body is not byte-identical between `docs/start/bootstrap.md` and `docs/start/full-setup.md` (taken between the start/end anchors).
-- **install-method** — the bootstrap doesn't install via `npx @louphq/install`, or still `git clone`s the kit.
-- **verify-gate-paths** — `my-assistant/CLAUDE.md` or `skills/` is missing at the repo root.
-- **windows-node-path** — the bootstrap's Windows branch doesn't install Node via `winget`, refresh the session PATH from the registry (machine + user) in the same PowerShell invocation as `node --version` / `npx`, gate the quit/reopen step behind a failing post-refresh `node --version` (never speculative), and keep the Playwright nodejs.org last-resort fallback. (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385), slice [#387](https://github.com/selrai-company/claude-workshop-kit/issues/387).)
+- **path-conform** - any stale kit-home reference survives (`~/workshop-kit`, `$HOME/workshop-kit`, `%USERPROFILE%\workshop-kit`, `C:\Users\…\workshop-kit`, or the old `~/claude-workshop-kit/whatsapp` fallback).
+- **bootstrap-consistency** - the bootstrap prompt body is not byte-identical between `docs/start/bootstrap.md` and `docs/start/full-setup.md` (taken between the start/end anchors).
+- **install-method** - the bootstrap doesn't install via `npx @louphq/install`, or still `git clone`s the kit.
+- **verify-gate-paths** - `my-assistant/CLAUDE.md` or `skills/` is missing at the repo root.
+- **windows-node-path** - the bootstrap's Windows branch doesn't install Node via `winget`, refresh the session PATH from the registry (machine + user) in the same PowerShell invocation as `node --version` / `npx`, gate the quit/reopen step behind a failing post-refresh `node --version` (never speculative), and keep the Playwright nodejs.org last-resort fallback. (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385), slice [#387](https://github.com/selrai-company/claude-workshop-kit/issues/387).)
 
 **Informational (never fails):** snapshot file count vs Loup's `< 2000` cap.
 
 ## check-resilient-install.mjs
 
-Asserts the bootstrap's **failure-recovery** contract — the resilient-install slice (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#388](https://github.com/selrai-company/claude-workshop-kit/issues/388)). Slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386) gave the bootstrap a hard-stop verify-gate; this checker is the cheap backstop that the **self-resolve loop** (diagnose → targeted fix → retry → repeat, no human in the loop) stays intact in **both** copies of the bootstrap body (`docs/start/bootstrap.md` and the `docs/start/full-setup.md` Step 5 duplicate).
+Asserts the bootstrap's **failure-recovery** contract - the resilient-install slice (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#388](https://github.com/selrai-company/claude-workshop-kit/issues/388)). Slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386) gave the bootstrap a hard-stop verify-gate; this checker is the cheap backstop that the **self-resolve loop** (diagnose → targeted fix → retry → repeat, no human in the loop) stays intact in **both** copies of the bootstrap body (`docs/start/bootstrap.md` and the `docs/start/full-setup.md` Step 5 duplicate).
 
 **Usage:**
 
@@ -107,15 +107,15 @@ node scripts/check-resilient-install.mjs            # exit 1 on any failure
 node scripts/check-resilient-install.mjs --verbose  # also print every passing check
 ```
 
-**Failures (exit 1)** — each checked against every copy's bootstrap body:
+**Failures (exit 1)** - each checked against every copy's bootstrap body:
 
-- **hard-stop** — on a failed verify-gate the bootstrap stops and does not cascade into steps 3–7.
-- **real-output** — the real, unedited command output is shown to the attendee, never swallowed.
-- **partial-report** — a half-finished download (folder present but a checked path missing) is reported, not silently treated as success.
-- **rejected-diagnosis** — a refused install is named as the common cause, with both of its causes (a stale command and a grant not yet active). Plain English — §3 of `CONTRIBUTING.md` bans jargon like `token`/`401` from attendee-facing prose, so the rule guards the diagnosis, not the error string.
-- **remint-fix** — the primary fix is re-minting via "Get install command" and retrying.
-- **no-retry-cap** — the loop states there is no limit on retries.
-- **no-escalation** — no human-escalation wording (`notify` / `facilitator` / `Luke` / `Harvey` / `escalate`) appears in the body.
+- **hard-stop** - on a failed verify-gate the bootstrap stops and does not cascade into steps 3-7.
+- **real-output** - the real, unedited command output is shown to the attendee, never swallowed.
+- **partial-report** - a half-finished download (folder present but a checked path missing) is reported, not silently treated as success.
+- **rejected-diagnosis** - a refused install is named as the common cause, with both of its causes (a stale command and a grant not yet active). Plain English - §3 of `CONTRIBUTING.md` bans jargon like `token`/`401` from attendee-facing prose, so the rule guards the diagnosis, not the error string.
+- **remint-fix** - the primary fix is re-minting via "Get install command" and retrying.
+- **no-retry-cap** - the loop states there is no limit on retries.
+- **no-escalation** - no human-escalation wording (`notify` / `facilitator` / `Luke` / `Harvey` / `escalate`) appears in the body.
 
 **Harness wiring:** runs in CI on every event via `.github/workflows/audit-skills.yml`, alongside `verify-conform.mjs`.
 
@@ -132,13 +132,13 @@ node scripts/check-mp-skills-install.mjs --live     # + list the live mattpocock
                                                     #   assert every expected skill still exists
 ```
 
-**Failures (exit 1)** — checked against the Step 3 body:
+**Failures (exit 1)** - checked against the Step 3 body:
 
-- **current-selectors / verify-paths** — the install command selects, and the verify list checks, every skill in `EXPECTED_SKILLS` (`grill-me`, `handoff`, `diagnosing-bugs`, `teach`) under its current upstream name.
-- **no-stale-names** — no retired name (`diagnose`) survives as a selector, path, or bold mention.
-- **self-heal-listing / rename-resolution / zero-installed-case** — a miss triggers listing the repo's live skills (`skills add … -l`), resolving renames dynamically, and retrying — explicitly covering the all-four-missing case, not just partial misses.
-- **visible-summary / honest-reporting** — the step always ends with a per-skill ✅/❌ summary quoting real command output, never an invented cause.
-- **no-handwave / non-blocking** — no "network hiccup" hand-wave or facilitator escalation, and a miss never blocks the rest of setup.
+- **current-selectors / verify-paths** - the install command selects, and the verify list checks, every skill in `EXPECTED_SKILLS` (`grill-me`, `handoff`, `diagnosing-bugs`, `teach`) under its current upstream name.
+- **no-stale-names** - no retired name (`diagnose`) survives as a selector, path, or bold mention.
+- **self-heal-listing / rename-resolution / zero-installed-case** - a miss triggers listing the repo's live skills (`skills add … -l`), resolving renames dynamically, and retrying - explicitly covering the all-four-missing case, not just partial misses.
+- **visible-summary / honest-reporting** - the step always ends with a per-skill ✅/❌ summary quoting real command output, never an invented cause.
+- **no-handwave / non-blocking** - no "network hiccup" hand-wave or facilitator escalation, and a miss never blocks the rest of setup.
 
 `--live` makes CI go red at the **next** upstream rename (an expected name vanishing from the live repo) instead of attendees silently losing skills. On a rename: re-resolve the new name, update `EXPECTED_SKILLS` and the Step 3 body together.
 
@@ -146,7 +146,7 @@ node scripts/check-mp-skills-install.mjs --live     # + list the live mattpocock
 
 ## Tests
 
-Plain Node, no framework — each prints `PASS`/`FAIL` and exits non-zero on any failure.
+Plain Node, no framework - each prints `PASS`/`FAIL` and exits non-zero on any failure.
 
 ```bash
 node scripts/test-anti-patterns.mjs     # regression for audit-skills anti-pattern rules
@@ -158,6 +158,6 @@ node scripts/test-mp-skills-install.mjs # install-contract rules pass on Step 3;
 
 `test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line.
 
-`test-resilient-install.mjs` imports `evaluateResilience()` from the checker, confirms both real bootstrap copies pass every rule, and asserts a deliberately non-resilient fixture (`scripts/__fixtures__/resilient-install-bad.md`) fails every one — so each detector is proven to fire.
+`test-resilient-install.mjs` imports `evaluateResilience()` from the checker, confirms both real bootstrap copies pass every rule, and asserts a deliberately non-resilient fixture (`scripts/__fixtures__/resilient-install-bad.md`) fails every one - so each detector is proven to fire.
 
 `test-mp-skills-install.mjs` does the same for `check-mp-skills-install.mjs`: the real Step 3 passes every rule, the pre-fix fixture (`scripts/__fixtures__/mp-skills-install-bad.md`) fails every one, and the live-listing parser is exercised against fake GitHub tree responses (flat + category-nested layouts, rename detection, API-failure throw) with no network.

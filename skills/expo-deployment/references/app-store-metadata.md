@@ -208,7 +208,7 @@ Primary category is most important for browsing and rankings.
 
 ## Localization
 
-Localize metadata for each target market. Keywords should be researched per locale—direct translations often miss regional search terms.
+Localize metadata for each target market. Keywords should be researched per locale-direct translations often miss regional search terms.
 
 ```json
 {
@@ -461,12 +461,11 @@ Automate metadata updates in your deployment pipeline:
 # .eas/workflows/release.yml
 jobs:
   submit-and-metadata:
-    steps:
-      - name: Submit to App Store
-        run: eas submit -p ios --latest
-
-      - name: Push Metadata
-        run: eas metadata:push
+    type: run
+    params:
+      command: |
+        eas submit -p ios --latest
+        eas metadata:push
 ```
 
 ## Tips
@@ -476,4 +475,4 @@ jobs:
 - Apps with 4+ star ratings get featured more often
 - Localized apps see 128% more downloads per country
 - First 3 lines of description are most critical (shown before "more")
-- Use all 100 keyword characters—every character counts
+- Use all 100 keyword characters-every character counts

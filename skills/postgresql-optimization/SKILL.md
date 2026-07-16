@@ -13,14 +13,10 @@ metadata:
   - query-optimization
   - database
   pairs-with:
-  - skill: database-design-patterns
-    reason: Schema design choices directly impact query performance and indexing effectiveness
   - skill: supabase-admin
     reason: Supabase runs PostgreSQL; optimization techniques apply directly to Supabase databases
   - skill: performance-profiling
     reason: Database query profiling identifies the slow queries that need PostgreSQL optimization
-  - skill: drizzle-migrations
-    reason: Index creation and schema changes through Drizzle must consider PostgreSQL performance impact
 ---
 
 # PostgreSQL Optimization

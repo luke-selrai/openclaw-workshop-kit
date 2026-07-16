@@ -6,7 +6,7 @@ Package one or more local Claude Code skills into a working Remote Routine on cl
 
 Takes a skill (or several) you have running locally and produces:
 
-- A GitHub repo with the canonical routine shape — skill folders, `.mcp.json`, `setup.sh`, `.claude/settings.json` (pre-approves the skill's tools so scheduled runs never pause on a permission prompt), `CLAUDE.md`, `README.md`.
+- A GitHub repo with the canonical routine shape - skill folders, `.mcp.json`, `setup.sh`, `.claude/settings.json` (pre-approves the skill's tools so scheduled runs never pause on a permission prompt), `CLAUDE.md`, `README.md`.
 - An env var manifest (one paste per secret) for the routine environment.
 - An autonomous drive of the claude.ai/code/routines UI in a Playwright MCP browser for the bits the API doesn't cover (env creation, trusted-domains, secret env vars, routine prompt, cron). You sign in to claude.ai once; the skill does the rest. Falls back to a guided manual hand-off only if no Playwright server is connected.
 - A RemoteTrigger Run-now at the end to prove the routine fires.
@@ -31,22 +31,22 @@ Every introspected dependency in your skill emits a **triple**:
 
 ## Connector reuse
 
-When a connector library is available, this plugin **does not invent per-CLI extraction logic** — it reuses the library. A connector library is an optional folder with one subfolder per tool, each describing "how do I install + restore tool X on a fresh Linux machine" via `detect.sh` / `export.sh` / `server-install.sh` / `server-import.sh`. Point the plugin at one with the `ROUTINE_CONNECTORS_DIR` env var. When no library is configured, every dependency is resolved at runtime by the resolution ladder in `SKILL.md` instead — the plugin never assumes a fixed path on disk.
+When a connector library is available, this plugin **does not invent per-CLI extraction logic** - it reuses the library. A connector library is an optional folder with one subfolder per tool, each describing "how do I install + restore tool X on a fresh Linux machine" via `detect.sh` / `export.sh` / `server-install.sh` / `server-import.sh`. Point the plugin at one with the `ROUTINE_CONNECTORS_DIR` env var. When no library is configured, every dependency is resolved at runtime by the resolution ladder in `SKILL.md` instead - the plugin never assumes a fixed path on disk.
 
 For routine targets specifically, two additional optional scripts are read if present:
 
-- `routine-export.sh` — runs locally; emits `KEY=value` lines to stdout (one env var per line).
-- `routine-restore.sh` — appended into the generated `setup.sh`; reads env vars, writes files to disk.
+- `routine-export.sh` - runs locally; emits `KEY=value` lines to stdout (one env var per line).
+- `routine-restore.sh` - appended into the generated `setup.sh`; reads env vars, writes files to disk.
 
 If a connector lacks these, the plugin asks the user to scaffold them (or falls back to a conservative auto-translation from `server-import.sh`).
 
 ## Status
 
-0.1.x — development. End-to-end fixture: package a local skill into a working routine repo with the canonical shape.
+0.1.x - development. End-to-end fixture: package a local skill into a working routine repo with the canonical shape.
 
 ## Updating this plugin (read before editing)
 
-The desktop app does NOT run this plugin live from source. On install it copies the plugin into a versioned cache at `~/.claude/plugins/cache/selrai-routine-installer/routine-installer-plugin/<version>/` and runs from there. Editing the source files alone changes nothing the app sees — the cache stays frozen at the installed version. This silently masked several fixes during development.
+The desktop app does NOT run this plugin live from source. On install it copies the plugin into a versioned cache at `~/.claude/plugins/cache/selrai-routine-installer/routine-installer-plugin/<version>/` and runs from there. Editing the source files alone changes nothing the app sees - the cache stays frozen at the installed version. This silently masked several fixes during development.
 
 To make a source edit actually take effect:
 
@@ -55,7 +55,7 @@ To make a source edit actually take effect:
 3. Refresh: `claude plugin marketplace update selrai-routine-installer` then `claude plugin update routine-installer-plugin@selrai-routine-installer`.
 4. **Restart the desktop app** so it loads the new cache.
 
-Same-version reinstalls are a no-op — the version bump in step 2 is the load-bearing part.
+Same-version reinstalls are a no-op - the version bump in step 2 is the load-bearing part.
 
 ## Layout
 
@@ -88,6 +88,6 @@ routine-installer-plugin/
 ## Out of scope (V1)
 
 - Auth-refresh command (`/refresh-routine-auth`). V1.1.
-- Skill stripping mode (the public-distribution case Harvey did manually on morning-brief — strip assets, footer, hoist hardcoded recipients to CLAUDE.md). V1 assumes private routines for workshop attendees.
+- Skill stripping mode (the public-distribution case done manually on morning-brief - strip assets, footer, hoist hardcoded recipients to CLAUDE.md). V1 assumes private routines for workshop attendees.
 - brew-only CLIs (sandbox is Linux). Plugin warns + asks for alternative.
 - Routine session-content inspection (the API doesn't expose it). Verification = "did the side effect land?"

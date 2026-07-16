@@ -14,7 +14,7 @@ check() {
 anthropic_key_present="false"
 if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
   anthropic_key_present="true"
-elif security find-generic-password -a "$USER" -s "anthropic-managed-agents" -w >/dev/null 2>&1; then
+elif [[ "$(uname -s)" == Darwin ]] && security find-generic-password -a "${USER:-$(id -un)}" -s "anthropic-managed-agents" -w >/dev/null 2>&1; then
   anthropic_key_present="true"
 fi
 
@@ -70,17 +70,18 @@ if [ -f "$STATE_DIR/env-id.txt" ]; then
   existing_env_id="\"$(cat "$STATE_DIR/env-id.txt")\""
 fi
 
-cat <<JSON
-{
-
 # API key validity probe (5s timeout, marks key invalid/offline/quota in JSON)
 KEY_VALID="unknown"
 KEY_ERROR=""
 if [[ -n "${ANTHROPIC_API_KEY:-}" ]]; then
+    # S12: secret x-api-key header fed via curl --config on stdin (never on argv/ps)
     HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 \
-        -H "x-api-key: $ANTHROPIC_API_KEY" \
         -H "anthropic-version: 2023-06-01" \
-        https://api.anthropic.com/v1/models 2>/dev/null || echo "000")
+        https://api.anthropic.com/v1/models \
+        --config - <<EOF 2>/dev/null || echo "000"
+header = "x-api-key: ${ANTHROPIC_API_KEY}"
+EOF
+)
     case "$HTTP_CODE" in
         200) KEY_VALID="true" ;;
         401|403) KEY_VALID="false"; KEY_ERROR="invalid" ;;
@@ -89,8 +90,9 @@ if [[ -n "${ANTHROPIC_API_KEY:-}" ]]; then
         *) KEY_VALID="false"; KEY_ERROR="http_$HTTP_CODE" ;;
     esac
 fi
-export KEY_VALID KEY_ERROR
 
+cat <<JSON
+{
   "anthropic_key_valid": "${KEY_VALID}",
   "anthropic_key_error": "${KEY_ERROR}",
   "anthropic_key_present": $anthropic_key_present,

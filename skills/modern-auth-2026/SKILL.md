@@ -30,8 +30,6 @@ metadata:
     reason: Supabase Auth provides the backend infrastructure for passkey and OAuth implementation
   - skill: security-auditor
     reason: Auth implementation security (token storage, session management) requires dedicated auditing
-  - skill: cloudflare-worker-dev
-    reason: Edge-based auth token validation in Workers is a modern auth deployment pattern
 ---
 
 # Modern Authentication Expert (2026)

@@ -73,6 +73,9 @@ function Install-ViaScoop {
         return $false
     }
     & scoop install render | Out-Host
+    $machinePath = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
+    $userPath    = [System.Environment]::GetEnvironmentVariable('Path', 'User')
+    $env:Path = "$machinePath;$userPath"
     if ($LASTEXITCODE -eq 0 -and (Get-Command render -ErrorAction SilentlyContinue)) { return $true }
     Write-Step "scoop exit code $LASTEXITCODE - attempting scoop update..."
     & scoop update render | Out-Host

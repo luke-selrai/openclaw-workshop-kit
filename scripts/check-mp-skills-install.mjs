@@ -35,7 +35,7 @@ export const EXPECTED_SKILLS = ["grill-me", "handoff", "diagnosing-bugs", "teach
 // Names that no longer exist upstream and must never reappear in Step 3.
 export const STALE_NAMES = ["diagnose"];
 
-const STEP_START = "### Step 3 — Install power-user skills";
+const STEP_START = "### Step 3 - Install power-user skills";
 const STEP_END = "## PHASE 3";
 
 export function extractStepBody(text) {

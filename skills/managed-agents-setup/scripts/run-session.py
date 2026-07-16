@@ -40,6 +40,10 @@ def headers(key: str) -> dict:
 
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
     ap.add_argument("--agent-id")
     ap.add_argument("--env-id")
@@ -86,7 +90,7 @@ def main():
     if r2.status_code >= 400:
         print(f"[fatal] send event {r2.status_code}: {r2.text}", file=sys.stderr)
         sys.exit(4)
-    print(f"[session] Message sent. Polling for response...")
+    print("[session] Message sent. Polling for response...")
 
     import time
     start = time.time()

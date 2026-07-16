@@ -73,7 +73,7 @@ prisma generate --sql
 ```prisma
 generator client {
   provider = "prisma-client"
-  output   = "../generated"
+  output   = "../generated/prisma"
 }
 ```
 
@@ -130,7 +130,7 @@ Run before building your application.
 ```prisma
 generator client {
   provider = "prisma-client"
-  output   = "../generated"
+  output   = "../generated/prisma"
 }
 
 generator zod {
@@ -148,7 +148,7 @@ prisma generate  # Runs all generators
 After running `prisma generate`, your output directory contains:
 
 ```
-generated/
+generated/prisma/
 ├── browser.ts
 ├── client.ts
 ├── commonInputTypes.ts

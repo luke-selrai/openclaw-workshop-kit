@@ -36,9 +36,7 @@ const prisma = new PrismaClient({ adapter })
 ```typescript
 import { withAccelerate } from '@prisma/extension-accelerate'
 
-const prisma = new PrismaClient({
-  accelerateUrl: process.env.DATABASE_URL,  // prisma:// URL
-}).$extends(withAccelerate())
+const prisma = new PrismaClient().$extends(withAccelerate())
 ```
 
 ### log
@@ -101,7 +99,7 @@ import { queryTags, withQueryTags } from '@prisma/sqlcommenter-query-tags'
 import { traceContext } from '@prisma/sqlcommenter-trace-context'
 
 const prisma = new PrismaClient({
-  adapter: new PrismaPg(process.env.DATABASE_URL!),
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
   comments: [prismaQueryInsights(), traceContext(), queryTags()],
 })
 

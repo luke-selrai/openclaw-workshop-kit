@@ -49,7 +49,7 @@ added: REPLACEME
 Description of what the method does.
 ```
 
-Use `REPLACEME` for the version — it is replaced automatically at release time.
+Use `REPLACEME` for the version - it is replaced automatically at release time.
 
 For changes to existing APIs, add a `changes` entry:
 
@@ -159,7 +159,7 @@ Add the `E()` call in alphabetical order among existing error codes.
 The `node-core/alphabetize-errors` ESLint rule enforces this.
 
 ```javascript
-// Correct — ERR_STREAM_ITER_MISSING_FLAG between ERR_STREAM_DESTROYED
+// Correct - ERR_STREAM_ITER_MISSING_FLAG between ERR_STREAM_DESTROYED
 // and ERR_STREAM_NULL_VALUES
 E('ERR_STREAM_DESTROYED', 'Cannot call %s after a stream was destroyed', Error);
 E('ERR_STREAM_ITER_MISSING_FLAG',
@@ -170,7 +170,7 @@ E('ERR_STREAM_NULL_VALUES', 'May not write null values to stream', TypeError);
 ### `doc/api/errors.md`
 
 Add an `<a id="ERR_*">` anchor and description in alphabetical order.
-The `node-core/documented-errors` ESLint rule enforces this — it parses
+The `node-core/documented-errors` ESLint rule enforces this - it parses
 `errors.md` and verifies the anchors match the error codes in `errors.js`
 and are correctly ordered.
 
@@ -256,13 +256,13 @@ in JavaScript files under `lib/`. This applies to both code and comments.
 
 | Wrong | Correct | Character name |
 | ----- | ------- | -------------- |
-| `—`     | `-`       | Em dash        |
-| `–`     | `-`       | En dash        |
+| `-`     | `-`       | Em dash        |
+| `-`     | `-`       | En dash        |
 | `'` `'`   | `'`       | Smart quotes   |
 | `"` `"`   | `"`       | Smart quotes   |
 | `…`     | `...`     | Ellipsis       |
 
-This rule does NOT apply to markdown files — only to `.js` and `.mjs` files.
+This rule does NOT apply to markdown files - only to `.js` and `.mjs` files.
 However, code comments in `lib/internal/` should always use ASCII.
 
 ## Lint and Format Commands

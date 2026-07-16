@@ -1,4 +1,4 @@
-# Troubleshooting — Managed Agents + Routines
+# Troubleshooting - Managed Agents + Routines
 
 ## Managed Agents (Platform API)
 
@@ -36,7 +36,7 @@ Vault credential expired. Rotate:
 curl -X POST "https://api.anthropic.com/v1/vaults/$VAULT/credentials/$CRED" \
   -d '{"auth":{"type":"static_bearer","token":"NEW_TOKEN","mcp_server_url":"SAME"}}'
 ```
-Credentials re-resolve periodically in running sessions — rotation propagates without restart.
+Credentials re-resolve periodically in running sessions - rotation propagates without restart.
 
 ### `File not found in files.list after session idle`
 1-3 second indexing lag. Retry. If still missing, file wasn't actually written.
@@ -65,7 +65,7 @@ This is DIFFERENT from the Managed Agents beta header. Don't mix them.
 Unpause at `claude.ai/code/routines`.
 
 ### `401 Unauthorized` on /fire
-- OAT token invalid or regenerated. Tokens are shown once — fetch a new one and update `ROUTINE_OAT_TOKEN`.
+- OAT token invalid or regenerated. Tokens are shown once - fetch a new one and update `ROUTINE_OAT_TOKEN`.
 - Token scoped to different routine. Each routine has its own.
 
 ### `404 Not Found` on /fire
@@ -77,9 +77,9 @@ Unpause at `claude.ai/code/routines`.
 - Per-routine + per-account hourly caps during preview for GitHub-triggered routines.
 
 ### Routine fires but nothing happens
-1. Check the session URL from the `/fire` response — does the session show up at `claude.ai/code/sessions`?
+1. Check the session URL from the `/fire` response - does the session show up at `claude.ai/code/sessions`?
 2. Session might've crashed at startup. Setup script failure → non-zero exit → session fails. Append `|| true` to optional installs.
-3. Repo-level `.claude/` missing — user-scope config does NOT carry over to the cloud VM.
+3. Repo-level `.claude/` missing - user-scope config does NOT carry over to the cloud VM.
 
 ### MCP connector name rejected
 Name regex is `[a-zA-Z0-9_-]` only. `claude.ai Gmail` fails (space + dot). Use `Gmail` or `claude-ai-Gmail`.

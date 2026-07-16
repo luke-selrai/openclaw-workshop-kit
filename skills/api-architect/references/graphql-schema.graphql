@@ -1,5 +1,14 @@
 # GraphQL Schema Reference
-# Complete schema with queries, mutations, subscriptions, and Relay connections
+# ─────────────────────────────────────────────────────────────────────
+# What's inside: a complete SDL schema for a User domain.
+#   • Query / Mutation / Subscription roots
+#   • Relay-style pagination: UserConnection, UserEdge, PageInfo
+#   • Mutation payloads that return an errors: [UserError!] array (so a
+#     failed mutation is a 200 with structured errors, not a transport error)
+#   • Filter inputs (StringFilter, DateTimeFilter) and a custom DateTime scalar
+# Copy this for any GraphQL contract; swap User for your entity and keep
+# the Connection + payload-error patterns. Passes scripts/validate-api-spec.sh.
+# ─────────────────────────────────────────────────────────────────────
 
 type Query {
   user(id: ID!): User
@@ -31,6 +40,14 @@ type User {
   updatedAt: DateTime
 }
 
+type Post {
+  id: ID!
+  title: String!
+  body: String
+  author: User!
+  createdAt: DateTime!
+}
+
 # Relay-style connections for pagination
 type UserConnection {
   edges: [UserEdge!]!
@@ -41,6 +58,17 @@ type UserConnection {
 type UserEdge {
   cursor: String!
   node: User!
+}
+
+type PostConnection {
+  edges: [PostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PostEdge {
+  cursor: String!
+  node: Post!
 }
 
 type PageInfo {

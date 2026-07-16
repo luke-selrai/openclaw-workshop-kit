@@ -58,7 +58,7 @@ export async function GET(request: Request) {
 
   return new ImageResponse(
     <div style={{ fontFamily: 'Inter' }}>
-      <img src={logo} />
+      <img src={`data:image/png;base64,${Buffer.from(logo).toString('base64')}`} />
       Hello World
     </div>,
     { fonts: [{ name: 'Inter', data: font }] }
@@ -86,7 +86,7 @@ const logoData = readFileSync(
 export async function GET(request: Request) {
   return new ImageResponse(
     <div style={{ fontFamily: 'Inter' }}>
-      <img src={logoData} />
+      <img src={`data:image/png;base64,${logoData.toString('base64')}`} />
       Hello World
     </div>,
     { fonts: [{ name: 'Inter', data: fontData }] }

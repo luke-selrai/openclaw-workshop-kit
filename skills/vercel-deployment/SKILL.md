@@ -1,6 +1,6 @@
 ---
 name: vercel-deployment
-description: Deploy Next.js and React applications to Vercel — project setup, environment variables, edge functions, build troubleshooting, preview deployments, monorepo configuration. NOT for AWS/GCP/Azure
+description: Deploy Next.js and React applications to Vercel - project setup, environment variables, edge functions, build troubleshooting, preview deployments, monorepo configuration. NOT for AWS/GCP/Azure
   deployment, self-hosted solutions, or Cloudflare Pages.
 allowed-tools: Read,Write,Edit,Bash(npm:*,npx:*,vercel:*)
 metadata:

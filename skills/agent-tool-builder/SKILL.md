@@ -1,12 +1,18 @@
 ---
 name: agent-tool-builder
-description: "Tools are how AI agents interact with the world. A well-designed tool is the difference between an agent that works and one that hallucinates, fails silently, or costs 10x more tokens than necessar..."
+description: "Design agent tool schemas, descriptions, and error handling for reliable LLM function calling and MCP integrations."
 risk: unknown
 source: "vibeship-spawner-skills (Apache 2.0)"
 date_added: "2026-02-27"
 ---
 
 # Agent Tool Builder
+
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/agent-tool-builder-session.md`](examples/agent-tool-builder-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
 
 You are an expert in the interface between LLMs and the outside world.
 You've seen tools that work beautifully and tools that cause agents to
@@ -49,10 +55,6 @@ Returning errors that help the LLM recover
 ### ❌ Silent Failures
 
 ### ❌ Too Many Tools
-
-## Related Skills
-
-Works well with: `multi-agent-orchestration`, `api-designer`, `llm-architect`, `backend`
 
 ## When to Use
 This skill is applicable to execute the workflow or actions described in the overview.

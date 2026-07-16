@@ -78,7 +78,7 @@ Open-weight image generation models with API access through Replicate and BFL's 
 
 **Strengths:**
 - Multi-image reference (up to 8 images) for consistent identity across ads
-- Product consistency — same product in different contexts
+- Product consistency - same product in different contexts
 - Style transfer from reference images
 - Open-weight Dev model for self-hosting
 
@@ -252,7 +252,7 @@ Full-stack video creation platform with cinematic camera controls.
 
 **Best for:** Social video ads, cinematic style, mobile-first content
 **Platform:** [higgsfield.ai](https://higgsfield.ai/)
-**Automate it:** the **`higgsfield-connector`** skill drives the official Higgsfield CLI — generate these images/videos directly from Claude (cost-estimate → generate → result URL), no manual web UI.
+**Automate it:** the **`higgsfield-connector`** skill drives the official Higgsfield CLI - generate these images/videos directly from Claude (cost-estimate → generate → result URL), no manual web UI.
 
 **Capabilities:**
 - 50+ professional camera movements (zooms, pans, FPV drone shots)
@@ -289,11 +289,11 @@ For layering realistic voiceovers onto video ads, adding narration to product de
 
 Many video generators (Veo, Kling, Sora, Seedance) now include native audio. Use standalone voice tools when you need:
 
-- **Voiceover on silent video** — Runway Gen-4 and Remotion produce silent output
-- **Brand voice consistency** — Clone a specific voice for all ads
-- **Multi-language versions** — Same ad script in 20+ languages
-- **Script iteration** — Re-record voiceover without reshooting video
-- **Precise control** — Exact timing, emotion, and pacing
+- **Voiceover on silent video** - Runway Gen-4 and Remotion produce silent output
+- **Brand voice consistency** - Clone a specific voice for all ads
+- **Multi-language versions** - Same ad script in 20+ languages
+- **Script iteration** - Re-record voiceover without reshooting video
+- **Precise control** - Exact timing, emotion, and pacing
 
 ---
 
@@ -347,7 +347,7 @@ Simple, affordable text-to-speech built into the OpenAI API.
 - Multiple languages
 - Real-time streaming
 - HD quality option
-- Simple API — same SDK you already use for GPT
+- Simple API - same SDK you already use for GPT
 
 **Ad creative use cases:**
 - Fast, cheap voiceover for draft/test ad versions
@@ -387,7 +387,7 @@ Ultra-low latency voice generation built for real-time applications.
 Free, local-first voice synthesis studio powered by Qwen3-TTS. The open-source alternative to ElevenLabs.
 
 **Best for:** Free voice cloning, local/private generation, zero-cost batch production
-**API:** Local REST API at `http://localhost:8000`
+**API:** Local REST API at `http://127.0.0.1:17493`
 **Pricing:** Free (MIT license). Runs entirely on your machine.
 **Stack:** Tauri (Rust) + React + FastAPI (Python)
 
@@ -397,7 +397,7 @@ Free, local-first voice synthesis studio powered by Qwen3-TTS. The open-source a
 - Multi-track timeline editor for composing conversations
 - 4-5x faster inference on Apple Silicon via MLX Metal acceleration
 - Local REST API for programmatic generation
-- No cloud dependency — all processing on-device
+- No cloud dependency - all processing on-device
 
 **Ad creative use cases:**
 - Free voice cloning for brand spokesperson across all ad variations
@@ -407,7 +407,7 @@ Free, local-first voice synthesis studio powered by Qwen3-TTS. The open-source a
 
 **API example:**
 ```bash
-curl -X POST http://localhost:8000/generate \
+curl -X POST http://127.0.0.1:17493/generate \
   -H "Content-Type: application/json" \
   -d '{"text": "Stop wasting hours on manual reporting.", "profile_id": "abc123", "language": "en"}'
 ```
@@ -415,7 +415,7 @@ curl -X POST http://localhost:8000/generate \
 **Install:** Desktop apps for macOS and Windows at [voicebox.sh](https://voicebox.sh), or build from source:
 ```bash
 git clone https://github.com/jamiepine/voicebox.git
-cd voicebox && make setup && make dev
+cd voicebox && just setup && just dev
 ```
 
 **Docs:** [GitHub](https://github.com/jamiepine/voicebox)
@@ -609,10 +609,10 @@ Need image ads?
 
 ### Recommended Workflow for Scaled Ad Production
 
-1. **Generate hero creative** with AI (Nano Banana, Flux, Veo) — high-quality, exploratory
+1. **Generate hero creative** with AI (Nano Banana, Flux, Veo) - high-quality, exploratory
 2. **Build templates** in Remotion based on winning creative patterns
 3. **Batch produce variations** with Remotion using data (products, headlines, CTAs)
-4. **Iterate** — use AI tools for new angles, Remotion for scale
+4. **Iterate** - use AI tools for new angles, Remotion for scale
 
 This hybrid approach gives you the creative exploration of AI generators and the consistency and scale of code-based rendering.
 

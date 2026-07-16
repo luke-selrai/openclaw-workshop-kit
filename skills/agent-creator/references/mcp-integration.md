@@ -1,173 +1,43 @@
-# MCP Integration
+# MCP Integration (pointer)
 
-Creating custom MCP servers for agents.
+**For building an MCP server, use the `mcp-creator` skill.** It owns secure, production-ready MCP server development (schema design, error handling, transports, testing). This file is only the thin slice agent-creator needs: how to give an *existing* MCP server to a subagent.
 
-## Official Packages
+## Give a subagent access to an MCP server
 
-| Package | Purpose | Install |
-|---------|---------|---------|
-| `@modelcontextprotocol/sdk` | Core TypeScript SDK | `npm install @modelcontextprotocol/sdk` |
-| `@modelcontextprotocol/create-server` | Scaffold new servers | `npx @modelcontextprotocol/create-server my-server` |
-| `@modelcontextprotocol/inspector` | Test and debug | `npx @modelcontextprotocol/inspector` |
+Two ways in the subagent's frontmatter `mcpServers` field:
 
-## MCP Server Template
+```yaml
+---
+name: browser-tester
+description: Tests features in a real browser. Use for end-to-end UI checks.
+mcpServers:
+  # Reference an already-configured server by name
+  - github
+  # Or define one inline - connected only while this subagent runs
+  - playwright:
+      type: stdio
+      command: npx
+      args: ["-y", "@playwright/mcp@latest"]
+---
 
-```typescript
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-
-const server = new Server(
-  {
-    name: "custom-skill-server",
-    version: "1.0.0",
-  },
-  {
-    capabilities: {
-      tools: {},
-      resources: {},
-    },
-  }
-);
-
-// Define tools
-server.setRequestHandler("tools/list", async () => {
-  return {
-    tools: [
-      {
-        name: "analyze_code",
-        description: "Analyzes code for [specific purpose]",
-        inputSchema: {
-          type: "object",
-          properties: {
-            code: { type: "string" },
-            language: { type: "string" },
-          },
-          required: ["code"],
-        },
-      },
-    ],
-  };
-});
-
-// Implement tool
-server.setRequestHandler("tools/call", async (request) => {
-  const { name, arguments: args } = request.params;
-
-  if (name === "analyze_code") {
-    // Implementation
-    return {
-      content: [
-        {
-          type: "text",
-          text: "Analysis results...",
-        },
-      ],
-    };
-  }
-});
-
-// Start server
-const transport = new StdioServerTransport();
-await server.connect(transport);
+Use the Playwright tools to navigate, screenshot, and interact with pages.
 ```
 
-## MCP Skill Creation Steps
+- **By name** - reuses a server already configured in the session (shares its connection).
+- **Inline** - connected when the subagent starts, disconnected when it finishes. Defining it inline here (rather than in `.mcp.json`) keeps its tool descriptions out of the main conversation's context.
 
-### Step 1: Define the Capability
+Inline definitions use the same schema as `.mcp.json` entries (`stdio`, `http`, `sse`, `ws`).
 
-```typescript
-// What unique capability does this provide?
-interface SkillCapability {
-  name: string;
-  description: string;
-  inputs: SchemaDefinition;
-  outputs: SchemaDefinition;
-}
-```
+## When does an agent need an MCP server at all?
 
-### Step 2: Design the Interface
+Only when it must reach something outside the filesystem and shell - a SaaS API, a database over a driver, a browser, a ticketing system. If the work is reading/searching/editing files or running commands, the built-in tools are enough - don't build an MCP server for it.
 
-```typescript
-// Clean, intuitive tool interface
-{
-  name: "analyze_quality",
-  description: "Analyzes code quality metrics",
-  inputSchema: {
-    type: "object",
-    properties: {
-      code: { type: "string", description: "Code to analyze" },
-      language: { type: "string", enum: ["python", "javascript", "go"] },
-      focus: {
-        type: "array",
-        items: { type: "string" },
-        description: "Aspects to focus on: complexity, security, performance"
-      }
-    },
-    required: ["code", "language"]
-  }
-}
-```
+If you do need one: hand off to **mcp-creator** to build it, then come back here to wire it into the agent via `mcpServers`.
 
-### Step 3: Implement Core Logic
-
-```typescript
-async function analyzeCode(
-  code: string,
-  language: string,
-  focus: string[]
-): Promise<Analysis> {
-  // Implementation using appropriate tools
-  // - AST parsing
-  // - Pattern matching
-  // - Metric calculation
-
-  return {
-    score: calculateScore(),
-    issues: findIssues(),
-    suggestions: generateSuggestions(),
-    metrics: computeMetrics()
-  };
-}
-```
-
-### Step 4: Package as MCP Server
-
-Complete server with:
-- Tool registration
-- Request handling
-- Error management
-- State management (if needed)
-
-## Example: Performance Optimizer MCP
-
-```typescript
-// performance-optimizer-server.ts
-server.setRequestHandler("tools/list", async () => {
-  return {
-    tools: [
-      {
-        name: "analyze_bundle",
-        description: "Analyzes bundle composition and suggests optimizations",
-        inputSchema: {
-          type: "object",
-          properties: {
-            bundlePath: { type: "string" },
-            framework: { type: "string", enum: ["webpack", "vite", "rollup"] }
-          },
-          required: ["bundlePath"]
-        }
-      }
-    ]
-  };
-});
-```
-
-## Testing MCP Servers
+## Quick test of a server
 
 ```bash
-# Start inspector
 npx @modelcontextprotocol/inspector
-
-# Test tool invocation
-# Use inspector UI to send requests and verify responses
 ```
+
+Use the inspector UI to send tool calls and verify responses before wiring the server into an agent.

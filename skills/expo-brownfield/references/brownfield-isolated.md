@@ -22,9 +22,9 @@ The JavaScript bundle is **embedded inside the artifact** in release builds, so 
 
 ## Prerequisites
 
-- **Expo SDK 55 or later** — brownfield support, `expo-brownfield`, and the required runtime classes are only available on SDK 55+. Earlier SDKs will not work.
-- **Node.js (LTS)** — runs JavaScript and the Expo CLI.
-- **Yarn** — manages JavaScript dependencies.
+- **Expo SDK 55 or later** - brownfield support, `expo-brownfield`, and the required runtime classes are only available on SDK 55+. Earlier SDKs will not work.
+- **Node.js (LTS)** - runs JavaScript and the Expo CLI.
+- **Yarn** - manages JavaScript dependencies.
 
 Node and Yarn are only needed in the environment that _builds_ the artifact. The consuming native app does not need them.
 
@@ -38,7 +38,7 @@ Node and Yarn are only needed in the environment that _builds_ the artifact. The
 npx create-expo-app@latest my-project --template default@sdk-55
 ```
 
-**Pin to SDK 55 or later — earlier SDKs do not support brownfield.** The project can live in a separate repo or alongside the native app in a monorepo; it does not need to be inside the native project.
+**Pin to SDK 55 or later - earlier SDKs do not support brownfield.** The project can live in a separate repo or alongside the native app in a monorepo; it does not need to be inside the native project.
 
 ### Install expo-brownfield
 
@@ -77,9 +77,9 @@ To override the auto-generated names, expand the plugin entry in `app.json`:
 }
 ```
 
-**iOS options** — `targetName` (XCFramework target name), `bundleIdentifier` (framework bundle ID).
+**iOS options** - `targetName` (XCFramework target name), `bundleIdentifier` (framework bundle ID).
 
-**Android options** — `libraryName` (AAR name), `group` (Maven group ID), `package` (Android package), `version` (library version), `publishing` (Maven publication targets — see [Publishing the Android AAR](#publishing-the-android-aar)).
+**Android options** - `libraryName` (AAR name), `group` (Maven group ID), `package` (Android package), `version` (library version), `publishing` (Maven publication targets - see [Publishing the Android AAR](#publishing-the-android-aar)).
 
 ### Speed up iOS builds with prebuilt Expo modules
 
@@ -96,7 +96,7 @@ Enable `expo-build-properties`'s `ios.usePrecompiledModules` so `pod install` do
 }
 ```
 
-When precompiled modules are detected, `build:ios` is pinned to a single flavor (`--debug` or `--release`) per package — Swift Package Manager has no per-configuration overload for `.binaryTarget(path:)`. Build once per flavor and distribute the two packages side by side.
+When precompiled modules are detected, `build:ios` is pinned to a single flavor (`--debug` or `--release`) per package - Swift Package Manager has no per-configuration overload for `.binaryTarget(path:)`. Build once per flavor and distribute the two packages side by side.
 
 ---
 
@@ -108,7 +108,7 @@ When precompiled modules are detected, `build:ios` is pinned to a single flavor 
 npx expo-brownfield build:android
 ```
 
-Produces an AAR and publishes it to the local Maven repository at `~/.m2`. The Maven coordinates come from the plugin config — e.g. `com.example:mybrownfield:1.0.0`.
+Produces an AAR and publishes it to the local Maven repository at `~/.m2`. The Maven coordinates come from the plugin config - e.g. `com.example:mybrownfield:1.0.0`.
 
 #### Publishing the Android AAR
 
@@ -170,12 +170,12 @@ npx expo-brownfield build:ios
 
 Outputs to `./artifacts`:
 
-- `{TargetName}.xcframework` — the Expo project compiled as a native framework.
-- `hermesvm.xcframework` — the Hermes JavaScript engine. **Both must be embedded in the consuming app.**
+- `{TargetName}.xcframework` - the Expo project compiled as a native framework.
+- `hermesvm.xcframework` - the Hermes JavaScript engine. **Both must be embedded in the consuming app.**
 
 #### Ship as a Swift Package (recommended)
 
-Pass `--package [name]` to bundle the output as a self-contained Swift Package instead of separate `.xcframework` directories. The host iOS app then consumes it via **Add Package Dependencies → Add Local** in Xcode and links every bundled framework automatically — no manual drag-and-drop, no per-framework "Embed & Sign" toggles.
+Pass `--package [name]` to bundle the output as a self-contained Swift Package instead of separate `.xcframework` directories. The host iOS app then consumes it via **Add Package Dependencies → Add Local** in Xcode and links every bundled framework automatically - no manual drag-and-drop, no per-framework "Embed & Sign" toggles.
 
 ```sh
 npx expo-brownfield build:ios --release --package MyAppPackage
@@ -239,7 +239,7 @@ dependencyResolutionManagement {
 
 > **Note:** `mavenLocal()` must be added under `dependencyResolutionManagement`, not the deprecated top-level `allprojects { repositories { ... } }` block.
 
-If the artifact is published to a remote Maven, declare that repository in the same `dependencyResolutionManagement` block instead — credentials follow Gradle's standard `maven { url = uri(...); credentials { username = ...; password = ... } }` form.
+If the artifact is published to a remote Maven, declare that repository in the same `dependencyResolutionManagement` block instead - credentials follow Gradle's standard `maven { url = uri(...); credentials { username = ...; password = ... } }` form.
 
 #### Show a React Native screen
 
@@ -283,7 +283,7 @@ startActivity(Intent(this, ExpoActivity::class.java))
 If you built a **Swift Package** (`build:ios --package …`):
 
 - In Xcode, **File → Add Package Dependencies… → Add Local…**, then select the generated package directory (e.g. `artifacts/MyAppPackage/`).
-- Add the package's product to your app target. Xcode links every bundled XCFramework through the aggregate library product — no manual "Embed & Sign" step.
+- Add the package's product to your app target. Xcode links every bundled XCFramework through the aggregate library product - no manual "Embed & Sign" step.
 - If you produced both debug and release packages (because `usePrecompiledModules` is enabled), point the host app at the matching package per build configuration.
 
 If you built **standalone XCFrameworks** (default output):
@@ -370,7 +370,7 @@ Start Metro in the Expo project:
 npx expo start
 ```
 
-Build and run the native app in debug. React Native screens load JS from the Metro dev server over HTTP with full hot reloading. The device or emulator must be able to reach the dev machine — see [./troubleshooting.md](./troubleshooting.md) if Metro connections fail.
+Build and run the native app in debug. React Native screens load JS from the Metro dev server over HTTP with full hot reloading. The device or emulator must be able to reach the dev machine - see [./troubleshooting.md](./troubleshooting.md) if Metro connections fail.
 
 ### Production (release builds)
 
@@ -380,6 +380,6 @@ The JS bundle is embedded inside the AAR/XCFramework. Metro is not used. Build t
 
 ## Related references
 
-- [./brownfield-integrated.md](./brownfield-integrated.md) — Alternative: add RN directly to the native build.
-- [./comparison.md](./comparison.md) — Decide between isolated and integrated.
-- [./troubleshooting.md](./troubleshooting.md) — Common Metro, build, and integration issues.
+- [./brownfield-integrated.md](./brownfield-integrated.md) - Alternative: add RN directly to the native build.
+- [./comparison.md](./comparison.md) - Decide between isolated and integrated.
+- [./troubleshooting.md](./troubleshooting.md) - Common Metro, build, and integration issues.

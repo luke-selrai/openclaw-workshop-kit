@@ -31,11 +31,11 @@ metadata:
 This skill does two things:
 
 1. **Installs** the Google Workspace connector on the user's computer (one-time setup) and runs them through sign-in.
-2. **Operates** the connector — sending emails, checking calendars, searching Drive, creating Docs and Sheets, managing Tasks, sending Google Chat messages, and so on.
+2. **Operates** the connector - sending emails, checking calendars, searching Drive, creating Docs and Sheets, managing Tasks, sending Google Chat messages, and so on.
 
 The connector uses the `@googleworkspace/cli` tool (command name: `gws`) and authenticates via Google's OAuth flow. It works on Windows, Mac, and Linux.
 
-**Which part to run** — if the user has never installed `gws` before, run Part 1 (Install). If `gws` is already installed and they're signed in, jump to Part 2 (Operate). You can check by silently running `gws --version` and `gws auth list` (if the latter exists) before deciding.
+**Which part to run** - if the user has never installed `gws` before, run Part 1 (Install). If `gws` is already installed and they're signed in, jump to Part 2 (Operate). You can check by silently running `gws --version` and `gws auth list` (if the latter exists) before deciding.
 
 ---
 
@@ -45,19 +45,19 @@ The user is a non-technical business owner. Every message during Part 1 follows 
 
 - **One step at a time.** Never stack two instructions in one message.
 - **Plain English only.** Never say Node.js, npm, CLI, OAuth, scopes, PATH, terminal, shell, env var. If you must name a technical thing, describe it plainly: "the Google Workspace tool", "your browser", "the command window".
-- **Tell them what is about to happen.** Before any action: "I'm going to install the Google Workspace tool for you — this takes about a minute."
-- **React warmly.** Good: "Your Google account is connected — I can see your Gmail now." Bad: "OAuth flow completed, scopes `drive,gmail,sheets,calendar` granted."
+- **Tell them what is about to happen.** Before any action: "I'm going to install the Google Workspace tool for you - this takes about a minute."
+- **React warmly.** Good: "Your Google account is connected - I can see your Gmail now." Bad: "OAuth flow completed, scopes `drive,gmail,sheets,calendar` granted."
 - **Never show raw error messages.** Translate into plain English.
 - **Short messages.** Maximum 8 lines per message.
 - **Never show commands or paths.** You run them; you do not paste them into chat.
 
 ---
 
-## PART 1 — Install & Sign In
+## PART 1 - Install & Sign In
 
 This part installs the `gws` tool, runs the one-time Google Cloud project setup, and completes OAuth sign-in.
 
-### Step 1 — Detect the user's OS
+### Step 1 - Detect the user's OS
 
 Silently run:
 
@@ -65,11 +65,11 @@ Silently run:
 uname -s           # darwin = Mac, linux = Linux
 ```
 
-On Windows the above will fail — detect Windows separately (e.g., check `OS=Windows_NT` in env, or presence of `where.exe`).
+On Windows the above will fail - detect Windows separately (e.g., check `OS=Windows_NT` in env, or presence of `where.exe`).
 
-Remember the OS — you'll adjust permissions messaging in Step 2.
+Remember the OS - you'll adjust permissions messaging in Step 2.
 
-### Step 2 — Check that Node.js is installed
+### Step 2 - Check that Node.js is installed
 
 Tell the user: *"I'm checking if Node.js is already on your computer. Takes a few seconds."*
 
@@ -82,7 +82,7 @@ node --version
 - If a version prints → "Node.js is ready." Go to Step 3.
 - If not found → install it. Follow `skills/first-run-setup/SKILL.md` Step 3 ("Install Node.js") for the platform-appropriate install path (nvm on Mac/Linux, winget on Windows). Do NOT send the user to a website.
 
-### Step 3 — Install the Google Workspace tool
+### Step 3 - Install the Google Workspace tool
 
 Tell the user: *"I'm installing the Google Workspace tool now. About 30 seconds."*
 
@@ -102,11 +102,11 @@ gws --version
 - `gws: command not found` → PATH issue. Apply `skills/first-run-setup/SKILL.md` PATH fix, then re-verify.
 - Permissions error on Windows → tell the user plainly: *"The install needs administrator rights. Please close the window, right-click it and choose 'Run as administrator', then say 'ready'."* Wait, then retry.
 
-### Step 4 — One-time Google Cloud project setup
+### Step 4 - One-time Google Cloud project setup
 
 If the user has never set up `gws` on this computer before, they need a Google Cloud project to act as the OAuth client. The tool does this for them.
 
-Tell the user: *"Before signing you in, I need to set up a small Google Cloud project in your Google account — it's the thing that actually talks to Gmail, Calendar, and Drive. The tool does this automatically. Takes about a minute."*
+Tell the user: *"Before signing you in, I need to set up a small Google Cloud project in your Google account - it's the thing that actually talks to Gmail, Calendar, and Drive. The tool does this automatically. Takes about a minute."*
 
 Silently run:
 
@@ -120,11 +120,11 @@ Follow the prompts on the user's behalf:
 - If it asks for confirmation, confirm.
 - Expected output: `Setup complete`.
 
-**If the user has already done this before on this computer** — skip this step. Silently checking whether `gws auth setup` has run before is tricky; if you're not sure, just run it — the tool handles the "already set up" case gracefully.
+**If the user has already done this before on this computer** - skip this step. Silently checking whether `gws auth setup` has run before is tricky; if you're not sure, just run it - the tool handles the "already set up" case gracefully.
 
-### Step 5 — Sign the user in
+### Step 5 - Sign the user in
 
-Tell the user: *"Now I'm going to open your browser so you can sign into the Google account you want me to use. Pick the right one — if you use one for personal and one for business, the one you pick here is the one I'll work with."*
+Tell the user: *"Now I'm going to open your browser so you can sign into the Google account you want me to use. Pick the right one - if you use one for personal and one for business, the one you pick here is the one I'll work with."*
 
 Silently run:
 
@@ -135,21 +135,21 @@ gws auth login
 This opens the user's default browser to Google's OAuth page. Walk them through it in plain English before they click:
 
 1. *"Your browser just opened Google's sign-in page. Pick the account you want me to use."*
-2. *"You might see a warning that says 'Google hasn't verified this app' — that's normal. Click 'Continue' or 'Advanced' and then 'Go to \[your project name\] (unsafe)'. It's your own project, it's safe."*
+2. *"You might see a warning that says 'Google hasn't verified this app' - that's normal. Click 'Continue' or 'Advanced' and then 'Go to \[your project name\] (unsafe)'. It's your own project, it's safe."*
 3. *"Then click 'Allow' to give me permission to read and write on your behalf."*
-4. *"You'll see a success message in the browser — that's it."*
+4. *"You'll see a success message in the browser - that's it."*
 
 Wait for the CLI to return to the prompt with a success message.
 
-**If the browser doesn't open automatically** — look for a URL in the terminal output starting with `https://accounts.google.com/...`. Copy it and tell the user: *"Open this link in your browser manually and follow the same steps."*
+**If the browser doesn't open automatically** - look for a URL in the terminal output starting with `https://accounts.google.com/...`. Copy it and tell the user: *"Open this link in your browser manually and follow the same steps."*
 
-**If the user hits 'Access blocked'** — two fixes, both covered in `gws` docs:
+**If the user hits 'Access blocked'** - two fixes, both covered in `gws` docs:
 1. Limit scopes: retry with `gws auth login -s drive,gmail,sheets,calendar` (unverified apps are capped at around 25 scopes total).
 2. Add the user's email as a test user: tell them to go to the GCP Console → APIs & Services → OAuth consent screen → Test users → Add, paste their email, save, then retry.
 
-### Step 6 — Confirm it works
+### Step 6 - Confirm it works
 
-Tell the user: *"Let me check it's working — I'll glance at your inbox. Won't send anything."*
+Tell the user: *"Let me check it's working - I'll glance at your inbox. Won't send anything."*
 
 Silently run a read-only command, e.g.:
 
@@ -157,14 +157,14 @@ Silently run a read-only command, e.g.:
 gws gmail list --max-results 1
 ```
 
-- Returns a message → *"Looks good — your Google account is connected. You can ask me to send emails, check your calendar, find files in Drive, or anything else Google-related now."*
-- Returns a scope error → rerun `gws auth login -s drive,gmail,sheets,calendar,docs,tasks,chat` and walk the user through sign-in again. Explain plainly: *"I need a little more permission — let me re-do the sign-in with the right set of tick-boxes."*
+- Returns a message → *"Looks good - your Google account is connected. You can ask me to send emails, check your calendar, find files in Drive, or anything else Google-related now."*
+- Returns a scope error → rerun `gws auth login -s drive,gmail,sheets,calendar,docs,tasks,chat` and walk the user through sign-in again. Explain plainly: *"I need a little more permission - let me re-do the sign-in with the right set of tick-boxes."*
 
-### Step 7 — Optional: install Google Workspace skills
+### Step 7 - Optional: install Google Workspace skills
 
-The `gws` tool can generate dozens of specialist skills for the user's Claude Code install (Gmail triage, calendar management, Drive uploads, standup reports, meeting prep, and so on). This is **optional** — the connector works without them.
+The `gws` tool can generate dozens of specialist skills for the user's Claude Code install (Gmail triage, calendar management, Drive uploads, standup reports, meeting prep, and so on). This is **optional** - the connector works without them.
 
-Ask the user: *"Want me to install the deeper Google Workspace skills? Things like daily standup reports from your calendar, inbox triage, or weekly digest. Totally optional — you can skip this and I'll still handle everything."*
+Ask the user: *"Want me to install the deeper Google Workspace skills? Things like daily standup reports from your calendar, inbox triage, or weekly digest. Totally optional - you can skip this and I'll still handle everything."*
 
 If yes, silently run:
 
@@ -172,13 +172,13 @@ If yes, silently run:
 gws generate-skills
 ```
 
-Tell the user: *"Done. You've got extra Gmail and Calendar shortcuts now — they kick in automatically when you ask for them."*
+Tell the user: *"Done. You've got extra Gmail and Calendar shortcuts now - they kick in automatically when you ask for them."*
 
 Part 1 is complete.
 
 ---
 
-## PART 2 — Operate the Connector
+## PART 2 - Operate the Connector
 
 Once installed and signed in, invoke `gws` subcommands on the user's behalf whenever they ask for anything Google-Workspace-adjacent. Never paste the command at them; run it and summarise the result in plain English.
 
@@ -220,15 +220,15 @@ When the user asks for something that spans multiple subcommands (e.g., "find Jo
 | `Access blocked` during OAuth | Unverified-app scope cap or missing test user | Retry with limited scopes: `gws auth login -s drive,gmail,sheets,calendar`. If that still fails, tell the user to add themselves as a test user in GCP Console → OAuth consent screen |
 | Wrong Google account signed in | User picked the wrong one on the OAuth screen | Run `gws auth logout`, then `gws auth login` again; tell the user to double-check which account they pick |
 | Browser didn't open during sign-in | No default browser / CLI running in a headless context | Copy the URL from the terminal, tell the user to open it in their browser manually |
-| "Google hasn't verified this app" warning | Normal for personal OAuth projects | Tell the user it's safe — their own project, not a third party |
+| "Google hasn't verified this app" warning | Normal for personal OAuth projects | Tell the user it's safe - their own project, not a third party |
 | `gws` works in terminal but Claude Code says "not found" | Claude Desktop's terminal inherits env at launch | Tell the user to fully quit Claude Desktop and reopen it |
 | Subcommand returns scope error | OAuth flow missed a scope | Rerun sign-in with the full scope list: `gws auth login -s drive,gmail,sheets,calendar,docs,tasks,chat` |
 
-For anything not covered here, if the Superpowers plugin is installed, invoke `superpowers:systematic-debugging`. Otherwise work through the failure step by step — isolate what changed, form a hypothesis, verify before fixing — and summarise the outcome in plain English.
+For anything not covered here, if the Superpowers plugin is installed, invoke `superpowers:systematic-debugging`. Otherwise work through the failure step by step - isolate what changed, form a hypothesis, verify before fixing - and summarise the outcome in plain English.
 
 ---
 
-## Reference — what lives where
+## Reference - what lives where
 
 - `gws` CLI source: npm package `@googleworkspace/cli`
 - OAuth client config: user's own Google Cloud project (created by `gws auth setup`)

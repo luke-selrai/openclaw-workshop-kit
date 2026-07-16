@@ -57,28 +57,28 @@ which contains `Debug`.
 Add a member to the chosen class:
 
 ```cpp
-// EnvironmentOptions — most experimental flags go here
+// EnvironmentOptions - most experimental flags go here
 class EnvironmentOptions : public Options {
  public:
   bool experimental_foo = false;   // Default OFF (opt-in)
   bool experimental_sqlite = true; // Default ON (opt-out)
 };
 
-// PerIsolateOptions — V8 isolate-scoped options
+// PerIsolateOptions - V8 isolate-scoped options
 class PerIsolateOptions : public Options {
  public:
   bool track_heap_objects = false;
   bool experimental_shadow_realm = false;
 };
 
-// PerProcessOptions — process-wide, avoid when possible
+// PerProcessOptions - process-wide, avoid when possible
 class PerProcessOptions : public Options {
  public:
   std::string title;
   int64_t v8_thread_pool_size = 4;
 };
 
-// DebugOptions — inspector only
+// DebugOptions - inspector only
 class DebugOptions : public Options {
  public:
   bool inspector_enabled = false;
@@ -105,13 +105,13 @@ The parsers nest via `Insert()` calls, so the hierarchy is:
 
 ```cpp
 // In EnvironmentOptionsParser::EnvironmentOptionsParser():
-// Default OFF — user must pass --experimental-foo
+// Default OFF - user must pass --experimental-foo
 AddOption("--experimental-foo",
           "experimental foo module",
           &EnvironmentOptions::experimental_foo,
           kAllowedInEnvvar);
 
-// Default ON — user can pass --no-experimental-sqlite to disable
+// Default ON - user can pass --no-experimental-sqlite to disable
 AddOption("--experimental-sqlite",
           "experimental node:sqlite module",
           &EnvironmentOptions::experimental_sqlite,
@@ -154,17 +154,17 @@ Node.js automatically generates `--no-*` negation variants for all boolean flags
 The access pattern differs by class:
 
 ```cpp
-// EnvironmentOptions — via Environment pointer
+// EnvironmentOptions - via Environment pointer
 env->options()->experimental_foo
 
-// PerIsolateOptions — via Isolate data
+// PerIsolateOptions - via Isolate data
 isolate_data->options()->track_heap_objects
 
-// PerProcessOptions — via global singleton (requires mutex for post-init access)
+// PerProcessOptions - via global singleton (requires mutex for post-init access)
 Mutex::ScopedLock lock(per_process::cli_options_mutex);
 per_process::cli_options->per_isolate->per_env->experimental_foo
 
-// DebugOptions — nested inside EnvironmentOptions
+// DebugOptions - nested inside EnvironmentOptions
 env->options()->get_debug_options()->inspector_enabled
 ```
 
@@ -188,7 +188,7 @@ getOptionValue('--title');             // works for PerProcessOptions too
 
 Add a `setupXxx()` function called from `prepareExecution()`:
 
-**Pattern A — Default OFF (opt-in):**
+**Pattern A - Default OFF (opt-in):**
 
 ```javascript
 function setupFoo() {
@@ -200,7 +200,7 @@ function setupFoo() {
 }
 ```
 
-**Pattern B — Default ON (opt-out):**
+**Pattern B - Default ON (opt-out):**
 
 ```javascript
 function setupSQLite() {
@@ -268,7 +268,7 @@ static normalizeRequirableId(id) {
 }
 ```
 
-### `allowRequireByUsers()` — Runtime enablement
+### `allowRequireByUsers()` - Runtime enablement
 
 ```javascript
 static allowRequireByUsers(id) {
@@ -332,7 +332,7 @@ emitExperimentalWarning('foo');
 // ... module implementation ...
 ```
 
-No flag checking is needed in the entry point itself — all gating happens in
+No flag checking is needed in the entry point itself - all gating happens in
 the module resolution layer.
 
 ## Documentation
@@ -342,9 +342,9 @@ the module resolution layer.
 **IMPORTANT:** Both the subsection headings and the `NODE_OPTIONS` allowlist
 in `cli.md` must be in strict alphabetical order. Two tests enforce this:
 
-- `test/parallel/test-cli-node-options-docs.js` — verifies subsection headings
+- `test/parallel/test-cli-node-options-docs.js` - verifies subsection headings
   are alphabetically ordered
-- `test/parallel/test-process-env-allowed-flags-are-documented.js` — verifies
+- `test/parallel/test-process-env-allowed-flags-are-documented.js` - verifies
   the `NODE_OPTIONS` allowlist matches runtime flags and is sorted
 
 Both tests will fail if entries are out of order.
@@ -424,7 +424,7 @@ describe('foo gating', () => {
 | 8 | `doc/node.1` | Man page entry |
 | 9 | `test/parallel/` | Flag-enabled tests + flag-disabled gating test |
 
-Steps 3–5 apply specifically to module-gating flags. General-purpose flags
+Steps 3-5 apply specifically to module-gating flags. General-purpose flags
 (e.g., a new `PerProcessOptions` flag) only need steps 1, 2, 7, 8, 9.
 
 ## References

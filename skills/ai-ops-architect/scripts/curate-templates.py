@@ -21,6 +21,7 @@ Sources:
 Output: ~/.claude/skills/ai-ops-architect/templates/n8n/<cat>/<id>__<slug>.json + .meta.json
 """
 import concurrent.futures as cf
+import hashlib
 import json
 import os
 import re
@@ -30,7 +31,7 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
-ROOT = Path(os.path.expanduser("~/.claude/skills/ai-ops-architect/templates/n8n"))
+ROOT = Path(os.environ.get('AOA_TEMPLATES_ROOT') or (Path(__file__).resolve().parent.parent / 'templates' / 'n8n'))
 ROOT.mkdir(parents=True, exist_ok=True)
 
 # Category routing — first match wins. Names matter most; descriptions backfill.
@@ -138,7 +139,7 @@ def add_sticky_note(workflow_json, meta):
 
 
 def lint(wf_full, name, description):
-    if JUNK.match(name or ""):
+    if JUNK.match(str(name or '')):
         return False, "junk-name"
     if not description or len(description.strip()) < 30:
         return False, "weak-description"
@@ -222,8 +223,8 @@ def save_template(wid, name, description, full, source_label="n8n.io"):
     cat_dir = ROOT / cat
     cat_dir.mkdir(exist_ok=True)
     base = f"{wid}__{slug(name)}"
-    (cat_dir / f"{base}.json").write_text(json.dumps(wf_with_note, indent=2))
-    (cat_dir / f"{base}.meta.json").write_text(json.dumps(meta, indent=2))
+    (cat_dir / f"{base}.json").write_text(json.dumps(wf_with_note, indent=2), encoding='utf-8')
+    (cat_dir / f"{base}.meta.json").write_text(json.dumps(meta, indent=2), encoding='utf-8')
     return True, cat
 
 
@@ -344,8 +345,8 @@ def czlonkowski_backfill(seen_ids, deadline):
         # Adapt to our save shape: wrap in { "workflow": ... }.
         full = {"workflow": wf}
         # Generate a stable synthetic ID from the path
-        wid_synth = abs(hash(path)) % (10**8) + 100_000_000  # 9-digit, > n8n.io ids
-        name = wf.get("name") or path.rsplit("/", 1)[-1].replace(".json", "")
+        wid_synth = int(hashlib.sha1(path.encode('utf-8')).hexdigest()[:8], 16) % (10**8) + 100_000_000  # 9-digit, > n8n.io ids, stable across processes
+        name = str(wf.get('name') or path.rsplit('/', 1)[-1].replace('.json', ''))
         # Description from sticky note nodes (czlonkowski templates often have inline notes)
         desc = ""
         for n in wf.get("nodes", []):
@@ -414,6 +415,8 @@ def czlonkowski_backfill(seen_ids, deadline):
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
     seen_ids = existing_ids()
     print(f"Resume: {len(seen_ids)} templates already on disk", flush=True)
     started = time.time()

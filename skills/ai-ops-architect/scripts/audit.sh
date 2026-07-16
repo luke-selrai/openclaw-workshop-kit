@@ -4,17 +4,28 @@
 # for anything not auto-extractable, writes ~/.claude/skills/ai-ops-architect/.state/audit-result.json.
 #
 # Usage:
-#   bash audit.sh              # interactive
-#   bash audit.sh --reset      # wipe and re-ask everything
-#   bash audit.sh --update <field>   # update one field only
-#   bash audit.sh --auto       # extract from memory, mark missing as TBC, no prompts (for testing)
+#   bash audit.sh                    # interactive (direct-terminal use only — NOT for Claude)
+#   bash audit.sh --ingest <file>    # non-interactive: write the intake answers from a JSON file
+#                                    # (this is the path Claude uses — it collects the 8 answers
+#                                    #  conversationally, then persists them here. No TTY needed.)
+#   bash audit.sh --reset            # wipe and re-ask everything
+#   bash audit.sh --update <field> <value>   # change one saved answer (value JSON-parsed if structured)
+#   bash audit.sh --auto             # extract from memory, mark missing as TBC, no prompts (for testing)
+#
+# NOTE: the interactive mode below uses python input() and therefore REQUIRES a real TTY.
+# When Claude drives this skill there is no TTY, so Claude MUST use --ingest (see SKILL.md).
 
 set -eu
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 STATE="$ROOT/.state"
 OUT="$STATE/audit-result.json"
-MEMORY="$HOME/.claude/projects/-Users-$(whoami)/memory/MEMORY.md"
+# Memory auto-extract is best-effort. Honor a caller-set $MEMORY, else pick the newest project's
+# MEMORY.md. The old hardcoded macOS "-Users-<whoami>" slug was simply wrong on Windows (silently
+# dead). A glob is cross-platform (macOS + Windows git-bash).
+if [[ -z "${MEMORY:-}" ]]; then
+  MEMORY="$(ls -1t "$HOME"/.claude/projects/*/memory/MEMORY.md 2>/dev/null | head -1)"
+fi
 
 mkdir -p "$STATE"
 chmod 700 "$STATE"
@@ -27,27 +38,55 @@ if [[ "$MODE" == "--reset" ]]; then
   exit 0
 fi
 
-# Export to Python env so it can read MODE/STATE/MEMORY
-export STATE MEMORY MODE
+# --ingest <file>: non-interactive intake (the path Claude uses). Validate the file up front.
+INGEST_FILE=""
+if [[ "$MODE" == "--ingest" ]]; then
+  INGEST_FILE="${2:-}"
+  if [[ -z "$INGEST_FILE" || ! -f "$INGEST_FILE" ]]; then
+    echo "ERROR: --ingest requires a path to a JSON file of intake answers (got: '${INGEST_FILE:-<none>}')" >&2
+    echo "Write the 8 answers to a JSON file first, then: bash audit.sh --ingest /path/to/answers.json" >&2
+    exit 2
+  fi
+fi
 
-# Use Python for the heavy lifting — more readable than pure bash for JSON + prompts
-python3 <<'PYEOF'
+# --update <field> <value>: change one already-saved answer (non-interactive, Claude-friendly).
+UPDATE_FIELD=""
+UPDATE_VALUE=""
+if [[ "$MODE" == "--update" ]]; then
+  UPDATE_FIELD="${2:-}"
+  UPDATE_VALUE="${3:-}"
+  if [[ -z "$UPDATE_FIELD" ]]; then
+    echo "ERROR: --update needs a field and a value: bash audit.sh --update <field> <value>" >&2
+    exit 2
+  fi
+fi
+
+# Export to Python env so it can read MODE/STATE/MEMORY/INGEST_FILE/UPDATE_*
+export STATE MEMORY MODE INGEST_FILE UPDATE_FIELD UPDATE_VALUE
+
+# Use Python for the heavy lifting — more readable than pure bash for JSON + prompts.
+# PYTHONUTF8=1 (UTF-8 Mode) forces utf-8 for BOTH stdout and file I/O (read_text/write_text),
+# so the ✓ / box / arrow glyphs don't crash, and reading memory/JSON never mojibakes on Windows cp1252.
+PYTHONUTF8=1 python3 <<'PYEOF'
 import json, os, re, sys
 from pathlib import Path
 
 state = Path(os.environ.get("STATE", os.path.expanduser("~/.claude/skills/ai-ops-architect/.state")))
 out = state / "audit-result.json"
-mem_path = Path(os.environ.get("MEMORY", os.path.expanduser(f"~/.claude/projects/-Users-{os.getlogin()}/memory/MEMORY.md")))
+_mem = os.environ.get("MEMORY", "")
+mem_path = Path(_mem) if _mem else None
 mode = os.environ.get("MODE", "interactive")
 
-# Load existing audit if present (for --update flow); otherwise start fresh
+# Load existing audit if present (every mode benefits: --update changes one field of eight,
+# --ingest/--auto merge over it). The old `"--update" not in sys.argv` token was dead (never in a
+# heredoc's argv) — unconditional-when-present is the real, correct behavior.
 audit = {}
-if out.exists() and "--update" not in sys.argv:
+if out.exists():
     audit = json.loads(out.read_text())
 
 # ── AUTO-EXTRACT FROM MEMORY ──────────────────────────────────────────
 mem_text = ""
-if mem_path.exists():
+if mem_path and mem_path.exists():
     mem_text = mem_path.read_text(errors="ignore")
 
 def extract_industry(text):
@@ -117,10 +156,82 @@ def ask(prompt, default=None, options=None):
     ans = input(f"{prompt}{suffix} > ").strip()
     return ans or default
 
+REQUIRED = ["industry", "team_size", "tools", "pains", "volume", "tech_comfort", "budget", "north_star"]
+
+# Expected python type per field — coerce --ingest values and validate --update values against this.
+SHAPE = {"industry": str, "team_size": str, "budget": str, "north_star": str,
+         "tools": dict, "volume": dict, "pains": list, "tech_comfort": int}
+
+def coerce_field(field, value):
+    want = SHAPE.get(field)
+    if want is None:
+        return True, value
+    if want is int:
+        try:
+            return True, int(value)
+        except (TypeError, ValueError):
+            return False, value
+    if want is list:
+        if isinstance(value, list):
+            return True, value
+        if isinstance(value, str) and value.strip():
+            return True, [value]          # wrap a single answer into a one-item list
+        return False, value
+    if want is dict:
+        return isinstance(value, dict), value
+    return True, value if isinstance(value, str) else str(value)
+
+def as_int(v, default):
+    try:
+        return int(str(v).strip())
+    except (ValueError, TypeError):
+        return int(default)
+
 if mode == "--auto":
     # In auto mode, just write whatever we have and mark gaps as TBC
-    for k in ["industry", "team_size", "tools", "pains", "volume", "tech_comfort", "budget", "north_star"]:
+    for k in REQUIRED:
         audit.setdefault(k, "TBC")
+elif mode == "--ingest":
+    # Non-interactive intake (the Claude path). Read the answers JSON and merge it over
+    # anything auto-extracted from memory — the user's explicit answers win.
+    ingest_file = os.environ.get("INGEST_FILE", "")
+    try:
+        payload = json.loads(Path(ingest_file).read_text())
+    except Exception as e:
+        sys.stderr.write(f"ERROR: could not read/parse --ingest file {ingest_file!r}: {e}\n")
+        sys.exit(2)
+    if not isinstance(payload, dict):
+        sys.stderr.write("ERROR: --ingest JSON must be an object of {field: answer}\n")
+        sys.exit(2)
+    for k, v in payload.items():
+        if v in (None, "", []):
+            continue
+        ok, cv = coerce_field(k, v)
+        audit[k] = cv if ok else v   # keep original on failed coercion; recommend.sh stays defensive
+    # Any of the 8 the caller didn't supply (and memory couldn't fill) get marked TBC,
+    # and we tell the caller which — so Claude can ask the user before recommending.
+    missing = [k for k in REQUIRED if not audit.get(k)]
+    for k in missing:
+        audit[k] = "TBC"
+    if missing:
+        sys.stderr.write("NOTE: marked TBC (not supplied): " + ", ".join(missing) + "\n")
+elif mode == "--update":
+    # Change one already-saved field. Value comes from argv via env (Claude-friendly, no TTY).
+    field = os.environ.get("UPDATE_FIELD", "")
+    raw_val = os.environ.get("UPDATE_VALUE", "")
+    if field not in REQUIRED:
+        sys.stderr.write(f"ERROR: unknown field {field!r}. One of: {', '.join(REQUIRED)}\n")
+        sys.exit(2)
+    # Parse the value as JSON when structured (numbers, tools/volume dicts); else keep the string.
+    try:
+        parsed = json.loads(raw_val)
+    except Exception:
+        parsed = raw_val
+    ok, coerced = coerce_field(field, parsed)
+    if not ok:
+        sys.stderr.write(f"ERROR: {field} must be a {SHAPE[field].__name__}; got {parsed!r}\n")
+        sys.exit(2)
+    audit[field] = coerced
 elif mode != "--update":
     # Interactive flow — ask only for fields we don't have
     print("\n═══════════════════════════════════════════════════════════")
@@ -165,11 +276,11 @@ elif mode != "--update":
         leads = ask("5a. New leads per month?", default="50")
         txns = ask("5b. Transactions per month?", default="20")
         msgs = ask("5c. Internal messages/tasks per day?", default="20")
-        audit["volume"] = {"leads_per_month": int(leads or 0), "transactions_per_month": int(txns or 0), "messages_per_day": int(msgs or 0)}
+        audit["volume"] = {"leads_per_month": as_int(leads, 0), "transactions_per_month": as_int(txns, 0), "messages_per_day": as_int(msgs, 0)}
 
     if not audit.get("tech_comfort"):
         tc = ask("6. Technical comfort (1-5)?", default="3")
-        audit["tech_comfort"] = int(tc or 3)
+        audit["tech_comfort"] = as_int(tc, 3)
 
     if not audit.get("budget"):
         audit["budget"] = ask("7. Monthly tools budget?",

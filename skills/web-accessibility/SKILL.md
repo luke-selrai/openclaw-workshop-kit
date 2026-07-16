@@ -450,7 +450,7 @@ describe('AccessibleButton', () => {
    - e.g., "Click red item" → "Click ⚠️ Error item"
 
 
-For full working implementations see **[references/examples.md](references/examples.md)** — Accessible Form (React with validation, ARIA live regions, error handling) and Accessible Tab UI (keyboard navigation, focus management, ARIA roles).
+For full working implementations see **[references/examples.md](references/examples.md)** - Accessible Form (React with validation, ARIA live regions, error handling) and Accessible Tab UI (keyboard navigation, focus management, ARIA roles).
 
 ## Best practices
 
@@ -479,10 +479,6 @@ For full working implementations see **[references/examples.md](references/examp
 - **Current Version**: 1.0.0
 - **Last Updated**: 2025-01-01
 - **Compatible Platforms**: Claude, ChatGPT, Gemini
-
-### Related Skills
-- [ui-component-patterns](../ui-component-patterns/SKILL.md): UI component implementation
-- [responsive-design](../responsive-design/SKILL.md): Responsive design
 
 ### Tags
 `#accessibility` `#a11y` `#WCAG` `#ARIA` `#screen-reader` `#keyboard-navigation` `#frontend`

@@ -8,8 +8,6 @@ metadata:
   pairs-with:
   - skill: diagramming-expert
     reason: Visual documentation
-  - skill: seo-visibility-expert
-    reason: SEO for technical docs
   tags:
   - documentation
   - readme

@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.0] - 2024-01-XX
+## [2.0.0] - 2026-03-17
 
 ### Changed
 - **BREAKING**: Restructured from monolithic 624-line file to progressive disclosure architecture

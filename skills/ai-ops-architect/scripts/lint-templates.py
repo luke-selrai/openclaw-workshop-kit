@@ -11,21 +11,24 @@ Usage:
     lint-templates.py --label           # add "schema_only": true to .meta.json
 """
 import json
+import os
 import sys
 from pathlib import Path
 
-ROOT = Path("~/.claude/skills/ai-ops-architect/templates/n8n").expanduser()
+ROOT = Path(os.environ.get('AOA_TEMPLATES_ROOT') or (Path(__file__).resolve().parent.parent / 'templates' / 'n8n'))
 
 
 def is_skeleton(wf_path):
     try:
-        wf = json.loads(wf_path.read_text())
+        wf = json.loads(wf_path.read_text(encoding='utf-8'))
     except (json.JSONDecodeError, OSError):
         return None, "unreadable"
     nodes = wf.get("nodes", []) if isinstance(wf, dict) else []
+    # Drop the curator-injected sticky-note/header node before computing the ratio.
+    nodes = [n for n in nodes if n.get("type") != "n8n-nodes-base.stickyNote"]
     if not nodes:
         return True, "no nodes"
-    real = sum(1 for n in nodes if n.get("type") and n.get("type") != "")
+    real = sum(1 for n in nodes if n.get("type") and n.get("parameters"))
     pct = real / len(nodes)
     if pct < 0.5:
         return True, f"{real}/{len(nodes)} nodes typed ({pct*100:.0f}%)"
@@ -33,6 +36,8 @@ def is_skeleton(wf_path):
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
     mode = "report"
     if "--remove" in sys.argv:
         mode = "remove"
@@ -80,10 +85,10 @@ def main():
         elif mode == "label":
             if meta.exists():
                 try:
-                    m = json.loads(meta.read_text())
+                    m = json.loads(meta.read_text(encoding='utf-8'))
                     m["schema_only"] = True
                     m["lint_reason"] = reason
-                    meta.write_text(json.dumps(m, indent=2))
+                    meta.write_text(json.dumps(m, indent=2), encoding='utf-8')
                     print(f"  LABELLED {cat}/{name}")
                 except json.JSONDecodeError:
                     pass

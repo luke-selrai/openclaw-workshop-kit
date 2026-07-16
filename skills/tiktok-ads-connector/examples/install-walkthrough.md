@@ -1,4 +1,4 @@
-# TikTok Ads Connector — Install Walkthrough
+# TikTok Ads Connector - Install Walkthrough
 
 > **Status: design-pending-smoke (lower confidence than other Tier-1 walkthroughs).** Authored from documented TikTok Marketing API v1.3 behaviour at design time; TikTok's developer-portal docs are JavaScript-rendered SPAs that WebFetch can't read, so specific UI selectors and exact button copy are projected, not verified. The auth header (`Access-Token: <token>`), base URL, and OAuth flow shape are high-confidence (well-documented in TikTok's API reference). UI navigation specifics will likely need adjustment after the first real smoke.
 
@@ -15,7 +15,7 @@ Projected total: ~90 seconds with cached session; ~3-4 minutes cold (TikTok For 
 
 ---
 
-## Step 0 — Mode prompt
+## Step 0 - Mode prompt
 
 ```
 Participant: Connect TikTok Ads.
@@ -33,13 +33,13 @@ Participant: Test mode.
 
 ---
 
-## Step 1 — Welcome
+## Step 1 - Welcome
 
 Claude sends the 3-bullet expectation message.
 
 ---
 
-## Step 2 — Sign in to TikTok For Business Developer Portal
+## Step 2 - Sign in to TikTok For Business Developer Portal
 
 ```
 mcp__playwright__browser_navigate({ url: "https://business-api.tiktok.com/portal/docs" })
@@ -52,7 +52,7 @@ For cold sign-up: TikTok For Business may require email verification + phone con
 
 ---
 
-## Step 3 — Create App
+## Step 3 - Create App
 
 Projected: existing `Claude Workshop Connector` not found, Claude clicks **New App** / **Create App**.
 
@@ -69,7 +69,7 @@ Submit. TikTok issues `app_id` (~7-19 digit numeric) and `secret` (~40-64 alphan
 
 ---
 
-## Step 4 — DOM-extract app_id and secret
+## Step 4 - DOM-extract app_id and secret
 
 Save prior clipboard, then:
 
@@ -81,13 +81,13 @@ Projected lengths typical of TikTok dev apps. Clipboard holds `{"app_id":"...","
 
 ---
 
-## Step 5 — Start loopback listener
+## Step 5 - Start loopback listener
 
 Port 8765 default; auto-increment if taken. Listener accepts either `code` or `auth_code` query parameter (TikTok uses both depending on flow variant).
 
 ---
 
-## Step 6 — OAuth consent
+## Step 6 - OAuth consent
 
 Construct AUTH_URL with `app_id`, `state` (random), `redirect_uri`. Navigate Playwright.
 
@@ -95,7 +95,7 @@ Projected: consent screen renders ("Authorize Claude Workshop Connector to acces
 
 ---
 
-## Step 7 — Token exchange
+## Step 7 - Token exchange
 
 ```bash
 curl -X POST https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/ \
@@ -117,17 +117,17 @@ Projected response:
 }
 ```
 
-`advertiser_ids` are returned directly — no separate discovery call. For Sandbox mode, expect 1 auto-provisioned ID.
+`advertiser_ids` are returned directly - no separate discovery call. For Sandbox mode, expect 1 auto-provisioned ID.
 
 ---
 
-## Step 8 — Pick advertiser
+## Step 8 - Pick advertiser
 
 Single advertiser → silently pick. Multiple → ask participant. `ADVERTISER_ID="<chosen>"`.
 
 ---
 
-## Step 9 — Save credentials.json
+## Step 9 - Save credentials.json
 
 ```bash
 $ jq -r 'keys | join(",")' ~/.config/tiktok-ads/credentials.json
@@ -140,7 +140,7 @@ Mode 0600; `umask 077` before mkdir as defense-in-depth.
 
 ---
 
-## Step 10 — Smoke test
+## Step 10 - Smoke test
 
 ```bash
 $ curl -sf "https://business-api.tiktok.com/open_api/v1.3/advertiser/info/?advertiser_ids=[\"<adv>\"]" \
@@ -151,7 +151,7 @@ Sandbox Advertiser
 Claude tells the participant:
 
 ```
-Claude: All connected — your TikTok Ads Sandbox Advertiser is ready.
+Claude: All connected - your TikTok Ads Sandbox Advertiser is ready.
         Ask me things like 'what's my TikTok spend this month?' or
         'show me my top campaigns'.
 ```
@@ -191,13 +191,13 @@ Claude:      You've spent $1,247 on TikTok Ads so far this month
 
 ---
 
-## Failure modes anticipated from design review (lower confidence — verify at first smoke)
+## Failure modes anticipated from design review (lower confidence - verify at first smoke)
 
 | Failure | Possible cause | Fix |
 |---|---|---|
 | Step 2 `browser_wait_for("Apps")` times out | TikTok For Business sign-up flow blocks at email/phone verification | Prompt participant to complete verification; re-poll |
 | Step 3 form fields don't match | TikTok's developer portal UI was redesigned post-design-time | Snapshot the form, adjust selectors |
-| Step 4 returns `{ ok: false }` | TikTok's credential display widget is in a non-standard container (e.g., tooltip, copy-button only) | Tell participant: "Could you copy your App ID and Secret manually — they're on the App overview page" |
+| Step 4 returns `{ ok: false }` | TikTok's credential display widget is in a non-standard container (e.g., tooltip, copy-button only) | Tell participant: "Could you copy your App ID and Secret manually - they're on the App overview page" |
 | Step 6 auth_code redirect uses different param name | TikTok's auth-code flow has shipped variants (`code` vs `auth_code`) | Listener already accepts both; verify which TikTok sends in the smoke |
 | Step 7 returns `code: 40002` "invalid app_id" | App still propagating server-side | Wait 30s, retry once |
 | Step 7 `advertiser_ids` empty | Sandbox advertiser didn't auto-provision | Drive Playwright to create one manually; or surface the issue to the participant |

@@ -12,7 +12,7 @@ Consume published bare RN AAR in host Android app and verify runtime rendering.
 
 ```kotlin
 // settings.gradle.kts
-repositories { mavenLocal() }
+dependencyResolutionManagement { repositories { mavenLocal() } }
 
 // app/build.gradle.kts
 dependencies { implementation("<groupId>:<artifactId>:<version>") }
@@ -51,7 +51,6 @@ ReactNativeHostManager.initialize(this.application) {
 
 4. Render RN UI:
    - `ReactNativeFragment.createReactNativeFragment("<registered_module_name>")`
-   - or `ReactNativeBrownfield.shared.createView(...)`
 5. Verify host app resolves dependency and RN module renders.
 
 ## Stop Conditions

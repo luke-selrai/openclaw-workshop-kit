@@ -111,7 +111,7 @@ function ForwardMessageDialog() {
 }
 
 function ForwardButton() {
-  const { actions } = use(Composer.Context)
+  const { actions } = use(ComposerContext)
   return <Button onPress={actions.submit}>Forward</Button>
 }
 ```
@@ -122,4 +122,4 @@ component, it can still access the composer's state and actions from outside the
 UI itself.
 
 **Key insight:** Components that need shared state don't have to be visually
-nested inside each other—they just need to be within the same provider.
+nested inside each other-they just need to be within the same provider.

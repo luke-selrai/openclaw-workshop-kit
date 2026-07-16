@@ -18,9 +18,7 @@
     "smb",
     "audit"
   ],
-  "skills": "./skills",
   "agents": "./agents",
-  "commands": "./commands",
   "_meta": {
     "depends_on_skills": ["n8n", "managed-agents-setup"],
     "depends_on_binaries": ["claude", "python3", "bash", "jq", "gh"],
@@ -32,6 +30,11 @@
       "0-preflight", "1-intake", "2-audit", "3-select",
       "4-route", "5-build", "6-connect", "7-handoff"
     ],
+    "categories": ["lead-capture", "email-automation", "crm-sync", "ecommerce", "social-media",
+      "content-pipeline", "ops-monitoring", "finance-invoicing", "ai-agents", "data-sync",
+      "support-helpdesk", "industry-specific"],
+    "verticals": ["real-estate", "trades", "coaches", "consultants", "ecommerce", "agencies",
+      "professional-services", "hospitality", "creators", "cross"],
     "publishing": {
       "current": "private",
       "workshop_release_gate": "quality-bar must pass before mirror to workshop org"

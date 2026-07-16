@@ -50,9 +50,9 @@ done
 # AC3 — presets canonical file
 PRESETS="$ROOT/references/business-outcome-presets.json"
 if [[ -s "$PRESETS" ]]; then
-    AC3_OUT=$(python3 - <<PY
-import json, sys
-d = json.load(open("$PRESETS"))
+    AC3_OUT=$(PRESETS="$PRESETS" python3 - <<'PY'
+import json, os, sys
+d = json.load(open(os.environ["PRESETS"], encoding="utf-8"))
 if isinstance(d, list):
     presets = d
 elif isinstance(d, dict):
@@ -82,7 +82,7 @@ else
 fi
 
 # AC4 — runtime smoke probe (only if API key exists)
-if [[ -n "${ANTHROPIC_API_KEY:-}" ]] || security find-generic-password -a "$USER" -s "anthropic-managed-agents" -w >/dev/null 2>&1; then
+if [[ -n "${ANTHROPIC_API_KEY:-}" ]] || security find-generic-password -a "${USER:-$(id -un)}" -s "anthropic-managed-agents" -w >/dev/null 2>&1; then
     if bash "$ROOT/scripts/smoke-test.sh" >/dev/null 2>&1; then
         ok "AC4 smoke-test.sh exit 0"
     else
@@ -100,9 +100,15 @@ if [[ "$SKILL_LINES" -le 200 ]]; then
 else
     warn "AC5 SKILL.md is $SKILL_LINES lines (>200 — slim further)"
 fi
-[[ -f "$HOME/.claude/agents/managed-agents-setup.md" ]] && ok "AC5 driver agent present" || fail "AC5 driver agent missing"
+if [[ -f "$ROOT/agents/managed-agents-setup.md" ]]; then
+    ok "AC5 driver agent present (bundled)"
+elif [[ -f "$HOME/.claude/agents/managed-agents-setup.md" ]]; then
+    ok "AC5 driver agent present (~/.claude/agents)"
+else
+    warn "AC5 driver agent not found in bundle or ~/.claude/agents (installed on first run)"
+fi
 [[ -f "$ROOT/INSTALL.md" ]] && ok "AC5 INSTALL.md present" || fail "AC5 INSTALL.md missing"
-[[ -f "$ROOT/plugin.json" ]] && ok "AC5 plugin.json present" || fail "AC5 plugin.json missing"
+[[ -f "$ROOT/.claude-plugin/plugin.json" ]] && ok "AC5 plugin.json present" || fail "AC5 plugin.json missing"
 [[ -f "$ROOT/references/handoff-template.md" ]] && ok "AC5 handoff template present" || fail "AC5 handoff template missing"
 
 echo

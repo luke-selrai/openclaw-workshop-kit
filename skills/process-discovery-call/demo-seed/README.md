@@ -1,10 +1,10 @@
 # Demo Seed Data
 
-Files needed to initialise the process-discovery-call demo. This is a synthetic example — a fictional prospect ("Tom Calleia" at "Ridgeline Industrial") so you can rehearse the workflow end-to-end before pointing it at a real call.
+Files needed to initialise the process-discovery-call demo. This is a synthetic example - a fictional prospect ("Tom Calleia" at "Ridgeline Industrial") so you can rehearse the workflow end-to-end before pointing it at a real call.
 
 ## Files
 
-- `tom_calleia_transcript.txt` — synthetic discovery call transcript. Wall of text, timestamps `MM:SS`, no speaker labels. ~8KB.
+- `tom_calleia_transcript.txt` - synthetic discovery call transcript. Wall of text, timestamps `MM:SS`, no speaker labels. ~8KB.
 
 ## How to initialise the demo
 
@@ -30,7 +30,7 @@ Files needed to initialise the process-discovery-call demo. This is a synthetic 
 
 The skill will: find the Drive transcript → populate ~10 custom fields on the contact → add a discovery note to the opportunity → move stage from New Lead → Discovery call → draft a follow-up email in Gmail → reply on Telegram with a TL;DR.
 
-## After the demo — clean-up
+## After the demo - clean-up
 
 - Delete GHL opportunity, then contact (DELETE `/opportunities/{id}` and `/contacts/{id}`)
 - Delete Drive doc

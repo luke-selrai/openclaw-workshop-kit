@@ -14,7 +14,7 @@ Answer 3 questions. Done in ~10 minutes. You'll have: API key stored in Mac keyc
 
 ## What's in here
 
-### `scripts/` — executable
+### `scripts/` - executable
 | Script | What it does |
 |--------|--------------|
 | `install-everything.sh` | Single-command TUI. Wraps every prereq + connector wizard. Start here. |
@@ -42,10 +42,10 @@ Answer 3 questions. Done in ~10 minutes. You'll have: API key stored in Mac keyc
 | `install-log-lib.sh` | Shared logging helper (sourced by other scripts) |
 | `smoke-test.sh` | End-to-end verification |
 
-### `references/` — data + docs
+### `references/` - data + docs
 | File | What it has |
 |------|-------------|
-| `agent-templates.json` | 9 general presets: general, rube-universal, rube-headless, ghl-sales, content-creator, ops-monitor, research-assistant, supabase-dba, multi-agent-coordinator |
+| `agent-templates.json` | 8 general presets: general, rube-universal, rube-headless, ghl-sales, content-creator, ops-monitor, research-assistant, supabase-dba |
 | `business-outcome-presets.json` | 7 Aussie small-business presets (real estate, coach, trades, consultant, e-com, IG content, bookkeeper). The **workshop moat**. |
 | `environment-templates.json` | 4 env presets (primary, full-stack, locked-down, content-engine) |
 | `mcp-servers-catalog.md` | Remote MCP directory with Rube vs direct guidance |
@@ -63,15 +63,15 @@ Driver agent that reads SKILL.md and walks the 10 phases.
 - **Vaults** store credentials. One per agent role recommended. Credentials never touch the sandbox.
 - **Rube (Composio)** = one connection, 500+ services. Default for workshop attendees.
 - **Routines** = Claude Code scheduled tasks, 1hr minimum. NOT Managed Agents.
-- **Three schedulers exist** (Routines / Desktop / `/loop`) — don't conflate.
+- **Three schedulers exist** (Routines / Desktop / `/loop`) - don't conflate.
 
 ## Safety guardrails
 
-- `killswitch.sh` — interrupt all running sessions in one command
-- `reset-managed-agents.sh` — nuke everything the skill created
-- Workspace spend cap — set at platform.claude.com/settings/billing
-- `daily-cost-monitor.py` — deployed as Routine, pings Telegram on overrun
-- `rotate.sh` — quick credential rotation when tokens expire
+- `killswitch.sh` - interrupt all running sessions in one command
+- `reset-managed-agents.sh` - nuke everything the skill created
+- Workspace spend cap - set at platform.claude.com/settings/billing
+- `daily-cost-monitor.py` - deployed as Routine, pings Telegram on overrun
+- `rotate.sh` - quick credential rotation when tokens expire
 
 ## Architecture
 

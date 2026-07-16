@@ -1,6 +1,6 @@
 ---
 name: docusign-connector
-description: "Connect and operate DocuSign eSignature on the user's behalf via the official DocuSign eSignature REST API at `demo.docusign.net/restapi/v2.1` (sandbox) or `<base_uri>/restapi/v2.1` (production). Phase 1 is a 7-step Playwright-driven install: drive `admindemo.docusign.com/api-integrator-key` to create an Integration Key, DOM-extract the key, generate + capture a Secret Key from the one-time-reveal modal, register `http://localhost:8080/callback` as the Redirect URI, save, then drive DocuSign's OAuth Authorization Code Grant + PKCE flow with a local-listener exchange — the user signs in once, Claude auto-clicks Allow on the consent screen, the listener captures the code and exchanges it for an access token + 30-day refresh token in sub-second latency, and writes both into `~/.claude.json`. No DocuSign hosted MCP server is involved — DocuSign's `mcp.docusign.com` gateway rejects the OAuth-issued tokens (empirical finding 2026-05-05, issue #213). Phase 2 calls DocuSign's REST API directly via Bash + `curl`, with auto-refresh logic that mints a new access token when the current one 401s, transparently to the user. Use this skill when the user asks to set up DocuSign, send envelopes, manage templates, view envelope status, void contracts, list recipients, or interact with eSignature workflows."
+description: "Connect and operate DocuSign eSignature on the user's behalf via the official DocuSign eSignature REST API at `demo.docusign.net/restapi/v2.1` (sandbox) or `<base_uri>/restapi/v2.1` (production). Phase 1 is a 7-step Playwright-driven install: drive `admindemo.docusign.com/api-integrator-key` to create an Integration Key, DOM-extract the key, generate + capture a Secret Key from the one-time-reveal modal, register `http://localhost:8080/callback` as the Redirect URI, save, then drive DocuSign's OAuth Authorization Code Grant + PKCE flow with a local-listener exchange - the user signs in once, Claude auto-clicks Allow on the consent screen, the listener captures the code and exchanges it for an access token + 30-day refresh token in sub-second latency, and writes both into `~/.claude.json`. No DocuSign hosted MCP server is involved - DocuSign's `mcp.docusign.com` gateway rejects the OAuth-issued tokens (empirical finding 2026-05-05, issue #213). Phase 2 calls DocuSign's REST API directly via Bash + `curl`, with auto-refresh logic that mints a new access token when the current one 401s, transparently to the user. Use this skill when the user asks to set up DocuSign, send envelopes, manage templates, view envelope status, void contracts, list recipients, or interact with eSignature workflows."
 allowed-tools: mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Documents & Signing
@@ -28,25 +28,25 @@ metadata:
 
 ## Overview
 
-This skill lets you read and update a user's DocuSign account on their behalf — envelopes, templates, recipients, and account settings — by calling DocuSign's official **eSignature REST API** at `demo.docusign.net/restapi/v2.1` (sandbox) or the user's `<base_uri>/restapi/v2.1` (production). Two phases:
+This skill lets you read and update a user's DocuSign account on their behalf - envelopes, templates, recipients, and account settings - by calling DocuSign's official **eSignature REST API** at `demo.docusign.net/restapi/v2.1` (sandbox) or the user's `<base_uri>/restapi/v2.1` (production). Two phases:
 
-- **Phase 1 — Install & Auth (autonomous, 7 numbered steps).** Claude drives the DocuSign developer portal end-to-end: opens `admindemo.docusign.com/api-integrator-key` in a Playwright MCP browser, creates an app named `Selr AI Assistant`, auto-extracts the Integration Key from the DOM, generates a Secret Key and captures it from the one-time-reveal modal before close, adds a Redirect URI, saves, spins up a local Node listener on `:8080`, opens DocuSign's OAuth start URL in Playwright, the user signs in (the only manual moment), Claude auto-clicks Allow on the consent screen, the listener captures the authorization code and immediately exchanges it for an access token + refresh token (60-second code expiry — the listener+exchange-in-one-script pattern is required here), and writes both tokens + Account ID + Base URI into `~/.claude.json` `mcpServers.docusign.env` for Phase 2's REST calls to read.
-- **Phase 2 — Use Tools.** Once the connector is configured, Claude calls DocuSign's eSignature REST API directly via Bash + `curl`. No MCP server is registered — DocuSign's hosted `mcp.docusign.com` gateway rejects the OAuth-issued tokens (empirical finding 2026-05-05, [issue #213](https://github.com/selrai-company/claude-workshop-kit/issues/213)). Each "tool" in Phase 2 is a documented `curl` invocation pattern that Claude composes against the REST API; the SKILL handles auto-refresh (refresh token → new access token, write back to `~/.claude.json`) when the current access token 401s.
+- **Phase 1 - Install & Auth (autonomous, 7 numbered steps).** Claude drives the DocuSign developer portal end-to-end: opens `admindemo.docusign.com/api-integrator-key` in a Playwright MCP browser, creates an app named `Selr AI Assistant`, auto-extracts the Integration Key from the DOM, generates a Secret Key and captures it from the one-time-reveal modal before close, adds a Redirect URI, saves, spins up a local Node listener on `:8080`, opens DocuSign's OAuth start URL in Playwright, the user signs in (the only manual moment), Claude auto-clicks Allow on the consent screen, the listener captures the authorization code and immediately exchanges it for an access token + refresh token (60-second code expiry - the listener+exchange-in-one-script pattern is required here), and writes both tokens + Account ID + Base URI into `~/.claude.json` `mcpServers.docusign.env` for Phase 2's REST calls to read.
+- **Phase 2 - Use Tools.** Once the connector is configured, Claude calls DocuSign's eSignature REST API directly via Bash + `curl`. No MCP server is registered - DocuSign's hosted `mcp.docusign.com` gateway rejects the OAuth-issued tokens (empirical finding 2026-05-05, [issue #213](https://github.com/selrai-company/claude-workshop-kit/issues/213)). Each "tool" in Phase 2 is a documented `curl` invocation pattern that Claude composes against the REST API; the SKILL handles auto-refresh (refresh token → new access token, write back to `~/.claude.json`) when the current access token 401s.
 
-**Which phase to run** — Before any tool call, check whether the DocuSign credentials are already provisioned. Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.docusign.env.DS_REFRESH_TOKEN` entry. If present, run a verification REST call (Phase 1 Step 7). If it succeeds (or 401s and a refresh-token rotation succeeds), the connector is ready — skip to Phase 2. If the refresh-token rotation 400s (expired after 30 days), walk Phase 1 from Step 5 (re-OAuth; the Integration Key + Secret are still in `~/.claude.json` env, no portal trip needed).
+**Which phase to run** - Before any tool call, check whether the DocuSign credentials are already provisioned. Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.docusign.env.DS_REFRESH_TOKEN` entry. If present, run a verification REST call (Phase 1 Step 7). If it succeeds (or 401s and a refresh-token rotation succeeds), the connector is ready - skip to Phase 2. If the refresh-token rotation 400s (expired after 30 days), walk Phase 1 from Step 5 (re-OAuth; the Integration Key + Secret are still in `~/.claude.json` env, no portal trip needed).
 
 ### Prerequisites the user must already have
 
 Phase 1 fails cleanly but cannot proceed without these. Surface them in Step 1 before opening Playwright so the user can fix the gap before any browser opens.
 
-- **A DocuSign Developer Account** at `https://developers.docusign.com/sandbox` (free, ~5 minutes to create — DocuSign sends a 6-digit email verification code, then asks for SMS phone verification). The sandbox uses `account-d.docusign.com` for sign-in and `demo.docusign.net` for the REST API base URI. **All workshop attendees should start with the sandbox** — production migration is a v2 concern.
+- **A DocuSign Developer Account** at `https://developers.docusign.com/sandbox` (free, ~5 minutes to create - DocuSign sends a 6-digit email verification code, then asks for SMS phone verification). The sandbox uses `account-d.docusign.com` for sign-in and `demo.docusign.net` for the REST API base URI. **All workshop attendees should start with the sandbox** - production migration is a v2 concern.
 - **Phone number** the user can receive SMS on for one-time identity verification during account creation. Cannot be skipped.
 - **Authority to install third-party apps** on their DocuSign account. Personal Developer accounts can self-approve; enterprise sandbox accounts may require admin allowlisting (rare for sandbox, common in production).
-- **Local port 8080 available** for the OAuth callback listener. If another process holds 8080 (uncommon but possible — a dev server, another OAuth flow), Phase 1 fails fast at Step 5 with a clean message; the user can free the port or the SKILL can be patched to use a different port (the registered Redirect URI in Step 4 must match).
+- **Local port 8080 available** for the OAuth callback listener. If another process holds 8080 (uncommon but possible - a dev server, another OAuth flow), Phase 1 fails fast at Step 5 with a clean message; the user can free the port or the SKILL can be patched to use a different port (the registered Redirect URI in Step 4 must match).
 
 ### What this skill does NOT use
 
-- **DocuSign's hosted MCP server (`mcp.docusign.com`).** The hosted MCP gateway rejects DocuSign-issued OAuth Authorization Code Grant access tokens with `401 Jwt payload is an invalid JSON` — DocuSign's MT-format access tokens have a proprietary binary payload, not the JSON-payload JWT the gateway parser expects. Empirical finding 2026-05-05, tracked in issue #213. This SKILL bypasses the broken gateway entirely and calls REST API directly.
+- **DocuSign's hosted MCP server (`mcp.docusign.com`).** The hosted MCP gateway rejects DocuSign-issued OAuth Authorization Code Grant access tokens with `401 Jwt payload is an invalid JSON` - DocuSign's MT-format access tokens have a proprietary binary payload, not the JSON-payload JWT the gateway parser expects. Empirical finding 2026-05-05, tracked in issue #213. This SKILL bypasses the broken gateway entirely and calls REST API directly.
 - **JWT Grant / RSA keypair.** That's a separate auth flow (server-to-server, no per-user consent). This SKILL uses Authorization Code Grant + PKCE because it's user-interactive and matches the workshop attendee's mental model (sign in once, like every other connector).
 - **Composio / Rube MCP / any third-party aggregator.** All credentials and tokens stay on the user's local machine (`~/.claude.json` env block). No SaaS middleman holds the user's DocuSign access.
 - **DocuSign API tokens / personal access tokens.** DocuSign does not offer a personal-access-token model for the eSignature REST API. Auth is OAuth 2.0 Authorization Code Grant + PKCE only.
@@ -68,25 +68,25 @@ Verified live 2026-05-04 against `https://mcp-d.docusign.com/.well-known/oauth-a
 
 Standard OAuth 2.0 Authorization Code Grant with PKCE S256. Practical implications for the SKILL:
 
-- **DocuSign auth codes expire in ~60 seconds.** Don't accept the code in one step and exchange it in another — race the user. The SKILL spins up a local listener that captures the code AND immediately exchanges it for a token in the same Node process (sub-second latency).
+- **DocuSign auth codes expire in ~60 seconds.** Don't accept the code in one step and exchange it in another - race the user. The SKILL spins up a local listener that captures the code AND immediately exchanges it for a token in the same Node process (sub-second latency).
 - **Access tokens last 8 hours; refresh tokens last 30 days.** The SKILL stores both in `~/.claude.json` `env` and auto-refreshes the access token when REST calls return 401.
-- **Token scope is `signature` only** for the workshop default — minimum permission per DocuSign's eSignature REST API docs. Broader scopes (`click.manage`, `webforms_manage`, `notary_*`, etc.) are out of scope for v1.
-- **Redirect URI is `http://localhost:8080/callback`** — registered by Phase 1 Step 4 against the user's Integration Key. DocuSign accepts `http://localhost` for sandbox; production requires HTTPS.
+- **Token scope is `signature` only** for the workshop default - minimum permission per DocuSign's eSignature REST API docs. Broader scopes (`click.manage`, `webforms_manage`, `notary_*`, etc.) are out of scope for v1.
+- **Redirect URI is `http://localhost:8080/callback`** - registered by Phase 1 Step 4 against the user's Integration Key. DocuSign accepts `http://localhost` for sandbox; production requires HTTPS.
 
 ---
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work, the user only signs in to DocuSign in the Playwright window. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work, the user only signs in to DocuSign in the Playwright window. Every message you send during Phase 1 must follow these rules:
 
-- **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only action you ever request is "please sign in to the browser window I just opened — I'll handle the rest."
-- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, REST, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, environment variable, Playwright, browser automation, redirect URI, PKCE, integration key, listener, port, or DOM. The browser window you open is "the connection page" — not "Playwright" or "Chromium". If you must name a technical concept, plainly:
+- **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only action you ever request is "please sign in to the browser window I just opened - I'll handle the rest."
+- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, REST, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, environment variable, Playwright, browser automation, redirect URI, PKCE, integration key, listener, port, or DOM. The browser window you open is "the connection page" - not "Playwright" or "Chromium". If you must name a technical concept, plainly:
   - access token / bearer → **"your connection key"**
   - Allow / consent → **"the Allow button"**
-  - Integration Key + Secret → **"app credentials"** (don't even use this — handle silently)
+  - Integration Key + Secret → **"app credentials"** (don't even use this - handle silently)
   - sandbox / developer account → **"your DocuSign developer account"**
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm setting up DocuSign for you now"), once when you need them ("please sign in"), once when you're done ("your DocuSign is now connected"). No commentary in between.
-- **React to success and failure warmly.** Good: "That worked — your DocuSign is now connected." Bad: "Token exchange returned 200 OK."
+- **React to success and failure warmly.** Good: "That worked - your DocuSign is now connected." Bad: "Token exchange returned 200 OK."
 - **Never show error messages directly.** Translate into plain English.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
 - **Never mention file paths, commands, scripts, listener PIDs, or DOM/snapshot details** to the user.
@@ -94,11 +94,11 @@ The user is a non-technical business owner. Phase 1 is autonomous — Claude doe
 
 ---
 
-## Phase 0 — Pre-flight (silent)
+## Phase 0 - Pre-flight (silent)
 
-### 0.1 — Resume check
+### 0.1 - Resume check
 
-Read `~/.claude.json` via Node (cross-platform safe — Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile):
+Read `~/.claude.json` via Node (cross-platform safe - Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile):
 
 ```bash
 node -e "
@@ -114,17 +114,17 @@ console.log(DS_REFRESH_TOKEN && DS_INTEGRATION_KEY && DS_ACCOUNT_ID ? 'CONFIGURE
 "
 ```
 
-- `CONFIGURED` → run Phase 1 Step 7 (verify smoke) directly. If it succeeds, the connector is active — surface a friendly success message and stop. If it 401s, run the refresh-token rotation; if THAT 400s (refresh expired after 30 days), walk Phase 1 from Step 5.
-- `PARTIAL` → existing entry but missing fields; treat as `NOT_CONFIGURED` and re-run Phase 1 from Step 1 with a one-line "I see a partial DocuSign config — let me redo it cleanly" message.
+- `CONFIGURED` → run Phase 1 Step 7 (verify smoke) directly. If it succeeds, the connector is active - surface a friendly success message and stop. If it 401s, run the refresh-token rotation; if THAT 400s (refresh expired after 30 days), walk Phase 1 from Step 5.
+- `PARTIAL` → existing entry but missing fields; treat as `NOT_CONFIGURED` and re-run Phase 1 from Step 1 with a one-line "I see a partial DocuSign config - let me redo it cleanly" message.
 - `NOT_CONFIGURED` → run full Phase 1 from Step 1.
 
-### 0.2 — Tooling check (silent)
+### 0.2 - Tooling check (silent)
 
 Verify Node 18+ is on PATH (`node --version`), Playwright MCP is reachable (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the deferred-tool surface), `curl` is available (`curl --version`), and TCP port 8080 is free (`node -e "require('net').createServer().listen(8080, () => process.exit(0)).on('error', () => process.exit(1))"`).
 
 If `claude` CLI is missing, fall back to the `first-run-setup` skill. If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest --user-data-dir=$HOME/.playwright-profile/selr-default --browser=chrome`, ask the user to close and reopen the chat once, then retry. If port 8080 is held, surface plainly: *"Something's already running on the connection port (8080). Please close any other dev servers or app installers, then say 'connect to DocuSign' to retry."*
 
-### 0.3 — Environment selection (silent default: sandbox)
+### 0.3 - Environment selection (silent default: sandbox)
 
 The SKILL uses sandbox by default for workshop attendees:
 
@@ -134,24 +134,24 @@ The SKILL uses sandbox by default for workshop attendees:
 | OAuth host | `https://account-d.docusign.com` | `https://account.docusign.com` |
 | REST API base URI | `https://demo.docusign.net` | per-account `<base_uri>` returned by `/oauth/userinfo` |
 
-Production mode requires the user to opt in via the trigger phrase "switch my DocuSign to production" — not the default install path. Sandbox + production are logically separate accounts; Integration Keys do NOT cross-migrate.
+Production mode requires the user to opt in via the trigger phrase "switch my DocuSign to production" - not the default install path. Sandbox + production are logically separate accounts; Integration Keys do NOT cross-migrate.
 
 ---
 
-## PHASE 1 — Install & Auth (7 numbered steps, autonomous via Playwright + Node listener)
+## PHASE 1 - Install & Auth (7 numbered steps, autonomous via Playwright + Node listener)
 
-### Step 1 — Orient the user + confirm prerequisites
+### Step 1 - Orient the user + confirm prerequisites
 
 Tell the user, in one short message:
 
-> "I'll connect your DocuSign now. Quick check first: do you already have a DocuSign developer account? If yes, say 'yes' and I'll open the connection page. If you've never used DocuSign for development, say 'not sure' and I'll walk you through creating a free developer account first — it takes about five minutes including email and SMS verification."
+> "I'll connect your DocuSign now. Quick check first: do you already have a DocuSign developer account? If yes, say 'yes' and I'll open the connection page. If you've never used DocuSign for development, say 'not sure' and I'll walk you through creating a free developer account first - it takes about five minutes including email and SMS verification."
 
 Branch on the user's reply:
 
 - **"Yes" / "I have one" / equivalent** → continue to Step 2.
-- **"Not sure" / "No"** → tell them: *"No problem — head to https://developers.docusign.com/sandbox and sign up. They'll send a 6-digit code by email, then ask for an SMS phone verification. Once you can sign in to your developer account, come back and say 'I have an account now' and we'll continue."* Wait for confirmation before proceeding to Step 2.
+- **"Not sure" / "No"** → tell them: *"No problem - head to https://developers.docusign.com/sandbox and sign up. They'll send a 6-digit code by email, then ask for an SMS phone verification. Once you can sign in to your developer account, come back and say 'I have an account now' and we'll continue."* Wait for confirmation before proceeding to Step 2.
 
-### Step 2 — Drive the DocuSign developer portal in Playwright
+### Step 2 - Drive the DocuSign developer portal in Playwright
 
 Navigate Playwright to the sandbox admin portal:
 
@@ -163,12 +163,12 @@ mcp__playwright__browser_navigate({
 
 Take a snapshot. Detect login state:
 
-- **Logged in** — page title contains `Apps and Keys | Docusign` and the secondary navigation shows `Apps and Keys` highlighted under `Integrations`. The main panel shows either "No Integration Keys found" or a list of existing apps. Capture the user's `Account ID` and `API Account ID` from the `My Account Information` panel (the API Account ID is a UUID; we'll need it for REST calls). Proceed to Step 3.
-- **Not logged in** — page redirects to `account-d.docusign.com` with a sign-in form. Tell the user *once*: *"Please sign in to your DocuSign developer account in the browser window I just opened — I'll wait."* Then `mcp__playwright__browser_wait_for` polling for the apps-and-keys page heading.
+- **Logged in** - page title contains `Apps and Keys | Docusign` and the secondary navigation shows `Apps and Keys` highlighted under `Integrations`. The main panel shows either "No Integration Keys found" or a list of existing apps. Capture the user's `Account ID` and `API Account ID` from the `My Account Information` panel (the API Account ID is a UUID; we'll need it for REST calls). Proceed to Step 3.
+- **Not logged in** - page redirects to `account-d.docusign.com` with a sign-in form. Tell the user *once*: *"Please sign in to your DocuSign developer account in the browser window I just opened - I'll wait."* Then `mcp__playwright__browser_wait_for` polling for the apps-and-keys page heading.
 
-The user may complete sign-in via password, 2FA, or SSO — all paths converge to the apps-and-keys page.
+The user may complete sign-in via password, 2FA, or SSO - all paths converge to the apps-and-keys page.
 
-#### 2a — Capture Account ID + API Account ID via `browser_evaluate`
+#### 2a - Capture Account ID + API Account ID via `browser_evaluate`
 
 ```javascript
 () => {
@@ -189,7 +189,7 @@ The user may complete sign-in via password, 2FA, or SSO — all paths converge t
 
 Store in shell variables `DS_ACCOUNT_ID` (numeric short ID, used in REST URLs) and `DS_API_ACCOUNT_ID` (UUID, used for some endpoints). Some REST endpoints prefer the UUID; the SKILL uses `DS_ACCOUNT_ID` (numeric) by default since it's what `/restapi/v2.1/accounts/<id>/...` expects.
 
-### Step 3 — Create the Integration Key (DOM-extract)
+### Step 3 - Create the Integration Key (DOM-extract)
 
 Click the **"Add App and Integration Key"** button:
 
@@ -229,9 +229,9 @@ After click, DocuSign navigates to the new app's edit page. Snapshot. Auto-extra
 
 Store in shell variable `DS_INTEGRATION_KEY` (do not echo to chat).
 
-### Step 4 — Generate Secret Key (one-time-reveal modal) + add Redirect URI
+### Step 4 - Generate Secret Key (one-time-reveal modal) + add Redirect URI
 
-#### 4a — Generate Secret Key
+#### 4a - Generate Secret Key
 
 Click **"Add Secret Key"** under the `Authentication → Secret Keys` section:
 
@@ -242,7 +242,7 @@ mcp__playwright__browser_click({
 })
 ```
 
-DocuSign generates a UUID-shaped secret and renders it inline as a textbox. **Capture immediately** — DocuSign shows the secret only once at generation time; navigating away or refreshing hides it. Use `browser_evaluate`:
+DocuSign generates a UUID-shaped secret and renders it inline as a textbox. **Capture immediately** - DocuSign shows the secret only once at generation time; navigating away or refreshing hides it. Use `browser_evaluate`:
 
 ```javascript
 () => {
@@ -255,7 +255,7 @@ DocuSign generates a UUID-shaped secret and renders it inline as a textbox. **Ca
 
 Store in shell variable `DS_SECRET` (do not echo to chat).
 
-#### 4b — Add Redirect URI
+#### 4b - Add Redirect URI
 
 Scroll to the `Additional settings → Redirect URIs` section. Click **"Add URI"**:
 
@@ -275,7 +275,7 @@ mcp__playwright__browser_type({
 })
 ```
 
-#### 4c — Save the app config
+#### 4c - Save the app config
 
 Click **"Save"** at the bottom of the page:
 
@@ -288,11 +288,11 @@ mcp__playwright__browser_click({
 
 DocuSign redirects back to the apps-and-keys list with the new app showing. The Integration Key + Secret + Redirect URI are now active.
 
-### Step 5 — Spin up local listener + drive OAuth flow
+### Step 5 - Spin up local listener + drive OAuth flow
 
 DocuSign auth codes expire in ~60 seconds, so the SKILL races the user: spin up a Node http listener on `:8080` that captures the code AND immediately exchanges it for tokens in a single process, sub-second latency.
 
-#### 5a — Generate PKCE state + write to a temp file
+#### 5a - Generate PKCE state + write to a temp file
 
 ```bash
 node -e "
@@ -308,7 +308,7 @@ console.log('AUTH_URL=https://account-d.docusign.com/oauth/auth?response_type=co
 
 Capture `AUTH_URL=...` from the output.
 
-#### 5b — Start the listener-and-exchange Node script in the background
+#### 5b - Start the listener-and-exchange Node script in the background
 
 Write `~/.docusign-listener.mjs` and run it as a background process:
 
@@ -370,7 +370,7 @@ const server = http.createServer(async (req, res) => {
     cfg.mcpServers = cfg.mcpServers || {};
     cfg.mcpServers.docusign = {
       type: 'stdio',
-      command: 'true',  // sentinel — this entry is metadata-only, not a runnable MCP
+      command: 'true',  // sentinel - this entry is metadata-only, not a runnable MCP
       env: {
         DS_INTEGRATION_KEY: ck,
         DS_SECRET: sk,
@@ -411,21 +411,21 @@ grep -q LISTENER_UP /tmp/ds-listener.log || { echo "LISTENER_FAILED_TO_BIND"; ex
 
 The listener exits cleanly after one capture (success or token-exchange failure) or after a 5-minute timeout if the user never returns.
 
-#### 5c — Open the OAuth URL in Playwright
+#### 5c - Open the OAuth URL in Playwright
 
 ```
 mcp__playwright__browser_navigate({ url: <AUTH_URL> })
 ```
 
-Take a snapshot. The flow has two visible stages — sign-in (if the Playwright profile doesn't have DocuSign cookies from Step 2) and consent.
+Take a snapshot. The flow has two visible stages - sign-in (if the Playwright profile doesn't have DocuSign cookies from Step 2) and consent.
 
-If on the sign-in form (page title contains `Enter your password to sign in`), tell the user *once*: *"Please sign in to DocuSign in the browser window — I'll wait."* Then `mcp__playwright__browser_wait_for` polling for the consent screen markers OR the final `localhost:8080/callback` redirect (which DocuSign may auto-trigger if consent was previously granted).
+If on the sign-in form (page title contains `Enter your password to sign in`), tell the user *once*: *"Please sign in to DocuSign in the browser window - I'll wait."* Then `mcp__playwright__browser_wait_for` polling for the consent screen markers OR the final `localhost:8080/callback` redirect (which DocuSign may auto-trigger if consent was previously granted).
 
-### Step 6 — Auto-click Allow on the consent screen
+### Step 6 - Auto-click Allow on the consent screen
 
 Per memory rule `feedback_human_touch_only_login.md` (Gian 2026-04-30 strict-Allow tightening): the user's ONLY manual touchpoint is signing in. The Allow click on consent is **auto-clicked by Claude**.
 
-#### 6a — If consent screen renders
+#### 6a - If consent screen renders
 
 Snapshot. Extract the human-readable scope list via `browser_evaluate`:
 
@@ -442,7 +442,7 @@ Tell the user, in one short message (3-5 representative items, plain English):
 
 > "DocuSign is asking to: send and manage envelopes, read account info. Clicking **Allow** now."
 
-Then locate the Allow button by accessibility role + name (case-insensitive — match against `allow`, `accept`, `authorise`, `authorize`, `grant access`):
+Then locate the Allow button by accessibility role + name (case-insensitive - match against `allow`, `accept`, `authorise`, `authorize`, `grant access`):
 
 ```
 mcp__playwright__browser_click({
@@ -451,13 +451,13 @@ mcp__playwright__browser_click({
 })
 ```
 
-If the Allow button cannot be located in the snapshot (UI shifted), fall back to a one-time user-click prompt: *"I couldn't find the Allow button automatically — please click **Allow** in the browser window."*
+If the Allow button cannot be located in the snapshot (UI shifted), fall back to a one-time user-click prompt: *"I couldn't find the Allow button automatically - please click **Allow** in the browser window."*
 
-#### 6b — If the page already redirected to localhost (consent previously granted)
+#### 6b - If the page already redirected to localhost (consent previously granted)
 
 Re-running Phase 1 against an Integration Key the user has already consented to skips the consent screen and lands directly at `http://localhost:8080/callback?code=...`. The listener captures and exchanges immediately. Skip 6a, proceed to Step 7.
 
-### Step 7 — Verify the listener completed + smoke-test REST API
+### Step 7 - Verify the listener completed + smoke-test REST API
 
 Wait for the listener's exit:
 
@@ -475,7 +475,7 @@ Branch on the log:
 - `TOKEN_FAIL <status> <body>` → surface plainly: *"DocuSign rejected the connection. Let me try again."* Walk Phase 1 from Step 5 once. If it fails again, surface the user-facing error and stop.
 - `EXCHANGE_ERROR ...` / `LISTENER_TIMEOUT` → surface and stop.
 
-#### 7a — Smoke-test REST API
+#### 7a - Smoke-test REST API
 
 Read the env from `~/.claude.json` and call DocuSign's `/accounts/<id>` endpoint:
 
@@ -499,7 +499,7 @@ rm -f /tmp/ds-env-export.sh /tmp/ds-listener.log "$HOME/.docusign-oauth-state.js
 
 If the call returns the account JSON (with `accountId`, `accountName`, `baseUri` etc.), the connector is fully working.
 
-### Step 8 — Close the browser + success message
+### Step 8 - Close the browser + success message
 
 ```
 mcp__playwright__browser_close()
@@ -511,7 +511,7 @@ Tell the user, in one short message:
 
 ---
 
-## PHASE 2 — Use Tools (REST API via Bash + curl)
+## PHASE 2 - Use Tools (REST API via Bash + curl)
 
 Once the connector is configured, Claude calls DocuSign's eSignature REST API at `<base_uri>/restapi/v2.1/accounts/<account_id>/...` directly. No MCP server is involved. Each "tool" is a documented Bash invocation pattern that Claude composes from the user's request.
 
@@ -563,17 +563,17 @@ If the refresh-token rotation 400s (refresh expired after 30 days), surface plai
 
 ### Tool Reference
 
-#### Envelopes — Create, send, read
+#### Envelopes - Create, send, read
 
 | User asks | Bash invocation pattern |
 | --- | --- |
 | "Show me my envelopes" / "What's pending signature?" | `ds_refresh_token_if_needed && curl -fsS -H "Authorization: Bearer $DS_ACCESS_TOKEN" "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/envelopes?from_date=$(date -d '30 days ago' -Iseconds 2>/dev/null \|\| date -v-30d -Iseconds)&status=$STATUS"` (STATUS = `sent,delivered,completed,declined,voided` filter) |
 | "Show me envelope `<id>`" | `curl -fsS -H "Authorization: Bearer $DS_ACCESS_TOKEN" "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/envelopes/<envelopeId>"` |
-| "Send a contract to alex@example.com" | `curl -fsS -X POST -H "Authorization: Bearer $DS_ACCESS_TOKEN" -H "Content-Type: multipart/form-data" "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/envelopes" --form 'envelope=<json-with-recipients-and-documents>;type=application/json' --form 'document=@contract.pdf;type=application/pdf'` — **confirm recipients + subject + body first** |
-| "Void contract `<id>`" | `curl -fsS -X PUT -H "Authorization: Bearer $DS_ACCESS_TOKEN" -H "Content-Type: application/json" -d '{"status":"voided","voidedReason":"<reason>"}' "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/envelopes/<envelopeId>"` — **confirm first** |
-| "Remind alice to sign envelope `<id>`" | `curl -fsS -X PUT -H "Authorization: Bearer $DS_ACCESS_TOKEN" -H "Content-Type: application/json" "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/envelopes/<envelopeId>?resend_envelope=true"` — **confirm first** |
+| "Send a contract to alex@example.com" | `curl -fsS -X POST -H "Authorization: Bearer $DS_ACCESS_TOKEN" -H "Content-Type: multipart/form-data" "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/envelopes" --form 'envelope=<json-with-recipients-and-documents>;type=application/json' --form 'document=@contract.pdf;type=application/pdf'` - **confirm recipients + subject + body first** |
+| "Void contract `<id>`" | `curl -fsS -X PUT -H "Authorization: Bearer $DS_ACCESS_TOKEN" -H "Content-Type: application/json" -d '{"status":"voided","voidedReason":"<reason>"}' "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/envelopes/<envelopeId>"` - **confirm first** |
+| "Remind alice to sign envelope `<id>`" | `curl -fsS -X PUT -H "Authorization: Bearer $DS_ACCESS_TOKEN" -H "Content-Type: application/json" "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/envelopes/<envelopeId>?resend_envelope=true"` - **confirm first** |
 
-#### Envelopes — Recipients & status
+#### Envelopes - Recipients & status
 
 | User asks | Bash invocation pattern |
 | --- | --- |
@@ -586,7 +586,7 @@ If the refresh-token rotation 400s (refresh expired after 30 days), surface plai
 | --- | --- |
 | "Show me my templates" | `curl -fsS -H "Authorization: Bearer $DS_ACCESS_TOKEN" "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/templates"` |
 | "Show me template `<id>`" | `curl -fsS -H "Authorization: Bearer $DS_ACCESS_TOKEN" "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/templates/<templateId>"` |
-| "Send template `<name>` to alice@example.com" | `curl -fsS -X POST -H "Authorization: Bearer $DS_ACCESS_TOKEN" -H "Content-Type: application/json" -d '{"templateId":"<id>","templateRoles":[{"email":"alice@example.com","name":"Alice","roleName":"<role>"}],"status":"sent"}' "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/envelopes"` — **confirm first; show recipient mapping** |
+| "Send template `<name>` to alice@example.com" | `curl -fsS -X POST -H "Authorization: Bearer $DS_ACCESS_TOKEN" -H "Content-Type: application/json" -d '{"templateId":"<id>","templateRoles":[{"email":"alice@example.com","name":"Alice","roleName":"<role>"}],"status":"sent"}' "$DS_BASE_URI/restapi/v2.1/accounts/$DS_ACCOUNT_ID/envelopes"` - **confirm first; show recipient mapping** |
 
 #### Documents
 
@@ -613,11 +613,11 @@ If the refresh-token rotation 400s (refresh expired after 30 days), surface plai
 | "Switch my DocuSign to production" | Re-run Phase 1 with production URLs (`admin.docusign.com`, `account.docusign.com`, `<base_uri>` from production userinfo); creates a NEW Integration Key in production portal |
 | "My DocuSign stopped working" / "I'm getting auth errors" | Run `ds_refresh_token_if_needed`; if it 400s, walk Phase 1 from Step 5 |
 | "Show me my envelopes" / "What's pending signature?" | `list_envelopes` filtered by status |
-| "Send a contract to [email]" | `list_templates` (if user mentioned a template) → `create_envelope` or `create_envelope_from_template` — **confirm recipients + subject + body first** |
+| "Send a contract to [email]" | `list_templates` (if user mentioned a template) → `create_envelope` or `create_envelope_from_template` - **confirm recipients + subject + body first** |
 | "Is the [contract name] signed?" | `list_envelopes` to find ID → `get_envelope_status` |
 | "Who's signed [contract]?" | `list_recipients` for that envelope ID |
-| "Cancel the contract I sent to [name]" | `list_envelopes` → `void_envelope` — **confirm first** |
-| "Remind [name] to sign" | `list_envelopes` to find pending → `resend_envelope` — **confirm first** |
+| "Cancel the contract I sent to [name]" | `list_envelopes` → `void_envelope` - **confirm first** |
+| "Remind [name] to sign" | `list_envelopes` to find pending → `resend_envelope` - **confirm first** |
 | "Show me my templates" | `list_templates` |
 | "Download the contract from envelope X" | `get_documents/combined` |
 | "Which DocuSign account am I on?" | `get_account_info` |
@@ -630,17 +630,17 @@ When a DocuSign REST call fails, diagnose and respond in plain English. Never sh
 
 | Error | What to say | How to fix |
 | --- | --- | --- |
-| 401 Unauthorized | "Your DocuSign sign-in has expired — let me refresh it." | Run `ds_refresh_token_if_needed`; retry the original call |
+| 401 Unauthorized | "Your DocuSign sign-in has expired - let me refresh it." | Run `ds_refresh_token_if_needed`; retry the original call |
 | 401 even after refresh | "Your DocuSign sign-in has fully expired. Let me reconnect you." | Walk Phase 1 from Step 5 |
 | 400 + `redirect_uri_mismatch` (during Phase 1 token exchange) | "Connection page used a different return address than I registered. Let me update it." | Walk back to Phase 1 Step 4b, add the runtime's actual callback URL, save, retry from Step 5 |
 | 400 + `consent_required` | "DocuSign is asking you to grant permission first. Let me reconnect you." | Walk Phase 1 from Step 5; the consent screen will render this time |
-| 403 Forbidden — admin-only endpoint | "That action is restricted to DocuSign admins. Your account doesn't have admin permissions." | User asks their DocuSign admin to grant permissions; nothing to fix in the connector |
+| 403 Forbidden - admin-only endpoint | "That action is restricted to DocuSign admins. Your account doesn't have admin permissions." | User asks their DocuSign admin to grant permissions; nothing to fix in the connector |
 | 403 + `insufficient_scope` | "Your DocuSign sign-in doesn't include permission for that action. Let me reconnect with broader permissions." | Walk Phase 1 from Step 5 with broader `scope=` query param |
-| 404 Not Found (envelope / template) | "I couldn't find that record — let me search for it again." | Use `list_envelopes` / `list_templates` to refresh |
-| 422 Unprocessable Entity | "DocuSign rejected the request — usually a bad parameter. Let me check and try again." | Re-read with `get_envelope` / `get_template` and reformat the call |
+| 404 Not Found (envelope / template) | "I couldn't find that record - let me search for it again." | Use `list_envelopes` / `list_templates` to refresh |
+| 422 Unprocessable Entity | "DocuSign rejected the request - usually a bad parameter. Let me check and try again." | Re-read with `get_envelope` / `get_template` and reformat the call |
 | 429 Rate limited | "DocuSign is asking me to slow down. I'll wait a moment and try again." | Wait 10 seconds and retry once |
 | Sandbox-vs-production mismatch | "Looks like you're connected to sandbox but asked about a production envelope. Say 'switch my DocuSign to production' and I'll set that up." | Re-run Phase 1 with production environment |
-| Any other 5xx | "Something went wrong on DocuSign's side — let me try again." | Retry once with 5-second backoff; if still failing, surface plainly and stop |
+| Any other 5xx | "Something went wrong on DocuSign's side - let me try again." | Retry once with 5-second backoff; if still failing, surface plainly and stop |
 
 ---
 
@@ -658,12 +658,12 @@ The DocuSign connector **can** do (with the default `signature` scope baseline):
 
 The DocuSign connector **cannot** do (needs DocuSign UI or other tools):
 
-- **Sandbox-to-production migration in one session** — sandbox and production are logically separate accounts. Integration Keys created in `admindemo` only authenticate against `account-d.docusign.com`.
-- **JWT Grant / server-to-server auth** — this SKILL uses Authorization Code Grant only. JWT Grant is a different flow with RSA keypair, out of scope.
-- **DocuSign hosted MCP server (`mcp.docusign.com`)** — the gateway rejects OAuth-issued tokens (issue #213). This SKILL bypasses it.
-- **Click / web-forms / notary / IAM (Intelligent Agreement Management)** — separate DocuSign products with their own scopes (`click.manage`, `webforms_manage`, `notary_*`, `adm_*`). The default `signature` scope does not unlock them.
-- **Bulk send** — typically requires admin scopes or paid plan tiers; surface 403 cleanly with admin-permission guidance.
-- **Modify a recipient's signing fields after they've signed** — DocuSign locks an envelope after completion. Read-only after that point.
+- **Sandbox-to-production migration in one session** - sandbox and production are logically separate accounts. Integration Keys created in `admindemo` only authenticate against `account-d.docusign.com`.
+- **JWT Grant / server-to-server auth** - this SKILL uses Authorization Code Grant only. JWT Grant is a different flow with RSA keypair, out of scope.
+- **DocuSign hosted MCP server (`mcp.docusign.com`)** - the gateway rejects OAuth-issued tokens (issue #213). This SKILL bypasses it.
+- **Click / web-forms / notary / IAM (Intelligent Agreement Management)** - separate DocuSign products with their own scopes (`click.manage`, `webforms_manage`, `notary_*`, `adm_*`). The default `signature` scope does not unlock them.
+- **Bulk send** - typically requires admin scopes or paid plan tiers; surface 403 cleanly with admin-permission guidance.
+- **Modify a recipient's signing fields after they've signed** - DocuSign locks an envelope after completion. Read-only after that point.
 
 ---
 
@@ -687,16 +687,16 @@ Both sandbox and production entries can coexist in `~/.claude.json` (`mcpServers
 
 ## Behaviour Guidelines (Phase 2)
 
-- **Always confirm before sending, voiding, or modifying envelopes** — eSignature requests are legally binding (in production) and visible to recipients. Summarise recipient + subject + body before calling `create_envelope`.
-- **Discover envelope IDs before reading or modifying** — DocuSign envelopes are referenced by long UUIDs. Always call `list_envelopes` once per session before any `get_envelope` / `void_envelope` / `resend_envelope`, unless you already have the ID from earlier in the conversation.
-- **Recipient emails are visible to the whole envelope chain** — confirm recipient emails letter-for-letter before sending.
-- **Templates are reusable across envelopes** — prefer `create_envelope_from_template` when the user mentions a template by name.
-- **Present envelope status clearly** — format results as readable tables, not raw JSON. Include subject, recipient(s), status, and sent date by default.
-- **One step at a time** — summarise first ("You have 12 pending envelopes; 3 are waiting on you, 9 are waiting on others"), then offer to show details.
-- **Pagination** — DocuSign returns up to 100 envelopes per page (`?count=100`). Default to 25 in summaries; offer to show more.
-- **Respect the rate limit** — DocuSign Cloud applies per-account rate limits. For bulk reads, batch with a 1-second pause.
-- **Sandbox envelopes are NOT legally binding** — they're for testing only. Tell the user clearly when connected to sandbox: *"You're connected to your DocuSign developer account — envelopes you send from here are for testing only, they aren't legally binding."*
-- **Never log or echo the env block** — never paste the contents of `~/.claude.json.mcpServers.docusign.env` to the user.
+- **Always confirm before sending, voiding, or modifying envelopes** - eSignature requests are legally binding (in production) and visible to recipients. Summarise recipient + subject + body before calling `create_envelope`.
+- **Discover envelope IDs before reading or modifying** - DocuSign envelopes are referenced by long UUIDs. Always call `list_envelopes` once per session before any `get_envelope` / `void_envelope` / `resend_envelope`, unless you already have the ID from earlier in the conversation.
+- **Recipient emails are visible to the whole envelope chain** - confirm recipient emails letter-for-letter before sending.
+- **Templates are reusable across envelopes** - prefer `create_envelope_from_template` when the user mentions a template by name.
+- **Present envelope status clearly** - format results as readable tables, not raw JSON. Include subject, recipient(s), status, and sent date by default.
+- **One step at a time** - summarise first ("You have 12 pending envelopes; 3 are waiting on you, 9 are waiting on others"), then offer to show details.
+- **Pagination** - DocuSign returns up to 100 envelopes per page (`?count=100`). Default to 25 in summaries; offer to show more.
+- **Respect the rate limit** - DocuSign Cloud applies per-account rate limits. For bulk reads, batch with a 1-second pause.
+- **Sandbox envelopes are NOT legally binding** - they're for testing only. Tell the user clearly when connected to sandbox: *"You're connected to your DocuSign developer account - envelopes you send from here are for testing only, they aren't legally binding."*
+- **Never log or echo the env block** - never paste the contents of `~/.claude.json.mcpServers.docusign.env` to the user.
 
 ---
 
@@ -704,6 +704,6 @@ Both sandbox and production entries can coexist in `~/.claude.json` (`mcpServers
 
 - **first-run-setup**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **meta-business-suite-connector**: Sibling Playwright-OAuth + REST-API pattern (Phase 1 Playwright drive + curl token exchange, Phase 2 curl against Graph API). DocuSign mirrors the shape; the only structural difference is DocuSign's Authorization Code Grant + PKCE vs Meta's Page Access Token mint.
-- **hubspot-connector**: Sibling admin-portal Integration Key creation pattern — Step 2-4 mirrors HubSpot Private App creation
-- **xero-connector**: Sibling one-time-reveal Secret extraction pattern — Step 4a modal handling
+- **hubspot-connector**: Sibling admin-portal Integration Key creation pattern - Step 2-4 mirrors HubSpot Private App creation
+- **xero-connector**: Sibling one-time-reveal Secret extraction pattern - Step 4a modal handling
 - **playwright-skill**: The Playwright MCP browser is how this skill drives the DocuSign portal + consent flow

@@ -7,6 +7,13 @@ license: MIT
 
 # Writing Expo Modules
 
+Bundled artifacts (read these to verify the SKILL produces a working non-trivial module):
+
+- [`examples/swift-native-module-session.md`](examples/swift-native-module-session.md), complete iOS Swift module exposing a real device sensor: static constant, async function with error rejection, event emitter with `OnStartObserving`/`OnStopObserving` lifecycle hooks, TS surface, smoke verification.
+- [`examples/kotlin-native-module-session.md`](examples/kotlin-native-module-session.md), Android Kotlin counterpart with feature parity. Platform differences (units, threading, battery profile) named explicitly.
+- [`references/`](references/), the canonical implementation detail (create-expo-module, native-module, native-view, lifecycle, config-plugin, module-config).
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
 Complete reference for building native modules and views using the Expo Modules API. Covers Swift (iOS), Kotlin (Android), and TypeScript.
 
 ## When to Use
@@ -75,7 +82,7 @@ The Swift and Kotlin DSL share the same structure. Swift is usually the clearest
 
 ## Module Structure Reference
 
-The Swift and Kotlin DSL share the same structure. Both platforms are shown here for reference — in other reference files, Swift is shown as the primary language unless the Kotlin pattern meaningfully differs.
+The Swift and Kotlin DSL share the same structure. Both platforms are shown here for reference, in other reference files, Swift is shown as the primary language unless the Kotlin pattern meaningfully differs.
 
 **Swift (iOS):**
 

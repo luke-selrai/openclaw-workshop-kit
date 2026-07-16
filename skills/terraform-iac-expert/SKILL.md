@@ -1,6 +1,6 @@
 ---
 name: terraform-iac-expert
-description: Terraform and OpenTofu infrastructure as code — module design, state management, multi-environment setups, remote backends, secrets management, CI/CD integration. NOT for Pulumi, CDK, Ansible,
+description: Terraform and OpenTofu infrastructure as code - module design, state management, multi-environment setups, remote backends, secrets management, CI/CD integration. NOT for Pulumi, CDK, Ansible,
   or Kubernetes manifests.
 metadata:
   category: devops
@@ -15,8 +15,6 @@ metadata:
   pairs-with:
   - skill: devops-automator
     reason: Terraform plans and applies run through CI/CD automation pipelines
-  - skill: docker-containerization
-    reason: Terraform provisions the infrastructure that Docker containers deploy onto
   - skill: github-actions-pipeline-builder
     reason: Terraform plan/apply stages are common GitHub Actions workflow steps
   - skill: security-auditor

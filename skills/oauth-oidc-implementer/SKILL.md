@@ -80,7 +80,6 @@ Expert in implementing OAuth 2.0 and OpenID Connect (OIDC) authentication flows.
 Works well with:
 - `nextjs-app-router-expert` - Full-stack auth implementation
 - `api-architect` - API authorization design
-- `cloudflare-worker-dev` - Edge authentication
 - `site-reliability-engineer` - Auth monitoring
 
 ## Examples

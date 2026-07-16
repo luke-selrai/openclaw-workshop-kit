@@ -1,4 +1,4 @@
-# Your Claude Assistant — Docs Map
+# Your Claude Assistant - Docs Map
 
 This is the map of everything here. Each folder below covers one stage of getting Claude working for your business.
 
@@ -17,4 +17,4 @@ If you just want the 30-second overview of what this kit gives you, see the [top
 
 ---
 
-*Built by Selr AI — selrai.com.au*
+*Built by Selr AI - selrai.com.au*

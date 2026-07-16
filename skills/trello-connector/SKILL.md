@@ -1,6 +1,6 @@
 ---
 name: trello-connector
-description: "Connect and operate Trello (kanban boards / cards) via its REST API for users who already have a Trello account. Trello uses a two-secret API key + token model (the key is public-safe; the token is the secret). Phase 1 is a Playwright-assisted setup with ONE unavoidable manual step: Trello requires you to create a Power-Up to get an API key, and that creation form is a React form that resists browser automation — so Claude opens it, pre-explains the fields, and the USER fills name/workspace/email and clicks Create by hand; Claude then drives the rest (generate the API key, run the token authorize + Allow, capture the ATTA-prefixed token from the result page), and stores both at ~/.config/trello/credentials.env (mode 600). Phase 2 reads and writes via curl against https://api.trello.com/1 with ?key=&token= query params. Handles boards, lists, cards, checklists, labels, members, comments, and workspaces. No vendor MCP. Use this skill when the user asks to 'connect my Trello', 'set up Trello', or asks anything about their Trello boards, lists, cards, due dates, or to 'create a card'. Do NOT use to recommend Trello to users who do not already use it. On first use, run Phase 1 to mint and store the key+token before any API call."
+description: "Connect and operate Trello (kanban boards / cards) via its REST API for users who already have a Trello account. Trello uses a two-secret API key + token model (the key is public-safe; the token is the secret). Phase 1 is a Playwright-assisted setup with ONE unavoidable manual step: Trello requires you to create a Power-Up to get an API key, and that creation form is a React form that resists browser automation - so Claude opens it, pre-explains the fields, and the USER fills name/workspace/email and clicks Create by hand; Claude then drives the rest (generate the API key, run the token authorize + Allow, capture the ATTA-prefixed token from the result page), and stores both at ~/.config/trello/credentials.env (mode 600). Phase 2 reads and writes via curl against https://api.trello.com/1 with ?key=&token= query params. Handles boards, lists, cards, checklists, labels, members, comments, and workspaces. No vendor MCP. Use this skill when the user asks to 'connect my Trello', 'set up Trello', or asks anything about their Trello boards, lists, cards, due dates, or to 'create a card'. Do NOT use to recommend Trello to users who do not already use it. On first use, run Phase 1 to mint and store the key+token before any API call."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -24,23 +24,23 @@ metadata:
 
 ## Overview
 
-This skill lets Claude read and update a user's Trello data on their behalf. Trello is the kanban board/card app (lists of cards). It publishes **no MCP server**, so this is a **direct-REST connector** — but with a **two-secret auth model** unique among the kit's connectors:
+This skill lets Claude read and update a user's Trello data on their behalf. Trello is the kanban board/card app (lists of cards). It publishes **no MCP server**, so this is a **direct-REST connector** - but with a **two-secret auth model** unique among the kit's connectors:
 
-- **API key** — a 32-char hex, **intended to be public** (per Trello's docs). Identifies the app.
-- **Token** — an `ATTA`-prefixed string (~76 chars), the **actual secret**. Grants access to the user's account.
+- **API key** - a 32-char hex, **intended to be public** (per Trello's docs). Identifies the app.
+- **Token** - an `ATTA`-prefixed string (~76 chars), the **actual secret**. Grants access to the user's account.
 
-Both are sent as **query params on every call**: `?key=<KEY>&token=<TOKEN>`. Base URL `https://api.trello.com/1`. There is no OAuth refresh — the token is minted with `expiration=never`.
+Both are sent as **query params on every call**: `?key=<KEY>&token=<TOKEN>`. Base URL `https://api.trello.com/1`. There is no OAuth refresh - the token is minted with `expiration=never`.
 
 ### ⚠️ The one manual step: creating the Power-Up
 
-To get an API key, Trello **requires you to first create a "Power-Up"** (`trello.com/power-ups/admin`). That creation form is a **React form that resists browser automation**: its "Create" button is gated on validity state that does NOT update from scripted input — verified 2026-06-22, even direct React-fiber `onChange` injection on every field failed to enable Create. **So Phase 1 hands the Power-Up form to the user**: Claude opens it and explains exactly what to type; the user fills **App name**, **Workspace**, and **Email** and clicks **Create** by hand (real keystrokes/clicks register where automation can't). Everything after that — API-key generation, the token authorize + Allow, token capture — Claude drives normally.
+To get an API key, Trello **requires you to first create a "Power-Up"** (`trello.com/power-ups/admin`). That creation form is a **React form that resists browser automation**: its "Create" button is gated on validity state that does NOT update from scripted input - verified 2026-06-22, even direct React-fiber `onChange` injection on every field failed to enable Create. **So Phase 1 hands the Power-Up form to the user**: Claude opens it and explains exactly what to type; the user fills **App name**, **Workspace**, and **Email** and clicks **Create** by hand (real keystrokes/clicks register where automation can't). Everything after that - API-key generation, the token authorize + Allow, token capture - Claude drives normally.
 
 The skill has two phases:
 
-- **Phase 1 — Install & Connect (Playwright + one manual form step).** Claude drives the developer console, hands the Power-Up *creation form* to the user, then auto-generates the API key, runs the token authorize flow (user clicks Allow), captures the token, stores both, and verifies.
-- **Phase 2 — Use the connector.** curl against the REST API with `?key=&token=`.
+- **Phase 1 - Install & Connect (Playwright + one manual form step).** Claude drives the developer console, hands the Power-Up *creation form* to the user, then auto-generates the API key, runs the token authorize flow (user clicks Allow), captures the token, stores both, and verifies.
+- **Phase 2 - Use the connector.** curl against the REST API with `?key=&token=`.
 
-**Which phase to run** — Before any Trello action, check for `~/.config/trello/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\trello\credentials.env` (native Windows). If it exists with a non-empty `TRELLO_API_KEY` **and** `TRELLO_TOKEN`, run the Phase 0 smoke ping; on success go to Phase 2; on 401 re-run Phase 1's token step. Otherwise run Phase 1.
+**Which phase to run** - Before any Trello action, check for `~/.config/trello/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\trello\credentials.env` (native Windows). If it exists with a non-empty `TRELLO_API_KEY` **and** `TRELLO_TOKEN`, run the Phase 0 smoke ping; on success go to Phase 2; on 401 re-run Phase 1's token step. Otherwise run Phase 1.
 
 **Full account access.** A `read,write,account` token with `expiration=never` can read and modify everything the user can across their boards. Treat the token like a password (the key is public-safe).
 
@@ -50,11 +50,11 @@ The skill has two phases:
 
 The user is a non-technical business owner, but Phase 1 has an unavoidable hands-on moment (the Power-Up form). Rules:
 
-- **Drive everything you can; hand off only the Power-Up form.** Be explicit and visual about the one manual step — the user fills three fields and clicks Create. Offer a screenshot if they can't find a field/button.
+- **Drive everything you can; hand off only the Power-Up form.** Be explicit and visual about the one manual step - the user fills three fields and clicks Create. Offer a screenshot if they can't find a field/button.
 - **Warn about the two "Create" buttons.** The Trello top-nav has a blue "Create" (makes boards); the form's "Create" is at the **bottom-right of the form card** and starts **greyed out**. Tell the user to use the bottom one, and that it turns blue once the fields are filled with real typing.
 - **Plain English only** otherwise. No jargon (API, token, key, REST, curl, scope, Playwright, env, JSON). Call the token "your connection key"; the Power-Up "a small app Trello needs you to create to allow the connection."
 - **Never echo the token** (the `ATTA…` value). The API key is public-safe and may be shown.
-- **No restart needed** — no MCP server.
+- **No restart needed** - no MCP server.
 
 ---
 
@@ -70,7 +70,7 @@ Ask the user to reopen Claude Code once, then retry. The `--user-data-dir` keeps
 
 ---
 
-## PHASE 0 — Resume check
+## PHASE 0 - Resume check
 
 ```bash
 CRED="$HOME/.config/trello/credentials.env"
@@ -89,41 +89,41 @@ curl -s -o /dev/null -w '%{http_code}\n' "https://api.trello.com/1/members/me?ke
 
 ---
 
-## PHASE 1 — Install & Connect
+## PHASE 1 - Install & Connect
 
 > **Never snapshot the sign-in page** (auto-filled-password leak; memory `reference_playwright_snapshot_password_leak`). Detect login by polling `location.href`.
 
-### Step 1 — Open the developer console; accept Developer Terms (one-time)
+### Step 1 - Open the developer console; accept Developer Terms (one-time)
 
 ```
 mcp__plugin_playwright_playwright__browser_navigate({ url: "https://trello.com/power-ups/admin" })
 ```
 
-If signed out, ask the user to sign in (poll `location.href`). On first ever visit, a **"Privacy and compliance"** gate appears — tick "I acknowledge … Trello Developer Terms" (the checkbox is overlaid by a `label[data-testid="clickable-checkbox"]` — click the label, not the input) and click **Continue**.
+If signed out, ask the user to sign in (poll `location.href`). On first ever visit, a **"Privacy and compliance"** gate appears - tick "I acknowledge … Trello Developer Terms" (the checkbox is overlaid by a `label[data-testid="clickable-checkbox"]` - click the label, not the input) and click **Continue**.
 
-### Step 2 — Create the Power-Up (HAND THIS TO THE USER)
+### Step 2 - Create the Power-Up (HAND THIS TO THE USER)
 
-Navigate to `https://trello.com/power-ups/admin/new`. This is the **automation-resistant React form**. Do NOT try to fill+submit it programmatically — it will silently fail (the Create button never enables from scripted input). Instead:
+Navigate to `https://trello.com/power-ups/admin/new`. This is the **automation-resistant React form**. Do NOT try to fill+submit it programmatically - it will silently fail (the Create button never enables from scripted input). Instead:
 
 1. Take a `browser_take_screenshot` so you can point to fields precisely.
 2. Tell the user, in plain English, to fill **exactly these** by typing/clicking themselves:
    - **App name**: `Claude Code`
    - **Workspace**: pick their workspace from the dropdown
    - **Email**: their email
-   - (Optional: **Author**. Leave **Support contact** and **Iframe connector URL** BLANK — the iframe URL is only for Power-Ups that inject UI; we don't need it.)
+   - (Optional: **Author**. Leave **Support contact** and **Iframe connector URL** BLANK - the iframe URL is only for Power-Ups that inject UI; we don't need it.)
 3. Tell them to click the **form's** Create (bottom-right of the card, *not* the top-nav blue Create). It's greyed until the fields register.
 4. Wait for them to confirm; then verify you've landed on the app's edit page (`/power-ups/<appId>/edit/...`) by polling `location.href`.
 
-> **Why manual:** verified 2026-06-22 — real Playwright clicks, keyboard entry, native-setter+events, and React-fiber `onChange` injection all failed to enable Create. This is genuine trusted-event gating. Don't burn time re-attempting; hand off the form.
+> **Why manual:** verified 2026-06-22 - real Playwright clicks, keyboard entry, native-setter+events, and React-fiber `onChange` injection all failed to enable Create. This is genuine trusted-event gating. Don't burn time re-attempting; hand off the form.
 
-### Step 3 — Generate the API key (Claude drives)
+### Step 3 - Generate the API key (Claude drives)
 
 Go to the app's **API Key** tab (`/power-ups/<appId>/edit/api-key`). Click **Generate a new API key**, then **Generate API key** in the confirm dialog. DOM-read the 32-hex key from the readonly field (it is public-safe). Persist it now:
 
 ```bash
 install -d -m 700 "$HOME/.config/trello"; umask 177
 cat > "$HOME/.config/trello/credentials.env" <<EOF
-# Trello REST API credentials — token is the secret; key is public-safe.
+# Trello REST API credentials - token is the secret; key is public-safe.
 # Auth: query params  ?key=\$TRELLO_API_KEY&token=\$TRELLO_TOKEN
 # Base: https://api.trello.com/1
 TRELLO_API_KEY=<key>
@@ -132,7 +132,7 @@ EOF
 chmod 600 "$HOME/.config/trello/credentials.env"
 ```
 
-### Step 4 — Mint the token (Claude drives; user clicks Allow)
+### Step 4 - Mint the token (Claude drives; user clicks Allow)
 
 Navigate to the authorize URL (`name` is cosmetic; scope/expiration as below):
 
@@ -140,14 +140,14 @@ Navigate to the authorize URL (`name` is cosmetic; scope/expiration as below):
 https://trello.com/1/authorize?expiration=never&scope=read,write,account&response_type=token&key=<KEY>&name=Claude%20Code
 ```
 
-The user is signed in → Trello shows a consent screen. Click **Allow** (`#approveButton`). Trello then lands on `https://trello.com/1/token/approve` and **displays the token in the page text** (manual flow — `response_type=token` with no return_url). Capture it (clipboard-transit, masked return) — note the **`ATTA` prefix**, ~76 chars, mixed case (NOT the legacy 64-hex):
+The user is signed in → Trello shows a consent screen. Click **Allow** (`#approveButton`). Trello then lands on `https://trello.com/1/token/approve` and **displays the token in the page text** (manual flow - `response_type=token` with no return_url). Capture it (clipboard-transit, masked return) - note the **`ATTA` prefix**, ~76 chars, mixed case (NOT the legacy 64-hex):
 
 ```js
 async () => { const m=document.body.innerText.match(/ATTA[A-Za-z0-9]{50,}/); if(!m) return {ok:false};
   await navigator.clipboard.writeText(m[0]); return {ok:true, len:m[0].length}; }
 ```
 
-### Step 5 — Store the token, verify, scrub
+### Step 5 - Store the token, verify, scrub
 
 Read the token from the clipboard, **verify before trusting**, write it into the creds file, and scrub the snapshot dir (the token-reveal page is captured in auto-snapshots):
 
@@ -167,13 +167,13 @@ unset TOKEN
 rm -rf .playwright-mcp 2>/dev/null   # token-reveal page lands in auto-snapshots
 ```
 
-Tell the user: *"All connected — your Trello is ready. Try 'show my boards' or 'add a card to [list]'."* **No restart needed.**
+Tell the user: *"All connected - your Trello is ready. Try 'show my boards' or 'add a card to [list]'."* **No restart needed.**
 
 > **Cross-platform note.** Native Windows stores at `%APPDATA%\trello\credentials.env`; everywhere else `~/.config/trello/credentials.env`.
 
 ---
 
-## PHASE 2 — Use the connector (REST runtime loop)
+## PHASE 2 - Use the connector (REST runtime loop)
 
 ```bash
 set -a; . "$HOME/.config/trello/credentials.env"; set +a
@@ -225,8 +225,8 @@ curl -s -X DELETE "$B/cards/<cardId>?$AUTH"
 
 ## Gotchas
 
-- **Power-Up creation form resists automation.** The #1 thing to know. The Create button won't enable from scripted input (verified incl. React-fiber injection). Hand the form to the user; everything else automates. A workshop attendee driving this solo will hit the same wall — tell them up front it's the one hands-on step.
-- **Token format is `ATTA…`, ~76 chars, mixed-case** — NOT the legacy 64-hex. A `[a-f0-9]{64}` regex misses it; use `ATTA[A-Za-z0-9]{50,}`.
+- **Power-Up creation form resists automation.** The #1 thing to know. The Create button won't enable from scripted input (verified incl. React-fiber injection). Hand the form to the user; everything else automates. A workshop attendee driving this solo will hit the same wall - tell them up front it's the one hands-on step.
+- **Token format is `ATTA…`, ~76 chars, mixed-case** - NOT the legacy 64-hex. A `[a-f0-9]{64}` regex misses it; use `ATTA[A-Za-z0-9]{50,}`.
 - **Two "Create" buttons.** Top-nav blue Create = make a board (wrong). Form Create = bottom-right of the card, greyed until valid (right).
 - **Key is public, token is secret.** Don't treat the key as sensitive; DO protect the token.
 - **Auth is query params**, not a header. `?key=&token=` on every call.
@@ -241,6 +241,6 @@ The token is a bearer-equivalent secret in `~/.config/trello/credentials.env` (m
 
 ## See also
 
-- `examples/install-walkthrough-live.md` — the real, verified Phase 1 run (token redacted), including the automation-resistant-form hand-off.
-- `references/rest-api.md` — endpoints, auth, write params, archive-vs-delete.
-- `skills/CLAUDE.md` — the direct-REST connector family and the Playwright contingency.
+- `examples/install-walkthrough-live.md` - the real, verified Phase 1 run (token redacted), including the automation-resistant-form hand-off.
+- `references/rest-api.md` - endpoints, auth, write params, archive-vs-delete.
+- `skills/CLAUDE.md` - the direct-REST connector family and the Playwright contingency.

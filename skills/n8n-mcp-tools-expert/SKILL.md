@@ -136,7 +136,7 @@ get_node({nodeType: "nodes-base.slack", mode: "docs"})
 ---
 
 
-> **Common mistake patterns and fixes**: See [references/common-mistakes.md](references/common-mistakes.md) — nodeType format errors, parameter mistakes, workflow building pitfalls.
+> **Common mistake patterns and fixes**: See [references/common-mistakes.md](references/common-mistakes.md) - nodeType format errors, parameter mistakes, workflow building pitfalls.
 
 ## Tool Usage Patterns
 

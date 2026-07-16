@@ -29,7 +29,7 @@ Every service needs SLIs for these:
 slos:
   - name: availability
     sli: http_requests_total{status!~"5.."}  /  http_requests_total
-    target: 0.999  # 99.9% — 43.8 min/month budget
+    target: 0.999  # 99.9% - 43.8 min/month budget
     window: 30d
 
   - name: latency_p99
@@ -48,7 +48,7 @@ slos:
 slos:
   - name: job_success_rate
     sli: jobs_completed_total / (jobs_completed_total + jobs_failed_total)
-    target: 0.995  # 99.5% — more lenient for async
+    target: 0.995  # 99.5% - more lenient for async
 
   - name: queue_lag
     sli: queue_oldest_unprocessed_message_age_seconds
@@ -72,7 +72,7 @@ Burn rate alerts are more actionable than threshold alerts. They tell you how fa
 groups:
   - name: slo.payment-service
     rules:
-      # Fast burn: 2% of budget in 1 hour (14.4x rate) — page now
+      # Fast burn: 2% of budget in 1 hour (14.4x rate) - page now
       - alert: PaymentServiceFastBurn
         expr: |
           (
@@ -88,7 +88,7 @@ groups:
           description: "Burning error budget at {{ $value | humanizePercentage }} error rate (14.4x)"
           runbook: "https://runbooks.internal/payment-service/fast-burn"
 
-      # Slow burn: 5% of budget in 6 hours (6x rate) — ticket or Slack
+      # Slow burn: 5% of budget in 6 hours (6x rate) - ticket or Slack
       - alert: PaymentServiceSlowBurn
         expr: |
           (
@@ -180,10 +180,10 @@ route:
 ### Rules for Alert-Worthiness
 
 An alert should only fire if:
-1. **It requires human action** — can the system fix it automatically? If yes, it should.
-2. **It cannot wait until morning** — if the on-call can sleep through it, it's not a page.
-3. **It's actionable** — is there a runbook? If not, write one or don't alert.
-4. **It's not already covered** — does a higher-level alert catch this?
+1. **It requires human action** - can the system fix it automatically? If yes, it should.
+2. **It cannot wait until morning** - if the on-call can sleep through it, it's not a page.
+3. **It's actionable** - is there a runbook? If not, write one or don't alert.
+4. **It's not already covered** - does a higher-level alert catch this?
 
 **Audit question**: For each alert in the last 30 days, was there a runbook entry written? If an alert fires and nobody writes anything down, it's noise.
 
@@ -286,7 +286,7 @@ Row 5: Downstream Dependencies
 ### Key Grafana Panel Configs
 
 ```json
-// Error rate panel — use a threshold annotation for SLO
+// Error rate panel - use a threshold annotation for SLO
 {
   "type": "timeseries",
   "title": "HTTP Error Rate",

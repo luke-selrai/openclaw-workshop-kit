@@ -5,6 +5,13 @@ description: Integrate Expo and React Native into an existing native iOS or Andr
 
 # Expo Brownfield
 
+Bundled artifacts (read these to verify the SKILL produces a working brownfield setup):
+
+- [`examples/integrated-podfile-session.md`](examples/integrated-podfile-session.md), complete iOS Integrated approach: Podfile, Swift `UIViewController`, RN entry point, versioning enforcement, common silent failures named.
+- [`examples/isolated-aar-session.md`](examples/isolated-aar-session.md), complete Android Isolated AAR approach: library Gradle config, ProGuard caveats, ABI filters, signing, consumer-side Application setup.
+- [`references/brownfield-integrated.md`](references/brownfield-integrated.md), [`references/brownfield-isolated.md`](references/brownfield-isolated.md), [`references/comparison.md`](references/comparison.md), [`references/troubleshooting.md`](references/troubleshooting.md), canonical implementation detail.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
 A **brownfield** app is an existing native iOS or Android app that adopts React Native incrementally, as opposed to a **greenfield** app that is React Native from day one.
 
 Expo supports two distinct ways to add React Native to a brownfield project:
@@ -18,7 +25,7 @@ For the full decision matrix, see [./references/comparison.md](./references/comp
 
 ## Pick an approach
 
-Use these quick rules — fall through to `comparison.md` for anything ambiguous.
+Use these quick rules, fall through to `comparison.md` for anything ambiguous.
 
 - **Choose isolated** if the iOS/Android team must consume RN as a regular library dependency (AAR or XCFramework), without installing Node, Yarn, or the React Native build toolchain.
 - **Choose isolated** if RN code and native code live in separate repositories or release on independent cadences.
@@ -38,8 +45,8 @@ More information available at https://docs.expo.dev/brownfield/overview/
 
 Both approaches require, in the environment that _builds_ the React Native side:
 
-- **Node.js (LTS)** — runs the Expo CLI and JavaScript code.
-- **Yarn** — manages JavaScript dependencies.
+- **Node.js (LTS)**, runs the Expo CLI and JavaScript code.
+- **Yarn**, manages JavaScript dependencies.
 
 The integrated approach additionally requires **CocoaPods** on iOS (`sudo gem install cocoapods`). The isolated approach does **not** require CocoaPods or any RN tooling in the consuming native app.
 

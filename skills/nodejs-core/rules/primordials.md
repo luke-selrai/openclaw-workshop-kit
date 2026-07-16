@@ -9,7 +9,7 @@ metadata:
 
 Primordials are frozen copies of JavaScript built-in objects captured before
 any user code runs. They protect Node.js internal modules from prototype
-pollution — user code that mutates `Array.prototype`, `RegExp.prototype`,
+pollution - user code that mutates `Array.prototype`, `RegExp.prototype`,
 `Promise.prototype`, etc. cannot affect internal behavior.
 
 ## Who can use primordials
@@ -178,8 +178,8 @@ Promise combinators with varying levels of safety:
 const {
   PromisePrototypeThen,             // Safe .then() call
   SafePromiseAll,                   // Wraps each promise, but result array is mutable
-  SafePromiseAllReturnVoid,         // Fully safe — no result array
-  SafePromiseAllReturnArrayLike,    // Fully safe — returns null-prototype array-like
+  SafePromiseAllReturnVoid,         // Fully safe - no result array
+  SafePromiseAllReturnArrayLike,    // Fully safe - returns null-prototype array-like
   SafePromiseAllSettled,
   SafePromiseAllSettledReturnVoid,
   SafePromiseAny,
@@ -216,7 +216,7 @@ code paths:
   `SafePromiseAny`, `SafePromiseRace`, `SafePromisePrototypeFinally`
   (use `try {} finally {}` instead of the last one)
 - **Reflect**: `ReflectConstruct` (creates new hidden classes inside
-  functions — consider a shared class instead)
+  functions - consider a shared class instead)
 - **No-op function**: Use `() => {}` instead of `FunctionPrototype`
 
 ### Bootstrap code
@@ -234,7 +234,7 @@ comment:
 ### Array iteration
 
 ```javascript
-// UNSAFE — calls user-mutable Symbol.iterator and .next():
+// UNSAFE - calls user-mutable Symbol.iterator and .next():
 for (const item of array) { ... }
 
 // SAFE:
@@ -244,10 +244,10 @@ for (let i = 0; i < array.length; i++) { ... }
 ### Array destructuring
 
 ```javascript
-// UNSAFE — calls Symbol.iterator:
+// UNSAFE - calls Symbol.iterator:
 const [first, second] = array;
 
-// SAFE — object destructuring uses property access, not iteration:
+// SAFE - object destructuring uses property access, not iteration:
 const { 0: first, 1: second } = array;
 ```
 
@@ -264,17 +264,17 @@ func(...array);
 const copy = ArrayPrototypeSlice(array);
 ReflectApply(func, null, array);
 
-// SAFE — when spread is unavoidable (e.g., variadic call):
+// SAFE - when spread is unavoidable (e.g., variadic call):
 func(...new SafeArrayIterator(array));
 ```
 
-### RegExp — `test` is unsafe
+### RegExp - `test` is unsafe
 
 `RegExpPrototypeTest` calls `.exec` on the prototype chain, which is
 user-mutable. Use `RegExpPrototypeExec` directly:
 
 ```javascript
-// UNSAFE — calls user-mutable .exec internally:
+// UNSAFE - calls user-mutable .exec internally:
 RegExpPrototypeTest(pattern, string)
 
 // SAFE:
@@ -297,7 +297,7 @@ For full regex safety (protecting against flag getter mutation too), use
 `hardenRegExp(re)` which copies all methods and flag getters directly onto
 the instance.
 
-### Promise combinators — three layers of unsafety
+### Promise combinators - three layers of unsafety
 
 ```javascript
 PromiseAll([...])                           // UNSAFE: iteration + .then lookup + result
@@ -326,7 +326,7 @@ SafePromiseAll(array, someFunction);
 ### `instanceof`
 
 ```javascript
-// UNSAFE — looks up Symbol.hasInstance:
+// UNSAFE - looks up Symbol.hasInstance:
 value instanceof SomeClass
 
 // SAFE:

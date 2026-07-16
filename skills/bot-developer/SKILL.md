@@ -37,7 +37,7 @@ Bot Developer:
 6. Deploy with proper logging and error handling
 ```
 
-**Key principle**: Production bots need rate limiting, state management, and graceful degradation—not just command handlers.
+**Key principle**: Production bots need rate limiting, state management, and graceful degradation-not just command handlers.
 
 ## Core Capabilities
 

@@ -1,6 +1,6 @@
 ---
 name: managed-agents-setup
-description: Zero-to-production Anthropic Managed Agents + Routines setup. Takes a non-technical business owner from "I have an Anthropic account" to a running cloud agent with scheduled tasks, vault-backed MCP credentials, kill switch and cost monitor — without typing a command. Auto-invoke on phrases like "set up Anthropic agents", "deploy a Claude agent", "build me a managed agent", "create a routine", "schedule a Claude task", "make Claude check X every morning", "I want a cloud agent that runs by itself". Pairs with /ai-ops-architect (orchestrator picks the preset) and /n8n (workflow runtime sister skill).
+description: Zero-to-production Anthropic Managed Agents + Routines setup. Takes a non-technical business owner from "I have an Anthropic account" to a running cloud agent with scheduled tasks, vault-backed MCP credentials, kill switch and cost monitor - without typing a command. Auto-invoke on phrases like "set up Anthropic agents", "deploy a Claude agent", "build me a managed agent", "create a routine", "schedule a Claude task", "make Claude check X every morning", "I want a cloud agent that runs by itself". Pairs with /ai-ops-architect (orchestrator picks the preset) and /n8n (workflow runtime sister skill).
 ---
 
 # Managed Agents Setup
@@ -33,7 +33,7 @@ The skill walks Phase 0 → 7 in sequence with confirmation between each. Phase 
 | 3 | Vault seeding | `python3 scripts/vault-seeder.py` + `bash scripts/mcp-bridge.sh` |
 | 4 | First environment | `bash scripts/create-environment.sh primary` |
 | 5 | Create the agent | `bash scripts/create-agent.sh <preset-id>` (presets in `references/business-outcome-presets.json`) |
-| 6 | Schedule via Routine | `bash scripts/create-routine.sh <agent-id> <cron>` |
+| 6 | Schedule via Routine | `bash scripts/create-routine.sh --name NAME --cron "0 9 * * *" --prompt PROMPT --repo URL --env-id ENV` |
 | 7 | Handoff | `bash scripts/smoke-test.sh` + 1-pager + kill switch + daily cost monitor |
 
 ## Quick start
@@ -45,19 +45,22 @@ python3 ~/.claude/skills/managed-agents-setup/scripts/vault-seeder.py \
   --secrets-env ~/agents-cc/shared/secrets.env --vault-name primary     # Phase 3
 bash ~/.claude/skills/managed-agents-setup/scripts/create-environment.sh primary
 bash ~/.claude/skills/managed-agents-setup/scripts/create-agent.sh trades-quote-triage
-bash ~/.claude/skills/managed-agents-setup/scripts/create-routine.sh "$(cat ~/.claude/managed-agents/agents/trades-quote-triage.txt)" "0 9 * * *"
+bash ~/.claude/skills/managed-agents-setup/scripts/create-routine.sh \
+  --name trades-quote-triage --cron "0 9 * * *" \
+  --prompt "Triage today's quote requests" \
+  --repo https://github.com/<org>/<repo> --env-id "$(cat ~/.claude/managed-agents/env-id.txt)"
 bash ~/.claude/skills/managed-agents-setup/scripts/smoke-test.sh
 bash ~/.claude/skills/managed-agents-setup/scripts/verify.sh             # 5-AC verifier
 ```
 
-## Reference index — load on demand
+## Reference index - load on demand
 
 | If user asks about | Load |
 |---|---|
 | "What's in each phase?" | `references/phases/<n>-*.md` |
 | "Which MCP servers does it support?" | `references/mcp-servers-catalog.md` |
 | "How does the connector setup decide which path?" | `references/connector-strategy.md` (4-tier) |
-| "What presets are available?" | `references/business-outcome-presets.json` (35 presets across 8 verticals) |
+| "What presets are available?" | `references/business-outcome-presets.json` (40 presets across 8 verticals) |
 | "How are environments configured?" | `references/environment-templates.json` |
 | "Which agent template fits my use case?" | `references/agent-templates.json` |
 | "How much will this cost?" | `references/cost-calculator.md` |
@@ -67,13 +70,13 @@ bash ~/.claude/skills/managed-agents-setup/scripts/verify.sh             # 5-AC 
 
 ## Hard rules
 
-- **NEVER fabricate facts** — agent IDs, vault IDs, cost figures, URLs come from script output, never invented. Sister to ai-ops-architect's rule.
-- **NEVER skip kill switch + cost monitor** — both must be wired before declaring "live". `scripts/killswitch.sh` + `scripts/daily-cost-monitor.py` are mandatory in Phase 7.
-- **NEVER use n8n for Luke's own infra** — boundary card from `feedback_no_n8n.md`. Glue is server cron + agents-cc. Exception: explicit ask.
-- **NEVER ask the user to type a command** — Playwright + Bash do the work; user only approves prompts.
-- **NEVER log secrets** — pasted API keys go to vault via `read -s`, never to stdout / transcript / git.
-- **Cap at 1-3 agents per session** — quality over volume. Force selection.
-- **Verify Anthropic beta header is current** — check `references/phases/5-agent.md` for the live header value before each agent create.
+- **NEVER fabricate facts** - agent IDs, vault IDs, cost figures, URLs come from script output, never invented. Sister to ai-ops-architect's rule.
+- **NEVER skip kill switch + cost monitor** - both must be wired before declaring "live". `scripts/killswitch.sh` + `scripts/daily-cost-monitor.py` are mandatory in Phase 7.
+- **NEVER use n8n for Luke's own infra** - boundary card from `feedback_no_n8n.md`. Glue is server cron + agents-cc. Exception: explicit ask.
+- **NEVER ask the user to type a command** - Playwright + Bash do the work; user only approves prompts.
+- **NEVER log secrets** - pasted API keys go to vault via `read -s`, never to stdout / transcript / git.
+- **Cap at 1-3 agents per session** - quality over volume. Force selection.
+- **Verify Anthropic beta header is current** - check `references/phases/5-agent.md` for the live header value before each agent create.
 
 ## Decision matrix (collapsed)
 
@@ -92,7 +95,7 @@ Full version in `~/.claude/skills/ai-ops-architect/references/runtime-decision-m
 
 ```text
 Tier 1: claude.ai passthrough (claude mcp list shows claude_ai_<service>)
-Tier 2: Rube (https://rube.app/mcp) — one OAuth → 500+ apps, default for new
+Tier 2: Rube (https://rube.app/mcp) - one OAuth → 500+ apps, default for new
 Tier 3: Direct MCP (per service in references/mcp-servers-catalog.md)
 Tier 4: Manual API key paste (last resort, masked, vault-stored)
 ```
@@ -100,6 +103,8 @@ Tier 4: Manual API key paste (last resort, masked, vault-stored)
 Full version: `references/connector-strategy.md`.
 
 ## Refusal rules
+
+> The `feedback_*.md` files cited below (and in Hard rules) are optional internal-kit reinforcements; the rules stand alone and this skill doesn't ship them.
 
 - **"Build me 10 agents"** → refuse bulk. Cap 1-3 per session.
 - **"Use n8n for Luke's infra"** → refuse, route to server-cron + agents-cc.
@@ -117,14 +122,14 @@ Full version: `references/connector-strategy.md`.
 ## State
 
 `~/.claude/managed-agents/` (chmod 700) holds:
-- `vault-id.txt`, `env-id.txt` — IDs from Phase 3-4
-- `agents/<preset-id>.txt` — agent IDs per preset
-- `routines/<agent-id>.txt` — routine IDs
-- `ship.log` — append-only deploy trail
+- `vault-id.txt`, `env-id.txt` - IDs from Phase 3-4
+- `agents/<preset-id>.txt` - agent IDs per preset
+- `routines/<agent-id>.txt` - routine IDs
+- `ship.log` - append-only deploy trail
 
 `~/.claude/skills/managed-agents-setup/.state/` (chmod 700, gitignored):
-- `preflight.json` — last preflight result
-- `verify.log` — last verify run
+- `preflight.json` - last preflight result
+- `verify.log` - last verify run
 
 ## Architecture (high level)
 
@@ -142,7 +147,7 @@ Full architecture diagram: `SKILL.md.full` (the previous version, kept for refer
 
 ## Pairs with
 
-- `/ai-ops-architect` — orchestrator that picks WHICH agent before delegating here
-- `/n8n` — workflow sister skill, called when 2+ SaaS + webhook + no reasoning
-- `/schedule (Claude Code built-in scheduling command, no skill dir)` — wrapper for the Routines runtime when cadence ≥ 1hr
-- `server-setup` — AWS layer for sub-hourly cron + webhook glue (optional)
+- `/ai-ops-architect` - orchestrator that picks WHICH agent before delegating here
+- `/n8n` - workflow sister skill, called when 2+ SaaS + webhook + no reasoning
+- `/schedule (Claude Code built-in scheduling command, no skill dir)` - wrapper for the Routines runtime when cadence ≥ 1hr
+- `server-setup` - AWS layer for sub-hourly cron + webhook glue (optional)

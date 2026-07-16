@@ -91,7 +91,7 @@ async function loggingMiddleware(
 
 - Call `next()` only once
 - If you don't need post-processing, skip calling `next()` (called automatically)
-- `next()` never throws—errors return as error responses
+- `next()` never throws-errors return as error responses
 
 ## Context API
 
@@ -235,8 +235,8 @@ async function cmsFallback(
   const response = await next();
 
   if (response.status === 404) {
-    const redirect = await checkCmsRedirects(request.url);
-    if (redirect) throw redirect(redirect, 302);
+    const redirectTarget = await checkCmsRedirects(request.url);
+    if (redirectTarget) throw redirect(redirectTarget, 302);
   }
 
   return response;

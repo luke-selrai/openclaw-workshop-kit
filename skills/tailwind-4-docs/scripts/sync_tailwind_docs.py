@@ -20,7 +20,12 @@ LICENSE_URL = "https://github.com/tailwindlabs/tailwindcss.com#license"
 
 
 def run(cmd: list[str], cwd: Path | None = None) -> str:
-    result = subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
+    try:
+        result = subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as e:
+        raise SystemExit(f"git command failed: {' '.join(cmd)}\n{e.stderr}")
+    except FileNotFoundError:
+        raise SystemExit("git not found. This script requires git on PATH; install git and re-run.")
     return result.stdout.strip()
 
 
@@ -28,10 +33,18 @@ def clone_repo(repo_url: str, ref: str, dest: Path) -> None:
     run(["git", "clone", "--depth", "1", "--branch", ref, repo_url, str(dest)])
 
 
-def update_repo(repo_dir: Path, ref: str) -> None:
+def update_repo(repo_dir: Path, ref: str, reset: bool = False) -> None:
+    status = run(["git", "status", "--porcelain"], cwd=repo_dir)
+    if status and not reset:
+        raise SystemExit(
+            "--local-repo has uncommitted changes; refusing to modify it. "
+            "Commit/stash them or omit --local-repo to clone a temp copy. "
+            "Re-run with --reset-local-repo to override (destructive)."
+        )
     run(["git", "fetch", "--depth", "1", "origin", ref], cwd=repo_dir)
-    run(["git", "checkout", ref], cwd=repo_dir)
-    run(["git", "reset", "--hard", f"origin/{ref}"], cwd=repo_dir)
+    if reset:
+        run(["git", "checkout", ref], cwd=repo_dir)
+        run(["git", "reset", "--hard", f"origin/{ref}"], cwd=repo_dir)
 
 
 def write_source_file(
@@ -62,7 +75,12 @@ def main() -> None:
     parser.add_argument(
         "--local-repo",
         default=None,
-        help="Use an existing local repo clone instead of cloning a temp copy.",
+        help="Use an existing local repo clone instead of cloning a temp copy. Read as-is by default (only a git fetch is run); not checked out or reset unless --reset-local-repo is passed.",
+    )
+    parser.add_argument(
+        "--reset-local-repo",
+        action="store_true",
+        help="Allow --local-repo to be checked out and hard-reset to origin/<ref> (destructive: discards uncommitted changes and local commits).",
     )
     parser.add_argument(
         "--accept-docs-license",
@@ -88,7 +106,7 @@ def main() -> None:
         repo_dir = Path(args.local_repo).resolve()
         if not repo_dir.exists():
             raise SystemExit(f"Local repo not found: {repo_dir}")
-        update_repo(repo_dir, args.ref)
+        update_repo(repo_dir, args.ref, args.reset_local_repo)
         cleanup = None
     else:
         temp_dir = tempfile.TemporaryDirectory()

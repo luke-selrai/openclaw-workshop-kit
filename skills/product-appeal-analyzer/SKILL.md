@@ -1,18 +1,14 @@
 ---
 name: product-appeal-analyzer
-description: Evaluate product desirability, market positioning, and emotional resonance—the complement to friction analysis. Assess whether users will WANT a product (not just use it), identity fit, trust
+description: Evaluate product desirability, market positioning, and emotional resonance-the complement to friction analysis. Assess whether users will WANT a product (not just use it), identity fit, trust
   signals, and value proposition clarity. Activate on "will they like it", "market positioning", "appeal analysis", "product desirability", "value proposition", "why would someone choose this", "landing
-  page review", "conversion optimization", "messaging strategy". NOT for UX friction analysis (use ux-friction-analyzer), visual design implementation (use web-design-expert), or A/B test setup (use frontend-developer).
+  page review", "conversion optimization", "messaging strategy". NOT for UX friction analysis, visual design implementation, or A/B test setup.
 allowed-tools: Read,Write,Edit,WebFetch
 metadata:
   category: Research & Analysis
   pairs-with:
-  - skill: ux-friction-analyzer
-    reason: Appeal asks "do they want it?" Friction asks "can they use it?" Use both.
   - skill: competitive-cartographer
     reason: Position against alternatives with strategic mapping
-  - skill: web-design-expert
-    reason: Implement visual identity recommendations
   tags:
   - product-strategy
   - marketing
@@ -24,9 +20,9 @@ metadata:
 
 # Product Appeal Analyzer
 
-Evaluate whether users will *want* a product—not just use it. The complement to friction analysis.
+Evaluate whether users will *want* a product-not just use it. The complement to friction analysis.
 
-**Core insight**: Users don't choose the best product—they choose the product that feels most like it was made for them.
+**Core insight**: Users don't choose the best product-they choose the product that feels most like it was made for them.
 
 ## When to Use
 
@@ -38,9 +34,9 @@ Evaluate whether users will *want* a product—not just use it. The complement t
 - Pre-launch "will this convert?" analysis
 
 ❌ **NOT for:**
-- UX friction audits (→ use ux-friction-analyzer)
-- Visual design execution (→ use web-design-expert)
-- A/B test implementation (→ use frontend-developer)
+- UX friction audits
+- Visual design execution
+- A/B test implementation
 - Market size estimation or financial forecasting
 - Feature comparison matrices
 
@@ -87,7 +83,7 @@ Within 5 seconds of landing, a visitor should know:
 **How to run it:**
 - Show landing page to someone unfamiliar for exactly 5 seconds
 - Hide it, then ask: "What was that? Who's it for? What would you do there?"
-- Record verbatim—don't coach or clarify
+- Record verbatim-don't coach or clarify
 
 **Scoring:**
 
@@ -233,9 +229,7 @@ Categorize into:
 
 ### Appeal Scorer Script
 
-Run: `python scripts/appeal_scorer.py <url>`
-
-Produces structured JSON output with scores and recommendations.
+Run: `python scripts/appeal_scorer.py --template` to emit an empty zero-score JSON template for Claude to populate, then `python scripts/appeal_scorer.py --input <filled.json> --summary` to render the human-readable scores. The bare `<url>` form only prints the target URL and the same empty template (Claude does the scoring/WebFetch); it does NOT itself produce populated scores or recommendations.
 
 ### Reference Files (See for deep dives)
 
@@ -257,21 +251,6 @@ When running this skill, produce:
 3. **5-Second Test Assessment** - What's clear, what's not
 4. **Top 3 Objections** - And how to address them
 5. **Priority Recommendations** - Immediate / Medium / Long-term
-
----
-
-## Integration with ux-friction-analyzer
-
-**Appeal + Friction = Complete picture**
-
-| This Skill Answers | ux-friction-analyzer Answers |
-|--------------------|------------------------------|
-| "Do they want it?" | "Can they use it?" |
-| Will they choose this over alternatives? | Can they complete the task? |
-| Does it feel made for them? | Does the flow make sense? |
-| Is the promise compelling? | Is the experience smooth? |
-
-**Run both**: High appeal + high friction = frustrated users. Low friction + low appeal = abandoned product.
 
 ---
 

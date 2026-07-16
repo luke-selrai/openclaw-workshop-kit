@@ -9,8 +9,6 @@ metadata:
   pairs-with:
   - skill: indie-monetization-strategist
     reason: Monetization for wealth building
-  - skill: digital-estate-planner
-    reason: Financial legacy planning
   tags:
   - finance
   - investing

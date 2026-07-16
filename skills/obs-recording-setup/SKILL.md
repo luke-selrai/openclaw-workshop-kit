@@ -1,6 +1,6 @@
 ---
 name: obs-recording-setup
-description: "Set up OBS Studio for recording vlogs, podcasts, tutorials, and talking-head video — with a PERFECT circular webcam and clean recording settings. Cross-platform (Linux/macOS/Windows). The headline feature: it generates a circular webcam mask sized to the user's exact camera capture resolution (so OBS doesn't stretch it into an oval), then walks them through adding the webcam + screen-capture sources and applying recording-friendly output settings (Hybrid MP4, separate audio tracks, sensible quality). Use this skill when the user wants to set up OBS, record their screen/webcam, fix an oval/squished webcam circle, or get a repeatable recording config. This is the RECORD front-end of the video pipeline — pairs with `video-editor` (edit the recordings) and `hyperframes`/`higgsfield-connector` (generate B-roll/captions)."
+description: "Set up OBS Studio for recording vlogs, podcasts, tutorials, and talking-head video - with a PERFECT circular webcam and clean recording settings. Cross-platform (Linux/macOS/Windows). The headline feature: it generates a circular webcam mask sized to the user's exact camera capture resolution (so OBS doesn't stretch it into an oval), then walks them through adding the webcam + screen-capture sources and applying recording-friendly output settings (Hybrid MP4, separate audio tracks, sensible quality). Use this skill when the user wants to set up OBS, record their screen/webcam, fix an oval/squished webcam circle, or get a repeatable recording config. This is the RECORD front-end of the video pipeline - pairs with `video-editor` (edit the recordings) and `hyperframes`/`higgsfield-connector` (generate B-roll/captions)."
 allowed-tools: Bash, Read, Write, Edit
 metadata:
   category: Content & Writing
@@ -25,7 +25,7 @@ metadata:
 
 # OBS Recording Setup (cross-platform)
 
-> **Tools:** OBS Studio (the recorder) + FFmpeg (to generate the circular webcam mask). The mask generator is `scripts/make-circle-mask.sh`. Linux path verified live; macOS/Windows documented from OBS's known config layout — verify device names in the OBS UI.
+> **Tools:** OBS Studio (the recorder) + FFmpeg (to generate the circular webcam mask). The mask generator is `scripts/make-circle-mask.sh`. Linux path verified live; macOS/Windows documented from OBS's known config layout - verify device names in the OBS UI.
 
 ## Overview
 
@@ -33,12 +33,12 @@ This skill makes a participant's OBS produce the **same clean recording config**
 
 ### Why this can't be a copy-paste config (read this first)
 
-Two parts of an OBS setup are **per-machine**, so a shipped scene file breaks on someone else's computer — the skill must **adapt**:
+Two parts of an OBS setup are **per-machine**, so a shipped scene file breaks on someone else's computer - the skill must **adapt**:
 
-1. **The camera device** — OBS scene files hard-code a device ID (Linux `/dev/videoN`, Windows a DirectShow GUID, macOS an AVFoundation ID). An imported scene points at the *author's* camera. → The participant selects their own camera once (a UI step).
-2. **The circular mask aspect ratio** — OBS's *Image Mask/Blend* filter **stretches the mask image to the webcam's dimensions**. A square (1080×1080) mask on a 16:9 (1920×1080) camera becomes an **oval**. → The mask must be generated to match the participant's exact capture resolution. **This is the part this skill automates and the #1 cause of "my circle is squished."**
+1. **The camera device** - OBS scene files hard-code a device ID (Linux `/dev/videoN`, Windows a DirectShow GUID, macOS an AVFoundation ID). An imported scene points at the *author's* camera. → The participant selects their own camera once (a UI step).
+2. **The circular mask aspect ratio** - OBS's *Image Mask/Blend* filter **stretches the mask image to the webcam's dimensions**. A square (1080×1080) mask on a 16:9 (1920×1080) camera becomes an **oval**. → The mask must be generated to match the participant's exact capture resolution. **This is the part this skill automates and the #1 cause of "my circle is squished."**
 
-## PHASE 0 — Detect (silent)
+## PHASE 0 - Detect (silent)
 
 Determine OS and whether OBS + FFmpeg are present, and locate the OBS config dir:
 
@@ -55,7 +55,7 @@ command -v ffmpeg >/dev/null 2>&1 && echo "ffmpeg: yes" || echo "ffmpeg: missing
 ```
 Active profile + scene collection live in `user.ini` (OBS 30+) or `global.ini` (older): keys `Profile` / `ProfileDir` / `SceneCollection` / `SceneCollectionFile`.
 
-## PHASE 1 — Install (only what's missing)
+## PHASE 1 - Install (only what's missing)
 
 ```bash
 # OBS Studio
@@ -68,29 +68,29 @@ Active profile + scene collection live in `user.ini` (OBS 30+) or `global.ini` (
 ```
 Then ask the user to open OBS once (creates the config dirs) before configuring.
 
-## PHASE 2 — Configure
+## PHASE 2 - Configure
 
-### Step 1 — Generate the camera-matched circular mask (automated)
+### Step 1 - Generate the camera-matched circular mask (automated)
 
 Find the camera's **capture resolution**, then generate a mask that matches it exactly:
 
 ```bash
-# Linux — read it from the device OBS uses (find the id in OBS → source Properties, e.g. /dev/video32):
+# Linux - read it from the device OBS uses (find the id in OBS → source Properties, e.g. /dev/video32):
 v4l2-ctl -d /dev/videoN --get-fmt-video    # prints Width/Height
-# macOS / Windows — read it in OBS: Video Capture Device → Properties → Resolution/Preset.
+# macOS / Windows - read it in OBS: Video Capture Device → Properties → Resolution/Preset.
 
 # Generate the mask (matches the camera so OBS never ovals it):
 bash scripts/make-circle-mask.sh <WIDTH> <HEIGHT> ~/Pictures/obs-circle-mask.png
 # e.g.  bash scripts/make-circle-mask.sh 1920 1080 ~/Pictures/obs-circle-mask.png
 ```
-The script writes an RGBA PNG (transparent outside a centered circle) at the camera's W×H. Because it matches the source, OBS scales it **1:1** — perfect circle, **no crop filter needed**.
+The script writes an RGBA PNG (transparent outside a centered circle) at the camera's W×H. Because it matches the source, OBS scales it **1:1** - perfect circle, **no crop filter needed**.
 
 > If the user later changes their camera's capture resolution, re-run this with the new W×H.
 
-### Step 2 — Recording-friendly output settings
+### Step 2 - Recording-friendly output settings
 
 In **OBS → Settings → Output**, set (these are portable across OS via *Simple* output mode):
-- **Recording Format: Hybrid MP4** — crash-safe AND edits losslessly in `video-editor`.
+- **Recording Format: Hybrid MP4** - crash-safe AND edits losslessly in `video-editor`.
 - **Recording Quality: High Quality, Medium File Size** (or Advanced → CQP/CRF ~20).
 - **Encoder:** Hardware (NVENC/QuickSync/VAAPI/Apple) if available, else Software (x264).
 - **Settings → Audio → Sample Rate: 48 kHz.**
@@ -98,21 +98,21 @@ In **OBS → Settings → Output**, set (these are portable across OS via *Simpl
 
 A reference profile is in `assets/recording-profile.basic.ini`. On **Linux** you may copy a tuned profile in directly (OBS **must be closed** first), then select it in OBS; otherwise just apply the settings above in the UI.
 
-### Step 3 — Add the webcam as a perfect circle
+### Step 3 - Add the webcam as a perfect circle
 
 1. **+ Add → Video Capture Device** → pick the user's camera (this is the one unavoidable manual selection).
 2. Source → **Filters → + Image Mask/Blend** → Type **Alpha Mask (Alpha Channel)** → Path = the mask from Step 1 (`~/Pictures/obs-circle-mask.png`).
 3. On canvas → **Edit Transform (Ctrl+E)** → keep the box **width = height** (don't drag a corner non-uniformly, or it ovals again).
 
-> Using a *square* mask instead? Then you MUST add a **Crop/Pad** filter **above** the mask to crop the camera to 1:1 first. The camera-matched mask (Step 1) avoids that entirely — prefer it.
+> Using a *square* mask instead? Then you MUST add a **Crop/Pad** filter **above** the mask to crop the camera to 1:1 first. The camera-matched mask (Step 1) avoids that entirely - prefer it.
 
-### Step 4 — Add the screen + audio
+### Step 4 - Add the screen + audio
 
 - **+ Add → Screen/Display Capture** (use the per-OS source from the Phase 0 table) → pick the monitor.
 - Position the circular webcam (usually a corner).
 - Mic source → **Filters**: add **Noise Suppression (RNNoise)** → **Noise Gate** (and optionally Compressor). Aim peaks ≈ −6 dB.
 
-### Step 5 — Verify
+### Step 5 - Verify
 
 Record a 5-second test, then confirm the file and that the webcam is round:
 ```bash
@@ -122,18 +122,18 @@ Hand the recording to **`video-editor`** to stitch/silence-cut/caption/export.
 
 ## Behaviour Guidelines
 
-- **Generate the mask to the camera's real resolution** — never ship/assume a square mask (that's the oval bug).
+- **Generate the mask to the camera's real resolution** - never ship/assume a square mask (that's the oval bug).
 - **Edit OBS config files only while OBS is closed** (it overwrites on exit). Prefer UI changes unless you've confirmed OBS is quit.
-- **The camera selection is manual** — don't promise to auto-pick the device; guide the one click.
-- **Don't record in OBS Safe Mode** — it disables encoders/filters (incl. the mask).
+- **The camera selection is manual** - don't promise to auto-pick the device; guide the one click.
+- **Don't record in OBS Safe Mode** - it disables encoders/filters (incl. the mask).
 - Re-run the mask generator if the capture resolution changes.
 
 ## Scope Limitations
 
 - **Camera/screen device selection is a UI step** (device IDs aren't portable across machines).
-- **Live-verified on Linux**; macOS/Windows source ids + config paths are documented from OBS's standard layout — confirm exact names in the OBS UI (Add-source menu is the safe fallback).
+- **Live-verified on Linux**; macOS/Windows source ids + config paths are documented from OBS's standard layout - confirm exact names in the OBS UI (Add-source menu is the safe fallback).
 - Writing OBS profile/scene files directly is offered as a Linux convenience only; the cross-platform path is guided UI + the generated mask.
-- This sets up recording; it does not edit — that's `video-editor`.
+- This sets up recording; it does not edit - that's `video-editor`.
 
 ## Error Handling
 
@@ -147,7 +147,7 @@ Hand the recording to **`video-editor`** to stitch/silence-cut/caption/export.
 
 ## Related Skills
 
-- **video-editor** — edit the recordings (stitch, silence-cut, captions, reframe, export)
-- **hyperframes-media** — Whisper transcription → SRT captions for the footage
-- **ad-creative** / **copywriting** — script the video first
-- **first-run-setup** — conversational bootstrap pattern
+- **video-editor** - edit the recordings (stitch, silence-cut, captions, reframe, export)
+- **hyperframes-media** - Whisper transcription → SRT captions for the footage
+- **ad-creative** / **copywriting** - script the video first
+- **first-run-setup** - conversational bootstrap pattern

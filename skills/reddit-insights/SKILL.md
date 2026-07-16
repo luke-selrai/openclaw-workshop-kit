@@ -17,10 +17,10 @@ Detect from context or ask: *"Quick pulse, full research, or strategic intellige
 | Mode | What you get | Best for |
 |------|-------------|----------|
 | `quick` | 1 query, top 5 insights, no synthesis | Fast pain point check, content spark |
-| `standard` | 3–5 queries, full synthesis with themes and patterns | Product validation, content research |
+| `standard` | 3-5 queries, full synthesis with themes and patterns | Product validation, content research |
 | `deep` | Multi-angle research + sentiment analysis + content angles + competitive intelligence | Business decisions, campaign strategy |
 
-**Default: `standard`** — use `quick` for a fast read. Use `deep` if they're validating a product idea or building a content strategy.
+**Default: `standard`** - use `quick` for a fast read. Use `deep` if they're validating a product idea or building a content strategy.
 
 ---
 

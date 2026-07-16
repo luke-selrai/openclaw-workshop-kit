@@ -1,5 +1,15 @@
 // gRPC Service Reference
-// Complete Protocol Buffer definition with all streaming patterns
+// ─────────────────────────────────────────────────────────────────────
+// What's inside: a proto3 UserService covering all four RPC shapes.
+//   • Unary:        GetUser, CreateUser, UpdateUser (with FieldMask)
+//   • Server stream: WatchUsers -> stream UserEvent
+//   • Client stream: BulkCreateUsers(stream ...) -> BulkCreateResponse
+//   • Bidi stream:   SyncUsers(stream ...) -> stream ...
+//   • Messages use google.protobuf.Timestamp, a 0-valued enum default
+//     (EVENT_TYPE_UNSPECIFIED), oneof payloads, and a shared Error message
+// Copy this for any internal service; rename the package/service and keep
+// the streaming + FieldMask patterns. Passes scripts/validate-api-spec.sh.
+// ─────────────────────────────────────────────────────────────────────
 
 syntax = "proto3";
 

@@ -110,8 +110,8 @@ const PaginationQuery = Type.Object({
 });
 
 // Register globally
-app.addSchema(Type.Object({ $id: 'ErrorResponse', ...ErrorResponse }));
-app.addSchema(Type.Object({ $id: 'PaginationQuery', ...PaginationQuery }));
+app.addSchema({ ...ErrorResponse, $id: 'ErrorResponse' });
+app.addSchema({ ...PaginationQuery, $id: 'PaginationQuery' });
 
 // Reference in routes
 app.get('/items', {

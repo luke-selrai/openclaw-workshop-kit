@@ -3,7 +3,7 @@
      no self-heal, no summary, "network hiccup" hand-wave. Every rule in
      check-mp-skills-install.mjs must FAIL against it. -->
 
-### Step 3 — Install power-user skills
+### Step 3 - Install power-user skills
 
 Say:
 > "One last tool step: I'm adding four power-user skills."
@@ -26,6 +26,6 @@ If all four are present, say:
 
 **Failure branch.** If the command errors or any of the four files is missing, tell the facilitator. This is a hard blocker: stop setup here. Say:
 
-> "The four extra skills didn't come through just now — probably a network hiccup."
+> "The four extra skills didn't come through just now - probably a network hiccup."
 
 ## PHASE 3

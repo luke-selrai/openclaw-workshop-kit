@@ -1,4 +1,4 @@
-# Accounts & Logins — Everything You Need to Create
+# Accounts & Logins - Everything You Need to Create
 
 **Set these up before or at the workshop. All links are included. Most are free.**
 
@@ -6,7 +6,7 @@ This is your complete done-for-you list. Work through it top to bottom.
 
 ---
 
-## Priority 1 — Required Before the Workshop
+## Priority 1 - Required Before the Workshop
 
 ### 1. Google Account (Gmail)
 
@@ -15,7 +15,7 @@ You almost certainly have one already. If not:
 1. Go to: [accounts.google.com/signup](https://accounts.google.com/signup)
 2. Fill in your name, choose an email address ending in `@gmail.com`
 3. Set a password and verify your phone number
-4. Done — this gives you Gmail + Google Calendar + Google Drive in one account
+4. Done - this gives you Gmail + Google Calendar + Google Drive in one account
 
 > **Already have one?** Make sure you know the email address and password. You will need to click "Allow" in a Google login screen during setup.
 
@@ -26,34 +26,34 @@ You almost certainly have one already. If not:
 ### 2. Claude Account (Claude Max)
 
 1. Go to: [claude.ai](https://claude.ai)
-2. Click **Continue with Google** — sign in with the Google account from Step 1
+2. Click **Continue with Google** - sign in with the Google account from Step 1
 3. Once logged in, go to **Settings → Billing**
 4. Click **Upgrade Plan** → choose **Claude Max** ($100 USD/month)
 5. Enter your card details
 
-> **Why Claude Max?** The standard free plan does not include Claude Code — the version that runs on your computer and automates tasks.
+> **Why Claude Max?** The standard free plan does not include Claude Code - the version that runs on your computer and automates tasks.
 
 ✅ Done when: You see "Max" next to your plan in Settings → Billing
 
 ---
 
-### 3. GitHub Account — Not Required
+### 3. GitHub Account - Not Required
 
-You do **not** need a GitHub account for the workshop. The workshop kit lives in a public GitHub repository — your assistant clones it for you during setup using a single command. No sign-in, no token, no account needed.
+You do **not** need a GitHub account for the workshop. The workshop kit lives in a public GitHub repository - your assistant clones it for you during setup using a single command. No sign-in, no token, no account needed.
 
 ✅ Skip this step.
 
 ---
 
-## Priority 2 — Set Up at the Workshop
+## Priority 2 - Set Up at the Workshop
 
 These get connected during the setup wizard. Just have the accounts ready.
 
-### 4. Phone Messaging — Telegram, WhatsApp, or iMessage
+### 4. Phone Messaging - Telegram, WhatsApp, or iMessage
 
-> **Software required:** Telegram, WhatsApp, and iMessage integrations all require **Bun** (a JavaScript runtime) installed on your computer. This is separate from Node.js. It is installed during the main workshop setup — no action needed before the workshop.
+> **Software required:** Telegram, WhatsApp, and iMessage integrations all require **Bun** (a JavaScript runtime) installed on your computer. This is separate from Node.js. It is installed during the main workshop setup - no action needed before the workshop.
 
-Your AI assistant can send you phone notifications when it finishes tasks or needs a decision. Pick whichever app you already use — you only need one.
+Your AI assistant can send you phone notifications when it finishes tasks or needs a decision. Pick whichever app you already use - you only need one.
 
 #### Telegram
 
@@ -62,7 +62,7 @@ Your AI assistant can send you phone notifications when it finishes tasks or nee
    - Android: Play Store → search "Telegram"
 2. Open the app and sign up with your phone number
 3. Verify with the SMS code sent to your phone
-4. Done — no desktop app needed (though you can install one too)
+4. Done - no desktop app needed (though you can install one too)
 
 > **What you will do at the workshop:** Search for `@BotFather` inside Telegram, create a bot, and give your assistant the bot token. Your assistant guides you through this step by step.
 
@@ -71,7 +71,7 @@ Your AI assistant can send you phone notifications when it finishes tasks or nee
 #### WhatsApp
 
 1. Make sure WhatsApp is up to date on your phone
-2. That's it — your assistant will show you a QR code to scan at the workshop
+2. That's it - your assistant will show you a QR code to scan at the workshop
 
 > **What you will do at the workshop:** Your assistant shows a QR code. You scan it with WhatsApp (Settings > Linked Devices > Link a Device). Done.
 
@@ -79,7 +79,7 @@ Your AI assistant can send you phone notifications when it finishes tasks or nee
 
 #### iMessage (Mac Only)
 
-1. No download or signup required — iMessage is built into macOS and iOS
+1. No download or signup required - iMessage is built into macOS and iOS
 2. You just need a Mac running Claude Code (iMessage channel is macOS only)
 
 > **What you will do at the workshop:** Grant Full Disk Access to your terminal, install the iMessage plugin, and text yourself. Your assistant guides you through this step by step.
@@ -88,26 +88,26 @@ Your AI assistant can send you phone notifications when it finishes tasks or nee
 
 ---
 
-### 5. Workshop Kit — Cloned Live at the Workshop
+### 5. Workshop Kit - Cloned Live at the Workshop
 
-You don't need to download or save anything in advance. At the workshop, your assistant clones the kit directly from GitHub during setup — one command, takes a few seconds. The repository is public, so no sign-in is needed.
+You don't need to download or save anything in advance. At the workshop, your assistant clones the kit directly from GitHub during setup - one command, takes a few seconds. The repository is public, so no sign-in is needed.
 
-> **Windows users:** make sure [Git for Windows](https://git-scm.com/download/win) is installed before the workshop (Priority 1, see below). On Mac, Git installs itself the first time it's needed — nothing to do in advance.
+> **Windows users:** make sure [Git for Windows](https://git-scm.com/download/win) is installed before the workshop (Priority 1, see below). On Mac, Git installs itself the first time it's needed - nothing to do in advance.
 
 ---
 
-## Priority 3 — Connect After the Workshop
+## Priority 3 - Connect After the Workshop
 
 These are the most useful next connections. Each one is optional but recommended.
 
-### Google OAuth — Connects Gmail + Calendar
+### Google OAuth - Connects Gmail + Calendar
 
 When you run the Gmail or Calendar connection commands, a browser window will open automatically. You just:
 
 1. See the Google login screen
 2. Click your email address
 3. Click **Allow** on the permissions screen
-4. Done — Claude can now access Gmail and Calendar
+4. Done - Claude can now access Gmail and Calendar
 
 ```bash
 # Install Google Workspace tool
@@ -117,7 +117,7 @@ npm install -g @googleworkspace/cli
 gws auth login
 ```
 
-> No extra account needed — just your existing Google account.
+> No extra account needed - just your existing Google account.
 
 ---
 
@@ -131,7 +131,7 @@ If you use Notion for notes or documentation:
 
 ---
 
-### GoHighLevel CRM (Optional — Paid)
+### GoHighLevel CRM (Optional - Paid)
 
 If you want your assistant to manage your sales pipeline and contacts:
 
@@ -139,16 +139,16 @@ If you want your assistant to manage your sales pipeline and contacts:
 2. Start a 14-day free trial
 3. Plans: $97-$297 USD/month after trial
 4. Get your API key from Settings → Integrations → API Keys
-5. Tell your assistant: "Connect my GHL account — my API key is [key]"
+5. Tell your assistant: "Connect my GHL account - my API key is [key]"
 
 ---
 
-### HubSpot CRM (Optional — Free Tier Available)
+### HubSpot CRM (Optional - Free Tier Available)
 
 If you want your assistant to manage HubSpot contacts, deals, companies, and notes:
 
 1. Go to: [hubspot.com](https://www.hubspot.com) → click **Get HubSpot free**
-2. Sign up with Google or email — the free CRM plan is all you need to get started
+2. Sign up with Google or email - the free CRM plan is all you need to get started
 3. Once your account is set up, tell your assistant: "Help me connect my HubSpot account."
 4. Your assistant will guide you through creating a **Private App** (a limited-permission access key) inside HubSpot Settings
 
@@ -157,34 +157,34 @@ If you want your assistant to manage HubSpot contacts, deals, companies, and not
 
 ---
 
-### GitHub (as a Connector — Optional)
+### GitHub (as a Connector - Optional)
 
 This is separate from the GitHub account you use to download the workshop kit. This connects Claude to your **actual repositories** so it can read issues, pull requests, code, and CI status.
 
 1. You already have a GitHub account (Priority 1 Step 3)
-2. No extra signup needed — your assistant walks you through creating a **Personal Access Token** (PAT) with the right permissions
+2. No extra signup needed - your assistant walks you through creating a **Personal Access Token** (PAT) with the right permissions
 3. Tell your assistant: "Help me connect my GitHub account so you can read my repos."
 
-> **Read-only or read-write?** Your assistant will ask which you prefer during setup. Read-only is safer to start — you can upgrade later.
+> **Read-only or read-write?** Your assistant will ask which you prefer during setup. Read-only is safer to start - you can upgrade later.
 
 
 ---
 
-### Square (Optional — Free)
+### Square (Optional - Free)
 
 If you take payments through Square and want your assistant to read sales, orders, customers, and invoices:
 
 1. Go to: [squareup.com](https://squareup.com) and sign in (or create a free account)
-2. No extra setup before the workshop — your assistant handles everything
+2. No extra setup before the workshop - your assistant handles everything
 3. Tell your assistant: "Help me connect my Square account."
-4. A browser sign-in to Square's server takes about 30 seconds — no token or API key needed
+4. A browser sign-in to Square's server takes about 30 seconds - no token or API key needed
 
 > **Note:** Square's Claude connector is in beta. It works well for everyday reads; occasional retries may be needed.
 
 
 ---
 
-### CircleCI (Optional — Free Tier)
+### CircleCI (Optional - Free Tier)
 
 If you use CircleCI for testing or deployments and want your assistant to check build status and logs:
 
@@ -207,16 +207,16 @@ If you use CircleCI for testing or deployments and want your assistant to check 
 | Notion | Free | After workshop | [notion.so](https://www.notion.so) |
 | GoHighLevel | $97-297 USD/mo | After workshop | [gohighlevel.com](https://www.gohighlevel.com) |
 | HubSpot | Free / paid | After workshop | [hubspot.com](https://www.hubspot.com) |
-| GitHub (connector — optional) | Free | After workshop (only if you want to connect your own repos) | [github.com/signup](https://github.com/signup) |
+| GitHub (connector - optional) | Free | After workshop (only if you want to connect your own repos) | [github.com/signup](https://github.com/signup) |
 | Square | Free | After workshop | [squareup.com](https://squareup.com) |
 | CircleCI | Free tier | After workshop | [circleci.com](https://circleci.com) |
 
-**Before the workshop: 2 required accounts (Google free + Claude Max)** — plus a phone messaging app of your choice (Telegram or WhatsApp, both free).
+**Before the workshop: 2 required accounts (Google free + Claude Max)** - plus a phone messaging app of your choice (Telegram or WhatsApp, both free).
 **Total pre-workshop cost: $100 USD/month (~$155 AUD)**
 
 ---
 
-## Passwords — Save These Somewhere Safe
+## Passwords - Save These Somewhere Safe
 
 Before the workshop, make sure you have saved:
 
@@ -228,4 +228,4 @@ A password manager (like 1Password or the built-in Apple/Google one) is the best
 
 ---
 
-*Claude Code Workshop — selrai.com.au*
+*Claude Code Workshop - selrai.com.au*

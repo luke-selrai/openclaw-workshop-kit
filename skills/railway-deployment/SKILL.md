@@ -1,6 +1,6 @@
 ---
 name: railway-deployment
-description: Hands-off assistant that connects Claude Code to the user's Railway.com account through the Railway CLI. Installs the Railway CLI, signs the user in via one browser click (OAuth in Playwright), then steps out of the way. After setup is done, the agent uses `railway` CLI directly on the user's behalf to deploy services, link projects, read variables, tail logs, etc. Specializes in three common workshop paths: (1) deploy Medusa v2 from Railway's official template — backend + Postgres + Redis in one click, (2) deploy a custom Git repo, (3) link to an existing Railway project. Use this skill when the user asks to connect Railway, deploy to Railway, set up the Railway CLI, deploy Medusa to Railway, or mentions any Railway service. MANDATORY TRIGGERS — invoke immediately on any of these phrases (case-insensitive, partial match counts) "connect railway", "set up railway", "install railway cli", "deploy to railway", "railway login", "railway template", "railway postgres", "railway medusa", "deploy medusa to railway".
+description: Hands-off assistant that connects Claude Code to the user's Railway.com account through the Railway CLI. Installs the Railway CLI, signs the user in via one browser click (OAuth in Playwright), then steps out of the way. After setup is done, the agent uses `railway` CLI directly on the user's behalf to deploy services, link projects, read variables, tail logs, etc. Specializes in three common workshop paths. (1) deploy Medusa v2 from Railway's official template - backend + Postgres + Redis in one click, (2) deploy a custom Git repo, (3) link to an existing Railway project. Use this skill when the user asks to connect Railway, deploy to Railway, set up the Railway CLI, deploy Medusa to Railway, or mentions any Railway service. MANDATORY TRIGGERS - invoke immediately on any of these phrases (case-insensitive, partial match counts) "connect railway", "set up railway", "install railway cli", "deploy to railway", "railway login", "railway template", "railway postgres", "railway medusa", "deploy medusa to railway".
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -17,7 +17,7 @@ metadata:
     - skill: medusa-connector
       reason: medusa-connector's Step 10B Path 1 dispatches here for the workshop-default Railway-based Medusa stack. The Medusa template path (Phase 3A below) is specifically built for that hand-off.
     - skill: render-deployment
-      reason: Similar install+auth shape — Render is the closest alternative to Railway for Node + Postgres workloads. If Railway pricing or capabilities don't fit, route the user to render-deployment.
+      reason: Similar install+auth shape - Render is the closest alternative to Railway for Node + Postgres workloads. If Railway pricing or capabilities don't fit, route the user to render-deployment.
     - skill: cloudflare-deployment
       reason: Pairs well for static storefronts on Cloudflare Pages or product-image storage on R2 in front of a Railway-hosted backend.
     - skill: deploy-to-vercel
@@ -30,20 +30,20 @@ metadata:
 
 ## Purpose
 
-**This skill is a hands-off assistant for connecting Claude Code to a Railway.com account.** After the user runs it once, the agent (me) can run any `railway` CLI command on the user's behalf — deploy services, link projects, read variables, tail logs, redeploy, etc. — without further setup or human input.
+**This skill is a hands-off assistant for connecting Claude Code to a Railway.com account.** After the user runs it once, the agent (me) can run any `railway` CLI command on the user's behalf - deploy services, link projects, read variables, tail logs, redeploy, etc. - without further setup or human input.
 
-The whole flow takes one click in a browser (to approve `railway login`), and that's the only required user interaction. If the user is on the workshop-default Medusa stack, the agent can additionally deploy the official Medusa template in one further automated step — backend + Postgres + Redis provisioned in ~3 minutes.
+The whole flow takes one click in a browser (to approve `railway login`), and that's the only required user interaction. If the user is on the workshop-default Medusa stack, the agent can additionally deploy the official Medusa template in one further automated step - backend + Postgres + Redis provisioned in ~3 minutes.
 
 ## Why a dedicated Railway skill (when the kit already has Render / Vercel / Cloudflare / AWS / Azure)
 
-Railway is the recommended **backend host for self-host Medusa** because Medusa Labs publishes an official Railway template that provisions backend + Postgres + Redis in one click — no equivalent exists on Render or Vercel as of January 2026. The workshop default for the Phase 3 ecommerce-medusa team picks Railway specifically for this reason. This skill makes that path one tool call away.
+Railway is the recommended **backend host for self-host Medusa** because Medusa Labs publishes an official Railway template that provisions backend + Postgres + Redis in one click - no equivalent exists on Render or Vercel as of January 2026. The workshop default for the Phase 3 ecommerce-medusa team picks Railway specifically for this reason. This skill makes that path one tool call away.
 
-For non-Medusa Node/Postgres workloads, Railway is also a clean alternative to Render (similar pricing, similar UX). The skill is useful beyond the Medusa case — it just happens to be where the Medusa hand-off lands.
+For non-Medusa Node/Postgres workloads, Railway is also a clean alternative to Render (similar pricing, similar UX). The skill is useful beyond the Medusa case - it just happens to be where the Medusa hand-off lands.
 
 ## What this skill does NOT do
 
 - **It does not install Railway's official skill bundle** (if/when one exists). The agent uses `railway` CLI directly.
-- **It does not deploy from a local folder for arbitrary apps.** Railway's deploy model is mostly Git-based — services are connected to a GitHub/GitLab repository. The exception is the Medusa template path, which provisions a fresh-template-backed service that auto-deploys on Railway-side defaults.
+- **It does not deploy from a local folder for arbitrary apps.** Railway's deploy model is mostly Git-based - services are connected to a GitHub/GitLab repository. The exception is the Medusa template path, which provisions a fresh-template-backed service that auto-deploys on Railway-side defaults.
 - **It does not maintain a long catalogue of Railway CLI commands.** Railway's docs already do that. The agent reads `railway <cmd> --help` at runtime when it needs to know more.
 
 ---
@@ -80,7 +80,7 @@ Always read this file first. Skip steps that are already done unless the user as
 
 ---
 
-## PHASE 0 — Resume check
+## PHASE 0 - Resume check
 
 Read `~/.claude/state/railway-deployment.json` if it exists:
 
@@ -94,9 +94,9 @@ Read `~/.claude/state/railway-deployment.json` if it exists:
 
 ---
 
-## PHASE 1 — Install the Railway CLI
+## PHASE 1 - Install the Railway CLI
 
-Detect the OS and install accordingly. **Tell the user once:** *"Installing the Railway tool on your computer — this takes about 30 seconds."* Then proceed silently.
+Detect the OS and install accordingly. **Tell the user once:** *"Installing the Railway tool on your computer - this takes about 30 seconds."* Then proceed silently.
 
 ```bash
 # Detect OS
@@ -119,7 +119,7 @@ case "$OS" in
     fi
     ;;
   MINGW*|CYGWIN*|MSYS*)
-    # Windows — recommend npm path; the .exe installer is also available at railway.com/install
+    # Windows - recommend npm path; the .exe installer is also available at railway.com/install
     if command -v npm >/dev/null 2>&1; then
       npm install -g @railway/cli 2>&1 | tail -5
     else
@@ -140,11 +140,11 @@ If install failed, tell the user *"Something went wrong installing the Railway t
 
 ---
 
-## PHASE 2 — Authenticate via `railway login` (Playwright-driven OAuth)
+## PHASE 2 - Authenticate via `railway login` (Playwright-driven OAuth)
 
 Railway's `railway login` opens a browser for OAuth. The workshop-UX rule (no terminal interactions for participants) means the user should click "Allow" in a browser window we open for them, not paste pairing codes.
 
-> **Playwright MCP install contingency.** If `mcp__playwright__*` or `mcp__plugin_playwright_playwright__*` tools are not reachable, install Playwright first per `../CLAUDE.md` "Playwright MCP install contingency" section. The Railway OAuth callback fires at `https://railway.com/cli-login?...` — needs a real browser.
+> **Playwright MCP install contingency.** If `mcp__playwright__*` or `mcp__plugin_playwright_playwright__*` tools are not reachable, install Playwright first per `../CLAUDE.md` "Playwright MCP install contingency" section. The Railway OAuth callback fires at `https://railway.com/cli-login?...` - needs a real browser.
 
 ```bash
 # Kick off the login flow. Railway opens its own URL in the user's default browser,
@@ -158,7 +158,7 @@ sleep 2
 LOGIN_URL=$(grep -oE 'https://railway.com/cli-login[^[:space:]]*' /tmp/railway-login.log | head -1)
 ```
 
-If `LOGIN_URL` is empty, the CLI's output format may have changed. Fallback: kill the background `railway login`, run plain `railway login` (which auto-opens the browser), and let the OS browser handle it — the user will need to switch focus to their default browser, which is friction but works.
+If `LOGIN_URL` is empty, the CLI's output format may have changed. Fallback: kill the background `railway login`, run plain `railway login` (which auto-opens the browser), and let the OS browser handle it - the user will need to switch focus to their default browser, which is friction but works.
 
 Otherwise, drive the URL in Playwright:
 
@@ -178,7 +178,7 @@ When the URL settles, switch back to the terminal:
 - `railway whoami` to confirm the auth landed.
 ```
 
-After Playwright shows success, the CLI side persists the token to `~/.railway/config.json` automatically — no extra Bash write needed.
+After Playwright shows success, the CLI side persists the token to `~/.railway/config.json` automatically - no extra Bash write needed.
 
 Verify and persist:
 
@@ -212,19 +212,19 @@ chmod 600 "$HOME/.claude/state/railway-deployment.json"
 
 Tell the user *"You're connected to Railway."* and move on.
 
-> **Security note:** the Railway token in `~/.railway/config.json` is account-level — it can deploy services, read secrets, delete projects, and bill the user's card. Never echo this file's contents back to the user, do not include them in any tool-call return value, and treat the file with the same care as `~/.claude.json`.
+> **Security note:** the Railway token in `~/.railway/config.json` is account-level - it can deploy services, read secrets, delete projects, and bill the user's card. Never echo this file's contents back to the user, do not include them in any tool-call return value, and treat the file with the same care as `~/.claude.json`.
 
 ---
 
-## PHASE 3 — Project work
+## PHASE 3 - Project work
 
 Three sub-flows; pick based on the user's context:
 
-- **3A** — Deploy the official Medusa template. Use when the medusa-connector skill's Step 10B Path 1 dispatched here, or when the user explicitly asks to deploy Medusa to Railway.
-- **3B** — Deploy a custom Git repository. Use when the user has a non-Medusa app on GitHub/GitLab.
-- **3C** — Link to an existing Railway project. Use when the user already has a project running on Railway and wants Claude to operate it.
+- **3A** - Deploy the official Medusa template. Use when the medusa-connector skill's Step 10B Path 1 dispatched here, or when the user explicitly asks to deploy Medusa to Railway.
+- **3B** - Deploy a custom Git repository. Use when the user has a non-Medusa app on GitHub/GitLab.
+- **3C** - Link to an existing Railway project. Use when the user already has a project running on Railway and wants Claude to operate it.
 
-### PHASE 3A — Deploy the official Medusa template
+### PHASE 3A - Deploy the official Medusa template
 
 Medusa Labs maintains a Railway template at https://railway.com/template/medusa (verify the canonical URL once at runtime in case it moves). The template provisions:
 
@@ -240,7 +240,7 @@ Open https://railway.com/template/medusa in Playwright MCP.
 
 Take browser_snapshot. The template page shows a "Deploy Now" button.
 
-If the user is not signed in to Railway in this Playwright session yet, the page redirects to /login first — Phase 2 should have handled this, but if not, run Phase 2 now then return.
+If the user is not signed in to Railway in this Playwright session yet, the page redirects to /login first - Phase 2 should have handled this, but if not, run Phase 2 now then return.
 
 Click "Deploy Now". Railway prompts for project name and team selection.
 
@@ -248,7 +248,7 @@ For the project name: use `medusa-${random-suffix-3-chars}` (a workshop-friendly
 
 For team: pick the default personal team unless the user has previously specified a team in the state file.
 
-Click "Create Project" or equivalent. Wait for the deploy to start — Railway shows three services (Medusa, Postgres, Redis) entering "Building..." state.
+Click "Create Project" or equivalent. Wait for the deploy to start - Railway shows three services (Medusa, Postgres, Redis) entering "Building..." state.
 
 The Medusa service typically takes 2-4 minutes to first-build. Postgres and Redis are ready in ~30 seconds. Poll the page every 30 seconds until all three services show "Active" (green).
 ```
@@ -289,19 +289,19 @@ fi
 
 Also update `~/.claude/state/railway-deployment.json` with the new project entry.
 
-Tell the user *"Your Medusa store is now running on Railway. The admin URL is ${MEDUSA_URL}/app — sign in there to finish setup."* and stop. The medusa-connector skill (if it dispatched here) will resume with its own Step 4 — admin login + API key creation — against the new URL.
+Tell the user *"Your Medusa store is now running on Railway. The admin URL is ${MEDUSA_URL}/app - sign in there to finish setup."* and stop. The medusa-connector skill (if it dispatched here) will resume with its own Step 4 - admin login + API key creation - against the new URL.
 
-> **The user may want a custom domain.** Railway gives every service a `*.up.railway.app` subdomain by default. Mapping a custom domain is two clicks in the Railway dashboard (Settings → Domains → Add Custom Domain → enter `store.example.com` → add the CNAME at the user's DNS provider). Offer to walk the user through this, but it's not required for Phase 3 to proceed — Medusa works fine on the Railway subdomain for development and small-scale production.
+> **The user may want a custom domain.** Railway gives every service a `*.up.railway.app` subdomain by default. Mapping a custom domain is two clicks in the Railway dashboard (Settings → Domains → Add Custom Domain → enter `store.example.com` → add the CNAME at the user's DNS provider). Offer to walk the user through this, but it's not required for Phase 3 to proceed - Medusa works fine on the Railway subdomain for development and small-scale production.
 
-### PHASE 3B — Deploy a custom Git repository
+### PHASE 3B - Deploy a custom Git repository
 
-For non-Medusa apps. The user must already have a GitHub or GitLab repository for the app — Railway pulls from there, not from a local folder.
+For non-Medusa apps. The user must already have a GitHub or GitLab repository for the app - Railway pulls from there, not from a local folder.
 
 Ask exactly:
 
 > *"What's the URL of the Git repo you want to deploy? Something like `https://github.com/<user>/<repo>` or `https://gitlab.com/<user>/<repo>`."*
 
-Validate the shape with `gh api repos/<owner>/<repo>` (for GitHub) or `curl -sS <gitlab-url>` (for GitLab). If the repo is private and Railway doesn't yet have access to the user's GitHub org, Railway's UI will prompt for repo access during the link step — Playwright handles this.
+Validate the shape with `gh api repos/<owner>/<repo>` (for GitHub) or `curl -sS <gitlab-url>` (for GitLab). If the repo is private and Railway doesn't yet have access to the user's GitHub org, Railway's UI will prompt for repo access during the link step - Playwright handles this.
 
 ```
 Open https://railway.com/new in Playwright MCP.
@@ -326,11 +326,11 @@ RAILWAY_URL=$(railway domain 2>&1 | grep -oE 'https://[^[:space:]]+\.up\.railway
 
 Persist to state file. Tell the user the URL.
 
-### PHASE 3C — Link to an existing Railway project
+### PHASE 3C - Link to an existing Railway project
 
 Ask:
 
-> *"You already have a project on Railway? Tell me the project name or slug — or just say 'pick from a list' and I'll show you what's there."*
+> *"You already have a project on Railway? Tell me the project name or slug - or just say 'pick from a list' and I'll show you what's there."*
 
 If the user gives a slug:
 
@@ -344,7 +344,7 @@ If "pick from a list":
 railway list 2>&1
 ```
 
-Show the user the list (project names only — don't show internal IDs), let them pick by name. Then run `railway link --project <selected>`.
+Show the user the list (project names only - don't show internal IDs), let them pick by name. Then run `railway link --project <selected>`.
 
 After link, smoke-test:
 
@@ -359,7 +359,7 @@ Capture the URL + project metadata, persist to state file. Stop.
 
 ## Common operations after Phase 3
 
-Once Phase 3 has linked a project, these are the most-used commands. The agent runs them directly on the user's behalf — no further skill setup needed.
+Once Phase 3 has linked a project, these are the most-used commands. The agent runs them directly on the user's behalf - no further skill setup needed.
 
 ```bash
 # Tail logs for a service
@@ -382,7 +382,7 @@ railway open
 railway unlink
 ```
 
-For deeper docs, the agent runs `railway <command> --help` at the moment it needs them — Railway's CLI surface evolves and the help is canonical.
+For deeper docs, the agent runs `railway <command> --help` at the moment it needs them - Railway's CLI surface evolves and the help is canonical.
 
 ---
 
@@ -404,22 +404,22 @@ The user is authenticated against a different team than the project lives in. Ru
 
 Three common causes:
 
-1. **Build logs show npm install errors.** Most often a Medusa version pin in the template repo is out of sync. Re-deploy from the template — Medusa Labs updates the template regularly. If it persists, the user should fall back to deploying Medusa from their own repo (Phase 3B) using `medusajs/medusa-starter-default` as the source.
-2. **Postgres/Redis not ready yet.** The Medusa service depends on both — if either Postgres or Redis is still "Building", wait. They usually finish in ~30 seconds; if longer than 2 minutes, check the database logs in the Railway dashboard.
+1. **Build logs show npm install errors.** Most often a Medusa version pin in the template repo is out of sync. Re-deploy from the template - Medusa Labs updates the template regularly. If it persists, the user should fall back to deploying Medusa from their own repo (Phase 3B) using `medusajs/medusa-starter-default` as the source.
+2. **Postgres/Redis not ready yet.** The Medusa service depends on both - if either Postgres or Redis is still "Building", wait. They usually finish in ~30 seconds; if longer than 2 minutes, check the database logs in the Railway dashboard.
 3. **The Medusa service is in restart loop on first launch.** Usually a missing JWT_SECRET or COOKIE_SECRET env var. Railway's Medusa template sets these by default, but if you're deploying from a fork or modified template, set them via `railway variables --service Medusa --set 'JWT_SECRET=$(openssl rand -base64 32)' --set 'COOKIE_SECRET=$(openssl rand -base64 32)'`.
 
 ### "Your trial has ended" or "Usage limit reached"
 
 Railway's free Hobby plan caps at $5/month of resource usage. For workshop runs, this is usually enough for a short Medusa demo, but a fully-populated store with traffic can blow through it. If the user hits this:
 
-- Tell them once *"Railway's free trial doesn't have enough room left for this — you'll need a paid plan ($5+/month) to continue, or we can switch to a different host."*
+- Tell them once *"Railway's free trial doesn't have enough room left for this - you'll need a paid plan ($5+/month) to continue, or we can switch to a different host."*
 - Offer alternatives: Render (also has a free tier; pair-with skill ready to dispatch), Fly.io (generous free tier), AWS (free tier eligible but more complex setup via `aws-connector`).
 
 ### Token leaked to chat by accident
 
 If the Railway token from `~/.railway/config.json` appears in any chat output or tool-call return:
 
-1. **Immediately revoke it.** Run `railway logout` in the terminal — this invalidates the token server-side and removes it from the local config.
+1. **Immediately revoke it.** Run `railway logout` in the terminal - this invalidates the token server-side and removes it from the local config.
 2. **Re-auth from scratch.** Run Phase 2 again with a fresh login. Railway will generate a new token.
 3. **Save a memory entry** explaining how the leak happened so future sessions avoid the same path.
 
@@ -429,16 +429,16 @@ If the Railway token from `~/.railway/config.json` appears in any chat output or
 
 - **Multi-region deploys.** Railway has region selection per service; this SKILL deploys to whatever the user's default region is. For multi-region, the user manages it via the Railway dashboard.
 - **Database backup / restore strategies.** Railway has automated daily backups for Postgres in paid tiers; configuration is via the dashboard.
-- **Custom Dockerfiles for non-Node services.** This SKILL assumes Railway's framework auto-detect. For Docker-based services, the user follows Railway's `railway.toml` and `Dockerfile` docs — out of scope here.
-- **CI/CD orchestration beyond Railway's built-in auto-deploy-on-push.** For complex CI flows, pair with GitHub Actions (use `gh` CLI directly) — Railway integrates well with CI but this SKILL doesn't orchestrate it.
+- **Custom Dockerfiles for non-Node services.** This SKILL assumes Railway's framework auto-detect. For Docker-based services, the user follows Railway's `railway.toml` and `Dockerfile` docs - out of scope here.
+- **CI/CD orchestration beyond Railway's built-in auto-deploy-on-push.** For complex CI flows, pair with GitHub Actions (use `gh` CLI directly) - Railway integrates well with CI but this SKILL doesn't orchestrate it.
 
 ---
 
 ## See also
 
-- [`../medusa-connector/SKILL.md`](../medusa-connector/SKILL.md) — Step 10B Path 1 dispatches here for the workshop-default Medusa stack
-- [`../render-deployment/SKILL.md`](../render-deployment/SKILL.md) — closest alternative; pair-with reference
-- [`../deploy-to-vercel/SKILL.md`](../deploy-to-vercel/SKILL.md) — typical storefront-half companion for Railway-backed Medusa
-- [`../cloudflare-deployment/SKILL.md`](../cloudflare-deployment/SKILL.md) — for storefronts on Cloudflare Pages or product-image storage on R2
-- [Railway CLI reference](https://docs.railway.com/reference/cli-api) — canonical command docs
-- [Railway templates catalog](https://railway.com/templates) — official + community templates, search for "Medusa"
+- [`../medusa-connector/SKILL.md`](../medusa-connector/SKILL.md) - Step 10B Path 1 dispatches here for the workshop-default Medusa stack
+- [`../render-deployment/SKILL.md`](../render-deployment/SKILL.md) - closest alternative; pair-with reference
+- [`../deploy-to-vercel/SKILL.md`](../deploy-to-vercel/SKILL.md) - typical storefront-half companion for Railway-backed Medusa
+- [`../cloudflare-deployment/SKILL.md`](../cloudflare-deployment/SKILL.md) - for storefronts on Cloudflare Pages or product-image storage on R2
+- [Railway CLI reference](https://docs.railway.com/reference/cli-api) - canonical command docs
+- [Railway templates catalog](https://railway.com/templates) - official + community templates, search for "Medusa"

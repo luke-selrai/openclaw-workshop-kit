@@ -109,8 +109,10 @@ fi
 
 # ═══ Shell profile setup ═══
 step "Step 6 of 8: Shell auto-load key on new terminal"
-SHELL_RC="$HOME/.zshrc"
-[ -f "$HOME/.bashrc" ] && SHELL_RC="$HOME/.bashrc"
+case "${SHELL:-}" in
+  *bash) SHELL_RC="$HOME/.bashrc" ;;
+  *)     SHELL_RC="$HOME/.zshrc" ;;
+esac
 if grep -q "anthropic-managed-agents" "$SHELL_RC" 2>/dev/null; then
   ok "Already configured in $SHELL_RC"
 else
@@ -127,17 +129,23 @@ fi
 # ═══ Connector Wizard ═══
 step "Step 7 of 8: Connect your apps (GHL, Gmail, Meta, Rube)"
 ask "Run the connector wizard now? [Y/n]"
-if [[ "${REPLY,,}" != "n" ]]; then
+if [[ "$REPLY" != [nN]* ]]; then
   bash "$(dirname "$0")/connector-wizard.sh"
 fi
 
 # ═══ Smoke test ═══
 step "Step 8 of 8: Smoke test"
+SMOKE_OK=0
 if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+  # S12: secret x-api-key header fed via curl --config on stdin (never on argv/ps)
   if curl -sS -f "https://api.anthropic.com/v1/models" \
-       -H "x-api-key: $ANTHROPIC_API_KEY" \
-       -H "anthropic-version: 2023-06-01" >/dev/null; then
+       -H "anthropic-version: 2023-06-01" \
+       --config - <<EOF >/dev/null
+header = "x-api-key: ${ANTHROPIC_API_KEY}"
+EOF
+  then
     ok "API key works. Connected to Anthropic."
+    SMOKE_OK=1
   else
     err "API call failed — check the key"
   fi
@@ -146,6 +154,18 @@ else
 fi
 
 echo ""
+if [ "$SMOKE_OK" -ne 1 ]; then
+  echo -e "${BOLD}${RED}══════════════════════════════════════════════════════════════${NC}"
+  echo -e "${BOLD}${RED}   NOT FINISHED — smoke test did not pass                      ${NC}"
+  echo -e "${BOLD}${RED}══════════════════════════════════════════════════════════════${NC}"
+  echo ""
+  echo "The Anthropic API key was missing or failed verification."
+  echo "Re-run this script after adding a working key (starts with sk-ant-)."
+  echo ""
+  echo "Questions? Luke is at @lukeselr on Instagram. Or share the log:"
+  echo "  bash ~/.claude/skills/managed-agents-setup/scripts/share-log.sh"
+  exit 1
+fi
 echo -e "${BOLD}${GREEN}══════════════════════════════════════════════════════════════${NC}"
 echo -e "${BOLD}${GREEN}   INSTALL COMPLETE                                            ${NC}"
 echo -e "${BOLD}${GREEN}══════════════════════════════════════════════════════════════${NC}"

@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """
-daily-cost-monitor.py — Deployed as a Routine (daily 8am Brisbane).
+daily-cost-monitor.py — Schedule as a Routine via create-routine.sh (daily 8am Brisbane).
+There is NO --install-cron flag; this script does not self-schedule.
 
-Pulls yesterday's Anthropic usage, flags anomalies, pushes a summary to Telegram.
-Also enforces a soft daily spend cap: if above threshold, fires killswitch.sh via webhook.
+Pulls yesterday's session COUNT, flags anomalies, pushes a summary to Telegram.
+NOTE: it reports an ESTIMATED SESSION COUNT, not verified spend. It does NOT have a
+verified per-day dollar figure, so the spend cap is reported for context only and does
+NOT, by itself, trip a killswitch. A killswitch webhook fires ONLY when a real, verified
+cost figure exceeds the cap AND KILLSWITCH_WEBHOOK_URL is set; otherwise the report says so.
 
 Env:
   ANTHROPIC_API_KEY          required
   TELEGRAM_BOT_TOKEN         required
   TELEGRAM_CHAT_ID           required
-  DAILY_SPEND_CAP_USD        default 20
-  KILLSWITCH_WEBHOOK_URL     optional, if set & over cap, POSTs to trigger killswitch
+  DAILY_SPEND_CAP_USD        default 20 (compared ONLY against a verified cost, never the count)
+  KILLSWITCH_WEBHOOK_URL     optional; only used if a verified cost exceeds the cap
 """
+import argparse
 import json
 import os
 import sys
@@ -59,6 +64,18 @@ def tg_send(msg: str):
 
 
 def main():
+    # UTF-8 stdout so report glyphs don't crash on non-UTF-8 consoles (e.g. Windows cp1252).
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+    # S5: reject unknown args so a documented `--install-cron` does NOT silently no-op.
+    # NOTE: there is no real `--install-cron` flag — this monitor must be SCHEDULED via
+    # create-routine.sh (a Routine), not self-install a cron. argparse exits 2 on unknown args.
+    parser = argparse.ArgumentParser(
+        description="Managed Agents daily cost/usage report (run as a Routine via create-routine.sh)."
+    )
+    parser.parse_args()
+
     cap = float(os.environ.get("DAILY_SPEND_CAP_USD", "20"))
     yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
 
@@ -73,29 +90,42 @@ def main():
         if s.get("created_at", "").startswith(yesterday)
     ]
 
-    # Rough estimate — real cost lives in workspace usage endpoint (if available)
-    # Fallback: count sessions × avg-hourly × session-runtime estimate
+    # S4: this is a SESSION COUNT, not a verified dollar figure. The flat sessions*0.15
+    # math structurally UNDER-reports real spend (a session can cost far more than $0.15),
+    # so it MUST NOT gate a $/day killswitch — that cap is meaningless against this number.
+    # Real spend lives in a workspace usage / cost endpoint whose exact shape is UNVERIFIED
+    # against this beta API, so we do not fabricate one here. If/when a real cost call is
+    # wired in, guard it so its absence does not crash this report.
     sess_count = len(yday_sessions)
-    est_cost = sess_count * 0.15  # ~$0.15/session assumption; tune after real data
+
+    # Optional real-cost hook: only used if a verified cost figure is available; absence is
+    # not an error and never crashes. Left None until a confirmed endpoint exists.
+    real_cost = None  # populate ONLY from a verified usage/cost response, never from a guess
 
     # Compose report
     lines = [
         f"*Managed Agents daily report*",
         f"Date: {yesterday}",
-        f"Sessions yesterday: {sess_count}",
+        f"Sessions created yesterday: {sess_count} (estimated session COUNT, NOT verified spend)",
         f"Currently running: {len(running_ids)}",
-        f"Est. spend: ${est_cost:.2f} (cap ${cap:.2f})",
+        f"Daily spend cap: ${cap:.2f} (no verified spend figure available — count is NOT a $ amount)",
     ]
 
-    if est_cost > cap:
-        lines.append(f"\n*OVER CAP* — triggering killswitch alert")
-        webhook = os.environ.get("KILLSWITCH_WEBHOOK_URL")
-        if webhook:
-            try:
-                urllib.request.urlopen(urllib.request.Request(webhook, method="POST"), timeout=10)
-                lines.append("Webhook fired, killswitch triggered")
-            except Exception as e:
-                lines.append(f"Webhook FAILED: {e}")
+    # S4 + S6: only act on a REAL verified cost. The flat session count never trips the cap.
+    if real_cost is not None:
+        lines.append(f"Verified spend: ${real_cost:.2f} (cap ${cap:.2f})")
+        if real_cost > cap:
+            webhook = os.environ.get("KILLSWITCH_WEBHOOK_URL")
+            if webhook:
+                try:
+                    urllib.request.urlopen(urllib.request.Request(webhook, method="POST"), timeout=10)
+                    lines.append("\n*OVER CAP* — killswitch webhook fired")
+                except Exception as e:
+                    # S6: webhook configured but POST failed — do NOT claim it stopped.
+                    lines.append(f"\n*OVER CAP* — NOT stopped, killswitch webhook FAILED: {e}")
+            else:
+                # S6: over cap but no webhook configured — be honest that nothing was stopped.
+                lines.append("\n*OVER CAP* — NOT stopped, no webhook configured (KILLSWITCH_WEBHOOK_URL unset)")
 
     if len(running_ids) > 5:
         lines.append(f"\nUnusual: {len(running_ids)} running sessions — investigate")

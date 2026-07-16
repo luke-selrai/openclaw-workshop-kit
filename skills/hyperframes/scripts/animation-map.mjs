@@ -350,6 +350,7 @@ function buildTimeline(tweens, duration) {
   const cols = 60;
   const lines = [];
   const secPerCol = duration / cols;
+  if (!Number.isFinite(secPerCol) || secPerCol <= 0) return 'Timeline (0.0s): no measurable duration';
 
   lines.push("Timeline (" + duration.toFixed(1) + "s, each char ≈ " + secPerCol.toFixed(2) + "s):");
   lines.push("  " + "0s" + " ".repeat(cols - 8) + duration.toFixed(0) + "s");

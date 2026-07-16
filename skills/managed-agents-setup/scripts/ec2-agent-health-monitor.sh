@@ -88,8 +88,19 @@ done
 DISK_PCT=$(df -h / | awk 'NR==2 {print $5}' | tr -d '%')
 MEM_MB=$(grep MemAvailable /proc/meminfo | awk '{print int($2/1024)}')
 
-# Cost estimate (rough): assume $0.08 avg per OpenRouter run
-OR_COST=$(echo "${STATS[openrouter]:-0} * 0.08" | bc -l 2>/dev/null || echo "?")
+# M8: validate resource readings are numeric; warn + neutralize if not so the
+# integer comparisons below don't blow up on empty/garbage values.
+if ! [[ "$DISK_PCT" =~ ^[0-9]+$ ]]; then
+  echo "[warn] DISK_PCT non-numeric ('$DISK_PCT'); defaulting to 0" >&2
+  DISK_PCT=0
+fi
+if ! [[ "$MEM_MB" =~ ^[0-9]+$ ]]; then
+  echo "[warn] MEM_MB non-numeric ('$MEM_MB'); defaulting to 0" >&2
+  MEM_MB=0
+fi
+
+# M7: cost estimate computed in awk (bc may be absent). $0.08 avg per OpenRouter run.
+OR_COST=$(awk -v n="${STATS[openrouter]:-0}" 'BEGIN { printf "%.2f", n * 0.08 }')
 
 # Build report
 REPORT="*EC2 Agent Health Report*
@@ -138,10 +149,16 @@ echo "$REPORT" | tee -a "$HOME/agents-cc/health-monitor.log"
 HOUR=$(date +%H)
 if [ "$LEVEL" != "info" ] || [ "$HOUR" = "22" ]; then
   if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
-    curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+    # M6: drop parse_mode=Markdown — the report contains unescaped *, _, `, % and
+    # would 400 / silently drop. Send as plain text and capture the HTTP status.
+    TG_PAYLOAD=$(python3 -c "import json,sys; print(json.dumps({'chat_id':'${TELEGRAM_CHAT_ID}','text':sys.argv[1]}))" "$REPORT")
+    TG_STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
+      -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
       -H "content-type: application/json" \
-      -d "$(python3 -c "import json,sys; print(json.dumps({'chat_id':'${TELEGRAM_CHAT_ID}','text':sys.argv[1],'parse_mode':'Markdown'}))" "$REPORT")" \
-      >/dev/null
+      -d "$TG_PAYLOAD" || echo "000")
+    if [ "$TG_STATUS" != "200" ]; then
+      echo "[warn] Telegram push failed (HTTP $TG_STATUS)" >&2
+    fi
   fi
 fi
 

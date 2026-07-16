@@ -14,12 +14,8 @@ metadata:
   pairs-with:
   - skill: devops-automator
     reason: GitHub Actions is one of the primary CI/CD platforms that DevOps automation targets
-  - skill: docker-containerization
-    reason: Container builds and registry pushes are the most common GitHub Actions workflow steps
   - skill: git-workflow-expert
     reason: Git branching strategies determine pipeline trigger rules and deployment gates
-  - skill: test-automation-expert
-    reason: Automated test suites run as CI pipeline stages with matrix builds and caching
 ---
 
 # GitHub Actions Pipeline Builder
