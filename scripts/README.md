@@ -119,6 +119,29 @@ node scripts/check-resilient-install.mjs --verbose  # also print every passing c
 
 **Harness wiring:** runs in CI on every event via `.github/workflows/audit-skills.yml`, alongside `verify-conform.mjs`.
 
+## check-install-narration.mjs
+
+Asserts the **venue-wifi install-narration** contract ([LOUP-20](https://linear.app/selr-ai/issue/LOUP-20)) — kills the "Claude silently hangs for minutes while something downloads over venue wifi" experience. Two layers: deep treatment in the bootstrap body (both copies) + `skills/first-run-setup/SKILL.md` (preflight at the very start, before/visible/after narration on every download point), and one always-on rule in `my-assistant/CLAUDE.md` for sessions where neither is loaded.
+
+**Usage:**
+
+```bash
+node scripts/check-install-narration.mjs            # exit 1 on any failure
+node scripts/check-install-narration.mjs --verbose  # also print every passing check
+```
+
+**Failures (exit 1)** — checked per surface (`bootstrap-body` in both copies, `bootstrap-prework`, `first-run`, `kit-rule`):
+
+- **preflight-network** — a preflight checks the network against `registry.npmjs.org` with a hard timeout (bootstrap body + first-run).
+- **looks-frozen** — the key sentence survives: a slow download may *look frozen* without being frozen (all surfaces).
+- **narrate-before** — narration happens BEFORE the command runs, because Claude cannot talk mid-command (bootstrap body + first-run).
+- **generous-timeout** / **fails-loudly** — slow commands carry a generous timeout so a dead download fails loudly instead of hanging forever (all surfaces).
+- **confirm-after** — after the command, success is confirmed or what failed is stated plainly (bootstrap body + kit rule).
+- **node-prework** — the "have Node.js installed before you arrive" pre-workshop line exists in `docs/start/bootstrap.md`.
+- **browser-download-warning** — first-run warns that the first Playwright launch downloads the browser itself (first-run only).
+
+**Harness wiring:** runs in CI on every event via `.github/workflows/audit-skills.yml`, after the resilient-install steps.
+
 ## Tests
 
 Plain Node, no framework — each prints `PASS`/`FAIL` and exits non-zero on any failure.
@@ -128,6 +151,7 @@ node scripts/test-anti-patterns.mjs     # regression for audit-skills anti-patte
 node scripts/test-snapshot-shape.mjs    # cap-boundary + real-repo checks for the snapshot invariant
 node scripts/test-verify-conform.mjs    # stale-ref + bootstrap-consistency rules for verify-conform
 node scripts/test-resilient-install.mjs # resilience rules pass on both copies; fire on a bad fixture
+node scripts/test-install-narration.mjs # narration rules pass on all surfaces; fire on a bad fixture
 ```
 
 `test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line.

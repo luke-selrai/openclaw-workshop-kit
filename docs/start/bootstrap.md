@@ -10,6 +10,15 @@ and `Talk to me like I am not technical. Plain English, one step at a time.`).
 
 ---
 
+## Before the workshop — one thing to do at home
+
+Attendees are told (on the Notion page / pre-workshop email): **if you can, have
+Node.js installed before you arrive** — download the LTS installer from
+https://nodejs.org and click through it. It is the biggest download of the whole
+setup, and your home wifi is faster than venue wifi. If you don't get to it,
+no problem — setup installs it for you on the day; it just takes a few minutes
+longer.
+
 ## Before pasting — open Claude Code in the right folder
 
 Workshop attendees are told (on the slide / Notion page) to do this BEFORE pasting the prompt:
@@ -37,10 +46,38 @@ The Code session you are running in right now is open at my workspace folder
 (`~/Desktop/my-assistant/`). All of the file drops below go INTO this current
 folder. Do not create a separate workspace anywhere else.
 
+Preflight — before step 1, run two quick checks so the common problems surface
+in the first minute, not twenty minutes in:
+
+- Run `node --version` and note whether Node is already installed (step 1
+  installs it if not).
+- Check the internet connection with a command that cannot hang:
+  `curl -m 10 -sI https://registry.npmjs.org/` on Mac/Linux, or
+  `Invoke-WebRequest -Uri "https://registry.npmjs.org" -Method Head -TimeoutSec 10`
+  on Windows PowerShell. If it errors or takes most of those 10 seconds, tell
+  me plainly: the venue wifi is struggling, the download steps below will be
+  slow, and a phone hotspot is my backup if a download actually fails. Then
+  carry on anyway.
+
+Downloads are the slow part of this whole setup. For EVERY download or install
+below (Node, the kit, anything fetched from the internet), follow this pattern:
+
+- Before you run it, tell me what is about to happen and that on venue wifi it
+  can take several minutes — it may look frozen, but it isn't. You cannot talk
+  to me while a command is running, so say this BEFORE you start.
+- Prefer command forms that print their own progress, and give every slow
+  command a generous timeout (several minutes) so a dead download fails loudly
+  with an error instead of hanging forever.
+- Afterwards, confirm it worked — or tell me plainly what failed and what it
+  means.
+
 1. Make sure Node.js is installed. First check by running `node --version`.
    If that prints a version number, Node is already installed — skip the rest of
    this step. If it says "command not found" (or similar), install it now. This
-   is part of setup, not something I needed to do beforehand:
+   is part of setup, not something I needed to do beforehand. It is the biggest
+   download of the setup — warn me first, per the preflight pattern above, that
+   it can take a few minutes on venue wifi and may look frozen without being
+   frozen:
 
    - On **Mac or Linux**, install it with nvm (the Node Version Manager). nvm
      installs Node into my home folder, so it never needs admin rights and never
@@ -96,6 +133,9 @@ folder. Do not create a separate workspace anywhere else.
      `npx @louphq/install selr-ai/workshop-kit --token loupit_...` — and paste it
      to you here.
    - Run exactly the command I paste. The same command works on Mac and Windows.
+     This downloads the kit over the venue wifi — tell me first that it can
+     take a couple of minutes, and run it with its progress output visible and
+     a generous timeout, per the preflight pattern above.
    - Then check the kit actually downloaded before going any further. The kit
      folder is `~/.loup/selr-ai/workshop-kit`. Confirm that this folder exists
      AND that BOTH `~/.loup/selr-ai/workshop-kit/my-assistant/CLAUDE.md` and

@@ -94,3 +94,13 @@ jobs:
 
       - name: Test resilient-install checker (regression)
         run: node scripts/test-resilient-install.mjs
+
+      # Install-narration invariants (LOUP-20): assert the venue-wifi contract
+      # (preflight, "looks frozen" warning, generous timeouts, fail-loudly,
+      # confirm-after) stays intact in the bootstrap copies, first-run-setup,
+      # and the kit CLAUDE.md rule. Read-only; runs on every event.
+      - name: Verify install-narration invariants
+        run: node scripts/check-install-narration.mjs
+
+      - name: Test install-narration checker (regression)
+        run: node scripts/test-install-narration.mjs

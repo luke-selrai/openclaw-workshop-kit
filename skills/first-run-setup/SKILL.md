@@ -11,12 +11,29 @@ You are setting up a non-technical business owner's AI Business Assistant for th
 
 **IMPORTANT:** Only perform the steps listed below. Do NOT check for Git, Claude Code, Playwright, or any other software not listed here. The bootstrap process already handled those. Your job is to verify skills, install Node.js, onboard the user, and show them a demo.
 
+## Slow downloads on venue wifi — narrate every one
+
+Several steps below download software over the internet (Node.js, the claude CLI, the Playwright browser, the power-user skills). On venue or café wifi each can take several minutes, and a silent multi-minute hang reads as "it's broken" to a non-technical user. For EVERY download or install in this skill:
+
+1. **Before** — tell the user what is about to run and that on slow wifi it can take a few minutes: "it may look frozen, but it isn't" is the key sentence. You cannot talk to the user while a command is running, so say it BEFORE you start.
+2. **Run visibly** — prefer command forms that print their own progress, and give the command a generous timeout (several minutes) so a dead download fails loudly with an error instead of hanging forever.
+3. **After** — confirm it worked, or say plainly what failed and what it means. Never leave a failed download unexplained.
+
 ---
 
 ## PHASE 1 — SETUP VERIFICATION
 
 Say:
 > "Hi! I am your AI Business Assistant, built by Selr AI. Let me quickly check that everything is set up correctly, then I will get to know you and your business."
+
+### Step 0 — Preflight (quiet)
+
+Before anything else, run two quick checks so the common problems surface in minute one, not twenty minutes in:
+
+- `node --version` — just note the result; Step 3 installs Node if it is missing.
+- Network sanity, with a command that cannot hang: `curl -m 10 -sI https://registry.npmjs.org/` on Mac/Linux, or `Invoke-WebRequest -Uri "https://registry.npmjs.org" -Method Head -TimeoutSec 10` on Windows PowerShell.
+
+If the network check errors or takes most of those 10 seconds, tell the user: "The wifi here looks slow — the download steps may take a few minutes each. If anything looks stuck, it almost certainly isn't." A phone hotspot is the fallback if a download actually fails. If both checks look fine, say nothing about them and move on.
 
 ### Step 1 — Verify Skills Installed
 
@@ -27,7 +44,7 @@ Check the user-level Claude skills folder — `.claude/skills/` inside the user'
   1. Check if the workshop kit's skills folder exists at `.loup/selr-ai/workshop-kit/skills/` inside the user's home folder.
   2. If yes → copy all skill folders (but not `SKILLS-LIST.md`) from the workshop kit's `skills/` folder into the user-level Claude skills folder. Use the correct copy command for the user's operating system — `cp -R` on Mac/Linux, `Copy-Item -Recurse` (or `xcopy /E /I`) on Windows.
   3. If no → the workshop kit folder is missing. The kit is delivered privately through Loup, so it is re-fetched by re-running the user's personalised install command — not by cloning from GitHub:
-     - Tell the user plainly: "The kit folder isn't on your computer — let's download it again." Ask them to open their Loup dashboard, click "Get install command", copy the whole line (it looks like `npx @louphq/install selr-ai/workshop-kit --token loupit_...`), and paste it to you here. Run exactly what they paste.
+     - Tell the user plainly: "The kit folder isn't on your computer — let's download it again." Ask them to open their Loup dashboard, click "Get install command", copy the whole line (it looks like `npx @louphq/install selr-ai/workshop-kit --token loupit_...`), and paste it to you here. Run exactly what they paste — it downloads the kit, so the venue-wifi narration pattern above applies (warn first, visible progress, generous timeout).
      - Sanity-check that both `.loup/selr-ai/workshop-kit/my-assistant/CLAUDE.md` and `.loup/selr-ai/workshop-kit/skills/` exist inside the user's home folder. If either is missing, the download did not land — show the user the real command output, tell them in plain English what went wrong, and let them re-mint a fresh install command from the Loup dashboard and retry.
      - Once the workshop kit is in place, copy the skill folders into `.claude/skills/` as in step 2 above.
 
@@ -44,7 +61,7 @@ Run: `node --version`
 - If it shows a version number → "Node.js is ready." Move to Step 4.
 - If not found → install it:
 
-Install Node.js directly from the terminal — do NOT send the user to a website to download an installer. Tell the user what is happening in plain English ("I am going to install Node.js for you now — it will take about a minute"), then run the commands yourself.
+Install Node.js directly from the terminal — do NOT send the user to a website to download an installer. This is the biggest download of the setup — narrate it per the venue-wifi pattern above. Tell the user what is happening in plain English ("I am going to install Node.js for you now — on this wifi it can take a few minutes, and it may look frozen while it downloads. It isn't."), then run the commands yourself, with progress output visible and a generous timeout.
 
 **Mac and Linux — install via nvm (Node Version Manager):**
 
@@ -118,7 +135,9 @@ Say:
 ### Step 1 — Install Claude Command Line Helper
 
 Say:
-> "First I am going to install my command-line helper. This is what lets me connect to your browser and other tools. It will take about a minute."
+> "First I am going to install my command-line helper. This is what lets me connect to your browser and other tools. On this wifi it can take a few minutes, and it may look frozen while it downloads — it isn't."
+
+This is a download — follow the venue-wifi narration pattern above (visible progress, generous timeout, confirm or report plainly after).
 
 Run: `claude --version`
 
@@ -194,9 +213,11 @@ Then stop. Wait for the user to come back and say "ready", "continue", "ok", "do
 
 Once the user is back and confirms they have restarted, immediately verify Playwright is alive. Do not skip this — silent installs that "look fine" but never actually launch a browser are a real failure mode, and the only way to catch it is to drive a real page load.
 
+Before running the test, warn the user per the venue-wifi pattern: the very first page load makes Playwright download the browser itself (a few hundred MB), which can take several minutes on venue wifi. Say something like: "The first browser launch downloads the browser itself, so this one can take a few minutes on this wifi — it may look frozen, but it isn't. After this first time it opens in a second." Give the first navigate call a generous timeout rather than assuming a hang means failure.
+
 Run, in this exact order:
 
-1. `mcp__playwright__browser_navigate` to `https://example.com` — a tiny page that loads in under a second. The browser window opens visibly (headed mode, default for Playwright MCP) — the user will see a small browser pop up on their screen.
+1. `mcp__playwright__browser_navigate` to `https://example.com` — a tiny page that loads in under a second (after the one-off browser download above). The browser window opens visibly (headed mode, default for Playwright MCP) — the user will see a small browser pop up on their screen.
 2. `mcp__playwright__browser_snapshot` — confirm the page rendered. The snapshot should contain the text "Example Domain". If it does not, Playwright is installed but not actually loading pages; stop and diagnose.
 3. `mcp__playwright__browser_close` — close the browser window immediately. The user sees it close.
 
@@ -217,9 +238,9 @@ Mention to yourself in memory which tools came online — Claude's memory will r
 ### Step 3 — Install power-user skills
 
 Say:
-> "One last tool step: I'm adding four power-user skills the Selr team uses every day. They help me stress-test your plans, dig into problems properly, hand work between sessions, and teach you anything step by step. Takes about thirty seconds."
+> "One last tool step: I'm adding four power-user skills the Selr team uses every day. They help me stress-test your plans, dig into problems properly, hand work between sessions, and teach you anything step by step. Takes about thirty seconds — or a few minutes on slow wifi. If it looks stuck, it isn't."
 
-Run (same command on Mac and Windows):
+This is a download — venue-wifi narration pattern applies (generous timeout; a dead pull should fail loudly, and the failure branch below handles it). Run (same command on Mac and Windows):
 
 ```bash
 npx -y skills@latest add mattpocock/skills -g -a claude-code -s grill-me -s handoff -s diagnose -s teach -y --copy
