@@ -54,11 +54,6 @@
       },
       {
         "type": "url",
-        "name": "manychat",
-        "url": "https://mcp.manychat.com"
-      },
-      {
-        "type": "url",
         "name": "gohighlevel",
         "url": "https://services.leadconnectorhq.com/mcp/"
       }
@@ -70,10 +65,6 @@
       {
         "type": "mcp_toolset",
         "mcp_server_name": "rube"
-      },
-      {
-        "type": "mcp_toolset",
-        "mcp_server_name": "manychat"
       },
       {
         "type": "mcp_toolset",
@@ -403,11 +394,6 @@
         "type": "url",
         "name": "rube",
         "url": "https://rube.app/mcp"
-      },
-      {
-        "type": "url",
-        "name": "manychat",
-        "url": "https://mcp.manychat.com"
       }
     ],
     "tools": [
@@ -417,10 +403,6 @@
       {
         "type": "mcp_toolset",
         "mcp_server_name": "rube"
-      },
-      {
-        "type": "mcp_toolset",
-        "mcp_server_name": "manychat"
       }
     ],
     "industries": [

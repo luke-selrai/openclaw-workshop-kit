@@ -4,7 +4,7 @@ Detailed reference for the major architecture patterns covered in SKILL.md, with
 
 ---
 
-## Clean Architecture — Full Example
+## Clean Architecture - Full Example
 
 Clean Architecture (Robert Martin, 2012) enforces a strict dependency rule: code dependencies point inward only. The outer layers (frameworks, databases) depend on the inner layers (domain, use cases), never the reverse.
 
@@ -12,7 +12,7 @@ Clean Architecture (Robert Martin, 2012) enforces a strict dependency rule: code
 
 **Entities (innermost)**: Enterprise-wide business rules. These are the things your business is about, independent of any application concern. `Order`, `User`, `Payment`, `Invoice`. If you had no computer, these concepts would still exist. They contain business rules that apply across many applications.
 
-**Use Cases**: Application-specific business logic. Each use case represents one action a user or system can take. `CreateOrder`, `ProcessRefund`, `GenerateInvoice`. Use cases orchestrate entity behavior. They can fail — they know about errors, exceptions, and edge cases. They know nothing about HTTP, databases, or UI.
+**Use Cases**: Application-specific business logic. Each use case represents one action a user or system can take. `CreateOrder`, `ProcessRefund`, `GenerateInvoice`. Use cases orchestrate entity behavior. They can fail - they know about errors, exceptions, and edge cases. They know nothing about HTTP, databases, or UI.
 
 **Interface Adapters**: Convert data between use cases and frameworks. Controllers convert HTTP requests to use case inputs and use case outputs to HTTP responses. Repository implementations convert domain entities to database rows and back. This layer knows about both the domain and the external tools, but its job is translation, not logic.
 
@@ -144,7 +144,7 @@ export class CreateOrderUseCase {
     // Reserve inventory
     await this.inventory.reserve(order.id, cmd.items);
 
-    // Notify (async — don't fail the order if notification fails)
+    // Notify (async - don't fail the order if notification fails)
     this.notifications.orderCreated(order).catch(console.error);
 
     return { orderId: order.id.value, total: order.total.amount };
@@ -199,7 +199,7 @@ export class PostgresOrderRepository implements OrderRepository {
 
 ---
 
-## Hexagonal Architecture — Practical Example
+## Hexagonal Architecture - Practical Example
 
 Ports and Adapters is a simpler vocabulary: the domain defines ports (interfaces), and adapters implement them. No strict layering beyond "inside the hexagon" vs "outside."
 
@@ -226,7 +226,7 @@ export class SendGridNotificationAdapter implements UserNotificationPort {
 }
 
 // tests/adapters/fake-notification.adapter.ts
-// Test adapter — no real emails
+// Test adapter - no real emails
 export class FakeNotificationAdapter implements UserNotificationPort {
   public readonly sent: Array<{ type: string; userId: string }> = [];
 
@@ -284,7 +284,7 @@ describe('CreateOrderUseCase', () => {
 
 ## Vertical Slice Architecture
 
-Instead of organizing by technical layer, organize by feature slice — each slice contains everything needed to fulfill one user story.
+Instead of organizing by technical layer, organize by feature slice - each slice contains everything needed to fulfill one user story.
 
 ```
 src/
@@ -315,7 +315,7 @@ src/
 
 ---
 
-## Feature-Based Organization — Detailed Structure
+## Feature-Based Organization - Detailed Structure
 
 ```
 src/
@@ -408,7 +408,7 @@ SOLID principles apply beyond classes to module design:
 
 **Interface Segregation at Module Level**: Don't create a massive `OrderService` interface with 20 methods that half the consumers don't use. Create focused interfaces: `OrderReader`, `OrderWriter`, `OrderCanceller`. Consumers depend only on what they need.
 
-**Dependency Inversion at Module Level**: Features depend on shared interfaces (ports), not on each other's concrete implementations. The `payments` feature doesn't import `PostgresOrderRepository` — it imports the `OrderRepository` interface.
+**Dependency Inversion at Module Level**: Features depend on shared interfaces (ports), not on each other's concrete implementations. The `payments` feature doesn't import `PostgresOrderRepository` - it imports the `OrderRepository` interface.
 
 ---
 

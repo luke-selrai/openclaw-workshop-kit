@@ -1,4 +1,4 @@
-# Opportunity Catalog — 50 SMB automation patterns
+# Opportunity Catalog - 60 SMB automation patterns
 
 Each pattern is one row of a static catalog the audit phase ranks against the user's intake. Match score uses: industry tag overlap × pain-keyword match × tools-they-have coverage.
 
@@ -7,7 +7,7 @@ Schema for each entry:
 - **title** (one-line outcome)
 - **industries** (tags)
 - **trigger** (one line)
-- **runtime** (n8n / managed-agent / routine / server-cron — per decision matrix)
+- **runtime** (n8n / managed-agent / routine / server-cron - per decision matrix)
 - **services** (required external services)
 - **value** (estimated hrs/mo saved at typical SMB volume)
 - **difficulty** (auto-deploy / 5min-config / 30min-custom)
@@ -53,7 +53,7 @@ Schema for each entry:
 - **trigger**: VoIP/Twilio missed-call webhook
 - **runtime**: n8n
 - **services**: VoIP/Twilio, SMS, CRM
-- **value**: 6-10 hrs/mo (huge for trades — most missed calls = lost jobs)
+- **value**: 6-10 hrs/mo (huge for trades - most missed calls = lost jobs)
 - **difficulty**: 30min-custom
 - **pain_keywords**: missed, call, phone, callback
 
@@ -153,7 +153,7 @@ Schema for each entry:
 
 ### email-parser-to-crm
 - **title**: Parse structured fields from email body into CRM
-- **industries**: real-estate (REA leads), agencies, real-estate
+- **industries**: real-estate, agencies
 - **trigger**: email matching template
 - **runtime**: n8n
 - **services**: email, CRM
@@ -423,7 +423,7 @@ Schema for each entry:
 
 ---
 
-## AI Agents — high leverage (5)
+## AI Agents - high leverage (5)
 
 ### support-triage-agent
 - **title**: Inbound support ticket → categorise + draft reply
@@ -553,20 +553,20 @@ Schema for each entry:
 
 ## Match scoring (used by recommend.sh)
 
-For each opportunity, compute:
+For each opportunity, `recommend.sh` computes:
 ```
-score = (industry_overlap * 3)
-      + (pain_keyword_match * 5)
-      + (tools_coverage * 2)
-      - (budget_overshoot * 4)        # penalise expensive runtimes if budget low
-      + (difficulty_alignment * 1)    # penalise 30min-custom if tech_comfort=1
+score = +3   if the user's industry is in the opportunity's industries (or industries = "all")
+      + 5    per matched pain keyword (opportunity pain_keywords found in the user's pains + north-star)
+      + 2    per service the user already has that the opportunity needs
+      - 3    if difficulty is "30min-custom" and tech_comfort <= 2
+      + 1    if difficulty is "auto-deploy"
 ```
 
-Top 3 by score = recommendation. Ties broken by `value` (hrs/mo).
+Opportunities scoring > 0 are ranked highest-first; the top 5 are shown. (No budget term is applied today - keep this block in sync with `recommend.sh` `score()`.)
 
 ## How this catalog grows
 
-This is v1 — 50 patterns. Each new client engagement should produce 1-2 new patterns observed from real workflows. PR them into this file with the same schema. The catalog is the moat: the more patterns we have, the better the matching, the more value users get on first run.
+This is v1 - 50 patterns. Each new client engagement should produce 1-2 new patterns observed from real workflows. PR them into this file with the same schema. The catalog is the moat: the more patterns we have, the better the matching, the more value users get on first run.
 
 ## Sister skills (delegate, don't reinvent)
 
@@ -582,40 +582,114 @@ When an opportunity is heavy on a single domain, delegate to the sister skill ra
 
 ## Professional services patterns (legal, accounting, consultants)
 
-Service businesses bill on time, not products. The general catalog skews e-commerce/SaaS — these are the patterns that actually fit a 5-10 person professional firm.
+Service businesses bill on time, not products. The general catalog skews e-commerce/SaaS - these are the patterns that actually fit a 5-10 person professional firm.
 
-| ID | Pattern | Runtime | Why |
-|---|---|---|---|
-| `legal-conflict-check` | New matter intake form → search existing client/matter DB → flag potential conflict → hold pending partner sign-off | hybrid | Agent classifies the new matter against history; n8n queries practice management DB. Compliance must-have for QLD legal practice. |
-| `matter-intake-to-billing` | Practice management new-matter event (Clio/LEAP/LawMaster) → create Xero retainer invoice + time-entry shell + client welcome | n8n | Pure mechanical chain once the new matter event fires. Replaces e-commerce templates that don't fit a services billing model. |
-| `time-entry-to-wip-bill` | Toggl/Hubstaff/Harvest weekly export → group by matter → draft Xero invoice + send for partner review | n8n | Service businesses bill hourly on a cycle. Identical mechanical chain every billing run. |
-| `trust-account-reconcile` | Daily bank feed → match trust receipts to matter ledgers → flag unallocated funds | hybrid | Reconciliation needs judgement (which matter does $X,XXX belong to); ledger updates are mechanical. Trust account breaches are disciplinary in QLD. |
-| `client-doc-request` | Outstanding-document chase: matter status = "awaiting docs" 7+ days → personalised reminder email + Slack ping to associate | hybrid | Reminder copy needs context (what's missing, what's at stake); send is mechanical. |
+### legal-conflict-check
+- **title**: New matter intake → search client/matter DB → flag conflicts → hold for partner sign-off
+- **industries**: professional-services
+- **runtime**: hybrid
+- **services**: practice management DB, document store
+- **value**: compliance must-have (avoids a conflict-of-interest breach)
+- **difficulty**: 30min-custom
+- **pain_keywords**: conflict check, matter intake, compliance, legal, due diligence
 
-`runtime: hybrid` entries are offered, not forced — see `hybrid-pattern.md`. Pure-`n8n` entries deploy as a single workflow with no agent.
+### matter-intake-to-billing
+- **title**: New-matter event (Clio/LEAP/LawMaster) → Xero retainer invoice + time-entry shell + welcome
+- **industries**: professional-services
+- **runtime**: n8n
+- **services**: Clio, LEAP, Xero
+- **value**: 2-4 hrs/wk of admin
+- **difficulty**: 30min-custom
+- **pain_keywords**: matter intake, retainer, invoice, onboarding, billing
+
+### time-entry-to-wip-bill
+- **title**: Toggl/Hubstaff/Harvest weekly export → group by matter → draft Xero invoice for review
+- **industries**: professional-services
+- **runtime**: n8n
+- **services**: Toggl, Harvest, Xero
+- **value**: hours saved every billing cycle
+- **difficulty**: 30min-custom
+- **pain_keywords**: time entry, wip, billing, invoice, timesheet
+
+### trust-account-reconcile
+- **title**: Daily bank feed → match trust receipts to matter ledgers → flag unallocated funds
+- **industries**: professional-services
+- **runtime**: hybrid
+- **services**: bank feed, trust ledger
+- **value**: avoids a disciplinary trust-account breach
+- **difficulty**: 30min-custom
+- **pain_keywords**: reconciliation, trust account, compliance, ledger, accounting
+
+### client-doc-request
+- **title**: Matter awaiting docs 7+ days → personalised reminder email + Slack ping to the associate
+- **industries**: professional-services
+- **runtime**: hybrid
+- **services**: email, Slack, practice management DB
+- **value**: matters move faster, less manual chasing
+- **difficulty**: 5min-config
+- **pain_keywords**: document chase, reminder, follow-up, awaiting docs, outstanding
+
+`runtime: hybrid` entries are offered, not forced - see `hybrid-pattern.md`. Pure-`n8n` entries deploy as a single workflow with no agent.
 
 ## Hybrid opportunities (Agent + n8n tools)
 
 These are flagged `runtime: hybrid`. The orchestrator offers them with hybrid as the suggested default, single-runtime as fallback options. See `hybrid-pattern.md` for the full pattern.
 
-| ID | Pattern | Why hybrid |
-|---|---|---|
-| `hot-lead-triage-hybrid` | Agent classifies new leads (hot/warm/cold), calls workflow tools to route hot to sales SMS+CRM, warm to email sequence | Classification needs judgement; routing is identical mechanical work |
-| `inbox-triage-hybrid` | Agent reads inbox, classifies invoice/support/urgent/spam, calls workflow tools to lookup invoices in Xero, create tickets in GHL, escalate via Telegram | Intent recognition is LLM work; service lookups are mechanical |
-| `customer-support-hybrid` | Agent reads incoming WhatsApp/SMS, identifies intent, calls workflow tools to lookup orders, process refunds, or escalate | Intent + composition is judgement; Shopify/refund actions are pure API |
-| `morning-ops-hybrid` | Agent calls metrics-pull workflow, synthesises into prose, decides what's anomalous, sends Telegram | Synthesis is LLM; metric pull is three identical API calls daily |
-| `content-publisher-hybrid` | Agent drafts a post, calls platform-specific publish workflows (Instagram/LinkedIn) which handle Buffer + native API quirks | Drafting is creative; platform plumbing changes too often to bake into agent prompts |
+### hot-lead-triage-hybrid
+- **title**: Agent classifies new leads (hot/warm/cold) → routes hot to sales SMS+CRM, warm to email sequence
+- **industries**: all
+- **runtime**: hybrid
+- **services**: CRM, SMS, email
+- **value**: more hot leads worked, fewer dropped
+- **difficulty**: 30min-custom
+- **pain_keywords**: lead triage, routing, follow-up, sales, qualification
+
+### inbox-triage-hybrid
+- **title**: Agent classifies inbox (invoice/support/urgent/spam) → lookup in Xero, ticket in GHL, escalate via Telegram
+- **industries**: all
+- **runtime**: hybrid
+- **services**: Gmail, Xero, GHL, Telegram
+- **value**: inbox handled, nothing urgent missed
+- **difficulty**: 30min-custom
+- **pain_keywords**: inbox, email triage, support, invoices, escalation
+
+### customer-support-hybrid
+- **title**: Agent reads WhatsApp/SMS, identifies intent → lookup orders, process refunds, or escalate
+- **industries**: all
+- **runtime**: hybrid
+- **services**: WhatsApp, SMS, Shopify
+- **value**: faster support replies, fewer escalations
+- **difficulty**: 30min-custom
+- **pain_keywords**: customer support, refunds, orders, whatsapp, intent
+
+### morning-ops-hybrid
+- **title**: Agent pulls metrics via workflow, synthesises prose, flags anomalies, sends Telegram digest
+- **industries**: all
+- **runtime**: hybrid
+- **services**: metrics sources, Telegram
+- **value**: 30-second daily read on the business
+- **difficulty**: 30min-custom
+- **pain_keywords**: daily digest, metrics, reporting, anomaly, summary
+
+### content-publisher-hybrid
+- **title**: Agent drafts a post → platform-specific publish workflows (Instagram/LinkedIn) handle Buffer + API quirks
+- **industries**: all
+- **runtime**: hybrid
+- **services**: Instagram, LinkedIn, Buffer
+- **value**: consistent posting without the manual grind
+- **difficulty**: 30min-custom
+- **pain_keywords**: content, publishing, social media, posting, schedule
 
 When the user picks a hybrid opportunity, the orchestrator runs `/n8n` first (builds workflows as webhook tools), then `/managed-agents-setup` (creates agent with `scripts/build-hybrid-tool.py`-generated tool specs). One handoff doc, one kill switch.
 
 ## Where to find more automations (community)
 
-The 50 opportunities here are the curated starter set. The 290+ n8n templates under `templates/n8n/` cover most ground. If a workshop attendee wants to keep going after their first 1-3 builds:
+The 60 opportunities here are the curated starter set. The 290+ n8n templates under `templates/n8n/` cover most ground. If a workshop attendee wants to keep going after their first 1-3 builds:
 
-- **Local skill discovery first**: `/skills-discovery` (workshop attendee tour) and `/find-skill` (search across 130+ installed skills) — already invoked at Phase 7 handoff.
-- **Browse n8n.io directly**: <https://n8n.io/workflows/> — 9,000+ templates, search by integration name (Stripe, Xero, Shopify, etc.). Templates curated here are filtered for ≥3 nodes + non-empty description; n8n.io has plenty more for niche needs.
-- **Awesome Claude Code** (community curated, MIT): <https://github.com/hesreallyhim/awesome-claude-code> — definitive list of skills, hooks, slash commands, agent orchestrators, and plugins.
-- **Awesome Claude Skills** (Composio): <https://github.com/ComposioHQ/awesome-claude-skills> — 1000+ skills/plugins. Composio MCP is already wired so installing one is low-friction.
-- **Anthropic plugin marketplace docs**: <https://code.claude.com/docs/en/plugin-marketplaces> — official guide. As of 2026 there are 2,500+ marketplaces with 4,200+ skills + 770+ MCP servers.
+- **Local skill discovery first**: `/skills-discovery` (workshop attendee tour) and `/find-skill` (search across 130+ installed skills) - already invoked at Phase 7 handoff.
+- **Browse n8n.io directly**: <https://n8n.io/workflows/> - 9,000+ templates, search by integration name (Stripe, Xero, Shopify, etc.). Templates curated here are filtered for ≥3 nodes + non-empty description; n8n.io has plenty more for niche needs.
+- **Awesome Claude Code** (community curated, MIT): <https://github.com/hesreallyhim/awesome-claude-code> - definitive list of skills, hooks, slash commands, agent orchestrators, and plugins.
+- **Awesome Claude Skills** (Composio): <https://github.com/ComposioHQ/awesome-claude-skills> - 1000+ skills/plugins. Composio MCP is already wired so installing one is low-friction.
+- **Anthropic plugin marketplace docs**: <https://code.claude.com/docs/en/plugin-marketplaces> - official guide. As of 2026 there are 2,500+ marketplaces with 4,200+ skills + 770+ MCP servers.
 
 **Rule for attendees**: install ONE thing at a time, run it, decide if it earns its keep, then add the next. Don't pre-load 20 skills before the first build pays off.

@@ -1,15 +1,15 @@
-# OBS Recording Setup — Walkthrough
+# OBS Recording Setup - Walkthrough
 
 > **Status: Linux path captured live 2026-06-08** against a real OBS 32 install
 > (config at `~/.config/obs-studio`, webcam `/dev/video32` @ 1920×1080 MJPG).
 > The mask generator and the oval→circle fix were verified end-to-end. macOS/Windows
-> steps are documented from OBS's standard config layout — confirm device names in the UI.
+> steps are documented from OBS's standard config layout - confirm device names in the UI.
 
 ## The problem this solves (captured live)
 
 A webcam circle came out **oval**. Root cause, read from the live OBS scene file:
 the webcam captured at **1920×1080 (16:9)** but the Image Mask/Blend filter used a
-**1080×1080 square** mask — OBS stretched the square mask across the 16:9 frame → oval.
+**1080×1080 square** mask - OBS stretched the square mask across the 16:9 frame → oval.
 
 **Fix (verified):** generate the mask at the camera's exact resolution so OBS scales
 it 1:1.

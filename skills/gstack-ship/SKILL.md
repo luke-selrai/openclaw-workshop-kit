@@ -22,11 +22,11 @@ You are running the `/ship` workflow. This is a **non-interactive, fully automat
 - Merge conflicts that can't be auto-resolved (stop, show conflicts)
 - Test failures (stop, show failures)
 - Pre-landing review finds CRITICAL issues and user chooses to fix (not acknowledge or skip)
-- MINOR or MAJOR version bump needed (ask — see Step 4)
+- MINOR or MAJOR version bump needed (ask - see Step 4)
 
 **Never stop for:**
 - Uncommitted changes (always include them)
-- Version bump choice (auto-pick MICRO or PATCH — see Step 4)
+- Version bump choice (auto-pick MICRO or PATCH - see Step 4)
 - CHANGELOG content (auto-generate from diff)
 - Commit message approval (auto-commit)
 - Multi-file changesets (auto-split into bisectable commits)
@@ -37,7 +37,7 @@ You are running the `/ship` workflow. This is a **non-interactive, fully automat
 
 1. Check the current branch. If on `main`, **abort**: "You're on main. Ship from a feature branch."
 
-2. Run `git status` (never use `-uall`). Uncommitted changes are always included — no need to ask.
+2. Run `git status` (never use `-uall`). Uncommitted changes are always included - no need to ask.
 
 3. Run `git diff main...HEAD --stat` and `git log main..HEAD --oneline` to understand what's being shipped.
 
@@ -59,7 +59,7 @@ git fetch origin main && git merge origin/main --no-edit
 
 ## Step 3: Run tests (on merged code)
 
-**Do NOT run `RAILS_ENV=test bin/rails db:migrate`** — `bin/test-lane` already calls
+**Do NOT run `RAILS_ENV=test bin/rails db:migrate`** - `bin/test-lane` already calls
 `db:test:prepare` internally, which loads the schema into the correct lane database.
 Running bare test migrations without INSTANCE hits an orphan DB and corrupts structure.sql.
 
@@ -75,7 +75,7 @@ After both complete, read the output files and check pass/fail.
 
 **If any test fails:** Show the failures and **STOP**. Do not proceed.
 
-**If all pass:** Continue silently — just note the counts briefly.
+**If all pass:** Continue silently - just note the counts briefly.
 
 ---
 
@@ -98,7 +98,7 @@ Match against these patterns (from CLAUDE.md):
 - `config/system_prompts/*.txt`
 - `test/evals/**/*` (eval infrastructure changes affect all suites)
 
-**If no matches:** Print "No prompt-related files changed — skipping evals." and continue to Step 3.5.
+**If no matches:** Print "No prompt-related files changed - skipping evals." and continue to Step 3.5.
 
 **2. Identify affected eval suites:**
 
@@ -112,7 +112,7 @@ Map runner → test file: `post_generation_eval_runner.rb` → `post_generation_
 
 **Special cases:**
 - Changes to `test/evals/judges/*.rb`, `test/evals/support/*.rb`, or `test/evals/fixtures/` affect ALL suites that use those judges/support files. Check imports in the eval test files to determine which.
-- Changes to `config/system_prompts/*.txt` — grep eval runners for the prompt filename to find affected suites.
+- Changes to `config/system_prompts/*.txt` - grep eval runners for the prompt filename to find affected suites.
 - If unsure which suites are affected, run ALL suites that could plausibly be impacted. Over-testing is better than missing a regression.
 
 **3. Run affected suites at `EVAL_JUDGE_TIER=full`:**
@@ -123,16 +123,16 @@ Map runner → test file: `post_generation_eval_runner.rb` → `post_generation_
 EVAL_JUDGE_TIER=full EVAL_VERBOSE=1 bin/test-lane --eval test/evals/<suite>_eval_test.rb 2>&1 | tee /tmp/ship_evals.txt
 ```
 
-If multiple suites need to run, run them sequentially (each needs a test lane). If the first suite fails, stop immediately — don't burn API cost on remaining suites.
+If multiple suites need to run, run them sequentially (each needs a test lane). If the first suite fails, stop immediately - don't burn API cost on remaining suites.
 
 **4. Check results:**
 
 - **If any eval fails:** Show the failures, the cost dashboard, and **STOP**. Do not proceed.
 - **If all pass:** Note pass counts and cost. Continue to Step 3.5.
 
-**5. Save eval output** — include eval results and cost dashboard in the PR body (Step 8).
+**5. Save eval output** - include eval results and cost dashboard in the PR body (Step 8).
 
-**Tier reference (for context — /ship always uses `full`):**
+**Tier reference (for context - /ship always uses `full`):**
 | Tier | When | Speed (cached) | Cost |
 |------|------|----------------|------|
 | `fast` (Haiku) | Dev iteration, smoke tests | ~5s (14x faster) | ~$0.07/run |
@@ -153,21 +153,21 @@ Review the diff for structural issues that tests don't catch.
    - **Pass 1 (CRITICAL):** SQL & Data Safety, LLM Output Trust Boundary
    - **Pass 2 (INFORMATIONAL):** All remaining categories
 
-4. **Always output ALL findings** — both critical and informational. The user must see every issue found.
+4. **Always output ALL findings** - both critical and informational. The user must see every issue found.
 
 5. Output a summary header: `Pre-Landing Review: N issues (X critical, Y informational)`
 
 6. **If CRITICAL issues found:** For EACH critical issue, use a separate AskUserQuestion with:
    - The problem (`file:line` + description)
    - Your recommended fix
-   - Options: A) Fix it now (recommend), B) Acknowledge and ship anyway, C) It's a false positive — skip
+   - Options: A) Fix it now (recommend), B) Acknowledge and ship anyway, C) It's a false positive - skip
    After resolving all critical issues: if the user chose A (fix) on any issue, apply the recommended fixes, then commit only the fixed files by name (`git add <fixed-files> && git commit -m "fix: apply pre-landing review fixes"`), then **STOP** and tell the user to run `/ship` again to re-test with the fixes applied. If the user chose only B (acknowledge) or C (false positive) on all issues, continue with Step 4.
 
 7. **If only non-critical issues found:** Output them and continue. They will be included in the PR body at Step 8.
 
 8. **If no issues found:** Output `Pre-Landing Review: No issues found.` and continue.
 
-Save the review output — it goes into the PR body in Step 8.
+Save the review output - it goes into the PR body in Step 8.
 
 ---
 
@@ -179,8 +179,8 @@ Save the review output — it goes into the PR body in Step 8.
    - Count lines changed (`git diff origin/main...HEAD --stat | tail -1`)
    - **MICRO** (4th digit): < 50 lines changed, trivial tweaks, typos, config
    - **PATCH** (3rd digit): 50+ lines changed, bug fixes, small-medium features
-   - **MINOR** (2nd digit): **ASK the user** — only for major features or significant architectural changes
-   - **MAJOR** (1st digit): **ASK the user** — only for milestones or breaking changes
+   - **MINOR** (2nd digit): **ASK the user** - only for major features or significant architectural changes
+   - **MAJOR** (1st digit): **ASK the user** - only for milestones or breaking changes
 
 3. Compute the new version:
    - Bumping a digit resets all digits to its right to 0
@@ -200,10 +200,10 @@ Save the review output — it goes into the PR body in Step 8.
    - The CHANGELOG entry must be comprehensive of ALL changes going into the PR
    - If existing CHANGELOG entries on the branch already cover some commits, replace them with one unified entry for the new version
    - Categorize changes into applicable sections:
-     - `### Added` — new features
-     - `### Changed` — changes to existing functionality
-     - `### Fixed` — bug fixes
-     - `### Removed` — removed features
+     - `### Added` - new features
+     - `### Changed` - changes to existing functionality
+     - `### Fixed` - bug fixes
+     - `### Removed` - removed features
    - Write concise, descriptive bullet points
    - Insert after the file header (line 5), dated today
    - Format: `## [X.Y.Z.W] - YYYY-MM-DD`
@@ -216,7 +216,7 @@ Save the review output — it goes into the PR body in Step 8.
 
 **Goal:** Create small, logical commits that work well with `git bisect` and help LLMs understand what changed.
 
-1. Analyze the diff and group changes into logical commits. Each commit should represent **one coherent change** — not one file, but one logical unit.
+1. Analyze the diff and group changes into logical commits. Each commit should represent **one coherent change** - not one file, but one logical unit.
 
 2. **Commit ordering** (earlier commits first):
    - **Infrastructure:** migrations, config changes, route additions
@@ -232,7 +232,7 @@ Save the review output — it goes into the PR body in Step 8.
    - Config/route changes can group with the feature they enable
    - If the total diff is small (< 50 lines across < 4 files), a single commit is fine
 
-4. **Each commit must be independently valid** — no broken imports, no references to code that doesn't exist yet. Order commits so dependencies come first.
+4. **Each commit must be independently valid** - no broken imports, no references to code that doesn't exist yet. Order commits so dependencies come first.
 
 5. Compose each commit message:
    - First line: `<type>: <summary>` (type = feat/fix/chore/refactor/docs)
@@ -273,7 +273,7 @@ gh pr create --title "<type>: <summary>" --body "$(cat <<'EOF'
 <findings from Step 3.5, or "No issues found.">
 
 ## Eval Results
-<If evals ran: suite names, pass/fail counts, cost dashboard summary. If skipped: "No prompt-related files changed — evals skipped.">
+<If evals ran: suite names, pass/fail counts, cost dashboard summary. If skipped: "No prompt-related files changed - evals skipped.">
 
 ## Test plan
 - [x] All Rails tests pass (N runs, 0 failures)
@@ -284,7 +284,7 @@ EOF
 )"
 ```
 
-**Output the PR URL** — this should be the final output the user sees.
+**Output the PR URL** - this should be the final output the user sees.
 
 ---
 
@@ -296,5 +296,5 @@ EOF
 - **Never ask for confirmation** except for MINOR/MAJOR version bumps and CRITICAL review findings (one AskUserQuestion per critical issue with fix recommendation).
 - **Always use the 4-digit version format** from the VERSION file.
 - **Date format in CHANGELOG:** `YYYY-MM-DD`
-- **Split commits for bisectability** — each commit = one logical change.
+- **Split commits for bisectability** - each commit = one logical change.
 - **The goal is: user says `/ship`, next thing they see is the review + PR URL.**

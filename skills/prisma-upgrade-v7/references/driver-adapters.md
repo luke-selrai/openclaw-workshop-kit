@@ -64,7 +64,7 @@ npm install @prisma/adapter-mssql mssql
 ### PostgreSQL
 
 ```typescript
-import { PrismaClient } from '../generated/client'
+import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 const adapter = new PrismaPg({
@@ -77,7 +77,7 @@ const prisma = new PrismaClient({ adapter })
 ### MySQL
 
 ```typescript
-import { PrismaClient } from '../generated/client'
+import { PrismaClient } from '../generated/prisma/client'
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
 
 const adapter = new PrismaMariaDb({
@@ -95,7 +95,7 @@ const prisma = new PrismaClient({ adapter })
 ### SQLite
 
 ```typescript
-import { PrismaClient } from '../generated/client'
+import { PrismaClient } from '../generated/prisma/client'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 
 const adapter = new PrismaBetterSqlite3({
@@ -108,7 +108,7 @@ const prisma = new PrismaClient({ adapter })
 ### Neon (Serverless PostgreSQL)
 
 ```typescript
-import { PrismaClient } from '../generated/client'
+import { PrismaClient } from '../generated/prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
 
 const adapter = new PrismaNeon({
@@ -121,7 +121,7 @@ const prisma = new PrismaClient({ adapter })
 ### Prisma Postgres
 
 ```typescript
-import { PrismaClient } from '../generated/client'
+import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 const adapter = new PrismaPg({
@@ -134,7 +134,7 @@ const prisma = new PrismaClient({ adapter })
 ### Prisma Postgres serverless driver
 
 ```typescript
-import { PrismaClient } from '../generated/client'
+import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPostgresAdapter } from '@prisma/adapter-ppg'
 
 const prisma = new PrismaClient({
@@ -147,7 +147,7 @@ const prisma = new PrismaClient({
 ### SQL Server
 
 ```typescript
-import { PrismaClient } from '../generated/client'
+import { PrismaClient } from '../generated/prisma/client'
 import { PrismaMssql } from '@prisma/adapter-mssql'
 
 const adapter = new PrismaMssql({
@@ -234,7 +234,7 @@ const prisma = new PrismaClient({
 ### After (v7)
 
 ```typescript
-import { PrismaClient } from '../generated/client'
+import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 const adapter = new PrismaPg({
@@ -248,7 +248,7 @@ const prisma = new PrismaClient({ adapter })
 
 ```typescript
 // lib/prisma.ts
-import { PrismaClient } from '../generated/client'
+import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 const globalForPrisma = globalThis as unknown as {

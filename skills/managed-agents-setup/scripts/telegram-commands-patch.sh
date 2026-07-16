@@ -4,7 +4,7 @@
 set -euo pipefail
 
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/clawd-key.pem}"
-SSH_HOST="${SSH_HOST:-ubuntu@15.134.37.81}"
+SSH_HOST="${SSH_HOST:-ubuntu@100.119.119.120}"
 SSH_CMD="ssh -o BatchMode=yes -i $SSH_KEY $SSH_HOST"
 
 TMP_EXT=$(mktemp /tmp/ma-commands-ext.py.XXXXXX)
@@ -88,18 +88,42 @@ def handle_killswitch(chat_id, send_message):
         send_message(chat_id, f"Killswitch query failed: {e}")
 
 
-def handle_killall(chat_id, send_message):
+def handle_killall(parts, chat_id, send_message):
     import urllib.request
     h = _ma_headers()
     if not h:
         send_message(chat_id, "ANTHROPIC_API_KEY not set.")
         return
+    # M5: require an explicit kill target. Accept the first non-"---" positional
+    # as a filter and only interrupt sessions matching it. Fail safe: with no
+    # target we kill NOTHING rather than every running session.
+    target = ""
+    for p in (parts or []):
+        if p and p != "---":
+            target = p
+            break
+    if not target:
+        send_message(
+            chat_id,
+            "Refusing to kill all sessions. Usage: /killall <id-or-title-substring>",
+        )
+        return
     try:
         req = urllib.request.Request(
             "https://api.anthropic.com/v1/sessions?status=running", headers=h)
         sessions = json.loads(urllib.request.urlopen(req, timeout=10).read()).get("data", [])
+        # Filter to sessions whose id or title contains the target substring.
+        # UNVERIFIED API shape: if neither field is present a session simply does
+        # not match, so the filter fails safe (matches nothing).
+        matched = [
+            s for s in sessions
+            if target in str(s.get("id", "")) or target in str(s.get("title", ""))
+        ]
+        if not matched:
+            send_message(chat_id, f"No running session matches '{target}'.")
+            return
         killed = 0
-        for s in sessions:
+        for s in matched:
             body = json.dumps({"events": [{"type": "user.interrupt"}]}).encode()
             ir = urllib.request.Request(
                 f"https://api.anthropic.com/v1/sessions/{s['id']}/events",
@@ -110,7 +134,7 @@ def handle_killall(chat_id, send_message):
                 killed += 1
             except Exception:
                 pass
-        send_message(chat_id, f"Killed {killed}/{len(sessions)} running sessions.")
+        send_message(chat_id, f"Killed {killed}/{len(matched)} session(s) matching '{target}'.")
     except Exception as e:
         send_message(chat_id, f"Killall failed: {e}")
 
@@ -152,7 +176,7 @@ def dispatch(cmd, parts, chat_id, send_message):
     if cmd == "killswitch":
         handle_killswitch(chat_id, send_message); return True
     if cmd == "killall":
-        handle_killall(chat_id, send_message); return True
+        handle_killall(parts, chat_id, send_message); return True
     if cmd == "cost":
         handle_cost(chat_id, send_message); return True
     if cmd == "agents":
@@ -174,39 +198,64 @@ echo "[patch] Target: $BOT_PY"
 cp "$BOT_PY" "$BOT_PY.bak-$(date +%s)"
 
 python3 <<PY
-import pathlib, re
+import pathlib, re, sys
 p = pathlib.Path("$BOT_PY")
 src = p.read_text()
 if "ma_commands" in src:
     print("[skip] Already patched")
-else:
-    lines = src.splitlines()
-    # Find end of imports
-    import_end = 0
-    for i, line in enumerate(lines):
-        if line.startswith("import ") or line.startswith("from "):
-            import_end = i + 1
-    inject = [
-        "",
-        "# Managed Agents commands extension",
-        "import sys",
-        "sys.path.insert(0, \"/home/ubuntu/agents-cc/shared\")",
-        "try:",
-        "    from ma_commands import dispatch as ma_dispatch",
-        "except ImportError:",
-        "    ma_dispatch = lambda *a, **kw: False",
-        "",
-    ]
-    lines[import_end:import_end] = inject
-    src = "\n".join(lines)
-    # Insert dispatch hook into command handler
-    m = re.search(r"def handle_command\([^)]*\):\s*\n", src)
-    if m:
-        inject_call = "    if ma_dispatch(cmd, parts[1:] if len(parts) > 1 else [], chat_id, send_message):\n        return\n"
-        src = src[:m.end()] + inject_call + src[m.end():]
-    p.write_text(src)
-    print("[patched]", p)
+    sys.exit(0)
+
+lines = src.splitlines()
+# Find end of imports
+import_end = 0
+for i, line in enumerate(lines):
+    if line.startswith("import ") or line.startswith("from "):
+        import_end = i + 1
+inject = [
+    "",
+    "# Managed Agents commands extension",
+    "import sys",
+    "sys.path.insert(0, \"/home/ubuntu/agents-cc/shared\")",
+    "try:",
+    "    from ma_commands import dispatch as ma_dispatch",
+    "except ImportError:",
+    "    ma_dispatch = lambda *a, **kw: False",
+    "",
+]
+lines[import_end:import_end] = inject
+src = "\n".join(lines)
+
+# M14: anchor the dispatch hook AFTER cmd/parts are defined, not at the def line
+# (the hook references both). Require a real match — if we cannot find where the
+# handler builds cmd from parts, refuse to write a broken file and bail non-zero.
+m = re.search(
+    r"^([ \t]+)cmd\s*=\s*parts\[0\][^\n]*\n",
+    src, re.MULTILINE,
+)
+if not m:
+    print("[fatal] Could not locate 'cmd = parts[0]' assignment; not patching.", file=sys.stderr)
+    sys.exit(1)
+indent = m.group(1)
+inject_call = (
+    f"{indent}if ma_dispatch(cmd, parts[1:] if len(parts) > 1 else [], chat_id, send_message):\n"
+    f"{indent}    return\n"
+)
+src = src[:m.end()] + inject_call + src[m.end():]
+p.write_text(src)
+print("[patched]", p)
 PY
+PATCH_RC=$?
+if [ "$PATCH_RC" -ne 0 ]; then
+  echo "[fatal] Patch step failed (rc=$PATCH_RC); not restarting." >&2
+  exit "$PATCH_RC"
+fi
+
+# M14: py_compile the patched file before any restart — a syntax-broken bot.py
+# must abort here rather than take the live bot down.
+if ! python3 -m py_compile "$BOT_PY"; then
+  echo "[fatal] Patched $BOT_PY does not compile; restoring is on you via the .bak. Not restarting." >&2
+  exit 1
+fi
 
 systemctl --user restart telegram-bot-v2
 sleep 3

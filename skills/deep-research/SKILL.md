@@ -1,96 +1,44 @@
 ---
 name: deep-research
-description: "Deep research on any topic — market analysis, competitor research, industry trends, due diligence. Searches, reads, and synthesises multiple sources into a structured report. Takes 2-10 minutes and costs $2-5 per task. Requires a free Gemini API key (one-time setup)."
+description: "Deep research on any topic - market analysis, competitor research, industry trends, due diligence. Uses Claude's built-in web search to plan, search, read multiple sources, and synthesise them into a structured, cited report. No API key, no Python, no setup required. Use when the owner asks to research competitors, size up a market, review an industry, or wants a sourced report they can act on."
 risk: safe
 source: "https://github.com/sanjay3290/ai-skills/tree/main/skills/deep-research"
 date_added: "2026-02-27"
 ---
 
-# Gemini Deep Research Skill
+# Deep Research
 
-Run autonomous research tasks that plan, search, read, and synthesize information into comprehensive reports.
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/deep-research-session.md`](examples/deep-research-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+Run autonomous research that plans, searches the web, reads multiple sources, and synthesises them into a structured, cited report. The default method runs entirely on Claude's built-in web search. There is nothing to install, no API key, and no Python. It works the moment the kit is set up.
 
 ## When to Use This Skill
 
-Use this skill when:
-- Performing market analysis
-- Conducting competitive landscaping
-- Creating literature reviews
-- Doing technical research
-- Performing due diligence
-- Need detailed, cited research reports
+Use this skill when the owner wants to:
 
-## Requirements
+- Research competitors or size up a market
+- Landscape an industry or track trends
+- Do due diligence on a company, product, or partner
+- Pull a literature or technical review together
+- Get a detailed, cited research report they can act on
 
-- Python 3.8+
-- httpx: `pip install -r requirements.txt`
-- GEMINI_API_KEY environment variable
+## How it works (default, no setup)
 
-## Setup
+1. Clarify the question in one line. If it is broad, ask one or two quick scoping questions (industry, region, what decision it feeds).
+2. Break it into 3 to 6 sub-questions that together answer the whole thing.
+3. For each sub-question, use `WebSearch` to find the strongest sources, then fetch and read the most relevant ones.
+4. Cross-check the important claims across more than one source and note where sources disagree.
+5. Synthesise into a structured report with inline source citations, and end with a short "what this means for you" section aimed at the owner's decision.
 
-1. Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/)
-2. Set the environment variable:
-   ```bash
-   export GEMINI_API_KEY=your-api-key-here
-   ```
-   Or create a `.env` file in the skill directory.
-
-## Usage
-
-### Start a research task
-```bash
-python3 scripts/research.py --query "Research the history of Kubernetes"
-```
-
-### With structured output format
-```bash
-python3 scripts/research.py --query "Compare Python web frameworks" \
-  --format "1. Executive Summary\n2. Comparison Table\n3. Recommendations"
-```
-
-### Stream progress in real-time
-```bash
-python3 scripts/research.py --query "Analyze EV battery market" --stream
-```
-
-### Start without waiting
-```bash
-python3 scripts/research.py --query "Research topic" --no-wait
-```
-
-### Check status of running research
-```bash
-python3 scripts/research.py --status <interaction_id>
-```
-
-### Wait for completion
-```bash
-python3 scripts/research.py --wait <interaction_id>
-```
-
-### Continue from previous research
-```bash
-python3 scripts/research.py --query "Elaborate on point 2" --continue <interaction_id>
-```
-
-### List recent research
-```bash
-python3 scripts/research.py --list
-```
+Typical run: a few minutes, depending on how deep the owner wants to go. There is no per-task API charge; it is covered by the owner's existing Claude subscription. If a search returns thin results, say so plainly and give the best answer available rather than inventing detail.
 
 ## Output Formats
 
-- **Default**: Human-readable markdown report
-- **JSON** (`--json`): Structured data for programmatic use
-- **Raw** (`--raw`): Unprocessed API response
-
-## Cost & Time
-
-| Metric | Value |
-|--------|-------|
-| Time | 2-10 minutes per task |
-| Cost | $2-5 per task (varies by complexity) |
-| Token usage | ~250k-900k input, ~60k-80k output |
+- **Default**: a human-readable markdown report with sources.
+- **Structured**: on request, a table (for example a competitor comparison matrix) plus a short recommendation.
 
 ## Best Use Cases
 
@@ -100,16 +48,16 @@ python3 scripts/research.py --list
 - Historical research and timelines
 - Comparative analysis (frameworks, products, technologies)
 
-## Workflow
+## Advanced (optional, not required, not bundled)
 
-1. User requests research → Run `--query "..."`
-2. Inform user of estimated time (2-10 minutes)
-3. Monitor with `--stream` or poll with `--status`
-4. Return formatted results
-5. Use `--continue` for follow-up questions
+For very large or long-running batch research, an optional Gemini-powered script mode exists upstream. It is NOT needed for normal research and is NOT shipped with this kit. Using it requires the owner to set up, on their own machine, Python 3.8+, a free `GEMINI_API_KEY` from [Google AI Studio](https://aistudio.google.com/), and the `research.py` script from the upstream project (see `source` above). If none of that is set up, ignore this section entirely; the default native method above is the supported path and covers normal research needs.
 
-## Exit Codes
+When that advanced setup exists, the upstream script is driven like this (reference only):
 
-- **0**: Success
-- **1**: Error (API error, config issue, timeout)
-- **130**: Cancelled by user (Ctrl+C)
+```bash
+python3 scripts/research.py --query "Analyze EV battery market" --stream
+python3 scripts/research.py --status <interaction_id>
+python3 scripts/research.py --wait <interaction_id>
+```
+
+If the owner asks for research and this advanced mode is not configured, do NOT try to run the script or ask them to install Python or a key. Just run the default native method above.

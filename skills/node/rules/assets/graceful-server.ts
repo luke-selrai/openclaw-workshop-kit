@@ -1,3 +1,4 @@
+// Requires close-with-grace: run `npm i close-with-grace` in this directory before `node graceful-server.ts`.
 import { createServer, IncomingMessage, ServerResponse, Server } from 'node:http';
 import closeWithGrace from 'close-with-grace';
 
@@ -38,18 +39,20 @@ function closeServer(server: Server): Promise<void> {
     // Close idle connections immediately
     server.closeIdleConnections();
 
+    // Force close all connections after timeout
+    const forceClose = setTimeout(() => {
+      server.closeAllConnections();
+    }, 5000);
+    forceClose.unref();
+
     server.close((err) => {
+      clearTimeout(forceClose);
       if (err && err.message !== 'Server is not running') {
         reject(err);
         return;
       }
       resolve();
     });
-
-    // Force close all connections after timeout
-    setTimeout(() => {
-      server.closeAllConnections();
-    }, 5000);
   });
 }
 

@@ -18,30 +18,30 @@ metadata:
   autonomy-bar: "User action = sign in to Xero ONCE. Maybe confirm payment method if none on file. That is it."
   pairs-with:
     - skill: hubspot-connector
-      reason: Sibling Playwright-driven autonomous connector — admin-portal + DOM-extract pattern, same Client-ID-style credential model
+      reason: Sibling Playwright-driven autonomous connector - admin-portal + DOM-extract pattern, same Client-ID-style credential model
     - skill: monday-connector
-      reason: Sibling Playwright-driven autonomous connector — same admin-portal create-app-and-extract-token shape
+      reason: Sibling Playwright-driven autonomous connector - same admin-portal create-app-and-extract-token shape
     - skill: slack-connector
-      reason: Sibling Playwright-driven autonomous connector — same multi-step app-create + scope-tick + token-extract flow
+      reason: Sibling Playwright-driven autonomous connector - same multi-step app-create + scope-tick + token-extract flow
     - skill: quickbooks-connector
-      reason: Sibling accounting connector — similar wrap-existing-tooling pattern for a different platform
+      reason: Sibling accounting connector - similar wrap-existing-tooling pattern for a different platform
     - skill: playwright-skill
       reason: The Playwright MCP browser is how this skill drives the Xero developer portal
     - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting Xero Custom Connection or API errors
 ---
 
-# Xero Connector — Fully Autonomous
+# Xero Connector - Fully Autonomous
 
-> **The standard**: the user signs in to Xero. That is the only thing they do. Playwright drives every click, form fill, scope tick, ID extraction, secret capture, config write, restart prompt, and live verification. Every error is caught and silently recovered. If the agent can't recover, it diagnoses in plain English — never dumps a raw error.
+> **The standard**: the user signs in to Xero. That is the only thing they do. Playwright drives every click, form fill, scope tick, ID extraction, secret capture, config write, restart prompt, and live verification. Every error is caught and silently recovered. If the agent can't recover, it diagnoses in plain English - never dumps a raw error.
 >
 > **Applies to**: OpenClaw workshop attendees. Non-technical business owners. They should never type a command, paste a value, or edit a file.
 >
-> **If Playwright MCP isn't available in this session, STOP.** Do not fall back to a manual walkthrough that asks the user to copy-paste Client ID and Secret. Instead, tell the user: *"I need browser control to set this up hands-off. Let me enable that — give me two minutes."* Then install Playwright MCP in this session and retry. If you genuinely cannot get Playwright working, escalate to luke@selrai.com.au rather than make the user do manual steps.
+> **If Playwright MCP isn't available in this session, STOP.** Do not fall back to a manual walkthrough that asks the user to copy-paste Client ID and Secret. Instead, tell the user: *"I need browser control to set this up hands-off. Let me enable that - give me two minutes."* Then install Playwright MCP in this session and retry. If you genuinely cannot get Playwright working, tell the user plainly and retry in a fresh session rather than make them do manual steps.
 
 ---
 
-## Autonomy Bar — What Counts as "User Action"
+## Autonomy Bar - What Counts as "User Action"
 
 | User DOES | User DOES NOT |
 |---|---|
@@ -54,7 +54,7 @@ metadata:
 |  | Run curl commands, edit config files, restart services (agent does all silently) |
 |  | Read error messages (agent translates or handles silently) |
 
-**If at any point you (the agent) are about to ask the user to copy or paste a value, STOP.** You have the Playwright browser in the same session — read the DOM directly.
+**If at any point you (the agent) are about to ask the user to copy or paste a value, STOP.** You have the Playwright browser in the same session - read the DOM directly.
 
 ---
 
@@ -97,14 +97,14 @@ which curl || echo "FAIL: curl missing"
 ### Verify Playwright MCP is wired in this session
 
 ```bash
-# Check in the active session — is browser_navigate available?
+# Check in the active session - is browser_navigate available?
 # If NOT, attempt to install from the marketplace silently first:
 claude mcp add-from-marketplace playwright 2>/dev/null || true
 ```
 
 If after attempting to add it, Playwright MCP tools (`mcp__plugin_playwright_playwright__*`) are still unavailable, the agent says:
 
-> "Give me two minutes — I need to get browser control set up so I can do this hands-off. You can grab a coffee."
+> "Give me two minutes - I need to get browser control set up so I can do this hands-off. You can grab a coffee."
 
 Then the agent installs it, restarts the session, and resumes. **Do NOT proceed without Playwright MCP available.**
 
@@ -113,7 +113,7 @@ Then the agent installs it, restarts the session, and resumes. **Do NOT proceed 
 ```bash
 EXISTING=$(jq -r '.mcpServers.xero.env.XERO_CLIENT_ID // empty' "$HOME/.claude.json" 2>/dev/null)
 if [ -n "$EXISTING" ]; then
-  echo "ALREADY_CONFIGURED — skip to Phase 6 verify"
+  echo "ALREADY_CONFIGURED - skip to Phase 6 verify"
 fi
 ```
 
@@ -121,7 +121,7 @@ If already configured, skip to **Phase 6** and just verify. Never ask the user t
 
 ---
 
-## Phase 1: Safety Gate — Cost + Country + Org (Mandatory)
+## Phase 1: Safety Gate - Cost + Country + Org (Mandatory)
 
 **Send ONE message. Wait for a structured reply.** Do not proceed without all three answers.
 
@@ -140,9 +140,9 @@ If already configured, skip to **Phase 6** and just verify. Never ask the user t
 | User provides | Agent does |
 |---|---|
 | Country (AU/NZ/UK/US) + org name + implicit cost consent | Proceed to Phase 2 with `ORG_NAME` set |
-| Country outside AU/NZ/UK/US | Stop cleanly: *"This path doesn't work for [country] Xero orgs. Email luke@selrai.com.au for the alternative."* |
+| Country outside AU/NZ/UK/US | Stop cleanly: *"This path doesn't work for [country] Xero orgs yet - it covers AU, NZ, UK and US."* |
 | Hesitant about cost | Answer questions calmly. Wait for explicit consent. Do not pressure. |
-| Refuses cost | *"No problem — say 'connect my Xero' any time."* |
+| Refuses cost | *"No problem - say 'connect my Xero' any time."* |
 | Only one field given | Ask once for the missing field(s). Combine into one message, not multiple. |
 
 ---
@@ -151,7 +151,7 @@ If already configured, skip to **Phase 6** and just verify. Never ask the user t
 
 This is the critical phase. The agent drives Playwright. The user signs in. That's the entire split of responsibilities.
 
-### Step 2.1 — Open the Xero developer portal
+### Step 2.1 - Open the Xero developer portal
 
 ```
 mcp__plugin_playwright_playwright__browser_navigate
@@ -160,11 +160,11 @@ mcp__plugin_playwright_playwright__browser_navigate
 
 Tell the user:
 
-> "I've opened the Xero developer site. Sign in with your Xero email and password — and your 2FA code if you have one. Tell me when you're on the My apps page."
+> "I've opened the Xero developer site. Sign in with your Xero email and password - and your 2FA code if you have one. Tell me when you're on the My apps page."
 
 Wait for user confirmation. Use `browser_wait_for` with a text selector for "My apps" or similar dashboard indicator.
 
-### Step 2.2 — Verify sign-in (silent)
+### Step 2.2 - Verify sign-in (silent)
 
 ```
 mcp__plugin_playwright_playwright__browser_snapshot
@@ -175,7 +175,7 @@ Scan the snapshot for:
 - A "New app" button (confirms they're on the right page)
 - Any "Verify your email" banner → handle: tell user to check their email, wait, retry
 
-### Step 2.3 — Click "New app"
+### Step 2.3 - Click "New app"
 
 ```
 mcp__plugin_playwright_playwright__browser_click
@@ -183,7 +183,7 @@ mcp__plugin_playwright_playwright__browser_click
   ref: <ref from snapshot>
 ```
 
-### Step 2.4 — Fill the app creation form
+### Step 2.4 - Fill the app creation form
 
 ```
 mcp__plugin_playwright_playwright__browser_fill_form
@@ -196,9 +196,9 @@ mcp__plugin_playwright_playwright__browser_fill_form
       value: "Custom connection"  # CRITICAL
 ```
 
-If `Integration type` is a radio group or dropdown, use `browser_click` on the specific "Custom connection" option. DO NOT select "Web app" — that uses a different grant type incompatible with MCP.
+If `Integration type` is a radio group or dropdown, use `browser_click` on the specific "Custom connection" option. DO NOT select "Web app" - that uses a different grant type incompatible with MCP.
 
-### Step 2.5 — Tick terms and click Create
+### Step 2.5 - Tick terms and click Create
 
 ```
 mcp__plugin_playwright_playwright__browser_click
@@ -208,7 +208,7 @@ mcp__plugin_playwright_playwright__browser_click
   element: "Create app button"
 ```
 
-### Step 2.6 — Select organisation
+### Step 2.6 - Select organisation
 
 Wait for the app detail page to load:
 
@@ -235,7 +235,7 @@ If multiple orgs match or none match exactly:
 - Tell the user: *"I see these Xero organisations: [list from dropdown]. Which one should I connect?"*
 - Wait for reply, click the right one.
 
-### Step 2.7 — Tick required scopes
+### Step 2.7 - Tick required scopes
 
 Navigate to the scopes/permissions section of the app page. Scroll into view if needed.
 
@@ -259,9 +259,9 @@ Tick each of these checkboxes (use `browser_click` per checkbox, targeting by la
 - `payroll.settings`, `payroll.settings.read`
 - `payroll.timesheets`, `payroll.timesheets.read`
 
-Otherwise skip payroll — extra scopes are extra attack surface.
+Otherwise skip payroll - extra scopes are extra attack surface.
 
-### Step 2.8 — Save
+### Step 2.8 - Save
 
 ```
 mcp__plugin_playwright_playwright__browser_click
@@ -271,7 +271,7 @@ mcp__plugin_playwright_playwright__browser_wait_for
   text: "Saved" OR "successful" OR similar confirmation
 ```
 
-### Step 2.9 — Handle activation / billing (the ~$5/mo step)
+### Step 2.9 - Handle activation / billing (the ~$5/mo step)
 
 Xero will now prompt to activate the connection. This is where the charge kicks in. Two paths:
 
@@ -293,17 +293,17 @@ Xero shows a payment form. This is the ONLY step Playwright does not fill in (cr
 
 Tell the user:
 
-> "Xero is asking for a payment method for the connection charge. Fill in your card details in the browser window I opened — I'll wait. Let me know when Xero says the connection is active."
+> "Xero is asking for a payment method for the connection charge. Fill in your card details in the browser window I opened - I'll wait. Let me know when Xero says the connection is active."
 
 Wait for the user's confirmation, then:
 
 ```
 mcp__plugin_playwright_playwright__browser_wait_for
   text: "Connection active"
-  timeout: 300000  # 5 min — they may be finding their card
+  timeout: 300000  # 5 min - they may be finding their card
 ```
 
-### Step 2.10 — Extract Client ID directly from the DOM
+### Step 2.10 - Extract Client ID directly from the DOM
 
 **No copy-paste. No user action. The agent reads the value.**
 
@@ -339,9 +339,9 @@ mcp__plugin_playwright_playwright__browser_evaluate
 Store the returned value as `CLIENT_ID`. Validate: must be hex-like, 32+ chars, no whitespace. If invalid:
 - `browser_snapshot` the page
 - Re-inspect the DOM with a fresh selector strategy
-- If still failing after 2 attempts, tell the user: *"Xero's page has changed slightly. Can you see the Client ID on the screen? Read it out and I'll catch it."* — only as a LAST resort.
+- If still failing after 2 attempts, tell the user: *"Xero's page has changed slightly. Can you see the Client ID on the screen? Read it out and I'll catch it."* - only as a LAST resort.
 
-### Step 2.11 — Generate + extract Client Secret
+### Step 2.11 - Generate + extract Client Secret
 
 Click "Generate a secret":
 
@@ -350,7 +350,7 @@ mcp__plugin_playwright_playwright__browser_click
   element: "Generate a secret button"
 ```
 
-Xero reveals the secret in a modal or inline reveal. **It's only shown once** — capture it immediately:
+Xero reveals the secret in a modal or inline reveal. **It's only shown once** - capture it immediately:
 
 ```
 mcp__plugin_playwright_playwright__browser_evaluate
@@ -377,15 +377,15 @@ mcp__plugin_playwright_playwright__browser_evaluate
 
 Store as `CLIENT_SECRET`. Validate: 40+ chars, base64-like charset, no whitespace.
 
-If extraction fails (selector mismatch, modal structure changed), use `browser_snapshot` to get the full accessibility tree, find the secret element by its surrounding text ("Save this secret — it will not be shown again"), and extract via ref.
+If extraction fails (selector mismatch, modal structure changed), use `browser_snapshot` to get the full accessibility tree, find the secret element by its surrounding text ("Save this secret - it will not be shown again"), and extract via ref.
 
 If all DOM extraction attempts fail (Xero has genuinely changed their UI), fall back to:
 
-> "Xero shows a long string on screen labelled Client Secret. Read it out to me once — I'll catch it and close the window."
+> "Xero shows a long string on screen labelled Client Secret. Read it out to me once - I'll catch it and close the window."
 
 Only as a last resort after 3 extraction attempts.
 
-### Step 2.12 — Close the "save this secret" modal
+### Step 2.12 - Close the "save this secret" modal
 
 ```
 mcp__plugin_playwright_playwright__browser_click
@@ -421,11 +421,11 @@ fi
 
 | Error | Silent fix |
 |---|---|
-| `invalid_client` | Re-extract from DOM — may have caught a read-only placeholder. Retry Step 2.10–2.11 once. |
+| `invalid_client` | Re-extract from DOM - may have caught a read-only placeholder. Retry Step 2.10-2.11 once. |
 | `invalid_scope` | Return to the scopes page in Playwright, tick the specific scope named in the error, Save, retry. |
-| `Connection deactivated` | The activation didn't complete. Return to Step 2.9 — check the payment flow. |
-| No tenant linked | Return to Step 2.6 — organisation wasn't selected. |
-| Network timeout | Retry once. If persistent, tell user: *"Xero's API is slow — give me a minute."* |
+| `Connection deactivated` | The activation didn't complete. Return to Step 2.9 - check the payment flow. |
+| No tenant linked | Return to Step 2.6 - organisation wasn't selected. |
+| Network timeout | Retry once. If persistent, tell user: *"Xero's API is slow - give me a minute."* |
 
 **Never show raw error text to the user.** Translate or handle silently.
 
@@ -447,7 +447,7 @@ if ! jq empty "$CLAUDE_CONFIG" 2>/dev/null; then
   echo '{"mcpServers": {}}' > "$CLAUDE_CONFIG"
 fi
 
-# Merge xero entry via jq — NEVER overwrite the file
+# Merge xero entry via jq - NEVER overwrite the file
 jq --arg cid "$CLIENT_ID" --arg sec "$CLIENT_SECRET" '
   .mcpServers = (.mcpServers // {}) |
   .mcpServers.xero = {
@@ -464,9 +464,9 @@ jq --arg cid "$CLIENT_ID" --arg sec "$CLIENT_SECRET" '
 ### Hard rules
 
 - Always back up with a timestamp before writing.
-- Never overwrite — use `jq` to merge.
+- Never overwrite - use `jq` to merge.
 - Never echo Client ID or Client Secret in any message, log, or tool output after this point.
-- If corrupt, quarantine separately — never lose user config silently.
+- If corrupt, quarantine separately - never lose user config silently.
 
 ### Multi-org
 
@@ -478,7 +478,7 @@ If the user has multiple orgs and ran this skill a second time, write to `mcpSer
 
 Tell the user:
 
-> "All the setup is done on my end. **Fully quit Claude Code and reopen it** — Mac: Cmd+Q, then open again. Windows: close the window AND right-click the tray icon → Quit, then open again. Tell me when you're back. (A window refresh won't work — MCP connections only load at start-up.)"
+> "All the setup is done on my end. **Fully quit Claude Code and reopen it** - Mac: Cmd+Q, then open again. Windows: close the window AND right-click the tray icon → Quit, then open again. Tell me when you're back. (A window refresh won't work - MCP connections only load at start-up.)"
 
 Wait for their confirmation.
 
@@ -508,11 +508,11 @@ mcp__xero__list-organisation-details
 
 Tell the user they're done. Give them 3 starter prompts matched to their business. That's it.
 
-> "Done — you're connected to **[OrgName]**. Try one of these:
+> "Done - you're connected to **[OrgName]**. Try one of these:
 >
 > 1. *'Show me my unpaid invoices.'*
 > 2. *'Pull my P&L for this year.'*
-> 3. *'Who owes me money — sorted by how overdue.'*
+> 3. *'Who owes me money - sorted by how overdue.'*
 >
 > About 60 Xero tools are available. Ask me anything and I'll use them."
 
@@ -523,7 +523,7 @@ Tell the user they're done. Give them 3 starter prompts matched to their busines
 These rules govern how the agent uses the connection in every future conversation.
 
 ### Writes are drafts
-Invoices, bills, quotes, credit notes — always DRAFT on create. Never auto-authorise or send. Say "I've created a draft — review and approve in Xero."
+Invoices, bills, quotes, credit notes - always DRAFT on create. Never auto-authorise or send. Say "I've created a draft - review and approve in Xero."
 
 ### Confirm before writes
 Summarise what you're about to create/update. Wait for yes.
@@ -569,8 +569,8 @@ Do NOT tell the user "done" before every box is ticked:
 - [ ] Phase 0: Playwright MCP available in this session (if not, installed + session restarted)
 - [ ] Phase 0: no existing working config (or skipped to verify)
 - [ ] Phase 1: user confirmed AU/NZ/UK/US + cost + gave org name
-- [ ] Phase 2.1–2.2: browser open to developer.xero.com, user signed in verified via snapshot
-- [ ] Phase 2.3–2.5: app created as Custom Connection (not Web app)
+- [ ] Phase 2.1-2.2: browser open to developer.xero.com, user signed in verified via snapshot
+- [ ] Phase 2.3-2.5: app created as Custom Connection (not Web app)
 - [ ] Phase 2.6: correct organisation selected
 - [ ] Phase 2.7: all 9 required scopes ticked (+ payroll if requested)
 - [ ] Phase 2.8: save confirmed via wait_for
@@ -662,4 +662,4 @@ This skill CANNOT:
 
 ---
 
-*Built by Selr AI. If Xero changes its UI and DOM extraction breaks, Luke wants to know: luke@selrai.com.au.*
+*Built by Selr AI.*

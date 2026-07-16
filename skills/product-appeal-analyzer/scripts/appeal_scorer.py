@@ -7,8 +7,6 @@ Desirability Triangle: Identity Fit, Problem Urgency, Trust Signals.
 
 Usage:
     python appeal_scorer.py <url>
-    python appeal_scorer.py --file <screenshot.png>
-    python appeal_scorer.py --interactive
 
 Output: JSON with scores and recommendations
 """
@@ -339,6 +337,18 @@ def main():
                        help="Print human-readable summary")
 
     args = parser.parse_args()
+
+    if args.summary:
+        if args.input:
+            with open(args.input, 'r') as f:
+                data = json.load(f)
+            analysis = create_empty_analysis()
+            analysis.url = data.get('url') if isinstance(data, dict) else None
+        else:
+            analysis = create_empty_analysis()
+            analysis.url = args.url
+        print_summary(analysis)
+        return
 
     if args.template:
         print_template()

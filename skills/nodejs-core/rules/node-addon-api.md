@@ -571,7 +571,7 @@ Napi::Value ReadFileAsync(const Napi::CallbackInfo& info) {
 if (!info[0].IsString()) {
   throw Napi::TypeError::New(env,
     "Argument 0 (filename) must be a string, received " +
-    std::string(info[0].Type()));
+    std::to_string(static_cast<int>(info[0].Type())));
 }
 ```
 

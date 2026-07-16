@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # create-agent.sh — Create a Managed Agent from a template.
 # Usage: create-agent.sh <preset-name>
-# Presets defined in references/agent-templates.json.
+# Presets defined in references/business-outcome-presets.json.
 set -euo pipefail
 
 # Per-client namespacing: --client=<slug> writes IDs under ~/.claude/managed-agents/<slug>/
@@ -15,14 +15,14 @@ while [[ $# -gt 0 ]]; do
         *) PARSED+=("$1"); shift ;;
     esac
 done
-set -- "${PARSED[@]}"
+set -- ${PARSED[@]+"${PARSED[@]}"}
 MA_BASE="${HOME}/.claude/managed-agents${CLIENT_SLUG:+/$CLIENT_SLUG}"
 mkdir -p "$MA_BASE"
 
 PRESET="${1:-general}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEMPLATE_FILE="$SCRIPT_DIR/../references/agent-templates.json"
-STATE_DIR="$HOME/.claude/managed-agents"
+TEMPLATE_FILE="$SCRIPT_DIR/../references/business-outcome-presets.json"
+STATE_DIR="$MA_BASE"
 mkdir -p "$STATE_DIR/agents"
 
 : "${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY not set}"
@@ -32,20 +32,38 @@ if [ ! -f "$TEMPLATE_FILE" ]; then
   exit 2
 fi
 
-CONFIG=$(jq -r --arg p "$PRESET" '.[$p] // empty' "$TEMPLATE_FILE")
-if [ -z "$CONFIG" ]; then
-  echo "[fatal] Preset '$PRESET' not found in $TEMPLATE_FILE" >&2
-  echo "Available: $(jq -r 'keys | join(", ")' "$TEMPLATE_FILE")" >&2
+if [ "$PRESET" = "_meta" ]; then
+  echo "[fatal] '_meta' is not a preset." >&2
+  echo "Available: $(jq -r '(keys - ["_meta"]) | join(", ")' "$TEMPLATE_FILE")" >&2
   exit 2
 fi
 
+CONFIG=$(jq -r --arg p "$PRESET" 'if (.[$p] == null) then empty else (.[$p] | {name,model,description,system,tools,mcp_servers,skills} | with_entries(select(.value!=null))) end' "$TEMPLATE_FILE")
+if [ -z "$CONFIG" ]; then
+  echo "[fatal] Preset '$PRESET' not found in $TEMPLATE_FILE" >&2
+  echo "Available: $(jq -r '(keys - ["_meta"]) | join(", ")' "$TEMPLATE_FILE")" >&2
+  exit 2
+fi
+
+ID_FILE="$STATE_DIR/agents/$PRESET.txt"
+if [ -f "$ID_FILE" ] && [ "${FORCE:-0}" != "1" ]; then
+  echo "[ok] agent already exists for preset '$PRESET' = $(cat "$ID_FILE")"
+  echo "[ok] (set FORCE=1 to recreate)"
+  exit 0
+fi
+
 echo "[agent] Creating agent from preset '$PRESET'..."
+# S12: pass the secret x-api-key header off argv via curl --config on stdin
+# (so it never appears in `ps`/process listings); non-secret headers stay as -H.
 RESP=$(curl -sS -X POST "https://api.anthropic.com/v1/agents" \
-  -H "x-api-key: $ANTHROPIC_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "anthropic-beta: managed-agents-2026-04-01" \
   -H "content-type: application/json" \
-  -d "$CONFIG")
+  -d "$CONFIG" \
+  --config - <<EOF
+header = "x-api-key: ${ANTHROPIC_API_KEY}"
+EOF
+)
 
 AGENT_ID=$(echo "$RESP" | jq -r '.id // empty')
 if [ -z "$AGENT_ID" ]; then
@@ -54,6 +72,6 @@ if [ -z "$AGENT_ID" ]; then
   exit 3
 fi
 
-echo "$AGENT_ID" > "$STATE_DIR/agents/$PRESET.txt"
+echo "$AGENT_ID" > "$ID_FILE"
 echo "[ok] agent_id = $AGENT_ID (preset: $PRESET)"
-echo "[ok] Saved to $STATE_DIR/agents/$PRESET.txt"
+echo "[ok] Saved to $ID_FILE"

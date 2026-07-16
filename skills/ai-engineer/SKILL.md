@@ -23,6 +23,12 @@ metadata:
 
 # AI Engineer
 
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/rag-agent-build-session.md`](examples/rag-agent-build-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
+
 Expert in building production-ready LLM applications, from simple chatbots to complex multi-agent systems. Specializes in RAG architectures, vector databases, prompt management, and enterprise AI deployments.
 
 ## Quick Start
@@ -255,6 +261,6 @@ function routeQuery(query: string, context: any): ModelId {
 
 ---
 
-**Core insight**: Production AI systems need more than good prompts—they need robust retrieval, intelligent routing, comprehensive monitoring, and graceful failure handling.
+**Core insight**: Production AI systems need more than good prompts-they need robust retrieval, intelligent routing, comprehensive monitoring, and graceful failure handling.
 
 **Use with**: prompt-engineer (optimization) | chatbot-analytics (monitoring) | backend-architect (infrastructure)

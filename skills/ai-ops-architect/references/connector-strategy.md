@@ -1,12 +1,12 @@
-# Connector strategy — 4 tiers, in order
+# Connector strategy - 4 tiers, in order
 
-> When the user picks something to build, the skill needs the right SaaS credentials wired up. We try 4 mechanisms, cheapest-effort first. The user should never paste an API key unless tiers 1–3 all failed.
+> When the user picks something to build, the skill needs the right SaaS credentials wired up. We try 4 mechanisms, cheapest-effort first. The user should never paste an API key unless tiers 1-3 all failed.
 
-## Tier 1 — Claude Desktop / claude.ai passthrough (PREFERRED)
+## Tier 1 - Claude Desktop / claude.ai passthrough (PREFERRED)
 
 The user's Claude account already has OAuth connections for many of the big-rocks: Gmail, Google Calendar, Drive, Notion, Linear, Atlassian, Canva, Airtable, Supabase, Figma, Xero, n8n, Zapier (which itself proxies 7,000+ apps).
 
-**How we detect:** `claude mcp list` enumerates servers configured for the running CLI. Server names beginning with `claude_ai_*` are the user's existing OAuth connections. The skill greps for the service we need (e.g. `claude_ai_Gmail`) and reuses the connection — zero clicks for the user.
+**How we detect:** `claude mcp list` enumerates servers configured for the running CLI. Server names beginning with `claude_ai_*` are the user's existing OAuth connections. The skill greps for the service we need (e.g. `claude_ai_Gmail`) and reuses the connection - zero clicks for the user.
 
 **Coverage today (Tier 1 is enough for these):**
 - Gmail / Google Calendar / Google Drive
@@ -15,51 +15,51 @@ The user's Claude account already has OAuth connections for many of the big-rock
 - Airtable
 - Xero (read-side via Desktop connector + Zapier-Xero for write breadth)
 - n8n
-- Zapier (a meta-tier — see below)
+- Zapier (a meta-tier - see below)
 
 **Zapier-as-meta-tier:** if the user has Zapier connected via Claude.ai, we get `mcp__claude_ai_Zapier__*` tools for ~250 apps (Slack, Google Ads, Outlook, GHL/LeadConnector, Apify, Make, Facebook Lead Ads, ManyChat, etc.) with no extra OAuth.
 
 **Decision:** if Tier 1 covers all required services for the chosen build, never go further. Done.
 
-## Tier 2 — Composio Tool Router (one OAuth → 1000+ apps)
+## Tier 2 - Composio Tool Router (one OAuth → 1000+ apps)
 
-> **Migration note (2026-06):** This tier was **Rube** (`rube.app/mcp`) until Rube was discontinued (~May 15 2026; that endpoint is dead). Composio folded Rube into its main platform as **Tool Router** — same "one OAuth → hundreds of apps" idea, new endpoint and tool prefix.
+> **Migration note (2026-06):** This tier was **Rube** (`rube.app/mcp`) until Rube was discontinued (~May 15 2026; that endpoint is dead). Composio folded Rube into its main platform as **Tool Router** - same "one OAuth → hundreds of apps" idea, new endpoint and tool prefix.
 
 For services not in Tier 1, default to **Composio Tool Router** (`https://connect.composio.dev/mcp`). User does ONE OAuth dance and Composio proxies 1000+ apps (Slack, GHL, HubSpot, Stripe, Shopify, Calendly, Twilio, ManyChat, Telegram, Discord, Salesforce, etc).
 
 **Why Composio as Tier 2 default:** new connections without per-service OAuth fatigue. The workshop attendee clicks "approve" once. Every downstream service "just works" through `mcp__composio__*` tools.
 
-**How we add it:** `claude mcp add composio --transport http --url https://connect.composio.dev/mcp` — OAuth is automatic (no API-key header, no separate authenticate step). The user approves the one-time OAuth URL the first time the agent calls a Composio tool.
+**How we add it:** `claude mcp add composio --transport http --url https://connect.composio.dev/mcp` - OAuth is automatic (no API-key header, no separate authenticate step). The user approves the one-time OAuth URL the first time the agent calls a Composio tool.
 
 **When to skip Composio:**
 - Service is in Tier 1 already
-- The build is latency-sensitive (sub-second loops) — Composio adds an extra hop
+- The build is latency-sensitive (sub-second loops) - Composio adds an extra hop
 - Service isn't in Composio's catalog (rare; covers 1000+)
 
-## Tier 3 — Direct MCP server
+## Tier 3 - Direct MCP server
 
 For services Rube doesn't cover or where we need first-party tools:
 - **n8n itself** (`https://selrai.app.n8n.cloud/mcp` or the user's own n8n.cloud URL)
-- **GHL / LeadConnector** (`mcp__ghl-community__*` and `mcp__ghl-official__*` — official requires per-location PIT token)
-- **ManyChat** (`mcp__manychat__*` — needs page-scoped API token)
+- **GHL / LeadConnector** (the GHL MCP server as shown in `claude mcp list` - typically `mcp__ghl__*`; PIT-scoped connections require a per-location Private Integration Token)
+- **ManyChat** (`mcp__manychat__*` - needs page-scoped API token)
 - **Meta Ads / LinkedIn Ads / Google Ads** (per-platform MCPs with first-party APIs)
 - **Apify** (workflow scraping)
 - Service-specific MCP servers from `~/.claude/skills/managed-agents-setup/references/mcp-servers-catalog.md`
 
 **Trade-off:** richer per-service tooling, but per-service auth setup. Use when Tier 2 isn't enough or the build needs platform-specific actions Rube doesn't expose.
 
-## Tier 4 — Manual API key paste (LAST RESORT)
+## Tier 4 - Manual API key paste (LAST RESORT)
 
 If nothing above works, the skill walks the user through getting a key:
 1. Print a clickable URL: "Open this → click here → copy this token → paste below"
 2. User pastes the key into the terminal (the script reads via `read -s`, masks input, never echoes)
 3. Key is stored in `~/.claude/skills/ai-ops-architect/.state/secrets/<service>.env` (chmod 600, gitignored)
-4. Reference path is added to the build's config — never the literal key
+4. Reference path is added to the build's config - never the literal key
 
 **Hard rules:**
 - Never log a pasted key to stdout, transcript, or git
-- Never write a key to a public repo, even by accident — `.state/` is gitignored
-- Never share a key across users — the .state dir is per-machine
+- Never write a key to a public repo, even by accident - `.state/` is gitignored
+- Never share a key across users - the .state dir is per-machine
 
 ## Decision logic (per build)
 
@@ -68,7 +68,7 @@ For each required service S in build.services_required:
   if S in (claude mcp list | grep claude_ai_):
       use Tier 1 (passthrough)
   elif S in COMPOSIO_CATALOG:
-      use Tier 2 (Composio Tool Router — prompt OAuth if not yet connected)
+      use Tier 2 (Composio Tool Router - prompt OAuth if not yet connected)
   elif S has direct MCP entry in mcp-servers-catalog.md:
       use Tier 3 (install + authenticate)
   else:
@@ -86,10 +86,10 @@ SomeNiche    → Tier 4 (manual paste, guide opening)
 
 ## Where the scripts live
 
-- `scripts/claude-passthrough.sh` — Tier 1 detector
-- `scripts/connect-via-composio.sh` — Tier 2 OAuth driver
-- `references/mcp-servers-catalog.md` — Tier 3 catalog (lives in managed-agents-setup, referenced from here)
-- Manual fallbacks: per-service `.md` in managed-agents-setup `references/connector-walkthroughs/`
+- `scripts/claude-passthrough.sh` - Tier 1 detector
+- `scripts/connect-via-composio.sh` - Tier 2 OAuth driver
+- `references/mcp-servers-catalog.md` - Tier 3 catalog (lives in managed-agents-setup, referenced from here)
+- Manual fallbacks: the Tier-4 manual-paste flow above (clickable URL + masked `read -s` paste); service endpoints in managed-agents-setup `references/mcp-servers-catalog.md`
 
 ## Failure handling
 

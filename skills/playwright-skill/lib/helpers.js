@@ -366,7 +366,8 @@ async function createContext(browser, options = {}) {
     ...(Object.keys(mergedHeaders).length > 0 && { extraHTTPHeaders: mergedHeaders })
   };
 
-  return await browser.newContext({ ...defaultOptions, ...options });
+  const { extraHTTPHeaders: _ignoreCallerHeaders, ...restOptions } = options;
+  return await browser.newContext({ ...defaultOptions, ...restOptions });
 }
 
 /**

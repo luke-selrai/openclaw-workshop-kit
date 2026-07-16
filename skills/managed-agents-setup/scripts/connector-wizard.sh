@@ -10,6 +10,11 @@
 #   bash connector-wizard.sh
 set -u
 
+# H12: this wizard is entirely interactive. When run headless (e.g. from
+# install-everything with no TTY) the read prompts would silently return empty,
+# write an empty secrets.env, and still print "Wizard complete". Refuse instead.
+[ -t 0 ] || { echo 'connector-wizard needs a terminal; skipping' >&2; exit 3; }
+
 SECRETS="${SECRETS_ENV:-$HOME/agents-cc/shared/secrets.env}"
 mkdir -p "$(dirname "$SECRETS")"
 touch "$SECRETS"
@@ -29,9 +34,15 @@ set_secret() {
   local key="$1"
   local val="$2"
   [ -z "$val" ] && return 0
-  # Remove existing entry
-  sed -i.bak "/^export ${key}=/d" "$SECRETS" 2>/dev/null || true
-  echo "export ${key}=\"${val}\"" >> "$SECRETS"
+  # M12: drop any existing entry without leaving a world-readable .bak that
+  # still holds tokens. Write to a temp file, then mv it over and re-tighten.
+  local tmp
+  tmp="$(mktemp "${SECRETS}.XXXXXX")" || return 1
+  chmod 600 "$tmp" 2>/dev/null || true
+  grep -v "^export ${key}=" "$SECRETS" > "$tmp" 2>/dev/null || true
+  echo "export ${key}=\"${val}\"" >> "$tmp"
+  mv "$tmp" "$SECRETS"
+  chmod 600 "$SECRETS" 2>/dev/null || true
   echo "  [saved] ${key} (${#val} chars)"
 }
 
@@ -51,7 +62,7 @@ prompt_secret() {
 echo "════ Step 1/3: GoHighLevel ════"
 echo "Do you use GoHighLevel CRM? [y/N]"
 read -r use_ghl
-if [[ "${use_ghl,,}" == "y" ]]; then
+if [[ $use_ghl == [yY]* ]]; then
   echo "Opening GHL settings page to grab your PIT (Private Integration Token)..."
   open "https://app.gohighlevel.com/settings/private_integrations" 2>/dev/null || \
     echo "  Open manually: https://app.gohighlevel.com/settings/private_integrations"
@@ -70,7 +81,7 @@ echo ""
 echo "════ Step 2/3: Gmail + Calendar (Google) ════"
 echo "Do you want agents to read/send from your Gmail? [y/N]"
 read -r use_google
-if [[ "${use_google,,}" == "y" ]]; then
+if [[ $use_google == [yY]* ]]; then
   echo "Google requires OAuth (for security). This step is manual:"
   echo "  1. Open https://console.cloud.google.com/apis/credentials"
   echo "  2. Create OAuth 2.0 Client ID (Desktop app)"
@@ -93,7 +104,7 @@ echo ""
 echo "════ Step 3/3: Meta Ads (Facebook + Instagram) ════"
 echo "Do you run Meta Ads? [y/N]"
 read -r use_meta
-if [[ "${use_meta,,}" == "y" ]]; then
+if [[ $use_meta == [yY]* ]]; then
   echo "Opening Meta Graph API Explorer to grab a long-lived token..."
   open "https://developers.facebook.com/tools/explorer/" 2>/dev/null || \
     echo "  Open manually: https://developers.facebook.com/tools/explorer/"
@@ -112,7 +123,7 @@ echo "════ Bonus: Rube (Composio) — 500+ apps via ONE connection ═�
 echo "Recommended for workshop attendees. One auth → HubSpot, Airtable, Stripe, Shopify, Slack, etc."
 echo "Do you want to connect Rube? [Y/n]"
 read -r use_rube
-if [[ "${use_rube,,}" != "n" ]]; then
+if [[ $use_rube != [nN]* ]]; then
   echo "Opening rube.app..."
   open "https://rube.app/" 2>/dev/null || echo "  Open manually: https://rube.app/"
   echo "  1. Sign up with Google or GitHub"

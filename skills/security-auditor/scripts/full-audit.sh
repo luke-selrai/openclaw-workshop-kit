@@ -101,7 +101,7 @@ echo "────────────────────────�
 OWASP_REPORT="$OUTPUT_DIR/owasp-$TIMESTAMP.json"
 
 if [ -f "$SCRIPT_DIR/owasp-check.py" ]; then
-    if python3 "$SCRIPT_DIR/owasp-check.py" "$TARGET_DIR" --json --output "$OWASP_REPORT"; then
+    if python3 "$SCRIPT_DIR/owasp-check.py" "$TARGET_DIR" --json --output "$OWASP_REPORT" --fail-on high; then
         echo -e "  ${GREEN}✓ No OWASP violations found${NC}"
     else
         OWASP_CRITICAL=$(jq -r '.summary.critical // 0' "$OWASP_REPORT" 2>/dev/null || echo "0")
@@ -126,8 +126,9 @@ CONFIG_ISSUES=0
 
 # Check for .env files in git
 if [ -d "$TARGET_DIR/.git" ]; then
-    if git -C "$TARGET_DIR" ls-files --error-unmatch .env 2>/dev/null; then
+    if git -C "$TARGET_DIR" ls-files --error-unmatch -- '.env' '.env.*' >/dev/null 2>&1; then
         echo -e "  ${RED}✗ .env file is tracked in git!${NC}"
+        git -C "$TARGET_DIR" ls-files -- '.env' '.env.*'
         CONFIG_ISSUES=$((CONFIG_ISSUES + 1))
         OVERALL_STATUS="fail"
     else

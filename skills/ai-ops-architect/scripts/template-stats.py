@@ -11,10 +11,16 @@ Output:
 }
 """
 import json
+import os
 import sys
 from pathlib import Path
 
-ROOT = Path("~/.claude/skills/ai-ops-architect/templates/n8n").expanduser()
+# Resolve the templates root relative to this script, with an env override and a
+# ~/.claude fallback — mirrors the sibling shell scripts (recommend.sh/select.sh).
+ROOT = Path(
+    os.environ.get("AOA_TEMPLATES_ROOT")
+    or (Path(__file__).resolve().parent.parent / "templates" / "n8n")
+)
 
 
 def category_stats(cat_dir):
@@ -26,13 +32,13 @@ def category_stats(cat_dir):
         meta = wf.with_suffix(".meta.json")
         if meta.exists():
             try:
-                m = json.loads(meta.read_text())
+                m = json.loads(meta.read_text(encoding="utf-8"))
                 if m.get("schema_only"):
                     skeleton += 1
                 else:
                     real += 1
-            except json.JSONDecodeError:
-                real += 1  # assume real if unreadable
+            except (json.JSONDecodeError, OSError, ValueError):
+                real += 1  # one bad/unreadable meta.json is skipped, not fatal
         else:
             real += 1
     return {
@@ -44,6 +50,13 @@ def category_stats(cat_dir):
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    # Fail LOUD if the templates tree is missing — an absent tree must never be
+    # silently reported as 'all categories empty'.
+    if not ROOT.is_dir():
+        print(f"REFUSE: templates root not found: {ROOT}", file=sys.stderr)
+        sys.exit(1)
     cats = {}
     g_total = g_real = g_skel = 0
     for d in sorted(ROOT.glob("*/")):

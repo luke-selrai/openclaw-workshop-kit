@@ -698,7 +698,7 @@ The `ChartContainer` wraps your Recharts component and accepts a `config` prop f
 
 ```tsx
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
 const chartConfig = {
   desktop: {
@@ -799,7 +799,7 @@ Add chart color variables to your `globals.css`:
 
 ```tsx
 import { Line, LineChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
 const chartConfig = {
   price: {
@@ -840,7 +840,7 @@ export function LineChartDemo() {
 
 ```tsx
 import { Area, AreaChart, XAxis, YAxis } from "recharts"
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
 const chartConfig = {
   desktop: { label: "Desktop", color: "var(--chart-1)" },
@@ -877,7 +877,7 @@ export function AreaChartDemo() {
 
 ```tsx
 import { Pie, PieChart } from "recharts"
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
 const chartConfig = {
   chrome: { label: "Chrome", color: "var(--chart-1)" },

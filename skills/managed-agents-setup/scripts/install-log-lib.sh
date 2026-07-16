@@ -16,7 +16,7 @@ _log_emit() {
   local level="$1"; shift
   local phase="$1"; shift
   local msg="$1"; shift
-  local extras="${1:-{}}"
+  local extras="${1:-}"; [ -z "$extras" ] && extras='{}'
   local ts
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
   printf '{"ts":"%s","level":"%s","phase":"%s","msg":"%s","extras":%s}\n' \
@@ -26,8 +26,8 @@ _log_emit() {
 }
 
 log_phase() { _log_emit "phase" "$1" "${2:-}" '{}'; }
-log_info()  { _log_emit "info"  "$1" "$2" "${3:-{}}"; }
-log_warn()  { _log_emit "warn"  "$1" "$2" "${3:-{}}"; }
-log_error() { _log_emit "error" "$1" "$2" "${3:-{}}"; }
+log_info()  { _log_emit "info"  "$1" "$2" "${3:-}"; }
+log_warn()  { _log_emit "warn"  "$1" "$2" "${3:-}"; }
+log_error() { _log_emit "error" "$1" "$2" "${3:-}"; }
 
 export -f _log_emit log_phase log_info log_warn log_error

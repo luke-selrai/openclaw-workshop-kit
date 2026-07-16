@@ -1,6 +1,6 @@
 ---
 name: inngest-durable-functions
-description: Use when building functions that must survive process crashes, retry automatically on failure, run on a schedule, react to events, or maintain state across infrastructure failures — e.g., webhook handlers that drop events, flaky cron jobs, background jobs that fail mid-execution, or workflows that need to resume where they left off. Covers Inngest function configuration, triggers (events, cron, invoke), step execution and memoization, idempotency, cancellation, error handling, retries, logging, and observability.
+description: Use when building functions that must survive process crashes, retry automatically on failure, run on a schedule, react to events, or maintain state across infrastructure failures - e.g., webhook handlers that drop events, flaky cron jobs, background jobs that fail mid-execution, or workflows that need to resume where they left off. Covers Inngest function configuration, triggers (events, cron, invoke), step execution and memoization, idempotency, cancellation, error handling, retries, logging, and observability.
 ---
 
 # Inngest Durable Functions
@@ -220,7 +220,7 @@ const processUserAction = inngest.createFunction(
 
 ### **Event-Based Cancellation**
 
-In expressions, `event` = the **original** triggering event, `async` = the **new** event being matched. See [Expression Syntax Reference](../references/expressions.md) for full details.
+In expressions, `event` = the **original** triggering event, `async` = the **new** event being matched. See the Inngest documentation on expression syntax for full details.
 
 ```typescript
 const processOrder = inngest.createFunction(

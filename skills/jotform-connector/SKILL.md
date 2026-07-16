@@ -1,6 +1,6 @@
 ---
 name: jotform-connector
-description: "Connect and operate Jotform via the official first-party Jotform MCP server (https://mcp.jotform.com). Phase 1 is a 6-step Playwright-driven install: register the server with `claude mcp add`, open Claude Code's OAuth start URL inside the Playwright MCP browser, detect login state and prompt sign-in only if needed, auto-click Allow on the consent screen, auto-detect the callback via `browser_wait_for`, then verify with a `mcp__jotform__list_forms` smoke call. Jotform MCP is OAuth-only — there is no app to create and no token to paste, so the user's only manual moments are signing in to Jotform inside the Playwright window and clicking Allow. Use this skill when the user asks to set up Jotform, connect their account, or interact with forms, submissions, or assignments."
+description: "Connect and operate Jotform via the official first-party Jotform MCP server (https://mcp.jotform.com). Phase 1 is a 6-step Playwright-driven install: register the server with `claude mcp add`, open Claude Code's OAuth start URL inside the Playwright MCP browser, detect login state and prompt sign-in only if needed, auto-click Allow on the consent screen, auto-detect the callback via `browser_wait_for`, then verify with a `mcp__jotform__list_forms` smoke call. Jotform MCP is OAuth-only - there is no app to create and no token to paste, so the user's only manual moments are signing in to Jotform inside the Playwright window and clicking Allow. Use this skill when the user asks to set up Jotform, connect their account, or interact with forms, submissions, or assignments."
 allowed-tools: mcp__jotform__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Forms & Data Collection
@@ -13,13 +13,13 @@ metadata:
     - mcp
   pairs-with:
     - skill: calendly-connector
-      reason: Sibling hosted OAuth-only MCP connector — identical 6-step Playwright-driven install pattern.
+      reason: Sibling hosted OAuth-only MCP connector - identical 6-step Playwright-driven install pattern.
     - skill: linear-connector
-      reason: Sibling hosted OAuth-only MCP connector with DCR — canonical autonomous-install reference.
+      reason: Sibling hosted OAuth-only MCP connector with DCR - canonical autonomous-install reference.
     - skill: monday-connector
-      reason: Sibling Playwright-driven autonomous connector — reference for snapshot-and-reason model.
+      reason: Sibling Playwright-driven autonomous connector - reference for snapshot-and-reason model.
     - skill: slack-connector
-      reason: Sibling Playwright-driven autonomous connector — reference for the autonomous-install rules.
+      reason: Sibling Playwright-driven autonomous connector - reference for the autonomous-install rules.
     - skill: email-composer
       reason: Draft follow-ups based on Jotform submission data.
     - skill: n8n-workflow-patterns
@@ -32,52 +32,52 @@ metadata:
 
 # Jotform Connector
 
-> **Install pattern:** Hosted-OAuth — see [skills/CLAUDE.md](../CLAUDE.md) for the canonical reference (linear-connector).
+> **Install pattern:** Hosted-OAuth - see [skills/CLAUDE.md](../CLAUDE.md) for the canonical reference (linear-connector).
 
 ## Overview
 
 This skill lets you read and update a user's Jotform account on their behalf using the **official first-party Jotform MCP server** hosted at `https://mcp.jotform.com` (see [jotform/mcp-server](https://github.com/jotform/mcp-server)). It has two phases:
 
-- **Phase 1 — Install & Auth (autonomous, 6 steps).** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen, auto-detects the callback via `browser_wait_for`, then verifies with a `mcp__jotform__list_forms` smoke call. The user's only manual moments are signing in to Jotform inside the Playwright window and clicking Allow on the consent screen. Token storage is handled by Claude Code's MCP runtime — there is no manual `~/.claude.json` token write.
-- **Phase 2 — Use Tools.** Once the connector is configured, you call the `mcp__jotform__*` native tools to read and update Jotform data.
+- **Phase 1 - Install & Auth (autonomous, 6 steps).** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen, auto-detects the callback via `browser_wait_for`, then verifies with a `mcp__jotform__list_forms` smoke call. The user's only manual moments are signing in to Jotform inside the Playwright window and clicking Allow on the consent screen. Token storage is handled by Claude Code's MCP runtime - there is no manual `~/.claude.json` token write.
+- **Phase 2 - Use Tools.** Once the connector is configured, you call the `mcp__jotform__*` native tools to read and update Jotform data.
 
-**Which phase to run** — Before any tool call, check whether the Jotform MCP server is already configured. Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.jotform` entry. If present, attempt a verification tool call (Phase 1 Step 6). If it succeeds, the connector is ready — skip to Phase 2. If it 401s, walk Phase 1 from Step 3 to re-trigger the OAuth flow (the registration is already in place).
+**Which phase to run** - Before any tool call, check whether the Jotform MCP server is already configured. Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.jotform` entry. If present, attempt a verification tool call (Phase 1 Step 6). If it succeeds, the connector is ready - skip to Phase 2. If it 401s, walk Phase 1 from Step 3 to re-trigger the OAuth flow (the registration is already in place).
 
 ### What this skill does NOT use
 
 - **Jotform API keys or personal access tokens.** Jotform MCP **requires OAuth for every user on first connect**. Bearer-token / API-key access to the MCP server is not supported. Do not ask the user for any key.
 - **A self-hosted Jotform MCP server.** Jotform publishes the hosted endpoint at `https://mcp.jotform.com` as the primary deployment. Always use the hosted URL.
 - **Direct Jotform REST API calls.** All reads and writes go through the MCP server, not direct HTTP calls to the Jotform Public API.
-- **A custom OAuth client (custom PKCE, loopback listener).** Claude Code's MCP runtime owns the OAuth dance natively; we do not register our own client, run our own callback listener, or store OAuth tokens manually. The skill's job is to choreograph Playwright + Claude Code's native OAuth handler — not to replicate OAuth.
+- **A custom OAuth client (custom PKCE, loopback listener).** Claude Code's MCP runtime owns the OAuth dance natively; we do not register our own client, run our own callback listener, or store OAuth tokens manually. The skill's job is to choreograph Playwright + Claude Code's native OAuth handler - not to replicate OAuth.
 
 ### How auth works under the hood
 
-The Jotform MCP server is a hosted OAuth 2.1 server. The transport endpoint at `https://mcp.jotform.com` returns a `401` for unauthenticated calls and publishes its OAuth metadata via the standard `/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server` documents (resource = `mcp.jotform.com`, authorization server = `oauth2.jotform.com`). Claude Code's MCP runtime fetches those documents on first contact, then performs PKCE against the auth server and handles the token exchange natively. From the SKILL's perspective this is a standard OAuth 2.1 + PKCE flow — Claude Code drives it natively. The skill only opens the start URL inside Playwright, auto-clicks Allow, and waits for the callback.
+The Jotform MCP server is a hosted OAuth 2.1 server. The transport endpoint at `https://mcp.jotform.com` returns a `401` for unauthenticated calls and publishes its OAuth metadata via the standard `/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server` documents (resource = `mcp.jotform.com`, authorization server = `oauth2.jotform.com`). Claude Code's MCP runtime fetches those documents on first contact, then performs PKCE against the auth server and handles the token exchange natively. From the SKILL's perspective this is a standard OAuth 2.1 + PKCE flow - Claude Code drives it natively. The skill only opens the start URL inside Playwright, auto-clicks Allow, and waits for the callback.
 
 ---
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Phase 1 is autonomous — Claude does the work, the user only signs in to Jotform in the Playwright window and clicks Allow. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work, the user only signs in to Jotform in the Playwright window and clicks Allow. Every message you send during Phase 1 must follow these rules:
 
 - **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only actions you ever request are: "please sign in to the browser window I just opened" and "please click Allow on the screen Jotform just showed you."
-- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, PKCE, scope, token, MCP, endpoint, JSON, REST, environment variable, Playwright, browser automation, redirect URI, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page" — not "Playwright" or "Chromium". If you must name a technical concept, plainly:
+- **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, PKCE, scope, token, MCP, endpoint, JSON, REST, environment variable, Playwright, browser automation, redirect URI, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page" - not "Playwright" or "Chromium". If you must name a technical concept, plainly:
   - access token / bearer → **"your connection key"**
   - Allow / consent → **"the Allow button"**
   - close and reopen Claude Code → **"close and reopen the chat"**
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening Jotform for you now"), once when you need them ("please sign in", "please click Allow"), once when you're done ("your Jotform is now connected"). No commentary in between snapshots, clicks, or evaluates.
-- **React to success and failure warmly.** Good: "That worked — your Jotform is now connected." Bad: "Token exchange returned 200 OK."
-- **Never show error messages directly.** Translate into plain English. If something fails, say "No problem — let me try a different way," then diagnose silently.
+- **React to success and failure warmly.** Good: "That worked - your Jotform is now connected." Bad: "Token exchange returned 200 OK."
+- **Never show error messages directly.** Translate into plain English. If something fails, say "No problem - let me try a different way," then diagnose silently.
 - **Short responses.** Maximum 8 lines per message during Phase 1.
 - **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
 
 ---
 
-## Phase 0 — Pre-flight (silent)
+## Phase 0 - Pre-flight (silent)
 
-### 0.1 — Resume check
+### 0.1 - Resume check
 
-Read `~/.claude.json` via Node (cross-platform safe — Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile):
+Read `~/.claude.json` via Node (cross-platform safe - Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile):
 
 ```bash
 node -e "
@@ -91,24 +91,24 @@ console.log(jf ? 'REGISTERED' : 'NOT_CONFIGURED');
 "
 ```
 
-- `REGISTERED` → try Phase 1 Step 6 (verify) first. If it succeeds, the connector is already active — surface a friendly message and stop. If 401, walk Phase 1 from Step 3.
+- `REGISTERED` → try Phase 1 Step 6 (verify) first. If it succeeds, the connector is already active - surface a friendly message and stop. If 401, walk Phase 1 from Step 3.
 - `NOT_CONFIGURED` → run full Phase 1 from Step 1.
 
-### 0.2 — Tooling check (silent)
+### 0.2 - Tooling check (silent)
 
 Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the `first-run-setup` skill. If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest` (the `--` separator keeps Claude Code from consuming `npx` as an `add` flag), ask the user to close and reopen the chat, then retry.
 
 ---
 
-## PHASE 1 — Install & Auth (6 steps, autonomous via Playwright)
+## PHASE 1 - Install & Auth (6 steps, autonomous via Playwright)
 
-### Step 1 — Orient the user
+### Step 1 - Orient the user
 
 Tell the user, in one short message:
 
 > "I'll connect your Jotform now. I'm opening a browser window for you. Please sign in there when it appears, and I'll handle the rest. Should take about a minute."
 
-### Step 2 — Register the MCP server with `claude mcp add`
+### Step 2 - Register the MCP server with `claude mcp add`
 
 Silently register the hosted Jotform MCP server in the user's config:
 
@@ -118,7 +118,7 @@ claude mcp add jotform https://mcp.jotform.com --transport http --scope user
 
 This writes the server entry to `~/.claude.json` and lets Claude Code's MCP runtime own the OAuth dance from here forward.
 
-**Fallback if `claude mcp add` errors** (older Claude Code version, CLI not on PATH, or unexpected output) — write the entry directly to `~/.claude.json` via the Node merge pattern. The rename is inside Node so the swap is atomic on every platform (Mac / Linux / Windows Git Bash) and does not run if the JSON write fails:
+**Fallback if `claude mcp add` errors** (older Claude Code version, CLI not on PATH, or unexpected output) - write the entry directly to `~/.claude.json` via the Node merge pattern. The rename is inside Node so the swap is atomic on every platform (Mac / Linux / Windows Git Bash) and does not run if the JSON write fails:
 
 ```bash
 node -e '
@@ -144,14 +144,14 @@ node -e '
 
 If the merge stderr emits `CONFIG_BACKUP=`, the existing config was unreadable and Claude has just made a backup. Surface this to the user once: *"Your settings file was unreadable, so I made a safe backup before saving."*
 
-### Step 3 — Acquire OAuth start URL via `mcp__jotform__authenticate` and open it in Playwright
+### Step 3 - Acquire OAuth start URL via `mcp__jotform__authenticate` and open it in Playwright
 
 When Claude Code registers a hosted MCP server that requires auth, its runtime exposes a **per-server pair of OAuth-bootstrap tools** in the deferred-tool surface:
 
-- `mcp__jotform__authenticate()` — no args, returns the OAuth authorization URL.
-- `mcp__jotform__complete_authentication({ callback_url })` — submits the post-redirect callback URL to finish the OAuth dance.
+- `mcp__jotform__authenticate()` - no args, returns the OAuth authorization URL.
+- `mcp__jotform__complete_authentication({ callback_url })` - submits the post-redirect callback URL to finish the OAuth dance.
 
-These appear after `claude mcp add` registers the server and the tool surface refreshes. They are the supported programmatic OAuth-bootstrap path — not a `claude mcp` CLI subcommand.
+These appear after `claude mcp add` registers the server and the tool surface refreshes. They are the supported programmatic OAuth-bootstrap path - not a `claude mcp` CLI subcommand.
 
 **Tool-availability precondition.** On the very first session after `claude mcp add jotform ...`, the deferred-tool reconciliation may not have fired yet, so `mcp__jotform__authenticate` may not be in the tool surface. If that's the case, ask the user *once*: *"I've added Jotform. Please close and reopen the chat once, then say 'connect to my Jotform' and I'll finish."* On resume, Phase 0's resume check sees the `mcpServers.jotform` entry and routes back into Step 3 of this flow.
 
@@ -165,12 +165,12 @@ mcp__playwright__browser_navigate({ url: authorization_url })
 Take a `mcp__playwright__browser_snapshot()`. Reason from the snapshot:
 
 - **Logged in + consent UI visible** (you see Jotform's app-permission screen with an Allow / Authorize button and the Claude Code app name) → continue to Step 4.
-- **Not logged in** (Jotform sign-in form, "Continue with Google", "Continue with Apple", SSO redirect) → tell the user, *once*: *"Please sign in to your Jotform account in the browser window I just opened. On the next screen you'll see an **Allow** button — click it once you're there."* Then `mcp__playwright__browser_wait_for` polling for consent text (`"would like access"` / `"requesting access"` / `"Allow"` / `"Authorize"`). Generous timeout (5 minutes); no nagging. After a long timeout, check in once: *"Still on the sign-in page? Anything I can help with?"*
+- **Not logged in** (Jotform sign-in form, "Continue with Google", "Continue with Apple", SSO redirect) → tell the user, *once*: *"Please sign in to your Jotform account in the browser window I just opened. On the next screen you'll see an **Allow** button - click it once you're there."* Then `mcp__playwright__browser_wait_for` polling for consent text (`"would like access"` / `"requesting access"` / `"Allow"` / `"Authorize"`). Generous timeout (5 minutes); no nagging. After a long timeout, check in once: *"Still on the sign-in page? Anything I can help with?"*
 - **Wrong account signed in** (the user has multiple Jotform accounts and the session is on the wrong one) → tell them: *"Looks like you're signed in to a different Jotform account than you meant. Please sign out and sign back in with the right account, then I'll continue."*
 
-### Step 4 — Auto-click Allow + auto-detect callback
+### Step 4 - Auto-click Allow + auto-detect callback
 
-#### 4a — Narrate, click Allow
+#### 4a - Narrate, click Allow
 
 Snapshot the consent page. Extract human-readable scope items via `browser_evaluate`:
 
@@ -185,7 +185,7 @@ Snapshot the consent page. Extract human-readable scope items via `browser_evalu
 
 Surface a one-line summary so the user has visibility into what's being authorised (3-5 representative scopes deduplicated):
 
-> "Jotform is showing the permissions screen — it's asking to: \<scope 1\>, \<scope 2\>, \<scope 3\>. Clicking **Allow** now."
+> "Jotform is showing the permissions screen - it's asking to: \<scope 1\>, \<scope 2\>, \<scope 3\>. Clicking **Allow** now."
 
 Then locate the Allow button by accessibility role + name (case-insensitive, allow `Allow` / `Accept` / `Authorize` / `Authorise` / `Grant access`):
 
@@ -196,11 +196,11 @@ mcp__playwright__browser_click({
 })
 ```
 
-If the Allow button cannot be located in the snapshot (UI shifted, embedded iframe, unexpected layout), fall back to a one-time user-click prompt: *"I couldn't find the Allow button automatically — please click **Allow** in the browser window."*
+If the Allow button cannot be located in the snapshot (UI shifted, embedded iframe, unexpected layout), fall back to a one-time user-click prompt: *"I couldn't find the Allow button automatically - please click **Allow** in the browser window."*
 
-#### 4b — Capture callback URL + submit via `complete_authentication`
+#### 4b - Capture callback URL + submit via `complete_authentication`
 
-Jotform redirects to Claude Code's localhost callback (`http://localhost:<port>/callback?code=...&state=...`). On remote sessions that page may fail to load, but the URL in the address bar is still valid — that's what `complete_authentication` needs.
+Jotform redirects to Claude Code's localhost callback (`http://localhost:<port>/callback?code=...&state=...`). On remote sessions that page may fail to load, but the URL in the address bar is still valid - that's what `complete_authentication` needs.
 
 Wait for the redirect via a URL-pattern wait, then capture the full `window.location.href` **before** closing the browser (after close there is no page to read):
 
@@ -208,7 +208,7 @@ Wait for the redirect via a URL-pattern wait, then capture the full `window.loca
 mcp__playwright__browser_wait_for({
   // Wait until URL changes to the localhost callback. Use a JS-evaluate poll
   // since browser_wait_for's `text` matcher targets DOM text, not the URL.
-  // Generous timeout — the user may take a minute on the consent screen.
+  // Generous timeout - the user may take a minute on the consent screen.
   time: 300
 })
 
@@ -225,15 +225,15 @@ Then submit the callback to Claude Code's MCP runtime to finish the OAuth dance:
 mcp__jotform__complete_authentication({ callback_url })
 ```
 
-On success, the rest of the `mcp__jotform__*` tools become available **in the same session** — no chat restart needed. Proceed to Step 6 for verification.
+On success, the rest of the `mcp__jotform__*` tools become available **in the same session** - no chat restart needed. Proceed to Step 6 for verification.
 
 **Failure handling.** If `complete_authentication` rejects the callback (state mismatch, expired code, malformed URL), surface a plain-English *"let me try once more"* and re-run from `mcp__jotform__authenticate()`.
 
-If the user clicks **Cancel** or **Deny** instead of **Allow**, Jotform redirects back without a code. Tell them: *"Looks like you declined the permission — no problem. Want me to try again?"* If yes, re-mint via `mcp__jotform__authenticate()` and re-run Step 4.
+If the user clicks **Cancel** or **Deny** instead of **Allow**, Jotform redirects back without a code. Tell them: *"Looks like you declined the permission - no problem. Want me to try again?"* If yes, re-mint via `mcp__jotform__authenticate()` and re-run Step 4.
 
-### Step 5 — Detect plan/admin restriction interstitial (rare)
+### Step 5 - Detect plan/admin restriction interstitial (rare)
 
-Some Jotform accounts (Enterprise tenants with admin-managed integration policies, suspended seats, or trial accounts with restricted features) may render an interstitial after the Allow click that blocks the connection rather than redirecting to the callback. This is distinct from a normal consent flow — the Allow button completes but Jotform shows an "approval required" / "plan does not include" page instead of redirecting.
+Some Jotform accounts (Enterprise tenants with admin-managed integration policies, suspended seats, or trial accounts with restricted features) may render an interstitial after the Allow click that blocks the connection rather than redirecting to the callback. This is distinct from a normal consent flow - the Allow button completes but Jotform shows an "approval required" / "plan does not include" page instead of redirecting.
 
 Detect via `browser_evaluate` against the post-Allow snapshot:
 
@@ -257,9 +257,9 @@ If the function returns `true`, surface cleanly and exit:
 
 > "Jotform is telling me your account or workspace administrator needs to allow this connection first. Once that's sorted, come back and say *'connect to my Jotform'* and I'll finish setting up."
 
-If the function returns `false`, the consent flow completed normally — proceed to Step 6.
+If the function returns `false`, the consent flow completed normally - proceed to Step 6.
 
-### Step 6 — Close the browser + verify
+### Step 6 - Close the browser + verify
 
 Close Playwright (if not already closed):
 
@@ -267,16 +267,16 @@ Close Playwright (if not already closed):
 mcp__playwright__browser_close()
 ```
 
-Tell the user: *"I've saved your connection — let me check it works."*
+Tell the user: *"I've saved your connection - let me check it works."*
 
-Verify by calling `mcp__jotform__list_forms` with a small page size (e.g. 1 form). If it returns a result (including an empty list — that's fine), the connection works.
+Verify by calling `mcp__jotform__list_forms` with a small page size (e.g. 1 form). If it returns a result (including an empty list - that's fine), the connection works.
 
 Because `complete_authentication` unblocks the rest of the `mcp__jotform__*` surface in the same session, the smoke call should run immediately:
 
 - **Call returns a list** → capture the form count, surface a success message including the count if non-zero ("I can see N forms in your account").
 - **Call returns 401 / `invalid_token`** → walk Phase 1 from Step 3 once. If still failing, surface the user-facing error and stop.
-- **Call returns 403** → "Your connection is working, but your Jotform account doesn't have permission for that action — your plan or role may not include it." Stop here.
-- **`429 Rate limited`** → "Jotform is asking me to slow down — let me wait a moment and try again." Wait 10 seconds, retry once.
+- **Call returns 403** → "Your connection is working, but your Jotform account doesn't have permission for that action - your plan or role may not include it." Stop here.
+- **`429 Rate limited`** → "Jotform is asking me to slow down - let me wait a moment and try again." Wait 10 seconds, retry once.
 
 ### Success message
 
@@ -286,7 +286,7 @@ Tell the user, in one short message (include the live count from the smoke call 
 
 ---
 
-## PHASE 2 — Use Tools
+## PHASE 2 - Use Tools
 
 Once the connector is configured, use the `mcp__jotform__*` MCP tools below to answer questions and make changes in Jotform. The hosted Jotform MCP server provides **6 first-party tools** covering forms, submissions, and assignments.
 
@@ -299,18 +299,18 @@ The official MCP server exposes tools with the prefix `mcp__jotform__`. Verified
 | Tool | Description | Use when |
 |---|---|---|
 | `list_forms` | Retrieve all forms in the user's Jotform account | User asks "show me my forms", or you need a form ID before another call |
-| `create_form` | Build a new form | User asks to create an intake/feedback/registration form — **confirm first** |
-| `edit_form` | Modify an existing form (fields, settings, title) | User asks to change a form — **confirm first** |
-| `assign_form` | Delegate (assign) a form to another user | User asks to share a form with a teammate — **confirm first** |
+| `create_form` | Build a new form | User asks to create an intake/feedback/registration form - **confirm first** |
+| `edit_form` | Modify an existing form (fields, settings, title) | User asks to change a form - **confirm first** |
+| `assign_form` | Delegate (assign) a form to another user | User asks to share a form with a teammate - **confirm first** |
 
 #### Submissions
 
 | Tool | Description | Use when |
 |---|---|---|
 | `get_submissions` | Fetch submissions (entries) for a form | User asks "how many people filled out X", "show me the latest responses", or wants to read entries |
-| `create_submission` | Add an entry to a form programmatically | User asks to log a response on behalf of someone, e.g. importing data — **confirm first** |
+| `create_submission` | Add an entry to a form programmatically | User asks to log a response on behalf of someone, e.g. importing data - **confirm first** |
 
-> **If a tool name in the table above does not resolve**, list the available `mcp__jotform__*` tools in the current session, match by description to the category you need, and use the actual name. Never guess — list first, then call.
+> **If a tool name in the table above does not resolve**, list the available `mcp__jotform__*` tools in the current session, match by description to the category you need, and use the actual name. Never guess - list first, then call.
 
 ---
 
@@ -323,12 +323,12 @@ The official MCP server exposes tools with the prefix `mcp__jotform__`. Verified
 | "Show me my forms" | `list_forms` |
 | "How many submissions did the contact form get this week?" | `list_forms` (find form ID) → `get_submissions` (filter by date) |
 | "Show me the latest 10 responses on the feedback form" | `list_forms` → `get_submissions` (limit 10) |
-| "Create a new feedback form" | `create_form` — **confirm first, summarise fields before creating** |
-| "Add a phone number field to my contact form" | `list_forms` → `edit_form` — **confirm first** |
-| "Rename the 'Q1 survey' form to 'Q2 survey'" | `list_forms` → `edit_form` — **confirm first** |
-| "Share my intake form with Jane" | `list_forms` → `assign_form` — **confirm first** |
-| "Log a test entry on my contact form" | `list_forms` → `create_submission` — **confirm first** |
-| "Import these 50 leads into my Jotform" | `list_forms` → loop `create_submission` — **confirm first, in batches** |
+| "Create a new feedback form" | `create_form` - **confirm first, summarise fields before creating** |
+| "Add a phone number field to my contact form" | `list_forms` → `edit_form` - **confirm first** |
+| "Rename the 'Q1 survey' form to 'Q2 survey'" | `list_forms` → `edit_form` - **confirm first** |
+| "Share my intake form with Jane" | `list_forms` → `assign_form` - **confirm first** |
+| "Log a test entry on my contact form" | `list_forms` → `create_submission` - **confirm first** |
+| "Import these 50 leads into my Jotform" | `list_forms` → loop `create_submission` - **confirm first, in batches** |
 
 ---
 
@@ -338,13 +338,13 @@ When a Jotform tool call fails, diagnose and respond in plain English. Never sho
 
 | Error | What to say | How to fix |
 |---|---|---|
-| 401 Unauthorized / Not authenticated | "Your Jotform sign-in has expired — let me reconnect you." | Walk Phase 1 from Step 3; Claude Code re-runs OAuth |
+| 401 Unauthorized / Not authenticated | "Your Jotform sign-in has expired - let me reconnect you." | Walk Phase 1 from Step 3; Claude Code re-runs OAuth |
 | 403 Forbidden | "Your Jotform user doesn't have permission for that form. The form owner may need to share it with you." | User talks to the form owner; nothing to fix in the connector |
-| 404 Not Found (form / submission) | "I couldn't find that record — let me list your forms again." | Use `list_forms` to refresh the list |
+| 404 Not Found (form / submission) | "I couldn't find that record - let me list your forms again." | Use `list_forms` to refresh the list |
 | 429 Rate limited | "Jotform is asking me to slow down. I will wait a moment and try again." | Wait 10 seconds and retry once. Free tier is 60 requests/minute; Enterprise is 600/min. |
-| 400 Invalid request | "The details I tried to send didn't match what Jotform expected — let me try again." | Re-fetch the form ID, retry once |
+| 400 Invalid request | "The details I tried to send didn't match what Jotform expected - let me try again." | Re-fetch the form ID, retry once |
 | MCP server not running | "The Jotform connection isn't active yet. Please close and reopen the chat so it picks up the new settings." | User closes and reopens Claude Code |
-| Any other API error | "Something went wrong with Jotform — let me try again." | Retry once; if still failing, walk Phase 1 from Step 3 |
+| Any other API error | "Something went wrong with Jotform - let me try again." | Retry once; if still failing, walk Phase 1 from Step 3 |
 
 ---
 
@@ -368,26 +368,26 @@ The Jotform MCP connector **cannot** do (needs the Jotform UI or other tools):
 
 ## Behaviour Guidelines (Phase 2)
 
-- **Always confirm before creating, editing, assigning, or submitting** — summarise what you are about to do and wait for the user's OK before calling the tool.
-- **Discover form IDs before writing** — Jotform forms are referenced by numeric IDs. Always call `list_forms` once per session before any `edit_form`, `assign_form`, `get_submissions`, or `create_submission`, unless you already have the ID from earlier in the conversation.
-- **IDs are numeric strings** — form and submission IDs are long numeric strings. Always confirm them back via the form's title rather than the raw ID.
-- **Submissions are sensitive data** — they often contain personal information (names, emails, phone numbers, free-text feedback). Never paste full submission contents into a public log or chat without checking with the user first. When summarising, prefer counts and aggregates over raw quotes unless asked.
-- **Present data clearly** — format results as readable tables or summaries, not raw JSON.
-- **One step at a time** — do not dump all data at once. Summarise first ("You have 12 forms; the busiest is 'Contact Us' with 142 submissions this month"), then offer to show details.
-- **Pagination** — default to 25 submissions unless the user asks for more. Offer to show more if there are additional pages.
-- **Respect the rate limit** — Free tier is 60 requests/minute; Enterprise is 600/min. For bulk imports, batch `create_submission` calls and pause between batches.
-- **Importing leads is irreversible** — `create_submission` writes a real entry. For bulk imports, always show the user a sample of the first row before proceeding with the rest.
-- **Never log or echo credentials** — there is no token to leak (OAuth is handled by Claude Code), but never echo the contents of `~/.claude.json` or any sign-in URLs to the user.
+- **Always confirm before creating, editing, assigning, or submitting** - summarise what you are about to do and wait for the user's OK before calling the tool.
+- **Discover form IDs before writing** - Jotform forms are referenced by numeric IDs. Always call `list_forms` once per session before any `edit_form`, `assign_form`, `get_submissions`, or `create_submission`, unless you already have the ID from earlier in the conversation.
+- **IDs are numeric strings** - form and submission IDs are long numeric strings. Always confirm them back via the form's title rather than the raw ID.
+- **Submissions are sensitive data** - they often contain personal information (names, emails, phone numbers, free-text feedback). Never paste full submission contents into a public log or chat without checking with the user first. When summarising, prefer counts and aggregates over raw quotes unless asked.
+- **Present data clearly** - format results as readable tables or summaries, not raw JSON.
+- **One step at a time** - do not dump all data at once. Summarise first ("You have 12 forms; the busiest is 'Contact Us' with 142 submissions this month"), then offer to show details.
+- **Pagination** - default to 25 submissions unless the user asks for more. Offer to show more if there are additional pages.
+- **Respect the rate limit** - Free tier is 60 requests/minute; Enterprise is 600/min. For bulk imports, batch `create_submission` calls and pause between batches.
+- **Importing leads is irreversible** - `create_submission` writes a real entry. For bulk imports, always show the user a sample of the first row before proceeding with the rest.
+- **Never log or echo credentials** - there is no token to leak (OAuth is handled by Claude Code), but never echo the contents of `~/.claude.json` or any sign-in URLs to the user.
 
 ---
 
 ## Related Skills
 
 - **first-run-setup**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
-- **calendly-connector**: Sibling hosted OAuth-only MCP connector — identical 6-step Playwright-driven install pattern
-- **linear-connector**: Sibling hosted OAuth-only MCP connector with DCR — canonical autonomous-install reference
-- **monday-connector**: Sibling Playwright-driven autonomous connector — reference for snapshot-and-reason model
-- **slack-connector**: Sibling Playwright-driven autonomous connector — reference for autonomous-install rules
+- **calendly-connector**: Sibling hosted OAuth-only MCP connector - identical 6-step Playwright-driven install pattern
+- **linear-connector**: Sibling hosted OAuth-only MCP connector with DCR - canonical autonomous-install reference
+- **monday-connector**: Sibling Playwright-driven autonomous connector - reference for snapshot-and-reason model
+- **slack-connector**: Sibling Playwright-driven autonomous connector - reference for autonomous-install rules
 - **email-composer**: Draft follow-ups based on Jotform submission data
 - **n8n-workflow-patterns**: Build Jotform-triggered automations once the connector is live
 - **playwright-skill**: The Playwright MCP browser is how this skill drives the Jotform consent flow

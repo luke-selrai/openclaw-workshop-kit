@@ -398,8 +398,8 @@ module.exports = {
 
 Detailed component code, patterns, and configuration are in the `references/` folder:
 
-- **[Core Components](references/components.md)** — Button, Input, Form (with Zod validation), Card, Dialog, Select, Sheet, Menubar, Table, Toast, Charts — with full code examples
-- **[Customization](references/customization.md)** — CSS variables, Tailwind config, dark mode, component theming
-- **[Next.js Integration](references/nextjs-integration.md)** — App Router setup, Server Components, layout patterns, data fetching with shadcn/ui
-- **[Advanced Patterns](references/advanced-patterns.md)** — Compound components, controlled/uncontrolled, portal usage, animation with Framer Motion
-- **[Best Practices & Common Combinations](references/best-practices.md)** — Accessibility, type safety, login form, dashboard layout, data table patterns
+- **[Core Components](references/components.md)** - Button, Input, Form (with Zod validation), Card, Dialog, Select, Sheet, Menubar, Table, Toast, Charts - with full code examples
+- **[Customization](references/customization.md)** - CSS variables, Tailwind config, dark mode, component theming
+- **[Next.js Integration](references/nextjs-integration.md)** - App Router setup, Server Components, layout patterns, data fetching with shadcn/ui
+- **[Advanced Patterns](references/advanced-patterns.md)** - Compound components, controlled/uncontrolled, portal usage, animation with Framer Motion
+- **[Best Practices & Common Combinations](references/best-practices.md)** - Accessibility, type safety, login form, dashboard layout, data table patterns

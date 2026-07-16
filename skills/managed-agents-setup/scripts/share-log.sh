@@ -28,6 +28,11 @@ for line in lines:
     line = re.sub(r'(eyJ[a-zA-Z0-9\-_.]{30,})', '[REDACTED-JWT]', line)
     line = re.sub(r'ghp_[a-zA-Z0-9]{30,}', '[REDACTED-GITHUB]', line)
     line = re.sub(r'pat-[a-zA-Z0-9\-]{20,}', '[REDACTED-PAT]', line)
+    # NEW-3: additional secret shapes this skill actually emits.
+    line = re.sub(r'(x-api-key:\s*)\S+', r'\1[REDACTED]', line, flags=re.IGNORECASE)
+    line = re.sub(r'pit-[A-Za-z0-9\-]+', '[REDACTED-GHL-PIT]', line)
+    line = re.sub(r'comp_\w+', '[REDACTED-COMPOSIO]', line)
+    line = re.sub(r'(SECRET|TOKEN|KEY|PASSWORD)=\S+', r'\1=[REDACTED]', line, flags=re.IGNORECASE)
     redacted.append(line)
 
 print(''.join(redacted))

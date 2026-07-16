@@ -1,5 +1,16 @@
 # Rate Limiting Design Reference
-# Complete rate limiting configuration with tiers, headers, and responses
+# ─────────────────────────────────────────────────────────────────────
+# What's inside: a full rate-limiting policy you can lift into a gateway.
+#   • Four pricing tiers (free / starter / pro / enterprise) with
+#     per-minute, per-day, and burst limits
+#   • The X-RateLimit-* response headers to send on every request
+#   • Two algorithms side by side: sliding_log and token_bucket
+#   • Per-endpoint overrides (/auth/token, /search, /export)
+#   • The 429 Too Many Requests body shape + Retry-After
+#   • Soft-limit (80%) warning headers, IP-vs-key identification, exempt paths
+# This file is config, not a contract — it documents the policy your
+# limiter enforces. Values are illustrative; tune per workload.
+# ─────────────────────────────────────────────────────────────────────
 
 # Tier-based rate limits
 tiers:

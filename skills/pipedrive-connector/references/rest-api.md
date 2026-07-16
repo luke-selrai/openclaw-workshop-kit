@@ -1,15 +1,15 @@
-# Pipedrive REST API — connector reference
+# Pipedrive REST API - connector reference
 
 Companion to `pipedrive-connector/SKILL.md`. Everything here was verified live against a real Pipedrive account (domain `selrai`) on 2026-06-22.
 
 ## Auth + base URL
 
 - **Header:** `x-api-token: <token>` on every request. The token is a 40-char hex personal API token from *Settings → Personal preferences → API* (`https://<company>.pipedrive.com/settings/api`).
-- **Do NOT use `Authorization: Bearer`** — that is for OAuth access tokens and returns `401` with a personal API token. (Verified: Bearer → 401, `x-api-token` → 200.)
-- **Legacy alternative:** `?api_token=<token>` query param works on both v1 and v2 but leaks the secret into URLs/logs — prefer the header.
+- **Do NOT use `Authorization: Bearer`** - that is for OAuth access tokens and returns `401` with a personal API token. (Verified: Bearer → 401, `x-api-token` → 200.)
+- **Legacy alternative:** `?api_token=<token>` query param works on both v1 and v2 but leaks the secret into URLs/logs - prefer the header.
 - **Base URL is company-scoped:** `https://<company>.pipedrive.com`. The `<company>` subdomain comes from the post-login URL host and is stored as `PIPEDRIVE_COMPANY_DOMAIN`.
 
-## v1 vs v2 — which to call
+## v1 vs v2 - which to call
 
 Pipedrive is mid-migration. Most CRUD is on **v2 (GA)**; some entities remain **v1-only**.
 
@@ -52,7 +52,7 @@ PD() { curl -s -H "x-api-token: $PIPEDRIVE_API_TOKEN" -H "Accept: application/js
 PD "/api/v2/deals?limit=50&sort_by=add_time&sort_direction=desc&status=open" \
   | jq '.data[] | {id, title, value, currency, stage_id}'
 
-# All stages grouped by pipeline (note the `.data |` — group_by operates on the array, not the envelope)
+# All stages grouped by pipeline (note the `.data |` - group_by operates on the array, not the envelope)
 PD "/api/v2/stages" | jq '.data | group_by(.pipeline_id) | map({pipeline: .[0].pipeline_id, stages: map(.name)})'
 
 # Find a person by email, then their open deals
@@ -64,7 +64,7 @@ new_pid=$(curl -s -X POST -H "x-api-token: $PIPEDRIVE_API_TOKEN" -H "Content-Typ
   -d '{"name":"Jane Doe","emails":[{"value":"jane@example.com","primary":true,"label":"work"}]}' \
   "https://$PIPEDRIVE_COMPANY_DOMAIN.pipedrive.com/api/v2/persons" | jq -r '.data.id')
 curl -s -X POST -H "x-api-token: $PIPEDRIVE_API_TOKEN" -H "Content-Type: application/json" \
-  -d "{\"title\":\"Jane Doe — new enquiry\",\"value\":2500,\"currency\":\"AUD\",\"person_id\":$new_pid,\"pipeline_id\":2,\"stage_id\":6}" \
+  -d "{\"title\":\"Jane Doe - new enquiry\",\"value\":2500,\"currency\":\"AUD\",\"person_id\":$new_pid,\"pipeline_id\":2,\"stage_id\":6}" \
   "https://$PIPEDRIVE_COMPANY_DOMAIN.pipedrive.com/api/v2/deals" | jq '.data.id'
 
 # Move a deal to another stage (PATCH = v2)
@@ -74,7 +74,7 @@ curl -s -X PATCH -H "x-api-token: $PIPEDRIVE_API_TOKEN" -H "Content-Type: applic
 
 # Add a note to a deal (notes are v1 → POST, no PATCH)
 curl -s -X POST -H "x-api-token: $PIPEDRIVE_API_TOKEN" -H "Content-Type: application/json" \
-  -d '{"content":"Called — following up Friday.","deal_id":123}' \
+  -d '{"content":"Called - following up Friday.","deal_id":123}' \
   "https://$PIPEDRIVE_COMPANY_DOMAIN.pipedrive.com/api/v1/notes" | jq '.data.id'
 ```
 

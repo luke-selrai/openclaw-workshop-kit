@@ -102,10 +102,10 @@ Hey {first_name},
 Wanted to share some wins from the community:
 
 "[Testimonial 1]"
-— {Name}, {Role at Company}
+- {Name}, {Role at Company}
 
 "[Testimonial 2]"
-— {Name}, {Role at Company}
+- {Name}, {Role at Company}
 
 These developers went from [before state] to [after state].
 
@@ -383,7 +383,7 @@ Hey {first_name},
 
 I noticed you haven't opened my emails in a while.
 
-No hard feelings—inboxes are overwhelming.
+No hard feelings-inboxes are overwhelming.
 
 I just want to make sure I'm sending you stuff you actually want.
 

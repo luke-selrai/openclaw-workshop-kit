@@ -329,6 +329,7 @@ For large directories.
   run: tar -czf node_modules.tar.gz node_modules
 
 - uses: actions/cache@v4
+  id: cache
   with:
     path: node_modules.tar.gz
     key: deps-${{ hashFiles('package-lock.json') }}

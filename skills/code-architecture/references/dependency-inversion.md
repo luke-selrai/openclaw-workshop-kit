@@ -1,4 +1,4 @@
-# Dependency Inversion — IoC Containers and Injection Patterns
+# Dependency Inversion - IoC Containers and Injection Patterns
 
 Dependency inversion is the D in SOLID. This reference covers concrete IoC container implementations in TypeScript and Python, constructor injection patterns, and the honest answer to when DI is overkill.
 
@@ -8,7 +8,7 @@ Dependency inversion is the D in SOLID. This reference covers concrete IoC conta
 
 Without DI:
 ```typescript
-// Hard-coded dependency — untestable in isolation
+// Hard-coded dependency - untestable in isolation
 class OrderService {
   private db = new PostgresConnection(process.env.DATABASE_URL);
   private mailer = new SendGridMailer(process.env.SENDGRID_API_KEY);
@@ -21,7 +21,7 @@ class OrderService {
 
 With constructor injection:
 ```typescript
-// Dependencies are injected — testable with any implementation
+// Dependencies are injected - testable with any implementation
 class OrderService {
   constructor(
     private readonly db: OrderRepository,     // Interface
@@ -129,7 +129,7 @@ testContainer.bind(SYMBOLS.NotificationPort).to(FakeNotificationAdapter).inSingl
 testContainer.bind(SYMBOLS.CreateOrderUseCase).to(CreateOrderUseCase).inTransientScope();
 ```
 
-### TSyringe (Microsoft — Lighter than InversifyJS)
+### TSyringe (Microsoft - Lighter than InversifyJS)
 
 ```bash
 npm install tsyringe reflect-metadata
@@ -156,7 +156,7 @@ const useCase = container.resolve(CreateOrderUseCase);
 
 ### NestJS DI (Framework-Level)
 
-NestJS has DI built in. If you're using NestJS, don't use InversifyJS or TSyringe — use NestJS's built-in system:
+NestJS has DI built in. If you're using NestJS, don't use InversifyJS or TSyringe - use NestJS's built-in system:
 
 ```typescript
 // orders.module.ts
@@ -231,7 +231,7 @@ class CreateOrderUseCase:
         self._inventory_port = inventory_port
 
     async def execute(self, command: CreateOrderCommand) -> CreateOrderResult:
-        # Business logic — no database, no HTTP, no framework
+        # Business logic - no database, no HTTP, no framework
         ...
 
 
@@ -307,7 +307,7 @@ def test_create_order():
 
 ### FastAPI Dependency Injection
 
-FastAPI has built-in DI for HTTP handlers — use it for request-level dependencies, not for core application wiring:
+FastAPI has built-in DI for HTTP handlers - use it for request-level dependencies, not for core application wiring:
 
 ```python
 # For HTTP-level concerns (auth, request context):
@@ -346,7 +346,7 @@ def handler(event, context):
     return {"statusCode": 200}
 ```
 
-**Go** — the community consensus is that constructor injection without a container is idiomatic Go:
+**Go** - the community consensus is that constructor injection without a container is idiomatic Go:
 ```go
 // Go: just wire in main()
 func main() {
@@ -375,7 +375,7 @@ const services = new ServiceLocator();
 
 class CreateOrderUseCase {
   execute() {
-    // Hidden dependency — impossible to test without the global registry
+    // Hidden dependency - impossible to test without the global registry
     const repo = services.get<OrderRepository>('orderRepo');
     const mailer = services.get<NotificationPort>('mailer');
   }
@@ -463,4 +463,4 @@ export class InMemoryOrderRepository implements OrderRepository {
 }
 ```
 
-This is simpler than mocking frameworks for domain-level testing. The fake is real code — it can have assertions, state inspection, and behavior customization without complex mock setup.
+This is simpler than mocking frameworks for domain-level testing. The fake is real code - it can have assertions, state inspection, and behavior customization without complex mock setup.

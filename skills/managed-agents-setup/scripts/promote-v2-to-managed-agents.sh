@@ -6,16 +6,28 @@
 # v1 agents on cron delegate heavy work to v2 (now hosted).
 #
 # Usage:
-#   bash promote-v2-to-managed-agents.sh [--dry-run]
+#   bash promote-v2-to-managed-agents.sh                 # DRY-RUN (default): list only, no billing
+#   bash promote-v2-to-managed-agents.sh --apply --yes   # actually create billable agents
 set -uo pipefail
 
 : "${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY not set}"
 
-DRY_RUN=0
-[[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
+# SAFETY (S11): provisioning N billable Managed Agents is gated.
+# Default is DRY-RUN. Real creation needs BOTH --apply and --yes.
+DRY_RUN=1
+APPLY=0
+ASSUME_YES=0
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=1 ;;
+    --apply)   APPLY=1 ;;
+    --yes)     ASSUME_YES=1 ;;
+  esac
+done
+[[ "$APPLY" == "1" ]] && DRY_RUN=0
 
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/clawd-key.pem}"
-SSH_HOST="${SSH_HOST:-ubuntu@15.134.37.81}"
+SSH_HOST="${SSH_HOST:-ubuntu@100.119.119.120}"
 SSH_CMD="ssh -o BatchMode=yes -i $SSH_KEY $SSH_HOST"
 
 STATE_DIR="$HOME/.claude/managed-agents"
@@ -23,8 +35,11 @@ mkdir -p "$STATE_DIR/agents" "$STATE_DIR/v2-prompts"
 
 # Pull each v2 CLAUDE.md locally so we can read them
 echo "[promote] Pulling v2 CLAUDE.mds from server..."
-$SSH_CMD 'ls -d ~/agents-v2/agents/*/ 2>/dev/null | xargs -I{} basename {}' > /tmp/v2_agents.txt
-V2_AGENTS=$(cat /tmp/v2_agents.txt)
+# NEW-6: use mktemp (per-run, 0600) instead of a predictable /tmp path (symlink/race-safe)
+V2_LIST_FILE=$(mktemp "${TMPDIR:-/tmp}/v2_agents.XXXXXX")
+trap 'rm -f "$V2_LIST_FILE"' EXIT
+$SSH_CMD 'ls -d ~/agents-v2/agents/*/ 2>/dev/null | xargs -I{} basename {}' > "$V2_LIST_FILE"
+V2_AGENTS=$(cat "$V2_LIST_FILE")
 
 if [ -z "$V2_AGENTS" ]; then
   echo "[info] No v2 agents found on server. Nothing to promote."
@@ -52,6 +67,25 @@ pick_model() {
 }
 
 BETA="managed-agents-2026-04-01"
+
+# SAFETY (S11): count + confirm before the first billable POST.
+N_AGENTS=$(echo "$V2_AGENTS" | grep -c . || true)
+SUCCESS_COUNT=0
+if [ "$DRY_RUN" = "1" ]; then
+  echo "[dry-run] Would create up to $N_AGENTS billable Managed Agent(s). Re-run with --apply --yes to proceed."
+else
+  echo "[promote] About to create up to $N_AGENTS BILLABLE Managed Agent(s):"
+  for a in $V2_AGENTS; do echo "    - v2-$a"; done
+  if [ "$ASSUME_YES" != "1" ]; then
+    if [ -t 0 ]; then
+      read -r -p "Proceed and create these billable agents? [y/N] " _confirm
+      [[ "$_confirm" == [yY]* ]] || { echo "[abort] Not confirmed."; exit 3; }
+    else
+      echo "[abort] --apply requires confirmation; pass --yes (no TTY for prompt)." >&2
+      exit 3
+    fi
+  fi
+fi
 
 for AGENT in $V2_AGENTS; do
   echo ""
@@ -91,17 +125,22 @@ PY
     continue
   fi
 
+  # S12: secret x-api-key header fed via curl --config on stdin (never on argv/ps)
   RESP=$(curl -sS -X POST "https://api.anthropic.com/v1/agents" \
-    -H "x-api-key: $ANTHROPIC_API_KEY" \
     -H "anthropic-version: 2023-06-01" \
     -H "anthropic-beta: $BETA" \
     -H "content-type: application/json" \
-    -d "$BODY")
+    -d "$BODY" \
+    --config - <<EOF
+header = "x-api-key: ${ANTHROPIC_API_KEY}"
+EOF
+)
 
   AGENT_ID=$(echo "$RESP" | jq -r '.id // empty')
   if [ -n "$AGENT_ID" ]; then
     echo "$AGENT_ID" > "$STATE_DIR/agents/v2-$AGENT.txt"
     echo "  [ok] v2-$AGENT → $AGENT_ID (model $MODEL)"
+    SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
   else
     echo "  [fail] $AGENT — $(echo "$RESP" | jq -c .)"
   fi
@@ -110,8 +149,13 @@ done
 echo ""
 echo "[promote] Done. Agent IDs saved to $STATE_DIR/agents/v2-*.txt"
 
-# Archive the local v2 ghost (it's empty anyway, just marker)
-if [ -d "$HOME/agents-v2" ]; then
+# Archive the local v2 ghost — ONLY if at least one agent was actually created.
+# (S11: never destroy the v2 source on a dry-run or all-fail run.)
+if [ "$DRY_RUN" = "1" ]; then
+  echo "[archive] Skipped (dry-run): ~/agents-v2 left in place."
+elif [ "$SUCCESS_COUNT" -lt 1 ]; then
+  echo "[archive] Skipped: 0 agents created, leaving ~/agents-v2 untouched."
+elif [ -d "$HOME/agents-v2" ]; then
   ARCHIVE="$HOME/archive/agents-v2-pre-managed-$(date +%Y%m%d)"
   mkdir -p "$HOME/archive"
   mv "$HOME/agents-v2" "$ARCHIVE" 2>/dev/null || true

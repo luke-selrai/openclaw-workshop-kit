@@ -1,6 +1,6 @@
 ---
 name: n8n-workflow-patterns
-description: Proven workflow architectural patterns from real n8n workflows. Use when building new workflows, designing workflow structure, choosing workflow patterns, planning workflow architecture, or asking about webhook processing, HTTP API integration,...
+description: Proven architectural patterns for n8n workflows including webhook processing, HTTP API integration, database operations, and AI agent workflows.
 ---
 
 # n8n Workflow Patterns

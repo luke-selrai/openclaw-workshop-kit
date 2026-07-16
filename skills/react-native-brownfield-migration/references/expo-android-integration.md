@@ -59,7 +59,6 @@ override fun onConfigurationChanged(newConfig: Configuration) {
 
 5. Render RN UI with JS-registered module name:
    - `ReactNativeFragment.createReactNativeFragment("<registered_module_name>")`
-   - or `ReactNativeBrownfield.shared.createView(context, activity, "<registered_module_name>")`
 
 ## Stop Conditions
 

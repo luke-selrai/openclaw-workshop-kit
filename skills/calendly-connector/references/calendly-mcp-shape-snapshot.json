@@ -1,0 +1,69 @@
+{
+  "_comment": "Captured shape of mcp.calendly.com/.well-known/oauth-protected-resource as of 2026-04-30. Paired with the SKILL.md empirical-verification timestamp. If the consent screen scope-count, permission labels, or OAuth metadata fields drift, an outsider can compare a fresh fetch against this snapshot to localise the change without needing a live test harness.",
+  "captured_at": "2026-04-30T10:51:42Z",
+  "captured_against": "https://mcp.calendly.com/.well-known/oauth-protected-resource",
+  "captured_by": "selrai-company/claude-workshop-kit Phase 1 install audit",
+  "resource_metadata": {
+    "resource": "https://mcp.calendly.com",
+    "authorization_servers": [
+      "https://auth.calendly.com"
+    ],
+    "scopes_supported": [
+      "event_type:read",
+      "scheduled_event:read",
+      "scheduled_event:write",
+      "scheduled_event:cancel",
+      "scheduling_link:read",
+      "scheduling_link:write",
+      "user:read",
+      "organization:read",
+      "organization_membership:read",
+      "invitee_no_show:read",
+      "invitee_no_show:write",
+      "webhook_subscription:read",
+      "activity_log_entry:read",
+      "routing_form:read",
+      "routing_form_submission:read"
+    ],
+    "bearer_methods_supported": [
+      "header"
+    ],
+    "resource_documentation": "https://developer.calendly.com/api-docs"
+  },
+  "tool_surface_observed": {
+    "tool_count": 35,
+    "category_count": 9,
+    "categories": [
+      "event_types",
+      "meetings",
+      "users",
+      "organizations",
+      "contacts",
+      "scheduling_links",
+      "webhooks_read",
+      "activity_log",
+      "routing_forms"
+    ],
+    "naming_convention": "mcp__calendly__<category>-<action>",
+    "examples": [
+      "mcp__calendly__event_types-list_event_types",
+      "mcp__calendly__meetings-list_events",
+      "mcp__calendly__meetings-cancel_event",
+      "mcp__calendly__users-get_current",
+      "mcp__calendly__scheduling_links-create_scheduling_link"
+    ]
+  },
+  "consent_screen_observed": {
+    "consent_screen_url_pattern": "https://auth.calendly.com/oauth/authorize?...",
+    "callback_pattern": "https://mcp.calendly.com/callback?code=...&state=...",
+    "post_redirect_pattern": "http://127.0.0.1:<dynamic-port>/callback?code=..."
+  },
+  "drift_check_recipe": {
+    "step_1": "From any shell with curl: curl -s https://mcp.calendly.com/.well-known/oauth-protected-resource | jq '.'",
+    "step_2": "Compare the live response's scopes_supported array against the array above. A new entry probably means a new tool category is available. A removed entry means a tool was retired and a SKILL Tool Reference row needs updating.",
+    "step_3": "If the scopes_supported list is byte-identical to this snapshot, no SKILL changes needed. If different, open an issue and update the SKILL.md Phase 2 Tool Reference to match before re-running Phase 1.",
+    "step_4_in_session_guard": "The SKILL also runs an in-session tool-name-drift guard before the first Phase 2 call (see SKILL.md Phase 2 introduction). The guard lists available mcp__calendly__* tools and flags any canonical name that has disappeared. Run that on a live session for a faster signal than diffing the well-known endpoint.",
+    "out_of_band_signal": "If Calendly ships a new consent screen design with different permission labels or count, the worked example transcript at examples/calendly-meetings-list-session.md is the first place a non-technical user notices because the narration line in Step 4a paraphrases the consent text. Update both the SKILL and the example together."
+  },
+  "_why_no_automated_script": "An automated drift-check script would belong in tests/ and this connector lives inside the larger claude-workshop-kit repo where tests/ is reserved for the kit-wide smoke and verification harness. Drift checking on a third-party SaaS is also rate-limit-aware work; it should run from a human or a scheduled job, not from every PR's CI run. The snapshot here is the durable artifact; the script is left as a one-line curl in drift_check_recipe.step_1."
+}

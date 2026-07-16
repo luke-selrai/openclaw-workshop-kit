@@ -7,8 +7,6 @@ metadata:
   pairs-with:
   - skill: ai-engineer
     reason: Apply optimized prompts in production LLM applications
-  - skill: automatic-stateful-prompt-improver
-    reason: Automated prompt optimization with learning
   tags:
   - prompts
   - llm
@@ -185,12 +183,12 @@ Fix: Add periodic context summaries + clear role reminders
 
 **Do NOT use for:**
 - Building LLM applications (use ai-engineer)
-- Automated optimization (use automatic-stateful-prompt-improver)
+- Automated optimization
 - General coding tasks (use language-specific skills)
 - Infrastructure setup (use deployment skills)
 
 ---
 
-**Core insight**: Great prompts are like great specifications—specific enough to eliminate ambiguity, flexible enough to handle variation, and tested against adversarial inputs.
+**Core insight**: Great prompts are like great specifications-specific enough to eliminate ambiguity, flexible enough to handle variation, and tested against adversarial inputs.
 
-**Use with**: ai-engineer (production apps) | automatic-stateful-prompt-improver (automation) | agent-creator (new agents)
+**Use with**: ai-engineer (production apps) | agent-creator (new agents)

@@ -30,10 +30,10 @@ N-API has versioned features:
 |---------------|-----------------|--------------|
 | 1 | 8.0.0 | Core API |
 | 2 | 8.10.0 | async hooks integration |
-| 3 | 10.0.0 | BigInt support |
+| 3 | 10.0.0 | napi_fatal_exception, env cleanup hooks |
 | 4 | 10.16.0 | Instance data |
 | 5 | 12.11.0 | Date, finalization |
-| 6 | 12.17.0 | Object freeze/seal |
+| 6 | 12.17.0 | BigInt support, object freeze/seal |
 | 7 | 14.12.0 | Detached ArrayBuffer |
 | 8 | 15.0.0 | Type tagging |
 | 9 | 18.17.0 | Extended Buffer API |

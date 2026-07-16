@@ -2,7 +2,7 @@
 
 Inngest provides `dependencyInjectionMiddleware` as a built-in export from the `inngest` package. Encryption and Sentry middleware are available as **separate packages** that must be installed independently.
 
-> **Important:** `encryptionMiddleware` is from `@inngest/middleware-encryption` and `sentryMiddleware` is from `@inngest/middleware-sentry` — they are **not** exported from the core `inngest` package.
+> **Important:** `encryptionMiddleware` is from `@inngest/middleware-encryption` and `sentryMiddleware` is from `@inngest/middleware-sentry` - they are **not** exported from the core `inngest` package.
 
 ## Encryption Middleware (`@inngest/middleware-encryption`)
 

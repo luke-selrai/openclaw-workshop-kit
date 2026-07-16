@@ -2,7 +2,7 @@
 
 ## What Is It?
 
-**Connector Recommender** is a Claude Code skill that acts as a business integration advisor. When a user describes their business or asks about tools, this skill identifies what kind of business they run, recommends the most impactful integrations (connectors), and helps set them up — all in plain language.
+**Connector Recommender** is a Claude Code skill that acts as a business integration advisor. When a user describes their business or asks about tools, this skill identifies what kind of business they run, recommends the most impactful integrations (connectors), and helps set them up - all in plain language.
 
 It removes the guesswork of "what tools should I connect?" by mapping business types to proven connector stacks.
 
@@ -116,9 +116,9 @@ Recommendations are shown as a numbered list with one-sentence reasons tied to t
 ```
 Based on your [business type], here are the integrations I'd recommend:
 
-1. **[Tool]** — [why it matters for them]
-2. **[Tool]** — [why it matters for them]
-3. **[Tool]** — [why it matters for them]
+1. **[Tool]** - [why it matters for them]
+2. **[Tool]** - [why it matters for them]
+3. **[Tool]** - [why it matters for them]
 
 Would you like me to set these up for you?
 ```
@@ -144,7 +144,7 @@ Search MCP registry (search_mcp_registry)
                         Confirm success → Next connector
 ```
 
-**Setup is always sequential** — one connector at a time to avoid overwhelming the user.
+**Setup is always sequential** - one connector at a time to avoid overwhelming the user.
 
 After all connectors are handled, a summary is shown:
 
@@ -242,16 +242,18 @@ Typical flow: **connector-recommender** (what to connect) → **automation-intel
 |------------|--------|
 | Connector availability | Can only recommend connectors available in the MCP registry |
 | Custom integrations | Cannot set up custom API integrations or webhooks directly |
-| Business type coverage | 7 predefined categories — unusual businesses fall back to operations-based mapping |
+| Business type coverage | 7 predefined categories - unusual businesses fall back to operations-based mapping |
 | Max recommendations | Hard cap of 5 per interaction |
-| Setup scope | Can present Connect buttons but actual OAuth/auth is done by the user |
+| Setup scope | Drives the full install (Connect button for hosted connectors; CLI install + server registration for the rest). The user only approves the OAuth sign-in and any hard physical action |
 
 ## File Structure
 
 ```
 ~/.claude/skills/connector-recommender/
 ├── SKILL.md          # Skill definition (core logic + instructions)
+├── EXAMPLES.md       # 5 full worked transcripts (the reference outputs)
 ├── TESTCASES.md      # 15 test scenarios with pass criteria
+├── QA-NOTES.md       # Live skill-qa-harness run findings + fixes
 └── REFERENCE.md      # This document
 ```
 
@@ -261,10 +263,10 @@ Typical flow: **connector-recommender** (what to connect) → **automation-intel
 It can mention them as suggestions, but it can only facilitate setup for tools available as MCP connectors. For unavailable tools, it suggests alternatives.
 
 **Q: What if the user's business doesn't fit any category?**
-The skill falls back to operations-based mapping — it matches what the user *does* (manage leads, send emails, track data) to the right connectors, regardless of business type.
+The skill falls back to operations-based mapping - it matches what the user *does* (manage leads, send emails, track data) to the right connectors, regardless of business type.
 
 **Q: Does this skill install anything?**
-No. It presents Connect buttons that link to the MCP connector's authorization flow. The user clicks through and authorizes. Nothing is installed silently.
+Yes, when a connector needs it. Hosted connectors (e.g. Gmail) are a one-click Connect button. Many others need a command-line tool installed and a server registered first - for those, Claude does the entire technical setup itself (via the dedicated `*-connector` skill or the connector's install pattern). The user never runs a command or installs anything by hand; they only approve the sign-in. Nothing is installed without the user agreeing to set the connector up.
 
 **Q: Can the user skip some recommendations?**
 Yes. During setup, each connector is presented individually. The user can skip any they don't want.

@@ -84,7 +84,7 @@ The first line determines whether anyone reads the rest.
 ### Curiosity Hooks
 - "I was wrong about [common belief]."
 - "The real reason [outcome] happens isn't what you think."
-- "[Impressive result] — and it only took [surprisingly short time]."
+- "[Impressive result] - and it only took [surprisingly short time]."
 
 ### Story Hooks
 - "Last week, [unexpected thing] happened."
@@ -248,12 +248,12 @@ Turn one piece of content into many:
 
 Instead of guessing, analyze what's working for top creators in your niche:
 
-1. **Find creators** — 10-20 accounts with high engagement
-2. **Collect data** — 500+ posts for analysis
-3. **Analyze patterns** — Hooks, formats, CTAs that work
-4. **Codify playbook** — Document repeatable patterns
-5. **Layer your voice** — Apply patterns with authenticity
-6. **Convert** — Bridge attention to business results
+1. **Find creators** - 10-20 accounts with high engagement
+2. **Collect data** - 500+ posts for analysis
+3. **Analyze patterns** - Hooks, formats, CTAs that work
+4. **Codify playbook** - Document repeatable patterns
+5. **Layer your voice** - Apply patterns with authenticity
+6. **Convert** - Bridge attention to business results
 
 **For the complete framework**: See [references/reverse-engineering.md](references/reverse-engineering.md)
 

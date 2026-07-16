@@ -25,7 +25,7 @@ fi
 RAW=$(claude mcp list 2>/dev/null) || RAW=""
 
 # Hand off everything to Python — no bash loops, no pipe weirdness.
-RAW="$RAW" JSON_OUT="$JSON_OUT" SERVICES="$*" python3 - <<'PYEOF'
+RAW="$RAW" JSON_OUT="$JSON_OUT" SERVICES="$*" PYTHONUTF8=1 python3 - <<'PYEOF'
 import json, os, re, sys
 
 raw = os.environ.get("RAW", "")
@@ -33,7 +33,7 @@ json_out = os.environ.get("JSON_OUT", "0") == "1"
 services = [s for s in (os.environ.get("SERVICES", "") or "").split() if s]
 
 # --- Parse `claude mcp list` output ---
-connected, needs_auth, direct = [], [], []
+connected, needs_auth, direct, failed = [], [], [], []
 for line in raw.splitlines():
     m = re.match(r'^claude\.ai (.+?):\s+\S+\s*-\s*(.+)$', line)
     if m:
@@ -53,18 +53,19 @@ for line in raw.splitlines():
         elif 'Needs authentication' in status:
             needs_auth.append(name)
         elif 'Failed' in status or '✗' in status:
-            failed.append(name) if 'failed' in dir() else None
+            failed.append(name)
         continue
     m2 = re.match(r'^([a-zA-Z0-9_-]+):\s+\S+\s*-\s*(.+)$', line)
     if m2 and not line.startswith('claude.ai') and not line.startswith('plugin:'):
         if 'Connected' in m2.group(2):
             direct.append(m2.group(1))
         elif '✗' in m2.group(2) or 'Failed' in m2.group(2):
-            pass  # silently skip; could surface later
+            failed.append(m2.group(1))
 
 connected = sorted(set(connected))
 needs_auth = sorted(set(needs_auth))
 direct = sorted(set(direct))
+failed = sorted(set(failed))
 
 # --- No args: print full inventory ---
 if not services:
@@ -73,6 +74,7 @@ if not services:
             "connected": connected,
             "needs_auth": needs_auth,
             "direct": direct,
+            "failed": failed,
         }))
         sys.exit(0)
     print("Tier 1 — claude.ai passthrough (CONNECTED, reuse free):")
@@ -84,6 +86,10 @@ if not services:
         print()
     print("Tier 3 — direct MCP servers (CONNECTED):")
     print("\n".join(f"  - {s}" for s in direct) if direct else "  (none — Rube goes here when added)")
+    if failed:
+        print()
+        print("FAILED / unreachable (check OAuth or network):")
+        print("\n".join(f"  - {s}" for s in failed))
     sys.exit(0)
 
 # --- Args: check each service ---

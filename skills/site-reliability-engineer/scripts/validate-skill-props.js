@@ -6,12 +6,15 @@ function validateSkillHeader(filePath) {
   const errors = [];
 
   // Find SkillHeader component usage
-  const headerMatch = content.match(/<SkillHeader[\s\S]*?\/>/);
-  if (!headerMatch) return errors;
-
-  const headerText = headerMatch[0];
-  const lines = content.split('\n');
-  const lineNum = lines.findIndex(l => l.includes('<SkillHeader')) + 1;
+  const allLines = content.split('\n');
+  const startIdx = allLines.findIndex(l => l.includes('<SkillHeader'));
+  if (startIdx === -1) return errors;
+  let endIdx = startIdx;
+  while (endIdx < allLines.length && !allLines[endIdx].trim().endsWith('/>')) {
+    endIdx++;
+  }
+  const headerText = allLines.slice(startIdx, endIdx + 1).join('\n');
+  const lineNum = startIdx + 1;
 
   // Check for correct prop: fileName (not skillId)
   if (headerText.includes('skillId=')) {
@@ -46,6 +49,13 @@ function validateSkillHeader(filePath) {
     errors.push({
       line: lineNum,
       issue: 'Missing required "fileName" prop'
+    });
+  }
+
+  if (!headerText.includes('description=')) {
+    errors.push({
+      line: lineNum,
+      issue: 'Missing required "description" prop'
     });
   }
 

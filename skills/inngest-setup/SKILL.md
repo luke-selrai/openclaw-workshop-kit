@@ -1,6 +1,6 @@
 ---
 name: inngest-setup
-description: Use when adding durable execution to a TypeScript project — building retry-safe webhook handlers, background jobs that survive crashes, scheduled tasks, or long-running workflows that outlive a single request. Covers Inngest SDK installation, client config, environment variables, serve endpoints (Next.js, Express, Hono, Fastify), connect-as-worker mode, and the local dev server.
+description: Use when adding durable execution to a TypeScript project - building retry-safe webhook handlers, background jobs that survive crashes, scheduled tasks, or long-running workflows that outlive a single request. Covers Inngest SDK installation, client config, environment variables, serve endpoints (Next.js, Express, Hono, Fastify), connect-as-worker mode, and the local dev server.
 ---
 
 # Inngest Setup
@@ -50,11 +50,11 @@ export const inngest = new Inngest({
 - **`id`** (required): Unique identifier for your app. Use a hyphenated slug like `"my-app"` or `"user-service"`
 - **`eventKey`**: Event key for sending events (prefer `INNGEST_EVENT_KEY` env var)
 - **`env`**: Environment name for Branch Environments
-- **`isDev`**: Force Dev mode (`true`) or Cloud mode (`false`). **v4 defaults to Cloud mode**, so set `INNGEST_DEV=1` env var for local development. **Never hardcode `isDev: true` in source code** — it will silently break in production. Always use the env var.
+- **`isDev`**: Force Dev mode (`true`) or Cloud mode (`false`). **v4 defaults to Cloud mode**, so set `INNGEST_DEV=1` env var for local development. **Never hardcode `isDev: true` in source code** - it will silently break in production. Always use the env var.
 - **`signingKey`**: Signing key for production (prefer `INNGEST_SIGNING_KEY` env var). Moved from `serve()` to client in v4
 - **`signingKeyFallback`**: Fallback signing key for key rotation (prefer `INNGEST_SIGNING_KEY_FALLBACK` env var)
 - **`baseUrl`**: Custom Inngest API base URL (prefer `INNGEST_BASE_URL` env var)
-- **`logger`**: Custom logger instance (e.g. winston, pino) — enables `logger` in function context
+- **`logger`**: Custom logger instance (e.g. winston, pino) - enables `logger` in function context
 - **`middleware`**: Array of middleware (see **inngest-middleware** skill)
 
 ### Typed Events with eventType()
@@ -246,7 +246,7 @@ import { myFunction } from "./inngest/functions";
 
 **v4 Connect Changes:**
 
-- **Worker thread isolation** is enabled by default — WebSocket connections execute in a worker thread to prevent event loop starvation. Set `isolateExecution: false` to use a single process (or `INNGEST_CONNECT_ISOLATE_EXECUTION=false`)
+- **Worker thread isolation** is enabled by default - WebSocket connections execute in a worker thread to prevent event loop starvation. Set `isolateExecution: false` to use a single process (or `INNGEST_CONNECT_ISOLATE_EXECUTION=false`)
 - **`rewriteGatewayEndpoint`** callback has been replaced with the `gatewayUrl` string option (or `INNGEST_CONNECT_GATEWAY_URL` env var)
 
 ## Step 5: Organizing with Apps
@@ -335,7 +335,7 @@ If your app runs on a non-standard port (not 3000), make sure the dev server can
 
 **Port Conflicts**: If port 8288 is in use, specify a different port: `-p 9999`
 
-**Auto-discovery Not Working**: Use manual URL specification: `-u http://localhost:YOUR_PORT/api/inngest`. If using `--no-discovery` flag, the `-u` flag is **required** — the dev server will not find your app without it.
+**Auto-discovery Not Working**: Use manual URL specification: `-u http://localhost:YOUR_PORT/api/inngest`. If using `--no-discovery` flag, the `-u` flag is **required** - the dev server will not find your app without it.
 
 **Functions Not Showing in Dev Server**: Your app must register with the dev server. This happens automatically when your serve endpoint receives its first request from the dev server. If registration isn't happening: (1) verify `INNGEST_DEV=1` is set, (2) verify the dev server can reach your app URL, (3) try restarting your app while the dev server is running.
 

@@ -1,4 +1,4 @@
-# Conform checker fixture — intentional stale kit-home refs
+# Conform checker fixture - intentional stale kit-home refs
 
 Feeds scripts/test-verify-conform.mjs. Allowlisted in verify-conform.mjs so the
 main path-conform pass skips it. Each line below must be caught by exactly one

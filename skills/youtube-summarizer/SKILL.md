@@ -19,7 +19,7 @@ Detect from context or ask: *"Quick TL;DR, full summary, or full summary with co
 | `standard` | Full structured summary: thesis, insights, takeaway | Learning, note-taking, research |
 | `deep` | Full summary + chapter breakdown + content repurposing opportunities | Turning a video into a content asset |
 
-**Default: `standard`** — use `quick` if they just want the gist. Use `deep` if they want to extract the video into usable content.
+**Default: `standard`** - use `quick` if they just want the gist. Use `deep` if they want to extract the video into usable content.
 
 ---
 

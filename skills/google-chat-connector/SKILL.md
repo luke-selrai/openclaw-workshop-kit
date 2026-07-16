@@ -29,19 +29,19 @@ metadata:
 
 This skill does two things:
 1. **Installs** the Google Workspace CLI (`gws`) on the user's computer (one-time setup)
-2. **Operates** the connector — sending messages, reading conversations, listing spaces, managing team communication via the Google Chat API
+2. **Operates** the connector - sending messages, reading conversations, listing spaces, managing team communication via the Google Chat API
 
 The connector uses the **Google Workspace CLI** (`@googleworkspace/cli`, invoked as `gws`) which wraps the Google Chat REST API with OAuth2 authentication. One tool, one auth flow, covers Chat, Gmail, Calendar, and Drive.
 
 > **Account support:** Requires a **Google Workspace** account (work/school domain).
-> Personal Gmail accounts (`@gmail.com`) are NOT supported — the Google Chat API is a Workspace-only feature.
-> If the user has a personal account, tell them this upfront and stop — do not waste time on setup that will fail at the end.
+> Personal Gmail accounts (`@gmail.com`) are NOT supported - the Google Chat API is a Workspace-only feature.
+> If the user has a personal account, tell them this upfront and stop - do not waste time on setup that will fail at the end.
 
 ---
 
-## Part 1 — Installation
+## Part 1 - Installation
 
-Guide conversationally — one step at a time.
+Guide conversationally - one step at a time.
 
 ### Step 1: Confirm account type
 
@@ -93,10 +93,10 @@ If the install fails with a permission error on macOS/Linux, try `sudo npm insta
 
 ### Step 5: Set up the GCP project + OAuth client
 
-The Chat API needs a GCP project with OAuth credentials. There are three paths — pick one based on what the user has.
+The Chat API needs a GCP project with OAuth credentials. There are three paths - pick one based on what the user has.
 
-**Path A — Teammate already set it up (fastest):**
-If someone on the user's team already configured this, ask them for their `client_secret.json` file. It is safe to share within an org — it identifies the OAuth app, not any individual's login.
+**Path A - Teammate already set it up (fastest):**
+If someone on the user's team already configured this, ask them for their `client_secret.json` file. It is safe to share within an org - it identifies the OAuth app, not any individual's login.
 
 Save the file to:
 ```
@@ -105,14 +105,14 @@ Save the file to:
 
 Then skip to Step 6.
 
-**Path B — Automated (user has `gcloud` CLI authenticated):**
+**Path B - Automated (user has `gcloud` CLI authenticated):**
 ```bash
 gws auth setup --login
 ```
 
 This creates the GCP project, enables the Chat/Gmail/Calendar/Drive APIs, configures OAuth, and authenticates in one shot. If the user doesn't have `gcloud`, either install it via [gcloud-connector](../gcloud-connector/SKILL.md) first, or use Path C.
 
-**Path C — Manual:**
+**Path C - Manual:**
 1. Go to https://console.cloud.google.com
 2. Create a new project (or use an existing one)
 3. Enable these APIs: **Google Chat API**, Gmail API, Google Calendar API, Google Drive API
@@ -146,7 +146,7 @@ If this returns a list of spaces (even an empty one), installation is complete. 
 
 ---
 
-## Part 2 — Operation
+## Part 2 - Operation
 
 Once installed, use these commands to read and write Google Chat data.
 
@@ -165,15 +165,15 @@ gws chat spaces list --page-all --page-limit 5
 ```
 
 **Space types** returned:
-- `SPACE` — named room/channel
-- `GROUP_CHAT` — multi-person chat without a name
-- `DIRECT_MESSAGE` — 1:1 DM
+- `SPACE` - named room/channel
+- `GROUP_CHAT` - multi-person chat without a name
+- `DIRECT_MESSAGE` - 1:1 DM
 
 ### Sending a message
 
 **Shortcut form (preferred):**
 ```bash
-gws chat +send --space "spaces/SPACE_ID" --text "Deploy finished — all green."
+gws chat +send --space "spaces/SPACE_ID" --text "Deploy finished - all green."
 ```
 
 **Full API form (for threads, cards, attachments):**
@@ -246,7 +246,7 @@ URLs are auto-linked. For anything richer than basic formatting (buttons, images
 ### Output formats
 
 ```bash
---format json    # Default — full API response
+--format json    # Default - full API response
 --format table   # Human-readable table
 --format yaml    # YAML
 --format csv     # CSV
@@ -256,7 +256,7 @@ Use `--format table` when showing data to the user. Use `--format json` when par
 
 ---
 
-## Part 3 — Mapping the User's Spaces
+## Part 3 - Mapping the User's Spaces
 
 The first time the user runs this skill, their space IDs are unknown. Run this once and update this skill file with their team's spaces so future sends don't need a lookup:
 
@@ -272,22 +272,22 @@ Then edit the **Your Spaces** table below with the results:
 |---|---|---|
 | _Fill in after running `gws chat spaces list`_ | | |
 
-When the user says "send a message to the Dev Team", look up the ID in this table first. If the name isn't there, list spaces again and fuzzy-match — then add the new row so the lookup works next time.
+When the user says "send a message to the Dev Team", look up the ID in this table first. If the name isn't there, list spaces again and fuzzy-match - then add the new row so the lookup works next time.
 
 ---
 
-## Part 4 — Safety Rules
+## Part 4 - Safety Rules
 
 1. **Read before writing.** If you're unsure which space the user means, list spaces and confirm the match before sending. Sending to the wrong space is a visible, embarrassing error.
-2. **Never send to DMs without explicit instruction.** Default to named spaces/rooms only. A message to `DIRECT_MESSAGE` is personal — don't send one unless the user explicitly names the recipient and intent.
+2. **Never send to DMs without explicit instruction.** Default to named spaces/rooms only. A message to `DIRECT_MESSAGE` is personal - don't send one unless the user explicitly names the recipient and intent.
 3. **Don't spam.** Send a message only when the user explicitly asks for it. Don't send confirmation pings, status updates, or "I'm done" messages on your own initiative.
 4. **Show the user the message before sending** for anything non-trivial (more than a one-line notification), so they can catch mistakes before it's broadcast.
-5. **Thread replies stay in-thread.** If the user is responding to a thread, always include the `thread` parameter — a missing thread ID creates a new top-level message, which fragments the conversation.
+5. **Thread replies stay in-thread.** If the user is responding to a thread, always include the `thread` parameter - a missing thread ID creates a new top-level message, which fragments the conversation.
 6. **Never paste OAuth tokens into the transcript.** Tokens live in `~/.config/gws/` and should stay there.
 
 ---
 
-## Part 5 — Error Handling
+## Part 5 - Error Handling
 
 **`failed to decrypt token cache`**
 The local token cache is corrupted. Fix:
@@ -306,7 +306,7 @@ gws auth login -s chat,gmail,calendar,drive
 The user is not a member of that space. `gws chat` can only operate on spaces the authenticated user has joined. Ask the user to join the space in the Google Chat UI first.
 
 **`No spaces returned` (empty list, no error)**
-Either (a) the user has no spaces, or (b) they're signed in with a personal Gmail account. Check `gws auth status` — if the email ends in `@gmail.com`, this is the issue and cannot be fixed without switching accounts.
+Either (a) the user has no spaces, or (b) they're signed in with a personal Gmail account. Check `gws auth status` - if the email ends in `@gmail.com`, this is the issue and cannot be fixed without switching accounts.
 
 **`gws: command not found` after install**
 PATH didn't pick up the global npm bin. Either restart the terminal, or run:
@@ -325,7 +325,7 @@ gws auth login -s chat,gmail,calendar,drive
 
 ---
 
-## Part 6 — Playwright Fallback
+## Part 6 - Playwright Fallback
 
 Use Playwright **only** when there is no `gws chat` command for the task. The Chat API covers messaging and space listing well, but some surfaces are UI-only:
 
@@ -334,7 +334,7 @@ Use Playwright **only** when there is no `gws chat` command for the task. The Ch
 - **Managing space apps and webhooks** through the admin UI
 - **Interacting with message card buttons** (the API sends cards, but clicking buttons is a user action)
 
-For these, use [playwright-skill](../playwright-skill/SKILL.md) to drive `https://chat.google.com` directly. Never reach for Playwright when a `gws chat` command exists for the same task — the CLI is faster, cheaper, and doesn't break when the UI changes.
+For these, use [playwright-skill](../playwright-skill/SKILL.md) to drive `https://chat.google.com` directly. Never reach for Playwright when a `gws chat` command exists for the same task - the CLI is faster, cheaper, and doesn't break when the UI changes.
 
 ---
 

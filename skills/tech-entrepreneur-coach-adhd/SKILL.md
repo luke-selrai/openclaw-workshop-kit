@@ -9,8 +9,6 @@ metadata:
   pairs-with:
   - skill: indie-monetization-strategist
     reason: Monetization for ADHD founders
-  - skill: adhd-daily-planner
-    reason: Daily structure for founders
   tags:
   - entrepreneur
   - adhd

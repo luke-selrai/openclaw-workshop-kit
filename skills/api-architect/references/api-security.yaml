@@ -1,5 +1,16 @@
 # API Security Patterns Reference
-# Complete security configuration for authentication, authorization, and protection
+# ─────────────────────────────────────────────────────────────────────
+# What's inside: a reference for the security surface of any API.
+#   • Authentication: API keys, JWT (RS256, claims), OAuth 2.0 flows
+#     (auth-code+PKCE, client-credentials, device-code)
+#   • Authorization: RBAC roles with inheritance + ABAC policies
+#   • Input validation: body/depth/array limits, regex patterns, sanitization
+#   • CORS: explicit origins, methods, headers, credentials
+#   • Security headers (HSTS, CSP, X-Frame-Options, …)
+#   • Error handling that doesn't leak internals; audit-log event list
+# This file is config, not a contract — a checklist of the controls to
+# wire up. Values are illustrative; adjust to your threat model.
+# ─────────────────────────────────────────────────────────────────────
 
 # Authentication methods
 authentication:

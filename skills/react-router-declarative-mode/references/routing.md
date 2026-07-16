@@ -50,7 +50,7 @@ function App() {
 Child routes are nested inside parent routes. Use `<Outlet />` in the parent to render the matched child:
 
 ```tsx
-import { Routes, Route, Outlet } from "react-router";
+import { BrowserRouter, Routes, Route, Outlet, Link } from "react-router";
 
 function Dashboard() {
   return (

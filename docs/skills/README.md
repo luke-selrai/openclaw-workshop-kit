@@ -1,8 +1,8 @@
-# Skills — What Your Assistant Can Do
+# Skills - What Your Assistant Can Do
 
 Your assistant has <!-- skills-audit:total -->204<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
 
-<!-- skills-audit:core -->24<!-- /skills-audit:core --> of them are **CORE** — the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->95<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
+<!-- skills-audit:core -->24<!-- /skills-audit:core --> of them are **CORE** - the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->95<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
 
 ---
 
@@ -14,7 +14,7 @@ Just talk to your assistant naturally. Examples:
 > "Research my top competitor."
 > "Turn this AI-sounding text into something that sounds human."
 
-Your assistant picks the right skill automatically. You never need to name one — just describe what you want.
+Your assistant picks the right skill automatically. You never need to name one - just describe what you want.
 
 You *can* point at a skill by name if you want to force it:
 
@@ -25,7 +25,7 @@ But you almost never need to.
 
 ---
 
-## GROUP A — Getting More Customers
+## GROUP A - Getting More Customers
 
 ### Copywriting *(CORE)*
 Persuasive marketing text for your website, ads, and landing pages.
@@ -36,7 +36,7 @@ Ready-to-post content for LinkedIn, Instagram, and Facebook.
 Example: "Write 7 LinkedIn posts for this week based on my business."
 
 ### Email Sequence *(CORE)*
-Automated follow-up sequences — welcome, nurture, re-engagement, post-purchase.
+Automated follow-up sequences - welcome, nurture, re-engagement, post-purchase.
 Example: "Build a 5-email welcome sequence for people who fill in my contact form."
 
 ### Direct Response Copy *(CORE)*
@@ -44,7 +44,7 @@ High-converting sales copy using proven persuasion frameworks.
 Example: "Write a sales page for my new service package using a direct response format."
 
 ### Email Composer *(CORE)*
-Professional, on-brand emails for any situation — clients, suppliers, leads.
+Professional, on-brand emails for any situation - clients, suppliers, leads.
 Example: "Write a professional follow-up to a client who hasn't responded in 2 weeks."
 
 ### Ad Creative *(CORE)*
@@ -52,12 +52,12 @@ Ad headlines, primary text, and creative briefs for Facebook, Instagram, and Goo
 Example: "Write 5 Facebook ad variations for my [product/service]."
 
 ### Content Marketer *(CORE)*
-Full omnichannel content strategies — what to post, where, and how often.
+Full omnichannel content strategies - what to post, where, and how often.
 Example: "Build a 30-day content marketing plan for my business."
 
 ---
 
-## GROUP B — Winning More Sales
+## GROUP B - Winning More Sales
 
 ### Sales Automator *(CORE)*
 Cold outreach emails, follow-ups, sales scripts, and proposal frameworks.
@@ -65,7 +65,7 @@ Example: "Write a cold email to a restaurant owner explaining what I do."
 
 ### Competitor Alternatives *(CORE)*
 Analyses your competitors and helps you find your edge over them.
-Example: "Show me how I compare to the top 3 AI agencies in my city — write an alternatives page."
+Example: "Show me how I compare to the top 3 AI agencies in my city - write an alternatives page."
 
 ### Paid Ads *(CORE)*
 Google, Meta, and LinkedIn campaign strategies with targeting and copy.
@@ -80,7 +80,7 @@ Evaluates how desirable your offer is and shows you where to improve it.
 Example: "Tell me what's strong and weak about how I'm positioning my offer."
 
 ### Competitive Cartographer *(ADVANCED)*
-Maps the competitive landscape strategically — finds white space and positioning gaps.
+Maps the competitive landscape strategically - finds white space and positioning gaps.
 Example: "Where are the underserved gaps in my market that I could own?"
 
 ### Process Discovery Call *(ADVANCED)*
@@ -90,7 +90,7 @@ Example: "Process discovery call with Tom."
 
 ---
 
-## GROUP C — Understanding Your Market
+## GROUP C - Understanding Your Market
 
 ### Deep Research *(CORE)*
 Researches any topic in depth using multiple sources and returns a full structured report.
@@ -107,7 +107,7 @@ Structured competitive and market analysis reports with evidence-based recommend
 Example: "Give me a full competitive landscape report on AI automation services in Australia."
 
 ### YouTube Summarizer *(ADVANCED)*
-Reads any YouTube video and gives you the key points — without watching it yourself.
+Reads any YouTube video and gives you the key points - without watching it yourself.
 Example: "Summarise this 1-hour marketing masterclass: [paste link]."
 
 ### Apify Market Research *(ADVANCED)*
@@ -128,11 +128,11 @@ Example: "What AI agents already exist for automating customer support for small
 
 ---
 
-## GROUP D — Saving Time on Writing
+## GROUP D - Saving Time on Writing
 
 ### Avoid AI Writing *(CORE)*
-Removes 21 categories of robotic AI writing patterns — buzzwords, fillers, and over-formal structure.
-Example: "This blog post sounds too formal and AI-generated — fix it."
+Removes 21 categories of robotic AI writing patterns - buzzwords, fillers, and over-formal structure.
+Example: "This blog post sounds too formal and AI-generated - fix it."
 
 ### Technical Writer *(ADVANCED)*
 Developer documentation, process guides, runbooks.
@@ -144,10 +144,10 @@ Example: "Draw a diagram of how my business process works, from lead to invoice.
 
 ---
 
-## GROUP E — Working Smarter
+## GROUP E - Working Smarter
 
 ### Brainstorming *(CORE)*
-Structured ideation — generates large numbers of ideas, then filters and prioritises them.
+Structured ideation - generates large numbers of ideas, then filters and prioritises them.
 Example: "Give me 20 ideas for growing my agency without hiring more staff."
 
 ### Prompt Engineer *(CORE)*
@@ -172,15 +172,15 @@ Needs: Google Workspace connector.
 Example: "Run my morning brief."
 
 ### Plan CEO Review *(ADVANCED)*
-Reviews any plan from a CEO or founder perspective — challenges assumptions, expands scope.
-Example: "Review this plan I have for the next quarter — tell me what's wrong with it."
+Reviews any plan from a CEO or founder perspective - challenges assumptions, expands scope.
+Example: "Review this plan I have for the next quarter - tell me what's wrong with it."
 
 ### Plan Engineering Review *(ADVANCED)*
 Reviews technical plans for architecture, edge cases, and test coverage.
 Example: "Review this technical implementation plan before we start building."
 
 ### Systems Thinking *(ADVANCED)*
-Maps complex systems — workflows, organisations, business processes — to find where to act.
+Maps complex systems - workflows, organisations, business processes - to find where to act.
 Example: "Map out my entire sales process and show me where the biggest bottlenecks are."
 
 ### Product Analytics *(ADVANCED)*
@@ -188,7 +188,7 @@ Product metrics, funnels, retention, north-star metrics (PostHog, Mixpanel, etc.
 Example: "Help me define the key metrics I should track for my SaaS product."
 
 ### AI Product *(ADVANCED)*
-Strategy and design for AI-powered products — features, user experience, roadmap.
+Strategy and design for AI-powered products - features, user experience, roadmap.
 Example: "Help me design an AI-powered feature for my existing app."
 
 ### Task Decomposer *(ADVANCED)*
@@ -197,7 +197,7 @@ Example: "Break this 3-month project into a clear set of parallel work streams."
 
 ### Orchestrator *(ADVANCED)*
 Master coordinator that delegates complex tasks to the right specialist skills automatically.
-Example: "I need to research my market, write a strategy, and draft a campaign — do all of it."
+Example: "I need to research my market, write a strategy, and draft a campaign - do all of it."
 
 ### Skill Creator *(ADVANCED)*
 Guides you through creating a new custom skill for your specific business use case.
@@ -209,7 +209,7 @@ Example: "Help me reduce the cost of running my AI pipelines."
 
 ---
 
-## GROUP F — AI, Automation & Building
+## GROUP F - AI, Automation & Building
 
 For attendees building their own AI tools, bots, or workflows.
 
@@ -271,13 +271,13 @@ Example: "Execute this feature plan by running the build steps in parallel."
 
 ---
 
-## GROUP G — Apps, Websites & Technical Integrations
+## GROUP G - Apps, Websites & Technical Integrations
 
 For attendees building or running software.
 
 ### Fullstack Debugger *(ADVANCED)*
 Debugging for Next.js, Cloudflare Workers, and Supabase stacks.
-Example: "My Next.js app is throwing a 500 error — help me find and fix it."
+Example: "My Next.js app is throwing a 500 error - help me find and fix it."
 
 ### Next.js App Router Expert *(ADVANCED)*
 Next.js 14/15 App Router, React Server Components, and Server Actions.
@@ -300,7 +300,7 @@ Scans for OWASP vulnerabilities and security issues in codebases.
 Example: "Audit my application code for security vulnerabilities."
 
 ### Supabase Admin *(ADVANCED)*
-Supabase databases — Row Level Security, migrations, and schema design.
+Supabase databases - Row Level Security, migrations, and schema design.
 Example: "Design a secure Supabase schema for my multi-tenant app."
 
 ### Microservices Patterns *(ADVANCED)*
@@ -309,10 +309,10 @@ Example: "Help me split my monolith into microservices."
 
 ### Performance Profiling *(ADVANCED)*
 Identifies performance bottlenecks in Node.js and browser applications.
-Example: "My app is slow — help me find what's causing it."
+Example: "My app is slow - help me find what's causing it."
 
 ### Playwright Skill *(ADVANCED)*
-Browser automation — writing clean, maintainable Playwright scripts.
+Browser automation - writing clean, maintainable Playwright scripts.
 Example: "Automate the login and checkout flow for my store."
 
 ### Feature Manifest *(ADVANCED)*
@@ -320,7 +320,7 @@ Manages feature manifests for tracing code changes back to features.
 Example: "Help me set up feature tracking across my codebase."
 
 ### shadcn/ui *(ADVANCED)*
-Full shadcn/ui component patterns — installation, configuration, accessible components.
+Full shadcn/ui component patterns - installation, configuration, accessible components.
 Example: "Build a data table component using shadcn/ui."
 
 ### Web Design Guidelines *(ADVANCED)*
@@ -348,7 +348,7 @@ Validates build health and deployment safety.
 Example: "Review my deployment process and flag any reliability risks."
 
 ### GStack Ship *(ADVANCED)*
-Full ship workflow — merge main, test, version bump, update changelog, create PR.
+Full ship workflow - merge main, test, version bump, update changelog, create PR.
 Example: "Ship this feature branch."
 
 ### Git Workflow Expert *(ADVANCED)*
@@ -356,17 +356,17 @@ Branching strategies, conflict resolution, rebase, monorepo patterns.
 Example: "Help me resolve this complicated merge conflict."
 
 ### Finishing a Development Branch *(ADVANCED)*
-Guides the final integration of completed work — tests, review, merge strategy.
-Example: "I've finished this feature — help me integrate it cleanly."
+Guides the final integration of completed work - tests, review, merge strategy.
+Example: "I've finished this feature - help me integrate it cleanly."
 
 ---
 
-## GROUP H — Connectors & Integrations
+## GROUP H - Connectors & Integrations
 
-Each connector walks you through a one-time authentication step by step and then lets you interact with the service in plain English. You almost never need to read the connector skill yourself — just ask your assistant: *"Connect [service]"* and it runs the full install and sign-in conversationally.
+Each connector walks you through a one-time authentication step by step and then lets you interact with the service in plain English. You almost never need to read the connector skill yourself - just ask your assistant: *"Connect [service]"* and it runs the full install and sign-in conversationally.
 
 ### Connector Recommender *(ADVANCED)*
-Asks about your business and recommends which connectors will have the most impact — ranked by your industry and workflow.
+Asks about your business and recommends which connectors will have the most impact - ranked by your industry and workflow.
 Example: "What integrations should I set up for a marketing agency?"
 
 ### Stripe Connector *(ADVANCED)*
@@ -374,35 +374,35 @@ Payments, invoices, subscriptions, customers, refunds.
 Example: "List my last 10 Stripe payments and show me the total."
 
 ### Xero Connector *(ADVANCED)*
-Xero accounting — invoices, contacts, reports, bank transactions, payroll.
+Xero accounting - invoices, contacts, reports, bank transactions, payroll.
 Example: "Show me all outstanding invoices in Xero."
 
 ### QuickBooks Connector *(ADVANCED)*
-QuickBooks Online — invoices, customers, P&L, balance sheet, bank transactions.
+QuickBooks Online - invoices, customers, P&L, balance sheet, bank transactions.
 Example: "Show me all unpaid invoices in QuickBooks."
 
 ### Square Connector *(ADVANCED)*
-Square — payments, refunds, catalog, inventory, orders, customers, invoices, bookings.
+Square - payments, refunds, catalog, inventory, orders, customers, invoices, bookings.
 Example: "Show me my recent Square payments this week."
 
 ### PayPal Connector *(ADVANCED)*
-Connects PayPal via the official PayPal MCP server — invoices, payments, refunds, disputes, subscriptions, products, shipment tracking, and transactions.
+Connects PayPal via the official PayPal MCP server - invoices, payments, refunds, disputes, subscriptions, products, shipment tracking, and transactions.
 Example: "Show me my unpaid PayPal invoices."
 
 ### Shopify Connector *(ADVANCED)*
-Shopify store — products, orders, customers, inventory.
+Shopify store - products, orders, customers, inventory.
 Example: "Show me my recent Shopify orders and flag any that are unfulfilled."
 
 ### HubSpot Connector *(ADVANCED)*
-HubSpot CRM — contacts, companies, deals, tickets, engagements.
+HubSpot CRM - contacts, companies, deals, tickets, engagements.
 Example: "Show me my top 10 deals by value in HubSpot."
 
 ### GoHighLevel Connector *(ADVANCED)*
-GoHighLevel CRM — contacts, deals, pipelines, calendar bookings, payments, social posts.
+GoHighLevel CRM - contacts, deals, pipelines, calendar bookings, payments, social posts.
 Example: "Show me all open opportunities in my GHL pipeline."
 
 ### Notion Connector *(ADVANCED)*
-Notion — search pages, create and update pages, manage databases and rows.
+Notion - search pages, create and update pages, manage databases and rows.
 Example: "Find the product launch page in my Notion workspace and summarise it."
 
 ### Airtable Connector *(ADVANCED)*
@@ -410,43 +410,43 @@ Read and update Airtable bases, tables, and records.
 Example: "Show me all records in my Leads table."
 
 ### Canva Connector *(ADVANCED)*
-Search, export, generate, and edit Canva designs — plus comments, folders, brand templates, and AI-generated designs.
+Search, export, generate, and edit Canva designs - plus comments, folders, brand templates, and AI-generated designs.
 Example: "Export my latest Canva presentation as a PDF."
 
 ### GitHub Connector *(ADVANCED)*
-GitHub — read repositories, manage issues and pull requests, run code searches, trigger workflows.
+GitHub - read repositories, manage issues and pull requests, run code searches, trigger workflows.
 Example: "Show me open pull requests in my acme/widget repository."
 
 ### CircleCI Connector *(ADVANCED)*
-CircleCI — check pipeline status, pull failure logs, find flaky tests, trigger pipeline runs.
+CircleCI - check pipeline status, pull failure logs, find flaky tests, trigger pipeline runs.
 Example: "Why did the latest build on main fail in CircleCI?"
 
 ### JotForm Connector *(ADVANCED)*
-JotForm — pull new submissions, manage forms.
+JotForm - pull new submissions, manage forms.
 Example: "Pull this week's JotForm submissions and email me a summary."
 
 ### Atlassian Connector *(ADVANCED)*
-Atlassian Cloud — Jira tickets (search, create, update, transition, comment) and Confluence pages (search, read, create, update). Cloud only.
+Atlassian Cloud - Jira tickets (search, create, update, transition, comment) and Confluence pages (search, read, create, update). Cloud only.
 Example: "Show me my open Jira tickets and create a Confluence page summarising this week's progress."
 
 ### Calendly Connector *(ADVANCED)*
-Calendly scheduling — event types, availability, meetings, invitees, one-time booking links, no-shows, routing forms.
+Calendly scheduling - event types, availability, meetings, invitees, one-time booking links, no-shows, routing forms.
 Example: "What meetings do I have this week and who's on each one?"
 
 ### Linear Connector *(ADVANCED)*
-Linear issue tracking — issues, projects, teams, comments, statuses, labels, and documents.
+Linear issue tracking - issues, projects, teams, comments, statuses, labels, and documents.
 Example: "Show me my open issues and move ENG-123 to In Progress."
 
 ### Monday Connector *(ADVANCED)*
-Monday boards — items, updates, column values, status moves.
+Monday boards - items, updates, column values, status moves.
 Example: "Move all stuck items on my ops board to the blocked column."
 
 ### Slack Connector *(ADVANCED)*
-Slack — read channels, post messages, search, manage DMs.
+Slack - read channels, post messages, search, manage DMs.
 Example: "Post the weekly update to #general for me."
 
 ### Outlook & Microsoft 365 Connector *(ADVANCED)*
-Microsoft 365 — Outlook email, calendar, OneDrive, Teams, SharePoint, To Do.
+Microsoft 365 - Outlook email, calendar, OneDrive, Teams, SharePoint, To Do.
 Example: "Read my last 5 unread emails and draft a reply to the most urgent one."
 
 ### Google Chat Connector *(ADVANCED)*
@@ -461,35 +461,35 @@ Example: "Set up Telegram so I can message my assistant when I'm out."
 Chat with your assistant from WhatsApp on your phone.
 Example: "Set up WhatsApp as my messaging channel for my assistant."
 
-### iMessage Channel *(ADVANCED — Mac only)*
+### iMessage Channel *(ADVANCED - Mac only)*
 Chat with your assistant from iMessage on your phone.
 Example: "Connect iMessage to my assistant."
 
 ### AWS Connector *(ADVANCED)*
-AWS — S3, EC2, Lambda, DynamoDB, and more.
+AWS - S3, EC2, Lambda, DynamoDB, and more.
 Example: "Connect my AWS account and show me what's in my S3 buckets."
 
 ### Azure Connector *(ADVANCED)*
-Microsoft Azure — storage, web apps, virtual machines, Key Vault.
+Microsoft Azure - storage, web apps, virtual machines, Key Vault.
 Example: "Set up my Azure connection and list my resource groups."
 
 ### Google Cloud Connector *(ADVANCED)*
-Google Cloud Platform — BigQuery, Cloud Storage, Cloud Run, and more.
+Google Cloud Platform - BigQuery, Cloud Storage, Cloud Run, and more.
 Example: "Connect my Google Cloud account and list my active projects."
 
 ### Claude Dispatch *(ADVANCED)*
-Pairs your phone with your desktop so you can assign Claude tasks remotely — without being at your computer.
+Pairs your phone with your desktop so you can assign Claude tasks remotely - without being at your computer.
 Example: "Set up Claude Dispatch so I can send tasks from my phone while I'm out."
 
 ### Install claude-yolo *(ADVANCED)*
-Installs a one-word shortcut that launches Claude Code with all permissions enabled — no confirmation prompts.
+Installs a one-word shortcut that launches Claude Code with all permissions enabled - no confirmation prompts.
 Example: "Install the claude-yolo shortcut on my machine."
 
 ---
 
-## Recommended optional plugin — Superpowers
+## Recommended optional plugin - Superpowers
 
-Four skills that used to ship with this kit — `writing-plans`, `systematic-debugging`, `test-driven-development`, and `verification-before-completion` — now live in Anthropic's official **Superpowers** plugin. They stay out of this kit so we never ship a stale copy. Installing Superpowers is optional but strongly recommended for anyone doing more technical work.
+Four skills that used to ship with this kit - `writing-plans`, `systematic-debugging`, `test-driven-development`, and `verification-before-completion` - now live in Anthropic's official **Superpowers** plugin. They stay out of this kit so we never ship a stale copy. Installing Superpowers is optional but strongly recommended for anyone doing more technical work.
 
 In a Code session, paste these two commands one at a time:
 
@@ -501,7 +501,7 @@ In a Code session, paste these two commands one at a time:
 /plugin install superpowers@claude-plugins-official
 ```
 
-Once installed, your assistant automatically reaches for those skills when relevant — for example, when you ask it to plan a complex task or diagnose an error step by step.
+Once installed, your assistant automatically reaches for those skills when relevant - for example, when you ask it to plan a complex task or diagnose an error step by step.
 
 See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for the full feature list.
 
@@ -509,8 +509,8 @@ See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for
 
 ## Full machine-readable catalogue
 
-Every skill above is classified in `../../skills/SKILLS-LIST.md` — the tier column (CORE / ADVANCED / DEV-ONLY) is the source of truth. If you want to see the raw list of every skill folder on disk, that's the file to read.
+Every skill above is classified in `../../skills/SKILLS-LIST.md` - the tier column (CORE / ADVANCED / DEV-ONLY) is the source of truth. If you want to see the raw list of every skill folder on disk, that's the file to read.
 
 ---
 
-*Built by Selr AI — selrai.com.au*
+*Built by Selr AI - selrai.com.au*

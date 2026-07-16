@@ -12,8 +12,6 @@ metadata:
   pairs-with:
   - skill: competitive-cartographer
     reason: Market-focused research
-  - skill: design-archivist
-    reason: Design-focused research
   tags:
   - research
   - analysis
@@ -213,4 +211,4 @@ Top-performing design teams share three key characteristics: (1) clear design sy
 
 ---
 
-Remember: Great research doesn't just answer questions—it helps you ask better ones.
+Remember: Great research doesn't just answer questions-it helps you ask better ones.

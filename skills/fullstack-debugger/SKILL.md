@@ -134,13 +134,13 @@ cd workers/your-worker && npx wrangler tail
 
 ```bash
 # Check Cloudflare KV cache
-npx wrangler kv:key list --namespace-id=YOUR_NAMESPACE_ID | head -20
+npx wrangler kv key list --namespace-id=YOUR_NAMESPACE_ID | head -20
 
 # Get specific cached value
-npx wrangler kv:key get --namespace-id=YOUR_NAMESPACE_ID "cache:key"
+npx wrangler kv key get --namespace-id=YOUR_NAMESPACE_ID "cache:key"
 
 # Clear a cached item
-npx wrangler kv:key delete --namespace-id=YOUR_NAMESPACE_ID "cache:key"
+npx wrangler kv key delete --namespace-id=YOUR_NAMESPACE_ID "cache:key"
 ```
 
 ## Common Issues & Solutions
@@ -364,13 +364,13 @@ export async function generateStaticParams() {
 curl -i https://your-worker.workers.dev/api/endpoint 2>&1 | grep -i ratelimit
 
 # Check KV for rate limit keys
-npx wrangler kv:key list --namespace-id=RATE_LIMIT_KV_ID | grep rate
+npx wrangler kv key list --namespace-id=RATE_LIMIT_KV_ID | grep rate
 ```
 
 **Fixes:**
 ```bash
 # Clear rate limit for an IP
-npx wrangler kv:key delete --namespace-id=RATE_LIMIT_KV_ID "rate:192.168.1.1"
+npx wrangler kv key delete --namespace-id=RATE_LIMIT_KV_ID "rate:192.168.1.1"
 
 # Adjust limits in wrangler.toml
 RATE_LIMIT_REQUESTS = "100"

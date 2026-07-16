@@ -13,8 +13,6 @@ metadata:
   - server-components
   - full-stack
   pairs-with:
-  - skill: react-performance-optimizer
-    reason: RSC and streaming SSR in App Router require React-specific performance optimization
   - skill: vercel-deployment
     reason: Vercel is the primary deployment platform optimized for Next.js App Router features
   - skill: fullstack-debugger
@@ -87,9 +85,7 @@ Expert in Next.js 14/15 App Router architecture, React Server Components (RSC), 
 ## Dependencies
 
 Works well with:
-- `react-performance-optimizer` - React-specific performance patterns
 - `vercel-deployment` - Vercel deployment configuration
-- `cloudflare-worker-dev` - Edge deployment patterns
 - `postgresql-optimization` - Database queries for RSC
 
 ## Examples

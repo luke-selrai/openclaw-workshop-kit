@@ -1,10 +1,10 @@
-# Changelog — canva-connector
+# Changelog - canva-connector
 
 All notable changes to this skill, oldest at the bottom. Pulled from the
 commits listed under `git log -- skills/canva-connector/` and from the
 sibling-PRs that touched the connector via cross-cutting refactors.
 
-## [1.4.0] — 2026-06-05
+## [1.4.0] - 2026-06-05
 
 Live-smoke release combining the Promotion-prep evidence pack with
 **7 MAJOR + 2 MINOR + 2 NIT drift fixes** captured from a 2026-06-05 live
@@ -27,7 +27,7 @@ the projected-vs-captured story is preserved in `examples/install-walkthrough.md
   loaded `mcp__canva__*` JSON schema; server-side framing requirement.
 - SKILL.md Brand kits: new sub-section under "Brand kits (all plans)"
   documenting `list-brand-kits` as plan-agnostic. Previously listed under
-  "Enterprise only" — live smoke on Rodolfo's non-Enterprise account
+  "Enterprise only" - live smoke on Rodolfo's non-Enterprise account
   returned `{ items: [] }` (success, empty) confirming the misclassification.
 - SKILL.md Plan-gating row updates: "Enterprise only" row drops
   `list-brand-kits`; remaining Enterprise gating is just the three
@@ -61,13 +61,13 @@ the projected-vs-captured story is preserved in `examples/install-walkthrough.md
 
 ### Promotion-prep additions (originally drafted as 1.3.0)
 
-- `examples/install-walkthrough.md` — see above for current captured state.
-- `scripts/verify-well-known.sh` — re-runnable shape check for
+- `examples/install-walkthrough.md` - see above for current captured state.
+- `scripts/verify-well-known.sh` - re-runnable shape check for
   `mcp.canva.com/.well-known/oauth-protected-resource` and
   `oauth-authorization-server`. Exit 0 PASS / 1 soft drift / 2 hard drift.
-  Tested live — both required endpoints return the expected shape; OpenID
+  Tested live - both required endpoints return the expected shape; OpenID
   discovery returns 404 (soft drift, expected).
-- `CHANGELOG.md` — this file.
+- `CHANGELOG.md` - this file.
 - SKILL.md prompt-to-tool mapping rows for *"check my brand colours"*,
   *"show me the Canva help on X"*, *"resolve this canva.link/X"*,
   *"copy this design"*, *"merge these designs"*, *"start from this brand
@@ -76,16 +76,16 @@ the projected-vs-captured story is preserved in `examples/install-walkthrough.md
 
 ### Why
 
-The 2026-05-21 Pass 1 vetting scored canva-connector 5/5/5/5/3 — Evidence
+The 2026-05-21 Pass 1 vetting scored canva-connector 5/5/5/5/3 - Evidence
 was the lone Promising-blocker. The 1.3.0 draft (PR #338) closed the
 Evidence gaps using projected artifacts. The 2026-06-05 live smoke
 verified the OAuth-bootstrap path empirically and surfaced 11 drifts in
-the SKILL itself — three of which (tool name, missing `user_intent`,
+the SKILL itself - three of which (tool name, missing `user_intent`,
 plan-gating misclassification) would have broken real workshop installs.
 Closing them with captured fixes lifts the SKILL from "projected"
 Evidence ≥4 → "captured" Evidence 5.
 
-## [1.2.0] — 2026-04-30
+## [1.2.0] - 2026-04-30
 
 Centralised the three connector install patterns into a single reference at
 `skills/CLAUDE.md` and adjusted the canva-connector SKILL to reference it
@@ -95,10 +95,10 @@ rather than re-derive Pattern 1 inline (closes #199, PR #221).
 
 - SKILL.md header now points to `skills/CLAUDE.md` for the canonical
   Hosted-OAuth pattern. The bridge-OAuth specifics, Enterprise admin-block
-  detection, and the consent-screen-surprise note remain in this SKILL —
+  detection, and the consent-screen-surprise note remain in this SKILL -
   they are vendor-specific, not pattern-general.
 
-## [1.1.0] — 2026-04-22
+## [1.1.0] - 2026-04-22
 
 Anti-pattern guard: removed the deprecated `claude mcp authenticate` CLI
 claim and the `WWW-Authenticate: Bearer` auth-discovery dance the original
@@ -112,7 +112,7 @@ landed in PR #212 (closes #200).
   is the runtime-exposed `mcp__canva__authenticate` /
   `mcp__canva__complete_authentication` tool pair.
 
-## [1.0.0] — 2026-04-15
+## [1.0.0] - 2026-04-15
 
 Refactor: adopt the `mcp__<server>__authenticate` /
 `mcp__<server>__complete_authentication` runtime-exposed OAuth-bootstrap
@@ -126,7 +126,7 @@ sniffing approach (PR #208, closes #198).
   This is the pattern shared with the other four Pattern 1 connectors
   (atlassian, calendly, jotform, linear).
 
-## [0.2.0] — 2026-04-08
+## [0.2.0] - 2026-04-08
 
 Phase 1 made autonomous via Playwright (per issue #172). Sign-in is the
 only user-side action; Allow click and callback capture are automatic.
@@ -136,13 +136,13 @@ only user-side action; Allow click and callback capture are automatic.
 - Phase 1 Steps 1-6 with Playwright-driven consent flow.
 - Step 4a scope-summary narration (3-5 representative items in plain
   English).
-- Step 5 Enterprise admin-block interstitial detection — surfaces a clean
+- Step 5 Enterprise admin-block interstitial detection - surfaces a clean
   exit on `administrator approval required` markers and explicitly
   documents that no API-key fallback exists for Canva MCP.
 
-## [0.1.0] — 2026-03-XX
+## [0.1.0] - 2026-03-XX
 
-Initial skill (PR #141) — Canva connector via the official first-party
+Initial skill (PR #141) - Canva connector via the official first-party
 Canva MCP server at `https://mcp.canva.com/mcp`. Originally 30 tools across
 10 categories: designs, assets, folders, comments, exports, AI design
 generation, transactional editing, brand templates, brand kits, and

@@ -227,7 +227,7 @@ export const FiberCanvas = ({
 ```tsx
 import * as THREE from "three/webgpu";
 import { View } from "react-native";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { FiberCanvas } from "@/lib/fiber-canvas";
 
@@ -344,7 +344,7 @@ export default function Page() {
 
 ```tsx
 import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import * as THREE from "three/webgpu";
 
 function AnimatedMesh() {
@@ -543,7 +543,7 @@ Performance critical?
 ```tsx
 import * as THREE from "three/webgpu";
 import { View, Text, Pressable } from "react-native";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { FiberCanvas } from "@/lib/fiber-canvas";
 

@@ -95,8 +95,8 @@ git rebase -i --autosquash main
 
 ### Squash vs Fixup
 
-- `git commit --squash abc123` — Squashes AND lets you edit the final message
-- `git commit --fixup abc123` — Squashes AND keeps the original message (most common)
+- `git commit --squash abc123` - Squashes AND lets you edit the final message
+- `git commit --fixup abc123` - Squashes AND keeps the original message (most common)
 
 ---
 

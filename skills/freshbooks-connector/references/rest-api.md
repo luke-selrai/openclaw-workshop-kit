@@ -1,4 +1,4 @@
-# FreshBooks REST API — connector reference
+# FreshBooks REST API - connector reference
 
 Companion to `freshbooks-connector/SKILL.md`. Verified live against a real account (Selr AI, account_id `qKQxnJ`) on 2026-06-22.
 
@@ -9,14 +9,14 @@ Companion to `freshbooks-connector/SKILL.md`. Verified live against a real accou
 - **Token URL:** `https://api.freshbooks.com/auth/oauth/token` (POST, JSON body).
   - Code exchange: `{"grant_type":"authorization_code","client_id","client_secret","code","redirect_uri"}`
   - Refresh: `{"grant_type":"refresh_token","client_id","client_secret","refresh_token","redirect_uri"}`
-- **Access token** ~12 h (`expires_in` ≈ 43199). **Refresh token is ONE-TIME-USE** — each refresh returns a new one; persist it atomically or the chain breaks.
+- **Access token** ~12 h (`expires_in` ≈ 43199). **Refresh token is ONE-TIME-USE** - each refresh returns a new one; persist it atomically or the chain breaks.
 - **API calls:** `Authorization: Bearer <access_token>` + `Content-Type: application/json`.
 - **Redirect URI:** public **HTTPS** required; `localhost` → 422. App names are **globally unique** → 422 "Name has already been taken" on collision.
 
 ## IDs
 
-- **account_id** — alphanumeric (e.g. `qKQxnJ`); used by all *accounting* endpoints. Discover via `GET https://api.freshbooks.com/auth/api/v1/users/me` → `response.business_memberships[].business.account_id`.
-- **business_id** — numeric (e.g. `14713850`); used by the *Projects/time-tracking* API (out of scope here).
+- **account_id** - alphanumeric (e.g. `qKQxnJ`); used by all *accounting* endpoints. Discover via `GET https://api.freshbooks.com/auth/api/v1/users/me` → `response.business_memberships[].business.account_id`.
+- **business_id** - numeric (e.g. `14713850`); used by the *Projects/time-tracking* API (out of scope here).
 
 ## Accounting API
 
@@ -68,7 +68,7 @@ FB -X POST "$B/invoices/invoices" -d "{\"invoice\":{\"customerid\":$cid,\"create
 FB "$B/reports/accounting/profitloss_entity?start_date=2026-01-01&end_date=2026-12-31" | jq '.response.result'
 ```
 
-### Refresh on 401 (one-time-use — rotate + persist atomically)
+### Refresh on 401 (one-time-use - rotate + persist atomically)
 
 ```bash
 R=$(curl -s -X POST "https://api.freshbooks.com/auth/oauth/token" -H "Content-Type: application/json" \

@@ -1,12 +1,18 @@
 ---
 name: ai-product
-description: Every product will be AI-powered. The question is whether you'll build it right or ship a demo that falls apart in production. This skill covers LLM integration patterns, RAG architecture, prompt ...
+description: Build production-ready AI features with LLM integration patterns, RAG architecture, prompt versioning, output validation, and streaming.
 risk: unknown
 source: vibeship-spawner-skills (Apache 2.0)
 date_added: '2026-02-27'
 ---
 
 # AI Product Development
+
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/ai-product-session.md`](examples/ai-product-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
 
 You are an AI product engineer who has shipped LLM features to millions of
 users. You've debugged hallucinations at 3am, optimized prompts to reduce

@@ -1,12 +1,18 @@
 ---
 name: agent-memory-systems
-description: "Memory is the cornerstone of intelligent agents. Without it, every interaction starts from zero. This skill covers the architecture of agent memory: short-term (context window), long-term (vector s..."
+description: "Design and optimize agent memory systems including short-term, long-term, episodic, and semantic memory with effective retrieval strategies."
 risk: unknown
 source: "vibeship-spawner-skills (Apache 2.0)"
 date_added: "2026-02-27"
 ---
 
 # Agent Memory Systems
+
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/agent-memory-systems-session.md`](examples/agent-memory-systems-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
 
 You are a cognitive architect who understands that memory makes agents intelligent.
 You've built memory systems for agents handling millions of interactions. You know
@@ -66,7 +72,7 @@ Breaking documents into retrievable chunks
 
 ## Related Skills
 
-Works well with: `autonomous-agents`, `multi-agent-orchestration`, `llm-architect`, `agent-tool-builder`
+Works well with: `agent-tool-builder`
 
 ## When to Use
 This skill is applicable to execute the workflow or actions described in the overview.

@@ -2,7 +2,7 @@
 name: git-workflow-expert
 description: Git branching strategies, conflict resolution, rebase workflows, monorepo patterns, and advanced operations like cherry-pick, bisect, and reflog recovery. Activate on "git", "branching strategy",
   "merge conflict", "rebase", "cherry-pick", "monorepo git", "git bisect", "git reflog", "squash commits". NOT for GitHub Actions CI/CD (use github-actions-pipeline-builder), GitHub API/webhooks, or PR
-  review processes (use code-review-checklist).
+  review processes.
 allowed-tools: Read,Write,Edit,Bash,Grep,Glob
 metadata:
   tags:
@@ -13,10 +13,6 @@ metadata:
   pairs-with:
   - skill: github-actions-pipeline-builder
     reason: Git branching strategies determine which CI/CD pipelines trigger on which events
-  - skill: monorepo-management
-    reason: Monorepo git workflows require specialized branching, tagging, and merge strategies
-  - skill: code-review-checklist
-    reason: PR-based code review workflows depend on sound git branching practices
 ---
 
 # Git Workflow Expert
@@ -39,7 +35,7 @@ Master git operations from daily workflow to disaster recovery. Covers branching
 
 **NOT for**:
 - GitHub Actions / CI/CD pipelines (use `github-actions-pipeline-builder`)
-- PR review process and checklists (use `code-review-checklist`)
+- PR review process and checklists
 - GitHub API / webhooks / repository management
 - Git LFS setup (mention it, but not the core focus)
 
@@ -100,7 +96,7 @@ flowchart TD
 ### Anti-Pattern: Rebase Shared Branches
 
 **Novice**: "I'll rebase main into the shared feature branch to keep it clean."
-**Expert**: Never rebase branches others are pushing to. Rebase rewrites commit SHAs — anyone who already pulled will get duplicate commits and merge hell. Use `merge` for shared branches, `rebase` for personal branches.
+**Expert**: Never rebase branches others are pushing to. Rebase rewrites commit SHAs - anyone who already pulled will get duplicate commits and merge hell. Use `merge` for shared branches, `rebase` for personal branches.
 **Detection**: Multiple developers report "weird duplicate commits" after a pull.
 
 ### Anti-Pattern: Merge Commit Soup
@@ -312,7 +308,7 @@ When the user asks which branching strategy to use, apply these rules in order:
 
 4. **Everything else** → **trunk-based**
    - Reasoning: Smallest feedback loops, least merge pain, forces good CI habits. Feature flags handle incomplete work. Short-lived branches (<1 day) are acceptable as a concession.
-   - If team is >15 people: Consider trunk-based with short-lived feature branches (still trunk-based — the branch lives <24h and auto-deletes after merge).
+   - If team is >15 people: Consider trunk-based with short-lived feature branches (still trunk-based - the branch lives <24h and auto-deletes after merge).
 
 ### Migration paths
 
@@ -342,5 +338,5 @@ git config --global alias.pushf "push --force-with-lease"
 
 ## References
 
-- `references/advanced-rebase-patterns.md` — Consult for complex rebase scenarios: rebase --onto, interactive rebase strategies, handling rebase conflicts in long-lived branches
-- `references/monorepo-git-strategies.md` — Consult for monorepo-specific patterns: sparse checkout optimization, CODEOWNERS, path-based CI triggers, large repo performance
+- `references/advanced-rebase-patterns.md` - Consult for complex rebase scenarios: rebase --onto, interactive rebase strategies, handling rebase conflicts in long-lived branches
+- `references/monorepo-git-strategies.md` - Consult for monorepo-specific patterns: sparse checkout optimization, CODEOWNERS, path-based CI triggers, large repo performance

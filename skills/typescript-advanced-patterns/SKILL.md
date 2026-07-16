@@ -12,10 +12,6 @@ metadata:
   pairs-with:
   - skill: api-architect
     reason: Type-safe API contracts with Zod
-  - skill: vitest-testing-patterns
-    reason: Type-level testing with expect-type
-  - skill: react-performance-optimizer
-    reason: Type-safe React patterns
   tags:
   - typescript
   - type-system
@@ -63,7 +59,7 @@ TypeScript's structural type system means `UserId` and `string` are assignable t
 // Without branding: these compile without error
 function chargeUser(userId: string, amount: number) { /* ... */ }
 const orderId = getOrderId();
-chargeUser(orderId, 100); // Wrong! orderId passed as userId — TypeScript allows it
+chargeUser(orderId, 100); // Wrong! orderId passed as userId - TypeScript allows it
 
 // With branding: compile-time protection
 type Brand<T, B extends string> = T & { readonly __brand: B };
@@ -113,7 +109,7 @@ function handleResult<T>(result: ApiResult<T>): T | null {
 }
 ```
 
-**With exhaustive checking** — if a new variant is added and the switch is not updated, it's a compile error:
+**With exhaustive checking** - if a new variant is added and the switch is not updated, it's a compile error:
 
 ```typescript
 function assertNever(x: never): never {
@@ -136,7 +132,7 @@ function handleResult<T>(result: ApiResult<T>): T | null {
 Combine string literals at type level to create precise types for string-based APIs:
 
 ```typescript
-// Route path types — prevents typos in route definitions
+// Route path types - prevents typos in route definitions
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 type ApiVersion = 'v1' | 'v2';
 type Resource = 'users' | 'orders' | 'products';
@@ -244,7 +240,7 @@ const UserSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
-// Extract type — no duplicate type definition
+// Extract type - no duplicate type definition
 type User = z.infer<typeof UserSchema>;
 // Type: { id: string; email: string; role: "admin" | "user" | "moderator"; createdAt: Date; metadata?: Record<string, unknown> }
 
@@ -283,11 +279,11 @@ See `references/type-safe-patterns.md` for type-safe event emitters, builder pat
 
 **Novice thinking**: "This is too complex to type, I'll just use `any` and come back to it later."
 
-**Why wrong**: `any` disables all type checking for that value AND spreads to anything it touches. `any` is contagious — once a value is `any`, functions that receive it infer their return type as `any`, creating a type hole that grows over time. The "come back to it" never happens.
+**Why wrong**: `any` disables all type checking for that value AND spreads to anything it touches. `any` is contagious - once a value is `any`, functions that receive it infer their return type as `any`, creating a type hole that grows over time. The "come back to it" never happens.
 
 **Detection**: `as any` in a codebase almost always signals a type design problem, not a TypeScript limitation.
 
-**Fix — Use generics with constraints:**
+**Fix - Use generics with constraints:**
 ```typescript
 // Bad: uses any to avoid figuring out the right type
 function processItems(items: any[]): any[] {
@@ -308,7 +304,7 @@ function getProperty(obj: unknown, key: string): unknown {
 }
 ```
 
-**Fix — Use `unknown` instead of `any` for truly unknown data:**
+**Fix - Use `unknown` instead of `any` for truly unknown data:**
 ```typescript
 // Bad: any propagates
 function parseData(raw: any) {
@@ -385,7 +381,7 @@ type DeepGet<T, Path extends string> =
 ## Quality Checklist
 
 ```
-[ ] No bare `any` types — unknown or generics used instead
+[ ] No bare `any` types - unknown or generics used instead
 [ ] Primitive values that must not be mixed are branded (IDs, money, emails)
 [ ] Sum types use discriminated unions, not boolean flags
 [ ] External data parsed through Zod schemas (never typed as a known type without validation)
@@ -399,8 +395,8 @@ type DeepGet<T, Path extends string> =
 
 ## Output Artifacts
 
-1. **Domain type module** — Branded types for all primitive domain values (IDs, money, emails)
-2. **Zod schemas** — Schema definitions with exported `z.infer` types
-3. **Discriminated union definitions** — State machines, API results, domain events
-4. **Type-safe event emitter** — Generic EventEmitter with typed events map
-5. **Utility types** — Reusable conditional type utilities for the project
+1. **Domain type module** - Branded types for all primitive domain values (IDs, money, emails)
+2. **Zod schemas** - Schema definitions with exported `z.infer` types
+3. **Discriminated union definitions** - State machines, API results, domain events
+4. **Type-safe event emitter** - Generic EventEmitter with typed events map
+5. **Utility types** - Reusable conditional type utilities for the project

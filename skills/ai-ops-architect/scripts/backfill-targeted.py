@@ -24,7 +24,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(os.path.expanduser("~/.claude/skills/ai-ops-architect/templates/n8n"))
+ROOT = Path(os.environ.get('AOA_TEMPLATES_ROOT') or (Path(__file__).resolve().parent.parent / 'templates' / 'n8n'))
 JUNK = re.compile(r"^(my workflow|test|untitled|copy of|sample|example|demo)\b", re.I)
 MAX_WORKERS = int(os.environ.get("MAX_WORKERS", "8"))
 PER_KEYWORD_CAP = int(os.environ.get("PER_KEYWORD_CAP", "5"))  # cap per search term
@@ -47,21 +47,6 @@ def search_n8n(keyword, rows=50):
 
 def fetch_full(wid):
     return http_json(f"https://api.n8n.io/api/templates/workflows/{wid}")
-
-
-def existing_ids_for_cat(cat):
-    seen = set()
-    d = ROOT / cat
-    if not d.exists():
-        return seen
-    for p in d.glob("*.json"):
-        if p.name.endswith(".meta.json"):
-            continue
-        try:
-            seen.add(int(p.stem.split("__")[0]))
-        except (ValueError, IndexError):
-            pass
-    return seen
 
 
 def existing_ids_all():
@@ -183,8 +168,8 @@ def save(wid, name, description, full, cat, keyword):
     out_dir = ROOT / cat
     out_dir.mkdir(parents=True, exist_ok=True)
     base = f"{wid}__{slug(name)}"
-    (out_dir / f"{base}.json").write_text(json.dumps(wf_json, indent=2))
-    (out_dir / f"{base}.meta.json").write_text(json.dumps(meta, indent=2))
+    (out_dir / f"{base}.json").write_text(json.dumps(wf_json, indent=2), encoding='utf-8')
+    (out_dir / f"{base}.meta.json").write_text(json.dumps(meta, indent=2), encoding='utf-8')
     return True, cat
 
 
@@ -207,13 +192,16 @@ def run_keyword(cat, keyword, all_seen):
     fetched = []
     with cf.ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
         futs = {ex.submit(fetch_full, w["id"]): w for w in candidates[:20]}
-        for fut in cf.as_completed(futs, timeout=120):
-            w = futs[fut]
-            try:
-                full = fut.result()
-                fetched.append((w, full))
-            except Exception as e:
-                print(f"     fetch {w['id']} failed: {e}")
+        try:
+            for fut in cf.as_completed(futs, timeout=120):
+                w = futs[fut]
+                try:
+                    full = fut.result()
+                    fetched.append((w, full))
+                except Exception as e:
+                    print(f"     fetch {w['id']} failed: {e}")
+        except cf.TimeoutError:
+            print(f"     fetch timeout — processing {len(fetched)} completed, continuing")
 
     saved = 0
     for w, full in fetched:
@@ -234,6 +222,8 @@ def run_keyword(cat, keyword, all_seen):
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
     if len(sys.argv) < 3:
         print(__doc__)
         sys.exit(2)

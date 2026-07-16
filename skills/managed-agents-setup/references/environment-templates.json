@@ -31,8 +31,11 @@
         "type": "limited",
         "allowed_hosts": [
           "api.anthropic.com",
-          "mcp.gohighlevel.com",
-          "mcp.supabase.com"
+          "services.leadconnectorhq.com",
+          "mcp.supabase.com",
+          "rube.app",
+          "mcp.notion.com",
+          "backend.composio.dev"
         ],
         "allow_mcp_servers": true,
         "allow_package_managers": false

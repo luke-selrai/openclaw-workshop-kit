@@ -22,7 +22,8 @@ mkdir -p "$MA_BASE"
 PRESET="${1:-primary}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATE_FILE="$SCRIPT_DIR/../references/environment-templates.json"
-STATE_DIR="$HOME/.claude/managed-agents"
+# H4: honor --client namespacing — state goes under MA_BASE, not a hardcoded path.
+STATE_DIR="$MA_BASE"
 mkdir -p "$STATE_DIR"
 
 : "${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY not set}"
@@ -40,12 +41,17 @@ if [ -z "$CONFIG" ]; then
 fi
 
 echo "[env] Creating environment from preset '$PRESET'..."
+# S12: pass the secret header off argv via curl --config - (stdin) so the
+# API key never appears in the process table / argv.
 RESP=$(curl -sS -X POST "https://api.anthropic.com/v1/environments" \
-  -H "x-api-key: $ANTHROPIC_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "anthropic-beta: managed-agents-2026-04-01" \
   -H "content-type: application/json" \
-  -d "$CONFIG")
+  -d "$CONFIG" \
+  --config - <<CURLCFG
+header = "x-api-key: ${ANTHROPIC_API_KEY}"
+CURLCFG
+)
 
 ENV_ID=$(echo "$RESP" | jq -r '.id // empty')
 if [ -z "$ENV_ID" ]; then

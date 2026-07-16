@@ -1,25 +1,25 @@
-# Bootstrap Prompt — Claude Code AI Business Assistant
+# Bootstrap Prompt - Claude Code AI Business Assistant
 
 This prompt is used by workshop attendees to set up their AI Business Assistant.
 
-**Primary source:** The workshop Notion page (selrai.notion.site) — attendees copy from there.
+**Primary source:** The workshop Notion page (selrai.notion.site) - attendees copy from there.
 **This file:** Version-controlled backup. Update here whenever the Notion page is updated.
-**Also appears in:** `docs/start/full-setup.md` Step 5 — keep both in sync (byte-identical
+**Also appears in:** `docs/start/full-setup.md` Step 5 - keep both in sync (byte-identical
 between the anchors `I am setting up my Claude Code AI Business Assistant with Selr AI.`
 and `Talk to me like I am not technical. Plain English, one step at a time.`).
 
 ---
 
-## Before the workshop — one thing to do at home
+## Before the workshop - one thing to do at home
 
 Attendees are told (on the Notion page / pre-workshop email): **if you can, have
-Node.js installed before you arrive** — download the LTS installer from
+Node.js installed before you arrive** - download the LTS installer from
 https://nodejs.org and click through it. It is the biggest download of the whole
 setup, and your home wifi is faster than venue wifi. If you don't get to it,
-no problem — setup installs it for you on the day; it just takes a few minutes
+no problem - setup installs it for you on the day; it just takes a few minutes
 longer.
 
-## Before pasting — open Claude Code in the right folder
+## Before pasting - open Claude Code in the right folder
 
 Workshop attendees are told (on the slide / Notion page) to do this BEFORE pasting the prompt:
 
@@ -46,7 +46,7 @@ The Code session you are running in right now is open at my workspace folder
 (`~/Desktop/my-assistant/`). All of the file drops below go INTO this current
 folder. Do not create a separate workspace anywhere else.
 
-Preflight — before step 1, run two quick checks so the common problems surface
+Preflight - before step 1, run two quick checks so the common problems surface
 in the first minute, not twenty minutes in:
 
 - Run `node --version` and note whether Node is already installed (step 1
@@ -63,19 +63,19 @@ Downloads are the slow part of this whole setup. For EVERY download or install
 below (Node, the kit, anything fetched from the internet), follow this pattern:
 
 - Before you run it, tell me what is about to happen and that on venue wifi it
-  can take several minutes — it may look frozen, but it isn't. You cannot talk
+  can take several minutes - it may look frozen, but it isn't. You cannot talk
   to me while a command is running, so say this BEFORE you start.
 - Prefer command forms that print their own progress, and give every slow
   command a generous timeout (several minutes) so a dead download fails loudly
   with an error instead of hanging forever.
-- Afterwards, confirm it worked — or tell me plainly what failed and what it
+- Afterwards, confirm it worked - or tell me plainly what failed and what it
   means.
 
 1. Make sure Node.js is installed. First check by running `node --version`.
-   If that prints a version number, Node is already installed — skip the rest of
+   If that prints a version number, Node is already installed - skip the rest of
    this step. If it says "command not found" (or similar), install it now. This
    is part of setup, not something I needed to do beforehand. It is the biggest
-   download of the setup — warn me first, per the preflight pattern above, that
+   download of the setup - warn me first, per the preflight pattern above, that
    it can take a few minutes on venue wifi and may look frozen without being
    frozen:
 
@@ -89,28 +89,28 @@ below (Node, the kit, anything fetched from the internet), follow this pattern:
          nvm use --lts
 
      Then confirm with `node --version`. Node, npm, and npx are usable in this
-     same session straight away — nothing needs to be reopened.
+     same session straight away - nothing needs to be reopened.
 
    - On **Windows**, install it with winget, then make it usable in THIS session
      without reopening anything:
 
          winget install --id OpenJS.NodeJS.LTS -e --source winget
 
-     A Windows "allow this app to make changes?" box may appear — I just click
+     A Windows "allow this app to make changes?" box may appear - I just click
      Yes. When winget finishes, Node is on disk but this session's PATH has not
      picked it up yet. Refresh the PATH from the registry (machine + user) and
-     check Node in ONE PowerShell command — both halves must run in the SAME
+     check Node in ONE PowerShell command - both halves must run in the SAME
      invocation, because a fresh shell would lose the refreshed PATH:
 
          $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User'); node --version
 
-     That assignment changes the PATH for THIS process only — it never writes to
+     That assignment changes the PATH for THIS process only - it never writes to
      the registry, so nothing on my machine is permanently changed and a later
      reopen behaves exactly as the proven baseline. If `node --version` now
      prints a version, Node is ready immediately and I do NOT need to reopen
      anything. For the rest of setup, prepend that same `$env:Path = ...;`
      refresh to every PowerShell command you run (each command is a new shell
-     that has not seen the new PATH) — e.g. the `npx` install in step 2 becomes:
+     that has not seen the new PATH) - e.g. the `npx` install in step 2 becomes:
 
          $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User'); npx @louphq/install selr-ai/workshop-kit --token loupit_...
 
@@ -118,7 +118,7 @@ below (Node, the kit, anything fetched from the internet), follow this pattern:
      quit and reopen Claude Desktop so the new tools are picked up, then come
      back to this chat and tell you I'm ready. Once I'm back, confirm with
      `node --version`. Do not ask me to reopen unless the refresh actually
-     failed — it almost always works without it.
+     failed - it almost always works without it.
 
    - If neither package manager is available, open https://nodejs.org in the
      browser (Playwright) and download the LTS installer for me automatically.
@@ -129,11 +129,11 @@ below (Node, the kit, anything fetched from the internet), follow this pattern:
    anything:
 
    - Ask me to open my Loup dashboard, click "Get install command", copy the
-     whole line — it looks like
-     `npx @louphq/install selr-ai/workshop-kit --token loupit_...` — and paste it
+     whole line - it looks like
+     `npx @louphq/install selr-ai/workshop-kit --token loupit_...` - and paste it
      to you here.
    - Run exactly the command I paste. The same command works on Mac and Windows.
-     This downloads the kit over the venue wifi — tell me first that it can
+     This downloads the kit over the venue wifi - tell me first that it can
      take a couple of minutes, and run it with its progress output visible and
      a generous timeout, per the preflight pattern above.
    - Then check the kit actually downloaded before going any further. The kit
@@ -141,36 +141,36 @@ below (Node, the kit, anything fetched from the internet), follow this pattern:
      AND that BOTH `~/.loup/selr-ai/workshop-kit/my-assistant/CLAUDE.md` and
      `~/.loup/selr-ai/workshop-kit/skills/` exist inside it.
    - If that check passes, carry on to step 3.
-   - If it does NOT pass, STOP here. Do not run any of steps 3–7 — they all
+   - If it does NOT pass, STOP here. Do not run any of steps 3-7 - they all
      depend on the kit being downloaded, so running them now would only pile
      confusing errors on top of the real one. From here you and I fix this
      together, in this chat, until the check passes. There is no limit on how
-     many tries we take, and there is no one else to bring in — we sort it out
+     many tries we take, and there is no one else to bring in - we sort it out
      between us. Loop through this until the kit is there:
 
-       a. Show me the real, unedited output of the install command — every line
+       a. Show me the real, unedited output of the install command - every line
           it printed, word for word. Never swallow it, shorten it, or hide it
           behind a summary; that output is what tells us what went wrong.
        b. Tell me in plain English exactly which part of the check failed:
           whether the `~/.loup/selr-ai/workshop-kit` folder is missing
           altogether, or it exists but `my-assistant/CLAUDE.md` or `skills/`
-          inside it is missing — a partial, half-finished download.
+          inside it is missing - a partial, half-finished download.
        c. Give me the one targeted fix that matches what you saw:
-            - If the install was refused and the kit did not download — my
+            - If the install was refused and the kit did not download - my
               command was not accepted (by far the most common cause: my command
-              has gone stale, or my access had not switched on yet) — then the
+              has gone stale, or my access had not switched on yet) - then the
               fix is to mint a fresh command. Ask me to open my Loup dashboard,
               click "Get install command" again, copy the whole new line, and
               paste it back to you. A freshly minted command almost always
               clears it on the next try.
-            - If it looks like a network or download problem — a timeout, a
-              dropped connection, a half-finished download — have me check I am
+            - If it looks like a network or download problem - a timeout, a
+              dropped connection, a half-finished download - have me check I am
               online and run the same command again.
             - For anything else, tell me plainly what the output points to and
               the single next thing to try.
        d. Let me run the fix, then re-check the folder exactly as above.
 
-     Keep repeating a–d — with no cap on attempts — until the check passes.
+     Keep repeating a-d - with no cap on attempts - until the check passes.
      Only then carry on to step 3.
 
 3. Copy the assistant's instructions file into my current folder:
@@ -184,7 +184,7 @@ below (Node, the kit, anything fetched from the internet), follow this pattern:
 
 5. Install all <!-- skills-audit:total -->204<!-- /skills-audit:total --> skills: copy every folder from `~/.loup/selr-ai/workshop-kit/skills/`
    into `~/.claude/skills/` (create the skills directory if it does not exist).
-   Do not copy `SKILLS-LIST.md` — only the folders.
+   Do not copy `SKILLS-LIST.md` - only the folders.
 
 6. Install the routine packager. The kit bundles a plugin that lets me turn one
    of my skills into a scheduled cloud routine. Set it up now so it is ready
@@ -210,7 +210,7 @@ Here's what your assistant can now do for you:
          ┌────────────────────┬───────────┴───────────┬────────────────────┐
          ▼                    ▼                       ▼                    ▼
 ┌─────────────────┐  ┌─────────────────┐     ┌─────────────────┐  ┌─────────────────┐
-│   192 SKILLS    │  │  42 CONNECTORS  │     │     BROWSER     │  │     MEMORY      │
+│   204 SKILLS    │  │  42 CONNECTORS  │     │     BROWSER     │  │     MEMORY      │
 │                 │  │                 │     │                 │  │                 │
 │ Saves hours on: │  │ Plugs into:     │     │ On the web:     │  │ Learns you:     │
 │                 │  │                 │     │                 │  │                 │

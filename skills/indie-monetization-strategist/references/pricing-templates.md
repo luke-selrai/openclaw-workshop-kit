@@ -237,7 +237,7 @@ Copy-paste templates for common indie pricing scenarios.
       <h4>Includes:</h4>
       <ul>
         <li>Core editor</li>
-        <li&gt;3 projects</li>
+        <li>3 projects</li>
         <li>Community support</li>
       </ul>
     </div>
@@ -305,7 +305,7 @@ Yes! Annual billing saves 35% and ensures uninterrupted service.
   <div class="options">
     <div class="option current">
       <strong>Free</strong>
-      <p&gt;3 projects/month</p>
+      <p>3 projects/month</p>
     </div>
     <div class="option recommended">
       <span class="badge">Recommended</span>

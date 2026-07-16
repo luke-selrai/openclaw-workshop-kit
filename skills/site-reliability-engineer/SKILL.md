@@ -1,16 +1,13 @@
 ---
 name: site-reliability-engineer
 description: Docusaurus build health validation and deployment safety for Claude Skills showcase. Pre-commit MDX validation (Liquid syntax, angle brackets, prop mismatches), pre-build link checking, post-build
-  health reports. Activate on 'build errors', 'commit hooks', 'deployment safety', 'site health', 'MDX validation'. NOT for general DevOps (use deployment-engineer), Kubernetes/cloud infrastructure (use
-  kubernetes-architect), runtime monitoring (use observability-engineer), or non-Docusaurus projects.
+  health reports. Activate on 'build errors', 'commit hooks', 'deployment safety', 'site health', 'MDX validation'. NOT for general DevOps, Kubernetes/cloud infrastructure, runtime monitoring, or non-Docusaurus projects.
 allowed-tools: Read,Write,Edit,Bash,Grep,Glob
 metadata:
   category: DevOps & Site Reliability
   pairs-with:
   - skill: devops-automator
     reason: CI/CD for site deployments
-  - skill: skill-documentarian
-    reason: Maintain skill documentation quality
   tags:
   - docusaurus
   - build-health
@@ -35,10 +32,10 @@ Expert in Docusaurus build health, MDX validation, and deployment safety for the
 - Diagnosing Docusaurus build failures
 
 **Do NOT use for:**
-- General DevOps (use deployment-engineer)
-- Kubernetes/cloud infrastructure (use kubernetes-architect)
-- Runtime monitoring/alerting (use observability-engineer)
-- Database migrations (use database-migrations agents)
+- General DevOps
+- Kubernetes/cloud infrastructure
+- Runtime monitoring/alerting
+- Database migrations
 - Security scanning (use security-auditor)
 
 ## Core Problem Domain
@@ -142,5 +139,3 @@ After installing hooks:
 ---
 
 **Prevents**: Liquid errors | Angle bracket failures | Prop mismatches | Missing assets | Broken links
-
-**Use with**: skill-documentarian (sync) | docusaurus-expert (advanced config)

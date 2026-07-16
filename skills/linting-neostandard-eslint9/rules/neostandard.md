@@ -56,10 +56,10 @@ export default neostandard({
 
 ## Common options
 
-- `ts: true` — lint `*.ts` and `*.d.ts`
-- `semi: true` — semicolon mode (semistandard-style)
-- `noStyle: true` — disable style rules (useful with Prettier/dprint)
-- `noJsx: true` — disable JSX rules
+- `ts: true` - lint `*.ts` and `*.d.ts`
+- `semi: true` - semicolon mode (semistandard-style)
+- `noStyle: true` - disable style rules (useful with Prettier/dprint)
+- `noJsx: true` - disable JSX rules
 - `ignores`, `files`, `filesTs`, `env`, `globals`
 
 ## Version caveat (v1+)

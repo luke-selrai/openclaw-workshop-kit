@@ -39,9 +39,13 @@ Each /hook/<name> is configured via ~/agents-cc/webhook-server/hooks.json
     ...
   }
 """
+import hashlib
+import hmac
 import json
 import os
 import pathlib
+import threading
+import time
 import httpx
 from fastapi import FastAPI, Header, HTTPException, Request
 
@@ -53,7 +57,64 @@ API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 ROUTINE_OAT = os.environ.get("ROUTINE_OAT_TOKEN", "")
 HOOKS_FILE = pathlib.Path.home() / "agents-cc/webhook-server/hooks.json"
 
+# NEW-4: open-relay hardening.
+#   MAX_BODY_BYTES — reject oversized inbound bodies BEFORE forwarding upstream.
+#   RATE_LIMIT_*   — per-(secret,path) request cap to stop a leaked secret from
+#                    being used to hammer the paid Anthropic API.
+MAX_BODY_BYTES = int(os.environ.get("WEBHOOK_MAX_BODY_BYTES", str(8 * 1024)))
+RATE_LIMIT_MAX = int(os.environ.get("WEBHOOK_RATE_PER_MIN", "30"))
+RATE_LIMIT_WINDOW = 60.0
+
 app = FastAPI(title="Agent Glue")
+
+# In-memory token bucket keyed on a hash of (secret, path). No external dep
+# required; if slowapi is installed it could replace this, but the bucket is
+# self-contained and survives a missing slowapi. State is per-process (the
+# server binds 127.0.0.1 and runs single-instance under systemd).
+_rate_lock = threading.Lock()
+_rate_state: dict = {}  # key -> [tokens(float), last_refill_ts(float)]
+
+
+def _rate_key(secret: str, path: str) -> str:
+    # Hash so the raw secret is never used as a dict key / never logged.
+    return hashlib.sha256(f"{secret}\x00{path}".encode("utf-8")).hexdigest()
+
+
+def enforce_rate_limit(secret: str, path: str) -> None:
+    key = _rate_key(secret, path)
+    now = time.monotonic()
+    refill_rate = RATE_LIMIT_MAX / RATE_LIMIT_WINDOW  # tokens per second
+    with _rate_lock:
+        tokens, last = _rate_state.get(key, (float(RATE_LIMIT_MAX), now))
+        tokens = min(float(RATE_LIMIT_MAX), tokens + (now - last) * refill_rate)
+        if tokens < 1.0:
+            _rate_state[key] = (tokens, now)
+            raise HTTPException(429, "rate limit exceeded")
+        _rate_state[key] = (tokens - 1.0, now)
+
+
+def check_secret(provided: str) -> None:
+    # NEW-2: constant-time comparison defeats timing side-channels on the secret.
+    if not SECRET:
+        raise HTTPException(503, "WEBHOOK_SECRET not configured")
+    if not hmac.compare_digest(provided or "", SECRET):
+        raise HTTPException(401, "bad secret")
+
+
+async def read_capped_body(request: Request) -> bytes:
+    # NEW-4: reject bodies over the cap BEFORE forwarding. Trust Content-Length
+    # when present for an early reject, but always re-check the actual bytes.
+    cl = request.headers.get("content-length")
+    if cl is not None:
+        try:
+            if int(cl) > MAX_BODY_BYTES:
+                raise HTTPException(413, "request body too large")
+        except ValueError:
+            pass
+    body = await request.body()
+    if len(body) > MAX_BODY_BYTES:
+        raise HTTPException(413, "request body too large")
+    return body
 
 
 def load_hooks():
@@ -69,8 +130,8 @@ def healthz():
 
 @app.post("/hook/{name}")
 async def fire_hook(name: str, request: Request, x_webhook_secret: str = Header(default="")):
-    if SECRET and x_webhook_secret != SECRET:
-        raise HTTPException(401, "bad secret")
+    check_secret(x_webhook_secret)  # NEW-2: constant-time, fail-closed
+    enforce_rate_limit(x_webhook_secret, f"/hook/{name}")  # NEW-4
     hooks = load_hooks()
     if name not in hooks:
         raise HTTPException(404, f"hook {name} not configured")
@@ -80,7 +141,7 @@ async def fire_hook(name: str, request: Request, x_webhook_secret: str = Header(
     env_id = cfg["env_id"]
     vault_id = cfg.get("vault_id")
 
-    body = await request.body()
+    body = await read_capped_body(request)  # NEW-4: 8 KB cap before forwarding
     payload = body.decode("utf-8", errors="replace") or "{}"
 
     session_body = {
@@ -112,11 +173,11 @@ async def fire_hook(name: str, request: Request, x_webhook_secret: str = Header(
 
 @app.post("/fire/{trig_id}")
 async def fire_routine(trig_id: str, request: Request, x_webhook_secret: str = Header(default="")):
-    if SECRET and x_webhook_secret != SECRET:
-        raise HTTPException(401, "bad secret")
+    check_secret(x_webhook_secret)  # NEW-2: constant-time, fail-closed
+    enforce_rate_limit(x_webhook_secret, f"/fire/{trig_id}")  # NEW-4
     if not ROUTINE_OAT:
         raise HTTPException(500, "ROUTINE_OAT_TOKEN not set")
-    body = await request.body()
+    body = await read_capped_body(request)  # NEW-4: 8 KB cap before forwarding
     text = body.decode("utf-8", errors="replace") or "glue triggered"
 
     headers = {
@@ -135,13 +196,11 @@ $SSH_CMD 'test -f ~/agents-cc/webhook-server/hooks.json || echo "{}" > ~/agents-
 
 echo "[glue] Injecting secret + API key into secrets.env..."
 $SSH_CMD "sed -i '/^# --- Glue ---/,/^# --- End Glue ---/d' ~/agents-cc/shared/secrets.env 2>/dev/null || true"
-$SSH_CMD "cat >> ~/agents-cc/shared/secrets.env <<ENV
-
-# --- Glue ---
-export ANTHROPIC_API_KEY=\"$ANTHROPIC_API_KEY\"
-export WEBHOOK_SECRET=\"$WEBHOOK_SECRET\"
-# --- End Glue ---
-ENV"
+# S7: build the secrets block locally and pipe it over stdin so the secret
+# values never appear in a remote process arg list (ps/proc). systemd's
+# EnvironmentFile parses plain KEY=VALUE, so no `export` prefix (S9).
+secrets_block="$(printf '\n# --- Glue ---\nANTHROPIC_API_KEY=%s\nWEBHOOK_SECRET=%s\n# --- End Glue ---\n' "$ANTHROPIC_API_KEY" "$WEBHOOK_SECRET")"
+printf '%s' "$secrets_block" | $SSH_CMD 'umask 077; cat >> ~/agents-cc/shared/secrets.env && chmod 600 ~/agents-cc/shared/secrets.env'
 
 echo "[glue] Installing systemd user service..."
 $SSH_CMD 'mkdir -p ~/.config/systemd/user && cat > ~/.config/systemd/user/webhook-server.service << '\''UNIT'\''
@@ -153,7 +212,7 @@ After=network.target
 Type=simple
 EnvironmentFile=%h/agents-cc/shared/secrets.env
 WorkingDirectory=%h/agents-cc/webhook-server
-ExecStart=/home/ubuntu/.local/bin/uvicorn app:app --host 0.0.0.0 --port '"$WEBHOOK_PORT"'
+ExecStart=/home/ubuntu/.local/bin/uvicorn app:app --host 127.0.0.1 --port '"$WEBHOOK_PORT"'
 Restart=always
 RestartSec=5
 

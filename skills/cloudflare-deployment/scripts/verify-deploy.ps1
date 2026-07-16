@@ -42,7 +42,7 @@ export default {
 
     Write-Output ""
     Write-Output "Deleting test Worker: $name ..."
-    try { & wrangler delete --name $name --force 2>&1 } catch { & wrangler delete --name $name 2>&1 }
+    'yes' | & wrangler delete --name $name 2>&1
 } finally {
     Pop-Location
     Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue

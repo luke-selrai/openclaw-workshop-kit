@@ -18,12 +18,14 @@
     "smb",
     "ai-ops"
   ],
-  "skills": "./skills",
   "agents": "./agents",
-  "commands": "./commands",
   "_meta": {
     "depends_on_skills": ["ai-ops-architect"],
     "depends_on_binaries": ["claude", "ant", "python3", "bash", "jq", "gh"],
+    "verticals": [
+      "real-estate", "trades", "coaches", "consultants", "ecommerce",
+      "agencies", "professional-services", "hospitality", "creators"
+    ],
     "prereqs": {
       "anthropic_account": true,
       "claude_cli_authenticated": true

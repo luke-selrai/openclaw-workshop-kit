@@ -1,8 +1,8 @@
-# Known Issue — Stripe: Login Behaves Differently in Agent Mode
+# Known Issue - Stripe: Login Behaves Differently in Agent Mode
 
 **Status:** Known limitation
 **Affects:** stripe-connector (login step only)
-**Symptom:** Running `stripe login` inside Claude Code does not open a browser — instead it prints JSON output with a URL
+**Symptom:** Running `stripe login` inside Claude Code does not open a browser - instead it prints JSON output with a URL
 
 ---
 
@@ -19,7 +19,7 @@ In non-TTY mode, `stripe login` outputs JSON instead of opening a browser:
 }
 ```
 
-This is normal and expected — it is not an error.
+This is normal and expected - it is not an error.
 
 ---
 

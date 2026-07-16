@@ -28,7 +28,22 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 echo "[install] Installing Anthropic Python SDK..."
-python3 -m pip install --user --upgrade anthropic >/dev/null
+# PEP-668 / Homebrew Python marks the environment externally-managed, so a bare
+# `pip install --user` exits non-zero and would trip `set -e` and abort the whole
+# install. Guard it: try --user, then pipx, then --break-system-packages, and
+# never let a failure kill the script (print a plain-English hint instead).
+if python3 -m pip install --user --upgrade anthropic >/dev/null 2>&1; then
+  :
+elif command -v pipx >/dev/null 2>&1 && pipx install anthropic >/dev/null 2>&1; then
+  :
+elif python3 -m pip install --user --break-system-packages --upgrade anthropic >/dev/null 2>&1; then
+  :
+else
+  echo "[install] WARN: Could not auto-install the Anthropic Python SDK."
+  echo "[install]       Your Python is likely 'externally managed' (Homebrew / PEP-668)."
+  echo "[install]       Install it by hand in a venv, e.g.:"
+  echo "[install]         python3 -m venv ~/.anthropic-venv && ~/.anthropic-venv/bin/pip install anthropic"
+fi
 
 echo "[install] Checking Node.js..."
 if ! command -v node >/dev/null 2>&1; then
@@ -42,8 +57,14 @@ echo "[install] Checking jq..."
 command -v jq >/dev/null 2>&1 || brew install jq
 
 echo "[install] Setting ANTHROPIC_API_KEY from keychain if available..."
-SHELL_RC="$HOME/.zshrc"
-[ -f "$HOME/.bashrc" ] && SHELL_RC="$HOME/.bashrc"
+# Pick the RC file by the user's actual login shell ($SHELL), not by which file
+# happens to exist — writing zsh autoload into ~/.bashrc (or vice versa) silently
+# never loads. Default to ~/.zshrc (macOS default shell) when $SHELL is unknown.
+case "$SHELL" in
+  */zsh) SHELL_RC="$HOME/.zshrc" ;;
+  */bash) SHELL_RC="$HOME/.bashrc" ;;
+  *) SHELL_RC="$HOME/.zshrc" ;;
+esac
 
 if security find-generic-password -a "$USER" -s "anthropic-managed-agents" -w >/dev/null 2>&1; then
   KEY=$(security find-generic-password -a "$USER" -s "anthropic-managed-agents" -w)

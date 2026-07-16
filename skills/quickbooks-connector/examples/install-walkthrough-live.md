@@ -1,8 +1,8 @@
-# QuickBooks Connector — Live (Production) Install Walkthrough
+# QuickBooks Connector - Live (Production) Install Walkthrough
 
 This is a concrete, time-stamped example of what the Phase 1L (live-mode) install looks like end-to-end. It mirrors `install-walkthrough.md` (which documents the sandbox flow) and is intended to be read alongside the SKILL.md when debugging a specific step.
 
-**When does Phase 1L run?** When Phase 0 picks `MODE=production` — i.e., when the participant says "real", "live", "connect", or gives no specific answer to the "real vs practice company" question.
+**When does Phase 1L run?** When Phase 0 picks `MODE=production` - i.e., when the participant says "real", "live", "connect", or gives no specific answer to the "real vs practice company" question.
 
 **Pre-conditions** (taken from this walkthrough's reference machine, 2026-06-02):
 
@@ -16,15 +16,15 @@ The reference run below took ~6 minutes total, with about 2 minutes of that bein
 
 ---
 
-## Step 0 — Mode detection
+## Step 0 - Mode detection
 
 Conversation:
 
 ```
 User: Connect my QuickBooks.
-Claude: I can connect QuickBooks for you — want to connect your **real
+Claude: I can connect QuickBooks for you - want to connect your **real
         QuickBooks** (your actual company data) or set up a **practice
-        company** first to try it out? Real is the default — most
+        company** first to try it out? Real is the default - most
         business owners want real.
 User: Real, please.
 ```
@@ -33,7 +33,7 @@ Claude sets `MODE=production` and continues to Phase 1L.
 
 ---
 
-## Step 1L-A.1 — Install wrangler
+## Step 1L-A.1 - Install wrangler
 
 ```bash
 $ command -v wrangler || npm install -g wrangler
@@ -45,7 +45,7 @@ $ wrangler --version
 
 ---
 
-## Step 1L-A.2 — Cloudflare login
+## Step 1L-A.2 - Cloudflare login
 
 Reference run: participant already had a Cloudflare account but was not authenticated to wrangler.
 
@@ -70,7 +70,7 @@ Successfully logged in.
 
 ---
 
-## Step 1L-A.3 — Build legal-pages directory
+## Step 1L-A.3 - Build legal-pages directory
 
 ```bash
 $ SLUG="qbo-legal-9876543"
@@ -89,7 +89,7 @@ $PAGES_DIR/qbo:
 
 ---
 
-## Step 1L-A.4 — Pages deploy
+## Step 1L-A.4 - Pages deploy
 
 ```bash
 $ wrangler pages deploy "$PAGES_DIR" --project-name="$SLUG" --branch=main
@@ -105,7 +105,7 @@ The unique deploy URL is `https://5c8b3a91.qbo-legal-9876543.pages.dev`. The sta
 
 ---
 
-## Step 1L-A.5 — Smoke-test URLs
+## Step 1L-A.5 - Smoke-test URLs
 
 ```bash
 $ PAGES_URL="https://qbo-legal-9876543.pages.dev"
@@ -122,14 +122,14 @@ All four return 200. Total elapsed for Step 1L-A: ~90 seconds.
 
 ---
 
-## Step 1L-B — Intuit sign-in + app creation
+## Step 1L-B - Intuit sign-in + app creation
 
 ```
-Claude: Opening a browser for you — please sign in to developer.intuit.com,
+Claude: Opening a browser for you - please sign in to developer.intuit.com,
         and approve any 2FA. About a minute.
 ```
 
-(Participant signs in.) Playwright detects the post-sign-in `Workspaces` page via `browser_wait_for({ text: "Workspaces" })` — no sign-in page snapshot.
+(Participant signs in.) Playwright detects the post-sign-in `Workspaces` page via `browser_wait_for({ text: "Workspaces" })` - no sign-in page snapshot.
 
 Reference run: app `Claude Assistant` was already created on a prior sandbox install. Claude reused it (no recreate). For a brand-new run, the create-app form fields (name = "Claude Assistant", scope = `com.intuit.quickbooks.accounting`) are identical to Phase 1S Step 5.
 
@@ -145,7 +145,7 @@ mcp__playwright__browser_navigate({
 
 ---
 
-## Step 1L-C — Production Settings form fill
+## Step 1L-C - Production Settings form fill
 
 Reference run: all 5 fields empty (first Production install for this app).
 
@@ -176,7 +176,7 @@ Optional App Store prompt:
 ```
 Claude: You're now able to connect QuickBooks. Optional: you can also
         list this app on the QuickBooks App Store so other QuickBooks
-        users can install it — that's a 4-6 week review by Intuit.
+        users can install it - that's a 4-6 week review by Intuit.
         Most people skip it. Should I submit it for you, or skip and
         proceed to connecting your QuickBooks?
 User: Skip, just connect mine.
@@ -184,7 +184,7 @@ User: Skip, just connect mine.
 
 ---
 
-## Step 1L-D.1 — Cloudflared install + tunnel start
+## Step 1L-D.1 - Cloudflared install + tunnel start
 
 Reference run: `cloudflared` was not installed.
 
@@ -211,7 +211,7 @@ Tunnel URL: `https://example-tunnel-name-here.trycloudflare.com` (the literal va
 
 ---
 
-## Step 1L-D.2 — Add tunnel URL to Production redirect URIs
+## Step 1L-D.2 - Add tunnel URL to Production redirect URIs
 
 Navigate to the redirect URI settings page, click the **Production** sub-tab, then add `${TUNNEL_URL}/callback`. Reference run had no prior trycloudflare URLs, so the prune step was a no-op.
 
@@ -219,12 +219,12 @@ Save. Reload. Verify the new URI is in the list.
 
 ---
 
-## Step 1L-D.3 — DOM-extract Production credentials
+## Step 1L-D.3 - DOM-extract Production credentials
 
 Navigate to `/appdetail/keys?...&tab=production`, click **Show credentials** toggle, run the clipboard-transit extract:
 
 ```js
-// (same script as Phase 1S Step 7 — returns lengths only, never values)
+// (same script as Phase 1S Step 7 - returns lengths only, never values)
 => { ok: true, client_id_len: 50, client_secret_len: 40 }
 ```
 
@@ -232,7 +232,7 @@ Click toggle again to hide. Production credentials are typically the same shape 
 
 ---
 
-## Step 1L-D.4 — Write .env
+## Step 1L-D.4 - Write .env
 
 ```bash
 $ awk -F= '{print $1, "(len:", length($2), ")"}' "$HOME/.local/share/qbo-mcp/.env"
@@ -246,7 +246,7 @@ $ stat -c %a "$HOME/.local/share/qbo-mcp/.env"
 
 ---
 
-## Step 1L-D.5 — npm run auth + Production consent
+## Step 1L-D.5 - npm run auth + Production consent
 
 ```bash
 $ cd "$HOME/.local/share/qbo-mcp"
@@ -286,7 +286,7 @@ All 6 keys present.
 
 ---
 
-## Step 1L-D.6 — Teardown tunnel + restore .env REDIRECT_URI
+## Step 1L-D.6 - Teardown tunnel + restore .env REDIRECT_URI
 
 ```bash
 $ pgrep -f 'cloudflared tunnel --url http://localhost:8000' | xargs kill
@@ -298,7 +298,7 @@ QUICKBOOKS_REDIRECT_URI=http://localhost:8000/callback
 
 ---
 
-## Step 1L-E — MCP register
+## Step 1L-E - MCP register
 
 ```bash
 $ set -a; . "$HOME/.local/share/qbo-mcp/.env"; set +a
@@ -320,7 +320,7 @@ quickbooks: node /home/user/.local/share/qbo-mcp/dist/index.js - ✓ Connected
 Tell the participant:
 
 ```
-Claude: All set — your QuickBooks is now connected to your real company
+Claude: All set - your QuickBooks is now connected to your real company
         data. One last step: please close this window and reopen Claude
         Code, then say hi. I'll show you your live QuickBooks once
         you're back.
@@ -330,22 +330,22 @@ Save a memory marker that QuickBooks is installed in **live mode**.
 
 ---
 
-## After restart — Phase 0 + Phase 2 smoke
+## After restart - Phase 0 + Phase 2 smoke
 
 Next session:
 
 ```
 User: hi
-Claude: # Phase 0 — detects MODE=production from claude mcp get
-        # Phase 2 — first invocation triggers Gate 1 (real-data confirm)
+Claude: # Phase 0 - detects MODE=production from claude mcp get
+        # Phase 2 - first invocation triggers Gate 1 (real-data confirm)
         mcp__quickbooks__get_company_info({})
         # → { CompanyInfo: { CompanyName: "Reference Run Pty Ltd", ... } }
-Claude: Just confirming — you're connected to your real QuickBooks
+Claude: Just confirming - you're connected to your real QuickBooks
         company **Reference Run Pty Ltd**. Anything I do here will
         hit your live data. Want me to show you something specific,
         or just show your recent invoices to confirm it's working?
 User: Show recent invoices.
-Claude: # Reads — no further gate
+Claude: # Reads - no further gate
         mcp__quickbooks__search_invoices({ limit: 20 })
         # → presents 20 actual invoices from the real company
 ```
@@ -393,9 +393,9 @@ Claude: # Creates the real invoice; reports back the DocNumber
 |---|---|---|
 | `wrangler pages deploy` errors with `Project not found` and `--project-name` rejected | Account doesn't have Pages enabled (extremely rare on Free tier) | Prompt participant to visit `dash.cloudflare.com/<account>/pages` once to enable, then retry |
 | Intuit Production Settings form save returns "URL not reachable" | Pages deploy hadn't propagated yet | Sleep 15 seconds after deploy before form fill |
-| `Production credentials` text never appears after save | Intuit's UI variant — the success state shows "Keys generated" instead | Use a broader `browser_wait_for` regex: `/credentials|keys generated|tab is now/i` |
+| `Production credentials` text never appears after save | Intuit's UI variant - the success state shows "Keys generated" instead | Use a broader `browser_wait_for` regex: `/credentials|keys generated|tab is now/i` |
 | Consent flow shows "Choose a company" with no real companies listed | Participant signed into developer.intuit.com with an account that has no QBO subscription | Prompt: "Please make sure you're signed in to QuickBooks with a real account in another tab, then we'll continue." |
-| `claude mcp list` shows `✗ Failed to connect` after register | The MCP server itself runs but fails first call — env vars wrong or stale | Re-read `.env`, re-run `claude mcp remove quickbooks -s user` then re-run Phase 1L-E |
+| `claude mcp list` shows `✗ Failed to connect` after register | The MCP server itself runs but fails first call - env vars wrong or stale | Re-read `.env`, re-run `claude mcp remove quickbooks -s user` then re-run Phase 1L-E |
 | trycloudflare URL is `522 Bad Gateway` | Tunnel was killed between Step D.1 and D.5 | Restart tunnel from D.1 |
 
 For anything not covered here, capture the full log and ask in the workshop kit's issue tracker.

@@ -1,4 +1,4 @@
-# Kit (ConvertKit) v4 REST API — connector reference
+# Kit (ConvertKit) v4 REST API - connector reference
 
 Companion to `kit-connector/SKILL.md`. Verified live against a real account (SelrAI, rodolfo@selrai.com.au, creator plan) on 2026-06-22.
 
@@ -8,7 +8,7 @@ Companion to `kit-connector/SKILL.md`. Verified live against a real account (Sel
 - **Key:** self-serve, prefix `kit_`, ~36 chars, **shown once** at creation (capture via Copy). Generate at `app.kit.com/account_settings/developer_settings` → **V4 Keys → Add a new key**.
 - **Base URL:** `https://api.kit.com/v4`
 - **Verify:** `GET /account` → `{ "account": { name, primary_email_address, plan_type, ... } }`.
-- **Ignore legacy v3** (`https://api.convertkit.com/v3`, `api_key`/`api_secret` query params) — different base + auth; v4 is current.
+- **Ignore legacy v3** (`https://api.convertkit.com/v3`, `api_key`/`api_secret` query params) - different base + auth; v4 is current.
 
 ## Core entities
 
@@ -20,7 +20,7 @@ Companion to `kit-connector/SKILL.md`. Verified live against a real account (Sel
 | Tag membership | `/tags/<id>/subscribers` | GET/POST/DELETE | tag/untag by `email_address` or subscriber id |
 | Forms | `/forms`, `/forms/<id>/subscribers` | GET/POST | add subscribers via a form |
 | Sequences | `/sequences`, `/sequences/<id>/subscribers` | GET/POST | email automations |
-| Broadcasts | `/broadcasts`, `/broadcasts/<id>` | GET/POST/PUT | one-off emails — **publishing/sending delivers** |
+| Broadcasts | `/broadcasts`, `/broadcasts/<id>` | GET/POST/PUT | one-off emails - **publishing/sending delivers** |
 | Custom fields | `/custom_fields` | GET/POST/PUT/DELETE | |
 | Webhooks | `/webhooks` | GET/POST/DELETE | |
 
@@ -28,7 +28,7 @@ Companion to `kit-connector/SKILL.md`. Verified live against a real account (Sel
 
 - **Cursor pagination** (NOT offset): pass `?per_page=N` (max 1000; default 500). Response carries `pagination: { has_next_page, has_previous_page, start_cursor, end_cursor }`. Page forward with `?after=<end_cursor>` while `has_next_page` is true (page back with `before=<start_cursor>`).
 - **Subscriber state:** `active`, `inactive`, `cancelled`, etc. Creating a subscriber that exists updates it (upsert by email).
-- **Sending is real:** broadcast send/publish and sequence enrollment email actual subscribers — gate behind explicit user confirmation.
+- **Sending is real:** broadcast send/publish and sequence enrollment email actual subscribers - gate behind explicit user confirmation.
 
 ## Recipes
 

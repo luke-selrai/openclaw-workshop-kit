@@ -169,7 +169,7 @@ app.get('/examples', async (request, reply) => {
 
   // Redirect
   // reply.redirect('/other-url');
-  // reply.redirect(301, '/permanent-redirect');
+  // reply.redirect('/permanent-redirect', 301);
 
   // Return response (automatic serialization)
   return { status: 'ok' };

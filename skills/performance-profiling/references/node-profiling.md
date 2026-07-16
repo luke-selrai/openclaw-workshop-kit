@@ -39,7 +39,7 @@ Then open `chrome://inspect` and add the target host.
 npm install -g clinic
 ```
 
-### clinic doctor — Triage
+### clinic doctor - Triage
 
 Runs the process and generates an HTML report highlighting anomalies.
 
@@ -55,7 +55,7 @@ npx autocannon -d 20 -c 100 http://localhost:3000/api/endpoint
 
 Doctor checks: CPU usage patterns, event loop delay, memory growth, handle counts. It gives a "diagnosis" like "I/O-bound" or "CPU-saturated" with links to relevant tools.
 
-### clinic flame — Flame Graph
+### clinic flame - Flame Graph
 
 Wraps 0x with a nicer HTML output and automatic load generation.
 
@@ -71,10 +71,10 @@ Read the flame graph:
 
 What to look for:
 1. Unexpectedly wide bars in library code (JSON.stringify, template engines)
-2. Wide bars that are your code — those are the targets
+2. Wide bars that are your code - those are the targets
 3. Long stacks that terminate in I/O but should not block the event loop
 
-### clinic bubbles — Event Loop Utilization
+### clinic bubbles - Event Loop Utilization
 
 Visualizes what is occupying the event loop over time.
 
@@ -120,7 +120,7 @@ kill $SERVER_PID
 
 ### Reading 0x Output
 
-- **Stacks with `[idle]` at top**: process was waiting for I/O — this is NOT CPU time
+- **Stacks with `[idle]` at top**: process was waiting for I/O - this is NOT CPU time
 - **Wide stacks ending in your code**: these are your bottlenecks
 - **Wide stacks in `[eval]` or `[interpreted]`**: code not yet JIT-compiled (warm up first)
 - **`node::internal` wide stacks**: check if you're doing synchronous crypto, path operations, or JSON in hot paths
@@ -188,7 +188,7 @@ Load `.heapsnapshot` files in Chrome DevTools → Memory tab → "Load" button.
 
 - **Shallow size**: memory used by the object itself (not including what it references)
 - **Retained size**: total memory that would be freed if this object were GC'd (including all exclusively referenced objects)
-- **Distance**: how many hops from the GC root — high distance means deeply nested
+- **Distance**: how many hops from the GC root - high distance means deeply nested
 
 Sort by **Retained Size** to find the objects holding the most memory hostage.
 
@@ -208,7 +208,7 @@ setInterval(() => {
   lastELU = performance.eventLoopUtilization();
 
   if (elu.utilization > 0.8) {
-    console.warn(`High ELU: ${(elu.utilization * 100).toFixed(1)}% — event loop may be saturated`);
+    console.warn(`High ELU: ${(elu.utilization * 100).toFixed(1)}% - event loop may be saturated`);
   }
 }, 10_000);
 ```
@@ -257,11 +257,11 @@ const { pipeline } = require('stream/promises');
 await pipeline(readable, transform, writable);
 ```
 
-Use clinic bubbles to visualize when the event loop is occupied by stream callbacks — a flat bubble for stream I/O that grows over time indicates backpressure accumulation.
+Use clinic bubbles to visualize when the event loop is occupied by stream callbacks - a flat bubble for stream I/O that grows over time indicates backpressure accumulation.
 
 ---
 
-## Autocannon — HTTP Load Tool
+## Autocannon - HTTP Load Tool
 
 ```bash
 npm install -g autocannon

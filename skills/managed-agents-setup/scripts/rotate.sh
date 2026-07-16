@@ -71,12 +71,13 @@ VAULT_ID="${VAULT_ID:-$(cat "$HOME/.claude/managed-agents/vault-id.txt" 2>/dev/n
 
 BETA="anthropic-beta: managed-agents-2026-04-01"
 VER="anthropic-version: 2023-06-01"
-KEY="x-api-key: $ANTHROPIC_API_KEY"
+# Keep the api-key OFF argv (process list) — feed it as a curl config on stdin. (S12)
+acurl() { printf 'header = "x-api-key: %s"\n' "$ANTHROPIC_API_KEY" | curl --config - "$@"; }
 
 list_credentials() {
   echo "[list] Credentials in vault $VAULT_ID:"
-  curl -sS "https://api.anthropic.com/v1/vaults/$VAULT_ID/credentials" \
-    -H "$KEY" -H "$VER" -H "$BETA" \
+  acurl -sS "https://api.anthropic.com/v1/vaults/$VAULT_ID/credentials" \
+    -H "$VER" -H "$BETA" \
     | jq -r '.data[]? | "  \(.display_name // "?")  [\(.id)]  -> \(.auth.mcp_server_url // "?")"'
 }
 
@@ -92,8 +93,8 @@ rotate_one() {
   fi
 
   local cred_id
-  cred_id=$(curl -sS "https://api.anthropic.com/v1/vaults/$VAULT_ID/credentials" \
-    -H "$KEY" -H "$VER" -H "$BETA" \
+  cred_id=$(acurl -sS "https://api.anthropic.com/v1/vaults/$VAULT_ID/credentials" \
+    -H "$VER" -H "$BETA" \
     | jq -r --arg u "$url" '.data[] | select(.auth.mcp_server_url==$u) | .id' | head -1)
 
   if [ -z "$cred_id" ]; then
@@ -117,14 +118,14 @@ rotate_one() {
 
   if [ -n "$cred_id" ]; then
     echo "[rotate] Updating credential $cred_id..."
-    curl -sS -X POST "https://api.anthropic.com/v1/vaults/$VAULT_ID/credentials/$cred_id" \
-      -H "$KEY" -H "$VER" -H "$BETA" -H "content-type: application/json" \
+    acurl -sS -X POST "https://api.anthropic.com/v1/vaults/$VAULT_ID/credentials/$cred_id" \
+      -H "$VER" -H "$BETA" -H "content-type: application/json" \
       -d "{\"auth\":{\"type\":\"static_bearer\",\"mcp_server_url\":\"$url\",\"token\":\"$new_token\"}}" \
       | jq -r '.id // .error // "?"'
   else
     echo "[create] Creating credential..."
-    curl -sS -X POST "https://api.anthropic.com/v1/vaults/$VAULT_ID/credentials" \
-      -H "$KEY" -H "$VER" -H "$BETA" -H "content-type: application/json" \
+    acurl -sS -X POST "https://api.anthropic.com/v1/vaults/$VAULT_ID/credentials" \
+      -H "$VER" -H "$BETA" -H "content-type: application/json" \
       -d "{\"display_name\":\"$service\",\"auth\":{\"type\":\"static_bearer\",\"mcp_server_url\":\"$url\",\"token\":\"$new_token\"}}" \
       | jq -r '.id // .error // "?"'
   fi

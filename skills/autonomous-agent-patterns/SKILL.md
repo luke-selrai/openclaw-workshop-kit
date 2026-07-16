@@ -1,12 +1,18 @@
 ---
 name: autonomous-agent-patterns
-description: "Design patterns for building autonomous coding agents. Covers tool integration, permission systems, browser automation, and human-in-the-loop workflows. Use when building AI agents, designing tool ..."
+description: "Design patterns for autonomous coding agents covering tool integration, permission systems, browser automation, and human-in-the-loop workflows."
 risk: unknown
 source: community
 date_added: "2026-02-27"
 ---
 
 # 🕹️ Autonomous Agent Patterns
+
+Bundled artifacts (read these to verify the SKILL works end-to-end):
+
+- [`examples/autonomous-agent-patterns-session.md`](examples/autonomous-agent-patterns-session.md), full worked transcript.
+- [`CHANGELOG.md`](CHANGELOG.md), version history.
+
 
 > Design patterns for building autonomous coding agents, inspired by [Cline](https://github.com/cline/cline) and [OpenAI Codex](https://github.com/openai/codex).
 
@@ -418,9 +424,9 @@ class SandboxedExecution:
 
 Implementation patterns with full code examples are in the `references/` folder:
 
-- **[Browser Automation](references/browser-automation.md)** — BrowserTool class, screenshot/click/form patterns, navigation state management
-- **[Context Management](references/context-management.md)** — ContextManager class, injection patterns, memory window strategies, token budgeting
-- **[MCP Integration](references/mcp-integration.md)** — MCP Server pattern, tool registration, server lifecycle, client connection patterns
+- **[Browser Automation](references/browser-automation.md)** - BrowserTool class, screenshot/click/form patterns, navigation state management
+- **[Context Management](references/context-management.md)** - ContextManager class, injection patterns, memory window strategies, token budgeting
+- **[MCP Integration](references/mcp-integration.md)** - MCP Server pattern, tool registration, server lifecycle, client connection patterns
 
 ## Best Practices Checklist
 
