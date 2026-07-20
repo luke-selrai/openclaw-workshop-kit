@@ -146,7 +146,27 @@ You will create your assistant's workspace folder on your **Desktop** (so you ca
 
 You should now have a Code session running at `~/Desktop/my-assistant/`. The chat panel is empty and waiting for input.
 
-### Step 5b - Paste the setup prompt
+### Step 5b - Sign into Loup first
+
+The kit is delivered privately through Loup, so before pasting the prompt make
+sure you can open your Loup dashboard:
+
+1. Check your email for a message from Loup - the subject looks like "You've
+   been given access to ... on Loup". Open it and click **Sign in to access**,
+   then **Sign in** on the page that opens. That one link signs in your whole
+   account, one time - if you received several Loup emails, any one of them
+   does the job. You do NOT need to click the link in every email.
+2. Already signed in? Skip the email - just open
+   [louphq.com/dashboard/buyer](https://louphq.com/dashboard/buyer). There is
+   no claiming step; everything you've been given is already on your account.
+3. No Loup email, or your link says it has already been used? Ask whoever
+   granted your access - at the workshop, that's the facilitator in the room -
+   and they can sort your sign-in on the spot.
+
+Leave the dashboard tab open - you'll come back to it for your install command
+when the prompt asks.
+
+### Step 5c - Paste the setup prompt
 
 1. **Copy the entire prompt below** and paste it into the chat
 2. Press **Enter** and follow what Claude tells you
@@ -245,8 +265,20 @@ below (Node, the kit, anything fetched from the internet), follow this pattern:
    privately through Loup, so I paste in my own command rather than cloning
    anything:
 
-   - Ask me to open my Loup dashboard, click "Get install command", copy the
-     whole line - it looks like
+   - Ask me to open my Loup dashboard at https://louphq.com/dashboard/buyer.
+     If I am already signed in it just opens - there is nothing to claim or
+     activate. If it asks me to sign in instead, the way in is the email Loup
+     sent me (the subject looks like "You've been given access to ... on
+     Loup"): clicking the sign-in link in any ONE of those emails signs my
+     whole account in, one time - every kit I was given is already on my
+     account, so I do NOT need to click the link in every email. If no Loup
+     email has arrived, or my link says it has already been used, the fix is
+     a fresh sign-in link from whoever granted my access - have me ask the
+     person who gave me the kit to re-send one. That is not something you and
+     I can fix from here, so do not have me hunt through my inbox or retry
+     dead links.
+   - On the dashboard, ask me to click "Get install command" on the workshop
+     kit, copy the whole line - it looks like
      `npx @louphq/install selr-ai/workshop-kit --token loupit_...` - and paste it
      to you here.
    - Run exactly the command I paste. The same command works on Mac and Windows.

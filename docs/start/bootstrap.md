@@ -128,8 +128,20 @@ below (Node, the kit, anything fetched from the internet), follow this pattern:
    privately through Loup, so I paste in my own command rather than cloning
    anything:
 
-   - Ask me to open my Loup dashboard, click "Get install command", copy the
-     whole line - it looks like
+   - Ask me to open my Loup dashboard at https://louphq.com/dashboard/buyer.
+     If I am already signed in it just opens - there is nothing to claim or
+     activate. If it asks me to sign in instead, the way in is the email Loup
+     sent me (the subject looks like "You've been given access to ... on
+     Loup"): clicking the sign-in link in any ONE of those emails signs my
+     whole account in, one time - every kit I was given is already on my
+     account, so I do NOT need to click the link in every email. If no Loup
+     email has arrived, or my link says it has already been used, the fix is
+     a fresh sign-in link from whoever granted my access - have me ask the
+     person who gave me the kit to re-send one. That is not something you and
+     I can fix from here, so do not have me hunt through my inbox or retry
+     dead links.
+   - On the dashboard, ask me to click "Get install command" on the workshop
+     kit, copy the whole line - it looks like
      `npx @louphq/install selr-ai/workshop-kit --token loupit_...` - and paste it
      to you here.
    - Run exactly the command I paste. The same command works on Mac and Windows.
