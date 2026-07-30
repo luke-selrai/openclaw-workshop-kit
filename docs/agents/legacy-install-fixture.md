@@ -205,24 +205,23 @@ in the fixture's seeded pre-existing `~/.claude/CLAUDE.md`. That proves the hand
 global content survived the pointer-block write *and* is honoured at runtime, which a
 file-presence check cannot show.
 
-### The bulk question is never asked
+### The bulk question is asked properly — with one caveat
 
-The same interactive run — human present, nothing suppressing questions — reproduced the
-customisation loss, and revealed it is worse than "the recommended answer is destructive".
-The question is not asked at all. In the whole session the only user turn was `done` (the
-restart), and exactly one assistant message contains a question mark: the final verify
-summary. The model went straight to "Refreshing all Selr kit skills to the newest versions
-now" — after having already told the user "Everything you've learned and customised comes
-with you."
+The interactive run does ask it, as an `AskUserQuestion` with both options spelled out, and
+the destructive option's own description warns "If you edited a skill yourself, that edit
+would be replaced." The user picked "Refresh all to newest (Recommended)" and the overwrite
+that followed was informed consent, not a silent loss.
 
-The likely reason is structural: Step 5 buries a required interaction inside a long batch
-of file operations the model is otherwise performing autonomously, so it reads as narration
-and gets narrated rather than performed. Any fix that relies on the model stopping to ask
-mid-flow inherits that weakness — which is the argument for reconstructing fingerprints
-from the on-disk old kit instead. Tracked as CORE-111 (Urgent).
+**Reading the transcript for this needs care.** The question is a `tool_use` block and the
+answer a `tool_result` — neither is assistant text. Scanning only text blocks (or grepping
+for a question mark) makes a correctly-asked question look like it never happened. Parse
+tool calls, not prose.
 
-Note also that the verify gate passes a run that ate the user's work; it has no line
-covering this.
+The caveat that survives: the *recommended* option is the destructive one, and the user
+still cannot see **which** skills would be affected, so the choice is made blind. Since the
+old kit is still on disk in every legacy shape, the prompt could name them —
+"you've customised 2 skills: X and Y" — and turn a blind gamble into an informed decision.
+That is an improvement, not a defect. Tracked as CORE-111.
 
 ### Earlier findings
 
