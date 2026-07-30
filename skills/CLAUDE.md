@@ -4,7 +4,9 @@ This is the canonical reference for authoring a connector SKILL in this
 directory. It covers two things:
 
 1. **The description template** - how a connector's frontmatter `description` is
-   written. Applies to **every** connector here, whatever its install shape.
+   written. Applies to **every** connector here, whatever its install shape. The
+   general description rules it sits on top of apply to every skill in the kit,
+   connector or not.
 2. **The three install patterns** the `*-connector` SKILLs have converged on.
 
 If you are authoring or reviewing a new connector, write the description from
@@ -20,18 +22,29 @@ description template in the next section still applies to them.
 
 ## The connector description template ("Template B")
 
-**Applies to every connector in this directory**, including the CLI-based and
-direct-REST ones that fall outside the three install patterns.
+**Scope, in two layers.** The canonical two-sentence description shape - third
+person; sentence 1 = what it does with the distinctive keyword front-loaded;
+sentence 2 = "Use when…"; 150-250 target, 500 ceiling - applies to **every skill
+in the kit**, connector or not. Template B, below, is the connector-specific
+instantiation of that shape: it fixes the wording for the connect-and-
+authenticate case and adds the already-connected trigger predicate. Everything
+under [Rules](#rules) and [Fact-parity](#fact-parity-when-rewriting-an-existing-description)
+is general; the template block and its slot table are connector-only.
+
+**Template B applies to every connector in this directory**, including the
+CLI-based and direct-REST ones that fall outside the three install patterns.
 
 A connector's `name` and `description` are the only parts of it loaded into
 every attendee session, before they type a word - and the description is
 essentially all of that weight. It is **trigger text, not a runbook**. Two
 failure modes it must avoid:
 
-- **Budget.** Claude Code caps the whole skill listing at roughly 1% of the
-  context window and silently shortens or drops descriptions when that is
-  exceeded - so an oversized description can strip *other* skills' triggers with
-  no error.
+- **Budget.** Per Anthropic's skills guidance and observed Claude Code
+  behaviour, the whole skill listing is budgeted at roughly 1% of the context
+  window, and descriptions are shortened or dropped when that is exceeded -
+  without an error. So an oversized description can strip *other* skills'
+  triggers, silently. Treat the exact figure as a working assumption, not a
+  contract, and stay well under it.
 - **Body-skipping.** A description that reads as a complete procedure gets acted
   on directly and the body is never opened, so the phase logic and error
   handling are skipped. This is the suspected cause of connector re-install
