@@ -1,6 +1,6 @@
 ---
 name: railway-deployment
-description: Hands-off assistant that connects Claude Code to the user's Railway.com account through the Railway CLI. Installs the Railway CLI, signs the user in via one browser click (OAuth in Playwright), then steps out of the way. After setup is done, the agent uses `railway` CLI directly on the user's behalf to deploy services, link projects, read variables, tail logs, etc. Specializes in three common workshop paths. (1) deploy Medusa v2 from Railway's official template - backend + Postgres + Redis in one click, (2) deploy a custom Git repo, (3) link to an existing Railway project. Use this skill when the user asks to connect Railway, deploy to Railway, set up the Railway CLI, deploy Medusa to Railway, or mentions any Railway service. MANDATORY TRIGGERS - invoke immediately on any of these phrases (case-insensitive, partial match counts) "connect railway", "set up railway", "install railway cli", "deploy to railway", "railway login", "railway template", "railway postgres", "railway medusa", "deploy medusa to railway".
+description: "Railway.com deployment - installs the Railway CLI, signs the user in with one browser click, then deploys and runs projects directly. Use when the user wants to connect Railway, deploy a repo or the Medusa template, or link an existing project."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

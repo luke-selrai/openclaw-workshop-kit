@@ -1,6 +1,6 @@
 ---
 name: video-editor
-description: "Edit video locally and for free with FFmpeg + auto-editor - no cloud, no account, no subscription, nothing uploaded. Use this skill to trim/cut clips, join/concatenate footage, automatically cut silences and dead air from podcasts and vlogs (auto-editor), burn in or attach captions/subtitles, reframe/resize aspect ratio (16:9 ↔ 9:16 ↔ 1:1), overlay a logo/watermark/lower-third, extract or replace audio and add a music bed, change speed, grab a thumbnail frame, and compress/export for web. Everything runs on the user's machine via the `ffmpeg`/`ffprobe` CLI and the `auto-editor` CLI. Use when the user wants to edit recorded footage (vlogs, ads, tutorials, podcasts, talking-head) rather than AI-generate new footage (for AI generation use higgsfield-connector; for programmatic/templated video use hyperframes-cli)."
+description: "Edits recorded video locally with the free ffmpeg and auto-editor CLIs - trims, joins, cuts silences, adds captions, reframes, overlays, compresses - nothing uploaded. Use when the user wants footage they already have (podcast, vlog, ad) edited, not AI-generated."
 allowed-tools: Bash, Read, Write
 metadata:
   category: Content & Writing

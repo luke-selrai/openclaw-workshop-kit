@@ -1,10 +1,6 @@
 ---
 name: typescript-advanced-patterns
-description: 'Advanced TypeScript type system patterns for production codebases. [What: branded types for nominal typing, discriminated unions, template literal types, conditional types, the infer keyword,
-  satisfies operator, const assertions, Zod schema inference, type-safe event emitters, exhaustive switch checking] [When: designing domain models, building type-safe APIs, creating reusable generic utilities,
-  eliminating runtime bugs with compile-time guarantees, refactoring any-typed codebases] [Keywords: branded types, discriminated union, template literal types, conditional types, infer, satisfies, const
-  assertion, Zod inference, exhaustive, mapped types, utility types, nominal typing, type narrowing, generic constraints] NOT for basic TypeScript syntax or React component typing (use a React-specific
-  skill).'
+description: "Advanced TypeScript type patterns: branded types, discriminated unions, template literal and conditional types, satisfies and Zod inference. Use when designing domain models, making an API or event emitter type-safe, or refactoring any-typed code."
 allowed-tools: Read,Write,Edit,Bash(npm:*,npx:*,tsc:*)
 argument-hint: '[problem type: nominal-typing|discriminated-union|type-safe-events|zod-inference|conditional-types]'
 metadata:

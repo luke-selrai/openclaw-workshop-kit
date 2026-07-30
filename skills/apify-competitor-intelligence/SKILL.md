@@ -1,6 +1,6 @@
 ---
 name: apify-competitor-intelligence
-description: Pull competitor data via Apify Actors - Google Maps locations and reviews, Booking.com hotel benchmarking, Facebook Pages and Ads Library, Instagram profiles and reels, YouTube channels, TikTok creators. Use this skill when the user says "competitor analysis", "who are my competitors", "scrape Facebook ads", "compare hotels on Booking", "analyse competitor Instagram", "benchmark Google Maps reviews", "find competitor emails", or asks to compare a named brand to its rivals on any of these platforms. For analytics on the user's OWN accounts use apify-content-analytics. For market sizing/demand research (Google Trends, Marketplace pricing) use apify-market-research.
+description: "Benchmarks named competitors with Apify Actors - their Google Maps reviews, Booking.com hotels, Facebook pages and ads, Instagram, YouTube and TikTok. Use when the user wants rivals scraped or compared - not their own accounts (apify-content-analytics) or a market (apify-market-research)."
 ---
 
 # Competitor Intelligence

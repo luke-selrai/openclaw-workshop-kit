@@ -1,6 +1,6 @@
 ---
 name: agent-creator
-description: Designs and scaffolds custom Claude Code subagents and agent teams - the markdown files in .claude/agents/ that Claude delegates tasks to. Walks a 7-step design workflow and writes valid frontmatter (name, description, tools, model). Activate on 'create an agent', 'custom subagent', 'agent team', 'make me a [domain] expert agent', 'delegate this to a specialist', 'run these specialists in parallel', 'orchestrate these agents'. NOT for a reusable inline prompt / slash-command / workflow that runs in the main conversation (use skill-creator), and NOT for connecting Claude to an external API, tool, or database (use mcp-creator).
+description: "Designs and scaffolds Claude Code subagents and agent teams in .claude/agents/. Use when the user wants a custom subagent, a domain-expert agent, or parallel specialists - not an inline prompt (skill-creator) or an MCP server (mcp-creator)."
 allowed-tools: Read,Write,Edit,Glob,Grep,Bash,WebFetch
 metadata:
   category: Productivity & Meta

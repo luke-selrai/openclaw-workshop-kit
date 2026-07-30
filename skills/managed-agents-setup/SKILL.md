@@ -1,6 +1,6 @@
 ---
 name: managed-agents-setup
-description: Zero-to-production Anthropic Managed Agents + Routines setup. Takes a non-technical business owner from "I have an Anthropic account" to a running cloud agent with scheduled tasks, vault-backed MCP credentials, kill switch and cost monitor - without typing a command. Auto-invoke on phrases like "set up Anthropic agents", "deploy a Claude agent", "build me a managed agent", "create a routine", "schedule a Claude task", "make Claude check X every morning", "I want a cloud agent that runs by itself". Pairs with /ai-ops-architect (orchestrator picks the preset) and /n8n (workflow runtime sister skill).
+description: "Sets up Anthropic Managed Agents and Routines - a scheduled cloud agent with vault-stored credentials, kill switch and cost monitor. Use when the user wants a Claude agent running in the cloud, a scheduled Claude task, or an agent that runs itself."
 ---
 
 # Managed Agents Setup
@@ -10,6 +10,7 @@ description: Zero-to-production Anthropic Managed Agents + Routines setup. Takes
 ## When to use
 
 - User has an Anthropic API key and wants a cloud-hosted agent on a schedule
+- Non-technical business owner going zero-to-production: from "I have an Anthropic account" to a running agent, without typing a command
 - Workshop attendee picked an agent preset from `/ai-ops-architect` and is ready to deploy
 - Need a Routine (scheduled `claude.ai/code/routines` job) instead of a workflow
 - Stateful, conversational, or long-running task with vault-backed MCP credentials

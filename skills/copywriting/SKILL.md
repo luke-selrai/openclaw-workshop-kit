@@ -1,6 +1,6 @@
 ---
 name: copywriting
-description: When the user wants to write, rewrite, or improve marketing copy for any page - including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. Also use when the user says "write copy for," "improve this copy," "rewrite this page," "marketing copy," "headline help," "CTA copy," "value proposition," "tagline," "subheadline," "hero section copy," "above the fold," "this copy is weak," "make this more compelling," or "help me describe my product." Use this whenever someone is working on website text that needs to persuade or convert. For email copy, see email-sequence.
+description: "Conversion copywriting for marketing pages - headlines, subheads, hero copy, CTAs. Use when the user wants copy for a homepage, landing, pricing or product page, wants weak copy sharpened to convert, or needs headline or CTA options. For email copy, see email-sequence."
 metadata:
   version: 1.1.0
 ---
@@ -17,7 +17,7 @@ If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-
 Gather this context (ask if not provided):
 
 ### 1. Page Purpose
-- What type of page? (homepage, landing page, pricing, feature, about)
+- What type of page? (homepage, landing page, pricing, feature, about, product)
 - What is the ONE primary action you want visitors to take?
 
 ### 2. Audience

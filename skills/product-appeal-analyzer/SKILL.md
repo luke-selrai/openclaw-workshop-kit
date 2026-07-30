@@ -1,8 +1,6 @@
 ---
 name: product-appeal-analyzer
-description: Evaluate product desirability, market positioning, and emotional resonance-the complement to friction analysis. Assess whether users will WANT a product (not just use it), identity fit, trust
-  signals, and value proposition clarity. Activate on "will they like it", "market positioning", "appeal analysis", "product desirability", "value proposition", "why would someone choose this", "landing
-  page review", "conversion optimization", "messaging strategy". NOT for UX friction analysis, visual design implementation, or A/B test setup.
+description: "Product appeal analysis - whether users will want a product, not just use it - scoring identity fit, problem urgency and trust signals. Use when a landing page, positioning or messaging needs review, or the user asks why anyone would choose this."
 allowed-tools: Read,Write,Edit,WebFetch
 metadata:
   category: Research & Analysis

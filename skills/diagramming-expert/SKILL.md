@@ -1,8 +1,6 @@
 ---
 name: diagramming-expert
-description: Master of text-based visual communication using ASCII art, Unicode box-drawing, and structured diagram notation. Creates clear, maintainable diagrams for systems, processes, hierarchies, relationships,
-  and psychological structures. Proactively generates diagrams to enhance understanding. Activate on visualization needs, system architecture, process flows, psychological mapping, or when complex concepts
-  would benefit from visual representation. NOT for photo editing, vector graphics, or GUI-based design tools.
+description: "Draws diagrams in plain text with ASCII and Unicode box-drawing - architectures, process flows, hierarchies, decision trees and psyche maps. Use when the user wants something visualised without a design tool, or a system explained with a picture."
 allowed-tools: Read,Write,Edit
 metadata:
   category: Content & Writing
