@@ -1,6 +1,6 @@
 ---
 name: meta-business-suite-connector
-description: "Connect Instagram Business and Threads to Claude by installing and authenticating the community Meta MCP server. Use when the user asks to set up or connect Instagram or Threads, or wants organic Instagram or Threads work (posting, comments, DMs, hashtags, insights) and they aren't connected yet - not paid Meta Ads. Once connected, both run through the mcp__meta__* tools."
+description: "Connect Instagram Business and Threads to Claude by installing and authenticating the community Meta MCP server. Use when the user asks to set up or connect Instagram or Threads, or wants organic Instagram or Threads work (posting, comments, DMs, hashtags, insights) and they aren't connected yet - not paid Meta Ads. Once connected, both run directly through the mcp__meta__* tools."
 allowed-tools: mcp__meta__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations

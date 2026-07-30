@@ -1,6 +1,6 @@
 ---
 name: docusign-connector
-description: "Connect DocuSign to Claude by installing and authenticating its eSignature API credentials. Use when the user asks to set up or connect DocuSign, or wants eSignature work (envelopes, templates, recipients, signing status, voiding contracts) and the credentials aren't in place yet. Once connected, DocuSign runs directly against its REST API with the stored credentials."
+description: "Connect DocuSign to Claude by installing and authenticating its eSignature API credentials. Use when the user asks to set up or connect DocuSign, or wants eSignature work (envelopes, templates, recipients, signing status, voiding contracts) and the credentials aren't in place yet. Once connected, DocuSign runs directly against its API with the stored credentials."
 allowed-tools: mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Documents & Signing

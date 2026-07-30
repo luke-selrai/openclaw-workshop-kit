@@ -1,6 +1,6 @@
 ---
 name: twenty-connector
-description: "Connect Twenty CRM to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Twenty or their CRM, wants to build or self-host their own open-source CRM, or wants Twenty work (companies, people, opportunities, notes, custom objects) and the credentials aren't in place yet. Once connected, Twenty runs directly against its REST and GraphQL APIs with the stored credentials."
+description: "Connect Twenty CRM to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Twenty or their CRM, wants to build or self-host their own open-source CRM, or wants Twenty work (companies, people, opportunities, notes, custom objects) and the credentials aren't in place yet. Once connected, Twenty runs directly against its API with the stored credentials."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: CRM & Integrations

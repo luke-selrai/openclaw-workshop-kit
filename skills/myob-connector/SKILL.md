@@ -1,6 +1,6 @@
 ---
 name: myob-connector
-description: "Connect MYOB accounting to Claude by installing and authenticating its API credentials, for existing paid MYOB subscribers. Use when the user asks to set up or connect MYOB, or wants MYOB work (invoices, quotes, bills, contacts, items, banking, payroll) and the credentials aren't in place yet. Once connected, MYOB runs directly against its API."
+description: "Connect MYOB accounting to Claude by installing and authenticating its API credentials, for existing paid MYOB subscribers. Use when the user asks to set up or connect MYOB, or wants MYOB work (invoices, quotes, bills, contacts, items, banking, payroll) and the credentials aren't in place yet. Once connected, MYOB runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

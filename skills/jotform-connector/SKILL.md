@@ -1,6 +1,6 @@
 ---
 name: jotform-connector
-description: "Connect Jotform to Claude by installing and authenticating its MCP server. Use when the user asks to set up or connect Jotform, or wants Jotform work (forms, submissions, form assignments) and Jotform isn't connected yet. Once connected, Jotform runs directly through the mcp__jotform__* tools."
+description: "Connect Jotform to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect Jotform, or wants Jotform work (forms, submissions, form assignments) and Jotform isn't connected yet. Once connected, Jotform runs directly through the mcp__jotform__* tools."
 allowed-tools: mcp__jotform__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Forms & Data Collection

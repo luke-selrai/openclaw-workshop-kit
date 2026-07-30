@@ -1,6 +1,6 @@
 ---
 name: google-ads-connector
-description: "Connect Google Ads to Claude by installing and authenticating its API credentials plus Google's official MCP server. Use when the user asks to set up or connect Google Ads, or wants ad-spend, ROAS, conversion, campaign, ad-group or keyword work and the credentials aren't in place yet. Once connected, reads run through the mcp__google_ads__* tools and writes through the stored credentials."
+description: "Connect Google Ads to Claude by installing and authenticating its API credentials, optionally with Google's official MCP server. Use when the user asks to set up or connect Google Ads, or wants Google Ads work (campaigns, ad groups, keywords, ad spend, conversions, ROAS) and the credentials aren't in place yet. Once connected, Google Ads runs directly against its API with the stored credentials, through the mcp__google_ads__* tools when they are installed."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*, mcp__google_ads__*
 metadata:
   category: Marketing & Advertising

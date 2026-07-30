@@ -1,6 +1,6 @@
 ---
 name: azure-connector
-description: "Connect Azure to Claude by installing the az CLI and authenticating it as a scoped service principal. Use when the user asks to set up or connect Azure, or wants Azure work (storage, app service, virtual machines, key vault, resource groups) and the az CLI isn't signed in yet. Once connected, Azure runs directly through the az CLI."
+description: "Connect Azure to Claude by installing the `az` CLI and setting it up with its own limited-access sign-in. Use when the user asks to set up or connect Azure, or wants Azure work (storage, app service, virtual machines, key vault, resource groups) and the `az` CLI isn't signed in with that limited-access sign-in yet, or is still on the user's personal login. Once connected, Azure runs directly through the `az` CLI."
 allowed-tools: mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations

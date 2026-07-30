@@ -1,6 +1,6 @@
 ---
 name: linear-connector
-description: "Connect Linear to Claude by installing and authenticating its MCP server. Use when the user asks to set up or connect Linear, or wants Linear work (issues, projects, teams, comments, documents) and Linear isn't connected yet. Once connected, Linear runs directly through the mcp__linear__* tools."
+description: "Connect Linear to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect Linear, or wants Linear work (issues, projects, teams, comments, documents) and Linear isn't connected yet. Once connected, Linear runs directly through the mcp__linear__* tools."
 allowed-tools: mcp__linear__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Project Management & Issue Tracking

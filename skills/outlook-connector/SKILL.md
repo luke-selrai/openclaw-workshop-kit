@@ -1,6 +1,6 @@
 ---
 name: outlook-connector
-description: "Connect Outlook and Microsoft 365 to Claude by installing and signing in to the `m365` CLI. Use when the user asks to set up Outlook or connect Microsoft 365, or wants mail, calendar, OneDrive, Teams, SharePoint, OneNote, Contacts or To Do work and the `m365` CLI isn't signed in yet. Once connected, Microsoft 365 runs through the `m365` CLI."
+description: "Connect Outlook and Microsoft 365 to Claude by installing and signing in to the `m365` CLI. Use when the user asks to set up Outlook or connect Microsoft 365, or wants mail, calendar, OneDrive, Teams, SharePoint, OneNote, Contacts or To Do work and the `m365` CLI isn't signed in yet. Once connected, Microsoft 365 runs directly through the `m365` CLI."
 allowed-tools: Bash,Read,Write,Edit,mcp__playwright__*,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

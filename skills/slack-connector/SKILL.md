@@ -1,6 +1,6 @@
 ---
 name: slack-connector
-description: "Connect Slack to Claude by installing and authenticating its MCP server. Use when the user asks to set up or connect Slack, or wants workspace work (channels, message history, posting, reactions, users, user groups) and Slack isn't connected yet. Once connected, Slack runs directly through the mcp__slack__* tools."
+description: "Connect Slack to Claude by installing and authenticating the community Slack MCP server. Use when the user asks to set up or connect Slack, or wants workspace work (channels, message history, posting, reactions, users, user groups) and Slack isn't connected yet. Once connected, Slack runs directly through the mcp__slack__* tools."
 allowed-tools: mcp__slack__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Communication & Collaboration

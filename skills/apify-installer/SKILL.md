@@ -1,6 +1,6 @@
 ---
 name: apify-installer
-description: "Connect Apify to Claude by installing and authenticating the apify CLI and its MCP client. Use when the user asks to set up Apify, or an apify-* scraping skill needs a token, and the apify CLI isn't signed in yet. Once connected, Apify work runs through the sibling apify-* skills and the apify CLI."
+description: "Connect Apify to Claude by installing and authenticating the `apify` CLI and its MCP client. Use when the user asks to set up Apify, or an `apify-*` scraping skill needs a token, and the `apify` CLI isn't signed in yet. Once connected, Apify work runs through the sibling `apify-*` skills and the `apify` CLI."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

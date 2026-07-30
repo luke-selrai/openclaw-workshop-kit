@@ -1,6 +1,6 @@
 ---
 name: clickup-connector
-description: "Connect ClickUp to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect ClickUp, or wants ClickUp work (tasks, subtasks, lists, spaces, due dates, comments) and the credentials aren't in place yet. Once connected, ClickUp runs directly against its REST API with the stored credentials."
+description: "Connect ClickUp to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect ClickUp, or wants ClickUp work (tasks, subtasks, lists, spaces, due dates, comments) and the credentials aren't in place yet. Once connected, ClickUp runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

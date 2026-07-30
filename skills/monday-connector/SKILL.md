@@ -1,6 +1,6 @@
 ---
 name: monday-connector
-description: "Connect monday.com to Claude by installing and authenticating its MCP server. Use when the user asks to set up or connect monday.com, or wants monday work (boards, items, groups, columns, updates, users, teams, WorkForms) and monday.com isn't connected yet. Once connected, monday.com runs directly through the mcp__monday__* tools."
+description: "Connect monday.com to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect monday.com, or wants monday work (boards, items, groups, columns, updates, users, teams, WorkForms) and monday.com isn't connected yet. Once connected, monday.com runs directly through the mcp__monday__* tools."
 allowed-tools: mcp__monday__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Project Management

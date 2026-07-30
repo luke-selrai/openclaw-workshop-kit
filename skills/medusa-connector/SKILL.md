@@ -1,6 +1,6 @@
 ---
 name: medusa-connector
-description: "Connect a self-hosted Medusa v2 store to Claude by capturing its admin and storefront API credentials, scaffolding a new store first if needed. Use when the user asks to set up or connect Medusa, or wants Medusa work (products, orders, customers, discounts, inventory, a Next.js storefront) and the credentials aren't in place yet. Once connected, Medusa runs directly against its Admin and Store APIs."
+description: "Connect a self-hosted Medusa v2 store to Claude by capturing its admin and storefront API credentials, scaffolding a new store first if needed. Use when the user asks to set up or connect Medusa, or wants Medusa work (products, orders, customers, discounts, inventory, a Next.js storefront) and the credentials aren't in place yet. Once connected, Medusa runs directly against its API with the stored credentials."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*, mcp__plugin_medusa-dev_MedusaDocs__*
 metadata:
   category: Ecommerce & Integrations

@@ -1,6 +1,6 @@
 ---
 name: gcloud-connector
-description: "Connect Google Cloud to Claude by installing the gcloud CLI and authenticating it as a least-privilege service account. Use when the user asks to set up or connect GCP, or wants Google Cloud work (BigQuery, Cloud Storage, Cloud Run, Compute Engine, App Engine) and the gcloud CLI isn't signed in as that service account yet. Once connected, GCP runs directly through the gcloud CLI."
+description: "Connect Google Cloud to Claude by installing the `gcloud` CLI and setting it up with its own limited-access sign-in. Use when the user asks to set up or connect GCP, or wants Google Cloud work (BigQuery, Cloud Storage, Cloud Run, Compute Engine, App Engine) and the `gcloud` CLI isn't signed in with that limited-access sign-in yet, or is still on the user's personal Google login. Once connected, Google Cloud runs directly through the `gcloud` CLI."
 allowed-tools: mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations

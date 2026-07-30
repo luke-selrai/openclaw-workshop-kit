@@ -1,6 +1,6 @@
 ---
 name: klaviyo-connector
-description: "Connect Klaviyo to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Klaviyo, or wants Klaviyo work (profiles, lists, segments, email and SMS campaigns, flows, revenue reports) and the credentials aren't in place yet. Once connected, Klaviyo runs directly against its API."
+description: "Connect Klaviyo to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Klaviyo, or wants Klaviyo work (profiles, lists, segments, email and SMS campaigns, flows, revenue reports) and the credentials aren't in place yet. Once connected, Klaviyo runs directly against its API with the stored credentials."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Marketing & Advertising

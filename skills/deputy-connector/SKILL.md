@@ -1,6 +1,6 @@
 ---
 name: deputy-connector
-description: "Connect Deputy to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Deputy, or wants workforce work (rosters, shifts, timesheets, employees, leave) and the credentials aren't in place yet. Once connected, Deputy runs directly against its REST API with the stored credentials."
+description: "Connect Deputy to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Deputy, or wants workforce work (rosters, shifts, timesheets, employees, leave) and the credentials aren't in place yet. Once connected, Deputy runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

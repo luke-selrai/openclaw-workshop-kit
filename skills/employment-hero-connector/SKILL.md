@@ -1,6 +1,6 @@
 ---
 name: employment-hero-connector
-description: "Connect Employment Hero Payroll (formerly KeyPay) to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Employment Hero, or wants payroll work (employees, pay runs, pay slips, leave requests and approvals) and the credentials aren't in place yet. Once connected, payroll runs directly against the Employment Hero Payroll REST API with the stored credentials."
+description: "Connect Employment Hero Payroll (formerly KeyPay) to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Employment Hero, or wants payroll work (employees, pay runs, pay slips, leave requests and approvals) and the credentials aren't in place yet. Once connected, Employment Hero Payroll runs directly against its API with the stored credentials."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

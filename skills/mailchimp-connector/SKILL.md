@@ -1,6 +1,6 @@
 ---
 name: mailchimp-connector
-description: "Connect Mailchimp to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Mailchimp, or wants Mailchimp work (audiences, subscribers, campaigns, reports) and the credentials aren't in place yet. Once connected, Mailchimp runs directly against its API."
+description: "Connect Mailchimp to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Mailchimp, or wants Mailchimp work (audiences, subscribers, campaigns, reports) and the credentials aren't in place yet. Once connected, Mailchimp runs directly against its API with the stored credentials."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Marketing & Advertising

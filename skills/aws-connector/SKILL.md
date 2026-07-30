@@ -1,6 +1,6 @@
 ---
 name: aws-connector
-description: "Connect AWS to Claude by installing the aws CLI and authenticating it as a scoped IAM user. Use when the user asks to set up or connect AWS, or wants AWS work (S3 buckets, EC2 instances, Lambda functions, DynamoDB tables, bills, CloudWatch logs) and the aws CLI isn't signed in yet. Once connected, AWS runs directly through the aws CLI."
+description: "Connect AWS to Claude by installing the `aws` CLI and setting it up with its own limited-access sign-in. Use when the user asks to set up or connect AWS, or wants AWS work (S3 buckets, EC2 instances, Lambda functions, DynamoDB tables, bills, CloudWatch logs) and the `aws` CLI isn't signed in with that limited-access sign-in yet, or is still on the account's owner login. Once connected, AWS runs directly through the `aws` CLI."
 allowed-tools: mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations

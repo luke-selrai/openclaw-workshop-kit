@@ -1,6 +1,6 @@
 ---
 name: atlassian-connector
-description: "Connect Atlassian to Claude by installing and authenticating its official Remote MCP server. Use when the user asks to set up or connect Atlassian, Jira or Confluence, or wants work on tickets, sprints, boards, pages or spaces and Atlassian isn't connected yet. Once connected, Jira and Confluence run through the mcp__atlassian__* tools."
+description: "Connect Atlassian to Claude by installing and authenticating its official remote MCP server. Use when the user asks to set up or connect Atlassian, Jira or Confluence, or wants work on tickets, sprints, boards, pages or spaces and Atlassian isn't connected yet. Once connected, Jira and Confluence run directly through the mcp__atlassian__* tools."
 allowed-tools: mcp__atlassian__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Project Management & Docs

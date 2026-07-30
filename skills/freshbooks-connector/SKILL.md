@@ -1,6 +1,6 @@
 ---
 name: freshbooks-connector
-description: "Connect FreshBooks to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect FreshBooks, or wants accounting work (invoices, clients, expenses, payments, profit and loss) and the credentials aren't in place yet. Once connected, FreshBooks runs directly against its REST API with the stored credentials."
+description: "Connect FreshBooks to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect FreshBooks, or wants accounting work (invoices, clients, expenses, payments, profit and loss) and the credentials aren't in place yet. Once connected, FreshBooks runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Finance & Accounting

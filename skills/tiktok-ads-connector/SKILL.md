@@ -1,6 +1,6 @@
 ---
 name: tiktok-ads-connector
-description: "Connect TikTok Ads to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect TikTok Ads, or wants TikTok for Business work (campaigns, ad groups, ads, ad spend and conversion reports, audiences, budgets) and the credentials aren't in place yet. Once connected, TikTok Ads runs directly against TikTok's Marketing API with the stored credentials."
+description: "Connect TikTok Ads to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect TikTok Ads, or wants TikTok for Business work (campaigns, ad groups, ads, ad spend and conversion reports, audiences, budgets) and the credentials aren't in place yet. Once connected, TikTok Ads runs directly against its API with the stored credentials."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Marketing & Advertising

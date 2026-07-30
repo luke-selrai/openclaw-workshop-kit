@@ -1,6 +1,6 @@
 ---
 name: kit-connector
-description: "Connect Kit (formerly ConvertKit) to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Kit, or wants Kit work (subscribers, tags, forms, sequences, broadcasts) and the credentials aren't in place yet. Once connected, Kit runs directly against its API."
+description: "Connect Kit (formerly ConvertKit) to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Kit, or wants Kit work (subscribers, tags, forms, sequences, broadcasts) and the credentials aren't in place yet. Once connected, Kit runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Marketing & Advertising
