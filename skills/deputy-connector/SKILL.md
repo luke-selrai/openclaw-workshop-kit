@@ -1,6 +1,6 @@
 ---
 name: deputy-connector
-description: "Connect and operate Deputy (employee scheduling, rostering, timesheets, HR) via its direct REST API for users who already have a Deputy business/install. Drives the one-time token setup inside a Playwright MCP browser - the user signs in (Google SSO or email, plus any verification code), then Claude creates an OAuth client named 'Claude Code' at the install's developer page and mints a long-life Permanent Token, DOM-extracting it (shown only once) without ever opening the user's own browser. Deputy installs are addressed by an install+region subdomain (e.g. b9e78716081714.au.deputy.com); both are read from the post-login URL, and the base URL is https://INSTALL.GEO.deputy.com/api/v1. The token is stored at ~/.config/deputy/credentials.env (mode 600) and every call sends Authorization: Bearer TOKEN. No vendor MCP and no OAuth consent loop for the runtime - a standalone direct-REST connector, so there is NO Claude Code restart. Handles the authenticated user, employees, rosters/shifts, timesheets, operational units (areas/locations), leave, and company info. Use this skill when the user asks to 'connect my Deputy', 'set up Deputy', or asks anything about their Deputy rosters, shifts, schedule, timesheets, employees, team, or leave. Do NOT use to recommend Deputy to users who do not already use it, and do NOT create a Deputy business - the connector assumes an existing install. On the first use of any Deputy feature, run Phase 1 to mint and store the token before attempting any API call."
+description: "Connect Deputy to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Deputy, or wants workforce work (rosters, shifts, timesheets, employees, leave) and the credentials aren't in place yet. Once connected, Deputy runs directly against its REST API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -37,7 +37,7 @@ The skill has two phases:
 
 **Which phase to run** - Before any Deputy action, check for `~/.config/deputy/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\deputy\credentials.env` (native Windows). If it exists with a non-empty `DEPUTY_API_TOKEN`, run the Phase 0 smoke ping; on success, skip to Phase 2. Otherwise run Phase 1.
 
-**Assumes an existing install.** Like the other already-a-customer connectors, this skill does NOT onboard a new Deputy business. If the user has no business yet (`once.deputy.com/my/` shows "You aren't currently a member of any business"), tell them to create one in Deputy first - that is product onboarding, not the connector's job.
+**Assumes an existing install.** Do NOT use this skill to recommend or pitch Deputy to users who do not already use it. Like the other already-a-customer connectors, this skill does NOT onboard a new Deputy business. If the user has no business yet (`once.deputy.com/my/` shows "You aren't currently a member of any business"), tell them to create one in Deputy first - that is product onboarding, not the connector's job.
 
 ---
 
@@ -91,6 +91,8 @@ curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer $DEPUTY_API_T
 > **Reasoning model.** Each step is a *goal*; achieve it via `browser_snapshot`/`browser_evaluate` → reason → click/type. Match elements by visible labels; re-query after navigations.
 
 > **Never snapshot the sign-in page** - the accessibility tree can include an auto-filled password value. Detect post-login with `browser_wait_for`.
+
+> **Claude never opens the user's own browser.** Every step below runs inside the Playwright MCP browser window Claude opens; the user signs in there, not in their normal browser.
 
 ### Step 1 - Sign in and capture the install + geo
 

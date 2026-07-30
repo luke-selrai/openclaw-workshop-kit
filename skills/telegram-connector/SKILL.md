@@ -1,6 +1,6 @@
 ---
 name: telegram-connector
-description: "Connect the user's Telegram to Claude Code so they can message their assistant from their phone. Drives the entire install + BotFather + pairing flow autonomously through Telegram Web in a Playwright MCP browser; the only human moments are the user scanning a QR code, pasting one launch command into a fresh terminal to start the bot listener, and messaging the bot once from their phone. Use this skill when the user says 'set up Telegram', 'connect my Telegram', 'install the Telegram plugin', 'install the Telegram channel', 'message Claude from my phone via Telegram', or asks about BotFather, pairing codes, or the Telegram allowlist."
+description: "Connect Telegram to Claude by installing and pairing the official Telegram plugin, so the user can message their assistant from their phone. Use when the user asks to set up or connect Telegram or its channel, or to message Claude from their phone, and the Telegram plugin isn't installed and paired yet. Also handles BotFather, pairing codes and the Telegram allowlist once connected."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Channels & Messaging

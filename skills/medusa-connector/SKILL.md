@@ -1,6 +1,6 @@
 ---
 name: medusa-connector
-description: "Connect the user's self-hosted Medusa v2 store to Claude Code so Claude can list and manage products, orders, customers, discounts, and inventory on their behalf - and so a Next.js storefront can talk to the store via the Store API. Drives the entire setup autonomously through the user's Medusa admin in a Playwright MCP browser: the user logs in to their Medusa admin once, then Claude creates a Secret Admin API Key, captures the Publishable Store Key, and writes both to ~/.claude/medusa-connector.env plus a credentials-only ~/.claude.json entry - no copy-paste. Use this skill when the user says 'connect my Medusa store', 'set up Medusa', 'connect my self-hosted store', 'I'm using Next.js + Medusa', or asks about Medusa Admin API, Secret API Key, Publishable API Key, or self-hosting an ecommerce backend."
+description: "Connect a self-hosted Medusa v2 store to Claude by capturing its admin and storefront API credentials, scaffolding a new store first if needed. Use when the user asks to set up or connect Medusa, or wants Medusa work (products, orders, customers, discounts, inventory, a Next.js storefront) and the credentials aren't in place yet. Once connected, Medusa runs directly against its Admin and Store APIs."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*, mcp__plugin_medusa-dev_MedusaDocs__*
 metadata:
   category: Ecommerce & Integrations

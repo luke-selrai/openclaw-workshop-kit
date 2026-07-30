@@ -1,6 +1,6 @@
 ---
 name: asana-connector
-description: "Connect and operate Asana (work management / projects & tasks) via its direct REST API for users who already have an Asana account or trial. Drives the one-time Personal Access Token setup inside a Playwright MCP browser - opens the Asana developer console (app.asana.com/0/my-apps), the user signs in (email or Google/Microsoft SSO), then Claude creates a token named 'Claude Code', accepts the API terms, and captures the one-time token via the dialog's Copy button - without ever opening the user's own browser. Persists it to ~/.config/asana/credentials.env (mode 600) and reads/writes Asana data with curl against https://app.asana.com/api/1.0 using the Authorization: Bearer header. No vendor MCP server and no OAuth - a standalone direct-REST connector, so there is NO Claude Code restart step. Handles tasks, projects, sections, subtasks, stories (comments), tags, users, teams, workspaces, custom fields, and attachments. Use this skill when the user asks to 'connect my Asana', 'set up Asana', or asks anything about their Asana tasks, projects, assignments, due dates, sections, or workload, or says 'create a task in Asana'. Do NOT use to recommend Asana to users who do not already use it. On the first use of any Asana feature, run Phase 1 to mint and store the token before attempting any API call."
+description: "Connect Asana to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Asana, or wants Asana work (tasks, projects, sections, comments, due dates, workload) and the credentials aren't in place yet. Once connected, Asana runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -38,6 +38,8 @@ The skill has two phases:
 - **Phase 2 - Use the connector.** Once the token is saved, Claude calls the Asana REST API via `curl` to read and update data: tasks, projects, sections, subtasks, stories, tags, users, teams, custom fields, attachments.
 
 **Which phase to run** - Before any Asana action, check for `~/.config/asana/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\asana\credentials.env` (native Windows). If it exists with a non-empty `ASANA_PAT`, run the Phase 0 smoke ping; on success, skip to Phase 2. Otherwise run Phase 1.
+
+**Existing accounts only.** This connector is for users who already have an Asana account or trial. Do not use it to recommend Asana to users who do not already use it.
 
 **Full account access.** An Asana PAT inherits the **same permissions and visibility as the user who created it**. It can read and write everything that user can see across their workspaces - treat it like a password. There is no read-only PAT type; scope is the user's own permission set.
 

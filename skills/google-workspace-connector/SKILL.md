@@ -1,6 +1,6 @@
 ---
 name: google-workspace-connector
-description: "Install and operate the Google Workspace connector so the user's assistant can use Gmail, Calendar, Drive, Docs, Sheets, Tasks, Chat, and Meet. Handles the full install and OAuth flow conversationally. Use this skill when the user says 'connect my Google account', 'set up Gmail', 'set up Google Workspace', or asks the assistant to send an email, check a calendar, search Drive, create a Google Doc, or run anything else Google-Workspace-adjacent on their behalf."
+description: "Connect Google Workspace to Claude by installing and authenticating the `gws` CLI. Use when the user asks to connect their Google account or set up Gmail or Workspace, or wants Gmail, Calendar, Drive, Docs, Sheets or Tasks work and the `gws` CLI isn't signed in yet. Once connected, Workspace runs directly through the `gws` CLI."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

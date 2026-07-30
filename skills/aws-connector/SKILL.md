@@ -1,6 +1,6 @@
 ---
 name: aws-connector
-description: "Install and operate the AWS connector autonomously. Drives console.aws.amazon.com end-to-end inside a Playwright MCP browser: navigates to IAM, finds or creates a least-privilege IAM user named 'claude-assistant' with the right managed policy attached (ReadOnlyAccess for read-only access, PowerUserAccess for read-and-write - never AdministratorAccess), creates an access key for that user, DOM-extracts the access key ID and secret access key from the post-create modal (AWS shows the secret once and never again), and writes ~/.aws/credentials + ~/.aws/config autonomously. The user's only manual moments are signing in to the AWS Console once and approving any MFA prompt their account requires. Never mints root access keys - verifies post-install via sts:GetCallerIdentity that the keys belong to an IAM user (arn:aws:iam::*:user/*), not the root account (arn:aws:iam::*:root), and refuses to ship root credentials. Read and operate AWS services via the aws CLI (S3, EC2, Lambda, DynamoDB, IAM read-side, Cost Explorer, CloudWatch). Use this skill when the user asks to set up AWS, connect Amazon Web Services, or interact with S3 buckets, EC2 instances, Lambda functions, DynamoDB tables, AWS bills, or CloudWatch logs. On first use run Phase 1 to install + create the IAM user + mint access keys + verify before attempting any tool calls."
+description: "Connect AWS to Claude by installing the aws CLI and authenticating it as a scoped IAM user. Use when the user asks to set up or connect AWS, or wants AWS work (S3 buckets, EC2 instances, Lambda functions, DynamoDB tables, bills, CloudWatch logs) and the aws CLI isn't signed in yet. Once connected, AWS runs directly through the aws CLI."
 allowed-tools: mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
@@ -457,6 +457,19 @@ aws ce get-cost-and-usage \
   --time-period Start=$(date -u -d "-7 days" +%Y-%m-%d),End=$(date -u +%Y-%m-%d) \
   --granularity DAILY \
   --metrics UnblendedCost
+```
+
+#### CloudWatch (Logs & Metrics)
+
+```bash
+# List log groups
+aws logs describe-log-groups --query 'logGroups[].logGroupName'
+
+# Tail a log group (last 10 minutes)
+aws logs tail /aws/lambda/my-function --since 10m
+
+# List alarms in ALARM state
+aws cloudwatch describe-alarms --state-value ALARM --query 'MetricAlarms[].AlarmName'
 ```
 
 ### Region Reference

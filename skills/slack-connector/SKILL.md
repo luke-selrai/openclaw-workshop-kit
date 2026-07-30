@@ -1,6 +1,6 @@
 ---
 name: slack-connector
-description: "Connect and operate a user's Slack workspace via the slack-mcp-server npm package (korotovsky/slack-mcp-server, the most widely adopted Slack MCP server with 1,500+ GitHub stars and 12,000+ weekly npm downloads). Drives the entire setup autonomously through api.slack.com/apps in a Playwright MCP browser: creates the Slack app, fills the app name and workspace, walks the OAuth & Permissions page to add the seven bot scopes, clicks Install to Workspace, and reads the Bot User OAuth Token directly from the DOM. The only human moments are the user signing in to Slack once and clicking Allow on Slack's workspace consent screen. Use this skill when the user asks to set up Slack, connect their workspace, post to a channel, read channel history, react to a message, search for users, or manage user groups. On first use, run Phase 1 to install and authenticate the connector before attempting any tool calls."
+description: "Connect Slack to Claude by installing and authenticating its MCP server. Use when the user asks to set up or connect Slack, or wants workspace work (channels, message history, posting, reactions, users, user groups) and Slack isn't connected yet. Once connected, Slack runs directly through the mcp__slack__* tools."
 allowed-tools: mcp__slack__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Communication & Collaboration
@@ -43,6 +43,7 @@ This skill lets you read from and post to a user's Slack workspace on their beha
 ### Why this package
 
 We chose `slack-mcp-server` (korotovsky) over `@zencoderai/slack-mcp-server` (the maintained fork of Anthropic's archived reference server) because:
+- **The most widely adopted Slack MCP server** - 1,500+ GitHub stars on `korotovsky/slack-mcp-server`
 - **24× more npm downloads** (12,100/week vs 506/week as of April 2026)
 - **Actively maintained** (v1.2.3, last published March 2026 vs v0.0.1, last published July 2025)
 - **More tools** (14 vs 8) - adds user search, user groups, reactions remove, `#channel-name` lookup

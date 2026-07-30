@@ -1,6 +1,6 @@
 ---
 name: wordpress-connector
-description: "Connect the user's WordPress site to Claude Code so Claude can read, draft, and publish posts on their behalf. Drives the entire setup autonomously through the user's WordPress admin in a Playwright MCP browser: installs and activates the official WordPress/mcp-adapter plugin, generates an Application Password, reads the spaced token from the DOM, and writes the connection to ~/.claude.json - all without copy-paste. The only human moment is the user logging in to their WordPress admin once. Use this skill when the user says 'connect my WordPress', 'install the WordPress connector', 'help me set up WordPress', 'connect my WP site', 'let Claude post to my blog', or asks about Application Passwords, the mcp-adapter plugin, or the WordPress Abilities API."
+description: "Connect WordPress to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect WordPress or their WP site, or wants WordPress or blog work (reading, drafting and publishing posts, pages, comments) and WordPress isn't connected yet. Once connected, WordPress runs directly through the mcp__wordpress__* tools."
 allowed-tools: Bash, Read, Write, Edit, mcp__wordpress__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

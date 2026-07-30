@@ -1,6 +1,6 @@
 ---
 name: atlassian-connector
-description: "Connect and operate Atlassian (Jira + Confluence, plus Compass) via the official first-party Atlassian Remote MCP server (https://mcp.atlassian.com/v1/mcp). Phase 1 is a 5-step Playwright-driven install with 3-stage bridge OAuth: register the server with `claude mcp add`, open Claude Code's OAuth start URL inside the Playwright MCP browser, detect login state and prompt sign-in only if needed, auto-click Allow on the consent screen (workspace picker handled there), auto-detect the callback via `browser_wait_for`, surface the organization-administrator-approval-required interstitial cleanly if it appears, then verify with a `mcp__atlassian__*` smoke call. The user's only manual moment is signing in to Atlassian inside the Playwright window. Use this skill when the user asks to set up Atlassian, connect Jira or Confluence, or interact with issues, tickets, sprints, boards, pages, or spaces."
+description: "Connect Atlassian to Claude by installing and authenticating its official Remote MCP server. Use when the user asks to set up or connect Atlassian, Jira or Confluence, or wants work on tickets, sprints, boards, pages or spaces and Atlassian isn't connected yet. Once connected, Jira and Confluence run through the mcp__atlassian__* tools."
 allowed-tools: mcp__atlassian__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Project Management & Docs
@@ -458,6 +458,7 @@ Atlassian's Compass product (software component catalogue) exposes a small set o
 | "Open the onboarding doc in Confluence" | `search_pages` → `get_page` |
 | "Create a Confluence page called [title] in [space]" | `list_spaces` (find key if unknown) → `create_page` - **confirm first, summarise content** |
 | "Edit the [page] doc to add [section]" | `search_pages` → `get_page` → `update_page` - **confirm first** |
+| "What's on my board?" / "show me this sprint's board" | `search_issues` filtered by project (there is no board- or sprint-specific tool; board and sprint questions are answered from the issue search) |
 | "What projects are in my Atlassian?" | `list_projects` |
 | "What spaces are in my Confluence?" | `list_spaces` |
 

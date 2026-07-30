@@ -1,6 +1,6 @@
 ---
 name: google-chat-connector
-description: Install and operate the Google Chat connector. Use this skill when the user asks to set up Google Chat, connect their Google Workspace chat, send or read messages, manage spaces, post to team rooms, or interact with group chats and DMs. Handles full installation and uses the Google Workspace CLI (`gws`) with OAuth2. Falls back to Playwright for UI-only surfaces.
+description: "Connect Google Chat to Claude by installing and authenticating the Google Workspace `gws` CLI. Use when the user asks to set up Google Chat or connect their Workspace chat, or wants Chat work (messages, spaces, team rooms, DMs) and the `gws` CLI isn't signed in yet. Once connected, Chat runs directly through the `gws` CLI."
 allowed-tools: Bash,Read,Write,Edit,mcp__playwright__*,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

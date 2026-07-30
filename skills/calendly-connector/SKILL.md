@@ -1,6 +1,6 @@
 ---
 name: calendly-connector
-description: "Connect and operate Calendly via the official first-party Calendly MCP server (https://mcp.calendly.com). Phase 1 is a 6-step Playwright-driven install: register the server with `claude mcp add`, open Claude Code's OAuth start URL inside the Playwright MCP browser, detect login state and prompt sign-in only if needed, auto-click Allow on the consent screen, auto-detect the callback via `browser_wait_for`, then verify with a `mcp__calendly__*` smoke call. Calendly is OAuth-only with Dynamic Client Registration (RFC 7591), there is no app to create and no token to paste, so the user's only manual moments are signing in to Calendly inside the Playwright window and clicking Allow. Use this skill when the user asks to set up Calendly, connect their scheduling account, or interact with event types, availability, meetings, or scheduling links."
+description: "Connect Calendly to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect Calendly, or wants scheduling work (event types, availability, meetings, booking links) and Calendly isn't connected yet. Once connected, Calendly runs directly through the mcp__calendly__* tools."
 allowed-tools: mcp__calendly__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Scheduling & Booking

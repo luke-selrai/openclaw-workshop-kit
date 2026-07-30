@@ -1,6 +1,6 @@
 ---
 name: starshipit-connector
-description: "Connect and operate Starshipit (shipping, fulfilment, label printing and tracking for ecommerce/retail) via its direct REST API for users who already have a Starshipit account. Drives the one-time key setup inside a Playwright MCP browser - the user signs in, then Claude opens Settings then API, reuses the existing account API key, generates the subscription key if missing, and DOM-extracts both without ever opening the user's own browser. Starshipit uses a TWO-key scheme: every call needs both StarShipIT-Api-Key and Ocp-Apim-Subscription-Key. Both are stored at ~/.config/starshipit/credentials.env (mode 600) and sent on every request to https://api.starshipit.com/api. No vendor MCP and no OAuth - a standalone direct-REST connector, so there is NO Claude Code restart. Handles orders (list, unshipped, shipped, create), the address book, shipments and labels, and tracking. Use this skill when the user asks to 'connect my Starshipit', 'set up Starshipit', or asks anything about their Starshipit orders, shipments, labels, tracking, manifests, or address book. Do NOT use to recommend Starshipit to users who do not already use it. On the first use of any Starshipit feature, run Phase 1 to capture and store both keys before attempting any API call."
+description: "Connect Starshipit to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Starshipit, or wants Starshipit work (orders, shipments, labels, tracking, manifests, the address book) and the credentials aren't in place yet. Once connected, Starshipit runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -48,6 +48,7 @@ The skill has two phases:
 The user is a non-technical business owner. Phase 1 is autonomous. Every message follows these rules:
 
 - **You drive, not them.** The only action you request is "please sign in to Starshipit in the browser window I just opened."
+- **Their own browser is never opened.** Everything happens inside the separate Playwright-controlled browser window with its own profile - the user's day-to-day browser and its logged-in sessions are never touched.
 - **Plain language only.** No jargon - no API, key, subscription, REST, curl, header, DOM, Playwright, env, JSON, endpoint. Name things plainly: "the connection", "your Starshipit account", "your browser".
 - **Tell them what's about to happen** before each action; **react warmly**; **never show raw errors**.
 - **Short responses** - max 8 lines per message.

@@ -1,6 +1,6 @@
 ---
 name: employment-hero-connector
-description: "Connect and operate Employment Hero Payroll (the product formerly known as KeyPay before Employment Hero's 2020 acquisition + rebrand). Read businesses, employees, pay schedules, pay runs (payroll history), pay run line items, employee leave balances, pending leave requests; approve or decline leave requests. Tier-1 connector for AU SMBs running PAYG payroll. Direct-REST against the Employment Hero Payroll API at https://api.yourpayroll.com.au/api/v2/ (AU region - region host changes for UK / NZ / SG). HTTP Basic auth with a self-serve tenant-level API key generated inside the Payroll product (Business Settings → API). Single-mode - there is no test sandbox in the payroll product; every Phase 2 call hits real employee/paycheck data, so the production-mode gates apply unconditionally. Phase 1 drives secure.employmenthero.com / Payroll product via Playwright: signs the participant in, runs a Payroll-enabled pre-flight (Hub-only free trials and the Hub HR-only tier do not include Payroll), navigates to Business Settings → API, generates an API key, DOM-extracts via clipboard transit, persists to ~/.config/employment-hero/credentials.json (mode 0600). Use this skill when the user asks about Employment Hero, KeyPay, employees, PAYG, payroll, leave requests, time off, pay slips, employees on payroll. Note: this SKILL wraps the Payroll API only. The core Employment Hero HR API (people/leave/performance via oauth.employmenthero.com) is partner-gated and out of v1 scope. On first use, run Phase 1 before any tool call."
+description: "Connect Employment Hero Payroll (formerly KeyPay) to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Employment Hero, or wants payroll work (employees, pay runs, pay slips, leave requests and approvals) and the credentials aren't in place yet. Once connected, payroll runs directly against the Employment Hero Payroll REST API with the stored credentials."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -36,7 +36,7 @@ This skill lets you read and operate a user's Employment Hero Payroll account (f
 | **Employment Hero Payroll** (this SKILL) | `https://api.yourpayroll.com.au/api/v2/` (AU; region-specific) | HTTP Basic with tenant API key | **Self-serve** - every Payroll customer can generate their own API key from Business Settings → API |
 | Employment Hero core HR | `https://api.employmenthero.com/api/` via OAuth at `oauth.employmenthero.com` | OAuth2 partner app | **Partner-gated** - requires Employment Hero to approve the partner application; out of v1 scope |
 
-The Payroll surface (this SKILL) is what AU SMB participants actually need - it covers employees, pay runs, leave. The core HR surface is for partners building white-label HR products; if SelrAI ever applies as a partner, v2 of this SKILL can add it.
+The Payroll surface (this SKILL) is what AU SMB participants running PAYG payroll actually need - it covers employees, pay runs, leave. The core HR surface is for partners building white-label HR products; if SelrAI ever applies as a partner, v2 of this SKILL can add it.
 
 **Regional hosts**: Employment Hero Payroll runs separate regional instances. The API host varies:
 
@@ -500,6 +500,7 @@ eh_put "/business/$BIZ/leaverequest/$LR_ID/reject" "$(jq -n --arg r "$REASON" '{
 | "Pay schedule" / "Next payday?" | Pattern 3 |
 | "Recent pay runs" / "Last payroll" | Pattern 4 |
 | "Pay run details for [date]" | Pattern 5 |
+| "Pay slips" / "What was on [employee]'s pay slip?" | Pattern 5 (`paymentsummary` per-employee line items - the API has no pay-slip PDF endpoint in v1; point the participant at the web UI for the PDF) |
 | "What does [employee] earn?" | Pattern 6 |
 | "[Employee]'s leave balance" / "How much leave does X have?" | Pattern 7 |
 | "Pending leave" / "Approval queue" | Pattern 8 |

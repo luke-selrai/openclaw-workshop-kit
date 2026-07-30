@@ -1,6 +1,6 @@
 ---
 name: twenty-connector
-description: "Connect the user's Twenty CRM workspace to Claude Code so Claude can list and manage Companies, People, Opportunities, Notes, Tasks, custom objects, workflows, and the Skills/AI-Agent surface on their behalf - and so a Phase 3 build-your-own-CRM team can extend Twenty with custom objects and automations. Drives the entire setup autonomously through the user's Twenty workspace in a Playwright MCP browser: the user logs in to their Twenty workspace once, then Claude navigates to Settings → API & Webhooks, creates a long-lived API key, and writes it to ~/.claude/twenty-connector.env plus a credentials-only ~/.claude.json entry - no copy-paste. The only human moment is the user logging in once. Use this skill when the user says 'connect my Twenty', 'set up Twenty CRM', 'connect my CRM', 'I'm using Twenty', 'I want to build my own CRM', or asks about Twenty API key, Twenty webhooks, Twenty workspace, Twenty self-host, or the AGPL open-source CRM alternative to Salesforce."
+description: "Connect Twenty CRM to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Twenty or their CRM, wants to build or self-host their own open-source CRM, or wants Twenty work (companies, people, opportunities, notes, custom objects) and the credentials aren't in place yet. Once connected, Twenty runs directly against its REST and GraphQL APIs with the stored credentials."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: CRM & Integrations
@@ -34,6 +34,8 @@ metadata:
 ## Overview
 
 This skill captures the credentials Claude needs to talk to the user's **Twenty CRM workspace** and persists them so any later Claude Code session - agent or interactive - can operate the workspace via REST or GraphQL.
+
+Twenty is the AGPL-3.0 open-source CRM commonly adopted as a self-hostable alternative to Salesforce; users often arrive here asking for "the open-source CRM" or "a Salesforce alternative I can host myself" rather than for Twenty by name.
 
 One credential is captured:
 
@@ -362,6 +364,8 @@ curl -sS -X POST -H "Authorization: Bearer $TWENTY_API_KEY" \
   -d '{"title":"Demo call notes","body":"...","noteTargets":[{"companyId":"'"$COMPANY_ID"'"}]}' \
   "$TWENTY_BACKEND_URL/rest/notes" | jq
 ```
+
+The other standard objects follow the same `/rest/<objectNamePlural>` shape - `/rest/opportunities` (pipeline deals), `/rest/tasks` (to-dos), `/rest/notes` - as do any custom objects the workspace defines. Use the metadata API below to confirm an object's exact plural name before calling it.
 
 ### Schema introspection via metadata API
 
