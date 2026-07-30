@@ -1,6 +1,6 @@
 ---
 name: obs-recording-setup
-description: "Sets up OBS Studio for cross-platform screen and webcam recording, with a camera-matched circular webcam mask. Use when the user wants to set up OBS, record a vlog, podcast or tutorial, fix an oval or squished webcam circle, or get a repeatable recording config."
+description: "Sets up OBS Studio for cross-platform screen and webcam recording, with a camera-matched circular webcam mask. Use when the user wants to set up OBS, record their screen or webcam for a vlog, podcast or tutorial, fix an oval or squished webcam circle, or get a repeatable recording config."
 allowed-tools: Bash, Read, Write, Edit
 metadata:
   category: Content & Writing

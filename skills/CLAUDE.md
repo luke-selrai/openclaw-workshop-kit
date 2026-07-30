@@ -23,8 +23,9 @@ description template in the next section still applies to them.
 **Applies to every connector in this directory**, including the CLI-based and
 direct-REST ones that fall outside the three install patterns.
 
-A connector's `description` is the only part of it loaded into every attendee
-session, before they type a word. It is **trigger text, not a runbook**. Two
+A connector's `name` and `description` are the only parts of it loaded into
+every attendee session, before they type a word - and the description is
+essentially all of that weight. It is **trigger text, not a runbook**. Two
 failure modes it must avoid:
 
 - **Budget.** Claude Code caps the whole skill listing at roughly 1% of the
@@ -41,7 +42,7 @@ failure modes it must avoid:
 > Connect **\[Vendor]** to Claude by installing and authenticating its
 > **\[MCP server | CLI | API credentials]**. Use when the user asks to set up or
 > connect **\[Vendor]**, or wants **\[Vendor]** work (**\[domain nouns]**) and
-> **\[the already-connected predicate]** isn't in place yet.
+> the connection isn't in place yet.
 
 Optional final sentence, only where it genuinely routes later work away from a
 re-install:
@@ -50,14 +51,22 @@ re-install:
 
 ### Filling the slots, by connector shape
 
-| Slot | MCP (hosted or stdio) | CLI (`gws`, `ntn`, `qbo`, `gh`) | Raw API / direct REST |
+The `[Vendor]` and `[domain nouns]` slots are the same for every shape. What
+changes is what you install, what "the connection isn't in place yet" is
+replaced by, and what the routing sentence points at.
+
+**Do not leave "the connection isn't in place yet" as-is.** It is a stand-in.
+Replace that whole clause with the connector's real already-connected signal,
+negated. Replace the clause; do not nest one inside the other.
+
+| Row | MCP (hosted or stdio) | CLI (`gws`, `ntn`, `gh`) | Raw API / direct REST |
 |---|---|---|---|
-| **What you install** | "its MCP server" (name the vendor's if it is the vendor's own, e.g. "Intuit's official MCP server") | "the `<cli>` CLI" | "its API credentials" |
-| **Already-connected predicate** | the `<server>` MCP server isn't registered / connected yet | the `<cli>` CLI isn't installed and signed in yet | the credentials file at `<path>` isn't in place yet |
+| **What you install** | "its MCP server" - name the vendor's own where it is the vendor's, e.g. "Intuit's official MCP server" | "the `<cli>` CLI" | "its API credentials" |
+| **Replaces "the connection isn't in place yet"** | "\<Vendor> isn't connected yet" | "the `<cli>` CLI isn't signed in yet" | "the credentials aren't in place yet" |
 | **Routing sentence** | "runs directly through the `mcp__<server>__*` tools" | "runs directly through the `<cli>` CLI" | "runs directly against the vendor's API with the stored credentials" |
 
-For the plugin-marketplace pattern the predicate is the plugin, not a server:
-"…and the `<name>` plugin isn't installed yet".
+For the plugin-marketplace pattern the signal is the plugin, not a server:
+"the `<name>` plugin isn't installed yet".
 
 ### The don't-reinstall guard is a predicate, not a prohibition
 
@@ -73,6 +82,14 @@ below). Do not invent a nicer-sounding one. Concretely: a registered
 `mcpServers.<service>` entry, a CLI that is installed and authed, a credentials
 file at a documented path, or plugin skills/tools present in the session.
 
+Match the resume-check's **strength**, too. Most Phase 0 checks are
+registration **plus** a smoke call - a server that is registered but failing to
+connect is *not* connected, and the SKILL has a re-auth path for exactly that
+state. A description predicate that tests registration alone ("no `<server>`
+server is registered yet") would suppress the trigger in that state. Phrase it
+at the level the resume-check actually decides at: "\<Vendor> isn't connected
+yet".
+
 ### Rules
 
 - **Third person.** "Connect Xero to Claude…", never "I connect" or "You can
@@ -84,14 +101,18 @@ file at a documented path, or plugin skills/tools present in the session.
   ("connect / hook up / link / integrate") is an anti-pattern, not thoroughness.
 - **Target 150-250 characters.** Hard ceiling 500. Anything over 250 needs a
   written justification in the PR (recognised reasons: many genuinely distinct
-  trigger surfaces, or disambiguation from a sibling connector). Never approach
-  the 1,024-char validation cap.
+  trigger surfaces, or disambiguation from a sibling connector). These are the
+  spec's limits, not the frontmatter validator's - the validator only rejects
+  above 1,024 chars, which is how 2,000-char descriptions shipped here
+  unchallenged. Do not treat 1,024 as the budget.
 - **Connectors are connecting-only.** The description must not claim the skill
   operates the vendor. If the body *does* contain operating guidance, use the
   optional routing sentence to say where that work goes once connected - do not
   delete the body guidance, and do not let the description lie about it.
 - **No procedure in the description.** Commands, flags, file paths, timeouts,
   redirect URIs, DOM steps, phase numbers and error branches belong in the body.
+  The one carve-out is the routing sentence, which may name a tool namespace
+  (`mcp__<server>__*`) or a CLI binary - that is routing, not procedure.
 
 ### Fact-parity when rewriting an existing description
 
