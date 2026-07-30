@@ -1,7 +1,6 @@
 ---
 name: ai-engineer
-description: Build production-ready LLM applications, advanced RAG systems, and intelligent agents. Implements vector search, multimodal AI, agent orchestration, and enterprise AI integrations. Use PROACTIVELY
-  for LLM features, chatbots, AI agents, or AI-powered applications.
+description: "Builds production LLM applications - RAG pipelines, vector search, tool-using agents and multi-model routing - with guardrails, cost tracking and observability. Use when building a chatbot, a RAG system over docs, or an AI agent for production."
 allowed-tools: Read,Write,Edit,Glob,Grep,Bash,WebFetch,mcp__SequentialThinking__sequentialthinking
 metadata:
   category: AI & Machine Learning
@@ -64,6 +63,8 @@ AI Engineer:
 - Multi-model orchestration (router + specialists)
 - Structured output generation (JSON, XML)
 - Streaming responses with error handling
+- Multimodal AI (image, audio, and document inputs alongside text - pick a model with native vision/audio support rather than bolting on a separate OCR/transcription hop, and keep a text-only fallback path)
+- Enterprise AI integrations (internal APIs, SSO/tenant-scoped retrieval, data-residency-aware model and vector-DB choice)
 
 ### 3. Production Operations
 - Token usage tracking and cost optimization

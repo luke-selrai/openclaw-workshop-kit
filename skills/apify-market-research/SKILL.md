@@ -1,6 +1,6 @@
 ---
 name: apify-market-research
-description: Validate market size, demand, regional interest, and product-launch viability via Apify Actors. Lead use case is Google Trends search-interest analysis, plus Facebook Marketplace pricing, TripAdvisor and Booking.com hospitality data, Google Maps market density, and Instagram hashtag sizing. Use this skill when the user says "how big is the market for X", "Google Trends for Y", "validate a product launch", "search interest in Z", "market density near me", "hashtag size for #foo", "pricing on Marketplace for X", "Booking demand for Y city". For analytics on the user's OWN accounts use apify-content-analytics. For benchmarking specific NAMED competitors use apify-competitor-intelligence.
+description: "Sizes a market with Apify Actors - Google Trends search interest, Marketplace pricing, TripAdvisor and Booking demand, Google Maps density, hashtag size. Use when the user asks how big a category or its demand is - not a named rival (apify-competitor-intelligence) or their own account (apify-content-analytics)."
 ---
 
 # Market Research

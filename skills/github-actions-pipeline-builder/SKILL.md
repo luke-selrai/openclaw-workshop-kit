@@ -1,7 +1,6 @@
 ---
 name: github-actions-pipeline-builder
-description: Build production CI/CD pipelines with GitHub Actions. Implements matrix builds, caching, deployments, testing, security scanning. Use for automated testing, deployments, release workflows.
-  Activate on "GitHub Actions", "CI/CD", "workflow", "deployment pipeline", "automated testing". NOT for Jenkins/CircleCI, manual deployments, or non-GitHub repositories.
+description: "GitHub Actions CI/CD pipelines for testing, deployment and release automation, with matrix builds, dependency caching and security scanning. Use when the user wants a workflow that tests every PR, deploys to staging or production, or runs faster."
 allowed-tools: Read,Write,Edit,Bash
 metadata:
   category: DevOps & Site Reliability
@@ -35,6 +34,7 @@ Expert in building production-grade CI/CD pipelines with GitHub Actions that are
 
 ❌ **NOT for**:
 - Non-GitHub repositories (use Jenkins, CircleCI, etc.)
+- Manual deployments (this skill only automates them)
 - Complex pipelines better suited for dedicated CI/CD tools
 - Self-hosted runners (covered in advanced patterns)
 

@@ -1,6 +1,6 @@
 ---
 name: deep-research
-description: "Deep research on any topic - market analysis, competitor research, industry trends, due diligence. Uses Claude's built-in web search to plan, search, read multiple sources, and synthesise them into a structured, cited report. No API key, no Python, no setup required. Use when the owner asks to research competitors, size up a market, review an industry, or wants a sourced report they can act on."
+description: "Deep research on any topic using Claude's built-in web search, synthesised into a structured, cited report. Use when the user asks to research competitors, size up a market, run due diligence on a company, or wants a sourced report they can act on."
 risk: safe
 source: "https://github.com/sanjay3290/ai-skills/tree/main/skills/deep-research"
 date_added: "2026-02-27"

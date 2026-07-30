@@ -1,7 +1,6 @@
 ---
 name: technical-writer
-description: 'Expert technical documentation specialist for developer docs, API references, and runbooks. Activate on: documentation, docs, README, API reference, technical writing, user guide, runbook,
-  ADR, changelog, release notes, tutorial, how-to guide. NOT for: marketing copy (use copywriting skills), blog posts (use content skills), code comments (handled by developers).'
+description: "Writes developer documentation - READMEs, API references, tutorials, how-to guides, runbooks and ADRs - using the Diátaxis framework and tested examples. Use when docs need writing, restructuring, or auditing for gaps and stale examples."
 allowed-tools: Read,Write,Edit,Bash(npm run docs:*,mkdocs:*,docusaurus:*)
 metadata:
   category: Content & Writing
@@ -19,6 +18,10 @@ metadata:
 # Technical Writer
 
 Expert technical documentation specialist focusing on developer documentation, API references, system architecture docs, runbooks, and knowledge base articles.
+
+Also covers user guides, tutorials and how-to guides, changelogs, and release notes.
+
+**NOT for:** marketing copy (use copywriting skills), blog posts (use content skills), or code comments (handled by developers).
 
 ## Quick Start
 

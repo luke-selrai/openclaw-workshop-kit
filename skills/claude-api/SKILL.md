@@ -1,12 +1,14 @@
 ---
 name: claude-api
-description: "Build apps with the Claude API or Anthropic SDK. TRIGGER when: code imports `anthropic`/`@anthropic-ai/sdk`/`claude_agent_sdk`, or user asks to use Claude API, Anthropic SDKs, or Agent SDK. DO NOT TRIGGER when: code imports `openai`/other AI SDK, general programming, or ML/data-science tasks."
+description: "Claude API and Anthropic SDK guidance - model IDs, thinking and effort, streaming, tool use, the Agent SDK. Use when code imports `anthropic`, `@anthropic-ai/sdk` or `claude_agent_sdk`, or the user asks about the Claude API or Agent SDK, but not another vendor's AI SDK."
 license: Complete terms in LICENSE.txt
 ---
 
 # Building LLM-Powered Applications with Claude
 
 This skill helps you build LLM-powered applications with Claude. Choose the right surface based on your needs, detect the project language, then read the relevant language-specific documentation.
+
+**Scope.** This skill covers Claude API and Anthropic SDK work only. It does not apply when the project imports `openai` or another vendor's AI SDK, nor to general programming or ML/data-science tasks that don't call Claude.
 
 ## Defaults
 

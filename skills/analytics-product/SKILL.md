@@ -1,6 +1,6 @@
 ---
 name: analytics-product
-description: 'Product analytics - PostHog, Mixpanel, events, funnels, cohorts, retention, north star metric, OKRs, and product dashboards. Use for: event tracking setup, conversion funnel analysis, cohort retention, DAU/MAU, feature flags, A/B testing, north star metrics, OKRs, product dashboards.'
+description: "Product analytics in PostHog or Mixpanel - event taxonomy, funnels, cohort retention, A/B significance, north star metrics and OKRs. Use when the user asks what to track, where users drop off, whether an A/B test won, or wants a retention dashboard."
 risk: none
 source: selrai-company/claude-workshop-kit
 date_added: '2026-03-06'
