@@ -82,6 +82,15 @@ jobs:
       - name: Verify Loup-conform invariants
         run: node scripts/verify-conform.mjs
 
+      # Description-budget rule (CORE-93): the >500-char and first/second-person
+      # rules over every skill description ship in REPORT-ONLY mode, so the
+      # audit steps above stay green while the rewrites land. This regression
+      # test is what proves the rule actually fires — it exercises enforcing
+      # mode against fixtures, and asserts the shipped baseline still covers
+      # the real library. CORE-98 flips the rule to hard-fail.
+      - name: Test description-budget rule (regression)
+        run: node scripts/test-description-budget.mjs
+
       - name: Test conform checker (regression)
         run: node scripts/test-verify-conform.mjs
 
