@@ -1,6 +1,6 @@
 ---
 name: apify-content-analytics
-description: "Tracks the user's OWN social accounts with Apify Actors - Instagram posts and reels, follower growth, Facebook page and ad metrics, YouTube and TikTok. Use when the user asks how my page or profile is performing - not a rival's (apify-competitor-intelligence) or a market (apify-market-research)."
+description: "Tracks the user's OWN social accounts with Apify Actors - Instagram posts and reels, follower growth, Facebook page and ad metrics, YouTube and TikTok. Use when the user asks 'how is my page performing' or 'how is my profile doing' - not a rival's (apify-competitor-intelligence) or a market (apify-market-research)."
 ---
 
 # Content Analytics

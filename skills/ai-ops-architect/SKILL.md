@@ -1,6 +1,6 @@
 ---
 name: ai-ops-architect
-description: "Audits a business for AI and automation opportunities, ranks them, and routes each pick to n8n workflows or managed agents. Use when a non-technical owner asks what should I automate, where do I start, or wants an AI ops plan for their business."
+description: "Audits a business for AI and automation opportunities, ranks them, and routes each pick to n8n workflows or managed agents. Use when a non-technical owner asks 'what should I automate' or 'where do I start', or wants an AI ops plan for their business."
 ---
 
 # AI Ops Architect

@@ -1,6 +1,6 @@
 ---
 name: skills-discovery
-description: "Shows a business owner which of their installed skills fit their business, then gives 3 personalised recommendations from their profile. Use when someone asks what can you do, what skills do I have, or what to try first, or right after a live demo."
+description: "Shows a business owner which of their installed skills fit their business, then gives 3 personalised recommendations from their profile. Use when someone asks 'what can you do' or 'what skills do I have', wonders what to try first, or right after a live demo."
 risk: safe
 source: selrai
 date_added: '2026-03-25'
