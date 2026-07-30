@@ -116,3 +116,14 @@ jobs:
 
       - name: Test MP skills-install checker (regression)
         run: node scripts/test-mp-skills-install.mjs
+
+      # Skill frontmatter hygiene (CORE-92): assert every skills/<dir>/SKILL.md
+      # declares a frontmatter name equal to its directory, and carries only
+      # standard frontmatter keys. Keeps the documented handle and the invocable
+      # handle the same string, and stops information being parked in an ad-hoc
+      # key no consumer reads. Read-only; runs on every event.
+      - name: Verify skill frontmatter hygiene
+        run: node scripts/check-frontmatter-hygiene.mjs
+
+      - name: Test frontmatter-hygiene checker (regression)
+        run: node scripts/test-frontmatter-hygiene.mjs

@@ -10,8 +10,6 @@ tags:
 - metrics
 - posthog
 - mixpanel
-tools:
-- claude-code
 ---
 
 # ANALYTICS-PRODUCT - Decide With Data
@@ -19,6 +17,8 @@ tools:
 ## Overview
 
 Product analytics skill covering PostHog, Mixpanel, events, funnels, cohorts, retention, north star metric, OKRs, and product dashboards. Use for: event tracking setup, conversion funnel analysis, cohort retention, DAU/MAU, feature flags, A/B testing, north star metrics, OKRs, and product dashboards.
+
+**Runs in:** Claude Code.
 
 > Note: Code examples throughout this skill use a sample SaaS product as reference - adapt event names, metrics, and targets to your own product.
 

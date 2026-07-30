@@ -1,7 +1,6 @@
 ---
 name: tailwind-4-docs
 description: Comprehensive Tailwind CSS v4 documentation snapshot and workflow guidance. Use when answering Tailwind v4 questions, selecting utilities/variants, configuring Tailwind v4, or migrating projects from v3 to v4 with official docs and gotcha checks.
-compatibility: Requires git, Python 3, and internet access to initialize the Tailwind docs snapshot from tailwindcss.com.
 ---
 
 # Tailwind 4 Docs
@@ -11,6 +10,8 @@ compatibility: Requires git, Python 3, and internet access to initialize the Tai
 Use this skill to navigate a locally synced Tailwind CSS v4 documentation snapshot and answer development, configuration, migration, implementation, refactor, and review questions with official guidance.
 
 The docs snapshot is not bundled with this skill because the upstream repository is source-available but not open-source. Users must initialize the snapshot themselves and are responsible for complying with the upstream license.
+
+**Requirements:** git, Python 3, and internet access to initialize the Tailwind docs snapshot from tailwindcss.com.
 
 ## Quick start
 

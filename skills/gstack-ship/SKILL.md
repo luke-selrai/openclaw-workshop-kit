@@ -1,5 +1,5 @@
 ---
-name: ship
+name: gstack-ship
 version: 1.0.0
 description: |
   Ship workflow: merge main, run tests, review diff, bump VERSION, update CHANGELOG, commit, push, create PR.
@@ -15,7 +15,7 @@ allowed-tools:
 
 # Ship: Fully Automated Ship Workflow
 
-You are running the `/ship` workflow. This is a **non-interactive, fully automated** workflow. Do NOT ask for confirmation at any step. The user said `/ship` which means DO IT. Run straight through and output the PR URL at the end.
+You are running the `/gstack-ship` workflow. This is a **non-interactive, fully automated** workflow. Do NOT ask for confirmation at any step. The user said `/gstack-ship` which means DO IT. Run straight through and output the PR URL at the end.
 
 **Only stop for:**
 - On `main` branch (abort)
@@ -117,7 +117,7 @@ Map runner → test file: `post_generation_eval_runner.rb` → `post_generation_
 
 **3. Run affected suites at `EVAL_JUDGE_TIER=full`:**
 
-`/ship` is a pre-merge gate, so always use full tier (Sonnet structural + Opus persona judges).
+`/gstack-ship` is a pre-merge gate, so always use full tier (Sonnet structural + Opus persona judges).
 
 ```bash
 EVAL_JUDGE_TIER=full EVAL_VERBOSE=1 bin/test-lane --eval test/evals/<suite>_eval_test.rb 2>&1 | tee /tmp/ship_evals.txt
@@ -132,12 +132,12 @@ If multiple suites need to run, run them sequentially (each needs a test lane). 
 
 **5. Save eval output** - include eval results and cost dashboard in the PR body (Step 8).
 
-**Tier reference (for context - /ship always uses `full`):**
+**Tier reference (for context - /gstack-ship always uses `full`):**
 | Tier | When | Speed (cached) | Cost |
 |------|------|----------------|------|
 | `fast` (Haiku) | Dev iteration, smoke tests | ~5s (14x faster) | ~$0.07/run |
 | `standard` (Sonnet) | Default dev, `bin/test-lane --eval` | ~17s (4x faster) | ~$0.37/run |
-| `full` (Opus persona) | **`/ship` and pre-merge** | ~72s (baseline) | ~$1.27/run |
+| `full` (Opus persona) | **`/gstack-ship` and pre-merge** | ~72s (baseline) | ~$1.27/run |
 
 ---
 
@@ -161,7 +161,7 @@ Review the diff for structural issues that tests don't catch.
    - The problem (`file:line` + description)
    - Your recommended fix
    - Options: A) Fix it now (recommend), B) Acknowledge and ship anyway, C) It's a false positive - skip
-   After resolving all critical issues: if the user chose A (fix) on any issue, apply the recommended fixes, then commit only the fixed files by name (`git add <fixed-files> && git commit -m "fix: apply pre-landing review fixes"`), then **STOP** and tell the user to run `/ship` again to re-test with the fixes applied. If the user chose only B (acknowledge) or C (false positive) on all issues, continue with Step 4.
+   After resolving all critical issues: if the user chose A (fix) on any issue, apply the recommended fixes, then commit only the fixed files by name (`git add <fixed-files> && git commit -m "fix: apply pre-landing review fixes"`), then **STOP** and tell the user to run `/gstack-ship` again to re-test with the fixes applied. If the user chose only B (acknowledge) or C (false positive) on all issues, continue with Step 4.
 
 7. **If only non-critical issues found:** Output them and continue. They will be included in the PR body at Step 8.
 
@@ -297,4 +297,4 @@ EOF
 - **Always use the 4-digit version format** from the VERSION file.
 - **Date format in CHANGELOG:** `YYYY-MM-DD`
 - **Split commits for bisectability** - each commit = one logical change.
-- **The goal is: user says `/ship`, next thing they see is the review + PR URL.**
+- **The goal is: user says `/gstack-ship`, next thing they see is the review + PR URL.**
