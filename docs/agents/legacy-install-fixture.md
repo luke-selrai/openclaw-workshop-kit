@@ -137,7 +137,68 @@ acceptance criteria, not a suggestion.
 - [ ] **Edited kit skill kept and reported**, not silently overwritten
 - [ ] **"Works from any folder" note fires exactly once**
 
+## Run one launcher at a time
+
+If you script the three shapes in parallel, guard the launcher with a lockfile. Re-running
+the launcher while an earlier one is still alive puts **two migrations over the same
+fixture**, and the second one sees the first one's output as pre-existing state — the tell
+is a run reporting that "a prior run had already done" the workspace rename. The end state
+can still verify green while being meaningless. Check `ps aux | grep run.sh` before
+relaunching, and delete the fixture between runs rather than reusing it.
+
+## Verify the result
+
+```
+node scripts/verify-migration.mjs /tmp/legacy
+```
+
+Reads the fixture's own `FIXTURE.json` for the shape's layout and the user content that was
+planted, so one verifier covers all three shapes. Exit 0 = every check passed. Sanity
+property: run it against a fixture that has **not** been migrated and it must fail the
+state checks — a verifier that goes green on the before-state is worthless.
+
 ## Findings so far
+
+### MIGRATE cannot protect customisations, and its recommended answer destroys them
+
+The sync step protects edits by diffing installed skills against the **old manifest's**
+fingerprints. In MIGRATE there is no old manifest, so the prompt cannot diff at all. It
+substitutes one bulk question — "refresh all Selr kit skills to the newest versions
+(recommended), or keep everything as-is and only add new ones?" — and the *recommended*
+branch overwrites every customisation the user ever made to a kit skill. Confirmed by
+dry-run: with that answer taken, a user-edited kit skill was silently replaced.
+
+This is spec-conformant, not a prompt defect. But it aims the recommended path at the
+population most likely to have customised something, and the user cannot make an informed
+choice because the prompt can't tell them what differs.
+
+There is a fix the current design misses: **the old kit is still on disk in every legacy
+shape** — `~/.loup/selr-ai/workshop-kit/skills/` or `~/workshop-kit/skills/`. That is
+exactly what the legacy install shipped, so diffing installed-vs-old-kit reconstructs the
+missing fingerprints and lets MIGRATE use the same keep-and-report rule as UPDATE, with no
+bulk question at all. Worth deciding in the ADR/spec.
+
+### Clean run: all three shapes pass Steps 0-6
+
+Run against the live public repo, one launcher, `keep everything as-is` chosen at the bulk
+question. `loup` and `github-desktop` pass 14/14; `github-home` passes 13/13 (it has no
+marker to remove). Verified in every shape: single pointer block, persona installed,
+pre-existing hand-written global content survived, manifest with `installMode: migrate`,
+`onboarded: true`, 204 skill fingerprints and an absolute kit home, old workspace
+`CLAUDE.md` renamed to `.pre-migration`, and all user-made content untouched.
+
+Notable: on `github-home` the model **generalised** the workspace retirement to
+`~/my-assistant` even though the prompt names only `~/Desktop/my-assistant`. It did the
+right thing — but that is inference, not specification (see CORE-110).
+
+Also confirmed: `my-own-skill` is correctly recognised as the user's own and excluded from
+both the kit sync and the manifest.
+
+**Still unverified**: the MIGRATE "works from any folder" note, the Playwright smoke test,
+and the completion banner all sit after the mid-session restart, which a headless run
+cannot pass. Those need one interactive run.
+
+### Earlier findings
 
 Dry-run against `github-home` (ancient shape), Loup door, Steps 0-6:
 

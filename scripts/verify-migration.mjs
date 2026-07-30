@@ -111,9 +111,14 @@ function main() {
       check("user's own skill untouched", t && t.includes("Mine, not the kit's."));
     }
     if (seeded.editedKitSkill) {
+      // MIGRATE has no old manifest, so the prompt cannot fingerprint-diff; it
+      // asks ONE bulk question instead. This check therefore only holds when
+      // "keep everything as-is" was chosen. Under the recommended "refresh all"
+      // answer a FAIL here is spec-conformant, not a defect — but it is exactly
+      // the customisation loss that answer costs, which is worth seeing.
       const t = read(join(home, seeded.editedKitSkill));
       check(
-        "edited kit skill kept, not overwritten",
+        "edited kit skill kept, not overwritten (only if 'keep as-is' chosen)",
         t && t.includes("do not silently overwrite me"),
         seeded.editedKitSkill,
       );
