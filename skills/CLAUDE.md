@@ -1,15 +1,112 @@
-# Connector SKILLs - install patterns reference
+# Connector SKILLs - authoring reference
 
-This is the canonical reference for the three install patterns the `*-connector`
-SKILLs in this directory have converged on. If you are authoring or reviewing a
-new connector, start here, then read the per-pattern reference SKILL it points
+This is the canonical reference for authoring a connector SKILL in this
+directory. It covers two things:
+
+1. **The description template** - how a connector's frontmatter `description` is
+   written. Applies to **every** connector here, whatever its install shape.
+2. **The three install patterns** the `*-connector` SKILLs have converged on.
+
+If you are authoring or reviewing a new connector, write the description from
+the template first, then read the per-pattern reference SKILL this doc points
 to.
 
 If a connector does not fit one of the three patterns below
 (CLI-based: `gws`, `gh`, `qbo`, `notion` (`ntn`); direct REST: `ghl`, `myob`, `servicem8`, `cliniko`, `deputy`, `starshipit`, `pipedrive`, `asana`, `freshbooks` (OAuth2-fronted), `trello` (key+token; Power-Up form is manual), `clickup` (raw-token header), `brevo` (`api-key` header), `kit` (formerly ConvertKit; `X-Kit-Api-Key` header), `activecampaign` (`Api-Token` header + per-account base URL); first-party stdio:
 `hubspot`, `paypal`, `slack`, `square`, `stripe`, `shopify`, `xero`,
 `voice-transcription`, `whatsapp`, `wordpress`), it has its own shape and is
-out of scope for this doc - see the SKILL itself.
+out of scope for the *install patterns* below - see the SKILL itself. The
+description template in the next section still applies to them.
+
+## The connector description template ("Template B")
+
+**Applies to every connector in this directory**, including the CLI-based and
+direct-REST ones that fall outside the three install patterns.
+
+A connector's `description` is the only part of it loaded into every attendee
+session, before they type a word. It is **trigger text, not a runbook**. Two
+failure modes it must avoid:
+
+- **Budget.** Claude Code caps the whole skill listing at roughly 1% of the
+  context window and silently shortens or drops descriptions when that is
+  exceeded - so an oversized description can strip *other* skills' triggers with
+  no error.
+- **Body-skipping.** A description that reads as a complete procedure gets acted
+  on directly and the body is never opened, so the phase logic and error
+  handling are skipped. This is the suspected cause of connector re-install
+  misfires.
+
+### The template
+
+> Connect **\[Vendor]** to Claude by installing and authenticating its
+> **\[MCP server | CLI | API credentials]**. Use when the user asks to set up or
+> connect **\[Vendor]**, or wants **\[Vendor]** work (**\[domain nouns]**) and
+> **\[the already-connected predicate]** isn't in place yet.
+
+Optional final sentence, only where it genuinely routes later work away from a
+re-install:
+
+> Once connected, **\[Vendor]** runs directly through **\[tools | CLI | credentials]**.
+
+### Filling the slots, by connector shape
+
+| Slot | MCP (hosted or stdio) | CLI (`gws`, `ntn`, `qbo`, `gh`) | Raw API / direct REST |
+|---|---|---|---|
+| **What you install** | "its MCP server" (name the vendor's if it is the vendor's own, e.g. "Intuit's official MCP server") | "the `<cli>` CLI" | "its API credentials" |
+| **Already-connected predicate** | the `<server>` MCP server isn't registered / connected yet | the `<cli>` CLI isn't installed and signed in yet | the credentials file at `<path>` isn't in place yet |
+| **Routing sentence** | "runs directly through the `mcp__<server>__*` tools" | "runs directly through the `<cli>` CLI" | "runs directly against the vendor's API with the stored credentials" |
+
+For the plugin-marketplace pattern the predicate is the plugin, not a server:
+"…and the `<name>` plugin isn't installed yet".
+
+### The don't-reinstall guard is a predicate, not a prohibition
+
+Write the guard as part of the **trigger condition** - "…and the connection
+isn't in place yet" - never as a prohibition ("do NOT run if already
+installed"). A prohibition is instruction text that has to be read and obeyed;
+a predicate simply stops the skill matching once the connection exists.
+
+The predicate you name must be the connector's **real** already-connected
+signal - the same one its Phase 0 resume-check tests (see
+[Cross-cutting: Phase 0 resume-check](#cross-cutting-phase-0-resume-check)
+below). Do not invent a nicer-sounding one. Concretely: a registered
+`mcpServers.<service>` entry, a CLI that is installed and authed, a credentials
+file at a documented path, or plugin skills/tools present in the session.
+
+### Rules
+
+- **Third person.** "Connect Xero to Claude…", never "I connect" or "You can
+  use this to…".
+- **Sentence 1 = what it does**, with the distinctive keyword (the vendor name)
+  front-loaded.
+- **Sentence 2 = "Use when…"**, listing genuinely distinct trigger branches -
+  one phrasing per branch, in vocabulary users actually type. Synonym-padding
+  ("connect / hook up / link / integrate") is an anti-pattern, not thoroughness.
+- **Target 150-250 characters.** Hard ceiling 500. Anything over 250 needs a
+  written justification in the PR (recognised reasons: many genuinely distinct
+  trigger surfaces, or disambiguation from a sibling connector). Never approach
+  the 1,024-char validation cap.
+- **Connectors are connecting-only.** The description must not claim the skill
+  operates the vendor. If the body *does* contain operating guidance, use the
+  optional routing sentence to say where that work goes once connected - do not
+  delete the body guidance, and do not let the description lie about it.
+- **No procedure in the description.** Commands, flags, file paths, timeouts,
+  redirect URIs, DOM steps, phase numbers and error branches belong in the body.
+
+### Fact-parity when rewriting an existing description
+
+Order matters: **port first, then rewrite.**
+
+1. Decompose the old description into atomic operative facts (commands, flags,
+   package names, paths, timeouts, permission modes, fallback logic, smoke
+   steps, prerequisites, ordering constraints).
+2. For each, either locate it in the body (record the line number) or port it
+   into the body.
+3. Only then replace the description.
+
+No operative fact is deleted - only relocated. No body content is deleted. If
+the old description contradicts the body, the body wins and the claim is dropped
+from the description rather than copied forward.
 
 ## Which pattern do I use?
 
@@ -313,6 +410,8 @@ echo credentials.
 ## See also
 
 - [SKILLS-LIST.md](SKILLS-LIST.md) - the full skill index with tier and category.
+- [quickbooks-connector/SKILL.md](quickbooks-connector/SKILL.md) - worked example of the
+  description template on a connector with a large post-connect operating surface.
 - [linear-connector/SKILL.md](linear-connector/SKILL.md) - Pattern 1 reference.
 - [monday-connector/SKILL.md](monday-connector/SKILL.md) - Pattern 2 reference.
 - [telegram-connector/SKILL.md](telegram-connector/SKILL.md) - Pattern 3 reference.
