@@ -13,7 +13,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 
 | Skill | What It Does | Example Prompt | Tier |
 |---|---|---|---|
-| `agent-creator` | Create custom agents, skills, and MCP integrations | "Create a new agent for my business" | ADVANCED |
+| `agent-creator` | Design custom subagents and agent teams for Claude Code | "Create a new agent for my business" | ADVANCED |
 | `agent-memory-mcp` | Hybrid memory systems with MCP | "Set up MCP-based memory for my agent" | ADVANCED |
 | `agent-memory-systems` | Persistent memory architecture for agents | "Design a memory system for my agent" | ADVANCED |
 | `agent-orchestration-multi-agent-optimize` | Coordinate and optimise multi-agent systems | "Optimise how my agents work together" | ADVANCED |
@@ -30,7 +30,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `orchestrator` | Master coordinator - delegates to specialist skills | "Orchestrate a multi-step research project" | ADVANCED |
 | `prompt-engineer` | Improve AI instructions for better results | "Improve this prompt for better output" | CORE |
 | `skill-creator` | Create and improve Claude skills | "Create a new skill for my business" | ADVANCED |
-| `skills-discovery` | Shows all 22 core skills with personalised recommendations | "What can you do for my business?" | CORE |
+| `skills-discovery` | Shows which of your installed skills fit your business, plus 3 personalised picks | "What can you do for my business?" | CORE |
 | `first-run-setup` | Step-by-step guided setup for first-time users | Used automatically during initial setup | ADVANCED |
 
 ## Content & Writing
@@ -78,20 +78,20 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `git-workflow-expert` | Git branching, conflict resolution, monorepo patterns | "Help me resolve this merge conflict" | ADVANCED |
 | `github-actions-pipeline-builder` | Production CI/CD pipelines with GitHub Actions | "Build a GitHub Actions pipeline" | ADVANCED |
 | `gstack-ship` | Ship workflow - merge, test, version, PR | "Ship this feature" | ADVANCED |
-| `site-reliability-engineer` | SRE practices, deployment safety, build health | "Review my deployment process" | ADVANCED |
+| `site-reliability-engineer` | Docusaurus docs site build health - MDX validation and link checks | "Review my deployment process" | ADVANCED |
 | `subagent-driven-development` | Execute plans with parallel specialised agents | "Execute this plan with subagents" | ADVANCED |
 | `terraform-iac-expert` | Terraform and OpenTofu infrastructure as code | "Write Terraform for my AWS setup" | DEV-ONLY |
 | `using-git-worktrees` | Isolated feature work with git worktrees | "Set up a git worktree for this feature" | DEV-ONLY |
-| `vercel-deployment` | Deploy Next.js and React apps to Vercel | "Deploy my Next.js app to Vercel" | ADVANCED |
+| `vercel-deployment` | Vercel setup for Next.js and React apps - env vars, previews, domains | "Deploy my Next.js app to Vercel" | ADVANCED |
 
 ## Engineering
 
 | Skill | What It Does | Example Prompt | Tier |
 |---|---|---|---|
 | `api-architect` | REST, GraphQL, gRPC API design | "Design the API for my app" | ADVANCED |
-| `building-native-ui` | Build native iOS/Android UI for Expo apps | "Build a native iOS screen in my Expo app" | ADVANCED |
+| `building-native-ui` | Build app screens and UI with Expo Router - styling, navigation, animations | "Build a native iOS screen in my Expo app" | ADVANCED |
 | `code-architecture` | Clean architecture and code organisation patterns | "Review my app architecture" | DEV-ONLY |
-| `eas-update-insights` | Expo EAS Update operations and rollout insights | "Roll out an over-the-air update to my Expo app" | DEV-ONLY |
+| `eas-update-insights` | Check how a published Expo update is performing - crash rates and adoption | "Roll out an over-the-air update to my Expo app" | DEV-ONLY |
 | `expo-api-routes` | Expo API routes - backend endpoints inside your Expo app | "Add an API endpoint to my Expo app" | ADVANCED |
 | `expo-brownfield` | Add Expo modules to existing native iOS/Android apps | "Add Expo to my existing native iOS app" | DEV-ONLY |
 | `expo-dev-client` | Custom Expo dev client for native debugging | "Build a custom dev client for my Expo app" | DEV-ONLY |
@@ -112,7 +112,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `microservices-patterns` | Service decomposition, API gateway, saga patterns | "Design my microservices architecture" | ADVANCED |
 | `modern-auth-2026` | Passkeys, OAuth, magic links, cross-platform auth | "Implement Google OAuth in my app" | ADVANCED |
 | `native-data-fetching` | Native data fetching patterns for React Native / Expo | "Fetch data efficiently in my Expo app" | ADVANCED |
-| `nextjs-app-router-expert` | Next.js 14/15 App Router, React Server Components | "Build this Next.js feature" | ADVANCED |
+| `nextjs-app-router-expert` | Next.js App Router, React Server Components and Server Actions | "Build this Next.js feature" | ADVANCED |
 | `node` | Node.js best practices - TypeScript-first, async, errors, streams | "Build a Node.js app the right way" | ADVANCED |
 | `nodejs-core` | Node.js internals - V8, libuv, C++ addons, runtime architecture | "How does Node.js run my code internally?" | DEV-ONLY |
 | `oauth-oidc-implementer` | OAuth 2.0 and OpenID Connect implementation | "Implement OIDC in my app" | ADVANCED |
@@ -123,18 +123,18 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `prisma-client-api` | Prisma Client API - queries, mutations, relations | "Write a Prisma query for my schema" | ADVANCED |
 | `prisma-database-setup` | Prisma database setup and configuration | "Set up Prisma with my PostgreSQL database" | ADVANCED |
 | `prisma-driver-adapter-implementation` | Implement custom Prisma driver adapters | "Write a custom Prisma driver adapter" | DEV-ONLY |
-| `prisma-postgres` | Prisma with PostgreSQL - patterns and best practices | "Use Prisma with Postgres" | ADVANCED |
+| `prisma-postgres` | Create and manage Prisma Postgres databases via Console, CLI or Management API | "Use Prisma with Postgres" | ADVANCED |
 | `prisma-postgres-setup` | Prisma Postgres (hosted DB) setup | "Set up Prisma Postgres for my app" | ADVANCED |
 | `prisma-upgrade-v7` | Upgrade Prisma from v6 to v7 | "Upgrade my project to Prisma v7" | ADVANCED |
 | `radon-mcp` | Radon IDE debugging integration via MCP | "Debug my React Native app with Radon" | ADVANCED |
-| `react-native-best-practices` | React Native - workflow, perf, migration patterns | "Review my React Native app for best practices" | ADVANCED |
+| `react-native-best-practices` | React Native performance - FPS, memory, bundle size, re-renders, animations | "Review my React Native app for best practices" | ADVANCED |
 | `react-native-brownfield-migration` | Migrate brownfield native iOS/Android apps to React Native | "Migrate my existing iOS app to React Native" | DEV-ONLY |
 | `react-router-data-mode` | React Router 7 - Data mode (routing + data loading) | "Build a React Router data-mode app" | ADVANCED |
 | `react-router-declarative-mode` | React Router 7 - Declarative mode (component-based routing) | "Set up basic React Router routing" | ADVANCED |
 | `react-router-framework-mode` | React Router 7 framework mode (formerly Remix) | "Build a Remix / React Router framework app" | ADVANCED |
-| `security-auditor` | OWASP vulnerability scanning and compliance | "Audit my app for security issues" | ADVANCED |
+| `security-auditor` | Security audit for OWASP flaws, leaked secrets and dependency CVEs | "Audit my app for security issues" | ADVANCED |
 | `stripe-best-practices` | Stripe SDK - current API patterns, common pitfalls | "Build Stripe Checkout into my app" | ADVANCED |
-| `stripe-projects` | Stripe project scaffolding - common patterns | "Scaffold a Stripe-powered project" | ADVANCED |
+| `stripe-projects` | Provision third-party services and API keys via projects.dev | "Scaffold a Stripe-powered project" | ADVANCED |
 | `supabase-admin` | Supabase RLS, migrations, schema design | "Design my Supabase schema" | ADVANCED |
 | `typescript-advanced-patterns` | Advanced TypeScript for production codebases | "Improve my TypeScript types" | DEV-ONLY |
 | `upgrade-stripe` | Upgrade Stripe SDK to the current API version | "Upgrade my Stripe SDK to the latest version" | ADVANCED |
@@ -150,7 +150,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 
 | Skill | What It Does | Example Prompt | Tier |
 |---|---|---|---|
-| `personal-finance-coach` | Tax, investment, cash flow coaching | "Help me plan my finances" | CORE |
+| `personal-finance-coach` | Investing, tax and retirement or FIRE planning backed by research | "Help me plan my finances" | CORE |
 | `remotion-best-practices` | Video creation with Remotion (React-based) | "Help me create a video with Remotion" | DEV-ONLY |
 | `retro` | Engineering retrospectives with code quality metrics | "Run a retrospective on this sprint" | DEV-ONLY |
 | `task-decomposer` | Break complex problems into parallel sub-tasks | "Break this project into tasks" | ADVANCED |
@@ -160,12 +160,12 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | Skill | What It Does | Example Prompt | Tier |
 |---|---|---|---|
 | `apify-competitor-intelligence` | Competitor strategy, pricing, ads, positioning | "Scrape my competitor's pricing page" | ADVANCED |
-| `apify-content-analytics` | Content performance and campaign ROI | "Analyse what content performs best in my space" | ADVANCED |
-| `apify-market-research` | Market research across Google, Amazon, reviews | "Research pricing in my market" | ADVANCED |
+| `apify-content-analytics` | Performance of your own social accounts, posts and ads | "Analyse what content performs best in my space" | ADVANCED |
+| `apify-market-research` | Market sizing from Google Trends, Marketplace pricing and travel demand | "Research pricing in my market" | ADVANCED |
 | `competitive-cartographer` | Strategic competitive positioning and white space | "Where are the gaps in my market?" | ADVANCED |
-| `competitor-alternatives` | Maps your competitive landscape | "Analyse my main competitor's positioning" | CORE |
+| `competitor-alternatives` | Writes vs and alternatives pages that rank for a rival's brand terms | "Analyse my main competitor's positioning" | CORE |
 | `deep-research` | Deep multi-step research on any topic | "Research my top 3 competitors" | CORE |
-| `reddit-insights` | Mines Reddit for honest customer opinions | "What do customers complain about in my industry?" | CORE |
+| `reddit-insights` | Mines Reddit for honest customer opinions (needs the reddit-insights.com MCP) | "What do customers complain about in my industry?" | CORE |
 | `research-analyst` | Competitive and market analysis with structured reports | "Give me a competitor analysis report" | CORE |
 | `youtube-summarizer` | Transcripts and summaries from any YouTube video | "Summarise this YouTube video: [URL]" | ADVANCED |
 
@@ -182,9 +182,9 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 
 | Skill | What It Does | Example Prompt | Tier |
 |---|---|---|---|
-| `ai-product` | AI product development strategy | "Help me design an AI-powered product" | ADVANCED |
+| `ai-product` | Harden a working AI feature for production - validation, cost, testing | "Help me design an AI-powered product" | ADVANCED |
 | `analytics-product` | Product analytics - funnels, retention, north star | "Help me define my key metrics" | ADVANCED |
-| `brainstorming` | Structured idea generation | "Give me 15 ideas to grow my revenue" | CORE |
+| `brainstorming` | Turns a rough idea into an approved written spec before anything gets built | "Give me 15 ideas to grow my revenue" | CORE |
 | `plan-ceo-review` | CEO-mode plan review - challenge premises | "Review this plan from a CEO perspective" | ADVANCED |
 | `plan-eng-review` | Engineering review - architecture, edge cases | "Review this technical plan" | ADVANCED |
 | `product-appeal-analyzer` | Product desirability and market positioning | "How can I make my offer more appealing?" | CORE |
