@@ -194,9 +194,35 @@ right thing — but that is inference, not specification (see CORE-110).
 Also confirmed: `my-own-skill` is correctly recognised as the user's own and excluded from
 both the kit sync and the manifest.
 
-**Still unverified**: the MIGRATE "works from any folder" note, the Playwright smoke test,
-and the completion banner all sit after the mid-session restart, which a headless run
-cannot pass. Those need one interactive run.
+### Interactive run: end-to-end through the restart
+
+A human-driven run of the `loup` shape cleared the three restart-gated items: the Step 10
+MIGRATE note fires **exactly once**, the Playwright smoke test passes, and the completion
+banner renders with nothing after it.
+
+Strongest single signal from that run: the assistant addressed the user as "Sam" — the name
+in the fixture's seeded pre-existing `~/.claude/CLAUDE.md`. That proves the hand-written
+global content survived the pointer-block write *and* is honoured at runtime, which a
+file-presence check cannot show.
+
+### The bulk question is never asked
+
+The same interactive run — human present, nothing suppressing questions — reproduced the
+customisation loss, and revealed it is worse than "the recommended answer is destructive".
+The question is not asked at all. In the whole session the only user turn was `done` (the
+restart), and exactly one assistant message contains a question mark: the final verify
+summary. The model went straight to "Refreshing all Selr kit skills to the newest versions
+now" — after having already told the user "Everything you've learned and customised comes
+with you."
+
+The likely reason is structural: Step 5 buries a required interaction inside a long batch
+of file operations the model is otherwise performing autonomously, so it reads as narration
+and gets narrated rather than performed. Any fix that relies on the model stopping to ask
+mid-flow inherits that weakness — which is the argument for reconstructing fingerprints
+from the on-disk old kit instead. Tracked as CORE-111 (Urgent).
+
+Note also that the verify gate passes a run that ate the user's work; it has no line
+covering this.
 
 ### Earlier findings
 
