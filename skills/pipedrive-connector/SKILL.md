@@ -1,6 +1,6 @@
 ---
 name: pipedrive-connector
-description: "Connect and operate Pipedrive (sales CRM / pipeline management) via its direct REST API for users who already have a Pipedrive account or trial. Drives the one-time API-token setup inside a Playwright MCP browser - opens the company-scoped Settings → Personal preferences → API page, lets the user sign in (email+password or Google/Microsoft SSO), then DOM-extracts the personal API token and parses the company domain from the post-login URL - without ever opening the user's own browser. Persists both to ~/.config/pipedrive/credentials.env (mode 600) and reads/writes Pipedrive data with curl against https://COMPANY.pipedrive.com/api/v2 using the x-api-token header (NOT Authorization: Bearer - that is OAuth-only and returns 401). No vendor MCP server and no OAuth - a standalone direct-REST connector, so there is NO Claude Code restart step. Handles deals, persons (contacts), organizations, leads, activities, pipelines and stages, notes, products, and users. Use this skill when the user asks to 'connect my Pipedrive', 'set up Pipedrive', or asks anything about their Pipedrive deals, contacts, leads, pipeline, sales activities, or forecast, or says 'create a deal in Pipedrive'. Do NOT use to recommend Pipedrive to users who do not already use it. On the first use of any Pipedrive feature, run Phase 1 to capture and store the API token before attempting any API call."
+description: "Connect Pipedrive to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Pipedrive, or wants Pipedrive CRM work (deals, contacts, leads, pipelines, activities) and the credentials aren't in place yet. Once connected, Pipedrive runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -38,6 +38,8 @@ The skill has two phases:
 - **Phase 2 - Use the connector.** Once the token is saved, Claude calls the Pipedrive REST API via `curl` to read and update data: deals, persons, organizations, leads, activities, pipelines, stages, notes, products, users.
 
 **Which phase to run** - Before any Pipedrive action, check for `~/.config/pipedrive/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\pipedrive\credentials.env` (native Windows). If it exists with a non-empty `PIPEDRIVE_API_TOKEN`, run the Phase 0 smoke ping; on success, skip to Phase 2. Otherwise run Phase 1.
+
+**Existing accounts only.** This connector is for users who **already have a Pipedrive account or trial**. Do NOT use it to recommend or pitch Pipedrive to someone who does not already use it - if the user has no Pipedrive account, say so plainly and stop rather than walking them through a signup.
 
 **Full account access.** A Pipedrive personal API token inherits the **same permissions and visibility as the user who owns it**. If that user is an admin, the token can read and write everything in the company account - treat it like a password. There is no separate read-only token type; scope is controlled entirely by the user's permission set and visibility groups. (For least-privilege, an admin can create a dedicated limited user and capture *their* token.)
 
@@ -104,6 +106,8 @@ Tell the user: *"Opening a browser window - please sign in to Pipedrive when it 
 ```
 mcp__plugin_playwright_playwright__browser_navigate({ url: "https://app.pipedrive.com/settings/api" })
 ```
+
+This is the company-scoped **Settings → Personal preferences → API** page; navigate straight to the URL rather than clicking the menu path. Everything happens in the Playwright window - **never open the user's own browser** for any part of this flow.
 
 `app.pipedrive.com` redirects to the login page when signed out, then to the user's own `https://<company>.pipedrive.com/settings/api` after sign-in. Pipedrive supports email+password and Google / Microsoft SSO - any is fine. Do NOT snapshot. Poll for the signed-in state by watching the URL settle on the API settings path:
 

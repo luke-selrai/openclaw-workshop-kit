@@ -1,6 +1,6 @@
 ---
 name: canva-connector
-description: "Connect and operate Canva via the official first-party Canva MCP server (https://mcp.canva.com/mcp). Phase 1 is a 6-step Playwright-driven install: register the server with `claude mcp add`, open Claude Code's OAuth start URL inside the Playwright MCP browser, detect login state and prompt sign-in only if needed, auto-click Allow on the consent screen, auto-detect the callback via `browser_wait_for`, surface the Enterprise administrator-approval-required interstitial cleanly if it appears, then verify with a `mcp__canva__*` smoke call. The user's only manual moment is signing in to Canva inside the Playwright window. Use this skill when the user asks to set up Canva, connect their account, search or export designs, generate AI designs, add or read comments, manage folders, resize designs, or edit design content."
+description: "Connect Canva to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect Canva, or wants Canva work (designs, exports, AI generation, comments, folders, brand kits) and Canva isn't connected yet. Once connected, Canva runs directly through the mcp__canva__* tools."
 allowed-tools: mcp__canva__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations

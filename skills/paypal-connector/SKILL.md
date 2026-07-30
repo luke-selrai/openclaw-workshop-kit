@@ -1,6 +1,6 @@
 ---
 name: paypal-connector
-description: "Connect and operate PayPal via the official @paypal/mcp server. Drives the entire setup autonomously through developer.paypal.com/dashboard/applications in a Playwright MCP browser: switches to the chosen Live or Sandbox tab, clicks Create App, fills the app name, captures Client ID and Secret from the DOM after clicking Show, silently exchanges them for an access token, and writes ~/.claude.json. The only human moments are the user signing in to PayPal once and answering live-vs-sandbox. Use this skill when the user asks to set up PayPal, connect their account, or interact with invoices, payments, orders, refunds, disputes, subscriptions, products, shipment tracking, or transactions. On first use, run Phase 1 to install and authenticate the connector before attempting any tool calls."
+description: "Connect PayPal to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect PayPal, or wants PayPal work (invoices, payments, refunds, disputes, subscriptions, transactions) and PayPal isn't connected yet. Once connected, PayPal runs directly through the mcp__paypal__* tools."
 allowed-tools: mcp__paypal__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Payments & Billing

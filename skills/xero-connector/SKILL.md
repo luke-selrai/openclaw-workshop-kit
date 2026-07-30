@@ -1,6 +1,6 @@
 ---
 name: xero-connector
-description: "FULLY AUTONOMOUS Xero connection for Claude Code via the official @xeroapi/xero-mcp-server. Playwright drives the entire Xero developer portal: creates the Custom Connection app, ticks the V1 scope set, saves, activates, extracts Client ID and Secret directly from the DOM, runs smoke test, writes ~/.claude.json, verifies via live API call. The user's ONLY action is signing into their own Xero account (username + password + 2FA). Zero copy-paste, zero typing, zero reading error messages. If something fails, the agent diagnoses and retries silently. A country/cost safety gate runs FIRST (Xero charges ~$5 USD / $8 AUD / £5 GBP per month for the Custom Connection; AU/NZ/UK/US only). Use when the user says 'connect my Xero', 'set up Xero', 'help with accounting', or asks about invoices, contacts, profit and loss, balance sheet, bank transactions, chart of accounts, payments, or quotes when Xero isn't configured yet."
+description: "Connect Xero to Claude by installing and authenticating Xero's official MCP server. Use when the user asks to set up or connect Xero, or wants Xero or accounting work (invoices, contacts, payments, quotes, bank transactions, the chart of accounts, profit and loss, balance sheet) and Xero isn't connected yet. Once connected, Xero runs directly through the mcp__xero__* tools."
 allowed-tools: mcp__xero__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
@@ -597,7 +597,7 @@ After setup, these are available via `mcp__xero__<name>`:
 | Org | `list-organisation-details` |
 | Invoices | `list-invoices`, `get-invoice` |
 | Contacts | `list-contacts`, `get-contact` |
-| Accounts | `list-accounts` |
+| Accounts | `list-accounts` - this is the chart of accounts |
 | Bank | `list-bank-transactions`, `list-payments` |
 | Items | `list-items` |
 | Quotes | `list-quotes` |

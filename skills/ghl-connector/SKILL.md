@@ -1,6 +1,6 @@
 ---
 name: ghl-connector
-description: "Connect and operate GoHighLevel (GHL) via the official HighLevel MCP server (services.leadconnectorhq.com/mcp/). Use this skill when the user asks to set up GHL, connect their CRM, or interact with contacts, conversations, opportunities, pipelines, calendar, payments, blogs, email templates, or social posts. On first use, run Phase 1: Claude drives the browser end-to-end via Playwright, mints the Private Integration Token autonomously, ticks every available scope, and saves the connection. The user only signs in to GHL, names the sub-account if they have several, and restarts Claude Code once at the end."
+description: "Connect GoHighLevel to Claude by installing and authenticating HighLevel's official MCP server. Use when the user asks to set up GHL or connect their CRM, or wants GoHighLevel work (contacts, pipelines, conversations, calendar, payments, blogs, social posts) and GoHighLevel isn't connected yet. Once connected, GHL runs directly through the mcp__ghl__* tools."
 allowed-tools: mcp__ghl__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: CRM & Marketing

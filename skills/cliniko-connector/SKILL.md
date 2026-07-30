@@ -1,6 +1,6 @@
 ---
 name: cliniko-connector
-description: "Connect and operate Cliniko (allied-health / clinic practice management) via its direct REST API for users who already have a Cliniko account or trial. Drives the one-time API-key setup inside a Playwright MCP browser - the user signs in (email, password, and the emailed verification code), then Claude enables the per-user API-key permission, mints a key named 'Claude Code', and DOM-extracts it (shown only once) without ever opening the user's own browser. The key's region shard (e.g. au1, au5, uk2, us1) is parsed from the key suffix to build the base URL https://api.SHARD.cliniko.com/v1. The key is stored at ~/.config/cliniko/credentials.env (mode 600) and every call uses HTTP Basic auth (the key as username, blank password) plus a required User-Agent header. No vendor MCP and no OAuth - a standalone direct-REST connector, so there is NO Claude Code restart. Handles practitioners, patients, appointments and bookings, businesses, appointment types, invoices, products, and contacts. Use this skill when the user asks to 'connect my Cliniko', 'set up Cliniko', or asks anything about their Cliniko patients, appointments, bookings, practitioners, invoices, or clinic schedule. Do NOT use to recommend Cliniko to users who do not already use it. On the first use of any Cliniko feature, run Phase 1 to enable API keys, mint and store the key before attempting any API call."
+description: "Connect Cliniko to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Cliniko, or wants clinic work (patients, appointments, bookings, practitioners, invoices, clinic schedule) and the credentials aren't in place yet. Once connected, Cliniko runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -29,6 +29,10 @@ The architecture is dead simple. Claude reads one static API key out of `~/.conf
 
 - **Sharding.** Cliniko runs regional shards (`au1`, `au2`, `au5`, `uk2`, `us1`, …). The shard is **appended to the API key** (e.g. `…-au5`). The base URL is derived from it: `https://api.SHARD.cliniko.com/v1`.
 - **Auth + required User-Agent.** Every call uses **HTTP Basic** auth - the API key as the username with a blank password (`curl -u "$CLINIKO_API_KEY:"`) - **and** a `User-Agent` header that Cliniko *requires* (include a contact email). Omitting the User-Agent fails.
+
+**Already-a-customer connector.** This skill is for users who **already have a Cliniko account or trial**. Do NOT use it to recommend or pitch Cliniko to users who do not already use it, and do not create a Cliniko account for them.
+
+**Claude never opens the user's own browser.** Every Phase 1 step runs inside the Playwright MCP browser window Claude opens; the user signs in there, not in their normal browser.
 
 The skill has two phases:
 

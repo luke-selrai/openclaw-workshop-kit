@@ -1,6 +1,6 @@
 ---
 name: notion-connector
-description: "Connect and operate a user's Notion workspace through the official Notion CLI (`ntn`, https://developers.notion.com/cli). Instructions-only - no MCP server, no plugin, no token stored in any config file. Phase 1 installs `ntn` (npm) and runs `ntn login --no-browser`: Claude reads the verification URL + code the CLI prints, drives a Playwright browser to that URL, the user signs in to Notion and confirms the matching code, then `ntn login poll` completes and the token is saved in the OS keychain (Keychain / Secret Service), never on disk. Phase 2 operates Notion via `ntn pages`, `ntn datasources`, and the `ntn api` passthrough (search, comments, blocks, users - the full public API). Use this skill when the user asks to set up or connect Notion, or to read/search/create/update Notion pages, databases, or meeting notes."
+description: "Connect Notion to Claude by installing and signing in to the official `ntn` CLI. Use when the user asks to set up or connect Notion, or wants Notion work (pages, databases, search, comments, meeting notes) and the `ntn` CLI isn't signed in yet. Once connected, Notion runs directly through the `ntn` CLI."
 allowed-tools: Bash, Read, Write, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -55,7 +55,7 @@ This connector deliberately uses the `ntn` CLI instead of the `notion@claude-plu
 
 ## Security rules
 
-- **Never echo a token.** `ntn` stores the token in the OS keychain; you never see it and must never print it. Never set or echo `NOTION_API_TOKEN`. Never run `claude mcp get` or print `~/.claude.json`.
+- **Never echo a token.** `ntn` stores the token in the OS keychain - macOS **Keychain**, Linux **Secret Service** - and you never see it and must never print it. Never set or echo `NOTION_API_TOKEN`. Never run `claude mcp get` or print `~/.claude.json`.
 - **The verification code is short-lived and low-risk**, but still don't paste it into chat unnecessarily - drive it through Playwright.
 - If a user is on a system with no keychain, `ntn` falls back to `~/.config/notion/auth.json` (set `NOTION_KEYRING=0`). Treat that file as a secret: never read it back into chat, never commit it.
 
@@ -272,6 +272,7 @@ Common endpoints (discover the rest with `ntn api ls`):
 | "Connect my Notion" / "Set up Notion" | **Run Phase 1** |
 | "My Notion stopped working" / "reconnect Notion" | `ntn login --no-browser` (re-run Phase 1 Step 3) |
 | "Search my Notion for X" / "find the Q3 plan" | `ntn api v1/search -X POST -d '{"query":"X"}'` |
+| "Find my meeting notes from X" / "read the meeting notes" | `ntn api v1/search -X POST -d '{"query":"…"}'` → `ntn pages get <page-id>` (meeting notes are ordinary pages) |
 | "Open / read the <page>" | search → `ntn pages get <page-id>` |
 | "Create a page called X" / "add a note" | **CONFIRM** → `ntn pages create --parent … --content '# X …'` |
 | "Update / append to <page>" | `ntn pages get <id>` → **CONFIRM** → `ntn pages update <id> …` |

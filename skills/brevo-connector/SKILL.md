@@ -1,6 +1,6 @@
 ---
 name: brevo-connector
-description: "Connect and operate Brevo (formerly Sendinblue - email marketing, contacts, transactional email) via its REST API for users who already have a Brevo account. Brevo uses a self-serve API key (prefix xkeysib-). Phase 1 is autonomous via Playwright: Claude opens Settings → SMTP & API → API keys (app.brevo.com/settings/keys/api), the user signs in, Claude clicks Generate API key, names it 'Claude Code', picks 'No expiration', and Generates - Brevo gates generation behind reCAPTCHA and reveals the full key ONCE in a modal with a Copy button (the key contains hyphens, ~89 chars), which Claude captures via Copy. Stores it at ~/.config/brevo/credentials.env (mode 600) and verifies with GET /account. Phase 2 reads and writes via curl against https://api.brevo.com/v3 using the 'api-key' header. Handles contacts, contact lists, senders, email (marketing) campaigns, and transactional email. No vendor MCP. Use this skill when the user asks to 'connect my Brevo' / 'Sendinblue', 'set up Brevo', or asks anything about their Brevo contacts, lists, email campaigns, or to send/draft email. Do NOT use to recommend Brevo to users who do not already use it. On first use, run Phase 1 to mint and store the key before any API call."
+description: "Connect Brevo (formerly Sendinblue) to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Brevo, or wants Brevo work (contacts, lists, senders, email campaigns, transactional email) and the credentials aren't in place yet. Once connected, Brevo runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Marketing & Advertising
@@ -39,6 +39,8 @@ The skill has two phases:
 **Which phase to run** - Before any Brevo action, check for `~/.config/brevo/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\brevo\credentials.env` (native Windows). If it exists with a non-empty `BREVO_API_KEY`, run the Phase 0 smoke ping; on success go to Phase 2; on 401 run Phase 1. Otherwise run Phase 1.
 
 **Full account access.** A Brevo API key has full access to the account's contacts, campaigns, and sending. Treat it like a password.
+
+**Existing accounts only.** This connector is for users who already have a Brevo (Sendinblue) account. Do not use it to recommend Brevo to users who do not already use it.
 
 ---
 

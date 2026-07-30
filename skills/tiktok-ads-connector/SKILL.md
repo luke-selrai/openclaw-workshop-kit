@@ -1,6 +1,6 @@
 ---
 name: tiktok-ads-connector
-description: "Connect and operate TikTok for Business Ads (read advertisers, campaigns, ad groups, ads, audiences, performance reports for spend/impressions/clicks/conversions/conversion-value; pause/resume campaigns; adjust daily budgets). Tier-1 connector for SMBs running TikTok paid ads, especially e-commerce/creator-economy brands. Direct-REST against TikTok Marketing API v1.3 at https://business-api.tiktok.com/open_api/v1.3/ with the TikTok-specific `Access-Token: <token>` auth header. Phase 0 picks between Sandbox mode (TikTok-provisioned sandbox advertiser, instant, fake spend data) and Production mode (real advertiser, real spend, scopes that touch audience data may require TikTok app review). Long-lived access tokens (TikTok issues ~30-day tokens; the refresh-token cycle is documented but rare for self-serve advertisers). Phase 2 writes (pause/resume, budget) are gated by per-call confirmation prose in Production mode; freely callable in Sandbox. Use this skill when the user asks about their TikTok Ads, says 'connect TikTok Ads', asks about ad spend / conversions / TikTok campaigns / TikTok ad performance / creators / TikTok pixel data. On first use, run Phase 0 then Phase 1 before any tool call."
+description: "Connect TikTok Ads to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect TikTok Ads, or wants TikTok for Business work (campaigns, ad groups, ads, ad spend and conversion reports, audiences, budgets) and the credentials aren't in place yet. Once connected, TikTok Ads runs directly against its API with the stored credentials."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Marketing & Advertising
@@ -545,6 +545,8 @@ tk_post "/campaign/update/" "$(jq -n --arg ai "$ADV" --arg cid "$CAMPAIGN_ID" --
 | HTTP 429 | Rate cap | Wait 30s, retry once. |
 
 **Note**: TikTok API returns HTTP 200 with a `code` field in the JSON body for ALL responses - both success (`code: 0`) and error. Always check `code` before treating a 200 as success.
+
+**Token lifetime**: TikTok issues long-lived access tokens (~30 days). A refresh-token cycle is documented in the Marketing API, but is rare for self-serve advertisers - the practical resume path on `code: 40100` is to re-run Phase 1 rather than to attempt a refresh.
 
 Translate every error to plain English. Never show raw HTTP bodies.
 

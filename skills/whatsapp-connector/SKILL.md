@@ -1,6 +1,6 @@
 ---
 name: whatsapp-connector
-description: "Connect the user's WhatsApp to Claude Code so they can message their assistant from their phone. Drives the install + QR-pairing flow autonomously: Claude installs Bun if missing, installs the channel's packages, writes a one-word `claude-wa` launch shortcut, kills any stale listener, then asks the user to start the listener in a fresh terminal and scan the QR with their phone. The only human moments are scanning the QR code, typing `claude-wa` once, and (if a fresh Bun install was needed) restarting the host app once. Use this skill when the user says 'set up WhatsApp', 'connect my WhatsApp', 'install the WhatsApp channel', or asks about past WhatsApp messages, the allowlist, or the QR pairing flow. On the first use, run Phase 1 before attempting any tool calls."
+description: "Connect WhatsApp to Claude by installing and pairing its channel listener, so the user can message their assistant from their phone. Use when the user asks to set up or connect WhatsApp or its channel, or to message Claude from their phone, and WhatsApp isn't paired yet. Also handles QR re-pairing, the allowlist and past-message history once paired."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Channels & Messaging

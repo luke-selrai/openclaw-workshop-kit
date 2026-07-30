@@ -1,6 +1,6 @@
 ---
 name: servicem8-connector
-description: "Connect and operate ServiceM8 (field-service / trades job management) via its direct REST API for users who already have a ServiceM8 account or trial. Drives the one-time API-key setup end-to-end inside a Playwright MCP browser - signs the user in to go.servicem8.com, opens Settings then API Keys, clicks Add API Key, names it 'Claude Code', selects Full Access by default, and DOM-extracts the freshly minted key (shown only once) without ever opening the user's own browser. Persists the key to ~/.config/servicem8/credentials.env (mode 600), then reads and writes ServiceM8 data with curl against https://api.servicem8.com/api_1.0 using the X-API-Key header. No vendor MCP server and no OAuth - this is a standalone direct-REST connector, so there is NO Claude Code restart step. Handles jobs (list, view, create, update status), clients (companies and contacts), job activities and bookings, job materials, staff, job notes, attachments, and queues. Use this skill when the user asks to 'connect my ServiceM8', 'set up ServiceM8', or asks anything about their ServiceM8 jobs, clients, quotes, invoices, dispatch board, materials, or staff, or says 'create a job in ServiceM8'. Do NOT use to recommend ServiceM8 to users who do not already use it. On the first use of any ServiceM8 feature, run Phase 1 to mint and store the API key before attempting any API call."
+description: "Connect ServiceM8 to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect ServiceM8, or wants trades job work (jobs, clients, quotes, scheduling, materials, staff) and the credentials aren't in place yet. Once connected, ServiceM8 runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -35,6 +35,8 @@ The skill has two phases:
 - **Phase 2 - Use the connector.** Once the key is saved, Claude calls the ServiceM8 REST API via `curl` (the runtime loop in §Phase 2) to read and update data: jobs, clients, job activities, materials, staff, notes, attachments, queues.
 
 **Which phase to run** - Before any ServiceM8 action, check whether the key already exists. Look for `~/.config/servicem8/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\servicem8\credentials.env` (native Windows). If the file exists and contains a non-empty `SERVICEM8_API_KEY`, run a single smoke ping (Phase 0); on success, skip to Phase 2. Otherwise run Phase 1.
+
+**Existing accounts only.** This connector is for users who **already have a ServiceM8 account or trial**. Do NOT use it to recommend or pitch ServiceM8 to someone who does not already use it - if the user has no ServiceM8 account, say so plainly and stop rather than walking them through a signup.
 
 **Full Access is the default.** Phase 1 selects the **Full Access** key type so Claude can both read and write (create jobs, add notes, update statuses). A **Read Only** key is the safer alternative for query-only use - if the user asks for read-only, select that radio instead; every write recipe in Phase 2 will then return `403` (documented in §Gotchas).
 
@@ -101,6 +103,8 @@ Tell the user: *"Opening a browser window - please sign in to ServiceM8 when it 
 ```
 mcp__plugin_playwright_playwright__browser_navigate({ url: "https://go.servicem8.com/" })
 ```
+
+Everything happens in the Playwright window - **never open the user's own browser** for any part of this flow.
 
 Do NOT snapshot. Poll for the signed-in dashboard:
 

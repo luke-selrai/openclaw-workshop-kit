@@ -1,6 +1,6 @@
 ---
 name: circleci-connector
-description: "Read CircleCI build, pipeline, workflow, and test data on behalf of the user via the official @circleci/mcp-server-circleci. Handles pipeline status, build failure logs, flaky test detection, job test results, artifact listing, followed projects, config validation, and pipeline triggers (run, rerun, rollback). Use this skill when the user asks about their CircleCI, builds, pipelines, workflows, failed jobs, flaky tests, build logs, or when they say 'connect my CircleCI' or 'help me set up CircleCI'. On the first use of any CircleCI feature, run Phase 1 to collect a Personal API Token and wire the MCP server into Claude Code before attempting any tool calls."
+description: "Connect CircleCI to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect CircleCI, or wants CircleCI work (pipeline status, build failure logs, flaky tests, artifacts, pipeline runs) and CircleCI isn't connected yet. Once connected, CircleCI runs directly through the mcp__circleci__* tools."
 allowed-tools: mcp__circleci__*, Bash, Read, Write, Edit
 metadata:
   category: Developer Tools & CI/CD
