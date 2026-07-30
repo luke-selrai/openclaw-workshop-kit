@@ -1,10 +1,7 @@
 ---
 name: retro
 version: 2.0.0
-description: |
-  Weekly engineering retrospective. Analyzes commit history, work patterns,
-  and code quality metrics with persistent history and trend tracking.
-  Team-aware: breaks down per-person contributions with praise and growth areas.
+description: "Weekly engineering retrospective from git commit history - work patterns, code quality metrics, per-person praise and growth areas, with saved snapshots for trend tracking. Use when the user runs /retro or wants a team or personal engineering retro."
 allowed-tools:
   - Bash
   - Read

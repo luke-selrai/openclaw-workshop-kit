@@ -1,7 +1,6 @@
 ---
 name: postgresql-optimization
-description: Expert in PostgreSQL performance tuning, query optimization, and database administration. Specializes in EXPLAIN analysis, indexing strategies, connection pooling, partitioning, and production-grade
-  PostgreSQL operations.
+description: "PostgreSQL performance tuning and query optimization - EXPLAIN analysis, index design, partitioning and connection pooling. Use when a Postgres query is slow, an index or schema needs designing, or a database needs tuning for production."
 version: 1.0.0
 metadata:
   category: database

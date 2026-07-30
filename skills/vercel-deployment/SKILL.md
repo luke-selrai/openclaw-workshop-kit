@@ -1,7 +1,6 @@
 ---
 name: vercel-deployment
-description: Deploy Next.js and React applications to Vercel - project setup, environment variables, edge functions, build troubleshooting, preview deployments, monorepo configuration. NOT for AWS/GCP/Azure
-  deployment, self-hosted solutions, or Cloudflare Pages.
+description: "Configures Next.js and React projects for Vercel - environment variables, vercel.json, edge functions, previews, monorepos, domains. Use when the user is setting up Vercel config, wiring env vars, or debugging a failed build; deploy-to-vercel ships the code."
 allowed-tools: Read,Write,Edit,Bash(npm:*,npx:*,vercel:*)
 metadata:
   category: DevOps & Site Reliability
@@ -22,6 +21,8 @@ metadata:
 # Vercel Deployment
 
 This skill helps you deploy and configure Next.js applications on Vercel following best practices.
+
+**Scope:** Vercel only. Not for AWS / GCP / Azure deployment, self-hosted solutions, or Cloudflare Pages.
 
 ## Quick Deploy Checklist
 
@@ -252,6 +253,20 @@ npm run build
 
 # Analyze bundle
 ANALYZE=true npm run build
+```
+
+## Monorepo Configuration
+
+In a monorepo (Turborepo, npm/pnpm/yarn workspaces), create one Vercel project per deployable app:
+
+1. **Root Directory** - Project Settings → General → Root Directory → the app folder (e.g. `apps/web`).
+2. **Shared packages** - enable "Include files outside of the Root Directory" when the app imports workspace packages from above its root.
+3. **Per-app config** - each app keeps its own `vercel.json` inside its Root Directory; Vercel resolves it relative to that directory, not the repo root.
+4. **Ignored Build Step** - skip rebuilds for apps a push didn't touch (Project Settings → Git → Ignored Build Step). Exit code 0 skips the build, 1 builds:
+
+```bash
+npx turbo-ignore              # Turborepo-aware
+git diff --quiet HEAD^ HEAD -- .   # plain: build only if this directory changed
 ```
 
 ## Database Considerations

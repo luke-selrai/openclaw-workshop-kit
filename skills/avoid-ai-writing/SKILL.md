@@ -1,6 +1,6 @@
 ---
 name: avoid-ai-writing
-description: "Audit and rewrite content to remove 33 categories of AI writing patterns with a tiered word/phrase replacement table"
+description: "Audits and rewrites prose to strip AI writing tells, using a tiered replacement table and 33 pattern categories. Use when the user wants AI-isms removed, text that sounds machine-generated made human, or a draft checked before publishing."
 risk: none
 source: https://github.com/conorbronsdon/avoid-ai-writing
 date_added: "2026-03-06"

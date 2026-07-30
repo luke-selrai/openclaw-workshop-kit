@@ -1,6 +1,6 @@
 ---
 name: claude-dispatch
-description: Set up Claude Dispatch (phone-to-desktop task delegation via Cowork) or Remote Control (Claude Code terminal sessions from phone). Guides pairing, QR scan, security, and troubleshooting conversationally.
+description: "Sets up Claude Dispatch (phone-to-desktop tasks via Cowork) or Claude Code Remote Control. Use when the user wants to run tasks from their phone, pair phone and desktop, fix a QR-scan or pairing failure, or asks whether Dispatch is private."
 ---
 
 # Claude Dispatch & Remote Control

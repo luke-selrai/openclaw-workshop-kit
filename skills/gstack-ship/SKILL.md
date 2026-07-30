@@ -1,8 +1,7 @@
 ---
 name: gstack-ship
 version: 1.0.0
-description: |
-  Ship workflow: merge main, run tests, review diff, bump VERSION, update CHANGELOG, commit, push, create PR.
+description: "Ships the current feature branch unattended and ends with a pull request URL. Use when the user runs /gstack-ship, says ship this branch, or wants a finished branch taken all the way to an open PR without confirming each step."
 allowed-tools:
   - Bash
   - Read

@@ -1,6 +1,6 @@
 ---
 name: n8n-workflow-patterns
-description: Proven architectural patterns for n8n workflows including webhook processing, HTTP API integration, database operations, and AI agent workflows.
+description: "Architectural patterns for n8n workflows - webhook processing, HTTP API integration, database operations, AI agents and scheduled tasks. Use when the user is designing an n8n workflow, picking a trigger, or structuring loops and error handling."
 ---
 
 # n8n Workflow Patterns

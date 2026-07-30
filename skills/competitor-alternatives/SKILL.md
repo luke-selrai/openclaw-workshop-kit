@@ -1,6 +1,6 @@
 ---
 name: competitor-alternatives
-description: "Create competitor comparison and alternative pages for SEO and sales enablement, with feature matrices and positioning strategy."
+description: "Builds competitor comparison and alternative pages - vs pages, alternatives pages, feature matrices and migration sections - from one competitor profile. Use when the user wants a vs or alternatives page, or to rank for a rival's brand terms."
 risk: unknown
 source: community
 date_added: "2026-02-27"

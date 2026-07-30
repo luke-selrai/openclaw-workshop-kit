@@ -1,6 +1,6 @@
 ---
 name: email-composer
-description: Draft professional emails for various contexts including business, technical, and customer communication. Use when the user needs help writing emails or composing professional messages.
+description: "Drafts one-off professional emails - requests, follow-ups, meeting invites, technical updates, support replies, apologies and declines - with tone and subject-line guidance. Use when the user needs a single email written or a draft reworded."
 allowed-tools: Read,Write,Edit
 metadata:
   category: Content & Writing

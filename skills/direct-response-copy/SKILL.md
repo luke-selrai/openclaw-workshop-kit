@@ -1,6 +1,6 @@
 ---
 name: direct-response-copy
-description: High-converting sales copy using classic direct response frameworks (Schwartz, Hopkins, Ogilvy, Halbert). Landing pages, sales emails, headlines, CTAs, and persuasive content.
+description: "Writes direct-response sales copy using the Schwartz, Hopkins, Ogilvy and Halbert frameworks - headlines, landing pages, hooks, CTAs, founder stories. Use when the user wants copy that converts, or marketing text that reads human not AI-written."
 ---
 
 # The Direct Response Copy Skill

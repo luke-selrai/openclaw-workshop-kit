@@ -1,6 +1,6 @@
 ---
 name: agent-memory-mcp
-description: "A hybrid memory system that provides persistent, searchable knowledge management for AI agents (Architecture, Patterns, Decisions)."
+description: "Runs the agentMemory MCP server as a persistent, searchable memory bank for Claude - architecture notes, patterns and decisions that survive between sessions. Use when the user wants an agent to remember project knowledge or search past decisions."
 risk: unknown
 source: community
 date_added: "2026-02-27"
@@ -65,6 +65,7 @@ Record new knowledge or decisions.
 
 - **Args**: `key` (string), `type` (string), `content` (string), `tags?` (string[])
 - **Usage**: "Save this architecture decision" -> `memory_write({ key: "auth-v1", type: "decision", content: "..." })`
+- **Common `type` values**: `architecture`, `pattern`, `decision` - this hybrid memory bank is designed around those three kinds of long-lived project knowledge.
 
 ### `memory_read`
 

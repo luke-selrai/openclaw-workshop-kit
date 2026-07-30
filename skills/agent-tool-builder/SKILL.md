@@ -1,6 +1,6 @@
 ---
 name: agent-tool-builder
-description: "Design agent tool schemas, descriptions, and error handling for reliable LLM function calling and MCP integrations."
+description: "Designs agent tool definitions - JSON Schema inputs, the description the model actually reads, input examples and recoverable errors. Use when a tool misfires, loops or fails silently, or when adding tools to an MCP server or function-calling agent."
 risk: unknown
 source: "vibeship-spawner-skills (Apache 2.0)"
 date_added: "2026-02-27"
