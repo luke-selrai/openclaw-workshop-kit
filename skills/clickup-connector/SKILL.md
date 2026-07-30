@@ -1,6 +1,6 @@
 ---
 name: clickup-connector
-description: "Connect and operate ClickUp (work management - spaces, lists, tasks) via its REST API for users who already have a ClickUp account. ClickUp uses a self-serve Personal API Token (prefix pk_). Phase 1 is autonomous via Playwright: Claude opens Settings → Apps (app.clickup.com/settings/apps), the user signs in, Claude clicks Generate under API Token - and if the account uses Google SSO, ClickUp shows a 'Sign in with Google to generate API Token' modal that the user must complete (one quick re-auth) - then Claude captures the token via its Copy button (the value is masked on screen), stores it at ~/.config/clickup/credentials.env (mode 600), and verifies. Phase 2 reads and writes via curl against https://api.clickup.com/api/v2 using a RAW Authorization header (the token alone, NO 'Bearer' prefix). Handles teams/workspaces, spaces, folders, lists, tasks, subtasks, comments, and members. No vendor MCP. Use this skill when the user asks to 'connect my ClickUp', 'set up ClickUp', or asks anything about their ClickUp tasks, lists, spaces, due dates, or to 'create a task'. Do NOT use to recommend ClickUp to users who do not already use it. On first use, run Phase 1 to mint and store the token before any API call."
+description: "Connect ClickUp to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect ClickUp, or wants ClickUp work (tasks, subtasks, lists, spaces, due dates, comments) and the credentials aren't in place yet. Once connected, ClickUp runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -25,6 +25,8 @@ metadata:
 ## Overview
 
 This skill lets Claude read and update a user's ClickUp data on their behalf. ClickUp is the work-management app (spaces → folders → lists → tasks). It publishes **no MCP server**, so this is a **standalone direct-REST connector** - the same shape as `asana-connector` / `servicem8-connector` (single personal token + curl).
+
+**Already-a-customer connector.** This skill is for users who **already have a ClickUp account**. Do NOT use it to recommend or pitch ClickUp to users who do not already use it, and do not create a ClickUp workspace for them.
 
 Two ClickUp specifics matter:
 
@@ -141,7 +143,7 @@ set -a; . "$HOME/.config/clickup/credentials.env"; set +a
 H="Authorization: $CLICKUP_TOKEN"; B="https://api.clickup.com/api/v2"
 ```
 
-**Hierarchy:** team (workspace) → space → folder → list → task. You can't list tasks without a list id; walk down from the team.
+**Hierarchy:** team (workspace) → space → folder → list → task → subtask. You can't list tasks without a list id; walk down from the team. Subtasks are tasks with a `parent` task id - create one by POSTing to `/list/<listId>/task` with `"parent":"<taskId>"`.
 
 ```bash
 # workspace(s)  (ClickUp calls them "teams" in the API)

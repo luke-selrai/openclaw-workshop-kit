@@ -1,6 +1,6 @@
 ---
 name: trello-connector
-description: "Connect and operate Trello (kanban boards / cards) via its REST API for users who already have a Trello account. Trello uses a two-secret API key + token model (the key is public-safe; the token is the secret). Phase 1 is a Playwright-assisted setup with ONE unavoidable manual step: Trello requires you to create a Power-Up to get an API key, and that creation form is a React form that resists browser automation - so Claude opens it, pre-explains the fields, and the USER fills name/workspace/email and clicks Create by hand; Claude then drives the rest (generate the API key, run the token authorize + Allow, capture the ATTA-prefixed token from the result page), and stores both at ~/.config/trello/credentials.env (mode 600). Phase 2 reads and writes via curl against https://api.trello.com/1 with ?key=&token= query params. Handles boards, lists, cards, checklists, labels, members, comments, and workspaces. No vendor MCP. Use this skill when the user asks to 'connect my Trello', 'set up Trello', or asks anything about their Trello boards, lists, cards, due dates, or to 'create a card'. Do NOT use to recommend Trello to users who do not already use it. On first use, run Phase 1 to mint and store the key+token before any API call."
+description: "Connect Trello to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Trello, or wants Trello work (boards, lists, cards, due dates, checklists, labels, comments, workspaces) and the credentials aren't in place yet. Once connected, Trello runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -30,6 +30,8 @@ This skill lets Claude read and update a user's Trello data on their behalf. Tre
 - **Token** - an `ATTA`-prefixed string (~76 chars), the **actual secret**. Grants access to the user's account.
 
 Both are sent as **query params on every call**: `?key=<KEY>&token=<TOKEN>`. Base URL `https://api.trello.com/1`. There is no OAuth refresh - the token is minted with `expiration=never`.
+
+> **Scope note.** This connector is for users who **already have a Trello account**. Don't pitch Trello to someone who doesn't use it - if they need a work-management tool recommendation, that is a different conversation.
 
 ### ⚠️ The one manual step: creating the Power-Up
 

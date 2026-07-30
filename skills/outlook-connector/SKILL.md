@@ -1,6 +1,6 @@
 ---
 name: outlook-connector
-description: Install and operate the Microsoft Outlook & 365 connector. Use this skill when the user asks to set up Outlook, connect Microsoft 365, or interact with emails, calendar, OneDrive, Teams, SharePoint, OneNote, Excel, Contacts, or To Do. Drives the entire OAuth flow inside a Playwright MCP browser - never opens the user's own browser.
+description: "Connect Outlook and Microsoft 365 to Claude by installing and signing in to the `m365` CLI. Use when the user asks to set up Outlook or connect Microsoft 365, or wants mail, calendar, OneDrive, Teams, SharePoint, OneNote, Contacts or To Do work and the `m365` CLI isn't signed in yet. Once connected, Microsoft 365 runs directly through the `m365` CLI."
 allowed-tools: Bash,Read,Write,Edit,mcp__playwright__*,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -399,7 +399,9 @@ m365 teams chat message send \
 
 ---
 
-## Part 7 - Contacts, OneNote, To Do
+## Part 7 - Contacts, OneNote, To Do, Excel
+
+> **Excel workbooks** have no dedicated `m365` command. Reach them through Graph with `m365 request`, the same pattern as Part 3's calendar calls - e.g. `--url "https://graph.microsoft.com/v1.0/me/drive/items/<itemId>/workbook/worksheets"` to list sheets, then `.../worksheets/<name>/usedRange` to read cells. Find the workbook's `itemId` with the OneDrive or SharePoint commands in Parts 4-5 first.
 
 ```bash
 # Contacts

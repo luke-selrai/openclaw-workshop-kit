@@ -1,6 +1,6 @@
 ---
 name: imessage-connector
-description: "Connect the user's iMessage to Claude Code (Mac only) so they can text their assistant from any Apple device. Handles the Full Disk Access grant, plugin install, and self-chat test conversationally. Use this skill when the user says 'set up iMessage', 'connect my iMessage', 'text Claude from my iPhone', or asks about iMessage allowlists, Full Disk Access, or AppleScript replies."
+description: "Connect iMessage to Claude on a Mac by installing the official iMessage plugin and granting Full Disk Access, so the user can text their assistant from any Apple device. Use when the user asks to set up iMessage or text Claude from their iPhone and the iMessage plugin isn't installed yet. Also handles the iMessage allowlist once connected."
 allowed-tools: Bash, Read, Write, Edit
 metadata:
   category: Channels & Messaging

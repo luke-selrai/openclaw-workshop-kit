@@ -1,6 +1,6 @@
 ---
 name: myob-connector
-description: "Connect and operate MYOB accounting via direct REST API for users who ALREADY have a paid MYOB subscription. Handles invoices (list, view, create), contacts (customer, supplier, employee), items, banking, payroll, and the connected company file's settings across MYOB Business (Lite/Pro) and AccountRight (Plus/Premier). Use this skill when the user asks to 'connect my MYOB', 'set up MYOB', 'help with my MYOB account', or asks anything about their MYOB invoices, contacts, sales, purchases, or accounts. Do NOT use to recommend MYOB to users who don't already use it - workshop attendees without an existing MYOB subscription should be directed to the xero-connector instead (Xero has a free trial path; MYOB does not). Drives the entire OAuth flow inside a Playwright MCP browser - never opens the user's own browser. On the first use of any MYOB feature, run Phase 1 to authorize the connection and write tokens to ~/.config/myob/tokens.json before attempting any API call."
+description: "Connect MYOB accounting to Claude by installing and authenticating its API credentials, for existing paid MYOB subscribers. Use when the user asks to set up or connect MYOB, or wants MYOB work (invoices, quotes, bills, contacts, items, banking, payroll) and the credentials aren't in place yet. Once connected, MYOB runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

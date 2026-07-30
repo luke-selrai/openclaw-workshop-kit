@@ -1,6 +1,6 @@
 ---
 name: shopify-connector
-description: Install and operate the Shopify connector autonomously. Use this skill when the user asks to set up Shopify, connect their online store, or interact with products, orders, customers, or inventory. Phase 1 is fully autonomous - Claude drives `@shopify/cli` installation and OAuth via a Playwright MCP browser; the user only signs in to Shopify once. Phase 2 uses `shopify store execute` against the Admin API GraphQL.
+description: "Connect Shopify to Claude by installing and signing in to the `shopify` CLI. Use when the user asks to set up Shopify or connect their online store, or wants store work (products, orders, customers, inventory) and the `shopify` CLI isn't signed in yet. Once connected, Shopify runs directly through the `shopify` CLI."
 allowed-tools: mcp__playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Ecommerce & Integrations

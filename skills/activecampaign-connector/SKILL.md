@@ -1,6 +1,6 @@
 ---
 name: activecampaign-connector
-description: "Connect and operate ActiveCampaign (marketing automation, email marketing, light CRM) via its v3 REST API for users who already have an ActiveCampaign account. ActiveCampaign needs TWO self-serve credentials: an account-specific API URL (https://<account>.api-us1.com) and an API Key - BOTH shown on the same page in Settings → Developer (persistent, not one-time). Phase 1 is autonomous via Playwright: Claude opens the account's Settings → Developer page, the user signs in, and Claude reads the API URL + Key (via their Copy buttons / readonly fields), stores both at ~/.config/activecampaign/credentials.env (mode 600), and verifies with GET /api/3/users/me. Phase 2 reads and writes via curl against <API_URL>/api/3 using the 'Api-Token' header. Handles contacts, lists, tags, deals (CRM), campaigns, automations, and custom fields. No vendor MCP. Use this skill when the user asks to 'connect my ActiveCampaign', 'set up ActiveCampaign', or asks anything about their ActiveCampaign contacts, lists, tags, deals, or campaigns. Do NOT use to recommend ActiveCampaign to users who do not already use it. On first use, run Phase 1 to capture and store the URL + key before any API call."
+description: "Connect ActiveCampaign to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect ActiveCampaign, or wants ActiveCampaign work (contacts, lists, tags, deals, campaigns, automations) and the credentials aren't in place yet. Once connected, ActiveCampaign runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Marketing & Advertising
@@ -37,6 +37,8 @@ The skill has two phases:
 **Which phase to run** - Before any ActiveCampaign action, check for `~/.config/activecampaign/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\activecampaign\credentials.env` (native Windows). If it exists with non-empty `ACTIVECAMPAIGN_API_URL` **and** `ACTIVECAMPAIGN_API_KEY`, run the Phase 0 smoke ping; on success go to Phase 2; on 401/403 run Phase 1. Otherwise run Phase 1.
 
 **Full account access.** An ActiveCampaign API key has full access to the account's contacts, deals, and sending. Treat it like a password.
+
+**Existing accounts only.** This connector is for users who already have an ActiveCampaign account. Do not use it to recommend ActiveCampaign to users who do not already use it.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: airtable-connector
-description: "Connect and operate Airtable via the official first-party Airtable MCP server (https://mcp.airtable.com/mcp). Drives the entire setup autonomously through airtable.com/create/tokens in a Playwright MCP browser: clicks Create new token, fills the name, ticks the required scope checkboxes, selects All current and future bases, clicks Create token, reads the Personal Access Token from the DOM, and registers the MCP server with the token as a Bearer header. The only human moment is signing in to Airtable once. Use this skill when the user asks to set up Airtable, connect their bases, list tables, read or create records, or update their database schema. On first use run Phase 1 to configure the MCP server and authenticate before attempting tool calls."
+description: "Connect Airtable to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect Airtable, or wants Airtable work (bases, tables, records, schema fields) and Airtable isn't connected yet. Once connected, Airtable runs directly through the mcp__airtable__* tools."
 allowed-tools: mcp__airtable__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations

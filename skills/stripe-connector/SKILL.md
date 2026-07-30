@@ -1,6 +1,6 @@
 ---
 name: stripe-connector
-description: Install and operate the Stripe connector autonomously. Use this skill when the user asks to set up Stripe, connect their payment account, or interact with payments, invoices, subscriptions, or customers. Phase 1 is fully autonomous - Claude drives the Stripe CLI install and OAuth via a Playwright MCP browser; the user only signs in to Stripe Dashboard once. Phase 2 uses the `stripe` CLI for API operations.
+description: "Connect Stripe to Claude by installing and authenticating the `stripe` CLI. Use when the user asks to set up or connect Stripe or their payment account, or wants Stripe work (payments, invoices, subscriptions, customers) and the `stripe` CLI isn't signed in yet. Once connected, Stripe runs directly through the `stripe` CLI."
 allowed-tools: mcp__playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Payments & Billing

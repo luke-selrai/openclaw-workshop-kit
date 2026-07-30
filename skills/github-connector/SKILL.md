@@ -1,6 +1,6 @@
 ---
 name: github-connector
-description: "Connect and operate GitHub via the official GitHub remote MCP server (https://api.githubcopilot.com/mcp). Drives the entire setup autonomously through github.com/settings/personal-access-tokens/new in a Playwright MCP browser: fills the token name, picks expiration, ticks Repository permissions to match the user's read-only or read-and-write choice, clicks Generate token, reads the fine-grained Personal Access Token from the DOM, and registers the MCP server with the token as a Bearer header. The only human moments are signing in to GitHub once and any 2FA challenge their account requires. Use this skill when the user asks to set up GitHub, connect their GitHub account, or interact with repositories, issues, pull requests, commits, branches, releases, Actions workflows, or code search. On first use run Phase 1 to configure the MCP server and authenticate before attempting tool calls."
+description: "Connect GitHub to Claude by installing and authenticating its official remote MCP server. Use when the user asks to set up or connect GitHub, or wants GitHub work (repositories, issues, pull requests, commits, releases, Actions runs, code search) and GitHub isn't connected yet. Once connected, GitHub runs directly through the mcp__github__* tools."
 allowed-tools: mcp__github__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Developer Tools & Integrations

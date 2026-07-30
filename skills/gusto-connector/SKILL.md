@@ -1,6 +1,6 @@
 ---
 name: gusto-connector
-description: "Connect and operate Gusto payroll (read company info, employees, pay schedules, payroll history, employee compensation, year-to-date earnings, time-off requests; approve/deny time-off requests). Tier-1 connector for US SMBs running W-2 payroll. Direct-REST against Gusto API v1 (api.gusto.com for Production or api.gusto-demo.com for Demo). OAuth2 partner-app auth - each participant creates their own Partner Application at dev.gusto.com, which serves both Demo and Production app settings as separate tabs in the same dev portal. Phase 0 defaults to Demo mode (instant setup, fake payroll data at api.gusto-demo.com, no Gusto review required); Production mode is opt-in and requires a ~1-2 week Gusto partner-app review before live customer data is accessible. Phase 2 writes (approve/deny time-off) are gated by per-call confirmation prose in Production mode; freely callable in Demo. Running payroll (POST /payrolls/{id}/submit) is NOT in v1 - too high-stakes; tracked as v2 enhancement. Use this skill when the user asks about their Gusto, says 'connect Gusto', asks about employees / payroll / pay schedule / time off / W-2 / paychecks / compensation. On the first use of any Gusto feature, run Phase 0 then Phase 1 before any tool call."
+description: "Connect Gusto to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Gusto, or wants payroll work (employees, pay schedules, payroll history, compensation, paychecks, time off) and the Gusto credentials aren't in place yet. Once connected, Gusto runs directly against its API with the stored credentials."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -28,6 +28,8 @@ metadata:
 ## Overview
 
 This skill lets you read and operate a user's Gusto payroll account on their behalf using **Gusto API v1 REST endpoints** (no MCP server, no first-party CLI - Direct-REST + Playwright pattern, sibling to `myob-connector` and `google-ads-connector`).
+
+It is a Tier-1 connector aimed at **US SMBs running W-2 payroll** - the data it reads (EIN, USD pay, W-2 employees, US pay schedules) is US-payroll-shaped throughout.
 
 It has two phases:
 

@@ -1,6 +1,6 @@
 ---
 name: monday-connector
-description: "Connect and operate monday.com via the official @mondaydotcomorg/monday-api-mcp server. Use this skill when the user asks to set up monday.com, connect their account, or interact with boards, items, groups, columns, updates, users, teams, or WorkForms. On first use, run Phase 1 - Claude drives the browser end-to-end via Playwright; the user only signs in to monday.com once."
+description: "Connect monday.com to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect monday.com, or wants monday work (boards, items, groups, columns, updates, users, teams, WorkForms) and monday.com isn't connected yet. Once connected, monday.com runs directly through the mcp__monday__* tools."
 allowed-tools: mcp__monday__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Project Management

@@ -1,6 +1,6 @@
 ---
 name: jotform-connector
-description: "Connect and operate Jotform via the official first-party Jotform MCP server (https://mcp.jotform.com). Phase 1 is a 6-step Playwright-driven install: register the server with `claude mcp add`, open Claude Code's OAuth start URL inside the Playwright MCP browser, detect login state and prompt sign-in only if needed, auto-click Allow on the consent screen, auto-detect the callback via `browser_wait_for`, then verify with a `mcp__jotform__list_forms` smoke call. Jotform MCP is OAuth-only - there is no app to create and no token to paste, so the user's only manual moments are signing in to Jotform inside the Playwright window and clicking Allow. Use this skill when the user asks to set up Jotform, connect their account, or interact with forms, submissions, or assignments."
+description: "Connect Jotform to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect Jotform, or wants Jotform work (forms, submissions, form assignments) and Jotform isn't connected yet. Once connected, Jotform runs directly through the mcp__jotform__* tools."
 allowed-tools: mcp__jotform__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Forms & Data Collection

@@ -1,6 +1,6 @@
 ---
 name: freshbooks-connector
-description: "Connect and operate FreshBooks (solo/SMB cloud accounting & invoicing) via its REST API for users who already have a FreshBooks account or trial. FreshBooks is OAuth2-only (no personal API token), so Phase 1 is a Playwright-driven app-registration + authorization-code flow: Claude opens the FreshBooks developer console (my.freshbooks.com/#/developer), the user signs in, Claude creates a uniquely-named Private app with the accounting scopes and a public HTTPS redirect URI, captures the Client ID and Secret, runs the OAuth consent (user clicks Allow), captures the authorization code from the redirect, exchanges it for access + refresh tokens, discovers the account_id, and stores everything in ~/.config/freshbooks/credentials.env (mode 600). Phase 2 reads and writes via curl against https://api.freshbooks.com/accounting/account/<account_id>/... with Authorization: Bearer, AND transparently refreshes the short-lived (~12h) access token using the one-time-use refresh token, rotating and re-persisting it. Handles invoices, clients, expenses, payments, and reports (P&L, etc.). No vendor MCP. Use this skill when the user asks to 'connect my FreshBooks', 'set up FreshBooks', or asks anything about their FreshBooks invoices, clients, expenses, payments, or profit and loss, or says 'create an invoice in FreshBooks'. Do NOT use to recommend FreshBooks to users who do not already use it. On first use, run Phase 1 to register the app and capture tokens before any API call."
+description: "Connect FreshBooks to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect FreshBooks, or wants accounting work (invoices, clients, expenses, payments, profit and loss) and the credentials aren't in place yet. Once connected, FreshBooks runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Finance & Accounting
@@ -25,6 +25,8 @@ metadata:
 ## Overview
 
 This skill lets Claude read and update a user's FreshBooks data on their behalf. FreshBooks is the solo/small-business cloud-accounting and invoicing app - the sub-QuickBooks/Xero tier. It publishes **no MCP server and no personal API token**: the API is **OAuth2-only**. So this is a **direct-REST connector with an OAuth2 front-end** - a heavier shape than the static-token connectors (`pipedrive`, `asana`, `servicem8`), closest in spirit to `qbo`'s app-registration flow but without a vendor CLI to lean on.
+
+**Already-a-customer connector.** This skill is for users who **already have a FreshBooks account or trial**. Do NOT use it to recommend or pitch FreshBooks to users who do not already use it, and do not create a FreshBooks account for them.
 
 Three FreshBooks facts drive the whole design:
 

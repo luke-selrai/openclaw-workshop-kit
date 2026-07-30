@@ -1,6 +1,6 @@
 ---
 name: hubspot-connector
-description: "Connect and operate HubSpot CRM via the official @hubspot/mcp-server. Drives the entire setup autonomously through app.hubspot.com/private-apps/ in a Playwright MCP browser: opens the Create-a-private-app form, fills the name, walks the Scopes tab to tick the required CRM scopes, clicks Create app, and reads the Private App access token directly from the DOM. The only human moment is the user signing in to HubSpot once. Use this skill when the user asks to set up HubSpot, connect their CRM, or interact with contacts, companies, deals, tickets, notes, tasks, associations, properties, custom objects, or workflows. On first use, run Phase 1 to install and authenticate the connector before attempting any tool calls."
+description: "Connect HubSpot to Claude by installing and authenticating its official MCP server. Use when the user asks to set up HubSpot or connect their CRM, or wants HubSpot work (contacts, companies, deals, tickets, notes, tasks, properties, workflows) and HubSpot isn't connected yet. Once connected, HubSpot runs directly through the mcp__hubspot__* tools."
 allowed-tools: mcp__hubspot__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: CRM & Marketing

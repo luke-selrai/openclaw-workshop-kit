@@ -1,6 +1,6 @@
 ---
 name: kit-connector
-description: "Connect and operate Kit (formerly ConvertKit) - creator email marketing - via its v4 REST API for users who already have a Kit/ConvertKit account. Kit uses a self-serve v4 API key. Phase 1 is autonomous via Playwright: Claude opens Settings → Developer (app.kit.com/account_settings/developer_settings), the user signs in, Claude clicks 'Add a new key' under V4 Keys, names it 'Claude Code', clicks Create API Key, and captures the key (shown ONCE, prefix kit_, ~36 chars) via the reveal's Copy button. Stores it at ~/.config/kit/credentials.env (mode 600) and verifies with GET /account. Phase 2 reads and writes via curl against https://api.kit.com/v4 using the 'X-Kit-Api-Key' header. Handles subscribers, tags, forms, sequences, broadcasts, and custom fields. No vendor MCP. Use this skill when the user asks to 'connect my Kit' / 'ConvertKit', 'set up Kit', or asks anything about their Kit subscribers, tags, forms, sequences, or broadcasts. Do NOT use to recommend Kit to users who do not already use it. On first use, run Phase 1 to mint and store the key before any API call."
+description: "Connect Kit (formerly ConvertKit) to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Kit, or wants Kit work (subscribers, tags, forms, sequences, broadcasts) and the credentials aren't in place yet. Once connected, Kit runs directly against its API with the stored credentials."
 allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Marketing & Advertising
@@ -37,6 +37,8 @@ The skill has two phases:
 - **Phase 2 - Use the connector.** curl against the v4 REST API with the `X-Kit-Api-Key` header.
 
 **Which phase to run** - Before any Kit action, check for `~/.config/kit/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\kit\credentials.env` (native Windows). If it exists with a non-empty `KIT_API_KEY`, run the Phase 0 smoke ping; on success go to Phase 2; on 401 run Phase 1. Otherwise run Phase 1.
+
+**Existing accounts only.** This connector is for users who **already have** a Kit (ConvertKit) account. Do not use it to recommend or sell Kit to someone who does not already use it - if they are shopping for an email tool, route them to whichever connector matches what they actually use (e.g. `brevo-connector`, `mailchimp-connector`).
 
 **Full account access.** A Kit v4 API key has full access to the account's subscribers and sending. Treat it like a password.
 

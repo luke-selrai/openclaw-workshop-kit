@@ -1,6 +1,6 @@
 ---
 name: pandadoc-connector
-description: "Connect and operate PandaDoc via the official first-party PandaDoc MCP server (https://mcp.pandadoc.com/v1/mcp). Phase 1 is a 6-step Playwright-driven install: register the server with `claude mcp add`, open Claude Code's OAuth start URL inside the Playwright MCP browser, detect login state and prompt sign-in only if needed, auto-click 'Allow access' and 'Authorize' on the consent screen, auto-detect the callback via `browser_wait_for`, then verify with a read-only `mcp__pandadoc__*` smoke call. The user's only manual moment is signing in to PandaDoc inside the Playwright window. Use this skill when the user asks to set up PandaDoc, connect their account, create contracts or proposals from templates, send documents for signature, track signature status, find documents awaiting signature, search or filter documents, summarize or extract document text, expire or void documents, or any e-signature / document-automation workflow."
+description: "Connect PandaDoc to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect PandaDoc, or wants contract, proposal or e-signature work (templates, sending for signature, signing status) and PandaDoc isn't connected yet. Once connected, PandaDoc runs directly through the mcp__pandadoc__* tools."
 allowed-tools: mcp__pandadoc__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
