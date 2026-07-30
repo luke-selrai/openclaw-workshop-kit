@@ -83,6 +83,8 @@ node scripts/audit-skills.mjs --check --verbose
 node scripts/audit-skills.mjs --write-description-baseline
 ```
 
+`--write-description-baseline` still runs the whole audit (markers, anti-patterns, budget report) and still exits 1 on marker drift - regenerating the baseline is never a way to skip the check. It exits 2 rather than writing if `DESCRIPTION_BUDGET_MODE` is not `"report"`, since after CORE-98 the baseline is deleted on purpose.
+
 The frontmatter parser handles every YAML scalar style in the library (plain, single/double quoted incl. multi-line, literal `|` and folded `>-` blocks, and a bare key with an indented block) - the repo has no YAML dependency.
 
 ## check-snapshot-shape.mjs
@@ -209,11 +211,11 @@ Plain Node, no framework - each prints `PASS`/`FAIL` and exits non-zero on any f
 ```bash
 node scripts/test-anti-patterns.mjs      # regression for audit-skills anti-pattern rules
 node scripts/test-description-budget.mjs # description-budget rules, parser, and the report/enforce switch
-node scripts/test-snapshot-shape.mjs    # cap-boundary + real-repo checks for the snapshot invariant
-node scripts/test-verify-conform.mjs    # stale-ref + bootstrap-consistency rules for verify-conform
-node scripts/test-resilient-install.mjs # resilience rules pass on both copies; fire on a bad fixture
-node scripts/test-install-narration.mjs # narration rules pass on all surfaces; fire on a bad fixture
-node scripts/test-mp-skills-install.mjs # install-contract rules pass on Step 3; fire on a bad fixture
+node scripts/test-snapshot-shape.mjs     # cap-boundary + real-repo checks for the snapshot invariant
+node scripts/test-verify-conform.mjs     # stale-ref + bootstrap-consistency rules for verify-conform
+node scripts/test-resilient-install.mjs  # resilience rules pass on both copies; fire on a bad fixture
+node scripts/test-install-narration.mjs  # narration rules pass on all surfaces; fire on a bad fixture
+node scripts/test-mp-skills-install.mjs  # install-contract rules pass on Step 3; fire on a bad fixture
 ```
 
 `test-description-budget.mjs` imports the rules from `audit-skills.mjs` (no mirrored regexes) and runs them over fixture skills in `scripts/__fixtures__/descriptions/`: an over-budget one, a first-person one, a second-person one, a compliant one, and one whose description is exactly 500 characters (the rule fires strictly *above* the limit). It asserts the over-budget fixture fails in **enforcing** mode, the compliant fixtures pass, report mode never fails, and the shipped baseline still covers the real library. Fixtures live outside `skills/`, so the real scan never sees them.

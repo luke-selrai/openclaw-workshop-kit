@@ -21,6 +21,7 @@ import {
   classifyDescriptionHits,
   descriptionBudgetFails,
   loadDescriptionBaseline,
+  baselineWriteBlockedReason,
   DESCRIPTION_MAX_CHARS,
   DESCRIPTION_BUDGET_MODE,
   DESCRIPTION_RULES,
@@ -226,6 +227,20 @@ check(!descriptionBudgetFails(fixtureHits, "report"), "report mode: violations n
 check(
   DESCRIPTION_BUDGET_MODE === "report" || DESCRIPTION_BUDGET_MODE === "enforce",
   `shipped mode is a known value (${DESCRIPTION_BUDGET_MODE})`,
+);
+
+// Re-baselining is a report-mode tool only. Once CORE-98 flips the mode, the
+// baseline is gone on purpose — re-minting it would quietly undo the contract.
+eq(baselineWriteBlockedReason("report"), null, "baseline write allowed in report mode");
+check(
+  typeof baselineWriteBlockedReason("enforce") === "string" &&
+    baselineWriteBlockedReason("enforce").includes("report mode only"),
+  "baseline write blocked in enforce mode, with a reason",
+);
+eq(
+  baselineWriteBlockedReason() === null,
+  DESCRIPTION_BUDGET_MODE === "report",
+  "the guard follows the shipped mode",
 );
 
 // ---------------------------------------------------------------------------

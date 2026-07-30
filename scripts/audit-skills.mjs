@@ -400,6 +400,17 @@ function descriptionBudgetFails(hits, mode = DESCRIPTION_BUDGET_MODE) {
   return mode === "enforce" && hits.length > 0;
 }
 
+// --write-description-baseline is a report-mode tool. Once CORE-98 flips the
+// mode, the baseline is gone on purpose and re-minting it would quietly undo the
+// contract. Returns null when writing is allowed, or the reason it isn't.
+function baselineWriteBlockedReason(mode = DESCRIPTION_BUDGET_MODE) {
+  if (mode === "report") return null;
+  return (
+    `--write-description-baseline works in report mode only (DESCRIPTION_BUDGET_MODE is "${mode}"). ` +
+    "CORE-98 dropped the baseline deliberately — fix the description instead of re-baselining it."
+  );
+}
+
 function writeDescriptionBaseline(hits) {
   const violations = {};
   for (const hit of hits.slice().sort((a, b) => a.relPath.localeCompare(b.relPath))) {
@@ -512,12 +523,17 @@ function main() {
   const verbose = args.includes("--verbose");
   const budgetMode = args.includes("--descriptions-enforce") ? "enforce" : DESCRIPTION_BUDGET_MODE;
 
-  if (args.includes("--write-description-baseline")) {
-    const payload = writeDescriptionBaseline(auditDescriptions());
-    console.log(
-      `✏️  Wrote scripts/description-budget-baseline.json — ${payload.count} violation(s) across ${Object.keys(payload.violations).length} skill(s).`,
-    );
-    return;
+  // Regenerating the baseline does NOT short-circuit the audit: the marker
+  // check, the anti-pattern scan and the budget report all still run, and a
+  // drifted marker still fails the check. Rewriting the baseline must never be
+  // a way to exit 0 without being audited.
+  const writeBaseline = args.includes("--write-description-baseline");
+  if (writeBaseline) {
+    const blocked = baselineWriteBlockedReason();
+    if (blocked) {
+      console.error(`❌ ${blocked}`);
+      process.exit(2);
+    }
   }
 
   const stats = gatherStats();
@@ -618,12 +634,16 @@ function main() {
   console.log(`Descriptions scanned        : ${stats.totalSkills}`);
   console.log(`Violations                  : ${descriptionHits.length}${enforcing ? "" : ` (baselined ${known.length} / new ${novel.length})`}`);
 
-  const show = (hit) => {
+  const show = (hit, withReason = false) => {
     console.log(`   ${hit.relPath}:${hit.line} [${hit.rule}] ${hit.detail}`);
+    if (withReason) console.log(`     ${hit.reason}`);
   };
 
   if (enforcing) {
-    for (const hit of descriptionHits) show(hit);
+    // Same shape as the anti-pattern block above: every failing hit prints the
+    // reason it failed. This is the mode CORE-98 ships, so it is the output an
+    // author actually has to act on.
+    for (const hit of descriptionHits) show(hit, true);
   } else {
     if (novel.length > 0) {
       console.log("");
@@ -651,6 +671,16 @@ function main() {
     console.log("✓ Every skills/**/SKILL.md description is within budget and in third person.");
   }
 
+  // Written after the report, so the run still shows how the violations were
+  // classified against the OUTGOING baseline — i.e. what is being baselined.
+  if (writeBaseline) {
+    const payload = writeDescriptionBaseline(descriptionHits);
+    console.log("");
+    console.log(
+      `✏️  Wrote scripts/description-budget-baseline.json — ${payload.count} violation(s) across ${Object.keys(payload.violations).length} skill(s).`,
+    );
+  }
+
   const budgetFails = descriptionBudgetFails(descriptionHits, budgetMode);
   if (budgetFails) {
     console.log("");
@@ -671,6 +701,7 @@ export {
   descriptionBudgetFails,
   loadDescriptionBaseline,
   writeDescriptionBaseline,
+  baselineWriteBlockedReason,
   DESCRIPTION_RULES,
   DESCRIPTION_MAX_CHARS,
   DESCRIPTION_BUDGET_MODE,
