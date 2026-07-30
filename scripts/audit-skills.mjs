@@ -126,7 +126,9 @@ const DESCRIPTION_MAX_CHARS = 500;
 //
 // The exempt set is derived from skills-lock.json at audit time — one source of
 // truth, no hardcoded skill list. Adding a skill to the lock exempts it;
-// un-vendoring one puts it back under the rule with no code change here.
+// un-vendoring one puts it back under the rule with no code change here. See
+// loadPinnedSkillDirs for how a lock key resolves to a directory, and why that
+// resolution is kept deliberately narrow.
 //
 // This is the rule's only exemption. A FIRST-PARTY skill gets rewritten, never
 // exempted; the rule's own fixtures live outside skills/, so they never need it.
@@ -397,27 +399,31 @@ function slugifyLockKey(key) {
 }
 
 // Every name a lock entry could be known by locally, unioned across entries.
-// Three candidates per entry, because none is reliable alone:
-//   - the key verbatim              ("fastify-best-practices")
-//   - the key slugified             ("Expo UI SwiftUI" → "expo-ui-swiftui")
-//   - the skillPath's parent dir    (upstream's own folder, which sometimes
-//                                    differs from the local one both ways:
-//                                    key "vercel-react-view-transitions" ships
-//                                    from upstream "skills/react-view-transitions/")
-// Membership is tested against a real on-disk skill directory name, so the
-// extra candidates cannot exempt anything that does not exist.
+// Exactly two candidates per key, and deliberately NOT a third:
+//   - the key verbatim   ("node", "fastify-best-practices")
+//   - the key slugified  ("Expo UI SwiftUI" → "expo-ui-swiftui")
+// Together those resolve all 51 current lock entries to their on-disk directory.
+//
+// The obvious third candidate — the skillPath's parent folder, i.e. upstream's
+// own directory name — is left out on purpose. It resolves nothing extra (every
+// entry is already covered) while adding names that match no skill here:
+// `fastify`, `react-best-practices`, `composition-patterns`. Those are entirely
+// plausible FIRST-PARTY skill names, and this set is a name union with no check
+// that the entry it matched has anything to do with the skill it exempts — so
+// the third candidate's only live effect would be to silently exempt a future
+// first-party skill that happened to be named after an upstream folder.
+//
+// The failure mode is chosen accordingly. If a future vendored skill lands
+// where neither candidate resolves, it is not exempted and the audit fails
+// loudly on it — someone widens the resolver deliberately. Fail-closed: the
+// rule over-reporting is recoverable, silently exempting a skill we own is not.
 function loadPinnedSkillDirs(lockFile = SKILLS_LOCK_FILE) {
   if (!existsSync(lockFile)) return new Set();
   const parsed = JSON.parse(readFileSync(lockFile, "utf8"));
   const pinned = new Set();
-  for (const [key, entry] of Object.entries(parsed.skills || {})) {
+  for (const key of Object.keys(parsed.skills || {})) {
     pinned.add(key);
     pinned.add(slugifyLockKey(key));
-    const skillPath = entry && entry.skillPath;
-    if (typeof skillPath === "string") {
-      const segments = skillPath.split("/").filter(Boolean);
-      if (segments.length >= 2) pinned.add(segments.at(-2));
-    }
   }
   return pinned;
 }
@@ -641,7 +647,8 @@ function main() {
 
   // Description budget — always runs in both modes; never auto-mutates.
   const descriptionHits = auditDescriptions();
-  const { exempt, failing } = partitionDescriptionHits(descriptionHits);
+  const pinned = loadPinnedSkillDirs();
+  const { exempt, failing } = partitionDescriptionHits(descriptionHits, pinned);
   const enforcing = DESCRIPTION_BUDGET_MODE === "enforce";
 
   console.log("");
@@ -679,8 +686,13 @@ function main() {
   }
 
   if (verbose) {
+    // The count that matters is how many lock aliases hit a real skill
+    // directory, not the size of the alias union — an alias that resolves to
+    // nothing exempts nothing.
+    const resolved = listSkillDirs(SKILLS_DIR).filter((name) => pinned.has(name)).sort();
     console.log("");
-    console.log(`Lock-pinned skill names (${loadPinnedSkillDirs().size} aliases across skills-lock.json entries).`);
+    console.log(`Lock-pinned skills on disk (${resolved.length}):`);
+    for (const name of resolved) console.log(`  - ${name}`);
   }
 
   const budgetFails = descriptionBudgetFails(failing);

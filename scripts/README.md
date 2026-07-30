@@ -75,7 +75,9 @@ Any violation in a **first-party** skill fails `--check` with exit 1, and the fa
 
 So a pinned skill is exempt from the hard failure. It is **not** exempt from the scan: every exempt hit is printed on every run under an explicit `vendored (lock-pinned) exemptions: N` heading, because an exemption nobody can see is how upstream bloat quietly becomes permanent.
 
-The exempt set is derived from `skills-lock.json` **at audit time** - one source of truth, no hardcoded skill list in the audit script. Vendoring a skill exempts it; un-vendoring one puts it back under the rule, both with no code change here. A lock key is matched against the on-disk directory name three ways (verbatim, slugified, and by the `skillPath`'s parent folder), because upstream naming is inconsistent: `node` matches verbatim, `Expo UI SwiftUI` only once slugified, and `vercel-react-view-transitions` ships from upstream's `skills/react-view-transitions/`.
+The exempt set is derived from `skills-lock.json` **at audit time** - one source of truth, no hardcoded skill list in the audit script. Vendoring a skill exempts it; un-vendoring one puts it back under the rule, both with no code change here.
+
+A lock key resolves to an on-disk directory two ways, and deliberately only two: **verbatim** (`node`, `fastify-best-practices`) and **slugified** (`Expo UI SwiftUI` → `expo-ui-swiftui`). Between them they cover all 51 current entries. The obvious third candidate - the `skillPath`'s parent, i.e. upstream's own folder - is left out because it resolves nothing extra while adding aliases that match no skill here (`fastify`, `react-best-practices`, `composition-patterns`), and those are plausible *first-party* names. The set is a name union with no check that the matched entry relates to the skill, so that candidate's only live effect would be to silently exempt a future first-party skill. The rule fails closed instead: a vendored skill neither candidate resolves is not exempted and fails loudly, and someone widens the resolver on purpose.
 
 At the time of the flip: 204 skills scanned, 13 violations, **all 13 lock-pinned**, 0 failing.
 
@@ -83,7 +85,7 @@ At the time of the flip: 204 skills scanned, 13 violations, **all 13 lock-pinned
 # The check CI runs — exit 1 on any first-party violation
 node scripts/audit-skills.mjs --check
 
-# Also print how many lock aliases the exempt set resolved to
+# Also list every lock-pinned skill actually present on disk
 node scripts/audit-skills.mjs --check --verbose
 ```
 
@@ -222,7 +224,9 @@ node scripts/test-install-narration.mjs  # narration rules pass on all surfaces;
 node scripts/test-mp-skills-install.mjs  # install-contract rules pass on Step 3; fire on a bad fixture
 ```
 
-`test-description-budget.mjs` imports the rules from `audit-skills.mjs` (no mirrored regexes) and runs them over fixture skills in `scripts/__fixtures__/descriptions/`: an over-budget one, a first-person one, a second-person one, a compliant one, one whose description is exactly 500 characters (the rule fires strictly *above* the limit), and a `vendored-over-budget` one pinned by the fixture lock `scripts/__fixtures__/descriptions-lock.json`. It asserts the over-budget **non-pinned** fixture fails in enforcing mode, the compliant fixtures pass, the pinned fixture is scanned but exempt, the removed expand-phase flags still explain themselves, and the real library has **zero** failing violations with every remaining one traceable to `skills-lock.json`. Fixtures live outside `skills/`, so the real scan never sees them.
+`test-description-budget.mjs` imports the rules from `audit-skills.mjs` (no mirrored regexes) and runs them over fixture skills in `scripts/__fixtures__/descriptions/`: an over-budget one, a first-person one, a second-person one, a compliant one, one whose description is exactly 500 characters (the rule fires strictly *above* the limit), and a `vendored-over-budget` one pinned by the fixture lock `scripts/__fixtures__/descriptions-lock.json`. It asserts the over-budget **non-pinned** fixture fails in enforcing mode, the compliant fixtures pass, the pinned fixture is scanned but exempt, and the real library has **zero** failing violations with every remaining one matching a `skills-lock.json` key exactly. Fixtures live outside `skills/`, so the real scan never sees them.
+
+Its last section tests the thing CI actually consumes - **exit codes**. `audit-skills.mjs` derives its `ROOT` from its own location, so the test copies the script into a temp sandbox alongside a disposable `skills/` tree and lock, then runs it for real: compliant exits 0, a lock-pinned violation exits 0 but is listed, an identical *non-pinned* violation exits 1 with the rule's reason printed, and both removed flags exit 2. Without this, mis-wiring the fail gate (passing all hits instead of the failing ones) would break every build with every unit assertion still green.
 
 `test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line.
 
