@@ -82,7 +82,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `subagent-driven-development` | Execute plans with parallel specialised agents | "Execute this plan with subagents" | ADVANCED |
 | `terraform-iac-expert` | Terraform and OpenTofu infrastructure as code | "Write Terraform for my AWS setup" | DEV-ONLY |
 | `using-git-worktrees` | Isolated feature work with git worktrees | "Set up a git worktree for this feature" | DEV-ONLY |
-| `vercel-deployment` | Vercel setup for Next.js and React apps - env vars, previews, domains | "Deploy my Next.js app to Vercel" | ADVANCED |
+| `vercel-deployment` | Vercel setup for Next.js and React apps - settings, previews, domains | "Deploy my Next.js app to Vercel" | ADVANCED |
 
 ## Engineering
 
@@ -123,7 +123,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `prisma-client-api` | Prisma Client API - queries, mutations, relations | "Write a Prisma query for my schema" | ADVANCED |
 | `prisma-database-setup` | Prisma database setup and configuration | "Set up Prisma with my PostgreSQL database" | ADVANCED |
 | `prisma-driver-adapter-implementation` | Implement custom Prisma driver adapters | "Write a custom Prisma driver adapter" | DEV-ONLY |
-| `prisma-postgres` | Create and manage Prisma Postgres databases via Console, CLI or Management API | "Use Prisma with Postgres" | ADVANCED |
+| `prisma-postgres` | Create and manage Prisma Postgres databases from the dashboard or command line | "Use Prisma with Postgres" | ADVANCED |
 | `prisma-postgres-setup` | Prisma Postgres (hosted DB) setup | "Set up Prisma Postgres for my app" | ADVANCED |
 | `prisma-upgrade-v7` | Upgrade Prisma from v6 to v7 | "Upgrade my project to Prisma v7" | ADVANCED |
 | `radon-mcp` | Radon IDE debugging integration via MCP | "Debug my React Native app with Radon" | ADVANCED |
@@ -134,7 +134,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `react-router-framework-mode` | React Router 7 framework mode (formerly Remix) | "Build a Remix / React Router framework app" | ADVANCED |
 | `security-auditor` | Security audit for OWASP flaws, leaked secrets and dependency CVEs | "Audit my app for security issues" | ADVANCED |
 | `stripe-best-practices` | Stripe SDK - current API patterns, common pitfalls | "Build Stripe Checkout into my app" | ADVANCED |
-| `stripe-projects` | Provision third-party services and API keys via projects.dev | "Scaffold a Stripe-powered project" | ADVANCED |
+| `stripe-projects` | Set up third-party services via projects.dev with keys ready to use | "Set up a third-party service from projects.dev" | ADVANCED |
 | `supabase-admin` | Supabase RLS, migrations, schema design | "Design my Supabase schema" | ADVANCED |
 | `typescript-advanced-patterns` | Advanced TypeScript for production codebases | "Improve my TypeScript types" | DEV-ONLY |
 | `upgrade-stripe` | Upgrade Stripe SDK to the current API version | "Upgrade my Stripe SDK to the latest version" | ADVANCED |
@@ -163,9 +163,9 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `apify-content-analytics` | Performance of your own social accounts, posts and ads | "Analyse what content performs best in my space" | ADVANCED |
 | `apify-market-research` | Market sizing from Google Trends, Marketplace pricing and travel demand | "Research pricing in my market" | ADVANCED |
 | `competitive-cartographer` | Strategic competitive positioning and white space | "Where are the gaps in my market?" | ADVANCED |
-| `competitor-alternatives` | Writes vs and alternatives pages that rank for a rival's brand terms | "Analyse my main competitor's positioning" | CORE |
+| `competitor-alternatives` | Writes 'vs' and 'alternatives' pages that rank for a rival's brand terms | "Analyse my main competitor's positioning" | CORE |
 | `deep-research` | Deep multi-step research on any topic | "Research my top 3 competitors" | CORE |
-| `reddit-insights` | Mines Reddit for honest customer opinions (needs the reddit-insights.com MCP) | "What do customers complain about in my industry?" | CORE |
+| `reddit-insights` | Mines Reddit for honest customer opinions (needs the Reddit Insights connector) | "What do customers complain about in my industry?" | CORE |
 | `research-analyst` | Competitive and market analysis with structured reports | "Give me a competitor analysis report" | CORE |
 | `youtube-summarizer` | Transcripts and summaries from any YouTube video | "Summarise this YouTube video: [URL]" | ADVANCED |
 
@@ -189,7 +189,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `plan-eng-review` | Engineering review - architecture, edge cases | "Review this technical plan" | ADVANCED |
 | `product-appeal-analyzer` | Product desirability and market positioning | "How can I make my offer more appealing?" | CORE |
 | `systems-thinking` | Maps complex systems to find high-leverage points | "Map out my sales process and find the bottlenecks" | ADVANCED |
-| `tech-entrepreneur-coach-adhd` | Founder strategy - validation, MVP, marketing | "Help me validate this business idea" | CORE |
+| `tech-entrepreneur-coach-adhd` | Indie founder coaching for ex-big-tech engineers with ADHD | "Help me validate this business idea" | CORE |
 
 ---
 
