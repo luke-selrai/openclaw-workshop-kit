@@ -302,6 +302,12 @@ function main() {
       );
     }
 
+    // A real attendee has used Claude Code already (they installed the kit through
+    // it), so `~/.claude.json` exists. A fresh sandbox HOME has none, and the CLI
+    // aborts at startup rather than creating one — seeding it is both the fix and
+    // the more faithful state.
+    writeFileSync(join(home, ".claude.json"), "{}\n");
+
     // Make the acquisition probe behave like an attendee's machine, not a dev's.
     // Note both branches write a .gitconfig: a sandboxed HOME inherits NEITHER
     // the real global config nor its credential helpers, so "keep" has to copy
