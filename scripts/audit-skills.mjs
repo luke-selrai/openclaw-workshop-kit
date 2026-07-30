@@ -99,21 +99,40 @@ function auditAntiPatterns() {
 //   description-first-person     "we / our / I / us …"
 //   description-second-person    "you / your / yourself …"
 //
-// SHIPPING MODE — this is the switch CORE-98 flips.
-//   "report"  : violations are reported, CI stays green (expand phase, while
-//               the 200-odd rewrites land).
-//   "enforce" : any violation fails `--check`.
-// To contract (CORE-98): set DESCRIPTION_BUDGET_MODE to "enforce" and delete
-// scripts/description-budget-baseline.json. Nothing else needs to change —
-// the baseline is only ever read in report mode.
-// `--descriptions-enforce` previews the enforcing outcome without flipping it.
-const DESCRIPTION_BUDGET_MODE = "report";
+// SHIPPING MODE — CORE-98 flipped this, closing the expand/contract pair
+// CORE-93 opened.
+//   "report"  : violations are printed, CI stays green. The expand phase, while
+//               the 200-odd rewrites landed. It read a baseline file
+//               (scripts/description-budget-baseline.json) to separate
+//               pre-existing violations from new ones; both the file and the
+//               classification code went away with the flip.
+//   "enforce" : any violation in a first-party skill fails `--check`. Shipped.
+const DESCRIPTION_BUDGET_MODE = "enforce";
 const DESCRIPTION_MAX_CHARS = 500;
-const DESCRIPTION_BASELINE_FILE = join(ROOT, "scripts", "description-budget-baseline.json");
 
-// No allowlist: unlike ANTI_PATTERN_ALLOWLIST, this rule's fixtures live
-// outside skills/ (scripts/__fixtures__/descriptions/), so nothing inside the
-// scanned tree ever needs exempting. A real skill gets rewritten, not exempted.
+// VENDORED (LOCK-PINNED) EXEMPTION
+//
+// skills-lock.json pins skills vendored from upstream repos (expo, stripe,
+// inngest, vercel-labs, …) to a `computedHash` of the SKILL.md as it was
+// fetched. Those hashes are historical artifacts of the original fetch and
+// cannot be regenerated from this repo, so editing a pinned SKILL.md would
+// leave the lock permanently wrong — the exhaustive attempt is documented on
+// PR #414. Their descriptions are upstream's text, not this repo's to rewrite.
+//
+// So a pinned skill is exempt from hard-fail. It is NOT exempt from the scan:
+// every exempt hit is printed under an explicit "vendored (lock-pinned)
+// exemptions: N" heading on every run, because an exemption nobody can see is
+// how upstream bloat quietly becomes permanent.
+//
+// The exempt set is derived from skills-lock.json at audit time — one source of
+// truth, no hardcoded skill list. Adding a skill to the lock exempts it;
+// un-vendoring one puts it back under the rule with no code change here. See
+// loadPinnedSkillDirs for how a lock key resolves to a directory, and why that
+// resolution is kept deliberately narrow.
+//
+// This is the rule's only exemption. A FIRST-PARTY skill gets rewritten, never
+// exempted; the rule's own fixtures live outside skills/, so they never need it.
+const SKILLS_LOCK_FILE = join(ROOT, "skills-lock.json");
 
 // Pronoun patterns. Contractions need no alternatives of their own — the bare
 // pronoun already matches ("I" in "I'm", "you" in "you're"), and that is the
@@ -369,68 +388,80 @@ function auditDescriptions(options = {}) {
   return hits;
 }
 
-function loadDescriptionBaseline() {
-  if (!existsSync(DESCRIPTION_BASELINE_FILE)) return { violations: {} };
-  const parsed = JSON.parse(readFileSync(DESCRIPTION_BASELINE_FILE, "utf8"));
-  return { ...parsed, violations: parsed.violations || {} };
+// A lock key is the upstream skill's own name, which is usually already the
+// local directory name ("node", "hyperframes") but is occasionally a display
+// name ("Expo UI SwiftUI" → skills/expo-ui-swiftui/).
+function slugifyLockKey(key) {
+  return key
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
-// known  = hit is in the baseline (a pre-existing violation, tolerated)
-// novel  = hit is not in the baseline (regression or newly added skill)
-// stale  = baseline entry with no matching hit (already fixed — safe to prune)
-function classifyDescriptionHits(hits, baseline = loadDescriptionBaseline()) {
-  const recorded = (baseline && baseline.violations) || {};
-  const known = [];
-  const novel = [];
+// Every name a lock entry could be known by locally, unioned across entries.
+// Exactly two candidates per key, and deliberately NOT a third:
+//   - the key verbatim   ("node", "fastify-best-practices")
+//   - the key slugified  ("Expo UI SwiftUI" → "expo-ui-swiftui")
+// Together those resolve all 51 current lock entries to their on-disk directory.
+//
+// The obvious third candidate — the skillPath's parent folder, i.e. upstream's
+// own directory name — is left out on purpose. It resolves nothing extra (every
+// entry is already covered) while adding names that match no skill here:
+// `fastify`, `react-best-practices`, `composition-patterns`. Those are entirely
+// plausible FIRST-PARTY skill names, and this set is a name union with no check
+// that the entry it matched has anything to do with the skill it exempts — so
+// the third candidate's only live effect would be to silently exempt a future
+// first-party skill that happened to be named after an upstream folder.
+//
+// The failure mode is chosen accordingly. If a future vendored skill lands
+// where neither candidate resolves, it is not exempted and the audit fails
+// loudly on it — someone widens the resolver deliberately. Fail-closed: the
+// rule over-reporting is recoverable, silently exempting a skill we own is not.
+function loadPinnedSkillDirs(lockFile = SKILLS_LOCK_FILE) {
+  if (!existsSync(lockFile)) return new Set();
+  const parsed = JSON.parse(readFileSync(lockFile, "utf8"));
+  const pinned = new Set();
+  for (const key of Object.keys(parsed.skills || {})) {
+    pinned.add(key);
+    pinned.add(slugifyLockKey(key));
+  }
+  return pinned;
+}
+
+// "skills/xero-connector/SKILL.md" → "xero-connector"
+function skillDirFromRelPath(relPath) {
+  const segments = String(relPath).split("/").filter(Boolean);
+  return segments.length >= 2 ? segments.at(-2) : null;
+}
+
+// exempt  = the skill's directory is pinned in skills-lock.json (vendored
+//           upstream text — reported every run, never fails the check)
+// failing = everything else, i.e. first-party skills this repo owns and can fix
+function partitionDescriptionHits(hits, pinned = loadPinnedSkillDirs()) {
+  const exempt = [];
+  const failing = [];
   for (const hit of hits) {
-    ((recorded[hit.relPath] || []).includes(hit.rule) ? known : novel).push(hit);
+    (pinned.has(skillDirFromRelPath(hit.relPath)) ? exempt : failing).push(hit);
   }
-  const live = new Set(hits.map((h) => `${h.relPath}::${h.rule}`));
-  const stale = [];
-  for (const [relPath, rules] of Object.entries(recorded)) {
-    for (const rule of rules) {
-      if (!live.has(`${relPath}::${rule}`)) stale.push({ relPath, rule });
-    }
-  }
-  return { known, novel, stale };
+  return { exempt, failing };
 }
 
-// The one place the mode decides CI's fate. Report mode never fails.
-function descriptionBudgetFails(hits, mode = DESCRIPTION_BUDGET_MODE) {
-  return mode === "enforce" && hits.length > 0;
+// The one place the mode decides CI's fate. Takes the FAILING hits — exempt
+// ones have already been partitioned out by the caller.
+function descriptionBudgetFails(failingHits, mode = DESCRIPTION_BUDGET_MODE) {
+  return mode === "enforce" && failingHits.length > 0;
 }
 
-// --write-description-baseline is a report-mode tool. Once CORE-98 flips the
-// mode, the baseline is gone on purpose and re-minting it would quietly undo the
-// contract. Returns null when writing is allowed, or the reason it isn't.
-function baselineWriteBlockedReason(mode = DESCRIPTION_BUDGET_MODE) {
-  if (mode === "report") return null;
-  return (
-    `--write-description-baseline works in report mode only (DESCRIPTION_BUDGET_MODE is "${mode}"). ` +
-    "CORE-98 dropped the baseline deliberately — fix the description instead of re-baselining it."
-  );
-}
-
-function writeDescriptionBaseline(hits) {
-  const violations = {};
-  for (const hit of hits.slice().sort((a, b) => a.relPath.localeCompare(b.relPath))) {
-    (violations[hit.relPath] ||= []).push(hit.rule);
-  }
-  for (const rules of Object.values(violations)) rules.sort();
-  const payload = {
-    note:
-      "CORE-93 report-only baseline: description-budget violations that already existed " +
-      "when the rule shipped. Regenerate with `node scripts/audit-skills.mjs " +
-      "--write-description-baseline`. CORE-98 (contract) DELETES this file and sets " +
-      "DESCRIPTION_BUDGET_MODE = 'enforce' in scripts/audit-skills.mjs.",
-    budget: DESCRIPTION_MAX_CHARS,
-    generated: new Date().toISOString().slice(0, 10),
-    count: hits.length,
-    violations,
-  };
-  writeFileSync(DESCRIPTION_BASELINE_FILE, `${JSON.stringify(payload, null, 2)}\n`);
-  return payload;
-}
+// Expand-phase scaffolding CORE-98 removed. Kept as an explicit error rather
+// than dropped silently: a removed flag that no-ops looks exactly like a flag
+// that worked, and both of these used to change whether CI passed.
+const REMOVED_FLAGS = {
+  "--write-description-baseline":
+    "the baseline was deleted when the rule flipped to enforce. Fix the description " +
+    "instead of re-baselining it — a vendored, lock-pinned skill is already exempt.",
+  "--descriptions-enforce":
+    "enforce is the shipped mode now, so there is nothing left to preview.",
+};
 
 const TARGET_FILES = [
   "README.md",
@@ -521,17 +552,10 @@ function main() {
   const args = process.argv.slice(2);
   const mode = args.includes("--write") ? "write" : "check";
   const verbose = args.includes("--verbose");
-  const budgetMode = args.includes("--descriptions-enforce") ? "enforce" : DESCRIPTION_BUDGET_MODE;
 
-  // Regenerating the baseline does NOT short-circuit the audit: the marker
-  // check, the anti-pattern scan and the budget report all still run, and a
-  // drifted marker still fails the check. Rewriting the baseline must never be
-  // a way to exit 0 without being audited.
-  const writeBaseline = args.includes("--write-description-baseline");
-  if (writeBaseline) {
-    const blocked = baselineWriteBlockedReason();
-    if (blocked) {
-      console.error(`❌ ${blocked}`);
+  for (const [flag, why] of Object.entries(REMOVED_FLAGS)) {
+    if (args.includes(flag)) {
+      console.error(`❌ ${flag} was removed by CORE-98 — ${why}`);
       process.exit(2);
     }
   }
@@ -623,68 +647,58 @@ function main() {
 
   // Description budget — always runs in both modes; never auto-mutates.
   const descriptionHits = auditDescriptions();
-  const { known, novel, stale } = classifyDescriptionHits(descriptionHits);
-  const enforcing = budgetMode === "enforce";
+  const pinned = loadPinnedSkillDirs();
+  const { exempt, failing } = partitionDescriptionHits(descriptionHits, pinned);
+  const enforcing = DESCRIPTION_BUDGET_MODE === "enforce";
 
   console.log("");
-  console.log("Description budget (CORE-93)");
-  console.log("============================");
-  console.log(`Mode                        : ${enforcing ? "ENFORCING — violations fail the check" : "report-only (CORE-98 flips to enforce)"}`);
+  console.log("Description budget (CORE-91 / CORE-93, enforced by CORE-98)");
+  console.log("==========================================================");
+  console.log(`Mode                        : ${enforcing ? "ENFORCING — violations fail the check" : "report-only"}`);
   console.log(`Budget                      : ${DESCRIPTION_MAX_CHARS} chars`);
   console.log(`Descriptions scanned        : ${stats.totalSkills}`);
-  console.log(`Violations                  : ${descriptionHits.length}${enforcing ? "" : ` (baselined ${known.length} / new ${novel.length})`}`);
+  console.log(`Violations                  : ${descriptionHits.length} (failing ${failing.length} / vendored-exempt ${exempt.length})`);
 
   const show = (hit, withReason = false) => {
     console.log(`   ${hit.relPath}:${hit.line} [${hit.rule}] ${hit.detail}`);
     if (withReason) console.log(`     ${hit.reason}`);
   };
 
-  if (enforcing) {
+  // Printed in full on every run, pass or fail. The exemption is a standing
+  // debt against upstream text, and a debt nobody is shown stops being one.
+  console.log("");
+  console.log(`vendored (lock-pinned) exemptions: ${exempt.length}`);
+  if (exempt.length > 0) {
+    for (const hit of exempt) show(hit);
+    console.log("   Pinned in skills-lock.json to an upstream hash this repo cannot regenerate,");
+    console.log("   so the text is not ours to rewrite. Scanned and reported, never failed.");
+  }
+
+  if (failing.length > 0) {
     // Same shape as the anti-pattern block above: every failing hit prints the
-    // reason it failed. This is the mode CORE-98 ships, so it is the output an
-    // author actually has to act on.
-    for (const hit of descriptionHits) show(hit, true);
-  } else {
-    if (novel.length > 0) {
-      console.log("");
-      console.log(`❌ New description-budget violations, not in the baseline (${novel.length}):`);
-      for (const hit of novel) show(hit);
-      console.log("");
-      for (const id of new Set(novel.map((h) => h.rule))) {
-        console.log(`   [${id}] ${DESCRIPTION_RULES.find((r) => r.id === id).reason}`);
-      }
-      console.log("");
-      console.log("Report-only mode, so this does not fail CI — but fix these rather than");
-      console.log("baselining them; CORE-98 turns the rule into a hard failure.");
-    }
-    if (verbose) {
-      for (const hit of known) show(hit);
-      for (const entry of stale) {
-        console.log(`   (fixed since baseline) ${entry.relPath} [${entry.rule}]`);
-      }
-    } else if (stale.length > 0) {
-      console.log(`Fixed since baseline        : ${stale.length} (rerun --write-description-baseline to prune)`);
-    }
-  }
-
-  if (descriptionHits.length === 0) {
-    console.log("✓ Every skills/**/SKILL.md description is within budget and in third person.");
-  }
-
-  // Written after the report, so the run still shows how the violations were
-  // classified against the OUTGOING baseline — i.e. what is being baselined.
-  if (writeBaseline) {
-    const payload = writeDescriptionBaseline(descriptionHits);
+    // reason it failed, so an author can act on the output alone.
     console.log("");
-    console.log(
-      `✏️  Wrote scripts/description-budget-baseline.json — ${payload.count} violation(s) across ${Object.keys(payload.violations).length} skill(s).`,
-    );
+    console.log(`❌ Description-budget violations in first-party skills (${failing.length}):`);
+    for (const hit of failing) show(hit, true);
+  } else {
+    console.log("");
+    console.log("✓ Every first-party skills/**/SKILL.md description is within budget and in third person.");
   }
 
-  const budgetFails = descriptionBudgetFails(descriptionHits, budgetMode);
+  if (verbose) {
+    // The count that matters is how many lock aliases hit a real skill
+    // directory, not the size of the alias union — an alias that resolves to
+    // nothing exempts nothing.
+    const resolved = listSkillDirs(SKILLS_DIR).filter((name) => pinned.has(name)).sort();
+    console.log("");
+    console.log(`Lock-pinned skills on disk (${resolved.length}):`);
+    for (const name of resolved) console.log(`  - ${name}`);
+  }
+
+  const budgetFails = descriptionBudgetFails(failing);
   if (budgetFails) {
     console.log("");
-    console.log(`❌ ${descriptionHits.length} description-budget violation(s) — see above.`);
+    console.log(`❌ ${failing.length} description-budget violation(s) — see above.`);
   }
 
   if (mode === "check" && (fileDrift || antiPatternHits.length > 0 || budgetFails)) {
@@ -697,14 +711,15 @@ export {
   evaluateDescription,
   readSkillDescriptions,
   auditDescriptions,
-  classifyDescriptionHits,
+  slugifyLockKey,
+  loadPinnedSkillDirs,
+  partitionDescriptionHits,
   descriptionBudgetFails,
-  loadDescriptionBaseline,
-  writeDescriptionBaseline,
-  baselineWriteBlockedReason,
+  REMOVED_FLAGS,
   DESCRIPTION_RULES,
   DESCRIPTION_MAX_CHARS,
   DESCRIPTION_BUDGET_MODE,
+  SKILLS_LOCK_FILE,
 };
 
 // Run only as a CLI, so tests can import the rules without triggering the audit.

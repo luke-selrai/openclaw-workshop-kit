@@ -62,28 +62,34 @@ Rules, applied to every `skills/**/SKILL.md`:
 
 Pronouns inside **quoted trigger phrases** (`Use when the user says 'connect my Xero'`) are not flagged - quoting the user's own words is the recommended way to write triggers. Nor are pronouns glued into paths, domains, or hyphenated compounds (`users/me`, `my.freshbooks.com`, `build-your-own-CRM`), nor all-caps `US` (the country).
 
-**Mode - the expand/contract switch:**
+**Mode - enforcing since CORE-98:**
 
 ```js
 // scripts/audit-skills.mjs
-const DESCRIPTION_BUDGET_MODE = "report";  // CORE-98 flips this to "enforce"
+const DESCRIPTION_BUDGET_MODE = "enforce";
 ```
 
-- `"report"` (today) - violations are printed, **CI stays green**. `scripts/description-budget-baseline.json` records the violations that already existed when the rule shipped, so the report separates *baselined* from *new*. New ones are called out loudly but still don't fail.
-- `"enforce"` - any violation fails `--check`. To contract (CORE-98): set the constant and **delete the baseline file**. Nothing else changes; the baseline is only read in report mode.
+Any violation in a **first-party** skill fails `--check` with exit 1, and the failing output prints the rule's reason so the run alone tells an author what to fix. There is no baseline: `scripts/description-budget-baseline.json` existed only for the expand phase (CORE-93) while the ~200 rewrites landed, and CORE-98 deleted it along with the classification code.
+
+**The one exemption - vendored, lock-pinned skills.** `skills-lock.json` pins skills vendored from upstream repos (expo, stripe, inngest, vercel-labs, mcollina, …) to a `computedHash` of the SKILL.md as it was originally fetched. Those hashes are historical artifacts of that fetch and **cannot be regenerated from this repo**, so editing a pinned SKILL.md would leave the lock permanently wrong - the exhaustive attempt is documented on [PR #414](https://github.com/selrai-company/claude-workshop-kit/pull/414). The text is upstream's, not this repo's to rewrite.
+
+So a pinned skill is exempt from the hard failure. It is **not** exempt from the scan: every exempt hit is printed on every run under an explicit `vendored (lock-pinned) exemptions: N` heading, because an exemption nobody can see is how upstream bloat quietly becomes permanent.
+
+The exempt set is derived from `skills-lock.json` **at audit time** - one source of truth, no hardcoded skill list in the audit script. Vendoring a skill exempts it; un-vendoring one puts it back under the rule, both with no code change here.
+
+A lock key resolves to an on-disk directory two ways, and deliberately only two: **verbatim** (`node`, `fastify-best-practices`) and **slugified** (`Expo UI SwiftUI` → `expo-ui-swiftui`). Between them they cover all 51 current entries. The obvious third candidate - the `skillPath`'s parent, i.e. upstream's own folder - is left out because it resolves nothing extra while adding aliases that match no skill here (`fastify`, `react-best-practices`, `composition-patterns`), and those are plausible *first-party* names. The set is a name union with no check that the matched entry relates to the skill, so that candidate's only live effect would be to silently exempt a future first-party skill. The rule fails closed instead: a vendored skill neither candidate resolves is not exempted and fails loudly, and someone widens the resolver on purpose.
+
+At the time of the flip: 204 skills scanned, 13 violations, **all 13 lock-pinned**, 0 failing.
 
 ```bash
-# Preview the enforcing outcome without flipping the switch (exits 1 today)
-node scripts/audit-skills.mjs --check --descriptions-enforce
+# The check CI runs — exit 1 on any first-party violation
+node scripts/audit-skills.mjs --check
 
-# List every baselined violation and any baseline entry already fixed
+# Also list every lock-pinned skill actually present on disk
 node scripts/audit-skills.mjs --check --verbose
-
-# Regenerate the baseline (report mode only — prefer fixing over baselining)
-node scripts/audit-skills.mjs --write-description-baseline
 ```
 
-`--write-description-baseline` still runs the whole audit (markers, anti-patterns, budget report) and still exits 1 on marker drift - regenerating the baseline is never a way to skip the check. It exits 2 rather than writing if `DESCRIPTION_BUDGET_MODE` is not `"report"`, since after CORE-98 the baseline is deleted on purpose.
+`--write-description-baseline` and `--descriptions-enforce` were **removed** by CORE-98 (the baseline is gone; enforce is the shipped mode, so there is nothing to preview). Both still exit 2 with an explanation rather than being silently ignored - a removed flag that no-ops looks exactly like one that worked, and both used to change whether CI passed.
 
 The frontmatter parser handles every YAML scalar style in the library (plain, single/double quoted incl. multi-line, literal `|` and folded `>-` blocks, and a bare key with an indented block) - the repo has no YAML dependency.
 
@@ -218,7 +224,9 @@ node scripts/test-install-narration.mjs  # narration rules pass on all surfaces;
 node scripts/test-mp-skills-install.mjs  # install-contract rules pass on Step 3; fire on a bad fixture
 ```
 
-`test-description-budget.mjs` imports the rules from `audit-skills.mjs` (no mirrored regexes) and runs them over fixture skills in `scripts/__fixtures__/descriptions/`: an over-budget one, a first-person one, a second-person one, a compliant one, and one whose description is exactly 500 characters (the rule fires strictly *above* the limit). It asserts the over-budget fixture fails in **enforcing** mode, the compliant fixtures pass, report mode never fails, and the shipped baseline still covers the real library. Fixtures live outside `skills/`, so the real scan never sees them.
+`test-description-budget.mjs` imports the rules from `audit-skills.mjs` (no mirrored regexes) and runs them over fixture skills in `scripts/__fixtures__/descriptions/`: an over-budget one, a first-person one, a second-person one, a compliant one, one whose description is exactly 500 characters (the rule fires strictly *above* the limit), and a `vendored-over-budget` one pinned by the fixture lock `scripts/__fixtures__/descriptions-lock.json`. It asserts the over-budget **non-pinned** fixture fails in enforcing mode, the compliant fixtures pass, the pinned fixture is scanned but exempt, and the real library has **zero** failing violations with every remaining one matching a `skills-lock.json` key exactly. Fixtures live outside `skills/`, so the real scan never sees them.
+
+Its last section tests the thing CI actually consumes - **exit codes**. `audit-skills.mjs` derives its `ROOT` from its own location, so the test copies the script into a temp sandbox alongside a disposable `skills/` tree and lock, then runs it for real: compliant exits 0, a lock-pinned violation exits 0 but is listed, an identical *non-pinned* violation exits 1 with the rule's reason printed, and both removed flags exit 2. Without this, mis-wiring the fail gate (passing all hits instead of the failing ones) would break every build with every unit assertion still green.
 
 `test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line.
 
