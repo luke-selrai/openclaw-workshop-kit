@@ -71,6 +71,12 @@ const STALE_ALLOWLIST = new Set([
   relative(ROOT, fileURLToPath(import.meta.url)),
   "scripts/__fixtures__/conform-stale.md",
   "scripts/README.md", // documents the legacy forms the checker catches
+  // The legacy-install fixture RECONSTRUCTS the pre-conform machine states in a
+  // sandbox so migration can be dry-run against them. ~/workshop-kit is the
+  // literal old kit home for both GitHub-era shapes — reproducing it is the
+  // point, so these are stale-by-design, not drift.
+  "scripts/make-legacy-fixture.mjs",
+  "docs/agents/legacy-install-fixture.md",
 ]);
 
 // Asserts the bootstrap's Windows Node branch is the gated in-session-refresh
