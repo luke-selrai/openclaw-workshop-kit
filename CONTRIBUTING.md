@@ -39,9 +39,6 @@ Rules:
 - `name` is kebab-case and **must match the directory name** exactly.
 - `description` is the only thing Claude sees when deciding whether to load the skill - it must contain concrete trigger phrases, not a vague summary.
 - A skill is a directory: `skills/<name>/SKILL.md` plus optional supporting files (`references/`, `scripts/`, `templates/`).
-- **No key outside the standard set.** Prefer the shape above for anything new. Skills vendored from upstream sources also carry these tolerated keys, and they are kept rather than churned: `license`, `version`, `tags`, `source`, `category`, `risk`, `date_added`, `requires`, `argument-hint`, `user_invocable`, `disable-model-invocation`. Anything beyond that set is invisible to every consumer that reads frontmatter, so information parked in an ad-hoc key is information lost - put it in the body, or in a key listed here.
-
-Both rules are enforced repo-wide by `node scripts/check-frontmatter-hygiene.mjs` (CI, every event). Widening the tolerated set is a deliberate decision: add the key to that script's `STANDARD_KEYS` and to this list together.
 
 ## 2. Subagent-definition frontmatter schema
 

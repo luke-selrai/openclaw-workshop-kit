@@ -167,27 +167,6 @@ node scripts/check-mp-skills-install.mjs --live     # + list the live mattpocock
 
 **Harness wiring:** runs in CI (with `--live`) on every event via `.github/workflows/audit-skills.yml`.
 
-## check-frontmatter-hygiene.mjs
-
-Asserts the skill library's **frontmatter hygiene** invariants ([CORE-92](https://linear.app/selr-ai/issue/CORE-92), under the CORE-91 description revamp). The 2026-07-30 library scan found one skill whose frontmatter `name` disagreed with its directory and two carrying keys outside the agreed set; this checker keeps both at zero.
-
-**Usage:**
-
-```bash
-node scripts/check-frontmatter-hygiene.mjs            # exit 1 on any violation
-node scripts/check-frontmatter-hygiene.mjs --verbose  # also list every passing skill
-```
-
-**Failures (exit 1)** - checked against every `skills/*/SKILL.md`:
-
-- **frontmatter-present** - the file opens with a YAML frontmatter block.
-- **name-matches-dirname** - frontmatter `name` equals the directory name. Every discovery surface (`skills/SKILLS-LIST.md`, `docs/skills/README.md`) addresses skills by directory name, so a divergent `name` means the documented handle and the invocable handle are different strings.
-- **standard-keys-only** - no top-level key outside `STANDARD_KEYS`. An ad-hoc key is invisible to every consumer that reads frontmatter, so information parked in one is information lost - relocate it into the body or a standard key.
-
-Neither rule is new policy: [`CONTRIBUTING.md` §1](../CONTRIBUTING.md) already requires `name` to match the directory name exactly and defines the frontmatter schema. This checker is the enforcement that section never had, and `STANDARD_KEYS` is the tolerated set listed there - widening it means editing both together.
-
-**Harness wiring:** runs in CI on every event via `.github/workflows/audit-skills.yml`.
-
 ## Tests
 
 Plain Node, no framework - each prints `PASS`/`FAIL` and exits non-zero on any failure.
@@ -199,13 +178,10 @@ node scripts/test-verify-conform.mjs    # stale-ref + bootstrap-consistency rule
 node scripts/test-resilient-install.mjs # resilience rules pass on both copies; fire on a bad fixture
 node scripts/test-install-narration.mjs # narration rules pass on all surfaces; fire on a bad fixture
 node scripts/test-mp-skills-install.mjs # install-contract rules pass on Step 3; fire on a bad fixture
-node scripts/test-frontmatter-hygiene.mjs # real skills/ tree is clean; every rule fires on a bad fixture
 ```
 
 `test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line.
 
 `test-resilient-install.mjs` imports `evaluateResilience()` from the checker, confirms both real bootstrap copies pass every rule, and asserts a deliberately non-resilient fixture (`scripts/__fixtures__/resilient-install-bad.md`) fails every one - so each detector is proven to fire.
-
-`test-frontmatter-hygiene.mjs` imports `evaluateFrontmatter()` from the checker, asserts the real `skills/` tree has zero violations, and asserts a deliberately broken fixture tree (`scripts/__fixtures__/frontmatter-hygiene/`) fires every rule - so no detector can pass vacuously. It also unit-checks the frontmatter parser (indented keys inside block scalars ignored, quoted values stripped, body prose after the closing fence not counted).
 
 `test-mp-skills-install.mjs` does the same for `check-mp-skills-install.mjs`: the real Step 3 passes every rule, the pre-fix fixture (`scripts/__fixtures__/mp-skills-install-bad.md`) fails every one, and the live-listing parser is exercised against fake GitHub tree responses (flat + category-nested layouts, rename detection, API-failure throw) with no network.
