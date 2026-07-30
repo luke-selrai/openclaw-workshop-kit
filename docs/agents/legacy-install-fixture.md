@@ -157,88 +157,62 @@ planted, so one verifier covers all three shapes. Exit 0 = every check passed. S
 property: run it against a fixture that has **not** been migrated and it must fail the
 state checks — a verifier that goes green on the before-state is worthless.
 
-## Findings so far
+## Findings
 
-### MIGRATE cannot protect customisations, and its recommended answer destroys them
+All three legacy shapes were dry-run against the accepted prompt with the repo public, so
+the GitHub-clone door was exercised — the door attendees actually use. `loup` was then run
+end-to-end interactively, through the restart.
 
-The sync step protects edits by diffing installed skills against the **old manifest's**
-fingerprints. In MIGRATE there is no old manifest, so the prompt cannot diff at all. It
-substitutes one bulk question — "refresh all Selr kit skills to the newest versions
-(recommended), or keep everything as-is and only add new ones?" — and the *recommended*
-branch overwrites every customisation the user ever made to a kit skill. Confirmed by
-dry-run: with that answer taken, a user-edited kit skill was silently replaced.
+### Everything verified
 
-This is spec-conformant, not a prompt defect. But it aims the recommended path at the
-population most likely to have customised something, and the user cannot make an informed
-choice because the prompt can't tell them what differs.
+`loup` and `github-desktop` pass 14/14; `github-home` passes 13/13 (it has no marker to
+remove). In every shape: one pointer block, persona installed, pre-existing hand-written
+global content survived, manifest with `installMode: migrate`, `onboarded: true`, 204
+fingerprints and an absolute kit home, old workspace `CLAUDE.md` renamed to
+`.pre-migration`, and all user-made content untouched. `my-own-skill` is correctly
+recognised as the user's own and excluded from both the kit sync and the manifest.
 
-There is a fix the current design misses: **the old kit is still on disk in every legacy
-shape** — `~/.loup/selr-ai/workshop-kit/skills/` or `~/workshop-kit/skills/`. That is
-exactly what the legacy install shipped, so diffing installed-vs-old-kit reconstructs the
-missing fingerprints and lets MIGRATE use the same keep-and-report rule as UPDATE, with no
-bulk question at all. Worth deciding in the ADR/spec.
+The interactive run additionally cleared the three restart-gated items: the Step 10 MIGRATE
+note fires **exactly once**, the Playwright smoke test passes, and the completion banner
+renders with nothing after it.
 
-### Clean run: all three shapes pass Steps 0-6
-
-Run against the live public repo, one launcher, `keep everything as-is` chosen at the bulk
-question. `loup` and `github-desktop` pass 14/14; `github-home` passes 13/13 (it has no
-marker to remove). Verified in every shape: single pointer block, persona installed,
-pre-existing hand-written global content survived, manifest with `installMode: migrate`,
-`onboarded: true`, 204 skill fingerprints and an absolute kit home, old workspace
-`CLAUDE.md` renamed to `.pre-migration`, and all user-made content untouched.
-
-Notable: on `github-home` the model **generalised** the workspace retirement to
-`~/my-assistant` even though the prompt names only `~/Desktop/my-assistant`. It did the
-right thing — but that is inference, not specification (see CORE-110).
-
-Also confirmed: `my-own-skill` is correctly recognised as the user's own and excluded from
-both the kit sync and the manifest.
-
-### Interactive run: end-to-end through the restart
-
-A human-driven run of the `loup` shape cleared the three restart-gated items: the Step 10
-MIGRATE note fires **exactly once**, the Playwright smoke test passes, and the completion
-banner renders with nothing after it.
-
-Strongest single signal from that run: the assistant addressed the user as "Sam" — the name
-in the fixture's seeded pre-existing `~/.claude/CLAUDE.md`. That proves the hand-written
-global content survived the pointer-block write *and* is honoured at runtime, which a
+Strongest single signal: the assistant addressed the user as "Sam" — the name in the
+fixture's seeded pre-existing `~/.claude/CLAUDE.md`. That proves the hand-written global
+content survived the pointer-block write *and* is honoured at runtime, which a
 file-presence check cannot show.
 
-### The bulk question is asked properly — with one caveat
+### The prompt fails safe
 
-The interactive run does ask it, as an `AskUserQuestion` with both options spelled out, and
-the destructive option's own description warns "If you edited a skill yourself, that edit
-would be replaced." The user picked "Refresh all to newest (Recommended)" and the overwrite
-that followed was informed consent, not a silent loss.
+In an earlier run where the kit could not be obtained (repo still private, Loup door needs
+a human), it stopped cleanly, refused to fabricate a Loup install command, and left the
+machine completely untouched. No partial mutation before the kit is in hand.
 
-**Reading the transcript for this needs care.** The question is a `tool_use` block and the
-answer a `tool_result` — neither is assistant text. Scanning only text blocks (or grepping
-for a question mark) makes a correctly-asked question look like it never happened. Parse
-tool calls, not prose.
+### MIGRATE detection leans on its second clause
 
-The caveat that survives: the *recommended* option is the destructive one, and the user
-still cannot see **which** skills would be affected, so the choice is made blind. Since the
-old kit is still on disk in every legacy shape, the prompt could name them —
-"you've customised 2 skills: X and Y" — and turn a blind gamble into an informed decision.
-That is an improvement, not a defect. Tracked as CORE-111.
+Detection fires on "`~/Desktop/my-assistant/CLAUDE.md` present **or** kit skills in
+`~/.claude/skills/`". On `github-home` the first clause cannot match — the workspace is in
+the home folder — so the second clause is what makes migration work at all for every
+pre-Desktop install. It is load-bearing, not the nicety it reads as in design note 4.
 
-### Earlier findings
+### Two places the spec relies on inference
 
-Dry-run against `github-home` (ancient shape), Loup door, Steps 0-6:
+Neither is a defect; both went right in the run. They are worth naming in the ADR so
+correctness does not depend on the model generalising.
 
-- **MIGRATE detection fires correctly** on the ancient shape — but only via the
-  "kit skills in `~/.claude/skills/`" clause, since the `~/Desktop/my-assistant/CLAUDE.md`
-  clause cannot match a home-folder workspace. That second clause is **load-bearing for
-  every pre-Desktop install**, not the nicety it reads as in design note 4.
-- **The prompt fails safe.** With no way to obtain the kit it stopped cleanly, refused to
-  fabricate a Loup command, and left the machine completely untouched — no partial
-  mutation before the kit is in hand.
-- **Open, from reading the spec rather than the run** (the run stopped at acquisition):
-  Step 3.3 retires the old workspace by absolute path — it renames
-  `~/Desktop/my-assistant/CLAUDE.md` and deletes `~/Desktop/my-assistant/.first-run-pending`.
-  On `github-home` that folder does not exist, so the stale persona at
-  `~/my-assistant/CLAUDE.md` is never renamed. A user who later opens that folder would
-  load the old project-level persona **and** the new global one. Needs either a
-  shape-aware retirement step or an explicit decision to accept it; feeds
-  [CORE-108](https://linear.app/selr-ai/issue/CORE-108).
+- **Workspace retirement** is written as an absolute path (`~/Desktop/my-assistant`). On
+  `github-home` the model generalised it and correctly renamed `~/my-assistant/CLAUDE.md`.
+  A stricter implementation would follow the literal path and silently skip every
+  pre-Desktop install. See CORE-110.
+- **The customisation question is asked blind.** It *is* asked properly, as an
+  `AskUserQuestion` whose destructive option warns "If you edited a skill yourself, that
+  edit would be replaced" — the resulting overwrite is informed consent, not silent loss.
+  But the recommended option is the destructive one and the user cannot see which skills
+  are affected. Since the old kit is still on disk in every legacy shape, the prompt could
+  name them instead of making the user guess. See CORE-111.
+
+### Reading a transcript: parse tool calls, not prose
+
+The customisation question is a `tool_use` block and the answer a `tool_result` — neither
+is assistant text. Scanning text blocks, or grepping for a question mark, makes a
+correctly-asked question look like it never happened. This cost one wrong conclusion during
+this exercise; check tool calls before concluding an interaction did not occur.
