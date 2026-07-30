@@ -1,40 +1,73 @@
 #!/usr/bin/env node
-// Legacy-install fixture builder — reconstructs a machine as the OLD bootstrap
+// Legacy-install fixture builder — reconstructs a machine as an OLD bootstrap
 // left it, inside a sandbox, so the new one-paste setup prompt can be dry-run
 // against a realistic migration target instead of a guess.
 //
-// Why this exists: 10+ school-community members are already installed the old
-// way. The install-model overhaul (CORE-99) has to migrate them without
-// re-onboarding them or eating their work. "It should be fine" is not a check —
-// this builds the before-state so the migration can actually be run and
-// observed. It is deliberately re-runnable: every future change to the setup
-// prompt gets re-tested against the same before-state, so this is a standing
-// check, not a one-off.
+// Why this exists: people are already installed the old way, across more than
+// one old way. The install-model overhaul (CORE-99) has to migrate all of them
+// without re-onboarding them or eating their work. "It should be fine" is not a
+// check. This builds the before-state so the migration can be run and observed,
+// and it is deliberately re-runnable: every future change to the setup prompt
+// gets re-tested against the same before-states, so this is a standing check,
+// not a one-off.
 //
-// The legacy end-state it reproduces is read straight off `docs/start/bootstrap.md`
-// (steps 2-6) at the pinned ref:
-//   ~/Desktop/my-assistant/CLAUDE.md          <- kit my-assistant/CLAUDE.md
-//   ~/Desktop/my-assistant/.first-run-pending <- the retired orientation marker
-//   ~/.loup/selr-ai/workshop-kit/             <- the kit itself (Loup path)
-//   ~/.claude/skills/<one dir per kit skill>  <- flat copy, no SKILLS-LIST.md
-//   ~/.claude/plugins/...                     <- marketplace + routine-installer
-// and, definitionally, NO pointer block in ~/.claude/CLAUDE.md and NO
-// selr-kit-manifest.json anywhere. Their absence is the thing under test.
+// THREE SHAPES, because the kit was distributed three ways. Each is read off
+// `docs/start/bootstrap.md` at that era's own ref, so the fixture is derived
+// from the kit's own record of what it did rather than from memory:
 //
-// Isolation is HOME + CLAUDE_CONFIG_DIR. Verified: CLAUDE_CONFIG_DIR relocates
-// the whole config tree (settings.json, plugins/, .claude.json), and `~` in the
-// prompt's own shell commands follows HOME. Nothing touches the real machine.
+//   shape            kit home                      workspace              marker  plugins
+//   ---------------  ----------------------------  ---------------------  ------  -------
+//   loup             ~/.loup/selr-ai/workshop-kit  ~/Desktop/my-assistant  yes     yes
+//   github-desktop   ~/workshop-kit                ~/Desktop/my-assistant  yes     yes
+//   github-home      ~/workshop-kit                ~/my-assistant          NO      NO
+//
+// `github-home` is the ancient pre-revive shape and the awkward one: its
+// workspace is in the home folder, not the Desktop, and it predates both the
+// `.first-run-pending` marker and the plugin marketplace step. Anything that
+// hardcodes `~/Desktop/my-assistant` will silently skip it. (The short-lived
+// local-zip era has the same end-state as `github-home`; only how the kit
+// arrived differed, and nothing reads that.)
+//
+// In every shape three things are ABSENT — no pointer block in
+// `~/.claude/CLAUDE.md`, no `~/.claude/selr-assistant.md`, no
+// `selr-kit-manifest.json`. Their absence is what migration has to fix, so the
+// fixture records it and the dry-run asserts it rather than assuming.
+//
+// ISOLATION IS **HOME ALONE** — deliberately not CLAUDE_CONFIG_DIR. Redirecting
+// CLAUDE_CONFIG_DIR does relocate the whole config tree, but it also breaks
+// auth: the CLI reports "Not logged in" because it can no longer reach the
+// stored credentials, so nothing can actually be dry-run. With HOME sandboxed
+// and CLAUDE_CONFIG_DIR left unset, the config dir resolves to the fixture's
+// own `~/.claude` anyway — same isolation, and auth still works. `~` in the
+// prompt's own shell commands follows HOME too. Nothing touches the real
+// machine. (Headless runs additionally need CLAUDE_CODE_OAUTH_TOKEN in the
+// environment; see docs/agents/legacy-install-fixture.md.)
+//
+// GIT CREDENTIALS ARE ALWAYS NEUTRALISED, and this matters more than it looks.
+// The new prompt decides which door to use with an unauthenticated
+// `git ls-remote` probe. A developer machine reads the PRIVATE repo just fine —
+// the real global gitconfig routes github.com through `gh auth git-credential` —
+// so an un-neutralised probe SUCCEEDS, and the dry-run silently tests the
+// GitHub-clone door: the wrong branch, and a false pass. An attendee has no
+// credentials, gets refused, and lands on the Loup door. The sandbox therefore
+// ships a `.gitconfig` with an empty `credential.helper`, clearing the inherited
+// helper list.
+//
+// To test the GitHub-clone door instead, do NOT try to smuggle credentials in
+// (a sandboxed HOME drops gh's own config and keyring access, so it silently
+// fails back to the Loup door anyway). Run the fixture while the repo is
+// actually PUBLIC — during a drop window. A public repo needs no credentials at
+// all, so the neutralised fixture is already the faithful test of that door.
 //
 // Usage:
-//   node scripts/make-legacy-fixture.mjs --out /tmp/legacy
-//   node scripts/make-legacy-fixture.mjs --out /tmp/legacy --ref 07d1ecf --force
-//   node scripts/make-legacy-fixture.mjs --out /tmp/legacy --global-claude-md user-content
-//   node scripts/make-legacy-fixture.mjs --out /tmp/legacy --pristine --no-plugins
+//   node scripts/make-legacy-fixture.mjs --out /tmp/legacy --shape github-home
+//   node scripts/make-legacy-fixture.mjs --out /tmp/legacy --shape loup --global-claude-md user-content
+//   node scripts/make-legacy-fixture.mjs --out /tmp/legacy --shape loup --ref <sha> --force
 //
 // Options:
 //   --out <dir>            where to build the sandbox (required)
-//   --ref <git-ref>        kit version to reconstruct from (default HEAD).
-//                          Pin this to the version the attendees actually have.
+//   --shape <name>         loup (default) | github-desktop | github-home
+//   --ref <git-ref>        override the era's pinned default ref
 //   --force                wipe --out if it already exists
 //   --global-claude-md     none (default) | user-content
 //                          `user-content` seeds a pre-existing hand-written
@@ -44,14 +77,14 @@
 //   --pristine             skip the user-made-content seeding (see below)
 //   --no-plugins           skip the real `claude plugin` calls (offline / no CLI)
 //
-// By default the fixture is NOT pristine: it seeds the three things that make
-// the interesting migration branches reachable at all —
+// By default the fixture is NOT pristine. It plants the three things that make
+// the interesting migration branches reachable at all:
 //   1. a user-authored file in the workspace       (must survive untouched)
 //   2. a user-authored skill not from the kit      (must survive untouched)
 //   3. an EDITED copy of a real kit skill          (must trip keep-and-report,
 //                                                   not be silently overwritten)
-// A pristine fixture only ever exercises the happy path, which is the path
-// least likely to break.
+// A pristine fixture only exercises the happy path, which is the path least
+// likely to break.
 //
 // Exit codes: 0 = fixture built, 1 = build failed, 2 = bad usage / git unreadable.
 
@@ -71,6 +104,35 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
+// Era boundaries, resolved from this repo's own history. Each default ref is the
+// last commit where that era's bootstrap was the live one.
+const SHAPES = {
+  loup: {
+    ref: "ad124f1",
+    kitHome: [".loup", "selr-ai", "workshop-kit"],
+    workspace: ["Desktop", "my-assistant"],
+    marker: true,
+    plugins: true,
+    note: "Loup delivery; the most recent legacy shape.",
+  },
+  "github-desktop": {
+    ref: "6265b8e",
+    kitHome: ["workshop-kit"],
+    workspace: ["Desktop", "my-assistant"],
+    marker: true,
+    plugins: true,
+    note: "git clone to ~/workshop-kit, Desktop workspace.",
+  },
+  "github-home": {
+    ref: "ddb68ec",
+    kitHome: ["workshop-kit"],
+    workspace: ["my-assistant"],
+    marker: false,
+    plugins: false,
+    note: "ancient pre-revive: home-folder workspace, no marker, no plugins.",
+  },
+};
+
 function git(args) {
   // 256 MB buffer comfortably holds the kit tarball (~tens of MB).
   return execFileSync("git", ["-C", ROOT, ...args], { maxBuffer: 256 * 1024 * 1024 });
@@ -79,7 +141,8 @@ function git(args) {
 function parseArgs(argv) {
   const opts = {
     out: null,
-    ref: "HEAD",
+    shape: "loup",
+    ref: null,
     force: false,
     globalClaudeMd: "none",
     pristine: false,
@@ -88,6 +151,7 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--out") opts.out = argv[++i];
+    else if (a === "--shape") opts.shape = argv[++i];
     else if (a === "--ref") opts.ref = argv[++i];
     else if (a === "--force") opts.force = true;
     else if (a === "--pristine") opts.pristine = true;
@@ -96,20 +160,25 @@ function parseArgs(argv) {
     else return { error: `unknown option: ${a}` };
   }
   if (!opts.out) return { error: "--out <dir> is required" };
+  if (!SHAPES[opts.shape]) {
+    return { error: `--shape must be one of: ${Object.keys(SHAPES).join(", ")}` };
+  }
   if (!["none", "user-content"].includes(opts.globalClaudeMd)) {
-    return { error: `--global-claude-md must be none|user-content` };
+    return { error: "--global-claude-md must be none|user-content" };
   }
   return { opts };
 }
 
-// Unpack the kit at `ref` into destDir, exactly as Loup would have dropped it.
+// Unpack the kit at `ref` into destDir, as that era's install would have left it.
+// Content only, no `.git`: the new prompt never reads the old kit directory, it
+// acquires a fresh copy at its own kit home.
 function materializeKit(ref, destDir) {
   mkdirSync(destDir, { recursive: true });
   const tar = git(["archive", "--format=tar", ref]);
   execFileSync("tar", ["-x", "-C", destDir], { input: tar, maxBuffer: 256 * 1024 * 1024 });
 }
 
-// Step 5 of the old bootstrap: every FOLDER from the kit's skills/, nothing else.
+// Every FOLDER from the kit's skills/, nothing else — all three eras did this.
 function installSkills(kitSkillsDir, destSkillsDir) {
   mkdirSync(destSkillsDir, { recursive: true });
   let n = 0;
@@ -122,7 +191,7 @@ function installSkills(kitSkillsDir, destSkillsDir) {
   return n;
 }
 
-// Steps 6: the real CLI calls, run against the sandbox. Faithful by construction —
+// The real CLI calls, run against the sandbox. Faithful by construction —
 // hand-forging plugins/*.json would drift the moment the CLI's format changes.
 function installPlugins(home, kitDir) {
   const env = { ...process.env, HOME: home, CLAUDE_CONFIG_DIR: join(home, ".claude") };
@@ -133,17 +202,16 @@ function installPlugins(home, kitDir) {
 }
 
 // The user-made content that makes migration's hard branches reachable.
-// Returns descriptors the FIXTURE.json records, so a dry-run can assert against
+// Returned descriptors go into FIXTURE.json so a dry-run can assert against
 // them without re-deriving what was planted.
-function seedUserContent(home, skillsDir) {
+function seedUserContent(workspace, workspaceRel, skillsDir) {
   const seeded = { workspaceFile: null, ownSkill: null, editedKitSkill: null };
 
-  const workspaceFile = join(home, "Desktop", "my-assistant", "my-notes.md");
   writeFileSync(
-    workspaceFile,
+    join(workspace, "my-notes.md"),
     "# My notes\n\nQuotes for the Tuesday job. Do not lose this file.\n",
   );
-  seeded.workspaceFile = "Desktop/my-assistant/my-notes.md";
+  seeded.workspaceFile = `${workspaceRel}/my-notes.md`;
 
   const ownSkillDir = join(skillsDir, "my-own-skill");
   mkdirSync(ownSkillDir, { recursive: true });
@@ -153,9 +221,9 @@ function seedUserContent(home, skillsDir) {
   );
   seeded.ownSkill = ".claude/skills/my-own-skill";
 
-  // Edit a real kit skill in place so its hash no longer matches the receipt —
-  // this is what keep-and-report has to catch. Pick deterministically (first
-  // kit skill alphabetically) so the fixture is reproducible.
+  // Edit a real kit skill in place so its fingerprint no longer matches — this
+  // is what keep-and-report has to catch. Pick deterministically (first kit
+  // skill alphabetically) so the fixture stays reproducible.
   const kitSkills = readdirSync(skillsDir)
     .filter((e) => e !== "my-own-skill" && statSync(join(skillsDir, e)).isDirectory())
     .sort();
@@ -176,15 +244,20 @@ function main() {
   const { opts, error } = parseArgs(process.argv.slice(2));
   if (error) {
     console.error(`make-legacy-fixture: ${error}`);
-    console.error("Usage: node scripts/make-legacy-fixture.mjs --out <dir> [--ref <git-ref>]");
+    console.error(
+      "Usage: node scripts/make-legacy-fixture.mjs --out <dir> [--shape loup|github-desktop|github-home]",
+    );
     process.exit(2);
   }
 
+  const shape = SHAPES[opts.shape];
+  const ref = opts.ref || shape.ref;
+
   let commit;
   try {
-    commit = git(["rev-parse", opts.ref]).toString("utf8").trim();
+    commit = git(["rev-parse", ref]).toString("utf8").trim();
   } catch (e) {
-    console.error(`make-legacy-fixture: could not resolve ref "${opts.ref}": ${e.message}`);
+    console.error(`make-legacy-fixture: could not resolve ref "${ref}": ${e.message}`);
     process.exit(2);
   }
 
@@ -198,8 +271,9 @@ function main() {
   }
 
   const home = join(out, "home");
-  const kitDir = join(home, ".loup", "selr-ai", "workshop-kit");
-  const workspace = join(home, "Desktop", "my-assistant");
+  const kitDir = join(home, ...shape.kitHome);
+  const workspace = join(home, ...shape.workspace);
+  const workspaceRel = shape.workspace.join("/");
   const claudeDir = join(home, ".claude");
   const skillsDir = join(claudeDir, "skills");
 
@@ -207,17 +281,17 @@ function main() {
     mkdirSync(workspace, { recursive: true });
     mkdirSync(claudeDir, { recursive: true });
 
-    // Step 2 — the kit, as the Loup install dropped it.
-    materializeKit(opts.ref, kitDir);
+    // The kit, as that era's install dropped it.
+    materializeKit(ref, kitDir);
 
-    // Step 3 — the persona, copied into the workspace (NOT imported globally).
+    // The persona, copied into the workspace (NOT imported globally).
     cpSync(join(kitDir, "my-assistant", "CLAUDE.md"), join(workspace, "CLAUDE.md"));
 
-    // Step 4 — the marker that the new model retires. It must not retrigger
-    // orientation after migration; that is one of the things being verified.
-    writeFileSync(join(workspace, ".first-run-pending"), "");
+    // The marker the new model retires. It must not retrigger orientation after
+    // migration — one of the things being verified. Absent in the ancient shape.
+    if (shape.marker) writeFileSync(join(workspace, ".first-run-pending"), "");
 
-    // Step 5 — skills, flat, at the global path.
+    // Skills, flat, at the global path — the same in every era.
     const skillCount = installSkills(join(kitDir, "skills"), skillsDir);
 
     // A pre-existing hand-written global CLAUDE.md, with no pointer block.
@@ -228,11 +302,20 @@ function main() {
       );
     }
 
-    const seeded = opts.pristine ? null : seedUserContent(home, skillsDir);
+    // Make the acquisition probe behave like an attendee's machine, not a dev's.
+    // Note both branches write a .gitconfig: a sandboxed HOME inherits NEITHER
+    // the real global config nor its credential helpers, so "keep" has to copy
+    // them forward explicitly — omitting the file would silently neutralise
+    // credentials just the same and quietly test the wrong door.
+    writeFileSync(join(home, ".gitconfig"), "[credential]\n\thelper =\n");
 
-    // Step 6 — plugin marketplace + routine packager, via the real CLI.
+    const seeded = opts.pristine ? null : seedUserContent(workspace, workspaceRel, skillsDir);
+
+    // Plugin marketplace + routine packager, via the real CLI. The ancient shape
+    // predates this step entirely.
     let pluginsInstalled = false;
-    if (opts.plugins) {
+    const wantPlugins = opts.plugins && shape.plugins;
+    if (wantPlugins) {
       try {
         installPlugins(home, kitDir);
         pluginsInstalled = true;
@@ -244,11 +327,18 @@ function main() {
     }
 
     const record = {
-      builtFrom: { ref: opts.ref, commit },
+      shape: opts.shape,
+      builtFrom: { ref, commit },
+      layout: {
+        kitHome: `~/${shape.kitHome.join("/")}`,
+        workspace: `~/${workspaceRel}`,
+        marker: shape.marker ? `~/${workspaceRel}/.first-run-pending` : null,
+      },
       options: {
         globalClaudeMd: opts.globalClaudeMd,
         pristine: opts.pristine,
         pluginsRequested: opts.plugins,
+        gitCredentialsNeutralised: true,
       },
       state: { skillCount, pluginsInstalled, seeded },
       // Absences are the point of the fixture — record them so a dry-run can
@@ -256,31 +346,34 @@ function main() {
       absent: [
         "~/.claude/CLAUDE.md pointer block",
         "~/.claude/selr-assistant.md",
-        "selr-kit-manifest.json",
+        "~/.claude/selr-kit-manifest.json",
       ],
-      run: {
-        HOME: home,
-        CLAUDE_CONFIG_DIR: claudeDir,
-        cwd: workspace,
-      },
+      run: { HOME: home, CLAUDE_CONFIG_DIR: claudeDir, cwd: workspace },
     };
     writeFileSync(join(out, "FIXTURE.json"), JSON.stringify(record, null, 2) + "\n");
 
     console.log(`Legacy-install fixture built at ${out}`);
-    console.log(`  kit ref        ${opts.ref} (${commit.slice(0, 9)})`);
+    console.log(`  shape          ${opts.shape} — ${shape.note}`);
+    console.log(`  kit ref        ${ref} (${commit.slice(0, 9)})`);
+    console.log(`  kit home       ~/${shape.kitHome.join("/")}`);
+    console.log(`  workspace      ~/${workspaceRel}`);
+    console.log(`  marker         ${shape.marker ? ".first-run-pending" : "none (predates it)"}`);
     console.log(`  skills         ${skillCount} at ~/.claude/skills/`);
     console.log(`  global CLAUDE  ${opts.globalClaudeMd}`);
-    console.log(`  plugins        ${pluginsInstalled ? "installed" : "not installed"}`);
+    console.log(
+      `  plugins        ${pluginsInstalled ? "installed" : shape.plugins ? "not installed" : "n/a (predates them)"}`,
+    );
     console.log(`  user content   ${opts.pristine ? "none (pristine)" : "seeded"}`);
+    console.log("  git creds      neutralised (attendee-like)");
     console.log("");
     console.log("Dry-run the new setup prompt against it with:");
     console.log("");
-    console.log(`  HOME="${home}" \\`);
-    console.log(`  CLAUDE_CONFIG_DIR="${claudeDir}" \\`);
-    console.log(`  claude --add-dir "${home}"`);
+    console.log(`  cd "${workspace}"`);
+    console.log(`  env -u CLAUDE_CONFIG_DIR HOME="${home}" claude`);
     console.log("");
-    console.log(`  (start it in ${workspace} to reproduce the attendee's own starting folder,`);
-    console.log(`   or anywhere else to test the "works from any folder" claim)`);
+    console.log("  (CLAUDE_CONFIG_DIR must stay UNSET or auth breaks — see the header.");
+    console.log(`   Start in ${workspace} to reproduce the attendee's own`);
+    console.log('   starting folder, or anywhere else to test "works from any folder".)');
     process.exit(0);
   } catch (e) {
     console.error(`make-legacy-fixture: build failed: ${e.message}`);
