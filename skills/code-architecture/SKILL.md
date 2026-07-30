@@ -1,6 +1,6 @@
 ---
 name: code-architecture
-description: "Application architecture in one deployable unit - clean and hexagonal patterns, feature-based structure, dependency inversion, module boundaries. Use when the user picks an architecture pattern, or untangles a fat controller or circular dependency."
+description: "Structures a single-deployable application - clean and hexagonal architecture, feature-based folder structure, dependency inversion, module boundaries. Use when the user picks an architecture pattern, reorganises folders, or untangles a fat controller or circular dependency."
 allowed-tools: Read,Write,Edit,Bash,Grep,Glob
 metadata:
   category: Code Quality & Testing

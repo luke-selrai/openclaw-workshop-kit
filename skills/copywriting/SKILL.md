@@ -1,6 +1,6 @@
 ---
 name: copywriting
-description: "Conversion copywriting for marketing pages - headlines, subheads, hero copy, CTAs. Use when the user wants copy for a homepage, landing, pricing or product page, wants weak copy sharpened to convert, or needs headline or CTA options. For email copy, see email-sequence."
+description: "Conversion copywriting for marketing pages - headlines, subheads, hero copy, value propositions, taglines and CTAs. Use when the user wants copy for a homepage, landing, pricing or product page, weak copy sharpened to convert, or headline and CTA options. For email copy, see email-sequence."
 metadata:
   version: 1.1.0
 ---

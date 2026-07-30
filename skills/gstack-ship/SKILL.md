@@ -1,7 +1,7 @@
 ---
 name: gstack-ship
 version: 1.0.0
-description: "Ships the current feature branch unattended and ends with a pull request URL. Use when the user runs /gstack-ship, says ship this branch, or wants a finished branch taken all the way to an open PR without confirming each step."
+description: "Ships the current feature branch unattended and ends with a pull request URL. Use when the user runs /gstack-ship, says 'ship this branch', or wants main merged in, VERSION bumped and the CHANGELOG updated on the way to an open PR."
 allowed-tools:
   - Bash
   - Read

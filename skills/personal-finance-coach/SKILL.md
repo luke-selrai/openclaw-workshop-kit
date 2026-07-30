@@ -1,6 +1,6 @@
 ---
 name: personal-finance-coach
-description: "Personal finance coaching grounded in academic research - portfolio allocation, tax optimization and retirement withdrawal maths. Use when the user asks about investing, retirement planning, safe withdrawal rates, the 4 percent rule, or FIRE."
+description: "Personal finance coaching grounded in academic research - portfolio allocation, tax optimization and retirement withdrawal maths. Use when the user asks about investing, retirement planning, safe withdrawal rates, the 4% rule, or FIRE."
 allowed-tools: Read,Write,Edit,Bash,mcp__firecrawl__firecrawl_search,WebFetch
 metadata:
   category: Business & Monetization

@@ -1,6 +1,6 @@
 ---
 name: diagramming-expert
-description: "Draws diagrams in plain text with ASCII and Unicode box-drawing - architectures, process flows, hierarchies, decision trees and psyche maps. Use when the user wants something visualised without a design tool, or a system explained with a picture."
+description: "Draws diagrams in plain text with ASCII and Unicode box-drawing - architectures, process flows, hierarchies, decision trees and psychological structures. Use when the user wants something visualised without a design tool, or a system explained with a picture."
 allowed-tools: Read,Write,Edit
 metadata:
   category: Content & Writing
