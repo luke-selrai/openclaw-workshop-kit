@@ -1,6 +1,6 @@
 ---
 name: obs-recording-setup
-description: "Set up OBS Studio for recording vlogs, podcasts, tutorials, and talking-head video - with a PERFECT circular webcam and clean recording settings. Cross-platform (Linux/macOS/Windows). The headline feature: it generates a circular webcam mask sized to the user's exact camera capture resolution (so OBS doesn't stretch it into an oval), then walks them through adding the webcam + screen-capture sources and applying recording-friendly output settings (Hybrid MP4, separate audio tracks, sensible quality). Use this skill when the user wants to set up OBS, record their screen/webcam, fix an oval/squished webcam circle, or get a repeatable recording config. This is the RECORD front-end of the video pipeline - pairs with `video-editor` (edit the recordings) and `hyperframes`/`higgsfield-connector` (generate B-roll/captions)."
+description: "Sets up OBS Studio for cross-platform screen and webcam recording, with a camera-matched circular webcam mask. Use when the user wants to set up OBS, record their screen or webcam for a vlog, podcast or tutorial, fix an oval or squished webcam circle, or get a repeatable recording config."
 allowed-tools: Bash, Read, Write, Edit
 metadata:
   category: Content & Writing
@@ -30,6 +30,8 @@ metadata:
 ## Overview
 
 This skill makes a participant's OBS produce the **same clean recording config**: a **perfectly circular webcam**, a screen-capture scene, and **recording-friendly output settings**. It's the **record** stage of the video pipeline (record → `video-editor` to edit → publish).
+
+The target formats are **vlogs, podcasts, tutorials, and talking-head video** - anything where a webcam and a screen share the frame. It is **cross-platform**: Linux, macOS and Windows (see the per-OS table in Phase 0).
 
 ### Why this can't be a copy-paste config (read this first)
 
@@ -149,5 +151,6 @@ Hand the recording to **`video-editor`** to stitch/silence-cut/caption/export.
 
 - **video-editor** - edit the recordings (stitch, silence-cut, captions, reframe, export)
 - **hyperframes-media** - Whisper transcription → SRT captions for the footage
+- **hyperframes** / **higgsfield-connector** - generate B-roll to cut into the recording (HTML compositions and AI-generated footage respectively); this skill records the real footage, those generate the rest
 - **ad-creative** / **copywriting** - script the video first
 - **first-run-setup** - conversational bootstrap pattern
