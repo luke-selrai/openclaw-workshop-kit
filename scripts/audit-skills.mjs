@@ -111,24 +111,25 @@ const DESCRIPTION_BUDGET_MODE = "report";
 const DESCRIPTION_MAX_CHARS = 500;
 const DESCRIPTION_BASELINE_FILE = join(ROOT, "scripts", "description-budget-baseline.json");
 
-// Escape hatch, same convention as ANTI_PATTERN_ALLOWLIST: explicit
-// repo-root-relative paths. Empty on purpose — the rule's own fixtures live
-// outside skills/, and a real skill gets fixed rather than allowlisted.
-const DESCRIPTION_ALLOWLIST = new Set([]);
+// No allowlist: unlike ANTI_PATTERN_ALLOWLIST, this rule's fixtures live
+// outside skills/ (scripts/__fixtures__/descriptions/), so nothing inside the
+// scanned tree ever needs exempting. A real skill gets rewritten, not exempted.
 
-// Pronoun patterns. The "I" forms are case-SENSITIVE on purpose — a lowercase
-// standalone "i" is almost always "i.e.", not a pronoun. Likewise all-caps "US"
-// is the country ("Tier-1 connector for US SMBs"), not the pronoun.
+// Pronoun patterns. Contractions need no alternatives of their own — the bare
+// pronoun already matches ("I" in "I'm", "you" in "you're"), and that is the
+// token reported. The "I" form is case-SENSITIVE on purpose: a lowercase
+// standalone "i" is almost always "i.e.". Likewise all-caps "US" is the country
+// ("Tier-1 connector for US SMBs"), not the pronoun.
 const PERSON_PATTERNS = [
-  { rule: "description-first-person", regex: /\b(?:I|I['’](?:m|ve|ll|d))\b/g },
+  { rule: "description-first-person", regex: /\bI\b/g },
   {
     rule: "description-first-person",
-    regex: /\b(?:me|my|mine|myself|we|we['’](?:re|ve|ll|d)|us|our|ours|ourselves|let['’]s)\b/gi,
+    regex: /\b(?:me|my|mine|myself|we|us|our|ours|ourselves)\b/gi,
     skip: (token) => token === "US",
   },
   {
     rule: "description-second-person",
-    regex: /\b(?:you|you['’](?:re|ve|ll|d)|your|yours|yourself|yourselves)\b/gi,
+    regex: /\b(?:you|your|yours|yourself|yourselves)\b/gi,
   },
 ];
 
@@ -153,15 +154,23 @@ function stripQuotedSpans(value) {
 }
 
 // A pronoun glued into a path, domain, or hyphenated compound is not prose:
-// `users/me`, `app.asana.com/0/my-apps`, `my.freshbooks.com`, `build-your-own-CRM`.
-const GLUE_BEFORE = new Set(["/", ".", "-", "_", "@", "\\"]);
-const GLUE_AFTER = new Set(["/", ".", "-", "_", "@", "\\"]);
+// `GET /api/3/users/me`, `app.asana.com/0/my-apps`, `my.freshbooks.com`,
+// `build-your-own-CRM`. The test is on the whole whitespace-delimited chunk the
+// pronoun sits in, not just its neighbouring character — otherwise real prose
+// like "you/they" or "read/write/your files" would be silently swallowed and a
+// genuine violation would escape the rule.
+const PATH_LIKE = /^[~./]|:\/\/|[A-Za-z0-9]\.[A-Za-z]{2,}/;
+const IDENTIFIER_LIKE = /[_@\\]/;
+const HYPHEN_COMPOUND = /[A-Za-z0-9]-[A-Za-z0-9]/;
 
 function isGluedToken(prose, index, token) {
-  if (index > 0 && GLUE_BEFORE.has(prose[index - 1])) return true;
-  const after = prose[index + token.length];
-  const afterNext = prose[index + token.length + 1];
-  return GLUE_AFTER.has(after) && afterNext !== undefined && /[A-Za-z0-9]/.test(afterNext);
+  let start = index;
+  let end = index + token.length;
+  while (start > 0 && !/\s/.test(prose[start - 1])) start--;
+  while (end < prose.length && !/\s/.test(prose[end])) end++;
+  const chunk = prose.slice(start, end).replace(/[.,;:!?)\]]+$/, "");
+  if (chunk === token) return false;
+  return PATH_LIKE.test(chunk) || IDENTIFIER_LIKE.test(chunk) || HYPHEN_COMPOUND.test(chunk);
 }
 
 function matchPronouns(value, rule) {
@@ -245,9 +254,24 @@ function foldLines(lines) {
   return out;
 }
 
+// Content between the opening quote and the FIRST real closing quote — not the
+// last one, or a trailing YAML comment (`description: "…"  # note`) would be
+// swallowed into the value, inflating its length and importing stray pronouns.
+// `\"` escapes inside double quotes; `''` escapes inside single quotes.
 function stripQuotes(raw, quote) {
-  const close = raw.lastIndexOf(quote);
-  return close > 0 ? raw.slice(1, close) : raw.slice(1);
+  for (let i = 1; i < raw.length; i++) {
+    if (quote === '"' && raw[i] === "\\") {
+      i++;
+      continue;
+    }
+    if (raw[i] !== quote) continue;
+    if (quote === "'" && raw[i + 1] === "'") {
+      i++;
+      continue;
+    }
+    return raw.slice(1, i);
+  }
+  return raw.slice(1);
 }
 
 function decodeScalar(head, continuation) {
@@ -278,10 +302,12 @@ function extractDescription(text) {
   const lines = text.split(/\r?\n/);
   if (lines[0]?.trim() !== "---") return null;
 
+  // Only an UNINDENTED `---` closes the frontmatter. An indented one is content
+  // inside a block scalar, and treating it as the terminator would silently
+  // truncate the description (hiding the rest of it from both rules).
   let end = -1;
   for (let i = 1; i < lines.length; i++) {
-    const t = lines[i].trim();
-    if (t === "---" || t === "...") {
+    if (/^(?:---|\.\.\.)\s*$/.test(lines[i])) {
       end = i;
       break;
     }
@@ -335,7 +361,7 @@ function evaluateDescription(value) {
 function auditDescriptions(options = {}) {
   const hits = [];
   for (const { relPath, line, value } of readSkillDescriptions(options)) {
-    if (value === null || DESCRIPTION_ALLOWLIST.has(relPath)) continue;
+    if (value === null) continue;
     for (const hit of evaluateDescription(value)) {
       hits.push({ relPath, line, chars: value.length, ...hit });
     }
@@ -583,14 +609,13 @@ function main() {
   const descriptionHits = auditDescriptions();
   const { known, novel, stale } = classifyDescriptionHits(descriptionHits);
   const enforcing = budgetMode === "enforce";
-  const skillCount = readSkillDescriptions().length;
 
   console.log("");
   console.log("Description budget (CORE-93)");
   console.log("============================");
   console.log(`Mode                        : ${enforcing ? "ENFORCING — violations fail the check" : "report-only (CORE-98 flips to enforce)"}`);
   console.log(`Budget                      : ${DESCRIPTION_MAX_CHARS} chars`);
-  console.log(`Descriptions scanned        : ${skillCount}`);
+  console.log(`Descriptions scanned        : ${stats.totalSkills}`);
   console.log(`Violations                  : ${descriptionHits.length}${enforcing ? "" : ` (baselined ${known.length} / new ${novel.length})`}`);
 
   const show = (hit) => {

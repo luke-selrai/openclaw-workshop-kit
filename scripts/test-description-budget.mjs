@@ -86,6 +86,23 @@ const PARSE_CASES = [
     value: "Does a thing. Use when asked.",
     line: 3,
   },
+  {
+    // An indented `---` is block-scalar content, not the frontmatter
+    // terminator. Treating it as one would truncate the description and hide
+    // the rest of it (and any violation in it) from both rules.
+    label: "block scalar containing an indented ---",
+    text: "---\nname: a\ndescription: |\n  Does a thing.\n  ---\n  Use when you ask.\n---\n",
+    value: "Does a thing.\n---\nUse when you ask.",
+    line: 3,
+  },
+  {
+    // A trailing YAML comment must not be absorbed into the value: it inflates
+    // the char count and can import pronouns that aren't in the description.
+    label: "quoted scalar with a trailing comment",
+    text: '---\nname: a\ndescription: "Does a thing."  # you should rewrite this\n---\n',
+    value: "Does a thing.",
+    line: 3,
+  },
 ];
 
 for (const c of PARSE_CASES) {
@@ -183,13 +200,25 @@ eq(
   "unquoted second person still fires",
 );
 
+// The path/domain/compound exemption is judged on the whole whitespace-delimited
+// chunk, so a slash between two prose words must NOT swallow the pronoun.
+eq(
+  evaluateDescription("Use when you/they disagree about the plan.").map((h) => h.rule).join(","),
+  "description-second-person",
+  "a slash between prose words does not suppress the pronoun",
+);
+eq(
+  evaluateDescription("Handles read/write/your access levels.").map((h) => h.rule).join(","),
+  "description-second-person",
+  "a slash-separated word list does not suppress the pronoun",
+);
+
 // ---------------------------------------------------------------------------
 // 3. The mode switch CORE-98 flips.
 // ---------------------------------------------------------------------------
-const compliantOnly = auditDescriptions({
-  skillsDir: join(FIXTURES, "..", "descriptions"),
-  relPrefix: "fixtures",
-}).filter((h) => h.relPath.includes("/compliant/") || h.relPath.includes("/at-limit/"));
+const compliantOnly = fixtureHits.filter(
+  (h) => h.relPath.includes("/compliant/") || h.relPath.includes("/at-limit/"),
+);
 check(descriptionBudgetFails(fixtureHits, "enforce"), "enforce mode: over-budget fixture fails");
 eq(compliantOnly.length, 0, "compliant + at-limit fixtures produce no hits at all");
 check(!descriptionBudgetFails(compliantOnly, "enforce"), "enforce mode: compliant fixtures pass");
