@@ -1,0 +1,12 @@
+{
+  "_comment": "Fixture lock for scripts/test-description-budget.mjs. Same shape as the repo-root skills-lock.json. The key is a DISPLAY name and the skillPath's folder is upstream's, so neither matches the on-disk fixture directory verbatim — only the slugified key (vendored-over-budget) resolves it. Not a real lock; nothing installs from it.",
+  "version": 1,
+  "skills": {
+    "Vendored Over Budget": {
+      "source": "acme/agent-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/acme/skills/acme-framework/SKILL.md",
+      "computedHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  }
+}

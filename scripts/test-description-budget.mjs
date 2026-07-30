@@ -6,11 +6,15 @@
 //      library actually uses (plain, quoted, literal/folded block, multi-line).
 //   2. Each rule fires on its own fixture skill and stays silent on the
 //      compliant + exactly-at-the-limit fixtures.
-//   3. In ENFORCING mode the over-budget fixture fails and the compliant
-//      fixture passes; in REPORT-ONLY mode neither fails.
-//   4. The shipped baseline covers the real library, so CI is green today.
+//   3. In ENFORCING mode an over-budget non-pinned fixture fails and the
+//      compliant fixtures pass.
+//   4. A skill pinned in a skills-lock.json is exempted from the failure —
+//      still scanned and reported, never fatal (CORE-98).
+//   5. The real library is clean: zero failing violations, every remaining one
+//      vendored and lock-pinned. This is the CI-green guarantee.
 // Follows scripts/test-resilient-install.mjs's PASS/FAIL + fixture convention.
 
+import { existsSync, readFileSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -18,17 +22,21 @@ import {
   evaluateDescription,
   auditDescriptions,
   readSkillDescriptions,
-  classifyDescriptionHits,
+  slugifyLockKey,
+  loadPinnedSkillDirs,
+  partitionDescriptionHits,
   descriptionBudgetFails,
-  loadDescriptionBaseline,
-  baselineWriteBlockedReason,
+  REMOVED_FLAGS,
   DESCRIPTION_MAX_CHARS,
   DESCRIPTION_BUDGET_MODE,
   DESCRIPTION_RULES,
+  SKILLS_LOCK_FILE,
 } from "./audit-skills.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(HERE, "__fixtures__", "descriptions");
+const FIXTURE_LOCK = join(HERE, "__fixtures__", "descriptions-lock.json");
+const ROOT = resolve(HERE, "..");
 
 let failed = false;
 const check = (ok, label) => {
@@ -137,6 +145,11 @@ const rulesFor = (name) => [...(byFixture.get(name) || [])].sort().join(",");
 eq(rulesFor("compliant"), "", "compliant fixture: no hits");
 eq(rulesFor("at-limit"), "", "at-limit fixture (exactly 500 chars): no hits");
 eq(rulesFor("over-budget"), "description-over-budget", "over-budget fixture: length rule only");
+eq(
+  rulesFor("vendored-over-budget"),
+  "description-over-budget",
+  "vendored-over-budget fixture: length rule fires (the exemption is applied later, not by skipping the scan)",
+);
 eq(rulesFor("first-person"), "description-first-person", "first-person fixture: person rule only");
 eq(rulesFor("second-person"), "description-second-person", "second-person fixture: person rule only");
 
@@ -215,64 +228,130 @@ eq(
 );
 
 // ---------------------------------------------------------------------------
-// 3. The mode switch CORE-98 flips.
+// 3. The mode switch — CORE-98 flipped it to "enforce".
 // ---------------------------------------------------------------------------
+eq(DESCRIPTION_BUDGET_MODE, "enforce", "shipped mode is enforce (CORE-98 contract)");
+
+const unpinned = loadPinnedSkillDirs(FIXTURE_LOCK);
 const compliantOnly = fixtureHits.filter(
   (h) => h.relPath.includes("/compliant/") || h.relPath.includes("/at-limit/"),
 );
-check(descriptionBudgetFails(fixtureHits, "enforce"), "enforce mode: over-budget fixture fails");
 eq(compliantOnly.length, 0, "compliant + at-limit fixtures produce no hits at all");
 check(!descriptionBudgetFails(compliantOnly, "enforce"), "enforce mode: compliant fixtures pass");
-check(!descriptionBudgetFails(fixtureHits, "report"), "report mode: violations never fail CI");
+
+const nonPinnedOverBudget = fixtureHits.filter((h) => h.relPath.includes("/over-budget/"));
+eq(nonPinnedOverBudget.length, 1, "the non-pinned over-budget fixture produces exactly one hit");
 check(
-  DESCRIPTION_BUDGET_MODE === "report" || DESCRIPTION_BUDGET_MODE === "enforce",
-  `shipped mode is a known value (${DESCRIPTION_BUDGET_MODE})`,
+  descriptionBudgetFails(nonPinnedOverBudget, "enforce"),
+  "enforce mode: an over-budget NON-PINNED fixture fails",
+);
+check(!descriptionBudgetFails(nonPinnedOverBudget, "report"), "report mode never fails, whatever the hits");
+
+// Every failing hit must carry the reason string the enforcing output prints —
+// that output path is all an author gets when CI goes red.
+for (const hit of nonPinnedOverBudget) {
+  check(
+    typeof hit.reason === "string" && hit.reason.length > 0,
+    `failing hit carries its rule reason [${hit.rule}]`,
+  );
+}
+
+// The expand-phase flags are gone, and gone loudly rather than silently.
+for (const flag of ["--write-description-baseline", "--descriptions-enforce"]) {
+  check(typeof REMOVED_FLAGS[flag] === "string" && REMOVED_FLAGS[flag].length > 0, `removed flag ${flag} still explains itself`);
+}
+check(
+  !existsSync(join(ROOT, "scripts", "description-budget-baseline.json")),
+  "the description baseline file has been deleted",
 );
 
-// Re-baselining is a report-mode tool only. Once CORE-98 flips the mode, the
-// baseline is gone on purpose — re-minting it would quietly undo the contract.
-eq(baselineWriteBlockedReason("report"), null, "baseline write allowed in report mode");
+// ---------------------------------------------------------------------------
+// 4. The lock-pinned exemption (CORE-98).
+// ---------------------------------------------------------------------------
+// Resolution: the lock key is the upstream skill's name, which may be the local
+// directory verbatim, a display name, or differ from upstream's own folder.
+eq(slugifyLockKey("Expo UI SwiftUI"), "expo-ui-swiftui", "slugify: display name to directory name");
+eq(slugifyLockKey("node"), "node", "slugify: an already-slug key is unchanged");
+
+const realPinned = loadPinnedSkillDirs();
+check(realPinned.size > 0, `the real skills-lock.json resolves to a non-empty pinned set (${realPinned.size} aliases)`);
+for (const [dir, why] of [
+  ["node", "key matches the directory verbatim"],
+  ["fastify-best-practices", "key matches the directory, upstream folder differs (skills/fastify/)"],
+  ["expo-ui-swiftui", "only the slugified display name matches"],
+  ["vercel-react-view-transitions", "key matches, upstream folder is react-view-transitions"],
+]) {
+  check(realPinned.has(dir), `pinned: ${dir} (${why})`);
+}
+// First-party skills must never land in the exempt set.
+for (const dir of ["ghl-connector", "xero-connector", "ai-ops-architect"]) {
+  check(!realPinned.has(dir), `not pinned: first-party skill ${dir}`);
+}
+check(existsSync(SKILLS_LOCK_FILE), "SKILLS_LOCK_FILE points at a lock that exists");
+eq(loadPinnedSkillDirs(join(ROOT, "no-such-lock.json")).size, 0, "a missing lock exempts nothing");
+
+// Partition on the fixtures: the pinned fixture is exempt, the identical
+// non-pinned one still fails.
+const fixturePart = partitionDescriptionHits(fixtureHits, unpinned);
+eq(
+  fixturePart.exempt.map((h) => h.relPath.split("/").at(-2)).join(","),
+  "vendored-over-budget",
+  "partition: only the lock-pinned fixture is exempt",
+);
 check(
-  typeof baselineWriteBlockedReason("enforce") === "string" &&
-    baselineWriteBlockedReason("enforce").includes("report mode only"),
-  "baseline write blocked in enforce mode, with a reason",
+  fixturePart.failing.some((h) => h.relPath.includes("/over-budget/")),
+  "partition: the non-pinned over-budget fixture stays in the failing bucket",
+);
+check(descriptionBudgetFails(fixturePart.failing, "enforce"), "enforce: the failing bucket still fails");
+check(
+  !descriptionBudgetFails(
+    partitionDescriptionHits(
+      fixtureHits.filter((h) => h.relPath.includes("/vendored-over-budget/")),
+      unpinned,
+    ).failing,
+    "enforce",
+  ),
+  "enforce: a pinned fixture's violation alone does NOT fail",
+);
+// Exempt does not mean unscanned — the hit still exists, with its detail.
+const exemptHit = fixturePart.exempt[0];
+check(!!exemptHit && exemptHit.chars > DESCRIPTION_MAX_CHARS, "exempt hit is still measured and reported");
+eq(
+  partitionDescriptionHits(fixtureHits, new Set()).exempt.length,
+  0,
+  "an empty pinned set exempts nothing",
 );
 eq(
-  baselineWriteBlockedReason() === null,
-  DESCRIPTION_BUDGET_MODE === "report",
-  "the guard follows the shipped mode",
+  fixturePart.exempt.length + fixturePart.failing.length,
+  fixtureHits.length,
+  "partition is total: every hit lands in exactly one bucket",
 );
-
-// ---------------------------------------------------------------------------
-// 4. Baseline classification.
-// ---------------------------------------------------------------------------
-const sampleBaseline = {
-  violations: {
-    "scripts/__fixtures__/descriptions/over-budget/SKILL.md": ["description-over-budget"],
-    "skills/gone/SKILL.md": ["description-over-budget"],
-  },
-};
-const classified = classifyDescriptionHits(fixtureHits, sampleBaseline);
-eq(classified.known.length, 1, "classify: baselined hit counted as known");
-eq(classified.novel.length, fixtureHits.length - 1, "classify: everything else counted as novel");
-eq(classified.stale.map((s) => s.relPath).join(","), "skills/gone/SKILL.md", "classify: fixed baseline entry reported as stale");
-eq(classifyDescriptionHits(fixtureHits, { violations: {} }).novel.length, fixtureHits.length, "classify: empty baseline makes every hit novel");
 
 // ---------------------------------------------------------------------------
 // 5. The real library — the CI-green guarantee.
 // ---------------------------------------------------------------------------
 const libraryHits = auditDescriptions();
-const baseline = loadDescriptionBaseline();
+const { exempt: libraryExempt, failing: libraryFailing } = partitionDescriptionHits(libraryHits, realPinned);
 
-if (DESCRIPTION_BUDGET_MODE === "report") {
-  const { novel, known } = classifyDescriptionHits(libraryHits, baseline);
-  check(known.length > 0, `baseline is populated (${known.length} known violations)`);
-  check(novel.length === 0, `no un-baselined violations in skills/** (${novel.length} novel)`);
-  check(!descriptionBudgetFails(libraryHits, DESCRIPTION_BUDGET_MODE), "report-only: skills/** keeps CI green");
-} else {
-  // CORE-98 contract state: baseline deleted, library must be clean.
-  eq(Object.keys(baseline.violations).length, 0, "enforce mode: baseline has been dropped");
-  eq(libraryHits.length, 0, "enforce mode: skills/** has zero description violations");
+eq(
+  libraryFailing.length,
+  0,
+  `enforce: zero first-party description violations in skills/**${libraryFailing.length ? ` (${libraryFailing.map((h) => `${h.relPath} [${h.rule}]`).join(", ")})` : ""}`,
+);
+check(!descriptionBudgetFails(libraryFailing), "enforce: skills/** keeps CI green");
+check(
+  libraryExempt.length === libraryHits.length,
+  `every remaining violation is vendored and lock-pinned (${libraryExempt.length}/${libraryHits.length})`,
+);
+
+// The exemption is derived from the lock, not from a list in this repo — so
+// every exempt skill must be findable in skills-lock.json itself.
+const lockText = readFileSync(SKILLS_LOCK_FILE, "utf8").toLowerCase();
+for (const dir of new Set(libraryExempt.map((h) => h.relPath.split("/").at(-2)))) {
+  check(
+    lockText.includes(dir) || lockText.includes(dir.replace(/-/g, " ")),
+    `exempt skill ${dir} traces back to skills-lock.json`,
+  );
 }
 
 // Every skill has a parseable description — a skill the parser can't read would
