@@ -47,8 +47,45 @@ These are content-decision drift - the script reports them so a human can classi
 **Hard failures (fail CI):**
 
 - Any marker-bracketed number doesn't match the disk-true value
+- Any `skills/**/SKILL.md` hits an anti-pattern rule (`ANTI_PATTERN_RULES`)
 
 **CI wiring:** `.github/workflows/audit-skills.yml` runs `--check` on every PR that touches `skills/`, `docs/`, `visuals/`, or any of the count-bearing top-level docs.
+
+### Description budget (CORE-93)
+
+Same script, second content rule. Every skill's frontmatter description is always-on context in every attendee session, and Claude Code silently drops descriptions once the whole listing passes ~1% of the context window — so an oversized description can strip *another* skill's triggers with no error. Spec: [CORE-91](https://linear.app/selr-ai/issue/CORE-91).
+
+Rules, applied to every `skills/**/SKILL.md`:
+
+- **description-over-budget** - the description is over **500 characters**. Target is 150-250: what it does + when to use it. Procedure belongs in the body.
+- **description-first-person** / **description-second-person** - the description talks as "we/our/I" or addresses the reader as "you". Descriptions are third person about the skill.
+
+Pronouns inside **quoted trigger phrases** (`Use when the user says 'connect my Xero'`) are not flagged - quoting the user's own words is the recommended way to write triggers. Nor are pronouns glued into paths, domains, or hyphenated compounds (`users/me`, `my.freshbooks.com`, `build-your-own-CRM`), nor all-caps `US` (the country).
+
+**Mode - the expand/contract switch:**
+
+```js
+// scripts/audit-skills.mjs
+const DESCRIPTION_BUDGET_MODE = "report";  // CORE-98 flips this to "enforce"
+```
+
+- `"report"` (today) - violations are printed, **CI stays green**. `scripts/description-budget-baseline.json` records the violations that already existed when the rule shipped, so the report separates *baselined* from *new*. New ones are called out loudly but still don't fail.
+- `"enforce"` - any violation fails `--check`. To contract (CORE-98): set the constant and **delete the baseline file**. Nothing else changes; the baseline is only read in report mode.
+
+```bash
+# Preview the enforcing outcome without flipping the switch (exits 1 today)
+node scripts/audit-skills.mjs --check --descriptions-enforce
+
+# List every baselined violation and any baseline entry already fixed
+node scripts/audit-skills.mjs --check --verbose
+
+# Regenerate the baseline (report mode only — prefer fixing over baselining)
+node scripts/audit-skills.mjs --write-description-baseline
+```
+
+`--write-description-baseline` still runs the whole audit (markers, anti-patterns, budget report) and still exits 1 on marker drift - regenerating the baseline is never a way to skip the check. It exits 2 rather than writing if `DESCRIPTION_BUDGET_MODE` is not `"report"`, since after CORE-98 the baseline is deleted on purpose.
+
+The frontmatter parser handles every YAML scalar style in the library (plain, single/double quoted incl. multi-line, literal `|` and folded `>-` blocks, and a bare key with an indented block) - the repo has no YAML dependency.
 
 ## check-snapshot-shape.mjs
 
@@ -172,13 +209,16 @@ node scripts/check-mp-skills-install.mjs --live     # + list the live mattpocock
 Plain Node, no framework - each prints `PASS`/`FAIL` and exits non-zero on any failure.
 
 ```bash
-node scripts/test-anti-patterns.mjs     # regression for audit-skills anti-pattern rules
-node scripts/test-snapshot-shape.mjs    # cap-boundary + real-repo checks for the snapshot invariant
-node scripts/test-verify-conform.mjs    # stale-ref + bootstrap-consistency rules for verify-conform
-node scripts/test-resilient-install.mjs # resilience rules pass on both copies; fire on a bad fixture
-node scripts/test-install-narration.mjs # narration rules pass on all surfaces; fire on a bad fixture
-node scripts/test-mp-skills-install.mjs # install-contract rules pass on Step 3; fire on a bad fixture
+node scripts/test-anti-patterns.mjs      # regression for audit-skills anti-pattern rules
+node scripts/test-description-budget.mjs # description-budget rules, parser, and the report/enforce switch
+node scripts/test-snapshot-shape.mjs     # cap-boundary + real-repo checks for the snapshot invariant
+node scripts/test-verify-conform.mjs     # stale-ref + bootstrap-consistency rules for verify-conform
+node scripts/test-resilient-install.mjs  # resilience rules pass on both copies; fire on a bad fixture
+node scripts/test-install-narration.mjs  # narration rules pass on all surfaces; fire on a bad fixture
+node scripts/test-mp-skills-install.mjs  # install-contract rules pass on Step 3; fire on a bad fixture
 ```
+
+`test-description-budget.mjs` imports the rules from `audit-skills.mjs` (no mirrored regexes) and runs them over fixture skills in `scripts/__fixtures__/descriptions/`: an over-budget one, a first-person one, a second-person one, a compliant one, and one whose description is exactly 500 characters (the rule fires strictly *above* the limit). It asserts the over-budget fixture fails in **enforcing** mode, the compliant fixtures pass, report mode never fails, and the shipped baseline still covers the real library. Fixtures live outside `skills/`, so the real scan never sees them.
 
 `test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line.
 

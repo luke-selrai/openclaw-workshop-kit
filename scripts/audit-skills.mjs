@@ -73,10 +73,7 @@ function scanSkillForAntiPatterns(absPath, relPath) {
 }
 
 function auditAntiPatterns() {
-  const skillDirs = readdirSync(SKILLS_DIR).filter((name) => {
-    const p = join(SKILLS_DIR, name);
-    return statSync(p).isDirectory() && existsSync(join(p, "SKILL.md"));
-  });
+  const skillDirs = listSkillDirs(SKILLS_DIR);
   const allHits = [];
   for (const name of skillDirs) {
     const abs = join(SKILLS_DIR, name, "SKILL.md");
@@ -85,6 +82,354 @@ function auditAntiPatterns() {
     allHits.push(...scanSkillForAntiPatterns(abs, rel));
   }
   return allHits;
+}
+
+// ---------------------------------------------------------------------------
+// Description budget (CORE-93 / spec CORE-91)
+//
+// Every skill's frontmatter description is loaded into every attendee session
+// before they type a word. Claude Code caps the whole skill listing at ~1% of
+// the context window and silently drops descriptions past that, so an oversized
+// description doesn't just waste tokens — it can strip another skill's triggers
+// with no error. The canonical shape is third person: what it does + when to
+// use it, procedure lives in the body.
+//
+// Rules over every skills/**/SKILL.md description:
+//   description-over-budget      > DESCRIPTION_MAX_CHARS characters
+//   description-first-person     "we / our / I / us …"
+//   description-second-person    "you / your / yourself …"
+//
+// SHIPPING MODE — this is the switch CORE-98 flips.
+//   "report"  : violations are reported, CI stays green (expand phase, while
+//               the 200-odd rewrites land).
+//   "enforce" : any violation fails `--check`.
+// To contract (CORE-98): set DESCRIPTION_BUDGET_MODE to "enforce" and delete
+// scripts/description-budget-baseline.json. Nothing else needs to change —
+// the baseline is only ever read in report mode.
+// `--descriptions-enforce` previews the enforcing outcome without flipping it.
+const DESCRIPTION_BUDGET_MODE = "report";
+const DESCRIPTION_MAX_CHARS = 500;
+const DESCRIPTION_BASELINE_FILE = join(ROOT, "scripts", "description-budget-baseline.json");
+
+// No allowlist: unlike ANTI_PATTERN_ALLOWLIST, this rule's fixtures live
+// outside skills/ (scripts/__fixtures__/descriptions/), so nothing inside the
+// scanned tree ever needs exempting. A real skill gets rewritten, not exempted.
+
+// Pronoun patterns. Contractions need no alternatives of their own — the bare
+// pronoun already matches ("I" in "I'm", "you" in "you're"), and that is the
+// token reported. The "I" form is case-SENSITIVE on purpose: a lowercase
+// standalone "i" is almost always "i.e.". Likewise all-caps "US" is the country
+// ("Tier-1 connector for US SMBs"), not the pronoun.
+const PERSON_PATTERNS = [
+  { rule: "description-first-person", regex: /\bI\b/g },
+  {
+    rule: "description-first-person",
+    regex: /\b(?:me|my|mine|myself|we|us|our|ours|ourselves)\b/gi,
+    skip: (token) => token === "US",
+  },
+  {
+    rule: "description-second-person",
+    regex: /\b(?:you|your|yours|yourself|yourselves)\b/gi,
+  },
+];
+
+// Quoted trigger phrases — `Use when the user says "connect my Xero"` — quote
+// the USER's own words, which is exactly the recommended way to write triggers.
+// Pronouns inside them are legitimate, so quoted spans are stripped before the
+// person check only — never before the length check.
+//
+// Single quotes are the dominant style in this library (the YAML value itself is
+// usually double-quoted), so they have to be handled, but a bare apostrophe
+// (`the user's`) must not open a span: an opening quote has to follow the start
+// of the string or an opening delimiter, and a closing quote has to be followed
+// by whitespace, punctuation, or the end.
+// The content may contain an apostrophe that is part of a word ("I'm using
+// Next.js"), so an inner quote is allowed when a letter follows it.
+const DOUBLE_QUOTED = /"[^"]*"|[“][^”]*[”]/g;
+const SINGLE_QUOTED =
+  /(^|[\s([])(?:'(?:[^']|'(?=[A-Za-z])){0,300}?'|[‘](?:[^’]|[’](?=[A-Za-z])){0,300}?[’])(?=[\s,.;:)\]!?]|$)/g;
+
+function stripQuotedSpans(value) {
+  return value.replace(DOUBLE_QUOTED, " ").replace(SINGLE_QUOTED, "$1 ");
+}
+
+// A pronoun glued into a path, domain, or hyphenated compound is not prose:
+// `GET /api/3/users/me`, `app.asana.com/0/my-apps`, `my.freshbooks.com`,
+// `build-your-own-CRM`. The test is on the whole whitespace-delimited chunk the
+// pronoun sits in, not just its neighbouring character — otherwise real prose
+// like "you/they" or "read/write/your files" would be silently swallowed and a
+// genuine violation would escape the rule.
+const PATH_LIKE = /^[~./]|:\/\/|[A-Za-z0-9]\.[A-Za-z]{2,}/;
+const IDENTIFIER_LIKE = /[_@\\]/;
+const HYPHEN_COMPOUND = /[A-Za-z0-9]-[A-Za-z0-9]/;
+
+function isGluedToken(prose, index, token) {
+  let start = index;
+  let end = index + token.length;
+  while (start > 0 && !/\s/.test(prose[start - 1])) start--;
+  while (end < prose.length && !/\s/.test(prose[end])) end++;
+  const chunk = prose.slice(start, end).replace(/[.,;:!?)\]]+$/, "");
+  if (chunk === token) return false;
+  return PATH_LIKE.test(chunk) || IDENTIFIER_LIKE.test(chunk) || HYPHEN_COMPOUND.test(chunk);
+}
+
+function matchPronouns(value, rule) {
+  const prose = stripQuotedSpans(value);
+  const found = [];
+  for (const pattern of PERSON_PATTERNS) {
+    if (pattern.rule !== rule) continue;
+    for (const m of prose.matchAll(pattern.regex)) {
+      if (pattern.skip?.(m[0])) continue;
+      if (isGluedToken(prose, m.index, m[0])) continue;
+      if (!found.includes(m[0])) found.push(m[0]);
+    }
+  }
+  return found;
+}
+
+const DESCRIPTION_RULES = [
+  {
+    id: "description-over-budget",
+    reason:
+      `frontmatter description is over the ${DESCRIPTION_MAX_CHARS}-character budget. ` +
+      "The skill listing is always-on context; procedure belongs in the SKILL.md body, " +
+      "not the description. Target 150-250 chars: what it does + when to use it.",
+    check: (value) =>
+      value.length > DESCRIPTION_MAX_CHARS
+        ? `${value.length} chars (budget ${DESCRIPTION_MAX_CHARS}, over by ${value.length - DESCRIPTION_MAX_CHARS})`
+        : null,
+  },
+  {
+    id: "description-first-person",
+    reason:
+      "frontmatter description uses first person. Descriptions are written in third " +
+      "person about the skill ('Connects X…', 'Use when the user asks…'), not as the " +
+      "author or the agent speaking.",
+    check: (value) => {
+      const found = matchPronouns(value, "description-first-person");
+      return found.length ? `first-person pronouns: ${found.join(", ")}` : null;
+    },
+  },
+  {
+    id: "description-second-person",
+    reason:
+      "frontmatter description addresses the reader as 'you'. Descriptions are written " +
+      "in third person about the skill and its trigger ('Use when the user wants…').",
+    check: (value) => {
+      const found = matchPronouns(value, "description-second-person");
+      return found.length ? `second-person pronouns: ${found.join(", ")}` : null;
+    },
+  },
+];
+
+// --- Frontmatter description parsing ---------------------------------------
+// The library uses every YAML scalar style: plain, double/single quoted,
+// literal (|) and folded (>-) blocks, and a bare key with an indented block.
+// No YAML dependency in this repo, so parse the one key we need.
+
+function dedent(lines) {
+  const indents = lines
+    .filter((l) => l.trim() !== "")
+    .map((l) => l.match(/^\s*/)[0].length);
+  const cut = indents.length ? Math.min(...indents) : 0;
+  return lines.map((l) => l.slice(cut));
+}
+
+// YAML folding: a single line break becomes a space, a blank line a newline.
+function foldLines(lines) {
+  let out = "";
+  let pendingBreak = false;
+  for (const raw of lines) {
+    const t = raw.trim();
+    if (t === "") {
+      pendingBreak = out !== "";
+      continue;
+    }
+    if (out === "") out = t;
+    else if (pendingBreak) {
+      out += `\n${t}`;
+      pendingBreak = false;
+    } else out += ` ${t}`;
+  }
+  return out;
+}
+
+// Content between the opening quote and the FIRST real closing quote — not the
+// last one, or a trailing YAML comment (`description: "…"  # note`) would be
+// swallowed into the value, inflating its length and importing stray pronouns.
+// `\"` escapes inside double quotes; `''` escapes inside single quotes.
+function stripQuotes(raw, quote) {
+  for (let i = 1; i < raw.length; i++) {
+    if (quote === '"' && raw[i] === "\\") {
+      i++;
+      continue;
+    }
+    if (raw[i] !== quote) continue;
+    if (quote === "'" && raw[i + 1] === "'") {
+      i++;
+      continue;
+    }
+    return raw.slice(1, i);
+  }
+  return raw.slice(1);
+}
+
+function decodeScalar(head, continuation) {
+  const first = head.trim();
+  const body = dedent(continuation);
+
+  if (/^[|>][+-]?\d*$/.test(first)) {
+    return first.startsWith(">") ? foldLines(body) : body.join("\n");
+  }
+  if (first === "") return foldLines(body);
+  if (first.startsWith('"')) {
+    const inner = stripQuotes(foldLines([first, ...body]), '"');
+    try {
+      return JSON.parse(`"${inner}"`);
+    } catch {
+      return inner.replace(/\\(.)/g, "$1");
+    }
+  }
+  if (first.startsWith("'")) {
+    return stripQuotes(foldLines([first, ...body]), "'").replace(/''/g, "'");
+  }
+  return foldLines([first, ...body]);
+}
+
+// Returns { value, line } — line is the 1-based file line of the description
+// key — or null when the file has no frontmatter or no description key.
+function extractDescription(text) {
+  const lines = text.split(/\r?\n/);
+  if (lines[0]?.trim() !== "---") return null;
+
+  // Only an UNINDENTED `---` closes the frontmatter. An indented one is content
+  // inside a block scalar, and treating it as the terminator would silently
+  // truncate the description (hiding the rest of it from both rules).
+  let end = -1;
+  for (let i = 1; i < lines.length; i++) {
+    if (/^(?:---|\.\.\.)\s*$/.test(lines[i])) {
+      end = i;
+      break;
+    }
+  }
+  if (end === -1) return null;
+
+  const frontmatter = lines.slice(1, end);
+  const keyIndex = frontmatter.findIndex((l) => /^description\s*:/.test(l));
+  if (keyIndex === -1) return null;
+
+  const head = frontmatter[keyIndex].replace(/^description\s*:/, "");
+  const continuation = [];
+  for (let i = keyIndex + 1; i < frontmatter.length; i++) {
+    const l = frontmatter[i];
+    if (l.trim() === "" || /^\s/.test(l)) continuation.push(l);
+    else break;
+  }
+  while (continuation.length && continuation.at(-1).trim() === "") continuation.pop();
+
+  return { value: decodeScalar(head, continuation).trim(), line: keyIndex + 2 };
+}
+
+function listSkillDirs(skillsDir) {
+  return readdirSync(skillsDir).filter((name) => {
+    const p = join(skillsDir, name);
+    return statSync(p).isDirectory() && existsSync(join(p, "SKILL.md"));
+  });
+}
+
+// [{ relPath, line, value }] for every SKILL.md under skillsDir. `value` is
+// null when no description could be parsed.
+function readSkillDescriptions({ skillsDir = SKILLS_DIR, relPrefix = "skills" } = {}) {
+  return listSkillDirs(skillsDir).map((name) => {
+    const relPath = `${relPrefix}/${name}/SKILL.md`;
+    const parsed = extractDescription(readFileSync(join(skillsDir, name, "SKILL.md"), "utf8"));
+    return { relPath, line: parsed ? parsed.line : null, value: parsed ? parsed.value : null };
+  });
+}
+
+// [{ rule, detail }] for one description string.
+function evaluateDescription(value) {
+  const hits = [];
+  for (const rule of DESCRIPTION_RULES) {
+    const detail = rule.check(value);
+    if (detail) hits.push({ rule: rule.id, detail, reason: rule.reason });
+  }
+  return hits;
+}
+
+// [{ relPath, line, rule, detail, reason, chars }] across a skills tree.
+function auditDescriptions(options = {}) {
+  const hits = [];
+  for (const { relPath, line, value } of readSkillDescriptions(options)) {
+    if (value === null) continue;
+    for (const hit of evaluateDescription(value)) {
+      hits.push({ relPath, line, chars: value.length, ...hit });
+    }
+  }
+  return hits;
+}
+
+function loadDescriptionBaseline() {
+  if (!existsSync(DESCRIPTION_BASELINE_FILE)) return { violations: {} };
+  const parsed = JSON.parse(readFileSync(DESCRIPTION_BASELINE_FILE, "utf8"));
+  return { ...parsed, violations: parsed.violations || {} };
+}
+
+// known  = hit is in the baseline (a pre-existing violation, tolerated)
+// novel  = hit is not in the baseline (regression or newly added skill)
+// stale  = baseline entry with no matching hit (already fixed — safe to prune)
+function classifyDescriptionHits(hits, baseline = loadDescriptionBaseline()) {
+  const recorded = (baseline && baseline.violations) || {};
+  const known = [];
+  const novel = [];
+  for (const hit of hits) {
+    ((recorded[hit.relPath] || []).includes(hit.rule) ? known : novel).push(hit);
+  }
+  const live = new Set(hits.map((h) => `${h.relPath}::${h.rule}`));
+  const stale = [];
+  for (const [relPath, rules] of Object.entries(recorded)) {
+    for (const rule of rules) {
+      if (!live.has(`${relPath}::${rule}`)) stale.push({ relPath, rule });
+    }
+  }
+  return { known, novel, stale };
+}
+
+// The one place the mode decides CI's fate. Report mode never fails.
+function descriptionBudgetFails(hits, mode = DESCRIPTION_BUDGET_MODE) {
+  return mode === "enforce" && hits.length > 0;
+}
+
+// --write-description-baseline is a report-mode tool. Once CORE-98 flips the
+// mode, the baseline is gone on purpose and re-minting it would quietly undo the
+// contract. Returns null when writing is allowed, or the reason it isn't.
+function baselineWriteBlockedReason(mode = DESCRIPTION_BUDGET_MODE) {
+  if (mode === "report") return null;
+  return (
+    `--write-description-baseline works in report mode only (DESCRIPTION_BUDGET_MODE is "${mode}"). ` +
+    "CORE-98 dropped the baseline deliberately — fix the description instead of re-baselining it."
+  );
+}
+
+function writeDescriptionBaseline(hits) {
+  const violations = {};
+  for (const hit of hits.slice().sort((a, b) => a.relPath.localeCompare(b.relPath))) {
+    (violations[hit.relPath] ||= []).push(hit.rule);
+  }
+  for (const rules of Object.values(violations)) rules.sort();
+  const payload = {
+    note:
+      "CORE-93 report-only baseline: description-budget violations that already existed " +
+      "when the rule shipped. Regenerate with `node scripts/audit-skills.mjs " +
+      "--write-description-baseline`. CORE-98 (contract) DELETES this file and sets " +
+      "DESCRIPTION_BUDGET_MODE = 'enforce' in scripts/audit-skills.mjs.",
+    budget: DESCRIPTION_MAX_CHARS,
+    generated: new Date().toISOString().slice(0, 10),
+    count: hits.length,
+    violations,
+  };
+  writeFileSync(DESCRIPTION_BASELINE_FILE, `${JSON.stringify(payload, null, 2)}\n`);
+  return payload;
 }
 
 const TARGET_FILES = [
@@ -103,10 +448,7 @@ const TARGET_FILES = [
 const MARKERS = ["total", "core", "advanced", "dev-only", "connectors-count"];
 
 function gatherStats() {
-  const skillDirs = readdirSync(SKILLS_DIR).filter((name) => {
-    const p = join(SKILLS_DIR, name);
-    return statSync(p).isDirectory() && existsSync(join(p, "SKILL.md"));
-  });
+  const skillDirs = listSkillDirs(SKILLS_DIR);
 
   const totalSkills = skillDirs.length;
 
@@ -179,6 +521,20 @@ function main() {
   const args = process.argv.slice(2);
   const mode = args.includes("--write") ? "write" : "check";
   const verbose = args.includes("--verbose");
+  const budgetMode = args.includes("--descriptions-enforce") ? "enforce" : DESCRIPTION_BUDGET_MODE;
+
+  // Regenerating the baseline does NOT short-circuit the audit: the marker
+  // check, the anti-pattern scan and the budget report all still run, and a
+  // drifted marker still fails the check. Rewriting the baseline must never be
+  // a way to exit 0 without being audited.
+  const writeBaseline = args.includes("--write-description-baseline");
+  if (writeBaseline) {
+    const blocked = baselineWriteBlockedReason();
+    if (blocked) {
+      console.error(`❌ ${blocked}`);
+      process.exit(2);
+    }
+  }
 
   const stats = gatherStats();
 
@@ -265,9 +621,93 @@ function main() {
     console.log("✓ No anti-pattern hits across skills/**/SKILL.md.");
   }
 
-  if (mode === "check" && (fileDrift || antiPatternHits.length > 0)) {
+  // Description budget — always runs in both modes; never auto-mutates.
+  const descriptionHits = auditDescriptions();
+  const { known, novel, stale } = classifyDescriptionHits(descriptionHits);
+  const enforcing = budgetMode === "enforce";
+
+  console.log("");
+  console.log("Description budget (CORE-93)");
+  console.log("============================");
+  console.log(`Mode                        : ${enforcing ? "ENFORCING — violations fail the check" : "report-only (CORE-98 flips to enforce)"}`);
+  console.log(`Budget                      : ${DESCRIPTION_MAX_CHARS} chars`);
+  console.log(`Descriptions scanned        : ${stats.totalSkills}`);
+  console.log(`Violations                  : ${descriptionHits.length}${enforcing ? "" : ` (baselined ${known.length} / new ${novel.length})`}`);
+
+  const show = (hit, withReason = false) => {
+    console.log(`   ${hit.relPath}:${hit.line} [${hit.rule}] ${hit.detail}`);
+    if (withReason) console.log(`     ${hit.reason}`);
+  };
+
+  if (enforcing) {
+    // Same shape as the anti-pattern block above: every failing hit prints the
+    // reason it failed. This is the mode CORE-98 ships, so it is the output an
+    // author actually has to act on.
+    for (const hit of descriptionHits) show(hit, true);
+  } else {
+    if (novel.length > 0) {
+      console.log("");
+      console.log(`❌ New description-budget violations, not in the baseline (${novel.length}):`);
+      for (const hit of novel) show(hit);
+      console.log("");
+      for (const id of new Set(novel.map((h) => h.rule))) {
+        console.log(`   [${id}] ${DESCRIPTION_RULES.find((r) => r.id === id).reason}`);
+      }
+      console.log("");
+      console.log("Report-only mode, so this does not fail CI — but fix these rather than");
+      console.log("baselining them; CORE-98 turns the rule into a hard failure.");
+    }
+    if (verbose) {
+      for (const hit of known) show(hit);
+      for (const entry of stale) {
+        console.log(`   (fixed since baseline) ${entry.relPath} [${entry.rule}]`);
+      }
+    } else if (stale.length > 0) {
+      console.log(`Fixed since baseline        : ${stale.length} (rerun --write-description-baseline to prune)`);
+    }
+  }
+
+  if (descriptionHits.length === 0) {
+    console.log("✓ Every skills/**/SKILL.md description is within budget and in third person.");
+  }
+
+  // Written after the report, so the run still shows how the violations were
+  // classified against the OUTGOING baseline — i.e. what is being baselined.
+  if (writeBaseline) {
+    const payload = writeDescriptionBaseline(descriptionHits);
+    console.log("");
+    console.log(
+      `✏️  Wrote scripts/description-budget-baseline.json — ${payload.count} violation(s) across ${Object.keys(payload.violations).length} skill(s).`,
+    );
+  }
+
+  const budgetFails = descriptionBudgetFails(descriptionHits, budgetMode);
+  if (budgetFails) {
+    console.log("");
+    console.log(`❌ ${descriptionHits.length} description-budget violation(s) — see above.`);
+  }
+
+  if (mode === "check" && (fileDrift || antiPatternHits.length > 0 || budgetFails)) {
     process.exit(1);
   }
 }
 
-main();
+export {
+  extractDescription,
+  evaluateDescription,
+  readSkillDescriptions,
+  auditDescriptions,
+  classifyDescriptionHits,
+  descriptionBudgetFails,
+  loadDescriptionBaseline,
+  writeDescriptionBaseline,
+  baselineWriteBlockedReason,
+  DESCRIPTION_RULES,
+  DESCRIPTION_MAX_CHARS,
+  DESCRIPTION_BUDGET_MODE,
+};
+
+// Run only as a CLI, so tests can import the rules without triggering the audit.
+if (resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
+  main();
+}
