@@ -1,6 +1,6 @@
 ---
 name: skills-discovery
-description: Shows workshop attendees the skills that matter most to their business, and gives 3 personalised recommendations based on their onboarding answers. Use when someone asks "what can you do?", "show me the skills", "what skills do I have?", or "what should I try first?" Also used right after a successful live demo to surface the next skills to try.
+description: "Shows a business owner which of their installed skills fit their business, then gives 3 personalised recommendations from their profile. Use when someone asks 'what can you do' or 'what skills do I have', wonders what to try first, or right after a live demo."
 risk: safe
 source: selrai
 date_added: '2026-03-25'

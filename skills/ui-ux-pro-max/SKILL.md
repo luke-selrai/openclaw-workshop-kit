@@ -1,6 +1,6 @@
 ---
 name: ui-ux-pro-max
-description: "UI/UX design intelligence. 67 styles, 96 palettes, 57 font pairings, 25 charts, 13 stacks (React, Next.js, Vue, Svelte, SwiftUI, React Native, Flutter, Tailwind, shadcn/ui). Actions: plan, build, create, design, implement, review, fix, improve, optimize, enhance, refactor, check UI/UX code. Projects: website, landing page, dashboard, admin panel, e-commerce, SaaS, portfolio, blog, mobile app, .html, .tsx, .vue, .svelte. Elements: button, modal, navbar, sidebar, card, table, form, chart. Styles: glassmorphism, claymorphism, minimalism, brutalism, neumorphism, bento grid, dark mode, responsive, skeuomorphism, flat design. Topics: color palette, accessibility, animation, layout, typography, font pairing, spacing, hover, shadow, gradient. Integrations: shadcn/ui MCP for component search and examples."
+description: "Recommends a UI/UX design system - style, palette, typography, layout, charts - from a searchable database covering 13 stacks. Use when the user wants a page or dashboard designed, a font pairing or palette picked, or UI code reviewed for UX issues."
 ---
 # UI/UX Pro Max - Design Intelligence
 
@@ -200,7 +200,7 @@ Get implementation-specific best practices. If user doesn't specify a stack, **d
 python3 ~/.claude/skills/ui-ux-pro-max/scripts/search.py "<keyword>" --stack html-tailwind
 ```
 
-Available stacks: `html-tailwind`, `react`, `nextjs`, `vue`, `svelte`, `swiftui`, `react-native`, `flutter`, `shadcn`, `jetpack-compose`
+Available stacks (13): `html-tailwind`, `react`, `nextjs`, `astro`, `vue`, `nuxtjs`, `nuxt-ui`, `svelte`, `swiftui`, `react-native`, `flutter`, `shadcn`, `jetpack-compose`
 
 ---
 
@@ -211,7 +211,7 @@ Available stacks: `html-tailwind`, `react`, `nextjs`, `vue`, `svelte`, `swiftui`
 | Domain | Use For | Example Keywords |
 |--------|---------|------------------|
 | `product` | Product type recommendations | SaaS, e-commerce, portfolio, healthcare, beauty, service |
-| `style` | UI styles, colors, effects | glassmorphism, minimalism, dark mode, brutalism |
+| `style` | UI styles, colors, effects | glassmorphism, claymorphism, neumorphism, skeuomorphism, minimalism, brutalism, flat design, bento grid, dark mode |
 | `typography` | Font pairings, Google Fonts | elegant, playful, professional, modern |
 | `color` | Color palettes by product type | saas, ecommerce, healthcare, beauty, fintech, service |
 | `landing` | Page structure, CTA strategies | hero, hero-centric, testimonial, pricing, social-proof |
@@ -228,7 +228,10 @@ Available stacks: `html-tailwind`, `react`, `nextjs`, `vue`, `svelte`, `swiftui`
 | `html-tailwind` | Tailwind utilities, responsive, a11y (DEFAULT) |
 | `react` | State, hooks, performance, patterns |
 | `nextjs` | SSR, routing, images, API routes |
+| `astro` | Islands, content collections, partial hydration |
 | `vue` | Composition API, Pinia, Vue Router |
+| `nuxtjs` | Routing, data fetching, rendering, SEO |
+| `nuxt-ui` | Nuxt UI components, theming, forms, overlays |
 | `svelte` | Runes, stores, SvelteKit |
 | `swiftui` | Views, State, Navigation, Animation |
 | `react-native` | Components, Navigation, Lists |

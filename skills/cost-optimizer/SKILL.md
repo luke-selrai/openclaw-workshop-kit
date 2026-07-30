@@ -1,8 +1,6 @@
 ---
 name: cost-optimizer
-description: Tracks cumulative LLM costs across DAG execution and makes real-time decisions to stay within budget. Downgrades models, skips optional nodes, or stops early when cost exceeds thresholds. Use
-  when managing execution budgets, analyzing cost breakdowns, or optimizing model routing for cost. Activate on "cost budget", "too expensive", "reduce cost", "cost optimization", "model downgrade", "budget
-  exceeded". NOT for LLM model selection logic, pricing comparisons across providers, or billing/invoicing.
+description: "Tracks cumulative LLM spend across a DAG run and keeps it inside a budget by downgrading model tiers, skipping optional nodes, or stopping early. Use when the user sets a run budget, says a run is too expensive, or wants a per-node cost breakdown."
 allowed-tools: Read,Grep
 argument-hint: '[dag-id] [budget-usd]'
 metadata:

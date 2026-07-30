@@ -1,6 +1,6 @@
 ---
 name: agent-memory-systems
-description: "Design and optimize agent memory systems including short-term, long-term, episodic, and semantic memory with effective retrieval strategies."
+description: "Designs agent memory architecture - short-term, long-term, episodic and semantic memory, chunking, vector stores and retrieval scoring. Use when an agent forgets or contradicts itself, or when choosing a memory type, chunk size or vector database."
 risk: unknown
 source: "vibeship-spawner-skills (Apache 2.0)"
 date_added: "2026-02-27"

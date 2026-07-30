@@ -1,6 +1,6 @@
 ---
 name: cloudflare-deployment
-description: Install and authenticate the Cloudflare developer stack (Wrangler CLI, Workers, Pages, R2, KV, D1, Durable Objects) on the user's laptop. Use this skill when the user asks to connect Cloudflare, set up Wrangler, deploy to Workers or Pages, log in to Cloudflare, or mentions any Cloudflare developer service. Handles installation, OAuth authentication, the official Cloudflare skills bundle, and verification conversationally. MANDATORY TRIGGERS - invoke immediately on any of these phrases (case-insensitive, partial match counts) - 'connect cloudflare', 'set up cloudflare', 'install wrangler', 'deploy to workers', 'cloudflare login', 'cloudflare pages', 'cloudflare r2', 'cloudflare kv', 'cloudflare d1', 'durable objects setup'.
+description: "Installs and authenticates the Cloudflare stack - Wrangler, Workers, Pages, R2, KV, D1, Durable Objects - locally, then deploys through it. Use when the user asks to set up Cloudflare or Wrangler, sign in, or deploy to Workers or Pages."
 allowed-tools: Bash,PowerShell,Read,Write,Edit,mcp__playwright__*,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations

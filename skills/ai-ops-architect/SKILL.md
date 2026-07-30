@@ -1,6 +1,6 @@
 ---
 name: ai-ops-architect
-description: Use when a user (especially a non-technical business owner or workshop attendee) wants to figure out what AI / automation to build for their business and actually deploy it. Runs an 8-question intake (or extracts from existing memory), produces an opportunity map ranked against their pains/tools/budget, then delegates building to /n8n or /managed-agents-setup based on the runtime decision matrix. Auto-invoke on phrases like "what should I automate", "where do I start", "audit my business for AI", "set up my AI ops", "what would you build for me", "I want to automate my business", "save me time on X", "I run a [business type] - what should I automate", "I want an AI assistant for my business but don't know where to start". Do NOT auto-invoke for narrow technical tasks already handled by /n8n or /managed-agents-setup directly.
+description: "Audits a business for AI and automation opportunities, ranks them, and routes each pick to n8n workflows or managed agents. Use when a non-technical owner asks 'what should I automate' or 'where do I start', or wants an AI ops plan for their business."
 ---
 
 # AI Ops Architect

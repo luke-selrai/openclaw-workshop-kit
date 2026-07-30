@@ -1,8 +1,6 @@
 ---
 name: bot-developer
-description: Expert bot developer specializing in Discord, Telegram, Slack automation with deep knowledge of rate limiting, state machines, event sourcing, moderation systems, and conversational AI integration.
-  Activate on 'Discord bot', 'Telegram bot', 'Slack bot', 'chat automation', 'moderation system'. NOT for web APIs (use backend-architect), general automation scripts (use python-pro), or frontend chat
-  widgets (use frontend-developer).
+description: "Builds production Discord, Telegram and Slack bots - event-driven architecture, state machines, distributed rate limiting and point-based moderation. Use when the user wants a chat bot, an auto-mod system, or a bot that keeps hitting rate limits fixed."
 allowed-tools: Read,Write,Edit,Bash,WebSearch,WebFetch
 metadata:
   category: AI & Machine Learning
@@ -51,6 +49,7 @@ Bot Developer:
 
 ### 2. Production Architecture
 - Event-driven design with message broker (Redis Streams / RabbitMQ)
+- Event sourcing: persist the event stream as the source of truth so bot state can be rebuilt or replayed after a restart
 - Service layer separation (User, Moderation, Economy, Integration)
 - PostgreSQL + Redis + S3 data layer
 - Cog-based modular structure

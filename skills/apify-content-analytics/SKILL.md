@@ -1,6 +1,6 @@
 ---
 name: apify-content-analytics
-description: Track engagement metrics on the user's OWN social accounts via Apify Actors - Instagram post and reel performance, follower growth, Facebook page audits, ad analytics, YouTube video and Shorts metrics, TikTok content stats. Use this skill when the user says "how is my Instagram performing", "top reels this month", "audit my Facebook page", "YouTube video metrics", "track my follower growth", "MY ad performance", "review MY hashtag stats", or asks about the performance of an account they own or operate. For competitor analysis (THEIR accounts) use apify-competitor-intelligence. For market sizing or product validation use apify-market-research.
+description: "Tracks the user's OWN social accounts with Apify Actors - Instagram posts and reels, follower growth, Facebook page and ad metrics, YouTube and TikTok. Use when the user asks 'how is my page performing' or 'how is my profile doing' - not a rival's (apify-competitor-intelligence) or a market (apify-market-research)."
 ---
 
 # Content Analytics

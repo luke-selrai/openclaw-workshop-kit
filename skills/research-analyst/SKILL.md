@@ -1,6 +1,6 @@
 ---
 name: research-analyst
-description: Conducts thorough landscape research, competitive analysis, best practices evaluation, and evidence-based recommendations. Expert in market research and trend analysis.
+description: "Landscape and best-practice research that evaluates competing tools, frameworks and methodologies and returns comparison matrices, landscape maps and evidence-based recommendations. Use when the user asks which approach to pick, how top teams do something, or what the trade-offs are."
 allowed-tools:
 - Read
 - Grep

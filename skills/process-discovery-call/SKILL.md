@@ -1,6 +1,6 @@
 ---
 name: process-discovery-call
-description: Process a recorded discovery call end-to-end. Finds the transcript in Drive by prospect name, extracts structured signals (pain, budget, urgency, fit, commitments), updates the GHL contact and opportunity, drafts a personalised follow-up email in Gmail, and replies on Telegram with a TL;DR. Trigger from Telegram with a message like "Process discovery call with Tom Calleia".
+description: "Processes a recorded discovery call from its Google Drive transcript into a GHL CRM update, a Gmail follow-up draft and a Telegram summary. Use when the user asks to process a discovery call with a named prospect."
 ---
 
 # Process Discovery Call

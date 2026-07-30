@@ -1,6 +1,6 @@
 ---
 name: install-claude-yolo
-description: Install a cross-platform 'claude-yolo' shell alias that launches Claude Code with --dangerously-skip-permissions (bypass permissions mode). Detects the user's OS and shell, writes to the correct config file (.zshrc, .bashrc, .bash_profile, fish config, or PowerShell $PROFILE), and is idempotent (safe to re-run). Use when the user wants to install the claude-yolo alias, set up bypass permissions shortcut, or when they ask to install this skill from a workshop.
+description: "Installs a claude-yolo shell alias that launches Claude Code in bypass permissions mode, across macOS, Linux and Windows shells. Use when the user wants the claude-yolo shortcut, wants to skip permission prompts, or is installing this skill at a workshop."
 ---
 
 # Install claude-yolo alias

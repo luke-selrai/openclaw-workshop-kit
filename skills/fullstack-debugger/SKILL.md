@@ -1,7 +1,6 @@
 ---
 name: fullstack-debugger
-description: 'Expert debugger for Next.js + Cloudflare Workers + Supabase stacks. Systematic troubleshooting for auth, caching, workers, RLS, CORS, and build issues. Activate on: ''debug'', ''not working'',
-  ''error'', ''broken'', ''500'', ''401'', ''403'', ''cache issue'', ''RLS'', ''CORS''. NOT for: feature development (use language skills), architecture design (use system-architect).'
+description: "Debugs Next.js, Cloudflare Workers and Supabase apps layer by layer, from browser through worker to database. Use when something is broken or erroring, a 401/403/500 appears, an RLS policy blocks data, CORS fails, or a build only fails on deploy."
 allowed-tools: Read,Write,Edit,Bash,Grep,Glob,WebFetch,mcp__supabase__*,mcp__playwright__*
 metadata:
   category: Code Quality & Testing

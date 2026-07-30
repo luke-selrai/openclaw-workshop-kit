@@ -1,6 +1,6 @@
 ---
 name: playwright-parallel-session
-description: "Recover from a Playwright MCP profile-lock failure by cloning the canonical user-data directory to a free numbered slot, registering it as a second MCP server (`playwright_N`), and prompting a Claude Desktop restart so the current session continues with `mcp__playwright_N__*` tools while every site login is preserved from the clone. Run this skill when Playwright fails to launch with a 'user data directory is already in use' error - typically because another Claude Desktop chat or a background `/loop` / `/schedule` task holds the canonical profile."
+description: "Recovers a Playwright profile-lock failure by cloning the browser profile into a parallel Playwright server, logins intact. Use when Playwright will not start because the user data directory is already in use, or a second chat needs its own browser."
 allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Browser Automation
@@ -16,7 +16,7 @@ metadata:
 
 # playwright-parallel-session
 
-When the user has two or more Claude Desktop chats running and both want to use Playwright, the second one fails because Chromium locks `$HOME/.cache/playwright-mcp-profile` at the OS level. This skill resolves the lock without forcing the user to close anything and without sacrificing the persistent logins that make Playwright usable in the first place.
+When the user has two or more Claude Desktop chats running and both want to use Playwright, the second one fails because Chromium locks `$HOME/.cache/playwright-mcp-profile` at the OS level. The visible symptom is a Playwright launch failure reading `user data directory is already in use`. The holder of the canonical profile is usually another Claude Desktop chat, but it can equally be a background `/loop` or `/schedule` task running Playwright inside one. This skill resolves the lock without forcing the user to close anything and without sacrificing the persistent logins that make Playwright usable in the first place.
 
 The high-level flow: detect the lock → pick the lowest-numbered free slot (`-2` up to `-5`) → clone the canonical profile into it (skipping the lock files and the disposable Chromium caches) → register a `playwright_N` MCP variant pointing at the clone → ask the user to restart Claude Desktop → verify the new `mcp__playwright_N__*` tool surface → continue the session.
 

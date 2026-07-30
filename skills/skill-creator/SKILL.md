@@ -1,6 +1,6 @@
 ---
 name: skill-creator
-description: Guide for creating, updating, validating, and packaging Claude Code skills. Scaffolds new skills and ensures correct skill structure.
+description: "Creates, validates and packages Claude Code skills - scaffolds the SKILL.md and folder structure, then zips it for install. Use when the user wants to write a new skill, fix one that is not triggering, or package a skill to share."
 allowed-tools: Read, Write, Edit, Bash
 license: Complete terms in LICENSE.txt
 metadata:

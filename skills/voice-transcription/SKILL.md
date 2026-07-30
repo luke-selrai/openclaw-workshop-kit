@@ -1,6 +1,6 @@
 ---
 name: voice-transcription
-description: "Transcribe local audio files into text using a self-hosted Whisper model - no audio leaves the user's machine, no API key, no per-minute cost. Use this skill when the user asks to transcribe a voice memo, dictate notes from an interview recording, get text out of an `.m4a` / `.mp3` / `.ogg` / `.oga` / `.wav` / `.webm` audio file, or says things like 'transcribe this for me', 'turn this voice note into text', 'I have a recording I need typed up', or 'install Whisper'. On first use, walk the user through the one-time install (whisper.cpp + ffmpeg + a Whisper model). After install, they can run `voice-transcribe <audio-file>` from a terminal or ask Claude to transcribe a path."
+description: "Transcribes audio files to text on the user's own machine with a self-hosted Whisper model - nothing uploaded, no API key, no per-minute cost. Use when the user wants a voice memo or interview typed up, or asks to install Whisper for local speech-to-text."
 allowed-tools: Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
@@ -47,7 +47,7 @@ It has **one phase**: the install walkthrough. After install, the user runs `voi
 
 - "Transcribe this voice note for me"
 - "I have an interview recording I need typed up"
-- "Get the text out of this `.m4a` / `.mp3` / `.ogg` / `.wav` / `.webm`"
+- "Get the text out of this `.m4a` / `.mp3` / `.ogg` / `.oga` / `.wav` / `.webm`"
 - "Install Whisper on my laptop"
 - "Set up local speech-to-text"
 

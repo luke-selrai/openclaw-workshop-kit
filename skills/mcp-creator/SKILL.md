@@ -1,8 +1,6 @@
 ---
 name: mcp-creator
-description: Expert MCP (Model Context Protocol) server developer creating safe, performant, production-ready servers with proper security, error handling, and developer experience. Activate on 'create
-  MCP', 'MCP server', 'build MCP', 'custom tool server', 'MCP development', 'Model Context Protocol'. NOT for using existing MCPs (just invoke them), general API development (use backend-architect), or
-  skills/agents without external state (use skill-coach/agent-creator).
+description: "Builds custom MCP (Model Context Protocol) servers with input validation, secret handling, rate limiting and structured errors. Use when the user wants to create an MCP server, expose an API or database to Claude as tools, or harden an existing one."
 allowed-tools: Read,Write,Edit,Bash,Grep,Glob,WebSearch,WebFetch
 metadata:
   category: Productivity & Meta
@@ -33,8 +31,10 @@ Expert in building production-ready Model Context Protocol servers. Creates safe
 - Connection pooling and resource management
 
 **Do NOT use MCP for:**
-- Pure domain expertise (use Skill)
-- Multi-step orchestration (use Agent)
+- Using an existing MCP server (just invoke its tools)
+- Pure domain expertise (use Skill - see `skill-coach`)
+- Multi-step orchestration (use Agent - see `agent-creator`)
+- General API development with no Claude-facing tool surface (use `backend-architect`)
 - Local stateless operations (use Script)
 - Simple file processing (use Claude's built-in tools)
 

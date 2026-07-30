@@ -1,6 +1,6 @@
 ---
 name: connector-recommender
-description: "Detects user's business type, industry, and operational needs to recommend and set up the most impactful integrations (connectors). Triggers when users describe their business, ask about integrations, mention tools they use, or discuss operational pain points. Handles 15+ business verticals with dynamic registry validation."
+description: "Recommends and installs the highest-impact connectors for a business after detecting its vertical and daily operations. Use when the user asks which integrations to connect, describes their business or tools, or raises an operational pain point."
 user_invocable: true
 allowed-tools: mcp__mcp-registry__search_mcp_registry, mcp__mcp-registry__suggest_connectors, Read, Bash, Skill
 risk: medium  # Drives connector installs end-to-end (installs CLI tools, registers MCP servers, triggers OAuth scopes for Gmail, Stripe, Shopify, etc.). Needs Bash to run installs and Skill to invoke the dedicated *-connector skills that own each tested install flow. Pass 2 reviewers should verify the OAuth permission set requested at each install.

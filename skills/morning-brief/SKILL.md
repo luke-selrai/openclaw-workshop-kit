@@ -1,6 +1,6 @@
 ---
 name: morning-brief
-description: Produce a daily start-of-day HTML email briefing and send it to your own inbox. Triages inbox noise (Hubstaff/GitHub/Notion/calendar invites/past briefs/generic noreply get labelled, marked read, archived), gathers today's calendar plus any new CRM contacts in the last 24h, classifies the remaining threads into Needs Action vs FYI, then composes and sends a clean HTML email to the connected Google account's own address. Trigger phrases include "morning brief", "morning briefing", "start of day report", "daily brief", "run my morning briefing".
+description: "Produces a daily start-of-day HTML email brief - inbox noise triaged away, today's calendar, new CRM contacts, and threads split into Needs Action vs FYI - sent to the user's own inbox. Use when the user asks for their morning brief or start-of-day report."
 ---
 
 # Morning Brief

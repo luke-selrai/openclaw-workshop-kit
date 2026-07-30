@@ -1,6 +1,6 @@
 ---
 name: autonomous-agent-patterns
-description: "Design patterns for autonomous coding agents covering tool integration, permission systems, browser automation, and human-in-the-loop workflows."
+description: "Design patterns for autonomous coding agents - agent loop, tool schemas, permission tiers, sandboxing, browser automation and human-in-the-loop approval. Use when the user is building an AI agent or designing its tool-calling and approval layer."
 risk: unknown
 source: community
 date_added: "2026-02-27"

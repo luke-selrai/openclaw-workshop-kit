@@ -1,7 +1,6 @@
 ---
 name: terraform-iac-expert
-description: Terraform and OpenTofu infrastructure as code - module design, state management, multi-environment setups, remote backends, secrets management, CI/CD integration. NOT for Pulumi, CDK, Ansible,
-  or Kubernetes manifests.
+description: "Terraform and OpenTofu infrastructure as code - module design, remote state, multi-environment setups, secrets and CI/CD. Use when starting or refactoring Terraform, debugging state drift or a failing plan, or importing existing infrastructure."
 metadata:
   category: devops
   tags:
@@ -37,6 +36,8 @@ Expert in Infrastructure as Code using Terraform and OpenTofu. Specializes in mo
 - Troubleshooting state drift and plan failures
 - Integrating Terraform with CI/CD pipelines
 - Implementing security best practices (secrets, IAM, policies)
+
+**NOT for:** Pulumi, CDK, Ansible, or Kubernetes manifests.
 
 ## Capabilities
 

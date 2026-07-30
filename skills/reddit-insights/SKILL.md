@@ -1,9 +1,6 @@
 ---
 name: reddit-insights
-description: |
-  Search and analyze Reddit content using semantic AI search via reddit-insights.com MCP server.
-  Use when you need to: (1) Find user pain points and frustrations for product ideas, (2) Discover niche markets or underserved needs, (3) Research what people really think about products/topics, (4) Find content inspiration from real discussions, (5) Analyze sentiment and trends on Reddit, (6) Validate business ideas with real user feedback.
-  Triggers: reddit search, find pain points, market research, user feedback, what do people think about, reddit trends, niche discovery, product validation.
+description: "Searches Reddit semantically via the reddit-insights.com MCP server, ranked by relevance and engagement. Use when the user wants Reddit pain points, product-idea validation, honest opinions on a tool or competitor, or trending topics in a niche."
 ---
 
 # Reddit Insights MCP

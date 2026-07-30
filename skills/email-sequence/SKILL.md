@@ -1,6 +1,6 @@
 ---
 name: email-sequence
-description: "Create and optimize email sequences, drip campaigns, and lifecycle email programs with timing, copy, and conversion strategy."
+description: "Designs multi-email sequences - welcome, lead nurture, re-engagement, onboarding, post-purchase - with send timing, subject lines and a conversion goal per email. Use when the user wants a drip campaign planned or an existing sequence improved."
 risk: unknown
 source: community
 date_added: "2026-02-27"

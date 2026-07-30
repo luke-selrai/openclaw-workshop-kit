@@ -1,6 +1,6 @@
 ---
 name: ai-product
-description: Build production-ready AI features with LLM integration patterns, RAG architecture, prompt versioning, output validation, and streaming.
+description: "Hardens AI product features for production - structured output with schema validation, streaming, prompt versioning and regression tests, cost tracking. Use when an LLM feature works in a demo but is unvalidated, expensive or fragile in production."
 risk: unknown
 source: vibeship-spawner-skills (Apache 2.0)
 date_added: '2026-02-27'
@@ -33,6 +33,10 @@ Stream LLM responses to show progress and reduce perceived latency
 ### Prompt Versioning and Testing
 
 Version prompts in code and test with regression suite
+
+### RAG Architecture
+
+Retrieve and inject only the context a request needs instead of stuffing the window - the LLM-integration pattern that keeps cost, latency and relevance under control. For full pipeline design (chunking, embeddings, vector DB, reranking) use the `ai-engineer` skill.
 
 ## Anti-Patterns
 

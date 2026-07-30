@@ -1,8 +1,6 @@
 ---
 name: indie-monetization-strategist
-description: Monetization strategies for indie developers, solopreneurs, and small teams. Covers freemium models, SaaS pricing, sponsorships, donations, email list building, and passive income for developer
-  tools, content sites, and educational apps. Activate on 'monetization', 'make money', 'pricing', 'freemium', 'SaaS', 'sponsorship', 'donations', 'passive income', 'indie hacker'. NOT for enterprise sales,
-  B2B outbound, VC fundraising, or large-scale advertising (use enterprise/marketing skills).
+description: "Monetization strategy for indie developers and solopreneurs - freemium tiers, SaaS pricing, sponsorships, donations and email list building. Use when the user asks how to earn from a side project, what to charge, or how to split free versus paid."
 allowed-tools: Read,Write,Edit,Bash,Glob,Grep,WebFetch,WebSearch
 metadata:
   category: Business & Monetization
@@ -39,7 +37,7 @@ Turn side projects into sustainable income. Battle-tested strategies for indie d
 - Sponsorship and donation systems
 
 **NOT for:**
-- Enterprise B2B sales (use sales skills)
+- Enterprise B2B sales and outbound (use enterprise sales / marketing skills)
 - VC fundraising/pitch decks
 - Large-scale advertising campaigns
 

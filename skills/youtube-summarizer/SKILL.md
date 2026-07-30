@@ -1,6 +1,6 @@
 ---
 name: youtube-summarizer
-description: Automatically fetch YouTube video transcripts, generate structured summaries, and send full transcripts to messaging platforms. Detects YouTube URLs and provides metadata, key insights, and downloadable transcripts.
+description: "Summarizes a YouTube video from its transcript - metadata, thesis, key insights, takeaway - and saves or sends the full transcript to a messaging platform. Use when the user pastes a YouTube link or asks for a video summarized, transcribed or repurposed."
 version: 2.0.0
 tags: [youtube, transcription, summarization, video, telegram]
 ---

@@ -1,6 +1,6 @@
 ---
 name: prompt-engineer
-description: Improve how you write instructions for AI to get better, more consistent results. Use when your AI outputs feel random, off-topic, too long, or not quite right. Rewrites and improves AI prompts, system instructions, and chatbot behaviour.
+description: "Prompt engineering - rewrites and debugs system prompts, agent instructions and chatbot behaviour. Use when an AI is answering inconsistently, hallucinating, running too long or ignoring the requested format, or a new system prompt needs writing."
 allowed-tools: Read,Write,Edit,Glob,Grep,mcp__SequentialThinking__sequentialthinking
 metadata:
   category: AI & Machine Learning

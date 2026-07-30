@@ -1,6 +1,6 @@
 ---
 name: first-run-setup
-description: First-run setup and onboarding for the AI Business Assistant. MUST be invoked on the user's first message of any new session whenever the file `~/Desktop/my-assistant/.first-run-pending` exists in the workspace - even if the user only said "hi" or "hello". Also invoke when the user explicitly says "my setup is broken", "fix my install", or "re-run setup". Deletes the `.first-run-pending` marker as its final action.
+description: "Sets up the Selr AI Business Assistant for a first-time user - verifies installed skills, installs Node.js and the browser tool, onboards them, and runs a live demo. Use when the workspace is still flagged setup-pending, or setup is broken."
 ---
 
 # First Run Setup
@@ -10,6 +10,15 @@ description: First-run setup and onboarding for the AI Business Assistant. MUST 
 You are setting up a non-technical business owner's AI Business Assistant for the first time. Follow these phases in order. Do not skip steps. Do not add extra checks beyond what is listed here.
 
 **IMPORTANT:** Only perform the steps listed below. Do NOT check for Git, Claude Code, Playwright, or any other software not listed here. The bootstrap process already handled those. Your job is to verify skills, install Node.js, onboard the user, and show them a demo.
+
+## When this skill runs
+
+There are two entry points:
+
+1. **Automatically, on the first message of any new session**, whenever the workspace still holds its `.first-run-pending` marker file (resolve the path per the conventions above - never hardcode one) - and this applies even if the user only said "hi" or "hello". Do not greet generically and carry on; run Phase 1 through Phase 4. The per-workspace `CLAUDE.md` enforces the same check before it replies to anything, so the two must agree.
+2. **On request**, when the user says their setup is broken, asks you to fix their install, or asks to re-run setup. Re-running the whole skill is safe.
+
+Phase 4 Step 4 deletes the `.first-run-pending` marker as this skill's final action - that deletion is what stops it re-triggering, so never delete the marker without having actually walked the phases.
 
 ## Slow downloads on venue wifi - narrate every one
 
