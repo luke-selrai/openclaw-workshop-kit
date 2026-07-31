@@ -14,8 +14,8 @@ metadata:
   pairs-with:
     - skill: superpowers:systematic-debugging
       reason: Use for troubleshooting whisper.cpp build or model-download failures
-    - skill: first-run-setup
-      reason: Same one-time-setup-then-use pattern; aimed at non-technical users
+    - skill: orientation
+      reason: Same run-once, plain-English pattern; aimed at non-technical users
 ---
 
 # Voice Transcription

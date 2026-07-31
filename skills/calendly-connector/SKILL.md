@@ -107,7 +107,7 @@ console.log(av ? 'REGISTERED' : 'NOT_CONFIGURED');
 
 ### 0.2, Tooling check (silent)
 
-Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the `first-run-setup` skill. If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest` (the `--` separator keeps Claude Code from consuming `npx` as an `add` flag), ask the user to close and reopen the chat, then retry.
+Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the setup prompt in `docs/start/setup.md` (its Step 6 installs the Claude CLI). If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest` (the `--` separator keeps Claude Code from consuming `npx` as an `add` flag), ask the user to close and reopen the chat, then retry.
 
 **Claude Code minimum version.** Phase 1 Step 4b calls `mcp__calendly__complete_authentication({ callback_url })`. The `mcp__<server>__authenticate` / `mcp__<server>__complete_authentication` runtime tool pair is the Pattern 1 contract documented in [skills/CLAUDE.md](../CLAUDE.md). The tools appear after `claude mcp add` registers the server and the deferred-tool surface reconciles. If `claude --version` reports a build older than the version that introduced this surface (Claude Code v2.1.140, May 2026), the user must upgrade before Phase 1 can complete. The failure mode on older builds is silent: `mcp__calendly__authenticate` simply does not exist in the tool surface. Surface this as a plain-English version-upgrade prompt rather than a "tool not found" loop.
 
@@ -477,7 +477,7 @@ The Calendly MCP connector **cannot** do (needs the Calendly UI or other tools):
 
 ## Related Skills
 
-- **first-run-setup**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **linear-connector**: Sibling hosted OAuth-only MCP connector with DCR, the canonical 6-step Playwright-driven install pattern this skill mirrors
 - **jotform-connector**: Sibling hosted OAuth-only MCP connector, identical install pattern
 - **monday-connector**: Sibling Playwright-driven autonomous connector, reference for snapshot-and-reason model

@@ -122,7 +122,7 @@ console.log(DS_REFRESH_TOKEN && DS_INTEGRATION_KEY && DS_ACCOUNT_ID ? 'CONFIGURE
 
 Verify Node 18+ is on PATH (`node --version`), Playwright MCP is reachable (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the deferred-tool surface), `curl` is available (`curl --version`), and TCP port 8080 is free (`node -e "require('net').createServer().listen(8080, () => process.exit(0)).on('error', () => process.exit(1))"`).
 
-If `claude` CLI is missing, fall back to the `first-run-setup` skill. If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest --user-data-dir=$HOME/.playwright-profile/selr-default --browser=chrome`, ask the user to close and reopen the chat once, then retry. If port 8080 is held, surface plainly: *"Something's already running on the connection port (8080). Please close any other dev servers or app installers, then say 'connect to DocuSign' to retry."*
+If `claude` CLI is missing, fall back to the setup prompt in `docs/start/setup.md` (its Step 6 installs the Claude CLI). If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest --user-data-dir=$HOME/.playwright-profile/selr-default --browser=chrome`, ask the user to close and reopen the chat once, then retry. If port 8080 is held, surface plainly: *"Something's already running on the connection port (8080). Please close any other dev servers or app installers, then say 'connect to DocuSign' to retry."*
 
 ### 0.3 - Environment selection (silent default: sandbox)
 
@@ -702,7 +702,7 @@ Both sandbox and production entries can coexist in `~/.claude.json` (`mcpServers
 
 ## Related Skills
 
-- **first-run-setup**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **meta-business-suite-connector**: Sibling Playwright-OAuth + REST-API pattern (Phase 1 Playwright drive + curl token exchange, Phase 2 curl against Graph API). DocuSign mirrors the shape; the only structural difference is DocuSign's Authorization Code Grant + PKCE vs Meta's Page Access Token mint.
 - **hubspot-connector**: Sibling admin-portal Integration Key creation pattern - Step 2-4 mirrors HubSpot Private App creation
 - **xero-connector**: Sibling one-time-reveal Secret extraction pattern - Step 4a modal handling

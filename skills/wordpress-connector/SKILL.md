@@ -12,8 +12,6 @@ metadata:
     - mcp-adapter
     - application-password
   pairs-with:
-    - skill: first-run-setup
-      reason: Shares the shell-detection + PATH patterns used during install
     - skill: telegram-connector
       reason: Same Playwright-MCP-driven autonomous-install pattern. Reference for the rules + cleanup branches.
     - skill: playwright-skill
@@ -168,7 +166,7 @@ On Windows (if the above fails), the user is almost certainly in PowerShell or C
 
 Silently check whether `mcp__playwright__browser_navigate` (or `mcp__plugin_playwright_playwright__browser_navigate` - Claude Code may expose either name depending on whether the user installed via `claude mcp add` or via a marketplace plugin) is in the available tool surface. If yes → Step 4.
 
-If the Playwright MCP server is not registered, install it autonomously via Bash. Mirror the install logic from `skills/first-run-setup/SKILL.md` (its "Playwright MCP server" section is canonical):
+If the Playwright MCP server is not registered, install it autonomously via Bash. Mirror the install logic from `docs/start/setup.md` (its Step 6 Playwright command is canonical):
 
 ```bash
 # Primary path - registers an npx-launched Playwright MCP server scoped to this user
@@ -614,7 +612,7 @@ The fallback path is a security regression vs Phase 1's autonomous flow. Use it 
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for cross-platform shell detection.
+- **orientation**: The plain-English, non-technical narration pattern this skill's user-facing steps follow. Cross-platform command detection now lives in the setup prompt (`docs/start/setup.md`).
 - **telegram-connector**: Sibling autonomous-Playwright connector. Reference for the rules + cleanup branches + Playwright-MCP-driven flow.
 - **playwright-skill**: The Playwright MCP browser is the engine that drives this skill's WP admin work.
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting plugin conflicts, security-plugin restrictions, REST API errors, or Application Password edge cases.

@@ -673,7 +673,7 @@ The real-account path permissions are whatever the user granted during browser s
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap
+- **orientation**: The source pattern for conversational bootstrap
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Square MCP connection or API errors
 - **quickbooks-connector**: Sibling financial-data connector - same conversational bootstrap pattern, different platform
 - **xero-connector**: Sibling financial-data connector - same conversational bootstrap pattern, different platform

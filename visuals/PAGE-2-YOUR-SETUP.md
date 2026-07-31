@@ -72,23 +72,22 @@ Claude's built-in memory that remembers everything you tell it across every conv
 ## Your File Structure
 
 ```
-YOUR COMPUTER (your home folder, plus Desktop)
+YOUR COMPUTER (your home folder)
 │
-├── Desktop/
-│   └── my-assistant/                ← Your workspace (you open this in Claude Desktop)
-│       ├── CLAUDE.md                ← Claude's instructions (loads every session)
-│       └── .first-run-pending       ← Marker file - gone once setup is done
+├── .claude/                         ← Your assistant lives here, so it works in ANY folder
+│   ├── CLAUDE.md                    ← Carries the Selr block that loads your assistant
+│   ├── selr-assistant.md            ← Your assistant's instructions (loads every session)
+│   ├── selr-kit-manifest.json       ← The receipt: what setup installed, and whether
+│   │                                  you have done your orientation yet
+│   ├── skills/                      ← Where Claude looks for your installed skills
+│   └── (auto-memory)                ← Claude's own memory store (view with /memory)
 │
-├── .loup/
-│   └── selr-ai/
-│       └── workshop-kit/            ← Installed by Loup during setup (out of sight)
-│           ├── skills/              ← Source for the <!-- skills-audit:total -->204<!-- /skills-audit:total --> skill files
-│           └── docs/                ← Guides and reference docs
-│
-└── .claude/
-    ├── skills/                      ← Where Claude looks for your installed skills
-    └── (auto-memory)                ← Claude's own memory store (view with /memory)
+└── claude-workshop-kit/             ← The kit setup downloaded (out of sight)
+    ├── skills/                      ← Source for the <!-- skills-audit:total -->204<!-- /skills-audit:total --> skill files
+    └── docs/                        ← Guides and reference docs
 ```
+
+*If your kit came through Loup rather than GitHub, that last folder sits at `.loup/selr-ai/workshop-kit/` instead - same contents.*
 
 ---
 

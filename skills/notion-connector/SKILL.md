@@ -15,7 +15,7 @@ metadata:
       reason: Sibling CLI-based connector - wraps a first-party CLI (`gws`) with OAuth, same instructions-only shape
     - skill: quickbooks-connector
       reason: Sibling CLI-based connector - wraps a first-party CLI (`qbo`) the same way
-    - skill: first-run-setup
+    - skill: orientation
       reason: Shares the conversational-bootstrap pattern for non-technical users
     - skill: playwright-skill
       reason: The Playwright MCP browser is how this skill drives the Notion sign-in / consent screen
@@ -119,7 +119,7 @@ Verify:
 ntn --version     # expect e.g. "ntn 0.16.0"
 ```
 
-- **`EACCES` / `EPERM` on npm global install** → translate: *"Your computer needs a small permission fix - one moment."* Apply guidance from `first-run-setup/SKILL.md` (or install with a Node version manager), then retry once.
+- **`EACCES` / `EPERM` on npm global install** → translate: *"Your computer needs a small permission fix - one moment."* Install via a Node version manager rather than a global sudo install (see `docs/start/setup.md` Step 0), then retry once.
 - **Node too old (`< 22`)** → install/upgrade Node via the user's package manager or a version manager, then retry. Translate to plain English.
 
 ### Step 3 - Log in (the captured two-step flow)
@@ -328,5 +328,5 @@ Diagnose and respond in plain English; never show raw errors.
 
 - **google-chat-connector** - sibling CLI-based connector (`gws`); same instructions-only, OAuth-login shape
 - **quickbooks-connector** - sibling CLI-based connector (`qbo`)
-- **first-run-setup** - conversational-bootstrap pattern this skill's Phase 1 follows
+- **orientation** - conversational-bootstrap pattern this skill's Phase 1 follows
 - **playwright-skill** - the Playwright MCP browser drives the Notion sign-in / code-confirm screen

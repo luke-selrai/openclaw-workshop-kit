@@ -4,12 +4,18 @@
 //
 // The contract kills the "Claude silently hangs for minutes while something
 // downloads over venue wifi" experience. It has two layers:
-//   Layer 1 — deep treatment in the setup prompt body (both in-repo copies) and
-//             skills/first-run-setup/SKILL.md: a preflight (Node + network sane)
-//             at the very start, and a before/visible/after narration pattern
-//             on every download point.
+//   Layer 1 — deep treatment in the setup prompt body: a preflight (Node +
+//             network sane) at the very start, and a before/visible/after
+//             narration pattern on every download point.
 //   Layer 2 — one tight always-on rule in my-assistant/CLAUDE.md covering any
-//             session where neither bootstrap nor first-run is loaded.
+//             session where the setup prompt is not loaded.
+//
+// ADR-0001 §7 removed the second Layer-1 surface: every download the kit
+// performs now happens in the setup prompt, and the skill that used to install
+// things became `orientation`, which installs nothing. Its
+// one narration rule that had no equivalent elsewhere — the first-page-load
+// browser-download warning — moved onto the bootstrap-body surface, where the
+// setup prompt's Step 8 carries it. Wider redesign: CORE-116.
 //
 // Modes:
 //   (default) / --check   read-only; exit 1 on any failure (used by CI)
@@ -17,11 +23,10 @@
 //
 // Rules per surface:
 //   bootstrap-body   preflight-network, looks-frozen, narrate-before,
-//                    generous-timeout, fails-loudly, confirm-after
+//                    generous-timeout, fails-loudly, confirm-after,
+//                    browser-download-warning
 //   bootstrap-prework  the "have Node installed before you arrive" line
 //                      (outside the pasted prompt, whole-file scan)
-//   first-run        preflight-network, looks-frozen, narrate-before,
-//                    generous-timeout, fails-loudly, browser-download-warning
 //   kit-rule         looks-frozen, generous-timeout, fails-loudly,
 //                    confirm-after (the 3–4 line CLAUDE.md rule)
 
@@ -64,9 +69,11 @@ const R = {
   },
   "browser-download-warning": {
     why: "warn that the first Playwright launch downloads the browser itself",
-    // \s+ rather than a literal space: the setup document is hard-wrapped, so
-    // the phrase can straddle a line break.
-    test: (b) => /first\s+(browser\s+launch|page\s+load|navigate)/i.test(b) && /downloads?\s+the\s+browser\s+itself/i.test(b),
+    // Whitespace-tolerant: the setup prompt is hard-wrapped, so either phrase
+    // can straddle a line break.
+    test: (b) =>
+      /first\s+(browser\s+launch|page\s+load|navigate)/i.test(b) &&
+      /downloads?\s+the\s+browser\s+itself/i.test(b),
   },
   // ---- CORE-116: rules for the universal setup document -------------------
   // The two-prompt bootstrap narrated its two or three download points by hand.
@@ -102,12 +109,18 @@ const SURFACES = [
     files: ["docs/start/setup.md"],
     extract: (text) => extractPromptBody(text),
     rules: [
-      "preflight-network", "looks-frozen", "narrate-before", "generous-timeout", "fails-loudly", "confirm-after",
+      "preflight-network",
+      "looks-frozen",
+      "narrate-before",
+      "generous-timeout",
+      "fails-loudly",
+      "confirm-after",
+      "browser-download-warning",
       // CORE-116: the universal document also owns the two narration points the
-      // two-prompt era split across bootstrap and first-run-setup — the blanket
-      // every-download rule, the plain-English mode announcement, and the
-      // browser-download warning that moved into the in-session smoke test.
-      "every-download-warned", "mode-announcement", "browser-download-warning",
+      // two-prompt era spread across bootstrap and first-run-setup — the blanket
+      // every-download rule and the plain-English mode announcement.
+      "every-download-warned",
+      "mode-announcement",
     ],
   },
   {
@@ -115,22 +128,6 @@ const SURFACES = [
     files: ["docs/start/setup.md"],
     extract: (text) => ({ body: text }),
     rules: ["node-prework"],
-  },
-  {
-    // ADR-0001 §7 replaces first-run-setup with `orientation` (CORE-114, a
-    // parallel ticket): the mechanical install phase moves INTO the setup
-    // prompt, and what is left is onboarding — the 7 questions, the live demo,
-    // the shortlist. So this surface is not renamed, it is RETIRED: once
-    // first-run-setup is gone, none of these download-narration rules have a
-    // subject any more, because every download they policed now happens in the
-    // setup document, which the bootstrap-body surface above checks.
-    //
-    // Resolved at run time so this checker and the rename can land in either
-    // order. An empty list means the surface is simply not evaluated.
-    id: "first-run",
-    files: ["skills/first-run-setup/SKILL.md"].filter((rel) => existsSync(join(ROOT, rel))),
-    extract: (text) => ({ body: text }),
-    rules: ["preflight-network", "looks-frozen", "narrate-before", "generous-timeout", "fails-loudly", "browser-download-warning"],
   },
   {
     id: "kit-rule",

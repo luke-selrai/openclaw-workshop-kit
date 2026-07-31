@@ -450,7 +450,7 @@ The PayPal MCP connector **cannot** do:
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting PayPal auth or API errors
 - **stripe-connector**: Sibling payment connector - many businesses run both Stripe and PayPal
 - **square-connector**: Sibling payment connector for in-person and online sales

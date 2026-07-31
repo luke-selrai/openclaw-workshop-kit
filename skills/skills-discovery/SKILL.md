@@ -24,7 +24,7 @@ Follow the CLAUDE.md communication rules throughout:
 
 **Mode 1 - User asked directly.** They said something like "what can you do?", "show me the skills", "what should I try first?" → run Step 1 through Step 5 in order.
 
-**Mode 2 - Called proactively from `first-run-setup` Phase 4.** The user has just watched you run a live demo in the same conversation → skip Step 2 and Step 3 entirely. Jump straight to Step 4 and use the Mode 2 wording there. Do NOT ask the user whether they want recommendations first - surface them immediately.
+**Mode 2 - Called proactively from `orientation` Phase 4.** The user has just watched you run a live demo in the same conversation → skip Step 2 and Step 3 entirely. Jump straight to Step 4 and use the Mode 2 wording there. Do NOT ask the user whether they want recommendations first - surface them immediately.
 
 If the user has just watched you run a skill for them in the same conversation, you are on Mode 2.
 
@@ -41,7 +41,7 @@ Check your memory for the user's profile. Hold in mind:
 - Their communication style preference
 - What they said would feel like a win today
 
-If their name or business is missing from memory, stop and run `first-run-setup` instead - they have not been onboarded yet.
+If their name or business is missing from memory, stop and run `orientation` instead - they have not been onboarded yet.
 
 ---
 

@@ -96,7 +96,7 @@ console.log(jf ? 'REGISTERED' : 'NOT_CONFIGURED');
 
 ### 0.2 - Tooling check (silent)
 
-Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the `first-run-setup` skill. If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest` (the `--` separator keeps Claude Code from consuming `npx` as an `add` flag), ask the user to close and reopen the chat, then retry.
+Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the setup prompt in `docs/start/setup.md` (its Step 6 installs the Claude CLI). If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest` (the `--` separator keeps Claude Code from consuming `npx` as an `add` flag), ask the user to close and reopen the chat, then retry.
 
 ---
 
@@ -383,7 +383,7 @@ The Jotform MCP connector **cannot** do (needs the Jotform UI or other tools):
 
 ## Related Skills
 
-- **first-run-setup**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **calendly-connector**: Sibling hosted OAuth-only MCP connector - identical 6-step Playwright-driven install pattern
 - **linear-connector**: Sibling hosted OAuth-only MCP connector with DCR - canonical autonomous-install reference
 - **monday-connector**: Sibling Playwright-driven autonomous connector - reference for snapshot-and-reason model
