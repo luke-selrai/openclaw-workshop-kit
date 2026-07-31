@@ -18,7 +18,7 @@
     "smb",
     "ai-ops"
   ],
-  "agents": "./agents",
+  "agents": ["./agents"],
   "_meta": {
     "depends_on_skills": ["ai-ops-architect"],
     "depends_on_binaries": ["claude", "ant", "python3", "bash", "jq", "gh"],
