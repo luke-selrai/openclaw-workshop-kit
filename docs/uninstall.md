@@ -40,6 +40,17 @@ Sort everything into three groups. Read only in this step.
 4. Every kit skill in `~/.claude/skills/` whose installed `SKILL.md` still matches its
    fingerprint in the install record - the ones the user never edited. This includes
    `orientation` and `uninstall` itself.
+
+   The fingerprints are SHA-256 hashes of `SKILL.md`. Take them in one pass, not a command
+   per skill:
+
+   ```
+   find ~/.claude/skills -name SKILL.md -exec shasum -a 256 {} +
+   ```
+
+   A skill marked `customised: true` whose content now matches the recorded hash goes in
+   **list B** - keeping is the safe answer, and the receipt says the user has edited this
+   skill before.
 5. The kit's plugin and its marketplace registration.
 6. The install record itself, `~/.claude/selr-kit-manifest.json`.
 
@@ -69,17 +80,22 @@ their work now, not the kit's. Keep the folder exactly as it is and list it in t
 If the user wants anything in group B or C gone as well, that is a separate, explicit ask -
 they can tell you afterwards. Never fold it into this run.
 
-**Last, and do not skip it: take an inventory of the kit's own files.** Run this and keep the
-output for the rest of the run:
+**Last, and do not skip it: take an inventory of the kit's own files.** Write it to a file -
+it runs to thousands of lines across a couple of hundred skills, and it has to survive the
+confirmation gate and everything after it:
 
 ```
-find "<kitHome>/skills" -type f
+find "<kitHome>/skills" -type f > /tmp/selr-kit-inventory.txt
 ```
 
 Step 4 deletes the kit folder *before* it removes any skill, so this is the last moment that
 list exists. Without it, Step 4.4 cannot tell a file the kit installed from a file the user
 added, and a whole folder of the user's notes goes with the skill. Take the inventory now,
 even though it feels early.
+
+The inventory holds kit-side paths; the files to delete are the install-side ones. They differ
+only in the prefix, so `<kitHome>/skills/<name>/<rest>` is the file
+`~/.claude/skills/<name>/<rest>`.
 
 ## Step 3 - The one confirmation gate
 
@@ -96,6 +112,10 @@ without stopping to ask again. If they say no, change nothing and say so. Nothin
 deleted silently or without this gate.
 
 ## Step 4 - Remove, in this order
+
+**Read all of Step 4 before you start it.** Step 4.3 deletes the kit folder, and this document
+lives in it - after that point nothing here can be re-read. Take in the whole step, and the
+Step 2 inventory file, while they still exist.
 
 The order matters: the install record is what tells you where everything is, so it goes last.
 If a step fails, say so plainly, carry on with the rest, and list the failure in the report.
@@ -114,8 +134,8 @@ If a step fails, say so plainly, carry on with the rest, and list the failure in
    script - so do not delete these folders outright. Use the Step 2 inventory and work in one
    uniform pass, with no per-folder judgement call:
 
-   1. Delete, from each of those folders, exactly the files that appear in the inventory for
-      that skill.
+   1. Delete, from each of those folders, exactly the files that appear in the Step 2
+      inventory for that skill - reading each inventory line as its install-side path.
    2. Then delete each folder that is now empty.
    3. Any folder still holding something is holding the user's own file. Keep it, and name it
       and the file in the report.
@@ -163,12 +183,20 @@ The confirmation gate in Step 3 still applies - show the list, ask once, then pr
 3. **The plugin and marketplace** - the same two commands as Step 4.5, by name:
    `routine-installer-plugin` and `selrai-workshop-kit`.
 4. **Kit skills in `~/.claude/skills/`** - without fingerprints you cannot tell an edited
-   skill from an untouched one. If a kit folder survived (item 5 below finds it), compare each
-   installed `SKILL.md` against the kit's own copy; anything that matches is safe to remove.
+   skill from an untouched one. **Do item 4 before item 5**: item 5 deletes the kit folder,
+   which is the only copy you can compare against.
 
-   Do that with **two commands and one comparison**, never a loop that runs a command per
-   skill - there are a couple of hundred skills, and the per-skill shape takes long enough to
-   look like it has hung:
+   First find the kit folder (item 5 below says where it is) and take the same inventory
+   Step 2 takes, for the same reason - it is what keeps a user's own file from going out with
+   the skill:
+
+   ```
+   find "<kit folder>/skills" -type f > /tmp/selr-kit-inventory.txt
+   ```
+
+   Then decide which skills are unmodified, with **two commands and one comparison**, never a
+   loop that runs a command per skill - there are a couple of hundred skills, and the
+   per-skill shape takes long enough to look like it has hung:
 
    ```
    find "<kit folder>/skills" -name SKILL.md -exec shasum -a 256 {} +
@@ -177,11 +205,15 @@ The confirmation gate in Step 3 still applies - show the list, ask once, then pr
 
    Read both lists once, and every skill whose two hashes agree is unmodified.
 
+   Remove those skills with **exactly the three-substep pass in Step 4.4** - delete only the
+   files in the inventory, then drop the folders that are now empty, then keep and report
+   whatever is left. Do not delete a skill folder outright here either.
+
    Where you have nothing to compare against, **keep the skill and report it** - re-installing
    a skill later is easy, and deleting the user's own edit is not.
 5. **The kit folder** - it is at one of two paths, so check both:
    `~/claude-workshop-kit` and `~/.loup/selr-ai/workshop-kit`. Apply the same test as Step
    4.3 - it must contain `skills/` and `my-assistant/CLAUDE.md` - and leave anything that
-   fails it alone.
+   fails it alone. This is the last thing to go, because item 4 needs it.
 
 Everything in list C is still left alone here, unchanged.
