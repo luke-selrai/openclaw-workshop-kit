@@ -18,15 +18,17 @@ This is one of the most common first-launch snags at workshops.
 
 ---
 
-### "The bootstrap prompt didn't work"
+### "The setup prompt didn't work"
 
-The bootstrap prompt copies the workshop kit to your computer. If something went wrong:
+The setup prompt downloads the workshop kit and wires your assistant into Claude. If something went wrong:
 
 1. In Claude Desktop, start a new Code session
 2. Type exactly: `What happened when I ran the setup? Can you check what's installed and what's missing?`
 3. Your assistant will diagnose what's missing and offer to fix it
 
 If you see a red error message, copy it and tell your assistant: *"Here is the error I got: [paste error]. Please help me fix this step by step."*
+
+You can also simply paste the setup prompt again. It works out that you already have a part-finished install and carries on from there - it will not start you over or overwrite work you have done since.
 
 ---
 
@@ -42,14 +44,13 @@ If the skills are missing, tell your assistant:
 
 ---
 
-### "Claude says it can't find my CLAUDE.md"
+### "Claude doesn't seem to be my assistant - it's behaving like plain Claude"
 
-This means your workspace is pointing at the wrong folder. Fix it by:
+Your assistant is installed globally, so this is not about which folder you opened. It means the managed block setup added to `~/.claude/CLAUDE.md` is missing or was not loaded. Fix it by:
 
-1. In Claude Desktop, start a new Code session
-2. At the top of the session there's a folder icon - click it
-3. In the file picker, click **Desktop** in the sidebar, then double-click `my-assistant` (or pick it from the **Recent** list)
-4. Claude will automatically pick up the CLAUDE.md file
+1. Quit Claude Desktop completely and reopen it - the block is read when a session starts
+2. If it is still generic, start a new Code session and ask: *"Read my global CLAUDE.md and tell me whether the Selr kit block is there."*
+3. If the block is missing, paste the setup prompt again - it rewrites the block in place and leaves everything else in that file untouched
 
 ---
 
@@ -95,7 +96,7 @@ You can also type `/memory` in a Code session to see exactly what Claude has sto
 
 ### "I already did onboarding but Claude is asking me again"
 
-This is normal if your Code session is pointing at a different folder. In Claude Desktop, start a new Code session, click the folder icon, and pick `~/Desktop/my-assistant/`. That's where your assistant's instructions (`CLAUDE.md`) live. Memory itself is managed by Claude and follows you across sessions.
+Your assistant only runs orientation once, and it records that in its install receipt at `~/.claude/selr-kit-manifest.json`. If it is asking again, that receipt was lost or reset. You can answer the questions again - it is quick - or tell your assistant: *"I have already been onboarded, please mark my orientation as done."* Memory itself is managed by Claude and follows you across every session and folder.
 
 ---
 
@@ -265,7 +266,7 @@ Your assistant will check all the key parts of your setup and tell you exactly w
 
 ### "I forgot how to start my assistant"
 
-Open **Claude Desktop** → start a new **Code session** → click the **folder icon** and pick `~/Desktop/my-assistant/`. Your assistant loads automatically. Bookmark this guide or write it on a sticky note!
+Open **Claude Desktop** → start a new **Code session** → say hi. That is the whole thing. Your assistant is installed globally, so it loads in whatever folder the session opens in - there is no particular folder you have to find.
 
 ---
 
@@ -275,7 +276,7 @@ Try restarting from scratch:
 
 1. Close Claude Desktop completely
 2. Reopen Claude Desktop
-3. Start a new Code session and click the folder icon → pick `~/Desktop/my-assistant/`
+3. Start a new Code session - any folder
 4. Tell your assistant: *"I had a problem. Can you check that everything is working correctly?"*
 
 Most issues are fixed by a fresh restart.

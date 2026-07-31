@@ -181,8 +181,9 @@ You just did. You set it up today. The hard part is done.
 
 ## Getting Help After the Workshop
 
-- **Full guide:** `~/.loup/selr-ai/workshop-kit/docs/use/completion-guide.md`
-- **Skills reference:** `~/.loup/selr-ai/workshop-kit/docs/skills/README.md`
+- **Full guide:** `docs/use/completion-guide.md` inside your kit folder
+- **Skills reference:** `docs/skills/README.md` inside your kit folder
+- Not sure where that is? Ask your assistant *"where is my kit installed?"* - it reads the path out of `~/.claude/selr-kit-manifest.json`
 - **Selr AI:** selrai.com.au
 
 > The best way to learn is to just try things. Ask Claude to do something for your business right now. You can't break anything that can't be fixed in 30 seconds.

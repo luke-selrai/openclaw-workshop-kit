@@ -60,7 +60,7 @@ model: <opus|sonnet|haiku>  # OPTIONAL. Defaults to the lead's model.
 
 ## 3. Participant-facing tone rules
 
-These apply to anything an attendee reads - READMEs, `docs/`, bootstrap prompts, and the user-facing `CLAUDE.md`. They do NOT apply to author-facing docs such as this `CONTRIBUTING.md`.
+These apply to anything an attendee reads - READMEs, `docs/`, the setup prompt, and the user-facing persona. They do NOT apply to author-facing docs such as this `CONTRIBUTING.md`.
 
 - **Plain English.** Banned jargon in user-facing text: `MCP`, `npx`, `bash`, `JSON`, `OAuth`, `token`, `client_id`, `curl`, `API`, `endpoint`, `environment variable`, `CLI`, `redirect URI`, `callback`. If a technical thing must be named, name it plainly ("the connection key", "your account details").
 - **Narrate at action boundaries.** Tell the attendee what is about to happen before it happens.
@@ -79,7 +79,7 @@ Each kit repo follows this shape (scaled to the kit - not every kit needs every 
 ├── VERSION                ← semver, see §6
 ├── docs/
 │   ├── install/           ← what to buy / install before the workshop
-│   ├── start/             ← bootstrap prompt + setup walkthrough
+│   ├── start/             ← the single setup document (install / update / migrate)
 │   ├── use/               ← first prompts, what it remembers
 │   ├── skills/  (or agents/) ← catalogue of what the kit adds
 │   └── extend/            ← optional advanced paths
@@ -102,7 +102,7 @@ Every kit MUST have:
 - A git tag per release (`v1.2.0`).
 - A GitHub release per tag.
 
-Downstream kits declare a compatibility floor in their README ("Phase 3 v1 needs Phase 1 ≥ v2"). The progression flow reads the installed version from the attendee's **local** clone (`~/.loup/selr-ai/workshop-kit/VERSION`), never a remote call. **Missing-`VERSION` fallback:** a clone with no `VERSION` file predates tagging - treat it as "pre-v1, oldest" and warn the attendee, do not crash.
+Downstream kits declare a compatibility floor in their README ("Phase 3 v1 needs Phase 1 ≥ v2"). The progression flow reads the installed version from the attendee's **local** kit home (`<kit home>/VERSION`, where `<kit home>` is the path recorded in `~/.claude/selr-kit-manifest.json` - never a hardcoded path, because it differs per install door), never a remote call. **Missing-`VERSION` fallback:** a kit home with no `VERSION` file predates tagging - treat it as "pre-v1, oldest" and warn the attendee, do not crash.
 
 ## 7. Cross-phase state & the installer
 

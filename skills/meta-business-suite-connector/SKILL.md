@@ -158,7 +158,7 @@ If a step in this skill fails, follow the documented `if X fails, try Y` branch 
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message you send during Phase 1 must follow the rules in `my-assistant/CLAUDE.md`:
+The user is a non-technical business owner. Every message you send during Phase 1 must follow the rules in the installed assistant persona (`~/.claude/selr-assistant.md`):
 
 - **One step at a time.** Never stack two instructions in one message.
 - **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, environment variable, Graph API, or app secret as a technical concept. If you must refer to a technical thing, name it plainly: "a connection key", "a small setting on your computer", "the connection details".

@@ -50,26 +50,27 @@ Same as the main flow: sign up at [claude.ai](https://claude.ai), upgrade to Cla
 
 ### Step 4 - (Windows only) Install Git for Windows
 
-Same as the main flow: [Git for Windows](https://git-scm.com/download/win), default settings, click through to Finish.
+Same as the main flow: [Git for Windows](https://git-scm.com/download/win), default settings, click through to Finish. Git is what downloads the kit, so this is a real dependency, not an optional extra - the setup prompt installs it for you in its first step if you skip it here.
 
-If Git is not recognised after install, the Claude Code extension can still fix your PATH conversationally once the bootstrap prompt is running - or you can fix it manually via System Properties → Environment Variables.
+If Git is not recognised after install, the Claude Code extension can still fix your PATH conversationally once the setup prompt is running - or you can fix it manually via System Properties → Environment Variables.
 
 ### Step 5 - Node.js and Bun
 
 Same as the main flow. Install Node.js from [nodejs.org](https://nodejs.org), then Bun if you want Telegram / WhatsApp / iMessage channels.
 
-### Step 6 - Paste the bootstrap prompt
+### Step 6 - Paste the setup prompt
 
 1. In VS Code, click the **Claude** icon in the sidebar to open the extension
-2. Paste the bootstrap prompt from the workshop Notion page (same prompt as the Desktop path - see [setup](../start/setup.md))
-3. The assistant handles the clone, skill copy, and workspace creation
+2. Paste the setup prompt from the workshop Notion page (same prompt as the Desktop path - see [setup](../start/setup.md))
+3. The assistant handles the download, the skill copy, and the managed block it adds to your global `~/.claude/CLAUDE.md`
+4. It asks you to quit and reopen once, part-way through. Close the VS Code window and reopen it when it says so.
 
-### Step 7 - Open your workspace
+### Step 7 - Say hello
 
-1. **Mac:** Cmd+Shift+P → "Open Folder" → `~/Desktop/my-assistant`
-2. **Windows:** Ctrl+Shift+P → "Open Folder" → `C:\Users\[you]\Desktop\my-assistant`
-3. Click the Claude icon in the sidebar again
-4. Say **hello** and let the onboarding agent take over
+The install is global, so there is no assistant folder to open - whatever folder VS Code has open is fine.
+
+1. Click the Claude icon in the sidebar
+2. Say **hello** and let orientation take over
 
 ---
 
@@ -78,12 +79,12 @@ Same as the main flow. Install Node.js from [nodejs.org](https://nodejs.org), th
 | Topic | Claude Desktop (main) | VS Code + extension (advanced) |
 |---|---|---|
 | App to install | 1 (Claude Desktop) | 2 (VS Code + Claude Code extension) |
-| How to open the workspace | Click folder icon in Code session | Cmd/Ctrl+Shift+P → "Open Folder" |
+| How to open a folder to work in | Click folder icon in Code session | Cmd/Ctrl+Shift+P → "Open Folder" |
 | How to open the terminal | Built-in bottom panel of a Code session | `Terminal → New Terminal` menu in VS Code |
 | Sign-in | Inside Claude Desktop | Inside the VS Code extension |
 | Admin-restart fixes (Windows) | Right-click Claude Desktop → Run as Administrator | Right-click VS Code → Run as Administrator |
 
-Everything else is the same: skills live at `~/.claude/skills/`, workspace at `~/Desktop/my-assistant/`, connector guides work identically, MCP installs work identically.
+Everything else is the same: skills live at `~/.claude/skills/`, the assistant is installed globally through `~/.claude/CLAUDE.md` and works in any folder you open, connector guides work identically, MCP installs work identically.
 
 ---
 

@@ -12,10 +12,10 @@ Tick these off:
 
 - [ ] Claude Desktop installed and signed in
 - [ ] New Code session opened in Claude Desktop
-- [ ] Workshop kit downloaded (handled by the bootstrap prompt)
+- [ ] Workshop kit downloaded (handled by the setup prompt)
 - [ ] Skills installed (check `~/.claude/skills/`)
 - [ ] Playwright (browser automation) connected
-- [ ] `~/Desktop/my-assistant/` folder created (via Desktop in the file picker → New Folder) and opened in Claude Desktop
+- [ ] Your assistant added to your global instructions file (`~/.claude/CLAUDE.md` has a Selr AI Business Assistant block) - this is what makes it load in every folder
 - [ ] Google Workspace connected (Gmail + Calendar) (optional - if you got to it)
 - [ ] Onboarding completed (told your assistant about your business)
 - [ ] Tested a first task with your assistant
@@ -26,9 +26,9 @@ Tick these off:
 
 ### If you didn't finish the install:
 
-**Windows users:** Make sure [Git for Windows](https://gitforwindows.org) is installed first. Then open Claude Desktop, start a new Code session, and paste the bootstrap prompt from the workshop page - your assistant walks you through the whole install conversationally, including any Windows-specific snags.
+**Windows users:** The kit is downloaded with Git, so [Git for Windows](https://git-scm.com/download/win) has to be on the machine. You do not have to install it yourself - the setup prompt's first step installs it for you if it is missing - but if you would rather have it in place beforehand, install it with the default settings. Then open Claude Desktop, start a new Code session, and paste the setup prompt from the workshop page - your assistant walks you through the whole install conversationally, including any Windows-specific snags.
 
-**Mac users:** Open Claude Desktop, start a new Code session, and paste the bootstrap prompt from the workshop page. If macOS prompts you to install the Xcode Command Line Tools during setup, click **Install** and wait for it to finish - your assistant will pick up from there.
+**Mac users:** Open Claude Desktop, start a new Code session, and paste the setup prompt from the workshop page. If macOS prompts you to install the Xcode Command Line Tools during setup, click **Install** and wait for it to finish - your assistant will pick up from there.
 
 Your skills were installed during the workshop setup. They live at `~/.claude/skills/`
 
@@ -232,8 +232,8 @@ You can talk to your AI assistant instead of typing, using tools like Wispr Flow
 
 ## Support
 
-- **Workshop resources:** All documents in `~/.loup/selr-ai/workshop-kit/docs/`
-- **Skills reference:** `~/.loup/selr-ai/workshop-kit/skills/SKILLS-LIST.md`
+- **Workshop resources:** the `docs/` folder inside your kit home. Do not go hunting for it - ask your assistant *"where is my kit installed?"* and it will read the path out of its install receipt at `~/.claude/selr-kit-manifest.json`.
+- **Skills reference:** `skills/SKILLS-LIST.md` in that same kit home - or just ask *"what skills do I have?"*
 - **Luke / Selr AI:** selrai.com.au
 
 ---

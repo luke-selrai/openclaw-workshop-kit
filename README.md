@@ -27,7 +27,7 @@ Everything you need is in [`docs/`](docs/). The reading order:
 | Step | Folder | When |
 |---|---|---|
 | 1 | [`docs/install/`](docs/install/) - what to buy and sign up for | **Before the workshop** |
-| 2 | [`docs/start/`](docs/start/) - paste the bootstrap prompt, run the setup walkthrough | **During the workshop** |
+| 2 | [`docs/start/`](docs/start/) - paste the setup prompt, the one document that installs, updates, or migrates | **During the workshop** |
 | 3 | [`docs/use/`](docs/use/) - first prompts, what your assistant remembers, plain-English glossary | **Right after setup** |
 | 4 | [`docs/skills/`](docs/skills/) - every skill your assistant can use, grouped by business problem (connecting outside tools is part of Group H) | **Week 1** |
 | 5 | [`docs/extend/`](docs/extend/) - optional: VS Code path, scheduling, automation loops | **Month 2+** |
@@ -44,9 +44,9 @@ If you prefer VS Code over Claude Desktop, see [`docs/extend/vscode.md`](docs/ex
 1. Get a **Claude Max** subscription at [claude.ai](https://claude.ai) ($100 USD/month)
 2. Install **Claude Desktop** at [claude.ai/download](https://claude.ai/download) and sign in
 
-Everything else (Node.js, Bun, Windows-specific snags) is handled conversationally by your assistant when you paste the bootstrap prompt.
+The kit is downloaded with Git, so Git has to be on the machine. **On Windows, [Git for Windows](https://git-scm.com/download/win) is a real dependency** - the setup prompt installs it for you in its first step if it is missing, and installing it beforehand just makes that step a no-op. On Mac, Git installs itself the first time it is needed.
 
-No other pre-installs needed on Mac or Windows.
+Everything else (Node.js, Bun, Windows-specific snags) is handled conversationally by your assistant when you paste the setup prompt.
 
 Full pre-workshop details: [`docs/install/`](docs/install/).
 
@@ -54,12 +54,13 @@ Full pre-workshop details: [`docs/install/`](docs/install/).
 
 ## At the Workshop
 
-1. Open **Claude Desktop** and start a new Code session
-2. In the file picker, click **Desktop** in the sidebar, click **New Folder**, name it `my-assistant`, and open it. The Code session opens in `~/Desktop/my-assistant/`.
-3. Copy the **bootstrap prompt** from the workshop Notion page and paste it into the Code session
-4. Claude handles everything - downloads the kit, copies skills, writes its instructions into your workspace
-5. When it finishes, start a new Code session - you're already inside `my-assistant`, so the new session uses the same folder automatically
-6. Type `hi` - the onboarding agent greets you, asks about your business, and shows you what it can do
+1. Open **Claude Desktop** and start a new Code session - any folder will do, there is nothing to create first
+2. Copy the **setup prompt** from the workshop Notion page and paste it into the Code session
+3. Claude handles everything - installs what is missing, downloads the kit, copies your skills in, and adds a short managed block to your global `~/.claude/CLAUDE.md` that gives every session your assistant
+4. It asks you to quit and reopen Claude Desktop once, part-way through, and tells you exactly when
+5. When it finishes, start a new session anywhere and say `hi` - your assistant runs a short orientation, asks about your business, and shows you what it can do
+
+Because the install is global, your assistant works from **every** folder you open - there is no special assistant folder to find your way back to.
 
 Your assistant handles it all conversationally, one step at a time. No scripts to run, no commands to memorise.
 
@@ -70,16 +71,16 @@ Full walkthrough: [`docs/start/setup.md`](docs/start/setup.md).
 ## Common Questions
 
 **Is my data private?**
-Yes. Your `CLAUDE.md` and Claude's auto-memory (viewable with `/memory`) live on your computer only. Nothing is sent to a third party except your conversations with Claude (which go to Anthropic, same as using claude.ai normally).
+Yes. Your instructions file (`~/.claude/CLAUDE.md`) and Claude's auto-memory (viewable with `/memory`) live on your computer only. Nothing is sent to a third party except your conversations with Claude (which go to Anthropic, same as using claude.ai normally).
 
 **What does it cost after the workshop?**
 Claude Max is $100 USD/month (~$155 AUD). That is the only required cost. Everything else in this kit is free.
 
 **What if I miss a step during setup?**
-Your assistant will notice and offer to fix it. Just open Claude Desktop, start a new Code session, and click `my-assistant` in the Recent list (or click Desktop → my-assistant in the file picker) - your assistant picks up where you left off.
+Paste the same setup prompt again. It works out that you already have an install and picks up where you left off, without trampling anything you have changed since.
 
 **Can I use this on Windows?**
-Yes. Just paste the bootstrap prompt - your assistant walks you through everything conversationally, including installing Node.js and any Windows-specific snags. See [`docs/troubleshoot.md`](docs/troubleshoot.md) if something goes wrong.
+Yes. Just paste the setup prompt - your assistant walks you through everything conversationally, including installing Git for Windows and Node.js and any Windows-specific snags. See [`docs/troubleshoot.md`](docs/troubleshoot.md) if something goes wrong.
 
 ---
 

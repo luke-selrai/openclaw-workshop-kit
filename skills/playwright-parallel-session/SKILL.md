@@ -114,7 +114,7 @@ If verification fails, delete the partial clone and abort with a clear user-faci
 
 Goal: tell Claude Desktop about the new `playwright_N` MCP server so the next session sees it.
 
-Use the same registration shape the kit uses for the canonical Playwright (see the "Browser Automation" section of `~/Desktop/my-assistant/CLAUDE.md` for the canonical command). The only differences are the server name and the `--user-data-dir` path:
+Use the same registration shape the kit uses for the canonical Playwright (see the "Browser Automation" section of the installed assistant persona at `~/.claude/selr-assistant.md` for the canonical command). The only differences are the server name and the `--user-data-dir` path:
 
 - Mac/Linux:
 

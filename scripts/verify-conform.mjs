@@ -123,8 +123,11 @@ const OLD_CANON_PATTERNS = [
   },
 ];
 
-// Directories never walked.
-const SKIP_DIRS = new Set([".git", "node_modules", ".loup"]);
+// Directories never walked. `.claude` is local agent state, not shipped kit
+// content: a checkout with stale agent worktrees under `.claude/worktrees/`
+// would otherwise scan whole copies of the repo and report the same debt many
+// times over. CI clones have no `.claude/`, so this only affects local runs.
+const SKIP_DIRS = new Set([".git", "node_modules", ".loup", ".claude"]);
 // Binary-ish extensions never read.
 const SKIP_EXT = new Set([
   ".png", ".jpg", ".jpeg", ".gif", ".webp", ".mp4", ".mov", ".pdf", ".zip",
