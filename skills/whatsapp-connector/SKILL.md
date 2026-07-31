@@ -11,8 +11,6 @@ metadata:
     - baileys
     - mcp
   pairs-with:
-    - skill: first-run-setup
-      reason: Shares the Bun / PATH / shell-detection patterns used during install
     - skill: telegram-connector
       reason: Same messaging-channel install pattern. Reference for the listener health check, alias creation, and app-restart discipline
     - skill: playwright-skill
@@ -174,7 +172,7 @@ bun --version 2>/dev/null && INSTALLER=bun || (npm --version 2>/dev/null && INST
 
   **Why this matters:** the Step 7 listener launches in a terminal inside the user's app. That terminal inherits the app's PATH from launch time. If we install Bun now and don't restart, Step 4's `bun install` will work (it runs in this very Bash, not the user's terminal), but the user's terminal in Step 7 will still see the pre-install PATH. Restart at this point is cheap (the conversation resumes); skipping it leaves the user's future terminals with a stale PATH and creates confusing intermittent failures the next time they need a Bun-aware shell.
 
-  Wait for the user to confirm. Then re-verify with `bun --version`. If it still fails after the restart, apply the PATH fix guidance in `skills/first-run-setup/SKILL.md` ("Windows Snags Reference" section). Set `INSTALLER=bun` once verified.
+  Wait for the user to confirm. Then re-verify with `bun --version`. If it still fails after the restart, apply the Windows PATH refresh from `docs/start/setup.md` (Step 0). Set `INSTALLER=bun` once verified.
 
 ### Step 4 - Install the WhatsApp channel's packages
 
@@ -213,7 +211,7 @@ fi
 ```
 
 - **Success** → *"That's done."* Go to Step 5.
-- **Permissions error (`EACCES`, `EPERM`, `EBUSY`)** → translate: *"Your computer needs a small permission fix, give me a moment to sort it."* Apply guidance from `skills/first-run-setup/SKILL.md`, then retry.
+- **Permissions error (`EACCES`, `EPERM`, `EBUSY`)** → translate: *"Your computer needs a small permission fix, give me a moment to sort it."* Install via a Node version manager rather than a global sudo install (see `docs/start/setup.md` Step 0), then retry.
 - **Network error** → *"Your network is blocking the install. This happens on company laptops. Could you try from a home connection, or ask your IT team?"*
 
 Remember `$WS_KIT` for Step 5 and Phase 2's allowlist mutation.

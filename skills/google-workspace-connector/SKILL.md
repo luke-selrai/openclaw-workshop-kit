@@ -14,8 +14,6 @@ metadata:
     - installer
     - oauth
   pairs-with:
-    - skill: first-run-setup
-      reason: Shares the Node.js / PATH / shell-detection patterns used during install
     - skill: email-composer
       reason: Compose the email content with email-composer, then send it via this connector
     - skill: google-chat-connector
@@ -80,7 +78,7 @@ node --version
 ```
 
 - If a version prints → "Node.js is ready." Go to Step 3.
-- If not found → install it. Follow `skills/first-run-setup/SKILL.md` Step 3 ("Install Node.js") for the platform-appropriate install path (nvm on Mac/Linux, winget on Windows). Do NOT send the user to a website.
+- If not found → install it. Follow `docs/start/setup.md` Step 0 ("Node") for the platform-appropriate install path (nvm on Mac/Linux, winget on Windows). Do NOT send the user to a website.
 
 ### Step 3 - Install the Google Workspace tool
 
@@ -99,7 +97,7 @@ gws --version
 ```
 
 - Version prints → "That's ready." Go to Step 4.
-- `gws: command not found` → PATH issue. Apply `skills/first-run-setup/SKILL.md` PATH fix, then re-verify.
+- `gws: command not found` → PATH issue. Apply the Windows PATH refresh from `docs/start/setup.md` (Step 0), then re-verify.
 - Permissions error on Windows → tell the user plainly: *"The install needs administrator rights. Please close the window, right-click it and choose 'Run as administrator', then say 'ready'."* Wait, then retry.
 
 ### Step 4 - One-time Google Cloud project setup
@@ -215,7 +213,7 @@ When the user asks for something that spans multiple subcommands (e.g., "find Jo
 
 | Symptom | Likely cause | What you do |
 |---|---|---|
-| `gws: command not found` after install | PATH not refreshed | Close and reopen terminal; if still broken, apply `skills/first-run-setup/SKILL.md` PATH fix |
+| `gws: command not found` after install | PATH not refreshed | Close and reopen terminal; if still broken, apply the Windows PATH refresh from `docs/start/setup.md` (Step 0) |
 | `permission denied` during `npm install` on Windows | Needs admin | Tell the user to close the terminal, right-click, "Run as administrator", retry |
 | `Access blocked` during OAuth | Unverified-app scope cap or missing test user | Retry with limited scopes: `gws auth login -s drive,gmail,sheets,calendar`. If that still fails, tell the user to add themselves as a test user in GCP Console → OAuth consent screen |
 | Wrong Google account signed in | User picked the wrong one on the OAuth screen | Run `gws auth logout`, then `gws auth login` again; tell the user to double-check which account they pick |

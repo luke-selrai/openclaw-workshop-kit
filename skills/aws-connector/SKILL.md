@@ -582,7 +582,7 @@ Then diagnose and fix. Never show raw error messages to the user - translate the
 
 ## Related Skills
 
-- **first-run-setup**: Source pattern for conversational bootstrap (Phase 1's communication-rules layer borrows from this; Phase 1's autonomy layer follows `github-connector` and `stripe-connector`)
+- **orientation**: Source pattern for conversational bootstrap (Phase 1's communication-rules layer borrows from this; Phase 1's autonomy layer follows `github-connector` and `stripe-connector`)
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting AWS auth or permission errors
 - **gcloud-connector** / **azure-connector**: Sibling cloud-CLI connectors - same Playwright-driven user-mint pattern
 - **stripe-connector** / **github-connector** / **quickbooks-connector**: Sibling autonomous-Phase-1 connectors - closest reference shapes for the Playwright-drives-the-provider-console pattern this skill follows

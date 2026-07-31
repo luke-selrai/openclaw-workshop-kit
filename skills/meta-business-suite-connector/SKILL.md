@@ -209,7 +209,7 @@ On Windows (if `uname` fails), the user is in PowerShell or Command Prompt. The 
 
 Silently check whether `mcp__playwright__browser_navigate` (or `mcp__plugin_playwright_playwright__browser_navigate`) is in the available tool surface. If yes → Step 4.
 
-If the Playwright MCP server is not registered, install it autonomously via Bash. The canonical command (per `skills/first-run-setup/SKILL.md`):
+If the Playwright MCP server is not registered, install it autonomously via Bash. The canonical command (per `docs/start/setup.md` Step 6):
 
 ```bash
 claude mcp add playwright npx @playwright/mcp@latest --scope user
@@ -813,7 +813,7 @@ The Meta Business Suite connector **cannot** do:
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules.
+- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules.
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Meta access tokens or Graph API errors.
 - **canva-connector**: Generate the image, video, or Reel cover, then publish through this skill.
 - **ad-creative**: Draft the post copy and creative concept, then publish through this skill.

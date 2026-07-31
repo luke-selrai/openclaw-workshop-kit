@@ -106,18 +106,18 @@ jobs:
 
       # Install-narration invariants (LOUP-20): assert the venue-wifi contract
       # (preflight, "looks frozen" warning, generous timeouts, fail-loudly,
-      # confirm-after) stays intact in the bootstrap copies, first-run-setup,
-      # and the kit CLAUDE.md rule. Read-only; runs on every event.
+      # confirm-after) stays intact in the setup prompt and the kit CLAUDE.md
+      # rule. Read-only; runs on every event.
       - name: Verify install-narration invariants
         run: node scripts/check-install-narration.mjs
 
       - name: Test install-narration checker (regression)
         run: node scripts/test-install-narration.mjs
 
-      # Matt Pocock skills-install contract (LOUP-19): assert first-run-setup
-      # Step 3 keeps current upstream skill names, on-disk verification, the
-      # self-heal (list → resolve renames → retry) pass, and the honest
-      # per-skill summary. --live also lists the live mattpocock/skills repo,
+      # Matt Pocock skills-install contract (LOUP-19): assert the setup
+      # prompt's power-user-skills step keeps current upstream skill names,
+      # on-disk verification, the self-heal (list → resolve renames → retry)
+      # pass, and the per-skill report. --live also lists the live mattpocock/skills repo,
       # so CI goes red at the next upstream rename instead of attendees
       # silently losing skills. Read-only; runs on every event.
       - name: Verify MP skills-install contract (incl. live upstream)

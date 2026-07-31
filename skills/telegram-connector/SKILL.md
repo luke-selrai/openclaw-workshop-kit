@@ -11,8 +11,6 @@ metadata:
     - botfather
     - plugin
   pairs-with:
-    - skill: first-run-setup
-      reason: Shares the Bun / PATH / shell-detection patterns used during install
     - skill: whatsapp-connector
       reason: Same messaging-channel install pattern. Reference if the user also wants WhatsApp
     - skill: playwright-skill
@@ -178,7 +176,7 @@ Silently run `bun --version`.
 
   **Why this matters:** the Step 8 listener launches in a terminal - either inside the user's app, or a freshly-opened Terminal.app / iTerm window. Either path needs `bun` on PATH at terminal-launch time. The defensive rc patch above guarantees `bun` lands in the rc. The app restart then guarantees the app's own integrated terminal also picks up the patched rc on its next launch. Skipping either half lets Step 8's listener silently fail with no clue why.
 
-  Wait for the user to confirm. Then re-verify with `bun --version`. If it still fails after the restart, apply the PATH fix guidance in `skills/first-run-setup/SKILL.md` ("Windows Snags Reference" section).
+  Wait for the user to confirm. Then re-verify with `bun --version`. If it still fails after the restart, apply the Windows PATH refresh from `docs/start/setup.md` (Step 0).
 
 ### Step 4 - Open Telegram Web in the Playwright MCP browser
 
@@ -306,7 +304,7 @@ claude plugin list | grep telegram@claude-plugins-official
 Expect a line showing `telegram@claude-plugins-official` with a version. The plugin's own skills (`/telegram:configure`, `/telegram:access`) won't be loaded into the running session until a restart, but that's fine - per the Autonomy rule above, this skill never invokes them. The only thing that matters here is that the plugin is registered in `~/.claude/plugins/installed_plugins.json` so the channel session in Step 8 can find it.
 
 - Success → "That's done." Go to Step 7.
-- Permissions error (`EACCES`, `EPERM`) → translate: *"Your computer needs a small permission fix, give me a moment to sort it."* Apply guidance from `skills/first-run-setup/SKILL.md`, then retry.
+- Permissions error (`EACCES`, `EPERM`) → translate: *"Your computer needs a small permission fix, give me a moment to sort it."* Install via a Node version manager rather than a global sudo install (see `docs/start/setup.md` Step 0), then retry.
 - Network error → *"Your network is blocking the install. This happens on company laptops. Could you try from a home connection?"*
 
 ### Step 7 - Confirm the token landed
@@ -704,7 +702,7 @@ Report it in plain English to the user, never as raw JSON.
 |---|---|---|
 | `claude-tg` runs and shows a Claude prompt, but no bun listener process exists (`pgrep -f "claude-plugins-official/telegram"` returns nothing) | Two distinct manifestations: (a) **stale-environment terminal** - the user's Claude Desktop / VS Code app was launched BEFORE Bun was installed, so its integrated terminal doesn't have `bun` on PATH; or (b) **broken Bun installer** - the official installer didn't append the `BUN_INSTALL` / PATH-export lines to the user's shell rc, so `bun` isn't on PATH for ANY fresh login shell. Either way, `claude` runs fine (globally installed) but the bun-based channel MCP server silently fails to spawn | Run Step 8 Part D's diagnostic to distinguish: `zsh -ilc 'command -v bun' >/dev/null 2>&1 && echo RC_OK \|\| echo RC_BROKEN`. **`RC_OK`** → manifestation (a); fully quit (Cmd+Q on Mac) and reopen Claude Desktop / VS Code, then re-run `claude-tg` in a fresh terminal. **`RC_BROKEN`** → manifestation (b); append the `BUN_INSTALL` / PATH-export lines to the user's shell rc (see the rc-patch block in Step 3 or Step 8 Part D Case B), then have the user open a fresh terminal - no app restart needed. Step 3's defensive rc patch is the proactive prevention for (b); Step 3's restart is the prevention for (a) |
 | Bot doesn't respond when user messages it | Channel listener not running (`claude-tg` window closed, or silent-spawn case above) | Run `pgrep -f "claude-plugins-official/telegram"` to confirm. If nothing: `claude-tg` again. If a process IS running and still no replies: check the listener terminal for errors |
-| `Bun not found` after install | PATH not refreshed | Tell user to close and reopen the terminal; if still broken, apply `skills/first-run-setup/SKILL.md` PATH fix |
+| `Bun not found` after install | PATH not refreshed | Tell user to close and reopen the terminal; if still broken, apply the Windows PATH refresh from `docs/start/setup.md` (Step 0) |
 | Pairing code never appears in the bot's reply (Telegram Web shows nothing back from the bot after `/start`) | Listener silent-spawn bug, OR listener crashed mid-poll | First check the listener: `pgrep -f "claude-plugins-official/telegram"`. If missing, walk row 1. If present, check the listener terminal for stack traces |
 | Bot replies with pairing code but assistant doesn't reply after pairing | Pair op didn't complete (Step 9's python3 mutation failed, or wrote to the wrong code) | Re-read `~/.claude/channels/telegram/access.json` to confirm the user's senderId is in `allowFrom` AND `~/.claude/channels/telegram/approved/<senderId>` exists. If either is missing, drive Telegram Web to send `/start` again and re-run Step 9's pair op against the new code |
 | Listener errors with "invalid token" or "401 Unauthorized" on startup | Token in `.env` corrupted (extra whitespace, missing colon, or clipboard read picked up the wrong text) | Verify with `grep "^TELEGRAM_BOT_TOKEN=" ~/.claude/channels/telegram/.env` and check the line contains a colon plus 30+ chars after. If wrong, drive Telegram Web back to BotFather, send `/token` to retrieve, re-run Step 5's clipboard-transit capture |
@@ -721,7 +719,7 @@ For anything not covered here, if the Superpowers plugin is installed, invoke `s
 ## Phone Fallback - when Playwright MCP cannot be used
 
 Use this ONLY when:
-- Playwright MCP is not installed and cannot be installed (rare in the workshop kit; first-run-setup installs it)
+- Playwright MCP is not installed and cannot be installed (rare in the workshop kit; the setup prompt installs it)
 - Telegram Web login fails repeatedly via QR (more than two attempts) and the user wants to push through anyway
 
 This path puts BotFather creation back on the user's phone. It works, but it's slower and more error-prone than the Playwright path.

@@ -100,7 +100,7 @@ If they say use existing: stop. If rotate: continue to Phase 1, but in Step 6, r
 
 Verify the `claude` CLI is on PATH (`claude --version` returns a non-empty version), and Playwright MCP is available (the `mcp__plugin_playwright_playwright__browser_navigate` or `mcp__playwright__browser_navigate` tool is in the surface).
 
-If `claude` is missing → fall back to the `first-run-setup` skill (it installs Claude Code).
+If `claude` is missing → run the setup prompt in `docs/start/setup.md` (its Step 6 installs Claude Code).
 
 If Playwright MCP is missing → install autonomously:
 ```bash

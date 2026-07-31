@@ -109,7 +109,7 @@ console.log(av ? 'REGISTERED' : 'NOT_CONFIGURED');
 
 ### 0.2 - Tooling check (silent)
 
-Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the `first-run-setup` skill. If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest` (the `--` separator keeps Claude Code from consuming `npx` as an `add` flag), ask the user to close and reopen the chat, then retry.
+Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the setup prompt in `docs/start/setup.md` (its Step 6 installs the Claude CLI). If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest` (the `--` separator keeps Claude Code from consuming `npx` as an `add` flag), ask the user to close and reopen the chat, then retry.
 
 ---
 
@@ -523,7 +523,7 @@ The Linear MCP connector **cannot** do (needs the Linear UI or other tools):
 
 ## Related Skills
 
-- **first-run-setup**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **atlassian-connector**: Sibling hosted OAuth-only MCP connector - the canonical 6-step Playwright-driven install pattern this skill is derived from
 - **canva-connector**: Sibling Playwright-driven autonomous connector - same OAuth shape with an admin-allowlist branch
 - **jotform-connector**: Sibling hosted OAuth-only MCP connector - identical install pattern, no PAT fallback
