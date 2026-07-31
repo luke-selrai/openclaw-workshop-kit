@@ -31,7 +31,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `prompt-engineer` | Improve AI instructions for better results | "Improve this prompt for better output" | CORE |
 | `skill-creator` | Create and improve Claude skills | "Create a new skill for my business" | ADVANCED |
 | `skills-discovery` | Shows which of your installed skills fit your business, plus 3 personalised picks | "What can you do for my business?" | CORE |
-| `first-run-setup` | Step-by-step guided setup for first-time users | Used automatically during initial setup | ADVANCED |
+| `orientation` | First-time onboarding: seven questions, a live demo, and 3 personalised picks | Runs automatically the first time you say hi | ADVANCED |
 
 ## Content & Writing
 

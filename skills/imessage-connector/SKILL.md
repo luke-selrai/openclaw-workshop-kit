@@ -11,8 +11,6 @@ metadata:
     - macos
     - plugin
   pairs-with:
-    - skill: first-run-setup
-      reason: Shares the Bun / PATH / shell-detection patterns used during install
     - skill: whatsapp-connector
       reason: Same messaging-channel install pattern - reference if the user also wants WhatsApp
     - skill: telegram-connector
@@ -98,7 +96,7 @@ claude plugin install imessage@claude-plugins-official
 ```
 
 - Success → "That's done." Go to Step 5.
-- Permissions error → apply `skills/first-run-setup/SKILL.md` guidance, then retry.
+- Permissions error → install via a Node version manager rather than a global sudo install (see `docs/start/setup.md` Step 0), then retry.
 
 ### Step 5 - Hand the user the launch command
 
@@ -173,7 +171,7 @@ Explain briefly: *"The first line turns the signature off; the second launches C
 | Assistant doesn't respond to messages | Claude Code not running with `--channels plugin:imessage@claude-plugins-official` | Tell the user to close Claude Code and re-launch with the flag from Phase 1 Step 5 |
 | "authorization denied" error on launch | Full Disk Access not granted | Walk the user through Phase 1 Step 3 again - make sure Claude Desktop (not Terminal, not Claude Code) is in the Full Disk Access list |
 | First reply never sends | Automation permission denied when the prompt appeared | Tell the user to open System Settings → Privacy & Security → Automation, find Terminal (or Claude Desktop), and toggle Messages on |
-| `Bun not found` after install | PATH not refreshed | Close and reopen terminal; if still broken, apply `skills/first-run-setup/SKILL.md` PATH fix |
+| `Bun not found` after install | PATH not refreshed | Close and reopen terminal; if still broken, apply the Windows PATH refresh from `docs/start/setup.md` (Step 0) |
 | Messages from other people are silently dropped | They're not on the allowlist | Walk through the "let [person] message" flow above |
 | Messages stop arriving for ~15 seconds after a reply | Echo-suppression window by design | Tell the user to wait 15 seconds. If it stays stuck longer, restart Claude Code |
 | Messages from iPhone don't reach the Mac-resident channel | The Mac must be awake and signed into iMessage with the same Apple ID as the iPhone | Ask the user to check their Mac is awake and their Apple ID is signed into Messages on both devices |

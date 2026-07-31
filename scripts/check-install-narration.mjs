@@ -4,12 +4,18 @@
 //
 // The contract kills the "Claude silently hangs for minutes while something
 // downloads over venue wifi" experience. It has two layers:
-//   Layer 1 — deep treatment in the setup prompt body (both in-repo copies) and
-//             skills/first-run-setup/SKILL.md: a preflight (Node + network sane)
-//             at the very start, and a before/visible/after narration pattern
-//             on every download point.
+//   Layer 1 — deep treatment in the setup prompt body: a preflight (Node +
+//             network sane) at the very start, and a before/visible/after
+//             narration pattern on every download point.
 //   Layer 2 — one tight always-on rule in my-assistant/CLAUDE.md covering any
-//             session where neither bootstrap nor first-run is loaded.
+//             session where the setup prompt is not loaded.
+//
+// ADR-0001 §7 removed the second Layer-1 surface: every download the kit
+// performs now happens in the setup prompt, and the skill that used to install
+// things became `orientation`, which installs nothing. Its
+// one narration rule that had no equivalent elsewhere — the first-page-load
+// browser-download warning — moved onto the bootstrap-body surface, where the
+// setup prompt's Step 8 carries it. Wider redesign: CORE-116.
 //
 // Modes:
 //   (default) / --check   read-only; exit 1 on any failure (used by CI)
@@ -17,11 +23,10 @@
 //
 // Rules per surface:
 //   bootstrap-body   preflight-network, looks-frozen, narrate-before,
-//                    generous-timeout, fails-loudly, confirm-after
+//                    generous-timeout, fails-loudly, confirm-after,
+//                    browser-download-warning
 //   bootstrap-prework  the "have Node installed before you arrive" line
 //                      (outside the pasted prompt, whole-file scan)
-//   first-run        preflight-network, looks-frozen, narrate-before,
-//                    generous-timeout, fails-loudly, browser-download-warning
 //   kit-rule         looks-frozen, generous-timeout, fails-loudly,
 //                    confirm-after (the 3–4 line CLAUDE.md rule)
 
@@ -64,7 +69,11 @@ const R = {
   },
   "browser-download-warning": {
     why: "warn that the first Playwright launch downloads the browser itself",
-    test: (b) => /first (browser launch|page load|navigate)/i.test(b) && /downloads? the browser itself/i.test(b),
+    // Whitespace-tolerant: the setup prompt is hard-wrapped, so either phrase
+    // can straddle a line break.
+    test: (b) =>
+      /first\s+(browser\s+launch|page\s+load|navigate)/i.test(b) &&
+      /downloads?\s+the\s+browser\s+itself/i.test(b),
   },
 };
 
@@ -81,19 +90,21 @@ const SURFACES = [
     id: "bootstrap-body",
     files: ["docs/start/setup.md"],
     extract: (text) => extractPromptBody(text),
-    rules: ["preflight-network", "looks-frozen", "narrate-before", "generous-timeout", "fails-loudly", "confirm-after"],
+    rules: [
+      "preflight-network",
+      "looks-frozen",
+      "narrate-before",
+      "generous-timeout",
+      "fails-loudly",
+      "confirm-after",
+      "browser-download-warning",
+    ],
   },
   {
     id: "bootstrap-prework",
     files: ["docs/start/setup.md"],
     extract: (text) => ({ body: text }),
     rules: ["node-prework"],
-  },
-  {
-    id: "first-run",
-    files: ["skills/first-run-setup/SKILL.md"],
-    extract: (text) => ({ body: text }),
-    rules: ["preflight-network", "looks-frozen", "narrate-before", "generous-timeout", "fails-loudly", "browser-download-warning"],
   },
   {
     id: "kit-rule",

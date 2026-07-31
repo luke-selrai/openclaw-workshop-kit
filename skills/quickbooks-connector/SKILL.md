@@ -1258,7 +1258,7 @@ It **requires** at least one Product/Service Item to exist in the company before
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap (Phase 1's communication-rules layer borrows from this; Phase 1's autonomy layer is closer to `xero-connector` and `stripe-connector`)
+- **orientation**: The source pattern for conversational bootstrap (Phase 1's communication-rules layer borrows from this; Phase 1's autonomy layer is closer to `xero-connector` and `stripe-connector`)
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting QuickBooks auth or API errors
 - **xero-connector**: Sibling accounting connector for Xero users - same Playwright-driven autonomous-Phase-1 pattern (different vendor; Xero uses a Custom Connection model instead of refresh tokens)
 - **stripe-connector** / **github-connector**: Sibling autonomous-Phase-1 connectors - closest reference shapes for the Playwright-drives-the-developer-portal pattern this skill follows

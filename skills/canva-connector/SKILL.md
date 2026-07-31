@@ -107,7 +107,7 @@ console.log(cv ? 'REGISTERED' : 'NOT_CONFIGURED');
 
 ### 0.2 - Tooling check (silent)
 
-Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the `first-run-setup` skill. If Playwright MCP is missing, install autonomously with `claude mcp add playwright npx @playwright/mcp@latest --scope user`, ask the user to close and reopen the chat, then retry.
+Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the setup prompt in `docs/start/setup.md` (its Step 6 installs the Claude CLI). If Playwright MCP is missing, install autonomously with `claude mcp add playwright npx @playwright/mcp@latest --scope user`, ask the user to close and reopen the chat, then retry.
 
 ---
 
@@ -547,7 +547,7 @@ This mirrors the same shape as the Jotform "workspace admin must install first" 
 
 ## Related Skills
 
-- **first-run-setup**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **atlassian-connector**: Sibling Playwright-driven autonomous connector - same shape, no Enterprise allowlist branch
 - **airtable-connector**: Sibling hosted OAuth MCP connector - pair structured data with Canva autofill to generate one design per row
 - **jotform-connector**: Sibling hosted OAuth-only MCP connector - identical install pattern, no API-key fallback

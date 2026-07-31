@@ -263,7 +263,7 @@ The CircleCI connector **cannot** do:
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For diagnosing failing CircleCI builds, flaky tests, and CI/CD issues
 - **xero-connector**: Same Personal-Token → `~/.claude.json` wrap-existing-tooling pattern for a different first-party MCP server
 - **hubspot-connector**: Same single-token conversational-bootstrap shape

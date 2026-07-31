@@ -3,8 +3,8 @@
 // check-mp-skills-install.mjs (LOUP-19). Imports the checker's own
 // evaluateInstallContract() (one source of truth — no mirrored regexes) and
 // asserts:
-//   1. The real skills/first-run-setup/SKILL.md Step 3 satisfies every rule.
-//   2. The deliberately broken fixture (the pre-fix Step 3: stale `diagnose`
+//   1. The real docs/start/setup.md power-user-skills step satisfies every rule.
+//   2. The deliberately broken fixture (the pre-fix step: stale `diagnose`
 //      selector, no self-heal, "network hiccup" hand-wave) FAILS every rule —
 //      proving each detector actually fires.
 //   3. fetchLiveSkillNames() parses both flat and category-nested tree shapes
@@ -32,9 +32,9 @@ const check = (ok, label) => {
   console[ok ? "log" : "error"](`${ok ? "PASS" : "FAIL"} ${label}`);
 };
 
-// 1. The real Step 3 must satisfy the full contract.
+// 1. The real power-user-skills step must satisfy the full contract.
 {
-  const rel = "skills/first-run-setup/SKILL.md";
+  const rel = "docs/start/setup.md";
   const { body, error } = extractStepBody(readFileSync(join(ROOT, rel), "utf8"));
   if (error) {
     check(false, `${rel}: ${error}`);
@@ -53,7 +53,7 @@ const check = (ok, label) => {
     check(false, `fixture anchors: ${error}`);
   } else {
     const { pass, rules } = evaluateInstallContract(body);
-    check(!pass, "fixture: broken Step 3 is rejected overall");
+    check(!pass, "fixture: the broken power-user-skills step is rejected overall");
     const seen = new Set(rules.map((r) => r.id));
     for (const r of RULES) check(seen.has(r.id), `fixture: rule [${r.id}] is evaluated`);
     for (const r of rules) check(!r.ok, `fixture [${r.id}]: detector fires (expected fail)`);

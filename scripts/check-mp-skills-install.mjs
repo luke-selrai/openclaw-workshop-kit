@@ -1,13 +1,32 @@
 #!/usr/bin/env node
-// Verifies the Matt Pocock power-user-skills install contract in
-// skills/first-run-setup/SKILL.md (Phase 2.5 Step 3). LOUP-19.
+// Verifies the Matt Pocock power-user-skills install contract in the setup
+// prompt (docs/start/setup.md, Step 6's "Power-user skills" item). LOUP-19.
+//
+// The contract used to live in the onboarding skill's install phase.
+// ADR-0001 §1/§7 moved every install into the one setup prompt and rewrote
+// that skill as `orientation`, which installs nothing — so the checker follows
+// the contract to its new home. Four rules were dropped with it,
+// because the prompt genuinely does not state them and inventing them here
+// would assert a contract nothing upholds:
+//   zero-installed-case  — the prompt heals on "if any are missing", which
+//                          covers all four without naming the case.
+//   visible-summary      — the ✅/❌ block was Phase 2.5 formatting; the prompt
+//                          asks for a per-skill status report instead (checked
+//                          by the per-skill-report rule below).
+//   honest-reporting     — "never invent a cause" lived in the deleted phase.
+//                          The prompt's own show-the-real-output rule sits in
+//                          Step 2, outside this step's slice.
+//   non-blocking         — "continue to Phase 3 either way" named a phase that
+//                          no longer exists.
+// Re-deciding which of those the prompt SHOULD carry is CORE-116's
+// conformance-tooling redesign, not a silent call from a rename ticket.
 //
 // History: upstream renamed `diagnose` → `diagnosing-bugs` and the hardcoded
 // `-s diagnose` selector silently stripped skills from attendees, with a
 // failure branch that hand-waved it as "probably a network hiccup". This
 // checker is the regression backstop for the fixed contract: current names,
-// on-disk verification, a self-heal (list → resolve renames → retry) pass
-// that covers the all-four-missing case, and an honest per-skill summary.
+// on-disk verification, a self-heal (list → resolve renames → retry) pass,
+// and a per-skill report.
 //
 // Modes:
 //   (default) / --check   read-only static checks; exit 1 on any failure
@@ -24,30 +43,33 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-const TARGET = "skills/first-run-setup/SKILL.md";
+const TARGET = "docs/start/setup.md";
 const UPSTREAM_REPO = "mattpocock/skills";
 
 // The four skills the workshop installs, under their CURRENT upstream names.
-// When upstream renames one, update it here AND in the Step 3 body — the
+// When upstream renames one, update it here AND in the prompt step body — the
 // --live check is what tells you a rename happened.
 export const EXPECTED_SKILLS = ["grill-me", "handoff", "diagnosing-bugs", "teach"];
 
-// Names that no longer exist upstream and must never reappear in Step 3.
+// Names that no longer exist upstream and must never reappear in the step.
 export const STALE_NAMES = ["diagnose"];
 
-const STEP_START = "### Step 3 - Install power-user skills";
-const STEP_END = "## PHASE 3";
+// Anchors around the setup prompt's power-user-skills item. Slicing matters:
+// the rest of the prompt installs other things, and must not be able to
+// satisfy a rule this step dropped.
+const STEP_START = "4. **Power-user skills**";
+const STEP_END = "### Step 7";
 
 export function extractStepBody(text) {
   const start = text.indexOf(STEP_START);
   const end = text.indexOf(STEP_END, start === -1 ? 0 : start);
   if (start === -1 || end === -1 || end < start) {
-    return { error: `Step 3 anchors not found (start=${start}, end=${end})` };
+    return { error: `power-user-skills anchors not found (start=${start}, end=${end})` };
   }
   return { body: text.slice(start, end) };
 }
 
-// Each rule must hold in the Step 3 body.
+// Each rule must hold in the sliced power-user-skills body.
 export const RULES = [
   {
     id: "current-selectors",
@@ -55,9 +77,16 @@ export const RULES = [
     test: (b) => EXPECTED_SKILLS.every((s) => new RegExp(`-s ${s}(?![\\w-])`).test(b)),
   },
   {
+    // Accepts either one path per skill, or the brace-expanded single-line
+    // form the setup prompt uses (~/.claude/skills/{a,b,c,d}/SKILL.md).
     id: "verify-paths",
     why: "every expected skill's ~/.claude/skills/<name>/SKILL.md path is checked on disk",
-    test: (b) => EXPECTED_SKILLS.every((s) => b.includes(`~/.claude/skills/${s}/SKILL.md`)),
+    test: (b) =>
+      EXPECTED_SKILLS.every(
+        (s) =>
+          b.includes(`~/.claude/skills/${s}/SKILL.md`) ||
+          new RegExp(`~/\\.claude/skills/\\{[^}]*\\b${s}\\b[^}]*\\}/SKILL\\.md`).test(b),
+      ),
   },
   {
     id: "no-stale-names",
@@ -78,34 +107,24 @@ export const RULES = [
     test: (b) => /renam/i.test(b) && /resolved/i.test(b) && /re-run|retry/i.test(b),
   },
   {
-    id: "zero-installed-case",
-    why: "the self-heal pass explicitly covers ALL four missing, not just a partial miss",
-    test: (b) => /all[- ]four[- ](are[- ])?missing/i.test(b),
+    id: "recheck-after-heal",
+    why: "the healed install is re-verified on disk, never assumed to have worked",
+    test: (b) => /re-?check/i.test(b),
   },
   {
-    id: "visible-summary",
-    why: "step always ends with a per-skill ✅/❌ summary readable at a glance",
-    test: (b) => b.includes("✅") && b.includes("❌") && /summary/i.test(b),
-  },
-  {
-    id: "honest-reporting",
-    why: "missing skills report the actual command output — no invented causes",
-    test: (b) => /never (invent|paraphrase)/i.test(b),
+    id: "per-skill-report",
+    why: "the step ends by reporting status per skill, not one blanket outcome",
+    test: (b) => /per-?skill/i.test(b) && /report|status/i.test(b),
   },
   {
     id: "no-handwave",
     why: 'no "network hiccup" hand-wave and no tell-a-facilitator escalation',
     test: (b) => !/network hiccup/i.test(b) && !/facilitator/i.test(b),
   },
-  {
-    id: "non-blocking",
-    why: "a miss stays non-blocking — setup continues to Phase 3 either way",
-    test: (b) => /NOT a setup blocker/i.test(b) && /continue to Phase 3 either way/i.test(b),
-  },
 ];
 
 /**
- * Evaluate the install contract against a Step 3 body. Returns
+ * Evaluate the install contract against a power-user-skills body. Returns
  * { pass, rules: [{ id, ok, why, detail }] } so the CLI and the regression
  * test share one source of truth rather than mirroring regexes.
  */

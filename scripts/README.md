@@ -168,7 +168,7 @@ node scripts/check-resilient-install.mjs --verbose  # also print every passing c
 
 ## check-install-narration.mjs
 
-Asserts the **venue-wifi install-narration** contract ([LOUP-20](https://linear.app/selr-ai/issue/LOUP-20)) - kills the "Claude silently hangs for minutes while something downloads over venue wifi" experience. Two layers: deep treatment in the bootstrap body (both copies) + `skills/first-run-setup/SKILL.md` (preflight at the very start, before/visible/after narration on every download point), and one always-on rule in `my-assistant/CLAUDE.md` for sessions where neither is loaded.
+Asserts the **venue-wifi install-narration** contract ([LOUP-20](https://linear.app/selr-ai/issue/LOUP-20)) - kills the "Claude silently hangs for minutes while something downloads over venue wifi" experience. Two layers: deep treatment in the setup prompt body (preflight at the very start, before/visible/after narration on every download point), and one always-on rule in `my-assistant/CLAUDE.md` for sessions where the prompt is not loaded. ADR-0001 §7 retired the second deep surface: the skill that used to install things is now `orientation`, which installs nothing.
 
 **Usage:**
 
@@ -177,21 +177,21 @@ node scripts/check-install-narration.mjs            # exit 1 on any failure
 node scripts/check-install-narration.mjs --verbose  # also print every passing check
 ```
 
-**Failures (exit 1)** - checked per surface (`bootstrap-body` and `bootstrap-prework`, both now reading `docs/start/setup.md` - `bootstrap-body` over the sliced prompt only, `bootstrap-prework` over the whole file since the pre-workshop Node line sits outside the prompt - plus `first-run`, `kit-rule`):
+**Failures (exit 1)** - checked per surface (`bootstrap-body` and `bootstrap-prework`, both reading `docs/start/setup.md` - `bootstrap-body` over the sliced prompt only, `bootstrap-prework` over the whole file since the pre-workshop Node line sits outside the prompt - plus `kit-rule`):
 
-- **preflight-network** - a preflight checks the network against `registry.npmjs.org` with a hard timeout (bootstrap body + first-run).
+- **preflight-network** - a preflight checks the network against `registry.npmjs.org` with a hard timeout (bootstrap body).
 - **looks-frozen** - the key sentence survives: a slow download may *look frozen* without being frozen (all surfaces).
-- **narrate-before** - narration happens BEFORE the command runs, because Claude cannot talk mid-command (bootstrap body + first-run).
+- **narrate-before** - narration happens BEFORE the command runs, because Claude cannot talk mid-command (bootstrap body).
 - **generous-timeout** / **fails-loudly** - slow commands carry a generous timeout so a dead download fails loudly instead of hanging forever (all surfaces).
 - **confirm-after** - after the command, success is confirmed or what failed is stated plainly (bootstrap body + kit rule).
 - **node-prework** - the "have Node.js installed before you arrive" pre-workshop line exists in `docs/start/setup.md`.
-- **browser-download-warning** - first-run warns that the first Playwright launch downloads the browser itself (first-run only).
+- **browser-download-warning** - the prompt warns that the first Playwright launch downloads the browser itself (bootstrap body only).
 
 **Harness wiring:** runs in CI on every event via `.github/workflows/audit-skills.yml`, after the resilient-install steps.
 
 ## check-mp-skills-install.mjs
 
-Asserts the **Matt Pocock power-user-skills install contract** in `skills/first-run-setup/SKILL.md` Phase 2.5 Step 3 ([LOUP-19](https://linear.app/selr-ai/issue/LOUP-19)). Upstream renamed `diagnose` → `diagnosing-bugs` and the hardcoded selector silently stripped skills from attendees, with a "probably a network hiccup" hand-wave hiding it; this checker keeps the fixed contract intact.
+Asserts the **Matt Pocock power-user-skills install contract** in `docs/start/setup.md`, Step 6's "Power-user skills" item ([LOUP-19](https://linear.app/selr-ai/issue/LOUP-19)). It lived in the onboarding skill's install phase until ADR-0001 moved every install into the one setup prompt; the checker followed it, dropping the four rules the prompt does not state (listed in the script header - re-deciding them is [CORE-116](https://linear.app/selr-ai/issue/CORE-116)). Upstream renamed `diagnose` → `diagnosing-bugs` and the hardcoded selector silently stripped skills from attendees, with a "probably a network hiccup" hand-wave hiding it; this checker keeps the fixed contract intact.
 
 **Usage:**
 
@@ -202,15 +202,15 @@ node scripts/check-mp-skills-install.mjs --live     # + list the live mattpocock
                                                     #   assert every expected skill still exists
 ```
 
-**Failures (exit 1)** - checked against the Step 3 body:
+**Failures (exit 1)** - checked against the sliced power-user-skills body:
 
 - **current-selectors / verify-paths** - the install command selects, and the verify list checks, every skill in `EXPECTED_SKILLS` (`grill-me`, `handoff`, `diagnosing-bugs`, `teach`) under its current upstream name.
 - **no-stale-names** - no retired name (`diagnose`) survives as a selector, path, or bold mention.
-- **self-heal-listing / rename-resolution / zero-installed-case** - a miss triggers listing the repo's live skills (`skills add … -l`), resolving renames dynamically, and retrying - explicitly covering the all-four-missing case, not just partial misses.
-- **visible-summary / honest-reporting** - the step always ends with a per-skill ✅/❌ summary quoting real command output, never an invented cause.
-- **no-handwave / non-blocking** - no "network hiccup" hand-wave or facilitator escalation, and a miss never blocks the rest of setup.
+- **self-heal-listing / rename-resolution / recheck-after-heal** - a miss triggers listing the repo's live skills (`skills add … -l`), resolving renames dynamically, retrying, and re-checking the disk rather than assuming the heal worked.
+- **per-skill-report** - the step ends by reporting status per skill, not one blanket outcome.
+- **no-handwave** - no "network hiccup" hand-wave or facilitator escalation.
 
-`--live` makes CI go red at the **next** upstream rename (an expected name vanishing from the live repo) instead of attendees silently losing skills. On a rename: re-resolve the new name, update `EXPECTED_SKILLS` and the Step 3 body together.
+`--live` makes CI go red at the **next** upstream rename (an expected name vanishing from the live repo) instead of attendees silently losing skills. On a rename: re-resolve the new name, update `EXPECTED_SKILLS` and the setup prompt's power-user-skills step together.
 
 **Harness wiring:** runs in CI (with `--live`) on every event via `.github/workflows/audit-skills.yml`.
 
@@ -225,7 +225,7 @@ node scripts/test-snapshot-shape.mjs     # cap-boundary + real-repo checks for t
 node scripts/test-verify-conform.mjs     # stale-ref + bootstrap-consistency rules for verify-conform
 node scripts/test-resilient-install.mjs  # resilience rules pass on both copies; fire on a bad fixture
 node scripts/test-install-narration.mjs  # narration rules pass on all surfaces; fire on a bad fixture
-node scripts/test-mp-skills-install.mjs  # install-contract rules pass on Step 3; fire on a bad fixture
+node scripts/test-mp-skills-install.mjs  # install-contract rules pass on the setup prompt; fire on a bad fixture
 ```
 
 `test-description-budget.mjs` imports the rules from `audit-skills.mjs` (no mirrored regexes) and runs them over fixture skills in `scripts/__fixtures__/descriptions/`: an over-budget one, a first-person one, a second-person one, a compliant one, one whose description is exactly 500 characters (the rule fires strictly *above* the limit), and a `vendored-over-budget` one pinned by the fixture lock `scripts/__fixtures__/descriptions-lock.json`. It asserts the over-budget **non-pinned** fixture fails in enforcing mode, the compliant fixtures pass, the pinned fixture is scanned but exempt, and the real library has **zero** failing violations with every remaining one matching a `skills-lock.json` key exactly. Fixtures live outside `skills/`, so the real scan never sees them.
@@ -236,4 +236,4 @@ Its last section tests the thing CI actually consumes - **exit codes**. `audit-s
 
 `test-resilient-install.mjs` imports `evaluateResilience()` from the checker, confirms the real setup document's sliced prompt passes every rule, and asserts a deliberately non-resilient fixture (`scripts/__fixtures__/resilient-install-bad.md`) fails every one - so each detector is proven to fire.
 
-`test-mp-skills-install.mjs` does the same for `check-mp-skills-install.mjs`: the real Step 3 passes every rule, the pre-fix fixture (`scripts/__fixtures__/mp-skills-install-bad.md`) fails every one, and the live-listing parser is exercised against fake GitHub tree responses (flat + category-nested layouts, rename detection, API-failure throw) with no network.
+`test-mp-skills-install.mjs` does the same for `check-mp-skills-install.mjs`: the real power-user-skills step passes every rule, the pre-fix fixture (`scripts/__fixtures__/mp-skills-install-bad.md`) fails every one, and the live-listing parser is exercised against fake GitHub tree responses (flat + category-nested layouts, rename detection, API-failure throw) with no network.
