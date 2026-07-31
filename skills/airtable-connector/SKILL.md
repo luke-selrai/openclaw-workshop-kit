@@ -346,7 +346,7 @@ This mirrors the same shape as the Jotform "workspace admin must install first" 
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Airtable auth or API errors
 - **jotform-connector**: Sibling hosted-OAuth MCP connector - same ≤4-step install pattern, URL-only config
 - **notion-connector**: Sibling workspace/data connector - similar conversational install

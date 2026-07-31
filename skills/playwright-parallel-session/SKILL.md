@@ -10,8 +10,8 @@ metadata:
     - recovery
     - multi-session
   pairs-with:
-    - skill: first-run-setup
-      reason: First-run-setup registers the canonical `playwright` MCP server; this skill registers parallel variants on demand.
+    - skill: playwright-skill
+      reason: Drives the canonical `playwright` MCP server; this skill registers parallel variants alongside it on demand.
 ---
 
 # playwright-parallel-session

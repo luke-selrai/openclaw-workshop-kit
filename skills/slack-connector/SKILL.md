@@ -422,7 +422,7 @@ If the user asks for any of the above, tell them plainly what is not supported a
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **telegram-connector**: Same Playwright-MCP-driven autonomous-install pattern. Reference for the rules + cleanup branches.
 - **monday-connector**: Same autonomous Playwright Phase 1 pattern, simpler PAT case. Reference for snapshot-and-reason model.
 - **meta-business-suite-connector**: Same autonomous Playwright Phase 1 pattern, more complex multi-step OAuth case. Reference for OAuth consent handling.

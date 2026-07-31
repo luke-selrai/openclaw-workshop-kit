@@ -363,6 +363,6 @@ The HubSpot MCP connector **cannot** do (deferred to a future version):
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting HubSpot auth or API errors
 - **xero-connector**: Sibling accounting connector - similar MCP pattern for a different platform

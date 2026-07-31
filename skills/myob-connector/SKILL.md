@@ -573,7 +573,7 @@ The MYOB connector **cannot** do (in v1):
 - **xero-connector**: The other major AU accounting connector. Larger market share, different auth model (Custom Connection client_credentials, no per-user OAuth). Use the right one based on which platform the user has.
 - **quickbooks-connector**: Sibling for QuickBooks Online users (global market).
 - **outlook-connector**: Reference implementation for the Playwright-MCP-driven OAuth Auth Code flow. Same golden rule (no user browser).
-- **first-run-setup**: The conversational bootstrap pattern Phase 1 follows.
+- **orientation**: The conversational bootstrap pattern Phase 1 follows.
 - **superpowers:systematic-debugging** (optional): Use when token refresh fails repeatedly or API calls return errors with no documented recovery path.
 
 ---

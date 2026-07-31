@@ -399,7 +399,7 @@ The GitHub MCP connector **cannot** do (deferred):
 
 ## Related Skills
 
-- **first-run-setup**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting GitHub auth or API errors
 - **airtable-connector**, **monday-connector**: Sibling Pattern-2 connectors - same autonomous Playwright PAT-mint shape
 - **github-actions-pipeline-builder**: Complementary skill for designing GitHub Actions workflows (this skill operates them; that skill designs them)

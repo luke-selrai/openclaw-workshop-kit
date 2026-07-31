@@ -632,7 +632,7 @@ Then diagnose and fix. Never show raw error messages to the user - translate the
 
 ## Related Skills
 
-- **first-run-setup**: Source pattern for conversational bootstrap (Phase 1's communication-rules layer borrows from this; Phase 1's autonomy layer follows `aws-connector` and `github-connector`)
+- **orientation**: Source pattern for conversational bootstrap (Phase 1's communication-rules layer borrows from this; Phase 1's autonomy layer follows `aws-connector` and `github-connector`)
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Azure auth or permission errors
 - **aws-connector** / **gcloud-connector**: Sibling cloud-CLI connectors - same Playwright-driven scoped-identity-mint pattern (the cloud trio)
 - **outlook-connector**: Sibling Microsoft-ecosystem connector - both use Microsoft accounts; the Azure tenant and the M365 tenant are typically the same

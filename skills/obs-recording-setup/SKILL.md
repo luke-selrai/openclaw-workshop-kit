@@ -19,7 +19,7 @@ metadata:
       reason: Captions/transcription for the recorded footage (Whisper → SRT)
     - skill: ad-creative
       reason: Script the video before recording it
-    - skill: first-run-setup
+    - skill: orientation
       reason: Same conversational-bootstrap pattern for non-technical users
 ---
 
@@ -153,4 +153,4 @@ Hand the recording to **`video-editor`** to stitch/silence-cut/caption/export.
 - **hyperframes-media** - Whisper transcription → SRT captions for the footage
 - **hyperframes** / **higgsfield-connector** - generate B-roll to cut into the recording (HTML compositions and AI-generated footage respectively); this skill records the real footage, those generate the rest
 - **ad-creative** / **copywriting** - script the video first
-- **first-run-setup** - conversational bootstrap pattern
+- **orientation** - conversational bootstrap pattern

@@ -18,7 +18,7 @@
     "smb",
     "audit"
   ],
-  "agents": "./agents",
+  "agents": ["./agents"],
   "_meta": {
     "depends_on_skills": ["n8n", "managed-agents-setup"],
     "depends_on_binaries": ["claude", "python3", "bash", "jq", "gh"],

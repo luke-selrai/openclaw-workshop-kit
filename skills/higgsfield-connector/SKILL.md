@@ -85,7 +85,7 @@ npm install -g @higgsfield/cli      # binary: higgsfield (aliases: higgs, hf)
 higgsfield --version                 # confirm, e.g. "higgsfield 0.1.40 …"
 ```
 
-- **`EACCES` / `EPERM`** on global install → translate ("your computer needs a small permission fix"), apply `first-run-setup` guidance (or a Node version manager), retry once.
+- **`EACCES` / `EPERM`** on global install → translate ("your computer needs a small permission fix"), install via a Node version manager rather than a global sudo install (see `docs/start/setup.md` Step 0), retry once.
 
 ### Step 3 - Log in (browser device flow, Playwright-driven)
 
@@ -259,4 +259,4 @@ Diagnose and respond in plain English; never show raw errors.
 - **social-content** - turn social posts into Higgsfield mobile-first video/image ads
 - **hyperframes-cli** - sibling media CLI; Higgsfield for cinematic AI gen, HyperFrames for programmatic/templated video
 - **playwright-skill** - drives the Higgsfield device-login approval screen
-- **first-run-setup** - conversational-bootstrap pattern Phase 1 follows
+- **orientation** - conversational-bootstrap pattern Phase 1 follows

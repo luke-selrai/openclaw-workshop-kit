@@ -138,7 +138,7 @@ contracts, not live-smoked.
 
 | Failure | Cause | Fix |
 |---|---|---|
-| `npm install -g` EACCES/EPERM | global-install permissions | `first-run-setup` guidance / Node version manager; retry once |
+| `npm install -g` EACCES/EPERM | global-install permissions | `docs/start/setup.md` Step 0 / Node version manager; retry once |
 | device URL stays on sign-in | user not signed in to Higgsfield | prompt once: "please sign in in the window I opened" |
 | `Not authenticated` on a Phase 2 call | token missing/expired | re-run `higgsfield auth login` |
 | `Insufficient credits` | balance too low | top up; offer a cheaper model meanwhile |
