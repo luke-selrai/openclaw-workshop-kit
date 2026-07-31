@@ -319,6 +319,11 @@ and any loose files).
 Never ask me a blanket "refresh everything or keep everything?" question in any
 mode. The fingerprints answer it skill by skill.
 
+A skill you decided to keep stays kept for the rest of the run. If a copy is
+slow, hangs, or has to be retried, never widen the retry to cover it and never
+copy over it "just to be sure" — that is my work, and re-running the sync must
+leave it exactly where it is.
+
 As you sync, record every kit skill into the new manifest's `skills` map: the
 fingerprint (content hash of the skill's `SKILL.md` as installed), and for a
 kept-customised skill record the KIT version's hash marked
