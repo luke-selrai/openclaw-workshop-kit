@@ -1,4 +1,4 @@
-# Skills Reference - Your <!-- skills-audit:total -->204<!-- /skills-audit:total --> Installed Skills
+# Skills Reference - Your <!-- skills-audit:total -->205<!-- /skills-audit:total --> Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need - Claude picks the right skill automatically.
 
@@ -32,6 +32,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `skill-creator` | Create and improve Claude skills | "Create a new skill for my business" | ADVANCED |
 | `skills-discovery` | Shows which of your installed skills fit your business, plus 3 personalised picks | "What can you do for my business?" | CORE |
 | `orientation` | First-time onboarding: seven questions, a live demo, and 3 personalised picks | Runs automatically the first time you say hi | ADVANCED |
+| `uninstall` | Removes the kit - pointer block, assistant instructions, kit folder, installed skills and plugin | "Uninstall the assistant" | ADVANCED |
 
 ## Content & Writing
 
@@ -209,9 +210,9 @@ See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for
 
 ---
 
-**Total: <!-- skills-audit:total -->204<!-- /skills-audit:total --> skills installed**
+**Total: <!-- skills-audit:total -->205<!-- /skills-audit:total --> skills installed**
 - CORE: <!-- skills-audit:core -->24<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
-- ADVANCED: <!-- skills-audit:advanced -->95<!-- /skills-audit:advanced --> skills (available on request)
+- ADVANCED: <!-- skills-audit:advanced -->96<!-- /skills-audit:advanced --> skills (available on request)
 - DEV-ONLY: <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> skills (for technical integrations - never surfaced in demos)
 
 > Ask your assistant to do anything - it will automatically use the right skill for the job.
