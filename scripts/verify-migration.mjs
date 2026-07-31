@@ -111,14 +111,15 @@ function main() {
       check("user's own skill untouched", t && t.includes("Mine, not the kit's."));
     }
     if (seeded.editedKitSkill) {
-      // MIGRATE has no old manifest, so the prompt cannot fingerprint-diff; it
-      // asks ONE bulk question instead. This check therefore only holds when
-      // "keep everything as-is" was chosen. Under the recommended "refresh all"
-      // answer a FAIL here is spec-conformant, not a defect — but it is exactly
-      // the customisation loss that answer costs, which is worth seeing.
+      // MIGRATE has no old manifest, but ADR-0001 §5 (CORE-111) has Step 1.2
+      // REBUILD the fingerprints by hashing installed skills against the old kit
+      // still on disk, so an edited skill is detected the same way UPDATE
+      // detects one. The bulk "refresh all or keep all?" question is dead, and
+      // with it the old caveat that this check only held when the user happened
+      // to answer "keep as-is". A FAIL here is now a defect, unconditionally.
       const t = read(join(home, seeded.editedKitSkill));
       check(
-        "edited kit skill kept, not overwritten (only if 'keep as-is' chosen)",
+        "edited kit skill kept, not overwritten",
         t && t.includes("do not silently overwrite me"),
         seeded.editedKitSkill,
       );

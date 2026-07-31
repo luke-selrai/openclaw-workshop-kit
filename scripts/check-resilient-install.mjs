@@ -6,8 +6,15 @@
 // the FAILURE RECOVERY so a failed install resolves between the attendee and
 // Claude — diagnose → targeted fix → retry → repeat — with no human in the loop.
 // This checker is the cheap regression backstop for that contract: it asserts the
-// bootstrap body still carries every resilience property, in BOTH copies
-// (docs/start/bootstrap.md and the docs/start/full-setup.md Step 5 duplicate).
+// setup prompt still carries every resilience property.
+//
+// ADR-0001 collapsed the two-document bootstrap (docs/start/bootstrap.md +
+// docs/start/full-setup.md) into one universal setup document, so the "both
+// copies must agree" premise is gone and the file list below is a single file.
+// The prompt body is the whole document now — there is no second copy to diff
+// against, which is exactly why the byte-identity checker retired. Anchor-based
+// extraction is kept exported for the fixtures that still carry the old anchors.
+// The wider conformance redesign is CORE-116.
 //
 // Modes:
 //   (default) / --check   read-only; exit 1 on any failure (used by preflight/CI)
@@ -37,8 +44,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const START_ANCHOR = "I am setting up my Claude Code AI Business Assistant with Selr AI.";
 const END_ANCHOR = "Talk to me like I am not technical. Plain English, one step at a time.";
 
-// The two copies that must both carry the resilient-install contract.
-const BOOTSTRAP_COPIES = ["docs/start/bootstrap.md", "docs/start/full-setup.md"];
+// The setup surface that must carry the resilient-install contract.
+const BOOTSTRAP_COPIES = ["docs/start/setup.md"];
 
 // Human-escalation wording the bootstrap must never contain. Slice #388: the
 // attendee and Claude resolve any install problem between themselves.
@@ -121,7 +128,7 @@ function extractBootstrapBody(text) {
   return { body: lines.slice(start, end + 1).join("\n") };
 }
 
-export { evaluateResilience, extractBootstrapBody, PRESENCE_RULES, ESCALATION_PATTERNS };
+export { evaluateResilience, extractBootstrapBody, PRESENCE_RULES, ESCALATION_PATTERNS, BOOTSTRAP_COPIES };
 
 // ---- CLI ------------------------------------------------------------------
 if (resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
@@ -143,15 +150,11 @@ if (resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
       note(false, `${rel} read`, e.message);
       continue;
     }
-    const { body, error } = extractBootstrapBody(text);
-    if (error) {
-      note(false, `${rel} anchors`, error);
-      continue;
-    }
-    const { rules } = evaluateResilience(body);
+    // One document now, so the whole file IS the prompt body — no anchors.
+    const { rules } = evaluateResilience(text);
     for (const r of rules) note(r.ok, `${rel} [${r.id}]`, r.detail);
   }
 
-  if (!failed) console.log("\n✅ check-resilient-install: bootstrap recovery loop intact in all copies");
+  if (!failed) console.log("\n✅ check-resilient-install: setup recovery loop intact");
   process.exit(failed ? 1 : 0);
 }

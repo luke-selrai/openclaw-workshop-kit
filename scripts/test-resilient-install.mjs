@@ -11,7 +11,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { evaluateResilience, extractBootstrapBody, PRESENCE_RULES } from "./check-resilient-install.mjs";
+import { evaluateResilience, extractBootstrapBody, PRESENCE_RULES, BOOTSTRAP_COPIES } from "./check-resilient-install.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
@@ -25,14 +25,11 @@ const check = (ok, label) => {
   console[ok ? "log" : "error"](`${ok ? "PASS" : "FAIL"} ${label}`);
 };
 
-// 1. Both real copies must be fully resilient.
-for (const rel of ["docs/start/bootstrap.md", "docs/start/full-setup.md"]) {
-  const { body, error } = extractBootstrapBody(readFileSync(join(ROOT, rel), "utf8"));
-  if (error) {
-    check(false, `${rel}: ${error}`);
-    continue;
-  }
-  const { pass, rules } = evaluateResilience(body);
+// 1. The real setup document must be fully resilient. Its file list comes from
+//    the checker itself, so ADR-0001's one-document collapse doesn't need
+//    mirroring here.
+for (const rel of BOOTSTRAP_COPIES) {
+  const { pass, rules } = evaluateResilience(readFileSync(join(ROOT, rel), "utf8"));
   check(pass, `${rel}: all resilience rules pass`);
   for (const r of rules) check(r.ok, `${rel} [${r.id}]: ${r.detail}`);
 }

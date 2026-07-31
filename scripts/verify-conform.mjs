@@ -15,8 +15,10 @@
 //                         the version-controlled mirror (docs/start/bootstrap.md)
 //                         and the full-setup duplicate (docs/start/full-setup.md),
 //                         taken between the canonical start/end anchors.
+//                         RETIRED by ADR-0001 §4 — see the note above check 2.
 //   3. INSTALL-METHOD     the bootstrap installs via `npx @louphq/install` and
 //                         no longer `git clone`s the kit into the home folder.
+//                         SUPERSEDED by ADR-0001 §1 — see the note above check 2.
 //   4. VERIFY-GATE-PATHS  the post-unpack verify-gate paths the bootstrap checks
 //                         (my-assistant/CLAUDE.md + skills/) exist at the repo root.
 //   5. WINDOWS-NODE-PATH  the bootstrap's Windows branch installs Node via winget,
@@ -25,7 +27,8 @@
 //                         check, gates the quit/reopen step behind a failing
 //                         post-refresh `node --version` (never speculative), and
 //                         keeps the Playwright nodejs.org last-resort fallback.
-//                         (PRD #385 slice #387.)
+//                         (PRD #385 slice #387.) Its `npx @louphq/install`
+//                         clause is Loup-only — see the note above check 2.
 //
 // Informational (never fails): snapshot file count + a note if Loup's caps are
 // at risk. Media trimming is a separate slice; this only reports.
@@ -80,6 +83,10 @@ const STALE_ALLOWLIST = new Set([
   // ADR-0001 SPECIFIES the migration away from the legacy homes, so it names
   // them deliberately (MIGRATE fingerprint reconstruction, stale-home cleanup).
   "docs/adr/0001-pointer-block-install-model.md",
+  // The setup document IMPLEMENTS that migration: Step 1.2 probes all three
+  // legacy kit homes to rebuild skill fingerprints, and Step 3.4 deletes a
+  // confirmed-stale ~/workshop-kit. Naming the old homes is the whole job here.
+  "docs/start/setup.md",
 ]);
 
 // Asserts the bootstrap's Windows Node branch is the gated in-session-refresh
@@ -190,6 +197,35 @@ function main() {
   note(staleHits.length === 0, "path-conform", staleHits.length === 0 ? `no stale kit-home refs; home is ${KIT_HOME}` : `${staleHits.length} stale ref(s):\n  ${staleHits.join("\n  ")}`);
 
   // ---- Check 2 + 3 + 5: BOOTSTRAP-CONSIST + INSTALL-METHOD + WINDOWS-NODE --
+  //
+  // All three are pinned to the two-document, Loup-only canon that ADR-0001
+  // replaced (CORE-112 deleted docs/start/bootstrap.md and
+  // docs/start/full-setup.md in favour of the single docs/start/setup.md):
+  //   - bootstrap-consistency is retired outright by ADR-0001 §4 — the shared
+  //     text now exists exactly once, so byte-drift is structurally impossible
+  //     and there is no second copy to diff.
+  //   - install-method asserts `npx @louphq/install` AND no git-clone-of-kit;
+  //     ADR-0001 §1 made GitHub-clone and Loup CO-EQUAL doors behind one silent
+  //     probe, so the new document must contain both. The assertion is now
+  //     false by design, not by drift.
+  //   - windows-node-path's one-invocation PATH-refresh rule still holds, but
+  //     its `; npx @louphq/install` clause names the Loup door specifically.
+  // Re-expressing these against the new canon (probe/clone surface, inverted
+  // assertions) is CORE-116, deliberately NOT done here. Until then they skip
+  // loudly rather than being deleted or quietly passing: an invariant nobody
+  // can see is how a regression gets in.
+  const legacyCanonPresent =
+    existsSync(join(ROOT, "docs/start/bootstrap.md")) &&
+    existsSync(join(ROOT, "docs/start/full-setup.md"));
+
+  if (!legacyCanonPresent) {
+    console.log(
+      "SKIP bootstrap-consistency + install-method + windows-node-path — " +
+        "docs/start/bootstrap.md and docs/start/full-setup.md were replaced by " +
+        "docs/start/setup.md (ADR-0001 §1/§4). Re-expressing these against the " +
+        "new canon is CORE-116.",
+    );
+  } else {
   const mirror = extractBootstrapBody("docs/start/bootstrap.md");
   const dup = extractBootstrapBody("docs/start/full-setup.md");
   if (mirror.error || dup.error) {
@@ -210,6 +246,7 @@ function main() {
 
     const win = checkWindowsNodePath(body);
     note(win.ok, "windows-node-path", win.detail);
+  }
   }
 
   // ---- Check 4: VERIFY-GATE-PATHS -----------------------------------------

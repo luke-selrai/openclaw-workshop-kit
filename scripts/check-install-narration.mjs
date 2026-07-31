@@ -70,15 +70,19 @@ const R = {
 
 // Each surface: which files it reads, how to get the checked text, which rules apply.
 const SURFACES = [
+  // ADR-0001 collapsed bootstrap.md + full-setup.md into one universal setup
+  // document, so both surfaces now read the same single file and the whole file
+  // is the prompt body (no anchors to slice between). Wider conformance
+  // redesign: CORE-116.
   {
     id: "bootstrap-body",
-    files: ["docs/start/bootstrap.md", "docs/start/full-setup.md"],
-    extract: (text) => extractBootstrapBody(text),
+    files: ["docs/start/setup.md"],
+    extract: (text) => ({ body: text }),
     rules: ["preflight-network", "looks-frozen", "narrate-before", "generous-timeout", "fails-loudly", "confirm-after"],
   },
   {
     id: "bootstrap-prework",
-    files: ["docs/start/bootstrap.md"],
+    files: ["docs/start/setup.md"],
     extract: (text) => ({ body: text }),
     rules: ["node-prework"],
   },

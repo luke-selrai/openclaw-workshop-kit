@@ -1,19 +1,20 @@
 # Start - Bring Your Assistant to Life
 
-This is the folder you open on workshop day. One page tells Claude what you want it to become (the bootstrap prompt). The other walks through the full first-time setup with your facilitator.
+This is the folder you open on workshop day. One page, one prompt.
 
 ## What you will do here
 
-1. **Paste the bootstrap prompt** - see [bootstrap.md](bootstrap.md). This is the single block of text that turns a generic Claude Desktop install into *your* AI business assistant.
-2. **Follow the setup walkthrough** - see [full-setup.md](full-setup.md). Covers installing Claude Desktop, cloning the kit, running the bootstrap, answering the 7 onboarding questions, connecting your first tool, and running a live demo.
+**Paste the setup prompt** - see [setup.md](setup.md). One block of text that turns a generic Claude Code install into *your* AI business assistant. The same prompt sets it up the first time, updates it later, and moves an older install onto the current setup - it works out which of those you need, so you never have to.
+
+It runs from any folder, and there is nothing to download or create first.
 
 ## Time budget
 
-Around 45-60 minutes guided, or 90 minutes on your own if you are finishing at home.
+Around 20-30 minutes, most of it downloads. There is one restart in the middle and the prompt tells you exactly when.
 
 ## What comes after
 
-After setup finishes, move on to [use/](../use/README.md) - your first real prompts and what Claude will now remember about you forever.
+Start a new session and say hi. Your assistant runs a short orientation the first time - the 7 questions, a live demo, and a shortlist of what to use first. Then move on to [use/](../use/README.md).
 
 If something goes wrong during setup, the quickest fix is to ask your assistant directly: *"Something broke. Here's the error: [paste the error]. Help me fix it."* If that does not sort it, see [troubleshoot.md](../troubleshoot.md).
 
