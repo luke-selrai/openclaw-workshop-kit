@@ -4,7 +4,7 @@
 //
 // The contract kills the "Claude silently hangs for minutes while something
 // downloads over venue wifi" experience. It has two layers:
-//   Layer 1 — deep treatment in the bootstrap body (both in-repo copies) and
+//   Layer 1 — deep treatment in the setup prompt body (both in-repo copies) and
 //             skills/first-run-setup/SKILL.md: a preflight (Node + network sane)
 //             at the very start, and a before/visible/after narration pattern
 //             on every download point.
@@ -19,7 +19,7 @@
 //   bootstrap-body   preflight-network, looks-frozen, narrate-before,
 //                    generous-timeout, fails-loudly, confirm-after
 //   bootstrap-prework  the "have Node installed before you arrive" line
-//                      (outside the anchors, bootstrap.md only)
+//                      (outside the pasted prompt, whole-file scan)
 //   first-run        preflight-network, looks-frozen, narrate-before,
 //                    generous-timeout, fails-loudly, browser-download-warning
 //   kit-rule         looks-frozen, generous-timeout, fails-loudly,
@@ -28,7 +28,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { extractBootstrapBody } from "./check-resilient-install.mjs";
+import { extractPromptBody } from "./check-resilient-install.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -70,15 +70,22 @@ const R = {
 
 // Each surface: which files it reads, how to get the checked text, which rules apply.
 const SURFACES = [
+  // ADR-0001 collapsed bootstrap.md + full-setup.md into one universal setup
+  // document, so both surfaces now read the same single file. bootstrap-body
+  // still checks only the PASTED PROMPT, sliced out by heading marker, so the
+  // attendee prose around it cannot satisfy a rule the prompt dropped;
+  // bootstrap-prework deliberately reads the whole file, because the
+  // "install Node before you arrive" line lives outside the prompt.
+  // Wider conformance redesign: CORE-116.
   {
     id: "bootstrap-body",
-    files: ["docs/start/bootstrap.md", "docs/start/full-setup.md"],
-    extract: (text) => extractBootstrapBody(text),
+    files: ["docs/start/setup.md"],
+    extract: (text) => extractPromptBody(text),
     rules: ["preflight-network", "looks-frozen", "narrate-before", "generous-timeout", "fails-loudly", "confirm-after"],
   },
   {
     id: "bootstrap-prework",
-    files: ["docs/start/bootstrap.md"],
+    files: ["docs/start/setup.md"],
     extract: (text) => ({ body: text }),
     rules: ["node-prework"],
   },

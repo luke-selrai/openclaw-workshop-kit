@@ -77,11 +77,17 @@ const GOOD_WIN = [
 ].join("\n");
 
 // Each mutation should break exactly the property it removes.
+//
+// There is deliberately no "split npx invocation" case any more: ADR-0001 §1
+// made the GitHub-clone door co-equal with Loup, so requiring the PATH refresh
+// on an `npx @louphq/install` line would fail every conformant document that
+// never runs the Loup installer. The clause was removed from the checker, and
+// the case that proved it fired went with it — a bad case for a rule that no
+// longer exists would pass for the wrong reason.
 const BAD_CASES = [
   ["no winget", GOOD_WIN.replace(/winget install --id OpenJS\.NodeJS\.LTS/, "choco install nodejs-lts")],
   ["no user-scope refresh", GOOD_WIN.replaceAll(" + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')", "")],
   ["split node invocation", GOOD_WIN.replace("'); node --version", "')\n         node --version")],
-  ["split npx invocation", GOOD_WIN.replace("'); npx @louphq/install", "')\n         npx @louphq/install")],
   ["speculative reopen", GOOD_WIN.replace(/ONLY if `node --version` still fails after that refresh: tell me to fully quit\n     and reopen/, "tell me to fully quit\n     and reopen")],
   ["no playwright fallback", GOOD_WIN.replace(/\(Playwright\) and download the LTS installer for me automatically\./, "and download it.")],
 ];

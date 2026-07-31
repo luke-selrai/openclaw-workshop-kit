@@ -466,8 +466,9 @@ const REMOVED_FLAGS = {
 const TARGET_FILES = [
   "README.md",
   "docs/skills/README.md",
-  "docs/start/bootstrap.md",
-  "docs/start/full-setup.md",
+  // docs/start/setup.md is deliberately absent: ADR-0001 §7 keeps hard skill
+  // counts out of the setup prompt so it can never drift from these markers
+  // (orientation quotes live numbers instead).
   "docs/install/subscriptions-and-software.md",
   "skills/SKILLS-LIST.md",
   "visuals/PAGE-1-AI-MODELS.md",

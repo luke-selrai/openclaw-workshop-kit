@@ -132,16 +132,20 @@ node scripts/verify-conform.mjs --verbose  # also print every passing check
 **Hard failures (fail CI):**
 
 - **path-conform** - any stale kit-home reference survives (`~/workshop-kit`, `$HOME/workshop-kit`, `%USERPROFILE%\workshop-kit`, `C:\Users\…\workshop-kit`, or the old `~/claude-workshop-kit/whatsapp` fallback).
-- **bootstrap-consistency** - the bootstrap prompt body is not byte-identical between `docs/start/bootstrap.md` and `docs/start/full-setup.md` (taken between the start/end anchors).
-- **install-method** - the bootstrap doesn't install via `npx @louphq/install`, or still `git clone`s the kit.
+- **bootstrap-consistency** *(skipped since ADR-0001)* - the bootstrap prompt body is not byte-identical between `docs/start/bootstrap.md` and `docs/start/full-setup.md` (taken between the start/end anchors).
+- **install-method** *(skipped since ADR-0001)* - the bootstrap doesn't install via `npx @louphq/install`, or still `git clone`s the kit.
 - **verify-gate-paths** - `my-assistant/CLAUDE.md` or `skills/` is missing at the repo root.
-- **windows-node-path** - the bootstrap's Windows branch doesn't install Node via `winget`, refresh the session PATH from the registry (machine + user) in the same PowerShell invocation as `node --version` / `npx`, gate the quit/reopen step behind a failing post-refresh `node --version` (never speculative), and keep the Playwright nodejs.org last-resort fallback. (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385), slice [#387](https://github.com/selrai-company/claude-workshop-kit/issues/387).)
+- **windows-node-path** - the setup prompt's Windows branch doesn't install Node via `winget`, refresh the session PATH from the registry (machine + user) in the same PowerShell invocation as `node --version` / `npx`, gate the quit/reopen step behind a failing post-refresh `node --version` (never speculative), and keep the Playwright nodejs.org last-resort fallback. (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385), slice [#387](https://github.com/selrai-company/claude-workshop-kit/issues/387).)
+
+**Skipped since ADR-0001 (CORE-112):** `bootstrap-consistency` and `install-method` are pinned to the deleted two-document, Loup-only canon. Byte-identity is retired outright (the text now exists once); `install-method` asserts the Loup door is the *only* door, which the co-equal GitHub-clone door makes false by design. The checker prints a `SKIP` line naming them rather than deleting them. Re-expressing both against the probe/clone canon is [CORE-116](https://linear.app/selr-ai/issue/CORE-116).
+
+`windows-node-path` is **not** skipped - it runs against the pasted prompt sliced out of `docs/start/setup.md`. Only its Loup-specific clause died with the two-door change: requiring the PATH refresh on an `npx @louphq/install` line would fail every conformant document that never runs the Loup installer. The winget install, the machine+user registry refresh, the one-invocation `node --version`, the process-only statement and the nodejs.org fallback are door-agnostic and still enforced.
 
 **Informational (never fails):** snapshot file count vs Loup's `< 2000` cap.
 
 ## check-resilient-install.mjs
 
-Asserts the bootstrap's **failure-recovery** contract - the resilient-install slice (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#388](https://github.com/selrai-company/claude-workshop-kit/issues/388)). Slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386) gave the bootstrap a hard-stop verify-gate; this checker is the cheap backstop that the **self-resolve loop** (diagnose → targeted fix → retry → repeat, no human in the loop) stays intact in **both** copies of the bootstrap body (`docs/start/bootstrap.md` and the `docs/start/full-setup.md` Step 5 duplicate).
+Asserts the setup prompt's **failure-recovery** contract - the resilient-install slice (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#388](https://github.com/selrai-company/claude-workshop-kit/issues/388)). Slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386) gave the bootstrap a hard-stop verify-gate; this checker is the cheap backstop that the **self-resolve loop** (diagnose → targeted fix → retry → repeat, no human in the loop) stays intact. ADR-0001 collapsed the two bootstrap copies into the single `docs/start/setup.md`, so the checker reads that one file. It still slices the **pasted prompt** out of the document (between the `## The prompt` and `## Before workshop day` headings) rather than scanning the whole file - every rule is a presence regex, so the attendee prose wrapped around the prompt must not be able to satisfy a rule the prompt itself dropped. A missing marker is a hard failure, not a silent whole-file fallback.
 
 **Usage:**
 
@@ -150,7 +154,7 @@ node scripts/check-resilient-install.mjs            # exit 1 on any failure
 node scripts/check-resilient-install.mjs --verbose  # also print every passing check
 ```
 
-**Failures (exit 1)** - each checked against every copy's bootstrap body:
+**Failures (exit 1)** - each checked against the setup prompt:
 
 - **hard-stop** - on a failed verify-gate the bootstrap stops and does not cascade into steps 3-7.
 - **real-output** - the real, unedited command output is shown to the attendee, never swallowed.
@@ -173,14 +177,14 @@ node scripts/check-install-narration.mjs            # exit 1 on any failure
 node scripts/check-install-narration.mjs --verbose  # also print every passing check
 ```
 
-**Failures (exit 1)** - checked per surface (`bootstrap-body` in both copies, `bootstrap-prework`, `first-run`, `kit-rule`):
+**Failures (exit 1)** - checked per surface (`bootstrap-body` and `bootstrap-prework`, both now reading `docs/start/setup.md` - `bootstrap-body` over the sliced prompt only, `bootstrap-prework` over the whole file since the pre-workshop Node line sits outside the prompt - plus `first-run`, `kit-rule`):
 
 - **preflight-network** - a preflight checks the network against `registry.npmjs.org` with a hard timeout (bootstrap body + first-run).
 - **looks-frozen** - the key sentence survives: a slow download may *look frozen* without being frozen (all surfaces).
 - **narrate-before** - narration happens BEFORE the command runs, because Claude cannot talk mid-command (bootstrap body + first-run).
 - **generous-timeout** / **fails-loudly** - slow commands carry a generous timeout so a dead download fails loudly instead of hanging forever (all surfaces).
 - **confirm-after** - after the command, success is confirmed or what failed is stated plainly (bootstrap body + kit rule).
-- **node-prework** - the "have Node.js installed before you arrive" pre-workshop line exists in `docs/start/bootstrap.md`.
+- **node-prework** - the "have Node.js installed before you arrive" pre-workshop line exists in `docs/start/setup.md`.
 - **browser-download-warning** - first-run warns that the first Playwright launch downloads the browser itself (first-run only).
 
 **Harness wiring:** runs in CI on every event via `.github/workflows/audit-skills.yml`, after the resilient-install steps.
@@ -228,8 +232,8 @@ node scripts/test-mp-skills-install.mjs  # install-contract rules pass on Step 3
 
 Its last section tests the thing CI actually consumes - **exit codes**. `audit-skills.mjs` derives its `ROOT` from its own location, so the test copies the script into a temp sandbox alongside a disposable `skills/` tree and lock, then runs it for real: compliant exits 0, a lock-pinned violation exits 0 but is listed, an identical *non-pinned* violation exits 1 with the rule's reason printed, and both removed flags exit 2. Without this, mis-wiring the fail gate (passing all hits instead of the failing ones) would break every build with every unit assertion still green.
 
-`test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line.
+`test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line. Its `windows-node-path` bad cases prove each surviving clause fires; the "split npx invocation" case was removed alongside the clause it guarded, since a bad case for a deleted rule passes for the wrong reason.
 
-`test-resilient-install.mjs` imports `evaluateResilience()` from the checker, confirms both real bootstrap copies pass every rule, and asserts a deliberately non-resilient fixture (`scripts/__fixtures__/resilient-install-bad.md`) fails every one - so each detector is proven to fire.
+`test-resilient-install.mjs` imports `evaluateResilience()` from the checker, confirms the real setup document's sliced prompt passes every rule, and asserts a deliberately non-resilient fixture (`scripts/__fixtures__/resilient-install-bad.md`) fails every one - so each detector is proven to fire.
 
 `test-mp-skills-install.mjs` does the same for `check-mp-skills-install.mjs`: the real Step 3 passes every rule, the pre-fix fixture (`scripts/__fixtures__/mp-skills-install-bad.md`) fails every one, and the live-listing parser is exercised against fake GitHub tree responses (flat + category-nested layouts, rename detection, API-failure throw) with no network.

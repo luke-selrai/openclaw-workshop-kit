@@ -6,8 +6,18 @@
 // the FAILURE RECOVERY so a failed install resolves between the attendee and
 // Claude — diagnose → targeted fix → retry → repeat — with no human in the loop.
 // This checker is the cheap regression backstop for that contract: it asserts the
-// bootstrap body still carries every resilience property, in BOTH copies
-// (docs/start/bootstrap.md and the docs/start/full-setup.md Step 5 duplicate).
+// setup prompt still carries every resilience property.
+//
+// ADR-0001 collapsed the two-document bootstrap (docs/start/bootstrap.md +
+// docs/start/full-setup.md) into one universal setup document, so the "both
+// copies must agree" premise is gone and the file list below is a single file.
+// There is no second copy to diff against, which is exactly why the
+// byte-identity checker retired. The pasted-prompt body is still sliced out of
+// the document rather than scanned whole (see extractPromptBody), so the
+// attendee prose wrapped around it cannot satisfy a rule the prompt itself
+// dropped. Anchor-based extraction stays exported for the bad fixtures, which
+// still carry the old anchors.
+// The wider conformance redesign is CORE-116.
 //
 // Modes:
 //   (default) / --check   read-only; exit 1 on any failure (used by preflight/CI)
@@ -33,12 +43,31 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-// Same anchors the rest of the harness diffs the bootstrap body against.
+// Legacy anchors — the two-copy bootstrap era. Kept only because the bad
+// fixtures still carry them and prove each detector fires.
 const START_ANCHOR = "I am setting up my Claude Code AI Business Assistant with Selr AI.";
 const END_ANCHOR = "Talk to me like I am not technical. Plain English, one step at a time.";
 
-// The two copies that must both carry the resilient-install contract.
-const BOOTSTRAP_COPIES = ["docs/start/bootstrap.md", "docs/start/full-setup.md"];
+// The single setup document's pasted-prompt body: everything between the
+// "## The prompt" heading and the first heading after it. Slicing matters — the
+// document also carries attendee-facing prose (intro, pre-workshop note,
+// troubleshooting) that must NOT be able to satisfy a rule the prompt itself
+// dropped. A missing marker is a hard failure, never a silent whole-file scan.
+const PROMPT_START_MARKER = "## The prompt";
+const PROMPT_END_MARKER = "## Before workshop day";
+
+function extractPromptBody(text) {
+  const lines = text.split(/\r?\n/);
+  const start = lines.indexOf(PROMPT_START_MARKER);
+  const end = lines.indexOf(PROMPT_END_MARKER);
+  if (start === -1 || end === -1 || end < start) {
+    return { error: `prompt markers not found (start=${start}, end=${end})` };
+  }
+  return { body: lines.slice(start + 1, end).join("\n") };
+}
+
+// The setup surface that must carry the resilient-install contract.
+const BOOTSTRAP_COPIES = ["docs/start/setup.md"];
 
 // Human-escalation wording the bootstrap must never contain. Slice #388: the
 // attendee and Claude resolve any install problem between themselves.
@@ -121,7 +150,7 @@ function extractBootstrapBody(text) {
   return { body: lines.slice(start, end + 1).join("\n") };
 }
 
-export { evaluateResilience, extractBootstrapBody, PRESENCE_RULES, ESCALATION_PATTERNS };
+export { evaluateResilience, extractBootstrapBody, extractPromptBody, PRESENCE_RULES, ESCALATION_PATTERNS, BOOTSTRAP_COPIES };
 
 // ---- CLI ------------------------------------------------------------------
 if (resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
@@ -143,15 +172,15 @@ if (resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
       note(false, `${rel} read`, e.message);
       continue;
     }
-    const { body, error } = extractBootstrapBody(text);
+    const { body, error } = extractPromptBody(text);
     if (error) {
-      note(false, `${rel} anchors`, error);
+      note(false, `${rel} prompt markers`, error);
       continue;
     }
     const { rules } = evaluateResilience(body);
     for (const r of rules) note(r.ok, `${rel} [${r.id}]`, r.detail);
   }
 
-  if (!failed) console.log("\n✅ check-resilient-install: bootstrap recovery loop intact in all copies");
+  if (!failed) console.log("\n✅ check-resilient-install: setup recovery loop intact");
   process.exit(failed ? 1 : 0);
 }

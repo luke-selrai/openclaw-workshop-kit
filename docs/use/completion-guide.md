@@ -2,7 +2,7 @@
 
 If you didn't get through everything today, this guide walks you through completing your setup at home. Take your time. There's no rush.
 
-> For the full end-to-end setup guide, see [full-setup](../start/full-setup.md)
+> For the full end-to-end setup guide, see [setup](../start/setup.md)
 
 ---
 

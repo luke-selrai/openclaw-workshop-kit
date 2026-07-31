@@ -63,7 +63,7 @@ Full pre-workshop details: [`docs/install/`](docs/install/).
 
 Your assistant handles it all conversationally, one step at a time. No scripts to run, no commands to memorise.
 
-Full walkthrough: [`docs/start/full-setup.md`](docs/start/full-setup.md).
+Full walkthrough: [`docs/start/setup.md`](docs/start/setup.md).
 
 ---
 
