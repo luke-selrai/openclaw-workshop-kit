@@ -28,4 +28,10 @@ Notes worth recording: more than one commit served (a push landed mid-window - l
 
 ## Drops
 
-No drops recorded yet.
+## 2026-07-31 - Skool community live call
+
+- Commit served: `b91a45b87561dd08efff641ecc02492ed79f4ed9` (`b91a45b`)
+- Window: `2026-07-31T01:30:00Z` (approximate - opened by hand shortly before the call; not captured to the second) to `2026-07-31T03:40:51Z`
+- Agreed duration: one live session | Actual: ~2h 10m
+- Announcement: none posted - the prompt was shared directly during the live call, not via a written post
+- Notes: first drop under the pointer-block install model (ADR-0001). One commit served for the whole window. Flip-private verified by the credential-free probe (repo refused, control green) plus authenticated visibility check. Open timestamp is approximate because the flip was done manually outside the school-drop skill; future windows should run the skill so both timestamps are captured exactly.
