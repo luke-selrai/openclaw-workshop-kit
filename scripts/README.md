@@ -48,6 +48,13 @@ These are content-decision drift - the script reports them so a human can classi
 
 - Any marker-bracketed number doesn't match the disk-true value
 - Any `skills/**/SKILL.md` hits an anti-pattern rule (`ANTI_PATTERN_RULES`)
+- Any file in `COUNT_FREE_FILES` carries a marker block or a hard count (`COUNT_FREE_RULES`, see below)
+
+### Count-free surfaces (CORE-116)
+
+`docs/start/setup.md` is deliberately **absent** from `TARGET_FILES`: ADR-0001 §7 keeps hard skill counts out of the pasted setup prompt so it can never drift from the markers, and orientation quotes live numbers instead - it runs after the install and can read the disk.
+
+Absence from a list is not a check, though. Nothing stopped a future edit writing "installs all 196 skills" into the completion banner, with the audit staying green while the kit shipped a number that goes stale on the next merge. So the omission is now paired with a positive assertion: `setup.md` is checked to contain neither a `skills-audit:` marker nor a hard count (two or more digits within two words of "skills"/"connectors"). Two digits is the floor on purpose - "the 4 power-user skills" is a fixed set that cannot drift, while any audit-derived total is well past ten. Nothing here auto-fixes: the correct content is no number at all.
 
 **CI wiring:** `.github/workflows/audit-skills.yml` runs `--check` on every PR that touches `skills/`, `docs/`, `visuals/`, or any of the count-bearing top-level docs.
 
@@ -120,26 +127,47 @@ Caps are exclusive (a value AT the cap fails); it WARNs at 90% so there's early 
 
 ## verify-conform.mjs
 
-Asserts the Loup-deliverable invariants (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386)). The kit home is `~/.loup/selr-ai/workshop-kit`.
+Asserts the kit's **install-canon** invariants - originally the Loup-deliverable PRD ([#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386)), redesigned against [ADR-0001](../docs/adr/0001-pointer-block-install-model.md) by [CORE-116](https://linear.app/selr-ai/issue/CORE-116).
+
+There is **no single kit home** any more. Under ADR-0001 the home is a per-install fact - `~/claude-workshop-kit` through the GitHub door, `~/.loup/selr-ai/workshop-kit` through the Loup door - written into the pointer block and the manifest at install time. That inverted this checker's central rule: it used to police references to the *old* home while treating the Loup home as canonical; it now treats **any hardcoded home** as the violation.
 
 **Usage:**
 
 ```bash
-node scripts/verify-conform.mjs            # exit 1 on any hard failure (used by CI)
-node scripts/verify-conform.mjs --verbose  # also print every passing check
+node scripts/verify-conform.mjs                   # exit 1 on any hard failure (used by CI)
+node scripts/verify-conform.mjs --check           # the same thing, said explicitly
+node scripts/verify-conform.mjs --verbose         # also print every passing check
+node scripts/verify-conform.mjs --update-baseline # re-snapshot the old-canon debt (see below)
 ```
+
+Unrecognised flags exit **2** rather than silently running the default - a mistyped `--updat-baseline` used to look like a passing check.
 
 **Hard failures (fail CI):**
 
-- **path-conform** - any stale kit-home reference survives (`~/workshop-kit`, `$HOME/workshop-kit`, `%USERPROFILE%\workshop-kit`, `C:\Users\…\workshop-kit`, or the old `~/claude-workshop-kit/whatsapp` fallback).
-- **bootstrap-consistency** *(skipped since ADR-0001)* - the bootstrap prompt body is not byte-identical between `docs/start/bootstrap.md` and `docs/start/full-setup.md` (taken between the start/end anchors).
-- **install-method** *(skipped since ADR-0001)* - the bootstrap doesn't install via `npx @louphq/install`, or still `git clone`s the kit.
-- **verify-gate-paths** - `my-assistant/CLAUDE.md` or `skills/` is missing at the repo root.
+- **old-canon** - an old-canon install reference survives outside the surfaces allowed to carry one. Three families: the **retired homes** (`~/workshop-kit`, `$HOME/workshop-kit`, `%USERPROFILE%\workshop-kit`, `C:\Users\…\workshop-kit`, `~/claude-workshop-kit/whatsapp`), a **hardcoded live home** of either door, and the **dead workspace model** (`~/Desktop/my-assistant`, `~/my-assistant`, `.first-run-pending`).
+- **single-install-surface** - `docs/start` carries anything other than exactly one install document (`setup.md`), or one of the retired `bootstrap.md` / `full-setup.md` reappears.
+- **install-method** - the pasted prompt doesn't carry the two-door canon: one silent `git ls-remote` probe with `GIT_TERMINAL_PROMPT=0` on the same line, a shallow clone door, a Loup dashboard door on a refused probe, a wifi-retry door that never asks for a token, always-re-fetch on both doors, the door declared as plumbing - and no install-type question anywhere in the document (the prompt *and* the prose around it).
+- **install-artifacts** - the prompt doesn't produce the three install artifacts (the `@`-import rule is anchored to the import **line**, since a bare at-sign is satisfied by `@louphq` elsewhere in the prompt): the marker-delimited pointer block in the global `~/.claude/CLAUDE.md`, the persona **copied out** to `~/.claude/selr-assistant.md`, and `~/.claude/selr-kit-manifest.json`; the `@`-import isn't an absolute path; or the prompt writes a workspace `my-assistant/CLAUDE.md`.
+- **verify-gate-paths** - `my-assistant/CLAUDE.md` or `skills/` is missing at the repo root. These are the repo **sources** the prompt copies out of; ADR-0001 §2 keeps `my-assistant/CLAUDE.md` as the persona's source of truth even though it is no longer an install artifact.
 - **windows-node-path** - the setup prompt's Windows branch doesn't install Node via `winget`, refresh the session PATH from the registry (machine + user) in the same PowerShell invocation as `node --version` / `npx`, gate the quit/reopen step behind a failing post-refresh `node --version` (never speculative), and keep the Playwright nodejs.org last-resort fallback. (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385), slice [#387](https://github.com/selrai-company/claude-workshop-kit/issues/387).)
 
-**Skipped since ADR-0001 (CORE-112):** `bootstrap-consistency` and `install-method` are pinned to the deleted two-document, Loup-only canon. Byte-identity is retired outright (the text now exists once); `install-method` asserts the Loup door is the *only* door, which the co-equal GitHub-clone door makes false by design. The checker prints a `SKIP` line naming them rather than deleting them. Re-expressing both against the probe/clone canon is [CORE-116](https://linear.app/selr-ai/issue/CORE-116).
+**The retired byte-identity checker.** `bootstrap-consistency` diffed the prompt body between `docs/start/bootstrap.md` and `docs/start/full-setup.md` between canonical anchors. CORE-112 deleted both files, and ADR-0001 §4 retires the check outright: the shared text exists exactly once, so drift is not something to diff for - it is structurally impossible. CORE-112 left it printing a loud `SKIP`; CORE-116 removed it. What stands in its place is `single-install-surface`, because the property that actually needs guarding is *there is still only one copy* - a second copy is how drift returns.
 
-`windows-node-path` is **not** skipped - it runs against the pasted prompt sliced out of `docs/start/setup.md`. Only its Loup-specific clause died with the two-door change: requiring the PATH refresh on an `npx @louphq/install` line would fail every conformant document that never runs the Loup installer. The winget install, the machine+user registry refresh, the one-invocation `node --version`, the process-only statement and the nodejs.org fallback are door-agnostic and still enforced.
+**The old-canon baseline.** Inverting the home rule turned ~50 pre-existing references into violations overnight, in files owned by sibling ADR-0001 tickets (CORE-113 persona, CORE-114 orientation, CORE-117 stale-doc sweep). Rather than exempt them, `scripts/old-canon-baseline.json` records a per-file **count** of the debt, and the check ratchets:
+
+- a file **not** in the baseline that gains a reference → **fail**
+- a baselined file whose count **goes up** → **fail**
+- a baselined file whose count goes **down**, or reaches zero → **warn**, printed on every run, with the instruction to re-snapshot
+
+So no new old-canon reference can enter the tree anywhere, and the file can only shrink. When it is empty, delete it.
+
+Three holes, documented in the file's own `__doc__` so a green ratchet is not read as more than it is: a line counts **once per pattern**, not per occurrence (rewrapping can move a number without changing meaning); the count is per file, so a same-file **swap** - one reference deleted, a different one added - is invisible, because the ratchet catches accumulation rather than substitution; and `--update-baseline` snapshots with **no gate**, so it will happily record new debt. It is a maintenance command for after a sweep lands, not a way to make a failing check pass - a raised number is a reviewable diff, and that is the enforcement. Genuinely permanent surfaces are **not** baselined - the migration fixture, the migration recipe, the ADR itself, `docs/uninstall.md` and the uninstall skill are in `OLD_CANON_ALLOWLIST`, because each exists to move a machine off the old canon and cannot do that without naming it.
+
+**`docs/start/setup.md` is scoped by section, not allowlisted.** It legitimately names every legacy path - it probes the legacy-workspace candidate list, the three legacy kit homes, and it deletes a confirmed-stale `~/workshop-kit`. A file-level exemption on the most attendee-facing document in the kit would hide a real regression (a stale "your assistant folder on the Desktop" line in the completion banner would sail through), so the exemption covers only the **bodies of Steps 1-4** - mode detection, acquisition, pointer block + MIGRATE retirement, and the manifest. The intro, Steps 0 and 5-10, the completion banner and the trailing prose are held to the same rule as any other document.
+
+`windows-node-path` is unchanged by the redesign - it runs against the pasted prompt sliced out of `docs/start/setup.md`, and the winget install, the machine+user registry refresh, the one-invocation `node --version`, the process-only statement and the nodejs.org fallback are all door-agnostic and still enforced.
+
+Its Loup-specific clause is **conditional** rather than dropped. Requiring the PATH refresh on an `npx @louphq/install` line unconditionally would fail every conformant document that never runs the Loup installer; dropping it entirely loses coverage of the document that *does*. So: if the body invokes `npx @louphq/install`, it must either carry the refresh on that line **or** state the blanket "prepend the same refresh to every later PowerShell command" rule. Two ways, because `setup.md`'s npx line is a quoted example of what the attendee pastes from the dashboard, not a command the prompt composes - there is nothing there to prepend to.
 
 **Informational (never fails):** snapshot file count vs Loup's `< 2000` cap.
 
@@ -164,6 +192,16 @@ node scripts/check-resilient-install.mjs --verbose  # also print every passing c
 - **no-retry-cap** - the loop states there is no limit on retries.
 - **no-escalation** - no human-escalation wording (`notify` / `facilitator` / `Luke` / `Harvey` / `escalate`) appears in the body.
 
+The GitHub **probe/clone** surface (ADR-0001 §1, added by CORE-116) fails the same way but splits three ways, and only one of the three is an access problem:
+
+- **silent-probe** - the repo is probed with `git ls-remote` and `GIT_TERMINAL_PROMPT=0` **on the same line**, so a private repo fails fast instead of hanging on a credential prompt. Same-line, not same-document: the clone a few paragraphs later also disables prompting, and a document-wide test would keep passing while the probe itself was left free to hang.
+- **three-doors** - success → clone, refused → Loup walkthrough, timeout/network → wifi retry.
+- **no-credential-ask** - a refused probe never turns into a GitHub password ask.
+- **network-never-token** - a network failure never routes to Loup or a token. This is the one that matters on venue wifi: a dropped connection reads as "your access was revoked" to a naive installer, and the attendee ends up hunting for credentials they already have.
+- **stale-access-recovery** - the git-flavoured analogue of `remint-fix`: the **refused** probe (not the slow one) is the case that routes to the dashboard walkthrough and a freshly minted install command.
+- **always-refetch** - the kit is re-acquired fresh on every run on both doors, never updated in place.
+- **clone-safety** - an existing kit-home folder is deleted only after it is confirmed to be a kit download, never on its name alone. Anchored to its own sentence, so the rule cannot be satisfied by the words appearing anywhere in the prompt.
+
 **Harness wiring:** runs in CI on every event via `.github/workflows/audit-skills.yml`, alongside `verify-conform.mjs`.
 
 ## check-install-narration.mjs
@@ -186,12 +224,14 @@ node scripts/check-install-narration.mjs --verbose  # also print every passing c
 - **confirm-after** - after the command, success is confirmed or what failed is stated plainly (bootstrap body + kit rule).
 - **node-prework** - the "have Node.js installed before you arrive" pre-workshop line exists in `docs/start/setup.md`.
 - **browser-download-warning** - the prompt warns that the first Playwright launch downloads the browser itself (bootstrap body only).
+- **every-download-warned** - one blanket rule at the top of the prompt binds **every** download in it, spoken before the command runs. Both halves must sit in the **same paragraph**: an unanchored "before" is satisfied by any of the prompt's dozens of other uses of the word. The two-prompt era narrated its two or three download points by hand; the universal prompt has eight or nine, and enumerating them in a checker would rot on the first reorder, so the contract moved up a level.
+- **mode-announcement** - the detected mode (fresh / update / migrate) is announced in one line of plain English, before anything on the machine changes.
 
 **Harness wiring:** runs in CI on every event via `.github/workflows/audit-skills.yml`, after the resilient-install steps.
 
 ## check-mp-skills-install.mjs
 
-Asserts the **Matt Pocock power-user-skills install contract** in `docs/start/setup.md`, Step 6's "Power-user skills" item ([LOUP-19](https://linear.app/selr-ai/issue/LOUP-19)). It lived in the onboarding skill's install phase until ADR-0001 moved every install into the one setup prompt; the checker followed it, dropping the four rules the prompt does not state (listed in the script header - re-deciding them is [CORE-116](https://linear.app/selr-ai/issue/CORE-116)). Upstream renamed `diagnose` → `diagnosing-bugs` and the hardcoded selector silently stripped skills from attendees, with a "probably a network hiccup" hand-wave hiding it; this checker keeps the fixed contract intact.
+Asserts the **Matt Pocock power-user-skills install contract** in `docs/start/setup.md`, Step 6's "Power-user skills" item ([LOUP-19](https://linear.app/selr-ai/issue/LOUP-19)). The slice ends at whichever comes first - the next numbered item in the step, or the next heading. The old `### Step 7` end anchor sliced to the end of *Step 6*, which was correct only by accident (item 4 happens to be last today); a fifth item would have silently widened the slice and let unrelated prompt text satisfy this step's rules. It lived in the onboarding skill's install phase until ADR-0001 moved every install into the one setup prompt; the checker followed it, dropping the four rules the prompt does not state (listed in the script header - re-deciding them is [CORE-116](https://linear.app/selr-ai/issue/CORE-116)). Upstream renamed `diagnose` → `diagnosing-bugs` and the hardcoded selector silently stripped skills from attendees, with a "probably a network hiccup" hand-wave hiding it; this checker keeps the fixed contract intact.
 
 **Usage:**
 
@@ -222,7 +262,8 @@ Plain Node, no framework - each prints `PASS`/`FAIL` and exits non-zero on any f
 node scripts/test-anti-patterns.mjs      # regression for audit-skills anti-pattern rules
 node scripts/test-description-budget.mjs # description-budget rules, parser, and the report/enforce switch
 node scripts/test-snapshot-shape.mjs     # cap-boundary + real-repo checks for the snapshot invariant
-node scripts/test-verify-conform.mjs     # stale-ref + bootstrap-consistency rules for verify-conform
+node scripts/test-verify-conform.mjs     # every verify-conform rule, each proven by a seeded violation
+node scripts/test-count-free.mjs         # the count-free assertion on docs/start/setup.md
 node scripts/test-resilient-install.mjs  # resilience rules pass on both copies; fire on a bad fixture
 node scripts/test-install-narration.mjs  # narration rules pass on all surfaces; fire on a bad fixture
 node scripts/test-mp-skills-install.mjs  # install-contract rules pass on the setup prompt; fire on a bad fixture
@@ -232,7 +273,9 @@ node scripts/test-mp-skills-install.mjs  # install-contract rules pass on the se
 
 Its last section tests the thing CI actually consumes - **exit codes**. `audit-skills.mjs` derives its `ROOT` from its own location, so the test copies the script into a temp sandbox alongside a disposable `skills/` tree and lock, then runs it for real: compliant exits 0, a lock-pinned violation exits 0 but is listed, an identical *non-pinned* violation exits 1 with the rule's reason printed, and both removed flags exit 2. Without this, mis-wiring the fail gate (passing all hits instead of the failing ones) would break every build with every unit assertion still green.
 
-`test-verify-conform.mjs` reads `scripts/__fixtures__/conform-stale.md` (allowlisted in `verify-conform.mjs`) and asserts each stale-ref rule fires on the expected line. Its `windows-node-path` bad cases prove each surviving clause fires; the "split npx invocation" case was removed alongside the clause it guarded, since a bad case for a deleted rule passes for the wrong reason.
+`test-verify-conform.mjs` covers every rule in the checker, and every rule is paired with a **seeded violation** - a good input plus a mutation that removes exactly one property - because a regex over prose that has never been made to fail is not a check. It reads two allowlisted fixtures (`scripts/__fixtures__/conform-stale.md` for the retired homes, `scripts/__fixtures__/old-canon-bad.md` for the inverted rules) and asserts each pattern fires on the exact line; it drives the setup-doc section scoping in **both** directions (the same sentence exempt in Step 1, a violation in Step 9 and in the trailing prose); it unit-tests the baseline ratchet (new file fails, over-baseline fails, under-baseline warns); it mutates a conformant Step 2 eleven ways to prove each two-door clause fires; and it drives the conditional npx clause in all three states (invoked with the blanket rule, invoked with neither, never invoked). Its `windows-node-path` bad cases prove each surviving clause fires; the "split npx invocation" case was removed alongside the clause it guarded, since a bad case for a deleted rule passes for the wrong reason.
+
+`test-count-free.mjs` covers the count-free assertion in `audit-skills.mjs`. The rule stands in for an *absence* - `docs/start/setup.md` is deliberately left out of `TARGET_FILES` so no marker writes a number into the pasted prompt - and an absence passes trivially on any document that happens not to mention skills, so the fixture (`scripts/__fixtures__/count-free-bad.md`) pins both halves: the lines that must fire (a marker block, "196 skills", "16 connectors", "200+ ready-made skills") and the lines that must not ("20-30 minutes", "the 4 power-user skills").
 
 `test-resilient-install.mjs` imports `evaluateResilience()` from the checker, confirms the real setup document's sliced prompt passes every rule, and asserts a deliberately non-resilient fixture (`scripts/__fixtures__/resilient-install-bad.md`) fails every one - so each detector is proven to fire.
 

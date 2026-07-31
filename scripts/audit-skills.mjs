@@ -38,6 +38,61 @@ const ANTI_PATTERN_ALLOWLIST = new Set([
   "scripts/__fixtures__/anti-patterns.md",
 ]);
 
+// ---------------------------------------------------------------------------
+// Count-free surfaces (CORE-116, ADR-0001 §7 + the rejected-alternatives table)
+//
+// docs/start/setup.md is deliberately absent from TARGET_FILES below: the setup
+// prompt must never quote a hard skill count, so that it cannot drift from the
+// audit markers (orientation quotes live numbers instead, because it runs after
+// the install and can read the disk).
+//
+// Absence from a list is not a check, though — nothing stops a future edit
+// writing "installs all 196 skills" into the completion banner, and the audit
+// would stay green while the kit shipped a number that goes stale on the next
+// merge. So the omission is paired with a POSITIVE assertion: these files are
+// asserted to contain neither a marker block nor a hard count.
+const COUNT_FREE_FILES = ["docs/start/setup.md"];
+
+const COUNT_FREE_RULES = [
+  {
+    id: "no-count-markers",
+    regex: /<!--\s*skills-audit:/,
+    reason:
+      "carries a skills-audit marker block. This file is count-free by design — adding markers here " +
+      "puts a generated number into the pasted prompt, which is exactly what ADR-0001 §7 rules out.",
+  },
+  {
+    id: "no-hard-count",
+    // Two or more digits, up to two words of slack, then skills/connectors.
+    // Two digits minimum on purpose: "the 4 power-user skills" is a fixed set
+    // that cannot drift, while any audit-derived total is >= 10.
+    regex: /\b\d{2,4}\s*\+?\s+(?:[a-z-]+\s+){0,2}(?:skills|connectors)\b/i,
+    reason:
+      "quotes a hard skill/connector count. The setup prompt must never carry a number that the " +
+      "skills tree can invalidate — it is not marker-managed, so nothing would ever update it. " +
+      "Say what the kit does, and let orientation quote live counts after the install.",
+  },
+];
+
+// `files` is overridable so the regression test can drive the same rules
+// against a deliberately bad fixture instead of the real document.
+function auditCountFree(files = COUNT_FREE_FILES) {
+  const hits = [];
+  for (const rel of files) {
+    const abs = join(ROOT, rel);
+    if (!existsSync(abs)) continue; // a file that does not exist cannot carry a count
+    const lines = readFileSync(abs, "utf8").split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      for (const rule of COUNT_FREE_RULES) {
+        if (rule.regex.test(lines[i])) {
+          hits.push({ rule: rule.id, line: i + 1, reason: rule.reason, relPath: rel, text: lines[i].trim().slice(0, 100) });
+        }
+      }
+    }
+  }
+  return hits;
+}
+
 const ANTI_PATTERN_RULES = [
   {
     id: "www-authenticate-bearer",
@@ -646,6 +701,21 @@ function main() {
     console.log("✓ No anti-pattern hits across skills/**/SKILL.md.");
   }
 
+  // Count-free surfaces — always runs in both modes; never auto-mutates
+  // (there is nothing to generate: the correct content is no number at all).
+  const countFreeHits = auditCountFree();
+  if (countFreeHits.length > 0) {
+    console.log("");
+    console.log(`❌ Hard counts in count-free surfaces (${countFreeHits.length}):`);
+    for (const hit of countFreeHits) {
+      console.log(`   ${hit.relPath}:${hit.line} [${hit.rule}] ${hit.text}`);
+      console.log(`     ${hit.reason}`);
+    }
+  } else {
+    console.log("");
+    console.log(`✓ Count-free by design and still count-free: ${COUNT_FREE_FILES.join(", ")}.`);
+  }
+
   // Description budget — always runs in both modes; never auto-mutates.
   const descriptionHits = auditDescriptions();
   const pinned = loadPinnedSkillDirs();
@@ -702,12 +772,15 @@ function main() {
     console.log(`❌ ${failing.length} description-budget violation(s) — see above.`);
   }
 
-  if (mode === "check" && (fileDrift || antiPatternHits.length > 0 || budgetFails)) {
+  if (mode === "check" && (fileDrift || antiPatternHits.length > 0 || countFreeHits.length > 0 || budgetFails)) {
     process.exit(1);
   }
 }
 
 export {
+  auditCountFree,
+  COUNT_FREE_FILES,
+  COUNT_FREE_RULES,
   extractDescription,
   evaluateDescription,
   readSkillDescriptions,

@@ -75,11 +75,14 @@ jobs:
           git push
           echo "::notice::Auto-fixed skill-count drift on main and pushed correction."
 
-      # Loup-conform invariants (PRD #385 / slice #386): assert no stale
-      # legacy kit-home path reference survives and the bootstrap prompt stays
-      # byte-identical across its in-repo copies. Read-only; runs on every event
-      # so a stale straggler can't reach an attendee live.
-      - name: Verify Loup-conform invariants
+      # Install-canon invariants (PRD #385 / slice #386, redesigned against
+      # ADR-0001 by CORE-116): assert no old-canon install reference survives
+      # (hardcoded kit home, dead workspace folder, dead first-run marker), that
+      # docs/start still carries exactly one install document, and that the
+      # pasted prompt holds the two-door canon and produces the pointer block,
+      # persona copy and manifest. Read-only; runs on every event so a stale
+      # straggler can't reach an attendee live.
+      - name: Verify install-canon invariants
         run: node scripts/verify-conform.mjs
 
       # Description-budget rule (CORE-93, enforcing since CORE-98): the
@@ -93,6 +96,13 @@ jobs:
 
       - name: Test conform checker (regression)
         run: node scripts/test-verify-conform.mjs
+
+      # Count-free rule (CORE-116): docs/start/setup.md must carry neither a
+      # skills-audit marker nor a hard skill count, so the pasted prompt can
+      # never drift from the markers. The rule stands in for an absence, so the
+      # seeded fixture is what proves it fires.
+      - name: Test count-free rule (regression)
+        run: node scripts/test-count-free.mjs
 
       # Resilient-install invariants (PRD #385 / slice #388): assert the
       # bootstrap's failure-recovery loop (hard-stop, real output shown, re-mint

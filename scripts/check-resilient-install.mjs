@@ -36,6 +36,29 @@
 //   6. NO-RETRY-CAP        the loop states there is no limit on retries.
 //   7. NO-ESCALATION       no human-escalation wording (notify / facilitator /
 //                          Luke / Harvey / escalate) appears anywhere in the body.
+//
+// CORE-116 added the GitHub probe/clone surface, which ADR-0001 §1 put in front
+// of the Loup door. The failure modes are the same shape as the ones above, but
+// the probe fails in THREE ways and only one of them is an access problem:
+//   8. SILENT-PROBE        a cheap `git ls-remote` with GIT_TERMINAL_PROMPT=0,
+//                          so a private repo fails fast instead of hanging on a
+//                          credential prompt.
+//   9. THREE-DOORS         success → clone; refused → Loup walkthrough;
+//                          timeout/network → retry the wifi.
+//  10. NO-CREDENTIAL-ASK   a refused probe never turns into a GitHub password ask.
+//  11. NETWORK-NEVER-TOKEN a network failure never routes to Loup or a token.
+//                          This is the one that matters on venue wifi: a dropped
+//                          connection reads as "your access was revoked" to a
+//                          naive installer, and the attendee ends up hunting for
+//                          credentials they already have.
+//  12. STALE-ACCESS-RECOVERY  the git-flavoured analogue of REMINT-FIX: a
+//                          REFUSED probe (not a slow one) is the case that
+//                          routes to the dashboard walkthrough and a freshly
+//                          minted command.
+//  13. ALWAYS-REFETCH      the kit is re-acquired fresh on every run, never
+//                          updated in place, on both doors.
+//  14. CLONE-SAFETY        an existing kit-home folder is only deleted after it
+//                          is confirmed to be a kit download — never on its name.
 
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -79,6 +102,11 @@ const ESCALATION_PATTERNS = [
   { id: "escalate", re: /\bescalat/i },
 ];
 
+/** True when a single line of `body` matches every pattern given. */
+function sameLine(body, ...patterns) {
+  return body.split(/\r?\n/).some((line) => patterns.every((p) => p.test(line)));
+}
+
 // Each "present" rule must match the body; the escalation rule must NOT match.
 const PRESENCE_RULES = [
   {
@@ -113,6 +141,59 @@ const PRESENCE_RULES = [
     id: "no-retry-cap",
     why: "state there is no limit on retries",
     test: (b) => /\bno limit\b/i.test(b),
+  },
+
+  // ---- The GitHub probe/clone surface (CORE-116, ADR-0001 §1) -------------
+  {
+    id: "silent-probe",
+    why: "probe the repo with `git ls-remote` and GIT_TERMINAL_PROMPT=0 so a private repo fails fast instead of hanging on a credential prompt",
+    // Same LINE, not merely same document: the clone command a few paragraphs
+    // later also disables prompting, and a document-wide test would keep
+    // passing while the probe itself — the one command that runs against a
+    // possibly-private repo — was left free to hang on a credential prompt.
+    test: (b) => sameLine(b, /GIT_TERMINAL_PROMPT/, /git ls-remote/),
+  },
+  {
+    id: "three-doors",
+    why: "the probe splits three ways: success → clone, refused → Loup walkthrough, timeout → wifi retry",
+    test: (b) =>
+      /git clone --depth 1/.test(b) &&
+      /dashboard/i.test(b) &&
+      /(times? out|network problem|network error)/i.test(b),
+  },
+  {
+    id: "no-credential-ask",
+    why: "a refused probe never turns into a GitHub password ask",
+    test: (b) => /(do not|don't|never)[\s\S]{0,60}password/i.test(b),
+  },
+  {
+    id: "network-never-token",
+    why: "a network failure is the wifi, not access — never route it to Loup or a token ask",
+    test: (b) => /(times? out|network problem|network error)[\s\S]{0,400}never[\s\S]{0,160}(token|loup)/i.test(b),
+  },
+  {
+    id: "stale-access-recovery",
+    why: "a REFUSED probe is the case that routes to the dashboard walkthrough and a freshly minted install command",
+    test: (b) =>
+      /(refused|rejected|authentication error|not found)/i.test(b) &&
+      /dashboard/i.test(b) &&
+      /"Get install command"/.test(b) &&
+      /\bmint\b/i.test(b),
+  },
+  {
+    id: "always-refetch",
+    why: "the kit is re-acquired fresh every run on both doors, never updated in place",
+    test: (b) =>
+      /(fresh copy|never update-in-place|ALWAYS take a fresh)/i.test(b) &&
+      /always re-run/i.test(b),
+  },
+  {
+    id: "clone-safety",
+    why: "an existing kit-home folder is deleted only after it is confirmed to be a kit download, never on its name alone",
+    // Anchored to its own sentence. The `|| /on its name alone/` fallback this
+    // replaces subsumed the first branch and reduced the rule to a bare phrase
+    // match, which any sentence containing the words would satisfy.
+    test: (b) => /never delete a folder\b[^.]{0,60}\bon its name alone/i.test(b),
   },
 ];
 
@@ -150,7 +231,7 @@ function extractBootstrapBody(text) {
   return { body: lines.slice(start, end + 1).join("\n") };
 }
 
-export { evaluateResilience, extractBootstrapBody, extractPromptBody, PRESENCE_RULES, ESCALATION_PATTERNS, BOOTSTRAP_COPIES };
+export { sameLine, evaluateResilience, extractBootstrapBody, extractPromptBody, PRESENCE_RULES, ESCALATION_PATTERNS, BOOTSTRAP_COPIES };
 
 // ---- CLI ------------------------------------------------------------------
 if (resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {

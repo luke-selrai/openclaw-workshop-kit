@@ -30,7 +30,7 @@
 //   kit-rule         looks-frozen, generous-timeout, fails-loudly,
 //                    confirm-after (the 3–4 line CLAUDE.md rule)
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { extractPromptBody } from "./check-resilient-install.mjs";
@@ -75,6 +75,28 @@ const R = {
       /first\s+(browser\s+launch|page\s+load|navigate)/i.test(b) &&
       /downloads?\s+the\s+browser\s+itself/i.test(b),
   },
+  // ---- CORE-116: rules for the universal setup document -------------------
+  // The two-prompt bootstrap narrated its two or three download points by hand.
+  // The universal prompt has more of them (Node, git, the probe, the clone or
+  // the Loup install, the CLI, the plugin, Playwright, the power-user skills),
+  // and enumerating each one in the checker would rot on the first reorder. So
+  // the contract moved up a level: ONE blanket rule at the top of the prompt
+  // that binds every slow command in the document.
+  "every-download-warned": {
+    why: "one blanket rule covering EVERY download in the prompt, spoken before the command runs",
+    // Both halves must sit in the SAME paragraph: an unanchored /\bbefore\b/
+    // over the whole prompt is satisfied by any of the dozens of other uses of
+    // the word, so the rule would survive the blanket rule losing its "say it
+    // BEFORE you start" clause.
+    test: (b) => b.split(/\n\s*\n/).some((p) => /every download/i.test(p) && /\bbefore\b/i.test(p)),
+  },
+  "mode-announcement": {
+    why: "the detected mode (fresh / update / migrate) is announced in one line of plain English, before anything changes",
+    test: (b) =>
+      /in plain (words|English)/i.test(b) &&
+      /fresh setup/i.test(b) &&
+      /updating/i.test(b),
+  },
 };
 
 // Each surface: which files it reads, how to get the checked text, which rules apply.
@@ -98,6 +120,11 @@ const SURFACES = [
       "fails-loudly",
       "confirm-after",
       "browser-download-warning",
+      // CORE-116: the universal document also owns the two narration points the
+      // two-prompt era spread across bootstrap and first-run-setup — the blanket
+      // every-download rule and the plain-English mode announcement.
+      "every-download-warned",
+      "mode-announcement",
     ],
   },
   {
