@@ -25,7 +25,7 @@
 //   kit-rule         looks-frozen, generous-timeout, fails-loudly,
 //                    confirm-after (the 3–4 line CLAUDE.md rule)
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { extractPromptBody } from "./check-resilient-install.mjs";
@@ -64,7 +64,27 @@ const R = {
   },
   "browser-download-warning": {
     why: "warn that the first Playwright launch downloads the browser itself",
-    test: (b) => /first (browser launch|page load|navigate)/i.test(b) && /downloads? the browser itself/i.test(b),
+    // \s+ rather than a literal space: the setup document is hard-wrapped, so
+    // the phrase can straddle a line break.
+    test: (b) => /first\s+(browser\s+launch|page\s+load|navigate)/i.test(b) && /downloads?\s+the\s+browser\s+itself/i.test(b),
+  },
+  // ---- CORE-116: rules for the universal setup document -------------------
+  // The two-prompt bootstrap narrated its two or three download points by hand.
+  // The universal prompt has more of them (Node, git, the probe, the clone or
+  // the Loup install, the CLI, the plugin, Playwright, the power-user skills),
+  // and enumerating each one in the checker would rot on the first reorder. So
+  // the contract moved up a level: ONE blanket rule at the top of the prompt
+  // that binds every slow command in the document.
+  "every-download-warned": {
+    why: "one blanket rule covering EVERY download in the prompt, spoken before the command runs",
+    test: (b) => /every download/i.test(b) && /\bbefore\b/i.test(b),
+  },
+  "mode-announcement": {
+    why: "the detected mode (fresh / update / migrate) is announced in one line of plain English, before anything changes",
+    test: (b) =>
+      /in plain (words|English)/i.test(b) &&
+      /fresh setup/i.test(b) &&
+      /updating/i.test(b),
   },
 };
 
@@ -81,7 +101,14 @@ const SURFACES = [
     id: "bootstrap-body",
     files: ["docs/start/setup.md"],
     extract: (text) => extractPromptBody(text),
-    rules: ["preflight-network", "looks-frozen", "narrate-before", "generous-timeout", "fails-loudly", "confirm-after"],
+    rules: [
+      "preflight-network", "looks-frozen", "narrate-before", "generous-timeout", "fails-loudly", "confirm-after",
+      // CORE-116: the universal document also owns the two narration points the
+      // two-prompt era split across bootstrap and first-run-setup — the blanket
+      // every-download rule, the plain-English mode announcement, and the
+      // browser-download warning that moved into the in-session smoke test.
+      "every-download-warned", "mode-announcement", "browser-download-warning",
+    ],
   },
   {
     id: "bootstrap-prework",
@@ -90,8 +117,18 @@ const SURFACES = [
     rules: ["node-prework"],
   },
   {
+    // ADR-0001 §7 replaces first-run-setup with `orientation` (CORE-114, a
+    // parallel ticket): the mechanical install phase moves INTO the setup
+    // prompt, and what is left is onboarding — the 7 questions, the live demo,
+    // the shortlist. So this surface is not renamed, it is RETIRED: once
+    // first-run-setup is gone, none of these download-narration rules have a
+    // subject any more, because every download they policed now happens in the
+    // setup document, which the bootstrap-body surface above checks.
+    //
+    // Resolved at run time so this checker and the rename can land in either
+    // order. An empty list means the surface is simply not evaluated.
     id: "first-run",
-    files: ["skills/first-run-setup/SKILL.md"],
+    files: ["skills/first-run-setup/SKILL.md"].filter((rel) => existsSync(join(ROOT, rel))),
     extract: (text) => ({ body: text }),
     rules: ["preflight-network", "looks-frozen", "narrate-before", "generous-timeout", "fails-loudly", "browser-download-warning"],
   },
