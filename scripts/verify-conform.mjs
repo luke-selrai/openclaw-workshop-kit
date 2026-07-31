@@ -77,6 +77,9 @@ const STALE_ALLOWLIST = new Set([
   // point, so these are stale-by-design, not drift.
   "scripts/make-legacy-fixture.mjs",
   "docs/agents/legacy-install-fixture.md",
+  // ADR-0001 SPECIFIES the migration away from the legacy homes, so it names
+  // them deliberately (MIGRATE fingerprint reconstruction, stale-home cleanup).
+  "docs/adr/0001-pointer-block-install-model.md",
 ]);
 
 // Asserts the bootstrap's Windows Node branch is the gated in-session-refresh
