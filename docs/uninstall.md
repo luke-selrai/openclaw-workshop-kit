@@ -163,10 +163,20 @@ The confirmation gate in Step 3 still applies - show the list, ask once, then pr
 3. **The plugin and marketplace** - the same two commands as Step 4.5, by name:
    `routine-installer-plugin` and `selrai-workshop-kit`.
 4. **Kit skills in `~/.claude/skills/`** - without fingerprints you cannot tell an edited
-   skill from an untouched one. Compare each folder against the kit's own `skills/` folder if
-   a kit folder survived (item 5 below finds it); anything that matches is safe to remove.
-   Do that comparison in ONE pass over both folders - there are a couple of hundred skills,
-   and a shell loop that re-walks the folders per skill will look like it has hung.
+   skill from an untouched one. If a kit folder survived (item 5 below finds it), compare each
+   installed `SKILL.md` against the kit's own copy; anything that matches is safe to remove.
+
+   Do that with **two commands and one comparison**, never a loop that runs a command per
+   skill - there are a couple of hundred skills, and the per-skill shape takes long enough to
+   look like it has hung:
+
+   ```
+   find "<kit folder>/skills" -name SKILL.md -exec shasum -a 256 {} +
+   find ~/.claude/skills -name SKILL.md -exec shasum -a 256 {} +
+   ```
+
+   Read both lists once, and every skill whose two hashes agree is unmodified.
+
    Where you have nothing to compare against, **keep the skill and report it** - re-installing
    a skill later is easy, and deleting the user's own edit is not.
 5. **The kit folder** - it is at one of two paths, so check both:
