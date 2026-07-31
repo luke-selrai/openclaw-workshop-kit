@@ -177,7 +177,7 @@ Only proceed past this gate when the user has **explicitly confirmed** the produ
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message you send during Phase 1 must follow the rules in `my-assistant/CLAUDE.md`:
+The user is a non-technical business owner. Every message you send during Phase 1 must follow the rules in the installed assistant persona (`~/.claude/selr-assistant.md`):
 
 - **One step at a time.** Never stack two instructions in one message.
 - **Plain English only.** No jargon. Never say OAuth, token, scope, refresh, Bearer, API, endpoint, JSON, environment variable, curl, terminal, CLI, MCP, client ID, redirect URI, callback, loopback, sandbox, or file path as technical concepts. If you must refer to a technical thing, name it plainly: "the connection key", "your account details", "MYOB's website".

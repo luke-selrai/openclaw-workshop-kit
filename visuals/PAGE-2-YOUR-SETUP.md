@@ -40,7 +40,7 @@ Think of your AI setup like a kitchen - you're the head chef, Claude is your sou
 ### Claude Desktop
 The app where you work with your assistant. Three surfaces, one window:
 - **Chat panel** - natural conversation with your assistant
-- **Code session** - opens a folder on your computer (like `~/Desktop/my-assistant/`) so the assistant can read and edit files
+- **Code session** - opens a folder on your computer so the assistant can read and edit files. Any folder works: your assistant is installed globally and comes with you into every one.
 - **Built-in terminal** - lives at the bottom of a Code session. You paste commands here when the assistant asks. Most days you won't need it.
 
 Free. One download from [claude.ai/download](https://claude.ai/download). Replaces the old "VS Code + Claude Code extension" setup.
@@ -87,7 +87,7 @@ YOUR COMPUTER (your home folder)
     └── docs/                        ← Guides and reference docs
 ```
 
-*If your kit came through Loup rather than GitHub, that last folder sits at `.loup/selr-ai/workshop-kit/` instead - same contents.*
+*That last folder sits in a different place depending on how your kit was delivered - same contents either way. The exact path is written down for you in the manifest above, and your assistant reads it from there.*
 
 ---
 
@@ -119,7 +119,7 @@ If it learned something new → auto-memory captures it automatically
 
 ## The 3 Things You Will Ever Need
 
-1. **Start your AI assistant:** Open Claude Desktop → start a new Code session → click `my-assistant` in the Recent list (or click Desktop in the file picker → my-assistant)
+1. **Start your AI assistant:** Open Claude Desktop → start a new Code session → say hi. Any folder - your assistant is installed globally, so it is already there.
 2. **Check what tools are connected:** In the assistant's chat, ask *"What tools do you have connected?"*
 3. **Install a new tool connection:** In the assistant's chat, ask *"Help me connect [tool name]"* - the assistant walks you through it
 
@@ -129,7 +129,7 @@ That is it. Claude handles everything else.
 
 ## The First Time You Open It
 
-When you open `~/Desktop/my-assistant/` in Claude Desktop for the first time, your assistant will:
+The first time you start a session after setup, your assistant will:
 
 1. Greet you by name (once set up)
 2. Tell you what it remembers about your business

@@ -8,6 +8,8 @@ date_added: '2026-03-25'
 
 # Skills Discovery
 
+<!-- Path conventions: `<kit home>` means the folder the kit was installed from. It differs per install, so never hardcode it - read `kitHome` from ~/.claude/selr-kit-manifest.json, or the "Kit home:" line in the Selr block of the global ~/.claude/CLAUDE.md. ~/.claude/ means $HOME/.claude/ on Mac and Linux, and %USERPROFILE%\.claude\ on Windows. -->
+
 You are helping a non-technical business owner understand what their AI assistant can do.
 
 Your job is to show them the skills that fit their business, and give 3 personalised recommendations based on who they are.
@@ -47,7 +49,7 @@ If their name or business is missing from memory, stop and run `orientation` ins
 
 ## STEP 2 - Introduction (Mode 1 only - skip on Mode 2)
 
-Read the skill counts from `~/.loup/selr-ai/workshop-kit/skills/SKILLS-LIST.md`. The three numbers you need live inside markers:
+Read the skill counts from `<kit home>/skills/SKILLS-LIST.md`. The three numbers you need live inside markers:
 - Total: `<!-- skills-audit:total -->N<!-- /skills-audit:total -->`
 - Core: `<!-- skills-audit:core -->N<!-- /skills-audit:core -->`
 - Advanced: `<!-- skills-audit:advanced -->N<!-- /skills-audit:advanced -->`
@@ -64,7 +66,7 @@ Address them by name and say something like:
 
 ## STEP 3 - Walk through the starter skills (Mode 1 only - skip on Mode 2)
 
-Read `~/.loup/selr-ai/workshop-kit/skills/SKILLS-LIST.md` and present only the rows whose **Tier** column is `CORE`. Never surface `ADVANCED` or `DEV-ONLY` skills in this step.
+Read `<kit home>/skills/SKILLS-LIST.md` and present only the rows whose **Tier** column is `CORE`. Never surface `ADVANCED` or `DEV-ONLY` skills in this step.
 
 Group the CORE skills under the same category headings they appear under in the file (for example: AI & Automation, Content & Writing, Research & Intelligence, Sales & Growth, Strategy & Business, Process).
 
@@ -81,7 +83,7 @@ Keep each skill description to 2 lines maximum.
 
 Use the business context you already know from memory.
 
-Read `~/.loup/selr-ai/workshop-kit/skills/SKILLS-LIST.md` and consider only rows whose **Tier** column is `CORE`. Pick 3 skills that best match:
+Read `<kit home>/skills/SKILLS-LIST.md` and consider only rows whose **Tier** column is `CORE`. Pick 3 skills that best match:
 - Their biggest frustration
 - The tools they already use
 - What would feel like a win today
@@ -140,7 +142,7 @@ When they pick one, run that skill immediately using the business context you al
 
 ## If they ask "what about all the other skills?"
 
-Read the advanced count marker from `~/.loup/selr-ai/workshop-kit/skills/SKILLS-LIST.md` (see Step 2) and say:
+Read the advanced count marker from `<kit home>/skills/SKILLS-LIST.md` (see Step 2) and say:
 
 > "There are also [advanced count] advanced skills - deeper automation, integration setup, and technical work. Just tell me what you're trying to do and I'll pull in the right one when it fits."
 

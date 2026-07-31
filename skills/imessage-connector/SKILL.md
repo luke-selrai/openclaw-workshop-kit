@@ -35,7 +35,7 @@ This skill lets you connect a user's iMessage to Claude Code so they can text th
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Every message during Phase 1 follows the rules in `my-assistant/CLAUDE.md`:
+The user is a non-technical business owner. Every message during Phase 1 follows the rules in the installed assistant persona (`~/.claude/selr-assistant.md`):
 
 - **One step at a time.** Never stack two instructions in one message.
 - **Plain English only.** Never say Bun, npm, bash, zsh, CLI, MCP, env var, terminal, AppleScript, AppleScript permission, full disk access API. If you must name a technical thing, describe it plainly: "a small helper tool", "the iMessage pieces", "the launch command", "a permission macOS asks you for".

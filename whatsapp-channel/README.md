@@ -94,8 +94,10 @@ Claude Code needs to know where the server lives. Add this to your project's `.m
 
 **What to put for `/full/path/to/whatsapp-channel/src/index.ts`:**
 
-- **macOS / Linux:** an absolute path like `/Users/you/.loup/selr-ai/workshop-kit/whatsapp-channel/src/index.ts`
-- **Windows:** use forward slashes or escaped backslashes, e.g. `C:/Users/you/.loup/selr-ai/workshop-kit/whatsapp-channel/src/index.ts`. JSON does not allow raw backslashes. You can get the absolute path quickly:
+The kit home differs per install, so there is no single path to copy - take it from `kitHome` in `~/.claude/selr-kit-manifest.json` (or just ask your assistant *"where is my kit installed?"*) and append `/whatsapp-channel/src/index.ts`.
+
+- **macOS / Linux:** an absolute path, e.g. `/Users/you/<kit folder>/whatsapp-channel/src/index.ts`
+- **Windows:** use forward slashes or escaped backslashes, e.g. `C:/Users/you/<kit folder>/whatsapp-channel/src/index.ts`. JSON does not allow raw backslashes. You can get the absolute path quickly:
   - **PowerShell:** `(Resolve-Path .\src\index.ts).Path`
   - **Command Prompt:** `cd src && echo %cd%\index.ts`
   - **macOS / Linux:** `realpath src/index.ts`

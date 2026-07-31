@@ -73,7 +73,7 @@ Detect the user's OS:
 From inside the kit:
 
 ```bash
-cd ~/.loup/selr-ai/workshop-kit/skills/voice-transcription   # or wherever they cloned the kit
+cd <kit home>/skills/voice-transcription   # kit home: read it from ~/.claude/selr-kit-manifest.json
 ./install.sh                                   # macOS - runs as the user
 sudo ./install.sh                              # Linux - needs root for /opt + apt
 ```

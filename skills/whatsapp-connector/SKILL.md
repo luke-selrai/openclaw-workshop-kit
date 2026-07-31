@@ -178,14 +178,16 @@ bun --version 2>/dev/null && INSTALLER=bun || (npm --version 2>/dev/null && INST
 
 Tell the user: *"I'm installing the WhatsApp pieces now. About 30 seconds."*
 
-Resolve the workshop-kit root robustly. Try git, then the conventional clone location, then `$PWD`. Validate the candidate has `whatsapp-channel/` underneath before accepting:
+Resolve the workshop-kit root robustly. Try git, then the kit home recorded in the install manifest, then `$PWD`. The kit home differs per install, so it is always **read**, never hardcoded. Validate the candidate has `whatsapp-channel/` underneath before accepting:
 
 ```bash
 resolve_ws_kit() {
   local c
   c="$(git rev-parse --show-toplevel 2>/dev/null)"
   [ -n "$c" ] && [ -d "$c/whatsapp-channel" ] && { echo "$c"; return 0; }
-  [ -d "$HOME/.loup/selr-ai/workshop-kit/whatsapp-channel" ] && { echo "$HOME/.loup/selr-ai/workshop-kit"; return 0; }
+  # kit home from the install receipt written by setup
+  c="$(node -e 'const fs=require("fs"),os=require("os");try{process.stdout.write(String(JSON.parse(fs.readFileSync(os.homedir()+"/.claude/selr-kit-manifest.json","utf8")).kitHome||""))}catch(e){}' 2>/dev/null)"
+  [ -n "$c" ] && [ -d "$c/whatsapp-channel" ] && { echo "$c"; return 0; }
   [ -d "$PWD/whatsapp-channel" ] && { echo "$PWD"; return 0; }
   return 1
 }
@@ -447,10 +449,14 @@ def resolve_ws_kit():
             return c
     except Exception:
         pass
-    # 2. conventional install location
-    c = os.path.expanduser("~/.loup/selr-ai/workshop-kit")
-    if os.path.isdir(os.path.join(c, "whatsapp-channel")):
-        return c
+    # 2. kit home from the install receipt setup wrote (never a hardcoded path)
+    try:
+        with open(os.path.expanduser("~/.claude/selr-kit-manifest.json")) as f:
+            c = json.load(f).get("kitHome") or ""
+        if c and os.path.isdir(os.path.join(c, "whatsapp-channel")):
+            return c
+    except Exception:
+        pass
     # 3. cwd
     if os.path.isdir(os.path.join(os.getcwd(), "whatsapp-channel")):
         return os.getcwd()

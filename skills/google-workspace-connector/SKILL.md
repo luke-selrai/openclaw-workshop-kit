@@ -39,7 +39,7 @@ The connector uses the `@googleworkspace/cli` tool (command name: `gws`) and aut
 
 ## Communication rules for Part 1
 
-The user is a non-technical business owner. Every message during Part 1 follows the rules in `my-assistant/CLAUDE.md`:
+The user is a non-technical business owner. Every message during Part 1 follows the rules in the installed assistant persona (`~/.claude/selr-assistant.md`):
 
 - **One step at a time.** Never stack two instructions in one message.
 - **Plain English only.** Never say Node.js, npm, CLI, OAuth, scopes, PATH, terminal, shell, env var. If you must name a technical thing, describe it plainly: "the Google Workspace tool", "your browser", "the command window".
