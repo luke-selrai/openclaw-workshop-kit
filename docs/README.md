@@ -12,6 +12,7 @@ Read in this order if you are starting from zero:
 | [skills/](skills/README.md) | Every skill your assistant can use, grouped by business problem (connecting outside tools is Group H) | **Week 1** |
 | [extend/](extend/README.md) | Optional deep-dives: VS Code path, scheduling, automation loops | **Month 2+** |
 | [troubleshoot.md](troubleshoot.md) | When something is not working | **Any time** |
+| [uninstall.md](uninstall.md) | How the assistant removes itself - just say "uninstall it" | **Any time** |
 
 If you just want the 30-second overview of what this kit gives you, see the [top-level README](../README.md) instead.
 
