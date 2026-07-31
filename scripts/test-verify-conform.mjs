@@ -218,6 +218,9 @@ const ARTIFACT_BAD_CASES = [
   ["no manifest", GOOD_ARTIFACTS.replace(/Then write `~\/\.claude\/selr-kit-manifest\.json`:[\s\S]*$/, "Done.")],
   ["home-relative import path", GOOD_ARTIFACTS.replace("Write REAL absolute paths, not `~`.", "Use `@~/` paths.")],
   ["writes a workspace persona", `${GOOD_ARTIFACTS}\n\nAlso write ~/Desktop/my-assistant/CLAUDE.md for the workspace.`],
+  // The import line vanishing entirely used to pass: the old rule tested for
+  // any at-sign, and `@louphq` elsewhere in the prompt satisfied it.
+  ["no @-import line at all", GOOD_ARTIFACTS.replace("    @<the resolved path to ~/.claude/selr-assistant.md>", "    (the persona is loaded some other way)")],
 ];
 
 const goodArtifacts = checkInstallArtifacts(GOOD_ARTIFACTS);
@@ -261,6 +264,17 @@ const WIN_BAD_CASES = [
   ["speculative reopen", GOOD_WIN.replace(/ONLY if `node --version` still fails after that refresh: tell me to fully quit\n     and reopen/, "tell me to fully quit\n     and reopen")],
   ["no playwright fallback", GOOD_WIN.replace(/\(Playwright\) and download the LTS installer for me automatically\./, "and download it.")],
 ];
+
+// The npx clause is conditional (CORE-116 review): a body that never invokes
+// the Loup installer owes nothing, one that does must say how the refreshed
+// PATH reaches it — either on the line, or via the blanket rule.
+const WIN_NPX = `${GOOD_WIN}\n\n     Then paste your install command: npx @louphq/install selr-ai/workshop-kit`;
+check(checkWindowsNodePath(WIN_NPX).ok,
+  "windows-node-path: npx invoked + blanket 'prepend the same refresh to every later command' rule accepted");
+check(!checkWindowsNodePath(WIN_NPX.replace("For the rest of setup, prepend the same refresh to every later command.", "")).ok,
+  "windows-node-path: npx invoked with neither the refresh on the line nor the blanket rule is rejected");
+check(checkWindowsNodePath(GOOD_WIN.replace("For the rest of setup, prepend the same refresh to every later command.", "")).ok,
+  "windows-node-path: a document that never invokes npx owes nothing (clause stays inert)");
 
 const good = checkWindowsNodePath(GOOD_WIN);
 check(good.ok, `windows-node-path: well-formed Windows branch accepted${good.ok ? "" : ` — ${good.detail}`}`);

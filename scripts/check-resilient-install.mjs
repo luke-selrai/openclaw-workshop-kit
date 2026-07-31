@@ -190,7 +190,10 @@ const PRESENCE_RULES = [
   {
     id: "clone-safety",
     why: "an existing kit-home folder is deleted only after it is confirmed to be a kit download, never on its name alone",
-    test: (b) => /never delete a folder\s+on its name alone/i.test(b) || /on its name alone/i.test(b),
+    // Anchored to its own sentence. The `|| /on its name alone/` fallback this
+    // replaces subsumed the first branch and reduced the rule to a bare phrase
+    // match, which any sentence containing the words would satisfy.
+    test: (b) => /never delete a folder\b[^.]{0,60}\bon its name alone/i.test(b),
   },
 ];
 

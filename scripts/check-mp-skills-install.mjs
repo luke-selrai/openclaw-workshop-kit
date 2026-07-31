@@ -27,6 +27,16 @@
 // real-output rule enforces it over the entire pasted body — a narrower copy
 // inside this slice would assert the same thing twice and rot separately.
 //
+// One SEMANTIC change came with the move, and it is deliberate rather than
+// incidental: the old first-run-setup phase said a power-user-skills miss was
+// "NOT a setup blocker" and carried on. In the setup prompt these four skills
+// are inside Step 9's verify gate ("fix it with me now, re-check, and only then
+// continue"), so a miss is now hard-blocking. That is the right way round — the
+// non-blocking rule existed because the old phase ran AFTER the user was
+// already working, whereas the prompt is still installing and can heal it on
+// the spot — but it is a behaviour change, not just a regex refresh, and the
+// dropped `non-blocking` rule below is downstream of it.
+//
 // History: upstream renamed `diagnose` → `diagnosing-bugs` and the hardcoded
 // `-s diagnose` selector silently stripped skills from attendees, with a
 // failure branch that hand-waved it as "probably a network hiccup". This
@@ -63,16 +73,32 @@ export const STALE_NAMES = ["diagnose"];
 // Anchors around the setup prompt's power-user-skills item. Slicing matters:
 // the rest of the prompt installs other things, and must not be able to
 // satisfy a rule this step dropped.
+//
+// The end anchor was `### Step 7` — the end of the whole of Step 6, not the end
+// of this item. That was only correct by accident: the power-user-skills item
+// happens to be the last one in Step 6 today. Add a fifth item and the slice
+// silently widens, and unrelated prompt text can satisfy self-heal-listing,
+// rename-resolution, recheck-after-heal and verify-paths — which is precisely
+// the invariant this comment claims. So the slice now ends at whichever comes
+// FIRST: the next numbered item in the step, or the next heading (`### Step 7`
+// being the one that closes it today).
 const STEP_START = "4. **Power-user skills**";
-const STEP_END = "### Step 7";
+const NEXT_ITEM = /\n\d+\.\s+\*\*/;
+const NEXT_HEADING = /\n#{2,4}\s/;
 
 export function extractStepBody(text) {
   const start = text.indexOf(STEP_START);
-  const end = text.indexOf(STEP_END, start === -1 ? 0 : start);
-  if (start === -1 || end === -1 || end < start) {
-    return { error: `power-user-skills anchors not found (start=${start}, end=${end})` };
+  if (start === -1) {
+    return { error: `power-user-skills start anchor not found (${STEP_START})` };
   }
-  return { body: text.slice(start, end) };
+  const after = text.slice(start + STEP_START.length);
+  const ends = [NEXT_ITEM, NEXT_HEADING]
+    .map((re) => after.search(re))
+    .filter((i) => i !== -1);
+  if (ends.length === 0) {
+    return { error: "power-user-skills end anchor not found (no following numbered item or heading)" };
+  }
+  return { body: text.slice(start, start + STEP_START.length + Math.min(...ends)) };
 }
 
 // Each rule must hold in the sliced power-user-skills body.

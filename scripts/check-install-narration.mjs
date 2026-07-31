@@ -84,7 +84,11 @@ const R = {
   // that binds every slow command in the document.
   "every-download-warned": {
     why: "one blanket rule covering EVERY download in the prompt, spoken before the command runs",
-    test: (b) => /every download/i.test(b) && /\bbefore\b/i.test(b),
+    // Both halves must sit in the SAME paragraph: an unanchored /\bbefore\b/
+    // over the whole prompt is satisfied by any of the dozens of other uses of
+    // the word, so the rule would survive the blanket rule losing its "say it
+    // BEFORE you start" clause.
+    test: (b) => b.split(/\n\s*\n/).some((p) => /every download/i.test(p) && /\bbefore\b/i.test(p)),
   },
   "mode-announcement": {
     why: "the detected mode (fresh / update / migrate) is announced in one line of plain English, before anything changes",

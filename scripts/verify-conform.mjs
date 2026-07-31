@@ -57,6 +57,11 @@ import { join, dirname, resolve, relative, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+// `--check` is the default behaviour and accepted explicitly, so the flag this
+// header documents is a real flag rather than an argument that happens to be
+// ignored. Anything unrecognised exits 2 instead of silently running the
+// default — a mistyped `--updat-baseline` used to look like a passing check.
+const KNOWN_FLAGS = new Set(["--check", "--verbose", "--update-baseline"]);
 const VERBOSE = process.argv.includes("--verbose");
 // Run the CLI checks only when invoked directly; stays inert when imported
 // (the regression test imports the pure checkers without triggering a run).
@@ -384,8 +389,13 @@ export const INSTALL_ARTIFACTS = [
   },
   {
     id: "absolute-import-path",
-    why: "the @-import is written as a resolved absolute path (home-relative @~/ is unverified on Windows)",
-    test: (b) => /absolute path/i.test(b) && /@/.test(b),
+    why: "the @-import line exists and is written as a resolved absolute path (home-relative @~/ is unverified on Windows)",
+    // Anchored to the import LINE, not to any at-sign in the document: a bare
+    // /@/ is satisfied by an email address, a decorator, or the `@louphq`
+    // package name, so the rule survived the import line disappearing entirely.
+    test: (b) =>
+      b.split(/\r?\n/).some((line) => /^@[^\n]*selr-assistant\.md/.test(line.trimStart())) &&
+      /absolute path/i.test(b),
   },
   {
     id: "no-workspace-artifact",
@@ -441,6 +451,24 @@ export function checkWindowsNodePath(body) {
   const nodeOneLine = lines.some((line) => /\$env:Path\s*=.*;\s*node --version/.test(line));
   if (!nodeOneLine) {
     fails.push("refresh and `node --version` must run in one PowerShell invocation (`$env:Path = ...; node --version`)");
+  }
+
+  //    The npx clause is restored as a CONDITIONAL rather than dropped: a
+  //    document that never invokes the Loup installer owes nothing, but one
+  //    that does must still say how the refreshed PATH reaches it. Two ways
+  //    satisfy that, because setup.md's `npx @louphq/install` is a QUOTED
+  //    EXAMPLE of the line the user pastes from the dashboard, not a command
+  //    the prompt composes — there is nothing there to prepend to. So either
+  //    the refresh sits on the npx line, or the document states the blanket
+  //    rule that it is prepended to every later PowerShell command.
+  if (/npx @louphq\/install/.test(body)) {
+    const refreshOnNpx = lines.some((line) => /\$env:Path\s*=.*;.*npx @louphq\/install/.test(line));
+    // Whitespace-tolerant: the document is hard-wrapped, so "Prepend the / same
+    // refresh to every later PowerShell command" straddles a line break.
+    const blanketRule = /prepend\s+the\s+same[\s\S]{0,80}?(every|each|all)\s+later[\s\S]{0,40}?command/i.test(body);
+    if (!refreshOnNpx && !blanketRule) {
+      fails.push("document invokes `npx @louphq/install` but never says how the refreshed PATH reaches it (prepend the refresh to that line, or state the blanket \"prepend to every later PowerShell command\" rule)");
+    }
   }
 
   // d) Refresh is process-only, never the persisted registry.
@@ -510,6 +538,12 @@ function loadBaseline() {
 }
 
 function main() {
+  const unknown = process.argv.slice(2).filter((a) => !KNOWN_FLAGS.has(a));
+  if (unknown.length > 0) {
+    console.error(`❌ unknown flag(s): ${unknown.join(", ")} — expected any of ${[...KNOWN_FLAGS].join(", ")}`);
+    process.exit(2);
+  }
+
   let hardFailed = false;
   const note = (ok, label, detail) => {
     if (!ok) hardFailed = true;

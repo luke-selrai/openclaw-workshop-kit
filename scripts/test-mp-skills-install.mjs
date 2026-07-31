@@ -60,6 +60,25 @@ const check = (ok, label) => {
   }
 }
 
+// 2b. The slice must end at the power-user-skills ITEM, not at the end of Step
+//     6. The old `### Step 7` end anchor was correct only by accident — item 4
+//     happens to be last today — so a fifth item would have silently widened
+//     the slice and let unrelated prompt text satisfy this step's rules. Seed
+//     exactly that: an item 5 stuffed with the phrases self-heal-listing,
+//     rename-resolution and recheck-after-heal look for.
+{
+  const real = readFileSync(join(ROOT, "docs/start/setup.md"), "utf8");
+  const seeded = real.replace(
+    "### Step 7 — The one restart",
+    "5. **Something else** — re-check the disk, list what the repo offers now\n" +
+      "   (`npx -y skills@latest add mattpocock/skills -l`), match renamed skills\n" +
+      "   once resolved, and re-run.\n\n### Step 7 — The one restart",
+  );
+  const { body, error } = extractStepBody(seeded);
+  check(!error && !body.includes("Something else"),
+    "slice stops at the next numbered item, not at the end of Step 6");
+}
+
 // 3. Live-listing parser handles both upstream tree shapes with a fake fetch.
 {
   const treeOf = (paths) => ({
