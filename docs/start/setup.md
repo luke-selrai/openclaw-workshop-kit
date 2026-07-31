@@ -2,7 +2,7 @@
 
 One page, one prompt. The same prompt sets the assistant up for the first time, updates it later, and moves an older install onto the current setup. You never have to work out which of those you are doing - the prompt works it out.
 
-**How to use it:** open Claude Code (in Claude Desktop, or the terminal, or the VS Code extension - any of them), copy everything in the box below, paste it in, and press Enter. It works from any folder. There is nothing to download or create first.
+**How to use it:** open Claude Code in Claude Desktop, copy everything in the box below, paste it in, and press Enter. It works from any folder, and there is nothing to download or create first. (Claude Desktop is the supported path here - the one restart in the middle is written for it. Running Code in a terminal or the VS Code extension works too, but you will have to translate that one step yourself.)
 
 **Time:** around 20-30 minutes, most of which is downloads. There is one restart in the middle, and the prompt tells you exactly when.
 
@@ -89,7 +89,8 @@ setup"):
 - No manifest, but an older install is detected → **MIGRATE** (move me onto the
   current setup, keep everything I have learned and customised, no
   re-onboarding). Detect this if EITHER is true:
-  - a `CLAUDE.md` exists at any of these two paths — the **older-setup folders**:
+  - a `CLAUDE.md` exists at any of these two paths — the **older-setup folders**
+    (the kit's own docs call these the legacy-workspace candidate list):
     `~/Desktop/my-assistant` and `~/my-assistant`; or
   - Selr kit skills are already sitting in `~/.claude/skills/`.
 
@@ -127,6 +128,11 @@ kit's version of any of them whenever I want.
 Never ask me which skills I customised. I cannot know, and this step works it
 out.
 
+Keep the rebuilt fingerprints in this session only — do not write them to disk.
+If this session dies before Step 5, the next run finds the old kit already
+replaced, matches nothing, and keeps every skill. That is the safe outcome, and
+the report tells me how to take the kit's version of anything I want refreshed.
+
 ### Step 2 — Get the kit
 
 Tell me only "Downloading your kit now — this can take a few minutes and may
@@ -145,9 +151,14 @@ Give it a generous timeout. Three outcomes, three doors:
 We ALWAYS take a fresh copy — never update-in-place — so what is on disk
 exactly matches the kit as published:
 
-1. If `~/claude-workshop-kit` already exists, delete it (it is a pure download
-   area — nothing of mine lives in it; my customisations live in `~/.claude/`,
-   which this never touches).
+1. If `~/claude-workshop-kit` already exists, check it really is a kit download
+   before removing it: it must contain BOTH `skills/` and
+   `my-assistant/CLAUDE.md`. If it does, delete it — a kit download folder is a
+   pure download area, nothing of mine lives in it, and my customisations live
+   in `~/.claude/`, which this never touches. If it does NOT look like a kit,
+   stop and tell me: "There's already a folder at `~/claude-workshop-kit` that
+   doesn't look like the kit, so I haven't touched it." Never delete a folder
+   on its name alone.
 2. Clone, still with prompting disabled:
    - Mac/Linux:
      ```
@@ -239,13 +250,16 @@ there is no workspace folder anymore.
 
 4. **In MIGRATE mode, clear out the old kit download folder.** Only
    `~/workshop-kit`, and only when it is definitely the old kit and not a folder
-   of mine that happens to share the name: it must contain a `skills/` folder AND
-   the old kit's own files at the top level (`my-assistant/CLAUDE.md`, or
+   of mine that happens to share the name: it must contain a `skills/` folder AND at least one
+   of the old kit's own files (`my-assistant/CLAUDE.md` or
    `skills/SKILLS-LIST.md`). If it qualifies, delete it and tell me in one line.
-   If it does not, leave it alone and say so. The other old locations need
-   nothing: the Loup folder was overwritten in Step 2, and
-   `~/claude-workshop-kit` either was re-cloned in Step 2 or is the current kit
-   home.
+   If it does not, leave it alone and say so.
+
+   Leave the other two old locations exactly where they are, whether or not this
+   run happened to touch them. `~/workshop-kit` is the only one to remove: it
+   belongs to a distribution that no longer exists, while the other two are the
+   current kit homes for the two live doors, so deleting either could delete the
+   kit this run just installed.
 
 ### Step 4 — Write the manifest (the install's receipt)
 
@@ -264,6 +278,18 @@ its `skills` map as it syncs):
 }
 ```
 
+Step 5 fills `skills` with one entry per kit skill, in exactly this shape — other
+parts of the kit (orientation, uninstall) read these keys by name, so do not
+rename them:
+
+```json
+"skills": {
+  "<skill-name>": { "hash": "<SKILL.md content hash>", "customised": true }
+}
+```
+
+`customised` is present only on a skill whose version I edited and you kept.
+
 `onboarded` is the assistant's only first-run signal: `false` makes the next
 session run orientation; orientation flips it to `true` when done. The old
 `.first-run-pending` marker file is dead — never create it.
@@ -279,7 +305,10 @@ and any loose files).
   fingerprints (read in Step 1.1); MIGRATE uses the rebuilt fingerprints from
   Step 1.2. Either way, for each kit skill:
   - my installed copy matches its fingerprint (I never touched it) → overwrite
-    silently with the new version;
+    silently with the new version. "Overwrite" means replace the kit's own files
+    in place — never empty the folder first, because anything in there the kit
+    did not ship is mine (notes, a script) and the fingerprint only covers
+    `SKILL.md`;
   - it does not match, or it has no fingerprint at all → I have customised it →
     KEEP my version, skip the overwrite, and add it to a report list;
   - the skill is new in the kit and not on my disk → simply copy it in.
@@ -307,9 +336,13 @@ At the end of this step, if any customised skills were kept, show the report:
 2. **Routine packager plugin** — register the marketplace and install, using the
    kit home from Step 2:
    ```
+   claude plugin marketplace remove selrai-workshop-kit
    claude plugin marketplace add <kit home>
    claude plugin install routine-installer-plugin@selrai-workshop-kit
    ```
+   Remove first (ignore the error if there was nothing registered): a machine
+   that installed through one door and updated through the other would otherwise
+   keep pointing at the old kit folder and quietly serve stale content.
    "Already added / already installed" is success, but an already-installed
    plugin does NOT pick up new content by itself — in UPDATE and MIGRATE mode
    follow with:
@@ -326,7 +359,12 @@ At the end of this step, if any customised skills were kept, show the report:
      claude mcp remove --scope user playwright || true
      claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"
      ```
-   - Windows PowerShell: same two commands with `"$HOME\.cache\playwright-mcp-profile"`.
+   - Windows PowerShell — same two commands, but PowerShell has no `|| true`, so
+     let the remove fail quietly on its own:
+     ```
+     claude mcp remove --scope user playwright 2>$null
+     claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME\.cache\playwright-mcp-profile"
+     ```
    Verify `playwright` appears in `claude mcp list`. If not, fallback:
    `npm install -g @playwright/mcp` then re-run the add. If it still will not
    register, stop and tell me honestly — every connector in this kit needs it.

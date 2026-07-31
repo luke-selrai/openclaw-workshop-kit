@@ -143,7 +143,7 @@ node scripts/verify-conform.mjs --verbose  # also print every passing check
 
 ## check-resilient-install.mjs
 
-Asserts the setup prompt's **failure-recovery** contract - the resilient-install slice (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#388](https://github.com/selrai-company/claude-workshop-kit/issues/388)). Slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386) gave the bootstrap a hard-stop verify-gate; this checker is the cheap backstop that the **self-resolve loop** (diagnose → targeted fix → retry → repeat, no human in the loop) stays intact. ADR-0001 collapsed the two bootstrap copies into the single `docs/start/setup.md`, so the checker reads that one file and the whole file is the prompt body.
+Asserts the setup prompt's **failure-recovery** contract - the resilient-install slice (PRD [#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#388](https://github.com/selrai-company/claude-workshop-kit/issues/388)). Slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386) gave the bootstrap a hard-stop verify-gate; this checker is the cheap backstop that the **self-resolve loop** (diagnose → targeted fix → retry → repeat, no human in the loop) stays intact. ADR-0001 collapsed the two bootstrap copies into the single `docs/start/setup.md`, so the checker reads that one file. It still slices the **pasted prompt** out of the document (between the `## The prompt` and `## Before workshop day` headings) rather than scanning the whole file - every rule is a presence regex, so the attendee prose wrapped around the prompt must not be able to satisfy a rule the prompt itself dropped. A missing marker is a hard failure, not a silent whole-file fallback.
 
 **Usage:**
 
@@ -175,7 +175,7 @@ node scripts/check-install-narration.mjs            # exit 1 on any failure
 node scripts/check-install-narration.mjs --verbose  # also print every passing check
 ```
 
-**Failures (exit 1)** - checked per surface (`bootstrap-body` and `bootstrap-prework`, both now reading `docs/start/setup.md`, plus `first-run`, `kit-rule`):
+**Failures (exit 1)** - checked per surface (`bootstrap-body` and `bootstrap-prework`, both now reading `docs/start/setup.md` - `bootstrap-body` over the sliced prompt only, `bootstrap-prework` over the whole file since the pre-workshop Node line sits outside the prompt - plus `first-run`, `kit-rule`):
 
 - **preflight-network** - a preflight checks the network against `registry.npmjs.org` with a hard timeout (bootstrap body + first-run).
 - **looks-frozen** - the key sentence survives: a slow download may *look frozen* without being frozen (all surfaces).
