@@ -149,7 +149,7 @@ const GOOD_DOORS = [
   "kit comes through Loup.** Do NOT ask me for a GitHub password. Open my Loup",
   'dashboard, click "Get install command", and paste the line:',
   "",
-  "    npx @louphq/install selr-ai/workshop-kit --token loupit_...",
+  "    npx @louphq/install selrai-company/claude-workshop-kit --token loupit_...",
   "",
   "Even in UPDATE mode, always re-run my install command like this. If it is",
   "refused, have me mint a fresh command and paste the new line.",
@@ -165,7 +165,7 @@ const DOOR_BAD_CASES = [
   ["clone without prompting disabled", GOOD_DOORS.replace("    GIT_TERMINAL_PROMPT=0 git clone", "    git clone")],
   ["no generous timeout", GOOD_DOORS.replace("with a generous timeout", "quickly")],
   ["no clone door", GOOD_DOORS.replace("git clone --depth 1", "git pull")],
-  ["no Loup door", GOOD_DOORS.replace("npx @louphq/install selr-ai/workshop-kit --token loupit_...", "ask someone for the files")],
+  ["no Loup door", GOOD_DOORS.replace("npx @louphq/install selrai-company/claude-workshop-kit --token loupit_...", "ask someone for the files")],
   ["network branch sends me to Loup", GOOD_DOORS.replace("Never send me to Loup or ask for any token from this branch.", "Get a fresh token from Loup.")],
   ["asks for a GitHub password", GOOD_DOORS.replace("Do NOT ask me for a GitHub password.", "Ask me for my GitHub password.")],
   ["updates in place", GOOD_DOORS.replace("We ALWAYS take a fresh copy, never\nupdate-in-place", "Pull the latest changes").replace("always re-run my install command", "skip the install")],
@@ -268,7 +268,7 @@ const WIN_BAD_CASES = [
 // The npx clause is conditional (CORE-116 review): a body that never invokes
 // the Loup installer owes nothing, one that does must say how the refreshed
 // PATH reaches it — either on the line, or via the blanket rule.
-const WIN_NPX = `${GOOD_WIN}\n\n     Then paste your install command: npx @louphq/install selr-ai/workshop-kit`;
+const WIN_NPX = `${GOOD_WIN}\n\n     Then paste your install command: npx @louphq/install selrai-company/claude-workshop-kit`;
 check(checkWindowsNodePath(WIN_NPX).ok,
   "windows-node-path: npx invoked + blanket 'prepend the same refresh to every later command' rule accepted");
 check(!checkWindowsNodePath(WIN_NPX.replace("For the rest of setup, prepend the same refresh to every later command.", "")).ok,

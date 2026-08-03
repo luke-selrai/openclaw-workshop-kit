@@ -91,7 +91,7 @@ const OLD_CANON_PATTERNS = [
   // persona — every reference reads the declared pointer").
   {
     id: "hardcoded-loup-home",
-    re: /\.loup[/\\]selr-ai[/\\]workshop-kit/,
+    re: /\.loup[/\\](?:selr-ai[/\\]workshop-kit|selrai-company[/\\]claude-workshop-kit)/,
     why: "hardcoded Loup-door kit home — read it from the pointer block / manifest instead",
   },
   {

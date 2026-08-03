@@ -12,9 +12,9 @@ so the skill and the procedure cannot drift apart. Do this:
 2. Open `<kitHome>/docs/uninstall.md`.
 3. Follow it exactly, top to bottom.
 
-If the install record is missing or will not parse, look for `docs/uninstall.md` in the two
-places the kit is installed - `~/claude-workshop-kit` and `~/.loup/selr-ai/workshop-kit` - and
-follow whichever copy you find. That document has its own section for running without an
+If the install record is missing or will not parse, look for `docs/uninstall.md` in the three
+places the kit is installed - `~/claude-workshop-kit`, `~/.loup/selrai-company/claude-workshop-kit` and the
+legacy `~/.loup/selr-ai/workshop-kit` - and follow whichever copy you find. That document has its own section for running without an
 install record.
 
 If neither the record nor the document is on disk, say so plainly rather than improvising a

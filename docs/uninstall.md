@@ -211,8 +211,9 @@ The confirmation gate in Step 3 still applies - show the list, ask once, then pr
 
    Where you have nothing to compare against, **keep the skill and report it** - re-installing
    a skill later is easy, and deleting the user's own edit is not.
-5. **The kit folder** - it is at one of two paths, so check both:
-   `~/claude-workshop-kit` and `~/.loup/selr-ai/workshop-kit`. Apply the same test as Step
+5. **The kit folder** - it is at one of three paths, so check all:
+   `~/claude-workshop-kit`, `~/.loup/selrai-company/claude-workshop-kit` and the legacy
+   `~/.loup/selr-ai/workshop-kit`. Apply the same test as Step
    4.3 - it must contain `skills/` and `my-assistant/CLAUDE.md` - and leave anything that
    fails it alone. This is the last thing to go, because item 4 needs it.
 
