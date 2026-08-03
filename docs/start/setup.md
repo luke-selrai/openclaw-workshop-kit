@@ -170,7 +170,7 @@ exactly matches the kit as published:
      ```
 
 **B. The probe is refused (authentication error / repository not found) → the
-kit comes through Loup. Kit home: `~/.loup/selr-ai/workshop-kit`.** Do NOT
+kit comes through Loup. Kit home: `~/.loup/selrai-company/claude-workshop-kit`.** Do NOT
 retry the clone, do NOT ask me for a GitHub password. Instead:
 
 1. Ask me to open my Loup dashboard at https://louphq.com/dashboard/buyer. If I
@@ -182,7 +182,7 @@ retry the clone, do NOT ask me for a GitHub password. Instead:
    kit — that is not something you and I can fix from here.
 2. On the dashboard, have me click "Get install command" on the workshop kit,
    copy the whole line — it looks like
-   `npx @louphq/install selr-ai/workshop-kit --token loupit_...` — and paste it
+   `npx @louphq/install selrai-company/claude-workshop-kit --token loupit_...` — and paste it
    to you. Run exactly what I paste (same command on Mac and Windows). Even in
    UPDATE mode, always re-run my install command like this — it overwrites the
    kit folder with a fresh copy, same as the clone door.

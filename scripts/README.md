@@ -129,7 +129,7 @@ Caps are exclusive (a value AT the cap fails); it WARNs at 90% so there's early 
 
 Asserts the kit's **install-canon** invariants - originally the Loup-deliverable PRD ([#385](https://github.com/selrai-company/claude-workshop-kit/issues/385) / slice [#386](https://github.com/selrai-company/claude-workshop-kit/issues/386)), redesigned against [ADR-0001](../docs/adr/0001-pointer-block-install-model.md) by [CORE-116](https://linear.app/selr-ai/issue/CORE-116).
 
-There is **no single kit home** any more. Under ADR-0001 the home is a per-install fact - `~/claude-workshop-kit` through the GitHub door, `~/.loup/selr-ai/workshop-kit` through the Loup door - written into the pointer block and the manifest at install time. That inverted this checker's central rule: it used to police references to the *old* home while treating the Loup home as canonical; it now treats **any hardcoded home** as the violation.
+There is **no single kit home** any more. Under ADR-0001 the home is a per-install fact - `~/claude-workshop-kit` through the GitHub door, `~/.loup/selrai-company/claude-workshop-kit` through the Loup door - written into the pointer block and the manifest at install time. That inverted this checker's central rule: it used to police references to the *old* home while treating the Loup home as canonical; it now treats **any hardcoded home** as the violation.
 
 **Usage:**
 
