@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# Keep Claude Code and Codex sharing one local skills home.
+#
+# Source home: ~/.claude/skills/<skill>/
+# Codex view: ~/.codex/skills/<skill> -> symlink
+#
+# If a real skill is authored in Codex, this script moves it back into the
+# Claude skills home and replaces the Codex folder with a symlink. Codex's
+# .system folder is left untouched.
+
+set -euo pipefail
+
+CLAUDE_SKILLS_LINK="$HOME/.claude/skills"
+CODEX_SKILLS="$HOME/.codex/skills"
+LOCK_DIR="$HOME/.codex/.sync-codex-skills.lock"
+
+mkdir -p "$HOME/.claude" "$HOME/.codex" "$CODEX_SKILLS"
+
+if [ -L "$CLAUDE_SKILLS_LINK" ]; then
+  target="$(readlink "$CLAUDE_SKILLS_LINK")"
+  case "$target" in
+    /*) ;;
+    *) target="$(dirname "$CLAUDE_SKILLS_LINK")/$target" ;;
+  esac
+  mkdir -p "$target"
+elif [ ! -e "$CLAUDE_SKILLS_LINK" ]; then
+  mkdir -p "$CLAUDE_SKILLS_LINK"
+elif [ ! -d "$CLAUDE_SKILLS_LINK" ]; then
+  echo "sync-codex-skills: $CLAUDE_SKILLS_LINK exists but is not a directory" >&2
+  exit 1
+fi
+
+CLAUDE_SKILLS="$(cd "$CLAUDE_SKILLS_LINK" && pwd -P)"
+
+if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+  echo "sync-codex-skills: already running"
+  exit 0
+fi
+trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
+
+# Pull Codex-authored real skill folders into the source home.
+for d in "$CODEX_SKILLS"/*/; do
+  [ -e "$d" ] || continue
+  name="$(basename "$d")"
+  [ "$name" = ".system" ] && continue
+  [ -L "${d%/}" ] && continue
+  if [ -f "${d%/}/SKILL.md" ]; then
+    if [ -e "$CLAUDE_SKILLS/$name" ]; then
+      echo "sync-codex-skills: kept Codex skill in place because Claude already has: $name"
+    else
+      mv "${d%/}" "$CLAUDE_SKILLS/$name"
+      ln -s "$CLAUDE_SKILLS/$name" "$CODEX_SKILLS/$name"
+      echo "sync-codex-skills: migrated Codex-authored skill: $name"
+    fi
+  fi
+done
+
+# Link every first-level Claude skill into Codex.
+while IFS= read -r d; do
+  name="$(basename "$d")"
+  case "$name" in .*) continue ;; esac
+  target="$d"
+  link="$CODEX_SKILLS/$name"
+  if [ -L "$link" ]; then
+    [ "$(readlink "$link")" = "$target" ] || {
+      rm -f "$link"
+      ln -s "$target" "$link"
+    }
+  elif [ -e "$link" ]; then
+    :
+  else
+    ln -s "$target" "$link" 2>/dev/null || true
+  fi
+done < <(find -H "$CLAUDE_SKILLS_LINK" -maxdepth 1 -mindepth 1 ! -name '.*' \( -type d -o -type l \) -print)
+
+# Prune broken Codex symlinks.
+for l in "$CODEX_SKILLS"/*; do
+  [ -L "$l" ] || continue
+  [ -e "$l" ] || {
+    rm -f "$l"
+    echo "sync-codex-skills: pruned broken link: $(basename "$l")"
+  }
+done
+
+home_count="$(find -H "$CLAUDE_SKILLS_LINK" -maxdepth 1 -mindepth 1 ! -name '.*' \( -type d -o -type l \) -print | wc -l | tr -d ' ')"
+link_count="$(find "$CODEX_SKILLS" -maxdepth 1 ! -name '.*' -type l | wc -l | tr -d ' ')"
+
+echo "sync-codex-skills: home=$home_count skills, codex links=$link_count"
+
