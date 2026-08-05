@@ -1,6 +1,6 @@
 ---
 name: netlify-deployment
-description: Hands-off assistant that connects Claude Code to the user's Netlify account and deploys static sites for them. One human moment total — the agent drives the Netlify dashboard in a Playwright browser to mint a Personal Access Token (the user just signs in once), persists it as NETLIFY_AUTH_TOKEN so every future session and sub-agent is authenticated, then operates the `netlify` CLI directly: create/link sites, draft deploys with preview URLs, promote to production, env vars, rollbacks. Owns standalone static sites and loose folders (e.g. wnd-fire-website, one-off client pages, prototypes); full-stack-builder-pack projects deploy to Vercel and this skill defers there. Use this skill when the user asks to connect Netlify, set up the Netlify CLI, deploy to Netlify, or mentions any Netlify service. MANDATORY TRIGGERS — invoke immediately on any of these phrases (case-insensitive, partial match counts): 'connect netlify', 'set up netlify', 'install netlify cli', 'deploy to netlify', 'netlify deploy', 'netlify login', 'netlify drop', 'netlify site', 'netlify env', 'netlify domain', 'publish to netlify', 'netlify functions'.
+description: Connect Netlify to Claude by installing the Netlify CLI and minting a Personal Access Token persisted as NETLIFY_AUTH_TOKEN — one dashboard sign-in, then every session and sub-agent is authenticated. Use when the user says 'connect netlify', 'deploy to netlify', 'netlify deploy', 'netlify drop', or 'publish to netlify', or wants a static site or plain HTML folder live and the token isn't in place yet. Once connected, deploys run directly through the netlify CLI.
 allowed-tools: Bash,PowerShell,Read,Write,Edit,mcp__playwright__*,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
@@ -27,7 +27,7 @@ The whole flow costs **one human moment**: signing in to the Netlify dashboard o
 
 ## Territory
 
-This skill owns **standalone static sites and loose folders** — plain HTML/CSS/JS folders (like `wnd-fire-website`), one-off client pages, prototypes, and build outputs (`dist/`, `build/`) that need a public URL. Inside a `full-stack-builder-pack` project, Vercel is the deploy target and this skill defers to the pack's own deploy flow.
+This skill owns **standalone static sites and loose folders** — plain HTML/CSS/JS folders, one-off client pages, prototypes, and build outputs (`dist/`, `build/`) that need a public URL. Inside a `full-stack-builder-pack` project, Vercel is the deploy target and this skill defers to the pack's own deploy flow.
 
 ## What this skill does NOT do
 
@@ -67,7 +67,7 @@ Before doing anything else, run these checks in order:
 
 1. **Read** `~/.claude/state/netlify-deployment.json` (if exists).
 2. **Run** `netlify --version`. If it returns a version, the CLI is installed.
-3. **Check** the `NETLIFY_AUTH_TOKEN` env var (`$env:NETLIFY_AUTH_TOKEN` / `$NETLIFY_AUTH_TOKEN`). If non-empty, validate with `netlify status` — it should print the account name and email.
+3. **Check** the `NETLIFY_AUTH_TOKEN` env var (`$env:NETLIFY_AUTH_TOKEN` / `$NETLIFY_AUTH_TOKEN`). On Windows, if it's empty, re-read the User scope before concluding the token is missing — harness-spawned shells can inherit an environment that predates the persist: `$env:NETLIFY_AUTH_TOKEN = [System.Environment]::GetEnvironmentVariable('NETLIFY_AUTH_TOKEN','User')`. If non-empty, validate with `netlify status` — it should print the account name and email.
 
 If everything is wired up, say:
 > "Netlify is already set up. You're signed in as [email]. Want me to deploy something, or list your sites?"
@@ -125,17 +125,22 @@ Sequence:
 4. **Name the token** `claude-code-<hostname>` (machine hostname, so the user can later see which laptop minted it). If the form has an expiration option, pick the longest available.
 5. **Click Generate token** and read the token from the DOM immediately — it is shown exactly once.
 6. **Persist without ever echoing the token into chat:**
-   - **Windows** — User env var + PowerShell profile + current session:
+   - **Windows** — User env var + PowerShell profile + current session (any previous token line is replaced, not stacked):
      ```powershell
      [System.Environment]::SetEnvironmentVariable('NETLIFY_AUTH_TOKEN', '<captured-token>', 'User')
      if (-not (Test-Path $PROFILE)) { New-Item -ItemType File -Path $PROFILE -Force | Out-Null }
-     Add-Content -Path $PROFILE -Value "`n`$env:NETLIFY_AUTH_TOKEN = '<captured-token>'"
+     $lines = @(Get-Content $PROFILE) -notmatch 'NETLIFY_AUTH_TOKEN'
+     Set-Content -Path $PROFILE -Value ($lines + "`$env:NETLIFY_AUTH_TOKEN = '<captured-token>'")
      $env:NETLIFY_AUTH_TOKEN = '<captured-token>'
      ```
-   - **macOS / Linux** — append to `~/.zshrc` AND `~/.bashrc` (whichever exist):
+   - **macOS / Linux** — update `~/.zshrc` and `~/.bashrc`, whichever exist (the login shell's rc is created if neither does), replacing any previous token line:
      ```bash
-     echo 'export NETLIFY_AUTH_TOKEN="<captured-token>"' >> ~/.zshrc
-     echo 'export NETLIFY_AUTH_TOKEN="<captured-token>"' >> ~/.bashrc
+     [ -f "$HOME/.zshrc" ] || [ -f "$HOME/.bashrc" ] || touch "$HOME/.$(basename "${SHELL:-bash}")rc"
+     for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
+       [ -f "$rc" ] || continue
+       grep -v 'NETLIFY_AUTH_TOKEN' "$rc" > "$rc.tmp"; mv "$rc.tmp" "$rc"
+       echo 'export NETLIFY_AUTH_TOKEN="<captured-token>"' >> "$rc"
+     done
      export NETLIFY_AUTH_TOKEN="<captured-token>"
      ```
 7. **Close the Playwright browser** so the token is no longer on screen.
@@ -208,14 +213,14 @@ Netlify keeps every deploy forever. To revert: `netlify rollback` (restores the 
 ## Part 6 — What the user can ask for next
 
 ```
-"Deploy the W&D website."                       → draft deploy, preview URL back
+"Deploy the website folder."                    → draft deploy, preview URL back
 "Publish it." / "Make it live."                 → promote to production
 "List my Netlify sites."
 "Set FOO=bar on the website's environment."     → netlify env:set FOO bar
 "What env vars does the site have?"             → netlify env:list
 "Show me the last deploy log."                  → netlify logs:deploy / netlify watch
 "Roll back the website."                        → netlify rollback (or dashboard)
-"Add the custom domain wndfire.com.au."         → netlify domains guidance + dashboard for DNS
+"Add the custom domain example.com."            → netlify domains guidance + dashboard for DNS
 "Open the site's dashboard."                    → netlify open
 ```
 

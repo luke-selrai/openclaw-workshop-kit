@@ -77,7 +77,7 @@ Never-claimed drops (app.netlify.com/drop without signing in) belong to no accou
 ## Deploys
 
 **Deploy uploads but the preview shows a directory listing / 404**
-`--dir` pointed one level too high or too low. The dir must contain `index.html` at its root. For wnd-fire-website the folder itself is the site root.
+`--dir` pointed one level too high or too low. The dir must contain `index.html` at its root. For a plain HTML folder the folder itself is the site root.
 
 **CLI tries to run a build and fails**
 A `netlify.toml` with a `[build]` command is present. For plain static folders either pass `--no-build` (newer CLIs) or remove/fix the build command.

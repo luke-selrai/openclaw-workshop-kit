@@ -26,7 +26,7 @@ if (-not $nodeOk) {
             $msiUrl = "https://nodejs.org/dist/v22.14.0/node-v22.14.0-x64.msi"
             $msiPath = "$env:TEMP\nodejs-22.msi"
             Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath
-            Start-Process msiexec.exe -Wait -ArgumentList "/i $msiPath /quiet /norestart"
+            Start-Process msiexec.exe -Wait -ArgumentList "/i `"$msiPath`" /quiet /norestart"
             Remove-Item $msiPath -Force
         }
     } else {
@@ -34,7 +34,7 @@ if (-not $nodeOk) {
         $msiUrl = "https://nodejs.org/dist/v22.14.0/node-v22.14.0-x64.msi"
         $msiPath = "$env:TEMP\nodejs-22.msi"
         Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath
-        Start-Process msiexec.exe -Wait -ArgumentList "/i $msiPath /quiet /norestart"
+        Start-Process msiexec.exe -Wait -ArgumentList "/i `"$msiPath`" /quiet /norestart"
         Remove-Item $msiPath -Force
     }
 

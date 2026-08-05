@@ -2,7 +2,7 @@
 # install-netlify-unix.sh
 # Install Node.js (if missing) + Netlify CLI on macOS or Linux. Idempotent.
 
-set -e
+set -eo pipefail
 
 # --- Step 1: Node.js >= 20 ---
 NODE_OK=0
