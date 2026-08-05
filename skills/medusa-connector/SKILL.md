@@ -572,7 +572,8 @@ If the user already runs workloads on AWS / GCP / Azure / their own VPS, don't p
 | **Self-managed VPS** | self-managed | self-managed | self-managed | (no kit skill - user owns the infra) |
 | **Storefront - Vercel** | - | - | - | [`deploy-to-vercel`](../deploy-to-vercel/SKILL.md) |
 | **Storefront - Cloudflare Pages** | - | - | - | [`cloudflare-deployment`](../cloudflare-deployment/SKILL.md) |
-| **Storefront - Netlify / AWS Amplify** | - | - | - | (no kit skill - defer) |
+| **Storefront - Netlify** | - | - | - | [`netlify-deployment`](../netlify-deployment/SKILL.md) |
+| **Storefront - AWS Amplify** | - | - | - | (no kit skill - defer) |
 
 Ask:
 
@@ -600,6 +601,7 @@ Then dispatch into the paired skill:
 - Render pick → switch to `render-deployment`
 - Cloudflare Pages pick → switch to `cloudflare-deployment`
 - Vercel pick (for storefront) → switch to `deploy-to-vercel`
+- Netlify pick (for storefront) → switch to `netlify-deployment`
 - For platforms without a kit skill (GCP, Fly.io, DigitalOcean, VPS): the Phase 3 deployer agent reads `MEDUSA_DEPLOY_BACKEND_HOST` and follows the platform's CLI/console docs - Claude will guide the user platform-by-platform at deploy time.
 
 #### Important for BOTH paths
