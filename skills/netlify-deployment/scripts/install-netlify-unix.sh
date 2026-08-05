@@ -21,7 +21,8 @@ if [ "$NODE_OK" -eq 0 ]; then
     if command -v brew >/dev/null 2>&1; then
       echo "Installing Node.js 22 via Homebrew..."
       brew install node@22
-      brew link --overwrite node@22 || true
+      brew link --overwrite --force node@22 || true
+      export PATH="$(brew --prefix node@22)/bin:$PATH"
     else
       echo "Homebrew not found. Falling back to nvm..."
       if ! command -v nvm >/dev/null 2>&1; then

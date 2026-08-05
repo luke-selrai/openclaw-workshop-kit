@@ -52,7 +52,7 @@ if (-not $nodeOk) {
 # --- Step 2: Netlify CLI ---
 $netlify = Get-Command netlify -ErrorAction SilentlyContinue
 if ($netlify) {
-    $version = & netlify --version 2>&1 | Select-Object -First 1
+    $version = & cmd /c "netlify --version 2>&1" | Select-Object -First 1
     Write-Output "Netlify CLI is already installed: $version"
     exit 0
 }
@@ -79,7 +79,8 @@ $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";"
 # --- Step 3: Verify ---
 $netlify = Get-Command netlify -ErrorAction SilentlyContinue
 if ($netlify) {
-    Write-Output "Installed: $(& netlify --version 2>&1 | Select-Object -First 1)"
+    $version = & cmd /c "netlify --version 2>&1" | Select-Object -First 1
+    Write-Output "Installed: $version"
 } else {
     Write-Output "Netlify CLI installed, but the terminal needs a restart to find it. Close this terminal and open a new one."
     exit 2

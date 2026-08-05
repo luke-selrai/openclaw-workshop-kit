@@ -206,7 +206,14 @@ Report the live `url` from the JSON output.
 
 ### Rollback
 
-Netlify keeps every deploy forever. To revert: `netlify rollback` (restores the previous production deploy) where the installed CLI supports it — check `netlify rollback --help`; otherwise open the site's Deploys page in the dashboard and click **Publish deploy** on any earlier deploy.
+Netlify keeps every deploy forever. The CLI has no dedicated rollback command — restore an earlier deploy through the API:
+
+```bash
+netlify api listSiteDeploys --data '{"site_id": "<site-id>"}'    # find the deploy_id to restore
+netlify api restoreSiteDeploy --data '{"site_id": "<site-id>", "deploy_id": "<deploy-id>"}'
+```
+
+Fallback: open the site's Deploys page in the dashboard and click **Publish deploy** on any earlier deploy.
 
 ---
 
@@ -219,7 +226,7 @@ Netlify keeps every deploy forever. To revert: `netlify rollback` (restores the 
 "Set FOO=bar on the website's environment."     → netlify env:set FOO bar
 "What env vars does the site have?"             → netlify env:list
 "Show me the last deploy log."                  → netlify logs:deploy / netlify watch
-"Roll back the website."                        → netlify rollback (or dashboard)
+"Roll back the website."                        → netlify api restoreSiteDeploy (or dashboard)
 "Add the custom domain example.com."            → netlify domains guidance + dashboard for DNS
 "Open the site's dashboard."                    → netlify open
 ```
@@ -245,7 +252,7 @@ netlify unlink                          # unbind
 # Deploys
 netlify deploy --dir=<folder> --json            # DRAFT — private preview URL
 netlify deploy --dir=<folder> --prod --json     # PRODUCTION — public URL
-netlify rollback                                # restore previous production deploy
+netlify api restoreSiteDeploy --data '{"site_id": "<site-id>", "deploy_id": "<deploy-id>"}'   # roll back to an earlier deploy
 netlify watch                                   # wait for an in-flight deploy to finish
 
 # Env vars (per linked site)

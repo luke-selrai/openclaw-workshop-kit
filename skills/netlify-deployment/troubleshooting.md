@@ -89,4 +89,4 @@ Large deploys finish uploading before the CDN finishes propagating. `netlify wat
 DNS/CDN cache, not a deploy problem. The `*.netlify.app` URL is the truth of what's deployed; the custom domain follows within minutes.
 
 **Rollback needed**
-`netlify rollback` restores the previous prod deploy (check `netlify rollback --help` exists on the installed version). Fallback that always works: dashboard → Deploys → pick any earlier deploy → **Publish deploy**. Netlify keeps every deploy indefinitely.
+The CLI has no rollback command. Restore an earlier deploy via the API: `netlify api restoreSiteDeploy --data '{"site_id": "<site-id>", "deploy_id": "<deploy-id>"}'` — find the deploy_id with `netlify api listSiteDeploys --data '{"site_id": "<site-id>"}'`. Fallback that always works: dashboard → Deploys → pick any earlier deploy → **Publish deploy**. Netlify keeps every deploy indefinitely.
