@@ -5,7 +5,7 @@
 ## What you get
 
 - `/managed-agents-setup` - Phase 0→7 guided setup of an Anthropic Managed Agent + Routine, with vault-backed MCP credentials
-- 35 business-outcome presets across 8 verticals (real-estate, trades, coaches, consultants, ecommerce, agencies, prof-services, hospitality, creators) - canonical preset file
+- 40 business-outcome presets (real-estate, trades, coaches, consultants, ecommerce, agencies, prof-services, hospitality, creators) - canonical preset file
 - 25 working scripts (preflight, install, vault-seeder, mcp-bridge, create-agent/env/routine, smoke-test, killswitch, daily-cost-monitor, ...)
 - 4-tier connector strategy (Claude.ai passthrough → Rube → direct MCP → manual paste)
 - Pairs with `/ai-ops-architect` and `/n8n` - same connector strategy, same refusal rules, single source of truth for presets
@@ -81,7 +81,7 @@ Full troubleshooting tree: `references/troubleshooting.md`.
 │   ├── phases/0..7-*.md                  # phase-by-phase walkthroughs
 │   ├── connector-strategy.md             # 4-tier doc
 │   ├── handoff-template.md               # Phase 7 1-pager
-│   ├── business-outcome-presets.json     # CANONICAL 35 presets
+│   ├── business-outcome-presets.json     # CANONICAL 40 presets
 │   ├── mcp-servers-catalog.md            # remote MCP endpoint reference
 │   ├── agent-templates.json
 │   ├── environment-templates.json

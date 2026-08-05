@@ -8,7 +8,7 @@ bash ~/.claude/skills/managed-agents-setup/scripts/create-agent.sh trades-quote-
 
 The argument is a preset **id** (a top-level key in `references/business-outcome-presets.json`) - the script reads that file, looks up the id, and POSTs the preset's config. Run with no/unknown id and it prints the available ids.
 
-Presets live in `references/business-outcome-presets.json` (canonical, 40 presets across 10 verticals). Examples:
+Presets live in `references/business-outcome-presets.json` (canonical, 40 presets). Examples:
 - `trades-quote-triage`
 - `coach-dm-responder`
 - `real-estate-lead-manager`

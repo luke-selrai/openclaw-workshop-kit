@@ -61,7 +61,7 @@ bash ~/.claude/skills/managed-agents-setup/scripts/verify.sh             # 5-AC 
 | "What's in each phase?" | `references/phases/<n>-*.md` |
 | "Which MCP servers does it support?" | `references/mcp-servers-catalog.md` |
 | "How does the connector setup decide which path?" | `references/connector-strategy.md` (4-tier) |
-| "What presets are available?" | `references/business-outcome-presets.json` (40 presets across 8 verticals) |
+| "What presets are available?" | `references/business-outcome-presets.json` (40 presets) |
 | "How are environments configured?" | `references/environment-templates.json` |
 | "Which agent template fits my use case?" | `references/agent-templates.json` |
 | "How much will this cost?" | `references/cost-calculator.md` |

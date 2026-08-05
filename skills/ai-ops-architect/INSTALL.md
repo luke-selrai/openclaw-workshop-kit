@@ -9,8 +9,8 @@
 ## What you get
 
 - `/ai-ops-architect` - guided 8-question audit → opportunity map → 1-3 builds in one session
-- 250 curated n8n workflow templates (sticky-note headers + meta sidecars)
-- 32 managed-agent presets across 8 verticals (real-estate, trades, coaches, etc.)
+- 288 curated n8n workflow templates (sticky-note headers + meta sidecars)
+- 40 managed-agent presets (real-estate, trades, coaches, agencies, e-commerce, and more)
 - 4-tier connector strategy (Claude.ai passthrough → Rube → direct MCP → manual)
 - Pairs with `/n8n` and `/managed-agents-setup` already on your machine
 
@@ -77,8 +77,8 @@ rm -rf ~/.claude/skills/ai-ops-architect
 ├── SKILL.md                      # entry, decision matrix
 ├── INSTALL.md                    # this file
 ├── references/                   # decision matrix, opportunity catalog, intake spec, connector strategy
-├── templates/n8n/<12 cats>/      # 250 curated workflows
-├── templates/managed-agents/     # 32 presets across 8 verticals
+├── templates/n8n/<12 cats>/      # 288 curated workflows
+├── templates/managed-agents/     # loader → the canonical 40 presets
 ├── scripts/                      # audit, recommend, curate, claude-passthrough, connect-via-rube, verify
 └── .state/                       # per-machine, gitignored, chmod 600
 ```
