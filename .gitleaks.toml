@@ -33,3 +33,89 @@ id = "generic-api-key"
 description = "Shopify @idempotent canonical example UUID (RFC-4122 placeholder, not a real secret)"
 paths = ['''skills/shopify-connector/SKILL\.md''']
 regexes = ['''123e4567-e89b-12d3-a456-426614174000''']
+
+# --- Allowlist 3: technical-writer api-reference-template.md Bearer placeholder ---
+# The api-reference documentation template shows the standard `curl -H "Authorization:
+# Bearer YOUR_API_TOKEN"` example three times. `YOUR_API_TOKEN` is a literal fill-in
+# placeholder, not a real secret. Scoped to this template file and the curl-auth-header
+# rule only, bound to the exact placeholder literal so it cannot mask a real token.
+[[rules]]
+id = "curl-auth-header"
+[rules.allowlist]
+description = "API reference template Bearer placeholder (YOUR_API_TOKEN fill-in, not a real secret)"
+paths = ['''skills/technical-writer/references/api-reference-template\.md''']
+regexes = ['''Bearer YOUR_API_TOKEN''']
+
+# ============================================================================
+# Extended allowlists (2026-07-03): the 11 remaining residual hits, each a
+# documented example or a rule misfire confirmed by security triage. Every
+# block uses condition = "AND" so it fires ONLY when BOTH the exact file path
+# AND the placeholder anchor match on the finding's own line (regexTarget =
+# "line"); it cannot mask a real secret in any other file or on any other line.
+# The bundled n8n templates are vendored 3rd-party community workflow exports
+# whose flagged fields are captured EXAMPLE payloads, not SelrAI credentials.
+# ============================================================================
+
+[[allowlists]]
+description = "n8n QuickBooks template: Stripe test-mode client_secret + idempotency_key example payload (3rd-party)"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''skills/ai-ops-architect/templates/n8n/finance-invoicing/2807__Create_QuickBooks_Online_customers_with_sales_receipts_for_n\.json''']
+regexes = ['''"(client_secret|idempotency_key)"''']
+
+[[allowlists]]
+description = "n8n Clinic template: WhatsApp messageSecret + Evolution API apikey example payload (3rd-party)"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''skills/ai-ops-architect/templates/n8n/industry-specific/3694__Multi-Agent_AI_Clinic_Management_with_WhatsApp__Telegram__an\.json''']
+regexes = ['''"(messageSecret|apikey)"''']
+
+[[allowlists]]
+description = "n8n Itemlists template: linkedin-client-id rule misfire on a linkedin_url code string"
+targetRules = ["linkedin-client-id"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''skills/ai-ops-architect/templates/n8n/social-media/135673453__Itemlists_Workflow\.json''']
+regexes = ['''linkedin_url''']
+
+[[allowlists]]
+description = "api-architect example session: Idempotency-Key UUID + truncated magic_link_token JWT doc examples"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''skills/api-architect/examples/workshop-booking-api-session\.md''']
+regexes = ['''(Idempotency-Key|magic_link_token)''']
+
+[[allowlists]]
+description = "cliniko install example: HTTP Basic auth shell-var placeholder ($CLINIKO_API_KEY:)"
+targetRules = ["curl-auth-user"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''skills/cliniko-connector/examples/install-walkthrough-live\.md''']
+regexes = ['''CLINIKO_API_KEY''']
+
+[[allowlists]]
+description = "employment-hero install example: HTTP Basic auth fill-in placeholder (api:<key>)"
+targetRules = ["curl-auth-user"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''skills/employment-hero-connector/examples/install-walkthrough\.md''']
+regexes = ['''-u "api:<key>"''']
+
+[[allowlists]]
+description = "fullstack-debugger SKILL.md: Cloudflare curl doc example Bearer YOUR_TOKEN placeholder"
+targetRules = ["curl-auth-header"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''skills/fullstack-debugger/SKILL\.md''']
+regexes = ['''Bearer YOUR_TOKEN''']
+
+[[allowlists]]
+description = "stripe-connector SKILL.md: sk_test_xxxx placeholder + ${STRIPE_KEY} shell-var doc example"
+targetRules = ["curl-auth-user"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''skills/stripe-connector/SKILL\.md''']
+regexes = ['''(sk_test_xxxx|\$\{STRIPE_KEY\})''']
