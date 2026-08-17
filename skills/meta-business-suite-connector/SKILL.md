@@ -37,7 +37,7 @@ This skill lets you read and publish a user's **Instagram Business** and **Threa
 
 ### What this skill does NOT cover
 
-- **Meta Ads (paid campaigns, ad sets, audiences, creatives, insights for paid spend).** Use Luke's [`lukeselr/meta-ads-mcp-setup`](https://github.com/lukeselr/meta-ads-mcp-setup) for that. The two skills can coexist - they wrap different MCP servers and use different tokens.
+- **Meta Ads (paid campaigns, ad sets, audiences, creatives, insights for paid spend).** Use Luke's [`luke-heka/meta-ads-mcp-setup`](https://github.com/luke-heka/meta-ads-mcp-setup) for that. The two skills can coexist - they wrap different MCP servers and use different tokens.
 - **Facebook Page organic posting.** This skill is intentionally Instagram + Threads only. A separate `facebook-page-connector` is the right home for that surface and has not been built yet.
 - **Personal Instagram accounts.** The Graph API only supports Business and Creator accounts. The user must convert (free, takes 30 seconds in IG settings) before this skill works. Phase 0 catches this.
 - **Messenger / Facebook Page DMs.** This skill exposes Instagram DMs only.
@@ -782,7 +782,7 @@ The Meta Business Suite connector **can** do (via `@mikusnuz/meta-mcp`):
 The Meta Business Suite connector **cannot** do:
 
 - **Post to a Facebook Page** organically. Use a separate `facebook-page-connector` (not yet built).
-- **Run Meta Ads** (paid campaigns, ad sets, targeting, creatives). Use Luke's `lukeselr/meta-ads-mcp-setup`.
+- **Run Meta Ads** (paid campaigns, ad sets, targeting, creatives). Use Luke's `luke-heka/meta-ads-mcp-setup`.
 - **Schedule posts for later.** Meta Graph API does not expose scheduled publishing for organic content. The user can use Meta Business Suite's UI scheduler, or pair this skill with a cron-based skill.
 - **Post to personal Instagram accounts.** Graph API only supports Business and Creator accounts.
 - **Cross-post Instagram → Facebook automatically.** This is a per-post toggle in the Instagram app and is not exposed via Graph API.
@@ -820,4 +820,4 @@ The Meta Business Suite connector **cannot** do:
 - **xero-connector**: Sibling first-party-style connector - same `~/.claude.json` + restart pattern, different platform.
 - **wordpress-connector**: Same `npx + ~/.claude.json` install pattern using `@rnaga/wp-mcp`.
 - **(future) facebook-page-connector**: Will cover Facebook Page organic posting; not yet built.
-- **(external) lukeselr/meta-ads-mcp-setup**: Covers Meta Ads. Coexists with this skill - they wrap different MCP servers and use different tokens.
+- **(external) luke-heka/meta-ads-mcp-setup**: Covers Meta Ads. Coexists with this skill - they wrap different MCP servers and use different tokens.

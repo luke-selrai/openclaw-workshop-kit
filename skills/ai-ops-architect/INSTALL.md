@@ -1,10 +1,10 @@
 # Installing ai-ops-architect
 
-> Private skill. Requires GitHub auth on the `luke-selrai` org or invitation.
+> Private skill. Requires GitHub auth on the `luke-heka` account or invitation.
 
 > **Already got this via `claude-workshop-kit`?** You're already installed - the workshop kit bundles
 > this skill and wires it during its bootstrap-prompt setup. The `gh repo clone` + `chmod` steps below
-> are ONLY for standalone install directly from the `luke-selrai` org; skip them otherwise.
+> are ONLY for standalone install directly from the `luke-heka` account; skip them otherwise.
 
 ## What you get
 
@@ -26,7 +26,7 @@
 
 ```bash
 # Clone (private repo - gh handles auth)
-gh repo clone luke-selrai/ai-ops-architect ~/.claude/skills/ai-ops-architect
+gh repo clone luke-heka/ai-ops-architect ~/.claude/skills/ai-ops-architect
 
 # Make scripts executable
 chmod +x ~/.claude/skills/ai-ops-architect/scripts/*.sh

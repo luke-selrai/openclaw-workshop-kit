@@ -3,11 +3,11 @@
   "version": "1.1.0",
   "description": "Zero-to-production Anthropic Managed Agents + Routines setup. Pairs with /ai-ops-architect (orchestrator) and /n8n (workflow runtime).",
   "author": {
-    "name": "luke-selrai",
+    "name": "luke-heka",
     "email": "luke@selrgroup.com.au"
   },
-  "homepage": "https://github.com/luke-selrai/managed-agents-setup",
-  "repository": "https://github.com/luke-selrai/managed-agents-setup.git",
+  "homepage": "https://github.com/luke-heka/managed-agents-setup",
+  "repository": "https://github.com/luke-heka/managed-agents-setup.git",
   "license": "UNLICENSED",
   "keywords": [
     "anthropic",

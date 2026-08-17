@@ -22,7 +22,7 @@
 
 ```bash
 # Clone (private repo - gh handles auth)
-gh repo clone luke-selrai/managed-agents-setup ~/.claude/skills/managed-agents-setup
+gh repo clone luke-heka/managed-agents-setup ~/.claude/skills/managed-agents-setup
 
 # Make scripts executable
 chmod +x ~/.claude/skills/managed-agents-setup/scripts/*.sh

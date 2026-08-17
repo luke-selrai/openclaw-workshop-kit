@@ -154,7 +154,7 @@ Keywords on the npm package include `scraper`, `marketplace`, `facebook-pages` (
 
 ### Ad-focused alternatives - out of scope
 
-`gomarble-ai/facebook-ads-mcp-server` (316 ⭐), `proxy-intell/facebook-ads-library-mcp` (206 ⭐), and similar are **Meta Ads servers, not organic posting**. Luke's `lukeselr/meta-ads-mcp-setup` already owns the ads lane. None of these fill the FB Page organic posting gap.
+`gomarble-ai/facebook-ads-mcp-server` (316 ⭐), `proxy-intell/facebook-ads-library-mcp` (206 ⭐), and similar are **Meta Ads servers, not organic posting**. Luke's `luke-heka/meta-ads-mcp-setup` already owns the ads lane. None of these fill the FB Page organic posting gap.
 
 ---
 
