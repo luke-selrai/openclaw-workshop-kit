@@ -1,7 +1,7 @@
 ---
 name: google-chat-connector
-description: "Connect Google Chat to Claude by installing and authenticating the Google Workspace `gws` CLI. Use when the user asks to set up Google Chat or connect their Workspace chat, or wants Chat work (messages, spaces, team rooms, DMs) and the `gws` CLI isn't signed in yet. Once connected, Chat runs directly through the `gws` CLI."
-allowed-tools: Bash,Read,Write,Edit,mcp__playwright__*,mcp__plugin_playwright_playwright__*
+description: "Connect Google Chat to Claude by running the Google Workspace connector's interview with Chat switched on. Use when the user asks to set up or connect Google Chat or their Workspace chat, or wants Chat work (messages, spaces, team rooms, DMs) and Chat isn't connected yet. Once connected, Chat runs through the `mcp__claude_ai_Google_Chat__*` tools or the `gws` CLI, and this skill is the day-to-day reference for it."
+allowed-tools: Bash,Read,Write,Edit,mcp__playwright__*,mcp__plugin_playwright_playwright__*,mcp__claude_ai_Google_Chat__*
 metadata:
   category: Productivity & Integrations
   tags:
@@ -13,6 +13,8 @@ metadata:
     - spaces
     - installer
   pairs-with:
+    - skill: google-workspace-connector
+      reason: Owns the Google connect flow; Chat connects through its interview
     - skill: email-composer
       reason: Draft message content with email-composer, then post it to a Google Chat space
     - skill: gcloud-connector
@@ -25,124 +27,45 @@ metadata:
 
 # Google Chat Connector
 
-## Overview
+## Connecting: go to google-workspace-connector
 
-This skill does two things:
-1. **Installs** the Google Workspace CLI (`gws`) on the user's computer (one-time setup)
-2. **Operates** the connector - sending messages, reading conversations, listing spaces, managing team communication via the Google Chat API
+Google Chat is not connected from here. It connects through
+[google-workspace-connector](../google-workspace-connector/SKILL.md), which runs
+one short interview about what the user wants Claude to do with their Google
+account and switches on only the pieces they name — Chat among them.
 
-The connector uses the **Google Workspace CLI** (`@googleworkspace/cli`, invoked as `gws`) which wraps the Google Chat REST API with OAuth2 authentication. One tool, one auth flow, covers Chat, Gmail, Calendar, and Drive.
+**To connect Chat:** run `google-workspace-connector`, answer "yes" when it asks
+whether the team uses Google Chat, and it will do the rest.
+
+**Chat rides the `gws` route.** There is no built-in Google Chat connector — Chat
+is not in Claude's connector directory. It connects through the `gws` tool, using
+the same Google Cloud project that ladder already creates, with `chat` added to
+the sign-in scopes. The same sign-in covers Gmail, Calendar and Drive.
+
+**One exception to look for.** A machine may already carry a custom Google Chat
+connector someone added by hand — it shows in `claude mcp list` as
+`claude.ai Google Chat`, and its tools are `mcp__claude_ai_Google_Chat__*`:
+listing and searching messages, searching conversations, and sending a message.
+If Phase 0 of `google-workspace-connector` finds one already connected, use it
+for reading, searching and sending, and `gws` for everything else. Neither skill
+sets one up: it needs the same Google Cloud work as `gws` plus a hand-pasted
+address, so it buys nothing over `gws`.
+
+**Where the setup facts moved.** The install ladder that used to live in this
+file — checking Node, installing `@googleworkspace/cli`, the PATH refresh, the
+three Google Cloud project paths (teammate's `client_secret.json`,
+`gws auth setup --login`, the manual console walk), the sign-in scope list with
+`chat` in it, and the `gws auth status` / `gws chat spaces list` verification —
+is now Phase 1-alt of `google-workspace-connector`, so it is written once instead
+of twice. The Workspace-account requirement below is repeated here because it
+decides whether it is worth starting at all.
 
 > **Account support:** Requires a **Google Workspace** account (work/school domain).
 > Personal Gmail accounts (`@gmail.com`) are NOT supported - the Google Chat API is a Workspace-only feature.
 > If the user has a personal account, tell them this upfront and stop - do not waste time on setup that will fail at the end.
+> Suggest Telegram, WhatsApp, or Slack instead.
 
----
-
-## Part 1 - Installation
-
-Guide conversationally - one step at a time.
-
-### Step 1: Confirm account type
-
-Ask the user:
-> "Is your Google account a work/school Workspace account (like `you@company.com`), or a personal Gmail account?"
-
-If personal Gmail → stop and explain this won't work. Suggest Telegram, WhatsApp, or Slack instead.
-
-### Step 2: Check if already installed
-
-```bash
-gws --version
-```
-
-If this returns a version number, skip to Step 5 (auth check). If "command not found", continue from Step 3.
-
-### Step 3: Check Node.js
-
-```bash
-node --version
-```
-
-Needs v18 or higher. If missing or too old, tell the user to install from https://nodejs.org (LTS version) before continuing.
-
-### Step 4: Install the CLI
-
-```bash
-npm install -g @googleworkspace/cli
-```
-
-After install, refresh PATH so the command is available immediately:
-
-**Mac/Linux:**
-```bash
-export PATH="$(npm prefix -g)/bin:$PATH"
-```
-
-**Windows (Command Prompt):**
-```bat
-for /f "tokens=*" %i in ('npm prefix -g') do set PATH=%i\bin;%PATH%
-```
-
-Verify:
-```bash
-gws --version
-```
-
-If the install fails with a permission error on macOS/Linux, try `sudo npm install -g @googleworkspace/cli`.
-
-### Step 5: Set up the GCP project + OAuth client
-
-The Chat API needs a GCP project with OAuth credentials. There are three paths - pick one based on what the user has.
-
-**Path A - Teammate already set it up (fastest):**
-If someone on the user's team already configured this, ask them for their `client_secret.json` file. It is safe to share within an org - it identifies the OAuth app, not any individual's login.
-
-Save the file to:
-```
-~/.config/gws/client_secret.json
-```
-
-Then skip to Step 6.
-
-**Path B - Automated (user has `gcloud` CLI authenticated):**
-```bash
-gws auth setup --login
-```
-
-This creates the GCP project, enables the Chat/Gmail/Calendar/Drive APIs, configures OAuth, and authenticates in one shot. If the user doesn't have `gcloud`, either install it via [gcloud-connector](../gcloud-connector/SKILL.md) first, or use Path C.
-
-**Path C - Manual:**
-1. Go to https://console.cloud.google.com
-2. Create a new project (or use an existing one)
-3. Enable these APIs: **Google Chat API**, Gmail API, Google Calendar API, Google Drive API
-4. Go to **APIs & Services → Credentials → Create Credentials → OAuth client ID**
-5. If prompted, configure the OAuth consent screen (choose **Internal** if inside a Workspace org)
-6. Application type: **Desktop app** → name it → **Create**
-7. Click **Download JSON** on the credential you just made
-8. Save it as `~/.config/gws/client_secret.json`
-
-### Step 6: Authenticate
-
-```bash
-gws auth login -s chat,gmail,calendar,drive
-```
-
-A browser window opens. The user signs in with their Google **Workspace** account and approves the scopes. Wait for the success message before proceeding.
-
-### Step 7: Verify auth
-
-```bash
-gws auth status
-```
-
-Look for `"token_valid": true`. Then do a cheap API call to confirm the Chat API actually works:
-
-```bash
-gws chat spaces list --format table
-```
-
-If this returns a list of spaces (even an empty one), installation is complete. Continue to Part 2.
+**Everything below is the day-to-day reference**, for once Chat is connected.
 
 ---
 
@@ -254,6 +177,16 @@ URLs are auto-linked. For anything richer than basic formatting (buttons, images
 
 Use `--format table` when showing data to the user. Use `--format json` when parsing programmatically.
 
+### If a custom Chat connector is already on the machine
+
+Some machines carry a hand-added Google Chat connector (`claude.ai Google Chat`
+in `claude mcp list`). Its tools sit under `mcp__claude_ai_Google_Chat__*` and
+cover listing and searching messages, searching conversations, and sending a
+message. Use it for those. Everything above that it does not cover — spaces and
+member listings, threaded replies, `cardsV2`, the output formats — is a `gws`
+job, and needs the `gws` route from `google-workspace-connector` Phase 1-alt.
+The safety rules in Part 4 apply to both routes.
+
 ---
 
 ## Part 3 - Mapping the User's Spaces
@@ -283,7 +216,7 @@ When the user says "send a message to the Dev Team", look up the ID in this tabl
 3. **Don't spam.** Send a message only when the user explicitly asks for it. Don't send confirmation pings, status updates, or "I'm done" messages on your own initiative.
 4. **Show the user the message before sending** for anything non-trivial (more than a one-line notification), so they can catch mistakes before it's broadcast.
 5. **Thread replies stay in-thread.** If the user is responding to a thread, always include the `thread` parameter - a missing thread ID creates a new top-level message, which fragments the conversation.
-6. **Never paste OAuth tokens into the transcript.** Tokens live in `~/.config/gws/` and should stay there.
+6. **Never paste OAuth tokens into the transcript.** Tokens live in `~/.config/gws/` and should stay there. The built-in route handles no credentials at all.
 
 ---
 
@@ -323,18 +256,21 @@ gws auth logout
 gws auth login -s chat,gmail,calendar,drive
 ```
 
+**No `claude.ai Google Chat` line in `claude mcp list`**
+Expected, not a fault — there is no built-in Chat connector, so most machines will not have that line. Chat comes through `gws`; check `gws auth status` and the `chat` scope instead.
+
 ---
 
 ## Part 6 - Playwright Fallback
 
-Use Playwright **only** when there is no `gws chat` command for the task. The Chat API covers messaging and space listing well, but some surfaces are UI-only:
+Use Playwright **only** when there is no `gws chat` command and no built-in Chat tool for the task. Messaging and space listing are well covered, but some surfaces are UI-only:
 
 - **Creating a new space** (can only be done from the Google Chat web/mobile UI as a user)
 - **Editing space settings, descriptions, or guidelines**
 - **Managing space apps and webhooks** through the admin UI
 - **Interacting with message card buttons** (the API sends cards, but clicking buttons is a user action)
 
-For these, use [playwright-skill](../playwright-skill/SKILL.md) to drive `https://chat.google.com` directly. Never reach for Playwright when a `gws chat` command exists for the same task - the CLI is faster, cheaper, and doesn't break when the UI changes.
+For these, use [playwright-skill](../playwright-skill/SKILL.md) to drive `https://chat.google.com` directly. Never reach for Playwright when a `gws chat` command exists for the same task - the CLI is faster, cheaper, and doesn't break when the UI changes. This is an operating fallback, not a sign-in path: never drive a Google sign-in with Playwright.
 
 ---
 
@@ -350,4 +286,6 @@ Activate when the user says things like:
 - "Set up Google Chat"
 - "Connect my Workspace chat"
 
-For initial setup, run this skill's Part 1 (Installation) in order.
+For the last two - initial setup - hand over to
+[google-workspace-connector](../google-workspace-connector/SKILL.md) and say yes
+to Chat when it asks.

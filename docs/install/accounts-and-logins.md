@@ -150,7 +150,7 @@ If you want your assistant to manage HubSpot contacts, deals, companies, and not
 1. Go to: [hubspot.com](https://www.hubspot.com) → click **Get HubSpot free**
 2. Sign up with Google or email - the free CRM plan is all you need to get started
 3. Once your account is set up, tell your assistant: "Help me connect my HubSpot account."
-4. Your assistant will guide you through creating a **Private App** (a limited-permission access key) inside HubSpot Settings
+4. Your assistant opens Claude's built-in HubSpot connector for you - you press Connect and sign in. Only if something the built-in cannot do comes up will it walk you through creating a **Private App** (a limited-permission access key) inside HubSpot Settings
 
 > **Paid plans?** The connector works on all HubSpot plans including free. Paid plans unlock more CRM features, but the connection itself is free.
 
@@ -162,10 +162,10 @@ If you want your assistant to manage HubSpot contacts, deals, companies, and not
 This is separate from the GitHub account you use to download the workshop kit. This connects Claude to your **actual repositories** so it can read issues, pull requests, code, and CI status.
 
 1. You already have a GitHub account (Priority 1 Step 3)
-2. No extra signup needed - your assistant walks you through creating a **Personal Access Token** (PAT) with the right permissions
+2. No extra signup needed - your assistant installs GitHub's own command-line tool and signs it in through your browser (you enter a one-time code and press Authorize)
 3. Tell your assistant: "Help me connect my GitHub account so you can read my repos."
 
-> **Read-only or read-write?** Your assistant will ask which you prefer during setup. Read-only is safer to start - you can upgrade later.
+> **Already signed in from the Install Day foundation step?** Then there is nothing to do - your assistant detects the sign-in and uses it.
 
 
 ---
@@ -177,9 +177,7 @@ If you take payments through Square and want your assistant to read sales, order
 1. Go to: [squareup.com](https://squareup.com) and sign in (or create a free account)
 2. No extra setup before the workshop - your assistant handles everything
 3. Tell your assistant: "Help me connect my Square account."
-4. A browser sign-in to Square's server takes about 30 seconds - no token or API key needed
-
-> **Note:** Square's Claude connector is in beta. It works well for everyday reads; occasional retries may be needed.
+4. Your assistant opens Claude's built-in Square connector - you press Connect and sign in to Square, about 30 seconds, no keys to copy
 
 
 ---

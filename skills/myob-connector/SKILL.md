@@ -1,7 +1,7 @@
 ---
 name: myob-connector
-description: "Connect MYOB accounting to Claude by installing and authenticating its API credentials, for existing paid MYOB subscribers. Use when the user asks to set up or connect MYOB, or wants MYOB work (invoices, quotes, bills, contacts, items, banking, payroll) and the credentials aren't in place yet. Once connected, MYOB runs directly against its API with the stored credentials."
-allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
+description: "Connect MYOB accounting to Claude by switching on its built-in connector, or by installing and authenticating its API credentials, for existing paid MYOB subscribers. Use when the user asks to set up or connect MYOB, or wants MYOB work (profit and loss, receivables, invoices, bills, contacts, payroll) and MYOB isn't connected yet. Once connected, MYOB runs through the mcp__claude_ai_MYOB__* tools, or directly against its API with the stored credentials."
+allowed-tools: Bash,Read,Write,Edit,mcp__claude_ai_MYOB__*,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
   tags:
@@ -38,16 +38,54 @@ This skill lets you read and update a user's MYOB accounting data on their behal
 > 1. **Workshop side (one-off, the workshop pays).** MYOB is the only connector in this kit with no free developer tier - API access requires Developer Program membership at AUD $110/month (incl. GST). The workshop covers this on behalf of all attendees and ships the resulting `client_id` / `client_secret` in `skills/myob-connector/.workshop-credentials` (gitignored). This is a fixed line item; attendees never see the credentials and never pay this fee.
 > 2. **User side (recurring, the user pays).** Each attendee needs their own **paid MYOB Business or AccountRight subscription**. Free trials and accountant-only logins do **not** work. Without a real subscription, there's no company file for the connector to read, and OAuth will refuse to issue tokens. Same constraint as Xero/QuickBooks - the data lives in the user's account, so the user has to be the account holder.
 
-It has two phases:
+### MYOB is built into Claude now - try that first
 
-- **Phase 1 - Install & Connect.** A conversational bootstrap (≤6 steps). The user has never used this before. You drive the entire OAuth flow inside a **Playwright MCP** browser, capture the access + refresh tokens, save them to `~/.config/myob/tokens.json`, and verify the connection with a live API ping. The user should never see the words "OAuth", "token", "client_id", "curl", "API", "JSON", or any file path. They should feel like they are having a conversation, and at the end their MYOB is connected.
+MYOB has its own listing in Claude's connector directory
+(`https://claude.ai/directory/myob` - "MYOB", Verified, made by MYOB, added
+July 2026, connector URL `https://mcp.myob.com/mcp`, sign-in required; docs at
+`https://www.myob.com/au/support/myob-business/product-account/connecting-myob`).
+The page notes it is **currently in beta**.
+
+It is **read-only, and deliberately narrow** - MYOB describes it as *"a fast,
+read-only view of your MYOB Business numbers, from profit and loss to sales,
+receivables and payables"*. Six tools:
+
+| Tool | Answers |
+|---|---|
+| `myob_get_profit_loss` | how the business is performing |
+| `myob_get_outstanding_customer_balances` | who owes you money |
+| `myob_get_outstanding_payables` | what you owe |
+| `myob_get_sales_invoice_totals` | how much you've invoiced |
+| `myob_get_standard_payment_terms` | the terms on file |
+| `myob_get_financial_year_dates` | the financial year boundaries |
+
+Switching it on is one button and a sign-in: nothing installed, no developer
+credentials, no workshop fee, and nothing for this skill to store. **So it runs
+first, and it answers the headline questions most users actually ask.**
+
+Everything below - the workshop developer credentials, the $110/month tier, the
+Playwright sign-in - is the kit's own route, and it is still the only way to reach
+invoices, quotes, bills, contacts, items, banking and payroll in detail, and the
+only way to write anything at all. Phase 0.5 routes between them.
+
+It has three phases:
+
+- **Phase 1 - Switch on the built-in MYOB connector.** One button, one sign-in,
+  read-only.
+- **Phase 1 (the kit's own route) - Install & Connect.** A conversational bootstrap (≤6 steps). The user has never used this before. You drive the entire OAuth flow inside a **Playwright MCP** browser, capture the access + refresh tokens, save them to `~/.config/myob/tokens.json`, and verify the connection with a live API ping. The user should never see the words "OAuth", "token", "client_id", "curl", "API", "JSON", or any file path. They should feel like they are having a conversation, and at the end their MYOB is connected.
 - **Phase 2 - Use the connector.** Once tokens are saved, you call the MYOB REST API via `curl` (using the runtime loop in §Phase 2) to read and update MYOB data. Endpoints span Sales (invoices, quotes), Purchases (bills), Contacts (customer/supplier/employee), Inventory (items), Banking, General Ledger, and Payroll.
 
-**Which phase to run** - Before any MYOB action, check whether tokens already exist. Look for `~/.config/myob/tokens.json` (Mac/Linux/WSL) or `%APPDATA%\myob\tokens.json` (native Windows). If the file exists and contains a valid `access_token` + `refresh_token` + `company_file.uri`, treat the connector as configured and skip to Phase 2. Otherwise, run Phase 1.
+**Which phase to run** - Phase 0 decides, and it runs before everything else in
+this file including the pre-flight credential check. A live built-in connection
+counts as connected; so does a saved set of tokens. For the kit's own route the
+token check is: `~/.config/myob/tokens.json` (Mac/Linux/WSL) or
+`%APPDATA%\myob\tokens.json` (native Windows), containing a valid `access_token`
++ `refresh_token` + `company_file.uri`. If that is present, treat the connector as
+configured and skip to Phase 2.
 
 ### What this skill does NOT use
 
-- **An MCP server** - none exists for MYOB. CData ships a third-party read-only MCP via JDBC, but the Java runtime dependency + read-only limitation make it a poor fit for the workshop install bar. Direct REST is the v1 path.
+- **An MCP server, on this route.** When this route was designed none existed for MYOB. That changed in July 2026: MYOB now publishes `https://mcp.myob.com/mcp`, which is what Claude's built-in MYOB connector uses (Phase 1) - but it is read-only and limited to six summary reports, so it cannot replace this route. CData also ships a third-party read-only MCP via JDBC; the Java runtime dependency + read-only limitation make it a poor fit for the workshop install bar. Direct REST remains the route for detail and for every write.
 - **A first-party CLI** - MYOB doesn't ship one (unlike Google Workspace's `gws` or GitHub's `gh`).
 - **Bearer-only auth** - MYOB requires *both* `Authorization: Bearer <token>` *and* `x-myobapi-key: <client_id>` on every API call. Most generic OAuth client implementations forget the second header and fail with confusing 401s. Always set both.
 - **The `x-myobapi-cftoken` header** - only relevant for AccountRight cloud company files (legacy product line). MYOB Business doesn't need it. Document as a v2 gotcha; do not implement in v1.
@@ -61,6 +99,14 @@ Every OAuth step in Phase 1 runs inside the **Playwright MCP** browser (`mcp__pl
 
 If the Playwright MCP is unavailable, stop and tell the user plainly: *"I need a small browser tool that's not installed yet - let me show you how to add it."* Then point them at the Playwright MCP install instructions. Do not fall back to opening the user's default browser.
 
+**One deliberate exception: Phase 1.** Switching on the built-in connector means
+opening `https://claude.ai/directory/myob` in the user's **own** browser - that is
+the browser already signed in to Claude and to MYOB. The rule above exists because
+this skill's own route reads a sign-in result out of a driven browser's address
+bar; the built-in page has nothing for this skill to read. Never drive that
+sign-in with Playwright, and never ask for a password, a code or a screenshot of
+it.
+
 ---
 
 ## No-deviation rule
@@ -69,7 +115,154 @@ If a step in this skill fails, follow the `if X fails, try Y` branch documented 
 
 ---
 
+## PHASE 0 - Is MYOB already connected?
+
+Run these silently, in order, and act on the first that answers. **This runs
+before the pre-flight credential check below** - the built-in connector needs none
+of the workshop's developer credentials, so a missing credential file must never
+stop a user reaching it.
+
+**1. Built-in connector.**
+
+```bash
+claude mcp list 2>&1 | grep -i "^claude.ai MYOB"
+```
+
+- `✔ Connected` → the built-in is live. Prove it with one read
+  (`mcp__claude_ai_MYOB__myob_get_financial_year_dates` is the cheapest;
+  `myob_get_profit_loss` is the most convincing), then go to **Phase 0.5**: if
+  what the user wants is inside the built-in's six tools, you are done - go to
+  Phase 2. If it isn't, the kit's own route is needed as well.
+- `! Needs authentication` → the connection has lapsed. Open
+  `https://claude.ai/customize/connectors` in the user's own browser and say:
+  *"Your MYOB connection needs a quick re-sign-in. Press Reconnect next to MYOB,
+  sign in, and tell me when it says Connected."* Then re-run this check.
+- No such line → continue.
+
+**2. The kit's own route.** Look for `~/.config/myob/tokens.json` (Mac/Linux/WSL)
+or `%APPDATA%\myob\tokens.json` (native Windows) with a valid `access_token` +
+`refresh_token` + `company_file.uri`. Present and pinging → say *"MYOB is already
+connected"* and go to Phase 2. Do not set the built-in up on top of a working
+connection.
+
+**3. Nothing found** → **Phase 0.5**.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app
+rather than Claude Code), skip steps 1-2: go to Phase 0.5, then Phase 1, and prove
+the result at Phase 1 Step 5 by calling one of MYOB's tools.
+
+---
+
+## PHASE 0.5 - Route by need
+
+Ask **one** plain-English question before setting anything up: *"What do you want
+Claude to do with your MYOB?"* Offer the two shapes as examples - *"see how the
+business is tracking, or work with individual invoices, bills and contacts?"* One
+question, then act.
+
+| What the user wants | Route |
+|---|---|
+| How is the business going - profit and loss | **Built-in** (Phase 1) |
+| Who owes me money - outstanding customer balances | **Built-in** |
+| What do I owe - outstanding payables | **Built-in** |
+| How much have I invoiced - sales invoice totals | **Built-in** |
+| Standard payment terms; financial-year dates | **Built-in** |
+| Individual invoices, quotes, bills, orders | **The kit's own route** |
+| Contacts (customers, suppliers, employees) in detail | **The kit's own route** |
+| Items and inventory; banking lines; general ledger | **The kit's own route** |
+| Payroll (AU) | **The kit's own route** |
+| **Creating or changing anything at all** | **The kit's own route** - the built-in is read-only by design |
+
+Rules:
+
+- If the built-in covers what they asked for, stop there. It costs the user one
+  click and nothing else; the kit's own route needs the workshop's developer
+  credentials and a longer sign-in, and there is no reason to spend that when the
+  question is "how did we do last quarter".
+- Say in one line what you are *not* connecting and why, so they can ask later.
+- Both routes can coexist on one machine. Never tear one down to set the other up.
+- The built-in is in beta. If one of its six reads errors or returns nothing
+  usable, that is a real failure, not a "connected" - fall through to the kit's
+  own route and say so plainly.
+
+---
+
+## PHASE 1 - Switch on the built-in MYOB connector
+
+One button and a sign-in, once per account. Read-only, and free on the workshop's
+side.
+
+### Step 1 - Check this session can see built-in connectors
+
+```bash
+claude auth status
+```
+
+`"authMethod": "claude.ai"` is the pass. Anything else - or
+`disableClaudeAiConnectors: true` in `~/.claude/settings.json`, or
+`ENABLE_CLAUDEAI_MCP_SERVERS=false` - means built-in connectors will not appear in
+this session. Tell the user in one line that this copy of Claude is signed in a
+different way, and go to the kit's own route.
+
+### Step 2 - Open the connector page for them
+
+Say: *"I'm opening MYOB's page in your browser. Press **Connect to Claude**, sign
+in to MYOB the way you normally do, and say yes when it asks for access. That's
+the only part only you can do - tell me when it says Connected."*
+
+```bash
+open "https://claude.ai/directory/myob"          # Mac
+# xdg-open "https://claude.ai/directory/myob"    # Linux
+# start "" "https://claude.ai/directory/myob"    # Windows
+```
+
+If that page doesn't load, open `https://claude.ai/customize/connectors` instead
+and tell them: Browse → search "MYOB" → Connect.
+
+### Step 3 - Wait
+
+Hands off while they sign in.
+
+### Step 4 - Verify
+
+```bash
+claude mcp list 2>&1 | grep -i "^claude.ai MYOB"
+```
+
+`claude.ai MYOB: https://mcp.myob.com/mcp - ✔ Connected` is the pass. Not there
+yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows:
+close the window and quit from the tray), then check again. Still missing →
+`! Needs authentication` means Reconnect on the Customize page; no line at all
+means the Connect didn't complete, so send them back to Step 2.
+
+### Step 5 - Prove it
+
+Call one real read - `mcp__claude_ai_MYOB__myob_get_financial_year_dates`, or
+`myob_get_profit_loss` if you want the user to see something they recognise. Only
+a real answer counts; a tool error is not "connected". These tools are often
+deferred in a session; if you can't see them yet, that is the restart in Step 4.
+
+### Step 6 - Hand off
+
+Two lines: MYOB is connected, and three things they can ask for now ("how did we
+do last quarter", "who still owes me money", "what am I due to pay"). Add one line
+naming what this route can't do - it only reads, and it doesn't go down to
+individual invoices or bills - and offer the fuller connection if they need it.
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of
+**Connect**, the user's Claude administrator has to switch MYOB on for the
+organisation first. Say so plainly and stop.
+
+---
+
 ## ⛔ Pre-flight credential check - run this FIRST, before the safety gate
+
+> **Scope: this gate guards the kit's own route only.** The built-in MYOB
+> connector (Phase 1 above) needs none of these credentials and costs the
+> workshop nothing, so it runs before this check. "First" below means first on
+> the kit's own route - reach here only when Phase 0.5 said the user needs
+> something the built-in's six read-only tools can't answer, or Phase 1 couldn't
+> be used. Everything in this gate is unchanged.
 
 The MYOB connector cannot function without workshop developer credentials. These are issued by MYOB after the workshop org subscribes to the **MYOB Developer Access** tier (AUD $110/month - there is no free tier; see §Overview). The credentials ship in `skills/myob-connector/.workshop-credentials` (gitignored, distributed via the workshop install bundle).
 
@@ -189,7 +382,7 @@ The user is a non-technical business owner. Every message you send during Phase 
 
 ---
 
-## PHASE 1 - Install & Connect (≤6 steps)
+## PHASE 1 - Install & Connect (≤6 steps) - the kit's own route
 
 This phase opens MYOB's authorization page in a Playwright MCP browser, has the user sign in once, captures the authorization code from the redirect, exchanges it for access + refresh tokens, lets the user pick which company file to connect, and verifies the connection with a live API call.
 
@@ -363,6 +556,15 @@ curl -sf "$COMPANY_URI/Contact/Customer?\$top=1" \
 ---
 
 ## PHASE 2 - Use the connector
+
+**Which surface you are on.** Through the built-in connector (Phase 1), MYOB work
+runs through the `mcp__claude_ai_MYOB__*` tools - six read-only reports and
+nothing else, with no tokens on disk and no refresh cycle. Through the kit's own
+route it runs through the curl loop below, which reaches the full REST surface and
+is the only route that writes. The two differ materially: if the user is on the
+built-in and asks for an individual invoice, a contact record, a banking line, or
+any change at all, that is the kit's own route - say so and offer it rather than
+improvising.
 
 Once `~/.config/myob/tokens.json` exists, follow this loop on every MYOB-related request from the user.
 

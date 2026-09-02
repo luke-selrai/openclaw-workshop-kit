@@ -1,7 +1,7 @@
 ---
 name: calendly-connector
-description: "Connect Calendly to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect Calendly, or wants scheduling work (event types, availability, meetings, booking links) and Calendly isn't connected yet. Once connected, Calendly runs directly through the mcp__calendly__* tools."
-allowed-tools: mcp__calendly__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect Calendly to Claude by switching on its built-in connector, or by installing and authenticating its official MCP server. Use when the user asks to set up or connect Calendly, or wants scheduling work (event types, availability, meetings, booking links) and Calendly isn't connected yet. Once connected, Calendly runs through the mcp__claude_ai_Calendly__* or mcp__calendly__* tools."
+allowed-tools: mcp__claude_ai_Calendly__*, mcp__calendly__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Scheduling & Booking
   tags:
@@ -44,19 +44,22 @@ Bundled artifacts in this skill folder (read these to verify the SKILL works end
 
 ## Overview
 
-This skill lets you read and update a user's Calendly account on their behalf using the **official first-party Calendly MCP server** hosted at `https://mcp.calendly.com` (announced [March 2026](https://calendly.com/blog/mcp-server); docs at [developer.calendly.com/calendly-mcp-server](https://developer.calendly.com/calendly-mcp-server)). It has two phases:
+This skill lets you read and update a user's Calendly account on their behalf. Both routes below reach the same **official first-party Calendly MCP server** hosted at `https://mcp.calendly.com` (announced [March 2026](https://calendly.com/blog/mcp-server); docs at [developer.calendly.com/calendly-mcp-server](https://developer.calendly.com/calendly-mcp-server)) - the difference is who does the wiring.
 
-- **Phase 1, Install & Auth (autonomous, 6 steps).** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen, auto-detects the callback via `browser_wait_for`, then verifies with a `mcp__calendly__*` smoke call. The user's only manual moments are signing in to Calendly inside the Playwright window and clicking Allow on the consent screen. Token storage is handled by Claude Code's MCP runtime, there is no manual `~/.claude.json` token write.
-- **Phase 2, Use Tools.** Once the connector is configured, you call the `mcp__calendly__*` native tools to read and update Calendly data.
+- **Phase 1, the built-in Calendly connector (the default route).** Calendly is in Claude's own connector directory, so the server is already wired up: the user presses one button, signs in, and Calendly is available on their account everywhere - claude.ai, the desktop app, and Claude Code - with nothing registered on their computer. It is the same server and the same tool surface, so **there is nothing the kit's route can do that this route cannot**. It works on **any Calendly plan, including free**. Tools arrive as `mcp__claude_ai_Calendly__*`.
+- **Phase 1-alt, the kit's own route (6 steps, autonomous via Playwright).** Kept in full below. Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen, auto-detects the callback via `browser_wait_for`, then verifies with a `mcp__calendly__*` smoke call. The user's only manual moments are signing in to Calendly inside the Playwright window and clicking Allow on the consent screen. Token storage is handled by Claude Code's MCP runtime, there is no manual `~/.claude.json` token write. Use it only in the cases listed at the head of Phase 1-alt.
+- **Phase 2, Use Tools.** Once either route is connected, you call the Calendly tools to read and update Calendly data.
 
-**Which phase to run**, Before any tool call, check whether the Calendly MCP server is already configured. Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.calendly` entry. If present, attempt a verification tool call (Phase 1 Step 6). If it succeeds, the connector is ready, skip to Phase 2. If it 401s, walk Phase 1 from Step 3 to re-trigger the OAuth flow (the registration is already in place).
+Both routes can sit on the same machine. Never tear one down to set the other up.
+
+**Which phase to run**, run Phase 0 below before any tool call. It checks the built-in connector first and the kit's registration second, and routes from whichever answers.
 
 ### What this skill does NOT use
 
 - **Calendly personal access tokens or API keys.** The Calendly MCP server is OAuth-only with Dynamic Client Registration (RFC 7591). There is no pre-registered app, no client secret, and no personal access token to paste. Do not ask the user for any key.
 - **A self-hosted Calendly MCP server.** Calendly publishes the hosted endpoint at `https://mcp.calendly.com` as the only deployment. Self-hosting is not supported.
 - **Direct Calendly REST API calls.** All reads and writes go through the MCP server, not direct HTTP calls to the Calendly Public API.
-- **The "Calendly connector for Claude" Desktop entry.** That is a Claude Desktop feature, not available in Claude Code. In Code we wire the MCP URL directly per Phase 1.
+- **A separate Calendly connection per surface.** Earlier versions of this skill said the "Calendly connector for Claude" directory entry was a Claude Desktop feature unavailable in Claude Code, and wired the MCP URL directly instead. That is no longer true: a connector switched on from the directory is **account-level**, so it reaches Claude Code too, as long as Claude Code is signed in with that same claude.ai account (not a work-account key or a cloud-provider sign-in). That is what Phase 1 does; Phase 1-alt is the direct wiring, kept for the cases where the directory route can't be used.
 - **A custom OAuth client (DCR replication, custom PKCE, loopback listener).** Claude Code's MCP runtime owns the OAuth dance natively; we do not register our own client, run our own callback listener, or store OAuth tokens manually. The skill's job is to choreograph Playwright + Claude Code's native OAuth handler, not to replicate OAuth.
 
 ### How auth works under the hood
@@ -67,11 +70,11 @@ From the SKILL's perspective this is a standard OAuth 2.1 + PKCE flow at `calend
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules for connecting Calendly (Phase 1 and Phase 1-alt)
 
-The user is a non-technical business owner. Phase 1 is autonomous, Claude does the work, the user only signs in to Calendly in the Playwright window and clicks Allow. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Connecting is autonomous, Claude does the work; the user presses one button and signs in to Calendly once. Every message you send while connecting must follow these rules:
 
-- **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only actions you ever request are: "please sign in to the browser window I just opened" and "please click Allow on the screen Calendly just showed you."
+- **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only actions you ever request are: "please press Connect to Claude on the page I just opened", "please sign in to the browser window I just opened" and "please click Allow on the screen Calendly just showed you."
 - **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, DCR, PKCE, scope, token, MCP, endpoint, JSON, REST, environment variable, Playwright, browser automation, redirect URI, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page", not "Playwright" or "Chromium". If you must name a technical concept, plainly:
   - access token / bearer → **"your connection key"**
   - Allow / consent → **"the Allow button"**
@@ -84,28 +87,75 @@ The user is a non-technical business owner. Phase 1 is autonomous, Claude does t
 
 ---
 
-## Phase 0, Pre-flight (silent)
+## Phase 0, Is Calendly already connected?
 
-### 0.1, Resume check
+Run these silently, in order, and act on the first that answers.
 
-Read `~/.claude.json` via Node (cross-platform safe, Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile):
+1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Calendly` (match the vendor word case-insensitively; there is no `--json` flag).
+   - `✔ Connected` → skip to Phase 2. Prove it first with one read from the `mcp__claude_ai_Calendly__*` namespace - the tool that returns the signed-in user's own profile is the cheapest (it is `users-get_current_user` on the kit's route; list the namespace and match by description rather than guessing). Only a real answer counts.
+   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your Calendly connection needs a quick re-sign-in. Press Reconnect next to Calendly, sign in, and tell me when it says Connected."* Then re-run this check.
+   - no such line → continue.
+2. **The kit's own route.** Read `~/.claude.json` via Node (cross-platform safe, Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile) and look for an `mcpServers.calendly` entry:
 
-```bash
-node -e "
-const fs = require('fs');
-const path = require('path');
-const p = path.join(require('os').homedir(), '.claude.json');
-if (!fs.existsSync(p)) { console.log('NOT_CONFIGURED'); process.exit(0); }
-const j = JSON.parse(fs.readFileSync(p, 'utf8'));
-const av = (j.mcpServers || {}).calendly;
-console.log(av ? 'REGISTERED' : 'NOT_CONFIGURED');
-"
-```
+   ```bash
+   node -e "
+   const fs = require('fs');
+   const path = require('path');
+   const p = path.join(require('os').homedir(), '.claude.json');
+   if (!fs.existsSync(p)) { console.log('NOT_CONFIGURED'); process.exit(0); }
+   const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+   const av = (j.mcpServers || {}).calendly;
+   console.log(av ? 'REGISTERED' : 'NOT_CONFIGURED');
+   "
+   ```
 
-- `REGISTERED` → try Phase 1 Step 6 (verify) first. If it succeeds, the connector is already active, surface a friendly message and stop. If 401, walk Phase 1 from Step 3.
-- `NOT_CONFIGURED` → run full Phase 1 from Step 1.
+   - `REGISTERED` → try the Phase 1-alt Step 6 verify call first. If it succeeds, the connector is already active - say *"Calendly is already connected"*, surface a friendly message and skip to Phase 2. Do not set the built-in up on top of a working connection. If it 401s, walk Phase 1-alt from Step 3 to re-trigger the sign-in (the registration is already in place).
+   - `NOT_CONFIGURED` → continue.
+3. **Nothing found** → Phase 1.
 
-### 0.2, Tooling check (silent)
+A locally-registered Calendly entry at the same address as the built-in one takes precedence and hides the built-in. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Calendly's tools.
+
+---
+
+## Phase 1, Switch on the built-in Calendly connector (the default route)
+
+This is a one-time, once-per-account job. The only thing the user does is press one button and sign in. It works on any Calendly plan, free included.
+
+**Step 1, Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
+
+**Step 2, Open the connector page for them.** Say:
+
+> "I'm opening Calendly's page in your browser. Press **Connect to Claude**, sign in to Calendly the way you normally do, and say yes when it asks for access. That's the only part only you can do, tell me when it says Connected."
+
+Then open `https://claude.ai/directory/calendly` in the user's own everyday browser, `open <url>` on Mac, `xdg-open <url>` on Linux, `start "" <url>` on Windows. If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Calendly" → Connect.
+
+> **Why the user's own browser here, when Phase 1-alt uses its own window.** Phase 1-alt drives a separate browser window because it has to read the redirect back out of the page. This route reads nothing, it only needs the browser where the user is already signed in to Claude. Send them to their own browser and do not automate this sign-in.
+
+**Step 3, Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+
+**Step 4, Verify.** `claude mcp list` again. `claude.ai Calendly … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete, so send them back to Step 2.
+
+**Step 5, Prove it.** Call one real read through the connector: a tool from the `mcp__claude_ai_Calendly__*` namespace that returns the signed-in user's own profile. Only a real answer counts. A tool error here is not "connected". If the tools have not appeared in the session yet, ask for the quit-and-reopen from Step 4 and try once more.
+
+**Step 6, Hand off.** Two lines: it's connected, and three things they can ask for now, for example *"what meetings do I have this week?"*, *"show me my booking links"*, *"create a one-time booking link for a 30-minute intro call"*.
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude administrator has to switch Calendly on for the organisation first. Say so plainly and stop; do not fall back to the kit's route just to get past an admin gate. This is separate from the Calendly-side admin restriction in Phase 1-alt Step 5.
+
+---
+
+## Phase 1-alt, The kit's own route (only when the built-in can't be used)
+
+Run this instead of Phase 1 when one of these is true, and say which one in a single plain-English line:
+
+- Step 1 of Phase 1 failed, this copy of Claude is signed in a different way and built-in connectors will not appear.
+- The Calendly listing is missing from the user's connector settings, or their organisation shows **Request** and they want to keep moving on their own account.
+- The user explicitly wants the connection registered on their own computer rather than on their Claude account.
+
+There is no capability reason to prefer this route: it is the same Calendly server with the same tools. Everything below is this route, kept unchanged. Step references elsewhere in this skill ("walk Phase 1 from Step 3", "Phase 1 Step 6") point at the numbered steps in this route.
+
+### Tooling check (silent)
 
 Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the setup prompt in `docs/start/setup.md` (its Step 6 installs the Claude CLI). If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest` (the `--` separator keeps Claude Code from consuming `npx` as an `add` flag), ask the user to close and reopen the chat, then retry.
 
@@ -113,7 +163,7 @@ Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwrigh
 
 ---
 
-## PHASE 1, Install & Auth (6 steps, autonomous via Playwright)
+## PHASE 1-alt, Install & Auth (6 steps, autonomous via Playwright)
 
 ### Step 1, Orient the user
 
@@ -303,7 +353,9 @@ Tell the user, in one short message (include the live name from the smoke call i
 
 ## PHASE 2, Use Tools
 
-Once the connector is configured, use the `mcp__calendly__*` MCP tools below to answer questions and make changes in Calendly. The hosted Calendly MCP server provides **35 first-party tools** covering scheduling, no-show management, routing forms, and user/organization management.
+Once the connector is configured, use the Calendly MCP tools below to answer questions and make changes in Calendly. The hosted Calendly MCP server provides **35 first-party tools** covering scheduling, no-show management, routing forms, and user/organization management.
+
+**Which namespace.** Through the built-in connector the tools are `mcp__claude_ai_Calendly__*`; through the kit's route they are `mcp__calendly__*`. It is the same server, so the `<category>-<action>` names in the Tool Reference below are the same on both - only the prefix changes. Everywhere this skill writes `mcp__calendly__<name>`, read `mcp__claude_ai_Calendly__<name>` if that is the route that connected. If a name does not resolve, list the tools in whichever namespace is live and match by description.
 
 ### First-call tool-name-drift guard (run once per Phase 2 session)
 
@@ -404,8 +456,8 @@ The official MCP server exposes tools with the prefix `mcp__calendly__`. Tool na
 
 | What the user says | Tool to use |
 |---|---|
-| "Connect my Calendly" / "Help me set up Calendly" | **Run Phase 1** |
-| "My Calendly stopped working" / "I'm getting auth errors" | Walk Phase 1 from Step 3 (Claude Code re-runs the OAuth dance) |
+| "Connect my Calendly" / "Help me set up Calendly" | **Run Phase 0**, then Phase 1 (or Phase 1-alt if Phase 1 Step 1 fails) |
+| "My Calendly stopped working" / "I'm getting auth errors" | **Run Phase 0.** On the built-in connector that is the Reconnect path in Phase 0 step 1; on the kit's route, walk Phase 1-alt from Step 3 (Claude Code re-runs the OAuth dance) |
 | "What meetings do I have this week?" | `meetings-list_events` (filter by date range) |
 | "Show me my booking links" / "List my event types" | `event_types-list_event_types` |
 | "When am I free for a 30-min intro next week?" | `event_types-list_event_types` (find the 30-min one) → `event_types-list_event_type_available_times` |
@@ -428,13 +480,13 @@ When a Calendly tool call fails, diagnose and respond in plain English. Never sh
 
 | Error | What to say | How to fix |
 |---|---|---|
-| 401 Unauthorized / Not authenticated | "Your Calendly sign-in has expired, let me reconnect you." | Walk Phase 1 from Step 3; Claude Code re-runs OAuth |
+| 401 Unauthorized / Not authenticated | "Your Calendly sign-in has expired, let me reconnect you." | Re-run Phase 0. Built-in connector → the Reconnect path in Phase 0 step 1. Kit's route → walk Phase 1-alt from Step 3; Claude Code re-runs OAuth |
 | 403 Forbidden / insufficient scope | "Your Calendly plan doesn't include that action, or your role on the team doesn't allow it." | No fix in the connector, user talks to their Calendly admin or upgrades plan (e.g. Teams for routing forms) |
 | 404 Not Found (event / event type) | "I couldn't find that, let me list your events again." | Use `meetings-list_events` or `event_types-list_event_types` to refresh |
 | 429 Rate limited | "Calendly is asking me to slow down. I will wait a moment and try again." | Wait 10 seconds and retry once |
 | 400 Invalid request | "The details I tried to send didn't match what Calendly expected, let me try again." | Re-fetch the event type / event UUID, retry once |
 | MCP server not running | "The Calendly connection isn't active yet. Please close and reopen the chat so it picks up the new settings." | User closes and reopens Claude Code |
-| Any other API error | "Something went wrong with Calendly, let me try again." | Retry once; if still failing, walk Phase 1 from Step 3 |
+| Any other API error | "Something went wrong with Calendly, let me try again." | Retry once; if still failing, re-run Phase 0 and reconnect by whichever route is in use |
 
 ---
 

@@ -1,5 +1,7 @@
 # Asana connector - live Phase 1 walkthrough (verified)
 
+> **Which route this is.** This transcript is the kit's own route, now **Phase 1-alt** in `SKILL.md`. The default first stop is the built-in Asana connector (Phase 1); this route is for setting custom fields at task creation and for portfolios, or when built-in connectors can't be used. The flow below is unchanged.
+
 A real, verified run of Phase 1 on 2026-06-22. The token is redacted; everything else is the actual flow, including the gotcha that bit the first capture attempt. This is the reference transcript for a clean install.
 
 ## Setup

@@ -1,7 +1,7 @@
 ---
 name: xero-connector
-description: "Connect Xero to Claude by installing and authenticating Xero's official MCP server. Use when the user asks to set up or connect Xero, or wants Xero or accounting work (invoices, contacts, payments, quotes, bank transactions, the chart of accounts, profit and loss, balance sheet) and Xero isn't connected yet. Once connected, Xero runs directly through the mcp__xero__* tools."
-allowed-tools: mcp__xero__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect Xero to Claude by switching on its built-in connector for the headline numbers, or by installing and authenticating Xero's official MCP server for the full service. Use when the user asks to set up or connect Xero, or wants Xero or accounting work (invoices, contacts, payments, quotes, bank transactions, the chart of accounts, profit and loss, balance sheet) and Xero isn't connected yet. Once connected, Xero runs through the mcp__claude_ai_Xero__* or mcp__xero__* tools."
+allowed-tools: mcp__claude_ai_Xero__*, mcp__xero__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
   tags:
@@ -14,8 +14,8 @@ metadata:
     - autonomous
   audience: non-technical business owner
   time-to-complete: 10-15 minutes
-  cost-to-user: ~$5 USD / $8 AUD per month (Xero Custom Connection activation fee, paid to Xero)
-  autonomy-bar: "User action = sign in to Xero ONCE. Maybe confirm payment method if none on file. That is it."
+  cost-to-user: $10 AUD per month including GST (Xero Custom Connection activation fee, paid to Xero; other countries billed in their own currency). The built-in connector route is free.
+  autonomy-bar: "Built-in route: press Connect and sign in once. Full-service route: sign in to Xero ONCE, maybe confirm a payment method if none on file. That is it."
   pairs-with:
     - skill: hubspot-connector
       reason: Sibling Playwright-driven autonomous connector - admin-portal + DOM-extract pattern, same Client-ID-style credential model
@@ -66,7 +66,53 @@ User says any of:
 - "Help me with my accounting"
 - "Show me my invoices" (and Xero isn't configured yet)
 
-Agent runs Phases 0 through 7 below. The user experiences a guided conversation with 3 touchpoints: the safety gate (answer yes/no + country + which Xero org), the sign-in moment (they type their credentials into the browser Playwright opened), the restart moment (they quit + reopen Claude Code). That's it.
+Agent runs the interview and the built-in route first (next section), then - for anyone who wants the full service - Phases 0 through 7 below. On the full service the user experiences a guided conversation with 3 touchpoints: the safety gate (answer yes/no + country + which Xero org), the sign-in moment (they type their credentials into the browser Playwright opened), the restart moment (they quit + reopen Claude Code). That's it.
+
+---
+
+## Two routes into Xero - interview first
+
+Xero has two routes into Claude, and this skill switches on whichever the user's actual need calls for:
+
+| Route | What it does | Cost | Tools |
+|---|---|---|---|
+| **The built-in Xero connector** (Claude's own directory listing) | Read-only headline numbers: profit and loss, who owes them money, cash position, top customers. One click, no developer portal. | Free | `mcp__claude_ai_Xero__*` |
+| **The full service** (Phases 0-7 below: Xero's official MCP server on a Custom Connection) | Everything - every invoice, bill, quote, contact, bank line, journal and report, **and changes**: create draft invoices, bills, quotes and credit notes, add and update contacts, record payments. Writes are drafts, confirmed first, verified after (see Agent Behaviour Rules). | $10 AUD/month, paid to Xero | `mcp__xero__*` |
+
+**The interview.** Before opening anything, ask **one** question in plain English: what do they want Claude to do with Xero? Offer the two shapes as examples (*"a quick read on how the business is going - profit, who owes you, cash? Or working in the books - raising invoices and bills, updating contacts, digging into individual transactions?"*). If they under-specify ("connect my accounting"), double-check once in the same message: *"Just the numbers, or do you want me to be able to raise invoices and bills too?"* Then route: read-only headline questions → the built-in; anything that touches or digs into the books → the full service. If they want both, the built-in takes one click while you are already talking, and the full service follows.
+
+Connect only what they named, and say in one line what you are *not* connecting and why, so they can ask for it later. Both routes can coexist on one machine - never tear one down to set the other up.
+
+### Is Xero already connected?
+
+Run these silently, in order, and act on the first that answers.
+
+1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Xero`.
+   - `✔ Connected` → nothing to set up on that route. Prove it with one read from the `mcp__claude_ai_Xero__*` namespace (e.g. this month's profit and loss) before saying so. If the user's need is read-only, answer it; if they want to work in the books, continue to the full service.
+   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your Xero connection needs a quick re-sign-in. Press Reconnect next to Xero, sign in, and tell me when it says Connected."* Then re-run this check.
+   - no such line → continue.
+2. **The full service.** The "Detect existing Xero config" check in Phase 0 below: any `mcpServers.xero` or `mcpServers."xero-<orgslug>"` entry. If it is present and `mcp__xero__list-organisation-details` answers, say *"Xero is already connected"* and go answer the question. Never make the user redo setup.
+3. **Nothing found** → run the interview, then the built-in route below, the full service (Phases 0-7), or both.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to the built-in route and prove the result at its step 5 by calling one of Xero's tools.
+
+### The built-in route - switch on Claude's own Xero connector
+
+This is a one-time, once-per-account job. The only thing the user does is press one button and sign in. It covers the read-only "how is the business going" surface with no Xero fee.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the full service instead.
+
+**Step 2 - Open the connector page for them.** Say: *"I'm opening Xero's page in your browser. Press **Connect to Claude**, sign in to Xero the way you normally do, and say yes when it asks for access. That is the only part only you can do - tell me when it says Connected."* Then open `https://claude.ai/directory/xero` in their own browser (`open` on Mac, `xdg-open` on Linux, `start ""` on Windows). If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Xero" → Connect. Opening the user's own browser is correct here even though the full service below drives a separate Playwright browser - that route reads credentials off pages; this one reads nothing.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+
+**Step 4 - Verify.** `claude mcp list` again. `claude.ai Xero … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector - one `mcp__claude_ai_Xero__*` tool, e.g. this month's profit and loss. Only a real answer counts. A tool error here is not "connected".
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now (the profit and loss, who owes them money, the cash position). If they also wanted to work in the books, go straight on to Phase 0 of the full service.
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude admin has to switch Xero on for the organisation first. Say so plainly and stop; do not run the full service just to get past an admin gate.
 
 ---
 
@@ -112,12 +158,16 @@ Then the agent installs it, restarts the session, and resumes. **Do NOT proceed 
 
 ```bash
 EXISTING=$(jq -r '.mcpServers.xero.env.XERO_CLIENT_ID // empty' "$HOME/.claude.json" 2>/dev/null)
+LAUNCH=$(jq -r '.mcpServers.xero.command // empty' "$HOME/.claude.json" 2>/dev/null)
 if [ -n "$EXISTING" ]; then
-  echo "ALREADY_CONFIGURED - skip to Phase 6 verify"
+  case "$LAUNCH" in
+    */node) echo "ALREADY_CONFIGURED - skip to Phase 6 verify" ;;
+    *)      echo "ALREADY_CONFIGURED_LEGACY_LAUNCH - run the Phase 4 global install and rewrite the entry, keeping the two credentials, then Phase 5" ;;
+  esac
 fi
 ```
 
-If already configured, skip to **Phase 6** and just verify. Never ask the user to redo setup.
+If already configured with the absolute-`node` launch, skip to **Phase 6** and just verify. If the entry launches through `npx` (an older install of this skill), keep its Client ID and Secret, run the global install in Phase 4 and rewrite the entry in place - that launch shape hangs silently on a cold npm cache (see Phase 4). Never ask the user to redo the portal setup.
 
 ---
 
@@ -127,7 +177,7 @@ If already configured, skip to **Phase 6** and just verify. Never ask the user t
 
 > **"Before we start, three quick things:**
 >
-> **1. Cost.** Xero charges about **$5 USD per month** (~$8 AUD, £5 GBP) to enable this type of connection. Paid to Xero, on top of your normal subscription.
+> **1. Cost.** Xero charges **$10 AUD a month including GST** to enable this type of connection - paid to Xero, on top of your normal subscription (outside Australia, Xero bills in that country's currency; the activation screen shows the real amount and wins over this figure).
 >
 > **2. Country.** This only works for Xero organisations in **Australia, New Zealand, UK, or US**.
 >
@@ -435,6 +485,20 @@ fi
 
 Extract credentials exist and work. Write them in without touching other MCP servers.
 
+**Install the server globally first, pinned.** `npx -y <pkg>@latest` resolves the package from the npm registry at launch time; on a cold npm cache (every first-ever install) that download outlasts Claude Code's MCP start-up window, so the server never registers its tools and nothing logs why. Installing globally during setup moves the download to a moment that can be waited on, and pinning keeps it cacheable.
+
+```bash
+PINNED_VERSION="0.0.17"
+npm i -g "@xeroapi/xero-mcp-server@${PINNED_VERSION}" --silent
+
+NODE_BIN="$(command -v node)"
+SERVER_ENTRY="$(npm root -g)/@xeroapi/xero-mcp-server/dist/index.js"
+[ -n "$NODE_BIN" ] || { echo "FAIL: node is not on PATH"; exit 1; }
+[ -f "$SERVER_ENTRY" ] || { echo "FAIL: global install missing at $SERVER_ENTRY"; exit 1; }
+```
+
+Tell the user while it downloads: *"Installing Xero's connector - this is the slow bit, about a minute the first time."* If `npm i -g` fails with `EACCES`, point npm at a user-writable prefix (`npm config set prefix "$HOME/.npm-global"`), re-run, and re-derive `SERVER_ENTRY` from `npm root -g`. Do not fall back to `npx` to dodge this.
+
 ```bash
 CLAUDE_CONFIG="$HOME/.claude.json"
 
@@ -448,11 +512,12 @@ if ! jq empty "$CLAUDE_CONFIG" 2>/dev/null; then
 fi
 
 # Merge xero entry via jq - NEVER overwrite the file
-jq --arg cid "$CLIENT_ID" --arg sec "$CLIENT_SECRET" '
+jq --arg cid "$CLIENT_ID" --arg sec "$CLIENT_SECRET" \
+   --arg node "$NODE_BIN" --arg entry "$SERVER_ENTRY" '
   .mcpServers = (.mcpServers // {}) |
   .mcpServers.xero = {
-    "command": "npx",
-    "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
+    "command": $node,
+    "args": [$entry],
     "env": {
       "XERO_CLIENT_ID": $cid,
       "XERO_CLIENT_SECRET": $sec
@@ -466,7 +531,8 @@ jq --arg cid "$CLIENT_ID" --arg sec "$CLIENT_SECRET" '
 - Always back up with a timestamp before writing.
 - Never overwrite - use `jq` to merge.
 - Never echo Client ID or Client Secret in any message, log, or tool output after this point.
-- If corrupt, quarantine separately - never lose user config silently.
+- If corrupt, quarantine separately - never lose user config silently, and tell the user plainly that any other connectors they had are in the quarantined file, not the new one.
+- Never write `"command": "npx"`. The npx form is a last resort for a locked-down machine where a global install is genuinely impossible; if it is ever used, pin the version (`["-y", "@xeroapi/xero-mcp-server@0.0.17"]`), run the package once by hand to warm the cache, and expect the first launch after a cache clear to fail silently.
 
 ### Multi-org
 
@@ -497,7 +563,8 @@ mcp__xero__list-organisation-details
 | Outcome | Action |
 |---|---|
 | Returns org name + details | Report success with org name in message. Proceed to Phase 7. |
-| `mcp__xero__*` tools not discoverable | User didn't fully quit. Tell them: *"Claude Code didn't pick up the new connection. Fully quit (Cmd+Q) and reopen."* Wait + retry. |
+| `mcp__xero__*` tools not discoverable, and `.mcpServers.xero.command` is `npx` | The launch is resolving the package from the registry on a cold npm cache and timing out silently. No number of restarts fixes it: run the Phase 4 global install, rewrite the entry to the absolute-node shape, then quit and reopen. |
+| `mcp__xero__*` tools not discoverable, and `.mcpServers.xero.command` is an absolute node path | User didn't fully quit, or the global install moved. Check `[ -f "$SERVER_ENTRY" ]`, then tell them: *"Claude Code didn't pick up the new connection. Fully quit (Cmd+Q) and reopen."* Wait + retry. |
 | `invalid_client` / 401 | Trailing whitespace in saved secret. Strip + rewrite config. Retry. |
 | `403 insufficient_scope` | Open Playwright back to the app's scopes, tick the missing scope named in the error, Save, retry. No restart needed. |
 | Any other | Retry once. If still failing, escalate with the raw error (this is a bug worth logging). |
@@ -556,7 +623,8 @@ Xero enforces ~60 calls/min per tenant. On 429, wait 10s, retry once.
 | DOM extraction of Client ID returns null | Xero changed selectors | Try 3 fallback strategies (data-testid, aria-label, label-text-walk). If all fail, last-resort user read-out. |
 | Client Secret modal closes before capture | Race condition | Use `browser_wait_for` before the click. Increase timeout. |
 | jq merge fails | Corrupt `~/.claude.json` | Quarantine the file, write a fresh minimal one with just the Xero entry. |
-| MCP server won't start after restart | Node < 18 OR npm registry blocked | Upgrade Node. Test registry with `npm ping`. Global-install fallback: `npm i -g @xeroapi/xero-mcp-server@latest`, switch config to `node <absolute-path>`. |
+| MCP server won't start after restart | Node < 18 OR npm registry blocked | Upgrade Node. Test registry with `npm ping`. Then re-run the Phase 4 global install and confirm `[ -f "$SERVER_ENTRY" ]`. |
+| First launch after a cleared npm cache never registers the tools | The entry is on the legacy `npx` launch shape | Convert it to the absolute-node shape (Phase 4). A cold cache is the normal state of a machine that has never run this before. |
 | Every call returns "organisation not found" | User unlinked the org in Xero UI | Open Playwright to app page, re-select org, save. |
 
 ---
@@ -567,7 +635,8 @@ Do NOT tell the user "done" before every box is ticked:
 
 - [ ] Phase 0: Claude, Node 18+, npx, jq, curl, `~/.claude.json` all present
 - [ ] Phase 0: Playwright MCP available in this session (if not, installed + session restarted)
-- [ ] Phase 0: no existing working config (or skipped to verify)
+- [ ] Interview done; built-in route offered/connected where the need was read-only headline numbers
+- [ ] Phase 0: no existing working config (or skipped to verify; a legacy `npx` entry rewritten in place)
 - [ ] Phase 1: user confirmed AU/NZ/UK/US + cost + gave org name
 - [ ] Phase 2.1-2.2: browser open to developer.xero.com, user signed in verified via snapshot
 - [ ] Phase 2.3-2.5: app created as Custom Connection (not Web app)
@@ -579,7 +648,7 @@ Do NOT tell the user "done" before every box is ticked:
 - [ ] Phase 2.11: Client Secret extracted from DOM (validated format)
 - [ ] Phase 3: curl smoke test returned a valid access_token
 - [ ] Phase 3b: `/connections` returned a non-empty array (tenant linked)
-- [ ] Phase 4: `~/.claude.json` backed up + merged (not overwritten)
+- [ ] Phase 4: server installed globally at the pinned version; `~/.claude.json` backed up + merged (not overwritten) with the absolute-node launch
 - [ ] Phase 5: user confirmed full quit + reopen
 - [ ] Phase 6: `list-organisation-details` returned the correct org
 - [ ] Phase 7: 3 starter prompts matched to their business
@@ -630,7 +699,7 @@ After setup, these are available via `mcp__xero__<name>`:
 
 ## Scope Limitations (Tell User If Asked)
 
-This skill can read + write: invoices (as drafts), contacts, quotes, credit notes, items, bank transactions, payments, manual journals, tracking. Full reports: P&L, balance sheet, trial balance, aged receivables/payables.
+The full service can read + write: invoices (as drafts), contacts, quotes, credit notes, items, bank transactions, payments, manual journals, tracking. Full reports: P&L, balance sheet, trial balance, aged receivables/payables. The built-in connector is read-only and covers the headline numbers only (profit and loss, receivables, cash position, top customers) - it never changes anything.
 
 This skill CANNOT:
 - Delete records (use Xero UI)
@@ -658,7 +727,7 @@ This skill CANNOT:
 - **Xero Developer Portal**: [developer.xero.com/app/manage](https://developer.xero.com/app/manage)
 - **Custom Connections guide**: [developer.xero.com/documentation/guides/oauth2/custom-connections](https://developer.xero.com/documentation/guides/oauth2/custom-connections)
 - **Xero API reference**: [developer.xero.com/documentation/api](https://developer.xero.com/documentation/api)
-- **Sibling skills**: `hubspot-connector`, `monday-connector`, `slack-connector`, `quickbooks-connector` (all Playwright-driven autonomous connectors); see also [`skills/CLAUDE.md`](../CLAUDE.md) for the three-pattern connector taxonomy this skill fits into
+- **Sibling skills**: `hubspot-connector`, `monday-connector`, `slack-connector`, `quickbooks-connector` (all Playwright-driven autonomous connectors); see also [`skills/CLAUDE.md`](../CLAUDE.md) for the connector patterns this skill fits into (Pattern 0 for the built-in route)
 
 ---
 

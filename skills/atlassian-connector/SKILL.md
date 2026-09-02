@@ -1,7 +1,7 @@
 ---
 name: atlassian-connector
-description: "Connect Atlassian to Claude by installing and authenticating its official remote MCP server. Use when the user asks to set up or connect Atlassian, Jira or Confluence, or wants work on tickets, sprints, boards, pages or spaces and Atlassian isn't connected yet. Once connected, Jira and Confluence run directly through the mcp__atlassian__* tools."
-allowed-tools: mcp__atlassian__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect Atlassian to Claude by switching on its built-in connector, or by registering Atlassian's official remote server locally. Use when the user asks to set up or connect Atlassian, Jira or Confluence, or wants work on tickets, sprints, boards, pages or spaces and Atlassian isn't connected yet. Once connected, Jira and Confluence run through the mcp__claude_ai_Atlassian__* or mcp__atlassian__* tools."
+allowed-tools: mcp__claude_ai_Atlassian__*, mcp__claude_ai_Atlassian_Rovo__*, mcp__atlassian__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Project Management & Docs
   tags:
@@ -32,22 +32,28 @@ metadata:
 
 ## Overview
 
-This skill lets you read and update a user's Atlassian Cloud workspace on their behalf - Jira, Confluence, and Compass - using the **official first-party Atlassian Remote MCP server** hosted at `https://mcp.atlassian.com/v1/mcp`. It has two phases:
+This skill lets you read and update a user's Atlassian Cloud workspace on their behalf - Jira, Confluence, and Compass - using the **official first-party Atlassian Remote MCP server** hosted at `https://mcp.atlassian.com/v1/mcp`.
 
-- **Phase 1 - Install & Auth (autonomous, 5 numbered steps).** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen (which also surfaces the workspace picker), auto-detects the callback via `browser_wait_for`, surfaces the organization-administrator-approval-required interstitial cleanly when present. The user's only manual moment is signing in to Atlassian inside the Playwright window. Token storage is handled by Claude Code's MCP runtime - there is no manual `~/.claude.json` token write.
-- **Phase 2 - Use Tools.** Once the connector is configured, you call the `mcp__atlassian__*` native tools to read and update Jira and Confluence data.
+**There are two ways in, and they reach the same server.** Claude's own connector directory ships a built-in **Atlassian** connector (listed as "Atlassian Rovo") that covers Jira, Confluence and Compass through Rovo - the same surface the kit's route reaches, and one connector for both products. Switching it on is one button and a sign-in, once per Claude account, with no local registration and no connection key on the machine - so it is the default route. The kit's own route (Phase 1-alt) stays in full for the cases the built-in cannot serve. Neither route reaches Atlassian **Data Center / Server**: both are Cloud-only. Both can coexist on one machine; never tear one down to set the other up.
 
-**Which phase to run** - Before any tool call, check whether the Atlassian MCP server is already configured. Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.atlassian` entry. If present, attempt a verification tool call (Phase 1 Step 6). If it succeeds, the connector is ready - skip to Phase 2. If it 401s, walk Phase 1 from Step 3 to re-trigger the OAuth flow (the registration is already in place).
+The skill has these phases:
+
+- **Phase 0 - Is Atlassian already connected?** Checks the built-in connector first, then the kit's own registration, and routes.
+- **Phase 1 - Switch on the built-in Atlassian connector (the default route).** Open Atlassian's connector page in the user's own browser, they press **Connect to Claude** and sign in, then verify and prove with one read.
+- **Phase 1-alt - The kit's own route (only when the built-in can't be used), autonomous, 5 numbered steps.** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen (which also surfaces the workspace picker), auto-detects the callback via `browser_wait_for`, surfaces the organization-administrator-approval-required interstitial cleanly when present. The user's only manual moment is signing in to Atlassian inside the Playwright window. Token storage is handled by Claude Code's MCP runtime - there is no manual `~/.claude.json` token write.
+- **Phase 2 - Use Tools.** Once Atlassian is connected by either route, you call its native tools to read and update Jira and Confluence data - `mcp__claude_ai_Atlassian__*` on the built-in route, `mcp__atlassian__*` on the kit's.
+
+**Which phase to run** - always start at Phase 0. On the kit's own route the resume signal is unchanged: read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.atlassian` entry. If present, attempt a verification tool call (Phase 1-alt Step 6). If it succeeds, the connector is ready - skip to Phase 2. If it 401s, walk Phase 1-alt from Step 3 to re-trigger the OAuth flow (the registration is already in place).
 
 ### Prerequisites the user must already have
 
-Phase 1 fails cleanly but cannot proceed without these. Surface them in Step 1 before opening Playwright so the user can fix the gap before any browser opens.
+Both connect routes need these; Phase 1-alt fails cleanly but cannot proceed without them, and the built-in route hits the same Atlassian-side gates. Surface them before opening anything so the user can fix the gap first.
 
 - **An Atlassian Cloud account** the user can sign in to (free tier is fine).
-- **At least one Jira and/or Confluence site** their account has access to. If the account has no site provisioned (fresh accounts, personal accounts that never joined a workspace, or org members who haven't been granted permissions), Phase 1 hits Atlassian's verbatim **"Access denied"** interstitial at stage 3: *"This app requires access to a Jira & Confluence & User identity site which you don't have or don't have the permission to access."* This is a permissions-side gap, not a SKILL bug - Phase 1 catches it in Step 4b2 and surfaces clean guidance, but you can avoid the round-trip by checking up front. Two paths to acquire site access:
+- **At least one Jira and/or Confluence site** their account has access to. If the account has no site provisioned (fresh accounts, personal accounts that never joined a workspace, or org members who haven't been granted permissions), Phase 1-alt hits Atlassian's verbatim **"Access denied"** interstitial at stage 3: *"This app requires access to a Jira & Confluence & User identity site which you don't have or don't have the permission to access."* This is a permissions-side gap, not a SKILL bug - Phase 1-alt catches it in Step 4b2 and surfaces clean guidance, but you can avoid the round-trip by checking up front. Two paths to acquire site access:
   - **Self-serve** - create a free workspace at `https://www.atlassian.com` (≈2 minutes; pick Jira, Confluence, or both)
   - **Org-managed** - ask the Atlassian organization admin to add the user to a workspace with Jira or Confluence on it, or grant the user site permissions
-- **Authority to install third-party apps** on the workspace, OR an Atlassian organization admin who has allowlisted the Atlassian Remote MCP. If the org has app-install restrictions enforced and the MCP isn't allowlisted, Phase 1 reaches an *"administrator approval required"* interstitial (Step 4b) and bails out - the admin needs to approve the app from the connected-apps area of `admin.atlassian.com` before Phase 1 can complete. There is **no API-token alternative** for the remote MCP.
+- **Authority to install third-party apps** on the workspace, OR an Atlassian organization admin who has allowlisted the Atlassian Remote MCP. If the org has app-install restrictions enforced and the MCP isn't allowlisted, Phase 1-alt reaches an *"administrator approval required"* interstitial (Step 4b) and bails out - the admin needs to approve the app from the connected-apps area of `admin.atlassian.com` before it can complete. The built-in route hits the same gate on Atlassian's side. There is **no API-token alternative** for the remote MCP.
 
 ### What this skill does NOT use
 
@@ -61,7 +67,7 @@ Phase 1 fails cleanly but cannot proceed without these. Surface them in Step 1 b
 
 Atlassian's hosted MCP is a **bridge / proxy OAuth server** (verified live 2026-04-30 against `mcp.atlassian.com/.well-known/oauth-authorization-server` AND empirically against the live flow on 2 different Atlassian accounts). The discovery document advertises `authorization_endpoint = https://mcp.atlassian.com/v1/authorize`, `token_endpoint = https://cf.mcp.atlassian.com/v1/token`, `registration_endpoint = https://cf.mcp.atlassian.com/v1/register`, S256 PKCE, and public-client `none` auth (issuer `cf.mcp.atlassian.com`). From the SKILL's perspective this is a standard OAuth 2.1 + PKCE flow at `mcp.atlassian.com` - Claude Code's MCP runtime drives it natively.
 
-**The browser flow has THREE visible stages** (different from Canva's 2-stage rendering - important for the Phase 1 logic):
+**The browser flow has THREE visible stages** (different from Canva's 2-stage rendering - important for the Phase 1-alt logic):
 
 1. **Pre-login client-approval at `mcp.atlassian.com/v1/authorize`** - shows the third-party client's name + which Atlassian apps it wants (Jira / Confluence / Compass checkboxes) + Approve / Cancel. The bridge confirming the user wants to grant the third-party client access.
 2. **Sign-in at `id.atlassian.com/login`** - Atlassian's central identity provider, after Approve. Skipped if the Playwright profile has Atlassian cookies.
@@ -70,15 +76,15 @@ Atlassian's hosted MCP is a **bridge / proxy OAuth server** (verified live 2026-
 Practical implications surfaced in the SKILL:
 
 - **Auto-click Approve on stage 1** is the canonical pattern - same shape as auto-Allow on the final consent of stage 3.
-- **The user lands on Atlassian's central login first**, not on the third-party consent screen - Phase 1's branching reflects this.
+- **The user lands on Atlassian's central login first**, not on the third-party consent screen - Phase 1-alt's branching reflects this.
 - **Stage 3 has up to four converged outcomes**: workspace picker (multi-site), Allow button (single-site), administrator-approval-required interstitial (org-block), or "Access denied - site access required" (account has no Jira/Confluence site provisioning). The last two are distinct failure modes with distinct user-facing fixes.
 - **Cloud only.** Atlassian Data Center / Server installations are not supported by the official remote MCP server.
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules for Phase 1 and Phase 1-alt
 
-The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work, the user only signs in to Atlassian in the Playwright window. Every message you send during Phase 1 must follow these rules:
+These rules apply to **both** connect routes. On Phase 1 (the built-in connector) the user presses one button in their own browser and signs in; on Phase 1-alt the browser window is one Claude drives. Either way the user is a non-technical business owner - Claude does the work, the user only signs in. Every message you send while connecting must follow these rules:
 
 - **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only action you ever request is "please sign in to the browser window I just opened, then pick which Atlassian workspace you want me to use."
 - **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, REST, environment variable, Playwright, browser automation, redirect URI, PKCE, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page" - not "Playwright" or "Chromium". If you must name a technical concept, plainly:
@@ -88,14 +94,27 @@ The user is a non-technical business owner. Phase 1 is autonomous - Claude does 
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening Atlassian for you now"), once when you need them ("please sign in and pick your workspace"), once when you're done ("your Atlassian is now connected"). No commentary in between.
 - **React to success and failure warmly.** Good: "That worked - your Atlassian is now connected." Bad: "Token exchange returned 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem - let me try a different way," then diagnose silently.
-- **Short responses.** Maximum 8 lines per message during Phase 1.
+- **Short responses.** Maximum 8 lines per message while connecting (Phase 1 or Phase 1-alt).
 - **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
 
 ---
 
-## Phase 0 - Pre-flight (silent)
+## Phase 0 - Is Atlassian already connected?
 
-### 0.1 - Resume check
+Run these silently, in order, and act on the first that answers.
+
+1. **Built-in connector.** Run `claude mcp list` and look for a line starting `claude.ai Atlassian` (the directory lists it as "Atlassian Rovo", so match the vendor word case-insensitively rather than the whole name; there is no `--json` flag).
+   - `✔ Connected` → skip to **Phase 2**. Prove it first with one read through the built-in - list the Jira projects the account can see, or run a small Jira search - before saying so.
+   - `! Needs authentication` → the connection is on the account but its sign-in has lapsed. Open `https://claude.ai/customize/connectors` in the user's own browser and say: *"Your Atlassian connection needs a quick re-sign-in. Press **Reconnect** next to Atlassian, sign in, and tell me when it says Connected."* Then re-run this check.
+   - No such line → continue to step 2.
+2. **The kit's own route.** Run the resume check below. If an `mcpServers.atlassian` entry is present and a smoke call works, keep using it - say *"Atlassian is already connected"* and skip to **Phase 2**. Do not set the built-in up on top of a working connection.
+3. **Nothing found** → go to **Phase 1**.
+
+**Precedence note.** A server registered locally at the same address takes precedence over the built-in one and hides it (`/mcp` shows the built-in as hidden). If a machine carries an `mcpServers.atlassian` entry from an earlier run of the kit's route and it works, leave it and say so. Only remove it - and only with the user's explicit OK - if it is broken and the built-in is the better route.
+
+**No shell?** If you cannot run commands at all (this is claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2 entirely: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Atlassian's tools.
+
+### 0.1 - Resume check (the kit's own route)
 
 Read `~/.claude.json` via Node (cross-platform safe - Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile):
 
@@ -111,16 +130,61 @@ console.log(av ? 'REGISTERED' : 'NOT_CONFIGURED');
 "
 ```
 
-- `REGISTERED` → try Phase 1 Step 6 (verify) first. If it succeeds, the connector is already active - surface a friendly message and stop. If 401, walk Phase 1 from Step 3.
-- `NOT_CONFIGURED` → run full Phase 1 from Step 1.
+- `REGISTERED` → try Phase 1-alt Step 6 (verify) first. If it succeeds, the connector is already active - surface a friendly message and stop. If 401, walk Phase 1-alt from Step 3.
+- `NOT_CONFIGURED` → nothing of the kit's is in place; go to Phase 1.
 
-### 0.2 - Tooling check (silent)
+### 0.2 - Tooling check (silent, needed for Phase 1-alt)
 
 Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the setup prompt in `docs/start/setup.md` (its Step 6 installs the Claude CLI). If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest` (the `--` separator keeps Claude Code from consuming `npx` as an `add` flag), ask the user to close and reopen the chat, then retry.
 
 ---
 
-## PHASE 1 - Install & Auth (5 numbered steps, autonomous via Playwright; Stage 3 has multi-state branching at 4a/4b/4b2/4c/4d)
+## Phase 1 - Switch on the built-in Atlassian connector (the default route)
+
+Claude's connector directory carries an **Atlassian** connector (listed as "Atlassian Rovo") that covers Jira, Confluence and Compass - one connector for both main products, the same surface the kit's route reaches. This is a one-time, once-per-account job: connect it once on the user's Claude account and it is available everywhere that account is signed in, including here. The only thing the user does is press one button and sign in. Nothing on this route captures, stores, or echoes a connection key - there is no key.
+
+Check the prerequisites above first: an Atlassian Cloud account, at least one Jira or Confluence site the account can reach, and either authority to add third-party apps or an Atlassian organization admin who has allowlisted it. Those gates sit on Atlassian's side and apply to this route too. Cloud only - Data Center / Server is out of reach on either route.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set in the environment, built-in connectors will not appear in this session. Tell the user in one line that this copy of Claude is signed in a different way, then run **Phase 1-alt** instead.
+
+**Step 2 - Open the connector page for them.** Say:
+
+> "I'm opening Atlassian's page in your browser. Press **Connect to Claude**, sign in to Atlassian the way you normally do, pick the workspace you want me to use, and say yes when it asks for access. That's the only part only you can do - tell me when it says Connected."
+
+Then open `https://claude.ai/directory/atlassian` (the public mirror of the same page is `https://claude.com/connectors/atlassian`) in the user's **own** everyday browser: `open <url>` on Mac, `xdg-open <url>` on Linux, `start "" <url>` on Windows. That is where they are already signed in. If the page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: **Browse**, search "Atlassian", **Connect**.
+
+> **Why the user's own browser here.** Phase 1-alt's rule - never use the user's own browser - exists because that route drives a multi-stage sign-in in a browser Claude controls. This route reads nothing and handles no key, so the user's own browser is the correct place for the button press. Do not drive this sign-in with the automated browser.
+
+**Step 3 - Wait.** Stay hands-off while they sign in and pick a workspace. Never ask for a password, a code, or a picture of the sign-in screen.
+
+**Step 4 - Verify.** Run `claude mcp list` again. A line reading `claude.ai Atlassian ... ✔ Connected` is the pass.
+- Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. A session loads its connections when it starts.
+- `! Needs authentication` → send them to `https://claude.ai/customize/connectors` and have them press **Reconnect** next to Atlassian.
+- Still no line at all → the Connect didn't complete; send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector - list the Jira projects the account can see, or run a small Jira search. Only a real answer counts (an empty list is a real answer; a tool error is not "connected"). The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_Atlassian__*` tools actually available and pick a safe read rather than hard-coding a name.
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - for example *"what tickets are assigned to me?"*, *"what's in this sprint?"*, *"find the onboarding page in Confluence"*.
+
+**If Atlassian blocks the connect.** The same two Atlassian-side failures apply here as on the kit's route: an *administrator approval required* screen (the Atlassian organization admin must approve the app from the connected-apps area of `admin.atlassian.com`), and an *"Access denied"* screen when the account has no Jira or Confluence site. Surface each plainly and stop - see the prerequisites section above for the fixes. There is no key-based alternative on either route.
+
+**Team or Enterprise Claude accounts.** If the page shows **Request** instead of **Connect**, the user's Claude administrator has to switch Atlassian on for the organisation first, and connectors only work in private projects there. Say so plainly and stop. Do not fall back to the kit's route just to get past an admin gate.
+
+**Plan note.** Assume a paid Claude plan for built-in connectors. Free accounts are limited to a single custom connector, which is not this route.
+
+---
+
+## Phase 1-alt - The kit's own route (only when the built-in can't be used)
+
+Run this **instead of** Phase 1 in exactly three cases:
+
+- Phase 1 Step 1 failed - this copy of Claude is signed in a way that cannot see built-in connectors.
+- The Atlassian connector is not listed on the user's Claude account (no directory listing, and nothing under **Browse**).
+- The user explicitly asks for the locally registered server.
+
+Otherwise Phase 1 is the route: it reaches the same server with none of this setup, and there is no reason to burden the user with it. Both routes can live on one machine - never tear one down to set the other up.
+
+Everything below is the kit's original install: 5 numbered steps, autonomous via Playwright; Stage 3 has multi-state branching at 4a/4b/4b2/4c/4d.
 
 ### Step 1 - Orient the user + confirm prerequisites
 
@@ -239,7 +303,7 @@ If the snapshot shows a workspace/site picker (text like `"Choose a site"` or a 
 
 Mention the workspace to the user before proceeding so they can object: *"Atlassian is asking which workspace to connect - looks like **\<workspace name\>** is selected. If that's right, I'll click Allow; if you want a different one, say so."* Wait for OK, then proceed to Step 4c.
 
-If the user wants to switch later ("switch my Atlassian workspace"), re-run Phase 1 from Step 3 - Atlassian re-prompts the picker on a fresh consent flow.
+If the user wants to switch later ("switch my Atlassian workspace"), re-run Phase 1-alt from Step 3 - Atlassian re-prompts the picker on a fresh consent flow. On the built-in route, disconnect and reconnect Atlassian at `https://claude.ai/customize/connectors` and pick the other workspace during sign-in.
 
 #### 4b - Failure mode 1: organization-administrator-approval-required
 
@@ -374,7 +438,7 @@ Verify by calling a canonical Atlassian read-only smoke tool. Tool names aren't 
 Because `complete_authentication` unblocks the rest of the `mcp__atlassian__*` surface in the same session, the smoke call should run immediately:
 
 - **Call returns a result (or empty list)** → capture any obvious counts (resources, projects, issues), surface a success message including a live count.
-- **Call returns 401 / `invalid_token`** → walk Phase 1 from Step 3 once. If still failing, surface the user-facing error and stop.
+- **Call returns 401 / `invalid_token`** → walk Phase 1-alt from Step 3 once. If still failing, surface the user-facing error and stop.
 - **Call returns 403 with admin-block messaging** → re-run Step 5's interstitial detection and surface the admin-allowlist guidance.
 - **Wrong workspace visible** → tell the user *"Looks like we connected to a different workspace than you meant - say 'switch my Atlassian workspace' and I'll re-run the sign-in so you can pick the right one."*
 
@@ -388,7 +452,9 @@ Tell the user, in one short message (include any obvious live count if available
 
 ## PHASE 2 - Use Tools
 
-Once the connector is configured, use the `mcp__atlassian__*` MCP tools below to answer questions and make changes in Jira and Confluence. The hosted Atlassian Remote MCP server provides first-party tools covering Jira issues, search, projects, comments, transitions, and Confluence pages, spaces, and search - plus a smaller set of Compass tools for teams that use it.
+> **Which prefix you get.** Through the built-in connector (Phase 1) the tools are `mcp__claude_ai_Atlassian__*`; through the kit's own route (Phase 1-alt) they are `mcp__atlassian__*`. Both routes reach the same Atlassian Remote MCP surface (Jira, Confluence and Compass via Rovo), so the tables below apply to both - only the prefix differs. List the tools present in the session and use the prefix that is actually there; never mix the two prefixes in one session.
+
+Once the connector is configured, use Atlassian's MCP tools below to answer questions and make changes in Jira and Confluence. The hosted Atlassian Remote MCP server provides first-party tools covering Jira issues, search, projects, comments, transitions, and Confluence pages, spaces, and search - plus a smaller set of Compass tools for teams that use it.
 
 > **Note on tool names:** Atlassian does not publish a stable public list of tool names, and the set evolves as the remote MCP server adds coverage. **Discover tool names at runtime** the first time you enter Phase 2 in a new session - list the `mcp__atlassian__*` tools available and map them to the categories below. The names in the tables below are the expected shape, not a guarantee.
 
@@ -444,9 +510,9 @@ Atlassian's Compass product (software component catalogue) exposes a small set o
 
 | What the user says | Tool(s) to use |
 |---|---|
-| "Connect my Atlassian" / "Set up Jira" / "Set up Confluence" | **Run Phase 1** |
-| "Switch my Atlassian workspace" | Re-run Phase 1 from Step 3 so the user can pick a different workspace on the Allow screen |
-| "My Atlassian stopped working" / "I'm getting auth errors" | Run Phase 1 from Step 3 (Claude Code re-runs the OAuth dance) |
+| "Connect my Atlassian" / "Set up Jira" / "Set up Confluence" | **Run Phase 0, then Phase 1** (Phase 1-alt only if Phase 1 is unavailable) |
+| "Switch my Atlassian workspace" | Built-in route: disconnect and reconnect Atlassian at `https://claude.ai/customize/connectors`, picking the other workspace. Kit's route: re-run Phase 1-alt from Step 3 so the user can pick a different workspace on the Allow screen |
+| "My Atlassian stopped working" / "I'm getting auth errors" | Re-run Phase 0. Built-in route: `! Needs authentication` means **Reconnect** at `https://claude.ai/customize/connectors`. Kit's route: run Phase 1-alt from Step 3 (Claude Code re-runs the OAuth dance) |
 | "Show me my Jira tickets" | `search_issues` with assignee = currentUser() |
 | "What's open in [project]?" | `list_projects` (find key) → `search_issues` filtered by project |
 | "Show me ticket PROJ-123" | `get_issue` |
@@ -470,16 +536,16 @@ When an Atlassian tool call fails, diagnose and respond in plain English. Never 
 
 | Error | What to say | How to fix |
 |---|---|---|
-| 401 Unauthorized / Not authenticated | "Your Atlassian sign-in has expired - let me reconnect you." | Walk Phase 1 from Step 3 (Claude Code re-runs OAuth); retry the original tool call |
+| 401 Unauthorized / Not authenticated | "Your Atlassian sign-in has expired - let me reconnect you." | Built-in route: press **Reconnect** at `https://claude.ai/customize/connectors`. Kit's route: walk Phase 1-alt from Step 3 (Claude Code re-runs OAuth); retry the original tool call |
 | 403 Forbidden | "Your Atlassian user doesn't have permission for that project or page. An admin or the page/project owner may need to share it with you." | User asks the owner to grant access; nothing to fix in the connector |
 | 403 with admin-block messaging | "Your organization administrator has restricted this connection. They need to approve the connector in the connected-apps area of `admin.atlassian.com` - once they do, the sign-in will work for you and your team." | Atlassian organization admin approves the connector via Settings → Connected apps (or Products → Connected apps depending on org tier); there is no API-token fallback |
 | 404 Not Found (issue / page / project / space) | "I couldn't find that record - let me search for it again." | Use `search_issues` / `search_pages` / `list_projects` / `list_spaces` to refresh |
 | 422 Invalid request | "Atlassian rejected the request - usually a bad parameter. Let me check and try again." | Re-read with `get_issue` / `get_page` and reformat the call |
 | 429 Rate limited | "Atlassian is asking me to slow down. I'll wait a moment and try again." | Wait 10 seconds and retry once |
-| Wrong workspace connected | "Looks like we're pointed at a different Atlassian workspace than you meant. Let me switch you over." | Re-run Phase 1 from Step 3 so the user picks a different workspace on the Allow screen |
+| Wrong workspace connected | "Looks like we're pointed at a different Atlassian workspace than you meant. Let me switch you over." | Built-in route: reconnect at `https://claude.ai/customize/connectors` and pick the right workspace. Kit's route: re-run Phase 1-alt from Step 3 so the user picks a different workspace on the Allow screen |
 | MCP server not running | "The Atlassian connection isn't active yet. Please close and reopen the chat so it picks up the new settings." | User closes and reopens Claude Code |
 | SSE endpoint used / 410 Gone on `/v1/sse` | "Your Atlassian connection is pointing at the old endpoint - let me update it." | Rewrite the `mcpServers.atlassian.url` in `~/.claude.json` to `https://mcp.atlassian.com/v1/mcp` and ask the user to restart |
-| Any other API error | "Something went wrong with Atlassian - let me try again." | Retry once; if still failing, walk Phase 1 from Step 3 |
+| Any other API error | "Something went wrong with Atlassian - let me try again." | Retry once; if still failing, re-run Phase 0 and reconnect by whichever route is in use |
 
 ---
 
@@ -510,7 +576,7 @@ The Atlassian MCP connector **cannot** do (needs the Atlassian UI or other tools
 
 ## Organization-admin note - allowlisting can block first connect
 
-On Atlassian organizations with app-install restrictions enforced, the workspace administrator can require admin review for third-party MCP apps. If this is enforced, the consent screen surfaces an "administrator approval required" interstitial (detected by Phase 1 Step 5).
+On Atlassian organizations with app-install restrictions enforced, the workspace administrator can require admin review for third-party MCP apps. If this is enforced, the consent screen surfaces an "administrator approval required" interstitial (detected by Phase 1-alt Step 5, and surfaced on the built-in route at Phase 1 Step 2-4).
 
 1. There is **no API-token fallback for the Atlassian remote MCP** - OAuth is the only auth path supported by the hosted server.
 2. The user's Atlassian organization admin needs to approve the connector in the connected-apps area of `admin.atlassian.com` - typically under Settings → Connected apps or Products → Connected apps depending on org tier. The app surfaces under whatever name Atlassian uses for its hosted MCP. That is a one-time setup on the admin's side. Once approved, other team members can connect normally.
@@ -535,7 +601,7 @@ On Atlassian organizations with app-install restrictions enforced, the workspace
 
 ## Related Skills
 
-- **orientation**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: Source pattern for conversational bootstrap; Phase 1 and Phase 1-alt above follow the same rules
 - **canva-connector**: Sibling Playwright-driven autonomous connector - same shape, plus an Enterprise-allowlist branch
 - **jotform-connector**: Sibling hosted OAuth-only MCP connector - identical install pattern, no API-key fallback
 - **monday-connector**: Sibling project-management connector - similar conversational install

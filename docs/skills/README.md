@@ -363,7 +363,7 @@ Example: "I've finished this feature - help me integrate it cleanly."
 
 ## GROUP H - Connectors & Integrations
 
-Each connector walks you through a one-time authentication step by step and then lets you interact with the service in plain English. You almost never need to read the connector skill yourself - just ask your assistant: *"Connect [service]"* and it runs the full install and sign-in conversationally.
+Most connectors now start with Claude's own built-in connector: the skill opens the right page, you press Connect and sign in, and it proves the connection with one real read. Where the built-in version stops short (editing a Google Doc you already have, sending a Brevo campaign, a self-hosted WordPress site), the skill says so and runs the kit's deeper route for that one job. You almost never need to read the connector skill yourself - just ask your assistant: *"Connect [service]"* and it runs the whole thing conversationally.
 
 ### Connector Recommender *(ADVANCED)*
 Asks about your business and recommends which connectors will have the most impact - ranked by your industry and workflow.
@@ -374,7 +374,7 @@ Payments, invoices, subscriptions, customers, refunds.
 Example: "List my last 10 Stripe payments and show me the total."
 
 ### Xero Connector *(ADVANCED)*
-Xero accounting - invoices, contacts, reports, bank transactions, payroll.
+Xero accounting - the built-in connector for the headline numbers, the kit's own connection for the full service: every invoice, contact, bank line and report, plus draft invoices, bills and quotes raised for you to approve in Xero.
 Example: "Show me all outstanding invoices in Xero."
 
 ### QuickBooks Connector *(ADVANCED)*
@@ -414,7 +414,7 @@ Search, export, generate, and edit Canva designs - plus comments, folders, brand
 Example: "Export my latest Canva presentation as a PDF."
 
 ### GitHub Connector *(ADVANCED)*
-GitHub - read repositories, manage issues and pull requests, run code searches, trigger workflows.
+GitHub - read repositories, manage issues and pull requests, run code searches, trigger workflows. Runs on GitHub's command-line tool, signed in as you.
 Example: "Show me open pull requests in my acme/widget repository."
 
 ### CircleCI Connector *(ADVANCED)*
@@ -446,11 +446,11 @@ Slack - read channels, post messages, search, manage DMs.
 Example: "Post the weekly update to #general for me."
 
 ### Outlook & Microsoft 365 Connector *(ADVANCED)*
-Microsoft 365 - Outlook email, calendar, OneDrive, Teams, SharePoint, To Do.
+Microsoft 365 - Outlook email, calendar, OneDrive, Teams, SharePoint, To Do. Built-in connector first; the deeper route for personal accounts and where your admin has not switched on write access.
 Example: "Read my last 5 unread emails and draft a reply to the most urgent one."
 
 ### Google Chat Connector *(ADVANCED)*
-Google Chat spaces and direct messages via Google Workspace.
+Google Chat spaces and direct messages - switched on as part of the Google Workspace setup when you say your team uses Chat.
 Example: "Post this weekly update to our team's Google Chat space."
 
 ### Telegram Channel *(ADVANCED)*

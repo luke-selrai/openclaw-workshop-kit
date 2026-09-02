@@ -1,7 +1,7 @@
 ---
 name: hubspot-connector
-description: "Connect HubSpot to Claude by installing and authenticating its official MCP server. Use when the user asks to set up HubSpot or connect their CRM, or wants HubSpot work (contacts, companies, deals, tickets, notes, tasks, properties, workflows) and HubSpot isn't connected yet. Once connected, HubSpot runs directly through the mcp__hubspot__* tools."
-allowed-tools: mcp__hubspot__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect HubSpot to Claude by switching on its built-in connector, or by installing HubSpot's own private-app server when the built-in can't do a needed write. Use when the user asks to set up HubSpot or connect their CRM, or wants HubSpot work (contacts, companies, deals, tickets, notes, tasks, properties, workflows) and HubSpot isn't connected yet. Once connected, HubSpot runs through the mcp__claude_ai_HubSpot__* tools, or the mcp__hubspot__* tools on the kit's own route."
+allowed-tools: mcp__claude_ai_HubSpot__*, mcp__hubspot__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: CRM & Marketing
   tags:
@@ -25,14 +25,19 @@ metadata:
 
 ## Overview
 
-This skill lets you read and update a user's HubSpot CRM data on their behalf using the **official first-party `@hubspot/mcp-server`** (npm, beta). It has two phases:
+This skill lets you read and update a user's HubSpot CRM data on their behalf. There are two routes onto HubSpot, and **the built-in connector is the default**:
 
-- **Phase 1 - Install & Auth (autonomous).** Claude drives the entire `app.hubspot.com/private-apps/` flow inside a Playwright MCP browser. The user does exactly one thing: sign in to HubSpot in the Playwright window. Everything else - clicking *Create a private app*, filling the name and description, walking the *Scopes* tab to tick the required CRM scopes, clicking *Create app*, reading the Private App access token from the DOM, writing `~/.claude.json` - is autonomous. The user never copies, never pastes, never opens a tab themselves, never reads a token aloud, never types into chat anything other than confirmations.
-- **Phase 2 - Use Tools.** Once the connector is configured, you call the `mcp__hubspot__*` native tools to read and update CRM data.
+- **Phase 1 - the built-in HubSpot connector (default).** HubSpot's own hosted server, listed in Claude's connector directory at `https://claude.com/connectors/hubspot` (slug verified live, 2 Sep 2026). The user presses one button on their Claude account and signs in to HubSpot the way they normally do. The connection is **account-level**: connect once and it is available everywhere that account is signed in, including Claude Code. Tools arrive as `mcp__claude_ai_HubSpot__*`. Nothing is captured, stored or written to disk on this route - there are no credentials to handle.
+- **Phase 1-alt - the kit's own route** (only when a write through the built-in genuinely fails, or the session can't see built-in connectors at all). Claude drives the entire `app.hubspot.com/private-apps/` flow inside a Playwright MCP browser and registers the **official first-party `@hubspot/mcp-server`** (npm, beta) against a Private App access token. The user does exactly one thing: sign in to HubSpot in the Playwright window. Everything else - clicking *Create a private app*, filling the name and description, walking the *Scopes* tab to tick the required CRM scopes, clicking *Create app*, reading the Private App access token from the DOM, writing `~/.claude.json` - is autonomous. The user never copies, never pastes, never opens a tab themselves, never reads a token aloud, never types into chat anything other than confirmations. Tools arrive as `mcp__hubspot__*`.
+- **Phase 2 - Use Tools.** Whichever route connected, read and update CRM data through that route's tools.
 
-**Which phase to run** - Before any tool call, check whether the HubSpot MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.hubspot` entry. If it exists and has a `PRIVATE_APP_ACCESS_TOKEN` in its `env` block, treat the connector as authenticated and skip to Phase 2. Otherwise, run Phase 1.
+**Which phase to run** - always start at **Phase 0** below. It checks the built-in connector first, then the kit's own registration (an `mcpServers.hubspot` entry in `~/.claude.json`, or `%USERPROFILE%\.claude.json` on Windows, with a `PRIVATE_APP_ACCESS_TOKEN` in its `env` block). A working connection on either route means skip straight to Phase 2 - never set one route up on top of the other.
 
-### What this skill does NOT use
+### Read-only or read-and-write? Verify live; never route on the badge
+
+The directory page badges HubSpot **Read** (checked 2 Sep 2026). **That badge lags reality.** HubSpot says the underlying server went read / create / update GA on **13 April 2026** across contacts, companies, deals, tickets, custom objects, products, line items and engagements. So treat the built-in as read *and* write, prove it with one harmless write the first time a write is needed (Phase 1, Step 5b), and fall back to the kit's route **only on a real failure** - never on the badge alone.
+
+### What the kit's own route does NOT use
 
 - **`@hubspot/cli` (`hs` command)** - that is a CMS development tool for themes, HubL, and serverless functions. Wrong audience for a CRM connector. Do not install it.
 - **OAuth / Client ID / Client Secret / Redirect URI** - HubSpot Private Apps use a simple access token. No OAuth flow needed.
@@ -40,10 +45,12 @@ This skill lets you read and update a user's HubSpot CRM data on their behalf us
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules (Phase 1 and Phase 1-alt)
 
-The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work, the user only signs in to HubSpot once. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Both routes are autonomous - Claude does the work, the user only signs in to HubSpot once. Every message you send during either route must follow these rules:
 
+- **Which browser opens, and why.** On the built-in route you open the user's **own everyday browser** - that is where they are already signed in to Claude and to HubSpot - and it reads nothing from that browser. On the kit's own route Claude uses a separate window it drives itself, because that route reads the connection key off the page. The two rules do not conflict; they belong to different routes.
+- **Never ask for a password, a sign-in code, or a screenshot of a sign-in screen** on either route.
 - **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only action you ever request is "please sign in to the browser window I just opened."
 - **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, environment variable, Playwright, browser automation, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page" - not "Playwright" or "Chromium". If you must name a technical concept, plainly:
   - Private App access token → **"your HubSpot key"**
@@ -53,14 +60,70 @@ The user is a non-technical business owner. Phase 1 is autonomous - Claude does 
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening HubSpot for you now"), once when you need them ("please sign in"), once when you're done ("your HubSpot is now connected"). No commentary in between.
 - **React to success and failure warmly.** Good: "That worked - your HubSpot is now connected." Bad: "MCP server initialized with 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem - let me try a different way," then diagnose silently.
-- **Short responses.** Maximum 8 lines per message during Phase 1.
+- **Short responses.** Maximum 8 lines per message while connecting.
 - **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
 - **No fabricated UI assertions.** Don't reference button colours ("the orange button") or specific positioning ("top-right corner") - verify from the live snapshot. HubSpot's admin UI changes frequently.
 - **Never echo the HubSpot key** back to the user. Never include it in any output visible to the user.
 
 ---
 
-## PHASE 1 - Install & Auth (autonomous via Playwright)
+## PHASE 0 - Is HubSpot already connected?
+
+Run these silently, in order, and act on the first that answers.
+
+1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai HubSpot` (match the vendor word case-insensitively - the directory renders it "Hubspot" in places).
+   - `✔ Connected` → skip to **Phase 2**. Prove it first with one read from the `mcp__claude_ai_HubSpot__*` namespace (list a couple of contacts) before saying so.
+   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` in the user's own browser (`open` on Mac, `xdg-open` on Linux, `start "" <url>` on Windows) and say: *"Your HubSpot connection needs a quick re-sign-in. Press Reconnect next to HubSpot, sign in, and tell me when it says Connected."* Then re-run this check.
+   - no such line → continue.
+2. **The kit's own route.** Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.hubspot` entry with a `PRIVATE_APP_ACCESS_TOKEN` in its `env` block. If it is there and `mcp__hubspot__hubspot-get-user-details` returns the portal name, keep using it - say *"HubSpot is already connected"* and skip to **Phase 2**. Do not set the built-in up on top of a working connection.
+3. **Nothing found** → **Phase 1**.
+
+**Local entry precedence.** A server registered locally at the same URL takes precedence and hides the built-in one. If a machine that ran the kit's route still has a working `mcpServers.hubspot` entry, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of HubSpot's tools.
+
+---
+
+## Route by need - built-in or the kit's route?
+
+Before installing anything, ask one question in plain English: **what does the user want Claude to do with HubSpot?** Then route what they name:
+
+| What the user wants | Route |
+|---|---|
+| Look things up - contacts, companies, deals, tickets, properties, workflows, "how many deals are open" | **Built-in** |
+| Everyday CRM writes - create or update contacts, companies, deals, tickets, custom objects, products, line items, notes and tasks | **Built-in** (read/create/update GA since 13 Apr 2026; the Read badge is stale) |
+| A write that **genuinely fails** through the built-in - a real tool error, not a guess | The kit's own route (Phase 1-alt) |
+| The session can't see built-in connectors at all (Phase 1 Step 1 fails), or the user explicitly asks for the local server | The kit's own route (Phase 1-alt) |
+
+Both routes can coexist on one machine. Never tear one down to set the other up, and never burden the user with the kit's extra setup when the built-in already covers what they asked for.
+
+---
+
+## PHASE 1 - Switch on the built-in HubSpot connector (the default route)
+
+This is a one-time, once-per-account job. The only thing the user does is press one button and sign in.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run **Phase 1-alt** instead.
+
+**Step 2 - Open the connector page for them.** Say: *"I'm opening HubSpot's page in your browser. Press **Connect to Claude**, sign in to HubSpot the way you normally do, and say yes when it asks for access. That is the only part only you can do - tell me when it says Connected."* Then open `https://claude.ai/directory/hubspot` in their own browser (`open` / `xdg-open` / `start`). If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "HubSpot" → Connect.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+
+**Step 4 - Verify.** `claude mcp list` again. `claude.ai HubSpot … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+
+**Step 5 - Prove it (read).** Call one real read through the connector - list a couple of contacts from the `mcp__claude_ai_HubSpot__*` namespace. Only a real answer counts. A tool error here is not "connected".
+
+**Step 5b - Prove it (write), the first time a write is wanted.** The directory badge says Read; HubSpot says writes went GA on 13 Apr 2026. Settle it with a real probe, not the badge: ask the user to nominate a record and create a **note** on it (a note is the least invasive write, and they can remove it in HubSpot in one click), or simply let their first genuine write be the probe. If it succeeds, the built-in writes - stay on it. If it fails with a real tool error, say so plainly and run **Phase 1-alt** for the write half. Do not pre-emptively fall back.
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now.
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude admin has to switch HubSpot on for the organisation first. Say so plainly and stop; do not fall back to the kit's route just to get past an admin gate.
+
+---
+
+## PHASE 1-ALT - Install & Auth (autonomous via Playwright)
+
+**Run this only when** a write through the built-in genuinely failed (Step 5b), the session can't see built-in connectors (Step 1 failed), the directory listing is missing on the user's account, or the user explicitly wants the local server. Otherwise stay on Phase 1.
 
 Claude drives the user's browser end-to-end via Playwright MCP. The user's only role is signing in to HubSpot when prompted. Claude handles every other step - navigation, form fills, scope ticks, app creation, token capture, config write, verify.
 
@@ -215,9 +278,11 @@ Tell the user, in one short message:
 
 ## PHASE 2 - Use Tools
 
-Once the connector is configured, use the `mcp__hubspot__*` MCP tools below to answer questions and make changes in HubSpot. The `@hubspot/mcp-server` provides ~20 native tools covering CRM data CRUD.
+Once the connector is configured, answer questions and make changes in HubSpot through whichever route connected.
 
-### Tool Reference
+**Which tool namespace.** Through the built-in connector the tools are `mcp__claude_ai_HubSpot__*`; through the kit's own route they are `mcp__hubspot__*`. **The tool names differ materially between the two** - the catalogue below is the `@hubspot/mcp-server` naming and applies to the kit's route only. On the built-in route, list what is actually in the `mcp__claude_ai_HubSpot__*` namespace and match by what each tool does, not by the names in this table. Everything under "Prompt-to-Tool Mapping", "Error Handling" and "Behaviour Guidelines" below applies to both routes; only the literal tool names are route-specific.
+
+### Tool Reference (the kit's own route)
 
 The official MCP server exposes tools with the prefix `mcp__hubspot__`. The exact tool names follow the pattern `mcp__hubspot__hubspot-<action>`. Below are the known tools and when to use them:
 
@@ -300,7 +365,7 @@ The official MCP server exposes tools with the prefix `mcp__hubspot__`. The exac
 | "What properties does a contact have?" | `hubspot-list-properties` (objectType: contacts) |
 | "Show me my workflows" | `hubspot-list-workflows` |
 | "What HubSpot account am I connected to?" | `hubspot-get-user-details` |
-| "Connect my HubSpot" / "Help me set up HubSpot" | **Run Phase 1** |
+| "Connect my HubSpot" / "Help me set up HubSpot" | **Run Phase 0**, then Phase 1 |
 
 ---
 
@@ -310,17 +375,17 @@ When a HubSpot tool call fails, diagnose and respond in plain English. Never sho
 
 | Error | What to say | How to fix |
 |---|---|---|
-| 401 Unauthorized / Invalid token | "Your HubSpot connection has expired or the key was revoked - let me help you reconnect." | Run Phase 1 from Step 2 (create a new Private App or copy a fresh token) |
+| 401 Unauthorized / Invalid token | "Your HubSpot connection has expired or the key was revoked - let me help you reconnect." | Run Phase 1-alt from Step 2 (create a new Private App or copy a fresh token) |
 | 403 Forbidden / Missing scope | "I need an extra permission to do that. Let me walk you through adding it." | Guide user to Private App → Scopes tab → tick the needed scope → Save. Then retry. |
 | 429 Rate limited | "HubSpot is asking me to slow down. I will wait a moment and try again." | Wait 10 seconds and retry once. If still 429, tell the user and suggest trying again in a minute. |
-| "Token revoked" | "Your connection key has been revoked in HubSpot. Let me help you create a new one." | Run Phase 1 from Step 2 |
+| "Token revoked" | "Your connection key has been revoked in HubSpot. Let me help you create a new one." | Run Phase 1-alt from Step 2 |
 | Object not found (404) | "I couldn't find that record - let me search for it." | Use search tool to help find the correct object |
 | MCP server not running | "The HubSpot connection isn't active yet. Please restart Claude Code so it picks up the new settings." | User restarts Claude Code |
 | Any other API error | "Something went wrong with HubSpot - let me try again." | Retry once; if still failing, check token validity |
 
 ---
 
-## Scope Limitations
+## Scope Limitations (the kit's own route)
 
 The HubSpot MCP connector **can** do (via `@hubspot/mcp-server`):
 - Read and write contacts, companies, deals, and tickets
@@ -341,6 +406,8 @@ The HubSpot MCP connector **cannot** do (deferred to a future version):
 - Delete CRM records (use the HubSpot UI for deletions)
 - Send emails directly
 - Trigger or modify workflows (read-only)
+
+**On the built-in route** the covered surface is HubSpot's own hosted server: contacts, companies, deals, tickets, custom objects, products, line items and engagements - read, create and update (GA 13 Apr 2026). Deletions, Marketing/Service/Commerce Hub operations and file uploads are out of scope on **both** routes; those stay in HubSpot's own screens.
 
 ---
 
@@ -363,6 +430,6 @@ The HubSpot MCP connector **cannot** do (deferred to a future version):
 
 ## Related Skills
 
-- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: The source pattern for conversational bootstrap; the connect flows above follow the same rules
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting HubSpot auth or API errors
 - **xero-connector**: Sibling accounting connector - similar MCP pattern for a different platform

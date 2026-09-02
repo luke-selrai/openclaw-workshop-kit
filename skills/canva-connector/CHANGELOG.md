@@ -4,6 +4,60 @@ All notable changes to this skill, oldest at the bottom. Pulled from the
 commits listed under `git log -- skills/canva-connector/` and from the
 sibling-PRs that touched the connector via cross-cutting refactors.
 
+## [1.5.0] - 2026-09-02
+
+**Native-first (CORE-395).** Canva is in Claude's own connector directory, so the
+built-in connector is now the default route and the kit's Playwright install is
+the fallback. Both reach the same `https://mcp.canva.com/mcp` server and the same
+37 tools; the built-in is one button press with nothing registered on the user's
+computer, and its directory entry additionally ships three ready-made Canva
+skills (Branded Presentation, Design Translation, Social Media Resize). It needs
+a **paid Claude plan**, which is the main reason the kit's route stays.
+
+### Added
+
+- **SKILL.md Phase 0 - "Is Canva already connected?"** Replaces the old
+  pre-flight resume check and promotes the claude.ai-layer probe (found on
+  Rodolfo's box in the 1.4.0 smoke) to the first thing checked. `claude mcp list`
+  → `claude.ai Canva` (`✔ Connected` → Phase 2 after a real read;
+  `! Needs authentication` → the Reconnect path), then the `mcpServers.canva`
+  Node probe, then Phase 1. Notes the local-entry-takes-precedence rule and the
+  no-shell branch.
+- **SKILL.md Phase 1 - "Switch on the built-in Canva connector".** Six steps:
+  confirm the session can see built-in connectors (`claude auth status` →
+  `"authMethod": "claude.ai"`, plus the two kill-switches), open
+  `https://claude.ai/directory/canva` in the user's own browser, wait, verify,
+  prove with an empty-query design search, hand off. Carries the mandatory
+  `user_intent` parameter into the smoke call, repeats the ~15-permission consent
+  screen explanation, and separates the Claude-side **Request** gate from the
+  Canva Enterprise allowlist block.
+- **Plan notes at the head of Phase 1**: built-in needs a paid Claude plan;
+  Canva-side gating (brand kits, `resize-design` on Pro+, brand templates and
+  autofill on Enterprise) is unchanged by the route.
+
+### Changed
+
+- **The old Phase 1 is now `PHASE 1-alt, Install & Auth`**, with a short
+  when-to-use paragraph that names the free-Claude-plan case explicitly. All six
+  steps, the scope-summary extraction, the Enterprise interstitial detection and
+  the no-API-key-fallback statement are unchanged.
+- **Frontmatter `description`** rewritten to the Template B two-route shape;
+  `allowed-tools` gains `mcp__claude_ai_Canva__*`.
+- **Phase 2** opens with a namespace line: `mcp__claude_ai_Canva__*` on the
+  built-in connector, `mcp__canva__*` on the kit's route, same hyphenated tool
+  names on both, same `user_intent` requirement.
+- **Prompt-to-Tool mapping and the error-handling table** route re-auth through
+  Phase 0 rather than "walk Phase 1 from Step 3", since the fix differs by route.
+- **The Enterprise note** now says the Canva-side allowlist block applies to both
+  routes; **Related Skills** notes the three skills the directory entry ships.
+- **Communication rules** retitled to cover both routes.
+
+### Not touched
+
+- The 37-tool reference, rate limits, plan-gating table, editing-transaction
+  flow, scope limitations and Behaviour Guidelines are unchanged.
+- `examples/` and `scripts/` are unchanged.
+
 ## [1.4.0] - 2026-06-05
 
 Live-smoke release combining the Promotion-prep evidence pack with

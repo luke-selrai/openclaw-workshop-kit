@@ -1,7 +1,7 @@
 ---
 name: gusto-connector
-description: "Connect Gusto to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Gusto, or wants payroll work (employees, pay schedules, payroll history, compensation, paychecks, time off) and the Gusto credentials aren't in place yet. Once connected, Gusto runs directly against its API with the stored credentials."
-allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
+description: "Connect Gusto to Claude by switching on its built-in connector, or by capturing its API credentials when that route is unavailable. Use when the user asks to set up or connect Gusto, or wants payroll work (employees, pay schedules, payroll history, compensation, time off) and Gusto isn't connected yet. Reads and reports only: this skill never runs, submits or approves payroll on either route. Once connected, Gusto runs through the mcp__claude_ai_Gusto__* tools or its stored credentials."
+allowed-tools: Bash, Read, Write, Edit, mcp__claude_ai_Gusto__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
   tags:
@@ -14,7 +14,7 @@ metadata:
     - oauth
   pairs-with:
     - skill: quickbooks-connector
-      reason: Sibling Phase 0 mode-detection + Phase 1 Playwright-driven autonomous install. QBO is accounting; Gusto is the payroll side of the same SMB operations.
+      reason: Sibling Phase 0 mode-detection + Playwright-driven autonomous install on the kit's own route. QBO is accounting; Gusto is the payroll side of the same SMB operations.
     - skill: google-ads-connector
       reason: Sibling Tier-1 Direct-REST connector with the same test/live mode-detection split (Demo vs Production for Gusto; Test vs Basic Access for Google Ads).
     - skill: myob-connector
@@ -27,45 +27,56 @@ metadata:
 
 ## Overview
 
-This skill lets you read and operate a user's Gusto payroll account on their behalf using **Gusto API v1 REST endpoints** (no MCP server, no first-party CLI - Direct-REST + Playwright pattern, sibling to `myob-connector` and `google-ads-connector`).
+This skill lets you read and report on a user's Gusto payroll account on their behalf. It is a Tier-1 connector aimed at **US SMBs running W-2 payroll** - the data it reads (EIN, USD pay, W-2 employees, US pay schedules) is US-payroll-shaped throughout.
 
-It is a Tier-1 connector aimed at **US SMBs running W-2 payroll** - the data it reads (EIN, USD pay, W-2 employees, US pay schedules) is US-payroll-shaped throughout.
+There are two routes, and **the built-in connector is the default**:
 
-It has two phases:
+- **Phase 1 - the built-in Gusto connector (default).** Gusto's own hosted server, listed in Claude's connector directory at `https://claude.com/connectors/gusto` (verified live, 2 Sep 2026). The participant connects it once on their Claude account by pressing one button, and it is then available everywhere that account is signed in, including Claude Code. It queries and analyses real HR and payroll data in plain English: payroll trends and dashboards, people and employee data, company insights and reports. Tools arrive as `mcp__claude_ai_Gusto__*`. **Requires a paid Claude plan.** Its big advantage over the route below is that it skips the partner-application build entirely, and with it the 1-2 week Production review - it connects to the participant's real Gusto immediately.
+- **Phase 1-alt - the kit's own route** (only when the built-in can't be used). **Gusto API v1 REST endpoints** (Direct-REST + Playwright pattern, sibling to `myob-connector` and `google-ads-connector`). Claude drives `dev.gusto.com` (Demo mode) or `dev.gusto.com` Production tab via Playwright MCP to sign the participant in, create a Partner Application, capture client_id + client_secret + redirect_uri configuration, run the OAuth2 authorization-code flow via a local loopback listener on `localhost:8765`, exchange the code for access_token + refresh_token, list accessible companies, and persist everything to `~/.config/gusto/credentials.json` (mode 0600). The participant's manual moments: signing in to Gusto once + approving the OAuth consent screen. This route is API-key-based and it is the only one that offers a **Demo mode** - fake payroll data to practise on.
+- **Phase 2 - Use Tools.** Whichever route connected: company, employees, pay schedules, payroll history, compensation, time off. On the kit's own route this is `curl` against Gusto REST with `Authorization: Bearer <access_token>`; the base URL switches between `https://api.gusto-demo.com/v1/` (Demo mode) and `https://api.gusto.com/v1/` (Production mode) based on `mode` in credentials.json, and writes are gated by production-mode confirmation prose.
 
-- **Phase 1 - Install & Connect (autonomous via Playwright + REST).** Claude drives `dev.gusto.com` (Demo mode) or `dev.gusto.com` Production tab via Playwright MCP to sign the participant in, create a Partner Application, capture client_id + client_secret + redirect_uri configuration, run the OAuth2 authorization-code flow via a local loopback listener on `localhost:8765`, exchange the code for access_token + refresh_token, list accessible companies, and persist everything to `~/.config/gusto/credentials.json` (mode 0600). The participant's manual moments: signing in to Gusto once + approving the OAuth consent screen.
-- **Phase 2 - Use Tools (Direct-REST via curl).** Once `credentials.json` is configured, you `curl` Gusto REST endpoints with `Authorization: Bearer <access_token>`. The base URL switches between `https://api.gusto-demo.com/v1/` (Demo mode) and `https://api.gusto.com/v1/` (Production mode) based on `mode` in credentials.json. Writes are gated by production-mode confirmation prose.
+---
 
-**Two modes, picked at Phase 0:**
+## ⛔ The payroll refusal - both routes, no exceptions
+
+**This skill does not run, submit or approve payroll from Claude. That is true on the built-in connector as well as on the kit's own route, and it is a deliberate choice, not a missing feature.**
+
+Gusto's built-in connector *can* run an already-scheduled payroll for eligible customers - the tool exists and the connector's directory page advertises it. **Do not call it.** The kit's own route deliberately never implemented the equivalent (`POST /payrolls/{id}/submit` is out of scope by design), and connecting a different way does not change the decision. Moving money to real people on an agent's say-so is not a thing this skill does.
+
+When a participant asks Claude to run, submit or approve a payroll, on either route, say so plainly and stop:
+
+> *"Running payroll isn't something I'll do - it moves real money to real people, and that click should be yours. Open it in Gusto and press it there. I can check the numbers with you first if that helps."*
+
+Then offer what this skill *is* for: check the totals before they submit, compare against last cycle, flag anything that looks off. Never route around the refusal by suggesting the other connection route.
+
+Time-off approvals (Patterns 9-10) are a separate, narrower thing and remain available on the kit's own route behind their existing confirmation gates. They are not payroll runs.
+
+---
+
+**Two modes on the kit's own route, picked at Phase 0.** The built-in connector has no Demo mode - it connects to the participant's real Gusto - so if the participant wants fake data to practise on, that is a reason to take Phase 1-alt.
 
 | Mode | When | What it touches | Wait |
 |---|---|---|---|
 | **Demo** | Default for first-time install; recommended for "I want to try it today." | Demo company data on api.gusto-demo.com - fake employees, fake paychecks, fake time-off. No real money, no real PII. | Immediate (Gusto auto-creates a Partner Application; the participant manually creates a Demo Company at `/demo_companies/new` - separate one-page wizard with name + admin email + password). |
 | **Production** | When the participant says "I want to see my real payroll data." | Real Gusto company on api.gusto.com - real employees, real money. | 1-2 week review by Gusto's partner-app team. Application must explain the use case. |
 
-**Demo-by-default is the right framing** (unlike QBO where Production-Development tier is immediate). Gusto's Production review is a 1-2 week wait; the SKILL defaults to Demo so participants can use the connection today, with Production as an explicit upgrade path.
+**Demo-by-default is the right framing *within this route*** (unlike QBO where Production-Development tier is immediate). Gusto's Production review is a 1-2 week wait, so when Phase 1-alt is the route being run it defaults to Demo - participants can use the connection today, with Production as an explicit upgrade path. Note the asymmetry this creates: on the built-in connector there is no wait *and* no practice mode, so "real data today" points at Phase 1 while "let me practise first" points at Phase 1-alt in Demo.
 
-**Which phase to run** - Before any tool call:
-
-```bash
-test -f "$HOME/.config/gusto/credentials.json" && jq -r '.mode // "missing"' "$HOME/.config/gusto/credentials.json" 2>/dev/null || echo missing
-```
-
-- `demo` or `production` → credentials present. Smoke-test (`GET /v1/token_info`); on success → Phase 2 with appropriate gates. Captured 2026-06-02: `/v1/me` returns `404 not_found` on the current Gusto API version; `/v1/token_info` is the canonical token + resource introspection endpoint.
-- `pending-production` → Production application submitted, waiting for Gusto review. Phase 0 polls status; falls through to Phase 2 in Demo mode meanwhile.
-- `missing` → run Phase 0 + Phase 1.
+**Which phase to run** - always start at Phase 0 below. It checks the built-in connector first, then the kit's own `credentials.json`. A working connection on either route means skip straight to Phase 2 - never set one route up on top of the other.
 
 ---
 
-## Golden rule - do not open the participant's own browser
+## Golden rule - do not open the participant's own browser (the kit's own route)
 
-Every Phase 1 step that requires sign-in runs inside the Playwright MCP browser. Never tell the participant to "open a link in your browser." Claude navigates; the participant types passwords directly into the Playwright window. Same as `myob-connector` and `quickbooks-connector`.
+Every Phase 1-alt step that requires sign-in runs inside the Playwright MCP browser. Never tell the participant to "open a link in your browser." Claude navigates; the participant types passwords directly into the Playwright window. Same as `myob-connector` and `quickbooks-connector`.
 
-If Playwright MCP is unavailable, halt and point the participant at the install instructions; do not fall back to opening their default browser.
+If Playwright MCP is unavailable, halt and point the participant at the install instructions; do not fall back to opening their default browser for **this** route.
+
+> **The one carve-out: Phase 1, the built-in connector.** That route reads nothing off any page - no credential is captured, so there is nothing to leak - and the page it opens is the participant's own Claude settings, which only loads in the browser where they are already signed in. So Phase 1 Step 2 deliberately opens the link in the participant's **own everyday browser**, and does not drive it with Playwright. The golden rule above governs Phase 1-alt only.
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules for connecting (Phase 1 and Phase 1-alt)
 
 The participant is a non-technical business owner (and Gusto specifically - they're probably an HR admin or business owner who runs payroll). Plain English only:
 
@@ -74,18 +85,57 @@ The participant is a non-technical business owner (and Gusto specifically - they
 - **Tell them what is about to happen.** *"I'm opening Gusto's developer settings now - sign in when you see the page. About 90 seconds total."*
 - **React warmly.** Good: *"Connected to your demo Gusto with **3 employees** loaded."* Bad: *"OAuth exchange returned 200, refresh_token persisted to disk."*
 - **Never show error messages directly.** Translate.
-- **Short responses.** Maximum 8 lines per message during Phase 1.
+- **Short responses.** Maximum 8 lines per message while connecting.
 - **Never echo credentials** - client_id, client_secret, access_token, refresh_token.
 
 ---
 
-## ⛔ Pre-flight check
+## ⛔ Pre-flight check (Phase 1-alt only)
 
-Verify Playwright MCP tools are available (`ToolSearch +playwright`). If absent, halt; do not start Phase 0.
+Before running **the kit's own route**, verify Playwright MCP tools are available (`ToolSearch +playwright`). If absent, that route cannot run - which is a reason to prefer Phase 1, not a reason to stop. Phase 0 and Phase 1 need no browser automation at all.
 
 ---
 
-## PHASE 0 - Mode + state detection
+## PHASE 0 - Is Gusto already connected?
+
+Run these silently, in order, and act on the first that answers.
+
+1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Gusto`.
+   - `✔ Connected` → skip to Phase 2. Prove it first with one **read** from the `mcp__claude_ai_Gusto__*` namespace - the company name and how many people are on payroll - before saying so. Never smoke-test with anything that touches a payroll run.
+   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the participant and say: *"Your Gusto connection needs a quick re-sign-in. Press Reconnect next to Gusto, sign in, and tell me when it says Connected."* Then re-run this check.
+   - no such line → continue to step 2.
+2. **The kit's own route.** Read the stored credentials (Step 0.1 below) and act on the state it reports. If it reports `demo` or `production` and the smoke test passes, keep using it - say *"Gusto is already connected"* and skip to Phase 2 with the matching gates. Do not set the built-in up on top of a working connection.
+3. **Nothing found** → Phase 1.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Gusto's read tools.
+
+---
+
+## PHASE 1 - Switch on the built-in Gusto connector (the default route)
+
+This is a one-time, once-per-account job. The only thing the participant does is press one button and sign in. **A paid Claude plan is required** - on a free account the connector will not be available, and that is the moment to fall back to Phase 1-alt.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the participant in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
+
+**Step 2 - Open the connector page for them.** Say: *"I'm opening Gusto's page in your browser. Press **Connect to Claude**, sign in to Gusto the way you normally do, and say yes when it asks for access. That is the only part only you can do - tell me when it says Connected."* Then open `https://claude.com/connectors/gusto` (or `https://claude.ai/directory/gusto`) in **their own everyday browser** (`open` on Mac, `xdg-open` on Linux, `start "" <url>` on Windows) - see the carve-out under the golden rule above for why this route, unlike Phase 1-alt, uses their own browser. If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Gusto" → Connect.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+
+**Step 4 - Verify.** `claude mcp list` again. `claude.ai Gusto … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real **read** through the connector from the `mcp__claude_ai_Gusto__*` namespace - the company name and headcount is the right shape. Only a real answer counts. A tool error here is not "connected". Never prove a connection with a payroll action.
+
+**Step 6 - Hand off.** Three lines: it's connected; it is their **real** payroll data, not a practice copy; and three things they can ask for now - for example *"list my employees"*, *"show me the last payroll"*, *"how has my payroll cost moved this year?"*. Say in the same breath that running payroll stays in Gusto (see the payroll refusal above).
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude admin has to switch Gusto on for the organisation first. Say so plainly and stop; do not fall back to the kit's route just to get past an admin gate.
+
+---
+
+## PHASE 1-alt - The kit's own route (only when the built-in can't be used)
+
+Run this **only** when one of these is true: Step 1 above failed (this session cannot see built-in connectors); the participant is not on a paid Claude plan; the Gusto listing is missing on their account; they explicitly want the local setup; or **they want Demo mode** - fake payroll data to practise on, which the built-in connector does not offer. Otherwise Phase 1 is the route.
+
+Everything from here to the end of Phase 1-alt is that route. It needs Playwright MCP (see the pre-flight check above) and it is the only route with the Demo / Production mode split.
 
 ### Step 0.1 - Read existing credentials
 
@@ -102,9 +152,11 @@ echo "$STATE"
 States:
 
 - `missing` → continue to Step 0.2.
-- `demo` → Phase 2 with no gates (fake data).
-- `production` → Phase 2 with real-data gate + per-write gate.
+- `demo` → smoke-test, then Phase 2 with no gates (fake data).
+- `production` → smoke-test, then Phase 2 with real-data gate + per-write gate.
 - `pending-production` → Production application in flight; poll Gusto for status (Step 0.3) or fall through to Phase 2 in Demo mode while waiting.
+
+The smoke test is `GET /v1/token_info`. Captured 2026-06-02: `/v1/me` returns `404 not_found` on the current Gusto API version; `/v1/token_info` is the canonical token + resource introspection endpoint.
 
 ### Step 0.2 - Ask Demo or Production
 
@@ -112,8 +164,8 @@ States:
 
 Map the reply:
 
-- "demo", "test", "today", "play", default → `MODE=demo` → Phase 1 (Demo path).
-- "real", "live", "production", "actual" → `MODE=production` → Phase 1 (Production path), set expectation about the 1-2 week wait.
+- "demo", "test", "today", "play", default → `MODE=demo` → the Demo path below.
+- "real", "live", "production", "actual" → `MODE=production` → the Production path below, and set expectation about the 1-2 week wait. **If they want real data and are only on this route because they landed here by accident, stop and check:** the built-in connector (Phase 1) reaches their real Gusto immediately, with no application and no review. Offer that first; only continue here if it genuinely is not available to them.
 
 Do NOT say "sandbox" to the participant - say "demo".
 
@@ -130,7 +182,7 @@ echo "Applied $DAYS_AGO days ago"
 
 ---
 
-## PHASE 1 - Install & Connect
+## PHASE 1-alt, continued - Install & Connect the kit's own route
 
 ### Step 1 - Welcome
 
@@ -214,7 +266,7 @@ mv "$HOME/.config/gusto/credentials.json.tmp" "$HOME/.config/gusto/credentials.j
 
 (The full token write happens in Step 9 once Gusto approves and OAuth completes. Until then `access_token`/`refresh_token`/`company_uuid`/`expires_at` are absent from the file - Phase 0.3 detects this absence to know the application is still pending.)
 
-Optionally, in Production mode, also drop the participant into Demo mode in parallel so they have a working connection while waiting: run the rest of Phase 1 against the Demo tab as a fallback (`MODE=demo` for the actual token capture path), and store the demo tokens alongside the pending-production marker. Phase 2 uses Demo creds; Phase 0.3 watches for Production approval.
+Optionally, in Production mode, also drop the participant into Demo mode in parallel so they have a working connection while waiting: run the rest of Phase 1-alt against the Demo tab as a fallback (`MODE=demo` for the actual token capture path), and store the demo tokens alongside the pending-production marker. Phase 2 uses Demo creds; Phase 0.3 watches for Production approval.
 
 ### Step 4 - DOM-extract client_id and client_secret via clipboard transit
 
@@ -437,22 +489,25 @@ Expect: a company name like `Acme Demo Company (abc-...)` for Demo mode, or the 
 
 ## PHASE 2 - Use Tools
 
-Every call:
+**Which tools you have depends on which route connected.**
 
-1. Reads `credentials.json`.
-2. Checks `expires_at`; if expired, refreshes via Step 2.0 below.
-3. Calls Gusto REST with `Authorization: Bearer <access_token>`.
-4. Applies mode-aware gates.
+- **Through the built-in connector (Phase 1):** the tools are `mcp__claude_ai_Gusto__*`. Names come from Gusto's own hosted server, so discover them in the session rather than translating an endpoint from the patterns below. The data shape is the same either way, so the presentation rules still apply - format money as $X.XX, resolve employee UUIDs to names before showing them, summarise before you dump. **Two things differ and both matter:** this is always the participant's **real** payroll (there is no Demo mode here, so treat every session as `MODE=production` and run Gate 1 below on the first call), and the namespace **includes a payroll-run tool that this skill does not call** - see the payroll refusal at the top of this file.
+- **Through the kit's own route (Phase 1-alt):** every call
+  1. Reads `credentials.json`.
+  2. Checks `expires_at`; if expired, refreshes via Step 2.0 below.
+  3. Calls Gusto REST with `Authorization: Bearer <access_token>`.
+  4. Applies mode-aware gates.
 
 ### Mode-aware behaviour
 
-- `MODE=demo` - fake data, freely callable. No gates.
-- `MODE=production` - real employees, real money. **Real-data gate** + **destructive-op gate** apply.
+- **Built-in connector** - always real employees, real money. There is no demo variant, so treat it as `MODE=production`: **Real-data gate** applies on the first call of a session.
+- `MODE=demo` (kit's own route) - fake data, freely callable. No gates.
+- `MODE=production` (kit's own route) - real employees, real money. **Real-data gate** + **destructive-op gate** apply.
 - `MODE=pending-production` - same data path as Demo (Demo credentials in use while Gusto reviews); when participant says "check my Gusto approval", run Phase 0.3.
 
-### Production-mode gate 1 - Real-data confirmation (first call per session, MODE=production)
+### Production-mode gate 1 - Real-data confirmation (first call per session; MODE=production, and always on the built-in connector)
 
-Fetch company name silently:
+Fetch company name silently - on the built-in route, with a read tool from the `mcp__claude_ai_Gusto__*` namespace rather than the curl below:
 
 ```bash
 curl -sf "$API_ENDPOINT/companies/$CUUID" -H "Authorization: Bearer $ACCESS_TOKEN" | jq -r .name
@@ -638,9 +693,9 @@ gusto_put "/time_off_requests/$TOR_UUID" "$(jq -n --arg r "$REASON" '{status:"de
 | "Pending time-off" / "Approval queue" | Pattern 8 |
 | "Approve [employee]'s leave" | Pattern 9 (gated) |
 | "Deny [employee]'s leave" | Pattern 10 (gated) |
-| "Connect Gusto" / "Set up Gusto" | **Run Phase 0** |
-| "Check my Gusto approval" | **Run Phase 0.3** (only when state=pending-production) |
-| "Run payroll" / "Submit payroll" | **NOT in v1** - tell the participant: "Running payroll is too high-stakes for me to do automatically. Please submit it from Gusto's web UI." |
+| "Connect Gusto" / "Set up Gusto" | **Run Phase 0**, then Phase 1 (or Phase 1-alt if the built-in is unavailable) |
+| "Check my Gusto approval" | **Run Phase 0.3** (kit's own route only, when state=pending-production) |
+| "Run payroll" / "Submit payroll" / "Approve the payroll" | **Refused on both routes** - see the payroll refusal at the top of this file. Say it plainly and stop, even where a built-in tool for it exists. Offer to check the numbers with them instead. |
 
 ---
 
@@ -649,12 +704,13 @@ gusto_put "/time_off_requests/$TOR_UUID" "$(jq -n --arg r "$REASON" '{status:"de
 | Error | What it means | How to respond |
 |---|---|---|
 | HTTP 401 `Unauthorized` | Access token expired | Run Step 2.0 (refresh), retry once |
-| HTTP 401 with `invalid_grant` on refresh | Refresh token rotated out / revoked | Tell participant: "Looks like the connection was disconnected. Let me reconnect." Run Phase 1 from Step 5 (re-OAuth). |
+| HTTP 401 with `invalid_grant` on refresh | Refresh token rotated out / revoked | Tell participant: "Looks like the connection was disconnected. Let me reconnect." Run Phase 1-alt from Step 5 (re-OAuth). |
 | HTTP 403 `Forbidden` on Demo endpoints | Wrong API host (`api.gusto.com` instead of `api.gusto-demo.com` or vice versa) | Check `mode` in credentials.json matches the `api_endpoint` host. |
 | HTTP 404 `Resource not found` on `/companies/<uuid>` | Company UUID is wrong or the connected role lost access | Re-run `/v1/token_info` (NOT `/v1/me` - that endpoint doesn't exist on current Gusto API) to refresh accessible companies via `resource.uuid`. |
 | HTTP 422 `Validation error` on Pattern 9/10 | Time-off request is no longer pending (already approved/denied by someone else) | Translate: "Looks like that request was already handled. Want me to check the queue again?" |
 | HTTP 429 | Per-minute rate cap (200/min default in Demo, 1000/min in Production) | Wait 60s, retry once. Surface plain English if still hitting. |
 | Network error to api.gusto.com | DNS / outbound block | Plain English. Mention check VPN / corporate firewall. |
+| Built-in connector: any auth failure, or its tools have vanished | The account-level connection lapsed or was removed | Re-run Phase 0 step 1. `! Needs authentication` → Reconnect at `https://claude.ai/customize/connectors`; no `claude.ai Gusto` line at all → re-run Phase 1. There is no token here to refresh, so never run Step 2.0 for this. |
 
 Translate every error to plain English. Never show raw HTTP bodies.
 
@@ -662,40 +718,43 @@ Translate every error to plain English. Never show raw HTTP bodies.
 
 ## Scope Limitations
 
-This connector **can**:
+On the **built-in connector** it **can**: query and analyse HR and payroll data in plain English - payroll trends, dashboards and reports, people and employee data, company insights.
+
+On the **kit's own route** it **can**:
 
 - Read all standard read endpoints: company, employees, pay schedules, payrolls (history + per-payroll details), employee compensations, time-off requests, locations.
-- Approve / deny pending time-off requests.
+- Approve / deny pending time-off requests (behind Gate 2 in Production mode).
 
 It **cannot**:
 
-- **Run payroll** - `POST /payrolls/{id}/submit` is explicitly out of v1 scope. Too high-stakes; participant should run payroll from Gusto's web UI. Tracked as a future enhancement with extra gates (multi-stage confirmation, dollar-amount summary, etc.).
+- **Run, submit or approve payroll - on either route.** On the kit's own route `POST /payrolls/{id}/submit` was never implemented. On the built-in connector a payroll-run tool *does* exist for eligible Gusto customers, and this skill still does not call it: the decision is a policy one, not a capability gap, and connecting a different way does not reopen it. See the payroll refusal at the top of this file.
 - **Onboard new employees** - `POST /employees` requires sensitive PII (SSN, address, bank routing) that's a poor fit for plain-English Phase 2.
 - **Modify pay rates** - `PUT /jobs/{id}/compensations` writes affect every future paycheck; v1 keeps these read-only.
 - **Issue tax forms** (W-2, 1099) - separate API surface, complex compliance.
 - **Run reports on benefits / 401(k)** - separate API endpoints; not in v1's 10 patterns.
-- **Production-mode access without partner-app review** - Gusto requires a 1-2 week review for production access. The SKILL kicks off the application in Phase 1 Step 3's Production-tab submit path but cannot bypass the wait. Phase 0.3 polls for approval status on subsequent sessions.
+- **Production-mode access without partner-app review** - Gusto requires a 1-2 week review for production access. The SKILL kicks off the application in Phase 1-alt Step 3's Production-tab submit path but cannot bypass the wait. **The built-in connector sidesteps this entirely** - it needs no partner application and no review, only a paid Claude plan. Phase 0.3 polls for approval status on subsequent sessions.
 
-It **requires** the participant to be a payroll admin on the company (other Gusto roles like `manager`, `accountant`, `employee_self_service` have limited or no API access).
+It **requires**, on both routes, that the participant be a payroll admin on the company (other Gusto roles like `manager`, `accountant`, `employee_self_service` have limited or no access). The built-in connector additionally requires a **paid Claude plan**.
 
 ---
 
 ## Behaviour Guidelines (Phase 2)
 
-- **Mode awareness** - `MODE=demo` is freely callable; `MODE=production` applies Gate 1 (once per session) and Gate 2 (every write). `MODE=pending-production` uses Demo data while the application is in review; the "check my approval" prompt triggers Phase 0.3.
+- **Mode awareness** - on the built-in connector there is no mode: it is always real data, so Gate 1 applies once per session. On the kit's own route, `MODE=demo` is freely callable; `MODE=production` applies Gate 1 (once per session) and Gate 2 (every write); `MODE=pending-production` uses Demo data while the application is in review, and the "check my approval" prompt triggers Phase 0.3.
 - **Currency presentation** - Gusto returns monetary values as numeric strings ("523.42") in USD. Format as $X.XX in display.
 - **Employee names** - payroll responses return employee UUIDs, not names. Cache the employee name → UUID map from Pattern 2 at session start to enrich downstream output.
 - **Dates** - Gusto uses ISO-8601 dates (`YYYY-MM-DD`) for pay period bounds.
 - **Refresh-token rotation** - every refresh issues a new refresh_token; persist it immediately (Step 2.0 handles this).
-- **Auth errors** → run Step 2.0; if refresh fails, re-run Phase 1 from Step 5.
-- **Never log or echo credentials** - client_id, client_secret, access_token, refresh_token never appear in participant-visible output.
+- **Auth errors** → on the kit's own route, run Step 2.0; if refresh fails, re-run Phase 1-alt from Step 5. On the built-in connector there is no token to refresh: go back to Phase 0 step 1 and press Reconnect.
+- **Never log or echo credentials** - client_id, client_secret, access_token, refresh_token never appear in participant-visible output. The built-in route handles none of these: Claude never sees, stores or handles a Gusto credential there, and the sign-in is held by the participant's Claude account.
+- **The payroll refusal outranks everything in this section.** No route, no gate and no confirmation makes running, submitting or approving a payroll acceptable - see the refusal at the top of this file.
 - **Production writes** - always confirm in plain English. Time-off approvals especially: this changes someone's actual paycheck. Frame the prompt with employee name, hours, and date.
 
 ---
 
 ## Related Skills
 
-- **`quickbooks-connector`**: Same mode-detection (Demo vs Production for Gusto; sandbox vs Production-Development for QBO) + Phase 1 Playwright-driven autonomous install pattern. QBO is accounting, Gusto is payroll - siblings in the SMB operations stack.
+- **`quickbooks-connector`**: Same mode-detection (Demo vs Production for Gusto; sandbox vs Production-Development for QBO) + Phase 1-alt Playwright-driven autonomous install pattern. QBO is accounting, Gusto is payroll - siblings in the SMB operations stack.
 - **`google-ads-connector`**: Same two-mode test/live design. Google Ads has Test Account (instant) + Basic Access (1-3 day review); Gusto has Demo (instant) + Production (1-2 week review). The pending-state Phase 0.3 polling pattern is borrowed from Google Ads.
 - **`myob-connector`**: Reference SKILL for Direct-REST + Playwright. Loopback OAuth listener (Step 5), atomic credentials.json write (Step 9), bearer-on-curl Phase 2 all model on MYOB.
 - **`superpowers:systematic-debugging`**: For troubleshooting Gusto's partner-app approval edge cases or unexpected payroll-response shapes.
@@ -704,7 +763,8 @@ It **requires** the participant to be a payroll admin on the company (other Gust
 
 - [`skills/CLAUDE.md`](../CLAUDE.md) - three-pattern decision tree. This SKILL is a direct-REST connector (out of scope for that doc; sibling shape to `myob-connector`).
 - [Gusto API v1 reference](https://docs.gusto.com/embedded-payroll/reference) - official endpoint catalogue.
-- [Gusto Developer Portal](https://dev.gusto.com) - where Phase 1 Step 2 lands.
+- [Gusto Developer Portal](https://dev.gusto.com) - where Phase 1-alt Step 2 lands.
+- [`https://claude.com/connectors/gusto`](https://claude.com/connectors/gusto) - the built-in connector's directory page (capabilities, Connect button). Verified live 2 Sep 2026.
 - [Gusto Demo Company](https://docs.gusto.com/embedded-payroll/docs/demo-company) - how Demo Companies are provisioned (manual create at `dev.gusto.com/demo_companies/new` with name + fresh admin email + password - NOT auto-provisioned per the SKILL's earlier prose).
 - Memory `reference_playwright_snapshot_password_leak` - sign-in page snapshot rule (applies to dev.gusto.com).
 - Memory `feedback_workshop_kit_update_format` - say "demo mode" / "real payroll" to participants, never "sandbox" / "production environment".

@@ -1,7 +1,7 @@
 ---
 name: monday-connector
-description: "Connect monday.com to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect monday.com, or wants monday work (boards, items, groups, columns, updates, users, teams, WorkForms) and monday.com isn't connected yet. Once connected, monday.com runs directly through the mcp__monday__* tools."
-allowed-tools: mcp__monday__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect monday.com to Claude by switching on its built-in connector, or by registering monday.com's official server locally. Use when the user asks to set up or connect monday.com, or wants monday work (boards, items, columns, updates, users, teams, WorkForms) and monday.com isn't connected yet. Once connected, monday.com runs through the mcp__claude_ai_monday__* or mcp__monday__* tools."
+allowed-tools: mcp__claude_ai_monday__*, mcp__claude_ai_monday_com__*, mcp__monday__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Project Management
   tags:
@@ -27,12 +27,20 @@ metadata:
 
 ## Overview
 
-This skill lets you read and update a user's monday.com account on their behalf using the **official first-party `@mondaydotcomorg/monday-api-mcp`** server (from [mondaycom/mcp](https://github.com/mondaycom/mcp)). It has two phases:
+This skill lets you read and update a user's monday.com account on their behalf using the **official first-party `@mondaydotcomorg/monday-api-mcp`** server (from [mondaycom/mcp](https://github.com/mondaycom/mcp)).
 
-- **Phase 1 - Install & Auth.** An autonomous bootstrap. Claude opens monday.com in a Playwright-driven browser, waits for the user to sign in, navigates to the Personal API Token page, mints/reveals the token, reads it directly from the DOM, writes the MCP config, and verifies - without ever asking the user to copy, paste, or navigate menus themselves. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", or any file paths. They feel like they are having a conversation; their only action is logging in to monday.com once.
-- **Phase 2 - Use Tools.** Once the connector is configured, you call the `mcp__monday__*` native tools to read and update monday.com data.
+**There are two ways in, and they reach the same official server.** Claude's own connector directory ships a built-in **monday.com** connector running monday's own server, so its everyday surface - searching boards, creating and updating items and columns, assigning owners, setting timelines, posting updates - matches the kit's. Switching it on is one button and a sign-in, once per Claude account, with no local install and no connection key on the machine, so it is the default route. Two things gate it on monday's side: the account needs a **Pro, Max, Team or Enterprise** monday plan, and a monday administrator has to approve the connector. The kit's own route (Phase 1-alt) stays in full for the cases the built-in cannot serve. Both can coexist on one machine; never tear one down to set the other up.
 
-**Which phase to run** - Before any tool call, check whether the monday.com MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.monday` entry. If it exists and has a `MONDAY_TOKEN` in its `env` block, treat the connector as authenticated and skip to Phase 2. Otherwise, run Phase 1.
+**The one known gap: listing boards.** monday has no typed "list my boards" tool - that query rides the opt-in Dynamic API Tools (see Phase 2). The kit's route turns those on with a flag. If a generic *"show me my boards"* fails through the built-in, that is the signal to use Phase 1-alt for this user; everything else stays on the built-in.
+
+The skill has these phases:
+
+- **Phase 0 - Is monday.com already connected?** Checks the built-in connector first, then the kit's own registration, and routes.
+- **Phase 1 - Switch on the built-in monday.com connector (the default route).** Open monday.com's connector page in the user's own browser, they press **Connect to Claude** and sign in, then verify and prove with one read.
+- **Phase 1-alt - The kit's own route (only when the built-in can't be used).** An autonomous bootstrap. Claude opens monday.com in a Playwright-driven browser, waits for the user to sign in, navigates to the Personal API Token page, mints/reveals the token, reads it directly from the DOM, writes the MCP config, and verifies - without ever asking the user to copy, paste, or navigate menus themselves. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", or any file paths. They feel like they are having a conversation; their only action is logging in to monday.com once.
+- **Phase 2 - Use Tools.** Once monday.com is connected by either route, you call its native tools to read and update monday.com data - `mcp__claude_ai_monday__*` on the built-in route, `mcp__monday__*` on the kit's.
+
+**Which phase to run** - always start at Phase 0. On the kit's own route the resume signal is unchanged: read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.monday` entry. If it exists and has a `MONDAY_TOKEN` in its `env` block, treat the kit's connector as authenticated and skip to Phase 2.
 
 ### What this skill does NOT use
 
@@ -42,21 +50,86 @@ This skill lets you read and update a user's monday.com account on their behalf 
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules for Phase 1 and Phase 1-alt
 
-The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work, the user only signs in to monday.com when prompted. Every message you send during Phase 1 must follow these rules:
+These rules apply to **both** connect routes. On Phase 1 (the built-in connector) the user presses one button in their own browser and signs in; on Phase 1-alt the browser window is one Claude drives. Either way the user is a non-technical business owner - Claude does the work, the user only signs in when prompted. Every message you send while connecting must follow these rules:
 
 - **You drive, not them.** Never ask the user to click menus, copy text, or paste values. The only action you ever request is "please sign in to the browser window I just opened."
 - **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, token, tenant, MCP, endpoint, JSON, GraphQL, Playwright, browser automation, or environment variable. The browser window you open is "a browser window I just opened for you" or "the connection page" - not "Playwright" or "Chromium".
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening monday.com for you now"), once when you need them ("please sign in"), once when you're done ("your monday.com is connected"). No commentary in between.
 - **React to success and failure warmly.** Good: "That worked - your monday.com is now connected." Bad: "MCP server initialized with 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem - let me try a different way," then diagnose silently.
-- **Short responses.** Maximum 8 lines per message during Phase 1.
+- **Short responses.** Maximum 8 lines per message while connecting (Phase 1 or Phase 1-alt).
 - **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
 
 ---
 
-## PHASE 1 - Install & Auth (autonomous via Playwright)
+## Phase 0 - Is monday.com already connected?
+
+Run these silently, in order, and act on the first that answers.
+
+1. **Built-in connector.** Run `claude mcp list` and look for a line starting `claude.ai monday` (match the vendor word case-insensitively - the directory display name may be written "Monday" or "monday.com"; there is no `--json` flag).
+   - `✔ Connected` → skip to **Phase 2**. Prove it first with one read through the built-in - retrieve the users and teams on the account - before saying so.
+   - `! Needs authentication` → the connection is on the account but its sign-in has lapsed. Open `https://claude.ai/customize/connectors` in the user's own browser and say: *"Your monday.com connection needs a quick re-sign-in. Press **Reconnect** next to monday.com, sign in, and tell me when it says Connected."* Then re-run this check.
+   - No such line → continue to step 2.
+2. **The kit's own route.** Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.monday` entry with a `MONDAY_TOKEN` in its `env` block. If it is present and a smoke call works, keep using it - say *"monday.com is already connected"* and skip to **Phase 2**. Do not set the built-in up on top of a working connection.
+3. **Nothing found** → go to **Phase 1**.
+
+**Precedence note.** A monday server registered locally takes precedence over the built-in one and hides it (`/mcp` shows the built-in as hidden). If a machine carries an `mcpServers.monday` entry from an earlier run of the kit's route and it works, leave it and say so. Only remove it - and only with the user's explicit OK - if it is broken and the built-in is the better route.
+
+**No shell?** If you cannot run commands at all (this is claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2 entirely: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of monday.com's tools.
+
+**Tooling check (silent, needed for Phase 1-alt only).** Verify the `claude` command is on PATH (`claude --version`) and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). Phase 1 needs neither.
+
+---
+
+## Phase 1 - Switch on the built-in monday.com connector (the default route)
+
+Claude's connector directory carries a **monday.com** connector running monday's own official server, so the everyday surface matches the kit's route. This is a one-time, once-per-account job: connect it once on the user's Claude account and it is available everywhere that account is signed in, including here. The only thing the user does is press one button and sign in. Nothing on this route mints, captures, stores, or echoes a connection key - there is no key.
+
+**Before you start, two monday-side gates.** The account needs a **Pro, Max, Team or Enterprise** monday plan, and a monday administrator has to approve the connector for the account. If the user is on a Basic or free plan, or their admin declines, Phase 1 cannot complete - say so plainly and offer Phase 1-alt, which works off a personal access key instead.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set in the environment, built-in connectors will not appear in this session. Tell the user in one line that this copy of Claude is signed in a different way, then run **Phase 1-alt** instead.
+
+**Step 2 - Open the connector page for them.** Say:
+
+> "I'm opening monday.com's page in your browser. Press **Connect to Claude**, sign in to monday.com the way you normally do, and say yes when it asks for access. That's the only part only you can do, tell me when it says Connected."
+
+Then open `https://claude.ai/directory/monday` (the public mirror of the same page is `https://claude.com/connectors/monday`) in the user's **own** everyday browser: `open <url>` on Mac, `xdg-open <url>` on Linux, `start "" <url>` on Windows. That is where they are already signed in. If the page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: **Browse**, search "monday", **Connect**.
+
+> **Why the user's own browser here.** Phase 1-alt's rule (never use the user's own browser) exists because that route reads a connection key off the page in a browser Claude drives. This route reads nothing and handles no key, so the user's own browser is the correct place for the button press. Do not drive this sign-in with the automated browser.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a picture of the sign-in screen. If the connect stalls waiting on a monday administrator's approval, say so plainly and stop.
+
+**Step 4 - Verify.** Run `claude mcp list` again. A line reading `claude.ai monday.com ... ✔ Connected` is the pass.
+- Not there yet, ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. A session loads its connections when it starts.
+- `! Needs authentication` means the sign-in lapsed: send them to `https://claude.ai/customize/connectors` and have them press **Reconnect** next to monday.com.
+- Still no line at all means the Connect didn't complete, so send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector, retrieving the users and teams on the account. Only a real answer counts (an empty list is a real answer; a tool error is not "connected"). The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_monday__*` tools actually available and pick a safe read rather than hard-coding a name.
+
+**Step 5b - Probe the boards gap once.** Ask the built-in for a generic list of the user's boards. If it answers, nothing more is needed. If it cannot (no typed board-listing tool and no Dynamic API Tools behind it), note it silently: everyday item and column work stays on the built-in, and *"show me all my boards"* is the one request that needs **Phase 1-alt**. Do not run Phase 1-alt on the spot; offer it only if the user actually asks for that kind of listing.
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now, for example *"add a task to the Sales board"*, *"what's the status of the launch item?"*, *"who's on my team?"*.
+
+**Team or Enterprise Claude accounts.** If the page shows **Request** instead of **Connect**, the user's Claude administrator has to switch monday.com on for the organisation first, and connectors only work in private projects there. Say so plainly and stop. Do not fall back to the kit's route just to get past an admin gate.
+
+**Plan note.** Assume a paid Claude plan for built-in connectors. Free accounts are limited to a single custom connector, which is not this route.
+
+---
+
+## Phase 1-alt - The kit's own route (only when the built-in can't be used)
+
+Run this **instead of** Phase 1 in these cases:
+
+- Phase 1 Step 1 failed, meaning this copy of Claude is signed in a way that cannot see built-in connectors.
+- The monday.com connector is not listed on the user's Claude account (no directory listing, and nothing under **Browse**), or the account is on a monday plan below Pro, or the monday administrator will not approve it.
+- The user needs generic board listing (the gap at Step 5b), which rides the Dynamic API Tools this route can switch on.
+- The user explicitly asks for the locally installed server.
+
+Otherwise Phase 1 is the route: it reaches monday's own server with none of this setup, and there is no reason to burden the user with it. Both routes can live on one machine, so never tear one down to set the other up.
+
+Everything below is the kit's original install, autonomous via Playwright.
 
 Claude drives the user's browser end-to-end via Playwright MCP. The user's only role is to sign in to monday.com when prompted (and approve 2FA if their account requires it). Claude handles every other step - navigation, token reveal, capture, config write, verify.
 
@@ -200,7 +273,9 @@ Tell the user, in one short message:
 
 ## PHASE 2 - Use Tools
 
-Once the connector is configured, use the `mcp__monday__*` MCP tools below to answer questions and make changes in monday.com. The `@mondaydotcomorg/monday-api-mcp` server provides **14 typed tools** covering the most common operations, plus **3 optional Dynamic API Tools** (enabled via `--enable-dynamic-api-tools true`) for arbitrary GraphQL.
+> **Which prefix you get.** Through the built-in connector (Phase 1) the tools are `mcp__claude_ai_monday__*`; through the kit's own route (Phase 1-alt) they are `mcp__monday__*`. Both routes reach monday's own official server, so the typed tools in the tables below apply to both and only the prefix differs. The one material difference is the **Dynamic API Tools** section at the end: those are the kit's opt-in flag, so generic board listing may be missing on the built-in. List the tools present in the session and use the prefix that is actually there; never mix the two prefixes in one session.
+
+Once the connector is configured, use the monday.com MCP tools below to answer questions and make changes in monday.com. The `@mondaydotcomorg/monday-api-mcp` server provides **14 typed tools** covering the most common operations, plus **3 optional Dynamic API Tools** (enabled via `--enable-dynamic-api-tools true`) for arbitrary GraphQL.
 
 ### Tool Reference
 
@@ -268,7 +343,7 @@ Run via `all_monday_api`.
 
 | What the user says | Tool to use |
 |---|---|
-| "Connect my monday.com" / "Help me set up monday" | **Run Phase 1** |
+| "Connect my monday.com" / "Help me set up monday" | **Run Phase 0, then Phase 1** (Phase 1-alt only if Phase 1 is unavailable) |
 | "Who am I connected as?" | `all_monday_api` (`query { me { id name email } }`) - requires Dynamic Tools |
 | "List my boards" | `all_monday_api` (`query { boards { id name } }`) - requires Dynamic Tools |
 | "What's on the Sales board?" | `get_board_schema` → `all_monday_api` items query |
@@ -291,7 +366,7 @@ When a monday.com tool call fails, diagnose and respond in plain English. Never 
 
 | Error | What to say | How to fix |
 |---|---|---|
-| 401 Unauthorized / Invalid token | "Your monday.com connection has expired or the key was revoked - let me help you reconnect." | Run Phase 1 from Step 2 (mint a fresh Personal API Token) |
+| 401 Unauthorized / Invalid token | "Your monday.com connection has expired or the key was revoked - let me help you reconnect." | Built-in route: press **Reconnect** next to monday.com at `https://claude.ai/customize/connectors`. Kit's route: run Phase 1-alt from Step 2 (mint a fresh Personal API Token) |
 | 403 Forbidden | "Your monday.com user doesn't have permission for that board or item. An admin may need to grant access." | User talks to their workspace admin; nothing to fix in the connector |
 | 404 Not Found (board/item) | "I couldn't find that record - let me search for it." | Use `get_board_items_by_name` or the Dynamic boards query to help find it |
 | `ComplexityException` | "The query is too heavy for monday.com - I'll simplify and retry." | Reduce `limit`, fetch fewer columns, split into two calls |
@@ -336,13 +411,13 @@ The monday.com MCP connector **cannot** do (needs the monday.com UI):
 - **Person columns need user IDs** - to assign a task, first call `list_users_and_teams` to find the correct ID, then pass it to `change_item_column_values`.
 - **Status columns use label indexes or text** - check the format returned by `get_board_schema` for the specific column before setting values.
 - **Never log or echo credentials** - the `MONDAY_TOKEN` must never appear in any output visible to the user.
-- **Read-only mode exists** - if the user is nervous about write access, suggest they re-run Phase 1 with the `--read-only` flag.
+- **Read-only mode exists** - if the user is nervous about write access, suggest they re-run Phase 1-alt with the `--read-only` flag. The built-in connector has no read-only switch, so that request is a reason to use the kit's route.
 
 ---
 
 ## Related Skills
 
-- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: The source pattern for conversational bootstrap; Phase 1 and Phase 1-alt above follow the same rules
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting monday.com auth or API errors
 - **hubspot-connector**: Sibling CRM connector - same MCP bootstrap pattern for a different platform
 - **notion-connector**: Sibling project/knowledge connector - similar workspace model

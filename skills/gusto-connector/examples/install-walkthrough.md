@@ -2,7 +2,7 @@
 
 > **Status: captured reference run, 2026-06-02 against rodolfo@selrai.com.au's Gusto Developer account + a Demo Company named `Selr AI Demo Co`.** Captured 10 SKILL drifts during this run, all fixed in the accompanying PR. Live OAuth completed end-to-end; `/v1/companies/{uuid}`, `/v1/companies/{uuid}/employees`, and `/v1/companies/{uuid}/payrolls?include[]=totals` all returned real demo data (Selr AI Demo Co, 5+ demo employees including Isaiah Berlin / Patricia Churchland / Soren Kierkegaard / Hannah Arendt / Taylor Swift, 7 historical payrolls).
 
-This walkthrough documents the **default install path** (Phase 0 → Phase 1 → Demo mode). Production mode (the 1-2 week Gusto partner-app review) is documented separately in `install-walkthrough-production.md` (future).
+This walkthrough documents **the kit's own route in Demo mode** - what the SKILL now calls Phase 1-alt. It was the default when it was captured; the default is now the built-in Gusto connector (one button on `https://claude.com/connectors/gusto`), and this route is the fallback taken when that connector can't be used or when the participant wants fake data to practise on. Nothing below changes: it is still an accurate record of this route. Production mode (the 1-2 week Gusto partner-app review) is documented separately in `install-walkthrough-production.md` (future).
 
 **Why Demo is the default:** Production access to real payroll data requires Gusto to approve the partner app (1-2 business weeks). Demo mode is instant, no review, gives the participant fake but realistically-shaped payroll data to play with.
 

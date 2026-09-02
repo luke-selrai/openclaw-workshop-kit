@@ -1,7 +1,7 @@
 ---
 name: clickup-connector
-description: "Connect ClickUp to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect ClickUp, or wants ClickUp work (tasks, subtasks, lists, spaces, due dates, comments) and the credentials aren't in place yet. Once connected, ClickUp runs directly against its API with the stored credentials."
-allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
+description: "Connect ClickUp to Claude by switching on its built-in connector, or by capturing its API credentials when that route is unavailable. Use when the user asks to set up or connect ClickUp, or wants ClickUp work (tasks, lists, spaces, docs, time tracking, due dates, comments) and ClickUp isn't connected yet. Once connected, ClickUp runs through the mcp__claude_ai_ClickUp__* tools, or against its API with the stored credentials."
+allowed-tools: Bash,Read,Write,Edit,mcp__claude_ai_ClickUp__*,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
   tags:
@@ -24,40 +24,43 @@ metadata:
 
 ## Overview
 
-This skill lets Claude read and update a user's ClickUp data on their behalf. ClickUp is the work-management app (spaces → folders → lists → tasks). It publishes **no MCP server**, so this is a **standalone direct-REST connector** - the same shape as `asana-connector` / `servicem8-connector` (single personal token + curl).
+This skill lets Claude read and update a user's ClickUp data on their behalf. ClickUp is the work-management app (spaces → folders → lists → tasks). There are two routes, and **the built-in connector is the default**:
+
+- **Phase 1 - the built-in ClickUp connector (default).** ClickUp's own hosted server, listed in Claude's connector directory at `https://claude.com/connectors/clickup` (verified live, 2 Sep 2026). The user connects it once on their Claude account by pressing one button, and it is then available everywhere that account is signed in, including Claude Code. Read and write: find workspace members, create and organise tasks, update task details, **manage documents**, **track time**, comments, custom fields, send team messages. Tools arrive as `mcp__claude_ai_ClickUp__*`. **Docs and time tracking are a straight gain** - the kit's own route below does neither.
+- **Phase 1-alt - the kit's own route** (only when the built-in can't be used). A **standalone direct-REST connector** - the same shape as `asana-connector` / `servicem8-connector` (single personal token + curl). Claude opens the Apps settings in a Playwright browser, the user signs in, Claude clicks Generate, the user completes the Google re-auth modal if shown, Claude clicks Copy to grab the token, stores it (mode 600), and verifies with `/user`.
+- **Phase 2 - Use the connector.** Whichever route connected: tasks, lists, spaces, comments and the rest.
+
+**The one place the kit's own route wins: volume.** The built-in connector is sign-in-only and is reported to cap daily calls tightly - roughly **50 a day on ClickUp's Free plan and 300 a day on Unlimited and above**. *This cap is unverified*: treat it as a thing to watch for, not a fact to quote at the user up front. If a run stops partway with a limit error, that is the signal - say so plainly and offer Phase 1-alt, which has **no such cap** (it is bounded only by ClickUp's ~100 requests/minute rate limit). Bulk jobs - a few hundred tasks to read, a mass status update, a migration - are the case for going that way from the start.
 
 **Already-a-customer connector.** This skill is for users who **already have a ClickUp account**. Do NOT use it to recommend or pitch ClickUp to users who do not already use it, and do not create a ClickUp workspace for them.
 
-Two ClickUp specifics matter:
+Two ClickUp specifics matter **on the kit's own route** (they are the token's quirks; the built-in connector has no token and neither applies):
 
 - **Auth is a RAW `Authorization` header - NO `Bearer` prefix.** Every call sends `Authorization: pk_…`. Sending `Authorization: Bearer pk_…` fails. This is the #1 ClickUp integration mistake.
 - **Token generation may require a Google re-auth.** The Personal API Token (prefix `pk_`) is self-serve under Settings → Apps, but if the account signs in with Google SSO, clicking **Generate** pops a *"Sign in with Google to generate API Token"* modal the user must complete once. The token is then **masked** on screen with a **Copy** button - capture it via Copy, not a DOM read.
 
-The skill has two phases:
+**Which phase to run** - always start at Phase 0 below. It checks the built-in connector first, then the kit's own credentials file. A working connection on either route means skip straight to Phase 2 - never set one route up on top of the other.
 
-- **Phase 1 - Install & Connect (autonomous via Playwright, with sign-in + maybe a Google re-auth).** Claude opens the Apps settings, the user signs in, Claude clicks Generate, the user completes the Google re-auth modal if shown, Claude clicks Copy to grab the token, stores it (mode 600), and verifies with `/user`.
-- **Phase 2 - Use the connector.** curl against the REST API with the raw `Authorization` header.
-
-**Which phase to run** - Before any ClickUp action, check for `~/.config/clickup/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\clickup\credentials.env` (native Windows). If it exists with a non-empty `CLICKUP_TOKEN`, run the Phase 0 smoke ping; on success go to Phase 2; on 401 re-run Phase 1. Otherwise run Phase 1.
-
-**Full account access.** A personal token inherits the owner's permissions across their workspaces - treat it like a password. Note: clicking **Generate** again **regenerates** (invalidates the old token), so only do it when there's no stored token or you're intentionally rotating.
+**Full account access (the kit's own route).** A personal token inherits the owner's permissions across their workspaces - treat it like a password. Note: clicking **Generate** again **regenerates** (invalidates the old token), so only do it when there's no stored token or you're intentionally rotating. The built-in route stores no token at all - Claude never sees or handles one.
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules for connecting (Phase 1 and Phase 1-alt)
 
 The user is a non-technical business owner. Rules:
 
-- **You drive; the user signs in (and may do one Google re-confirmation).** Don't ask them to navigate menus or copy values - the only asks are "sign in to ClickUp" and, if the modal appears, "click Sign in with Google and pick your account."
+- **You drive; the user signs in.** Don't ask them to navigate menus or copy values. On the built-in route the only ask is "press Connect and sign in to ClickUp". On the kit's own route the asks are "sign in to ClickUp" and, if the modal appears, "click Sign in with Google and pick your account."
 - **Plain English only.** No jargon (API, token, REST, curl, header, DOM, Playwright, env, JSON). Call it "your connection key" / "your ClickUp account".
-- **Never echo the token** (`pk_…`).
-- **No restart needed** - no MCP server.
+- **Never echo the token** (`pk_…`). There is no token on the built-in route.
+- **Restarts.** The kit's own route needs no restart. The built-in route may need one close-and-reopen before the connection shows up - Phase 1 Step 4 handles it.
 
 ---
 
-## Cross-cutting: Playwright MCP install contingency
+## Cross-cutting: Playwright MCP install contingency (Phase 1-alt only)
 
-If `mcp__plugin_playwright_playwright__*` (or `mcp__playwright__*`) tools are unavailable, install Playwright first (see `skills/CLAUDE.md`):
+Phase 0 and Phase 1 need no browser automation at all - only **the kit's own route** drives a browser. So a missing Playwright is a reason to prefer Phase 1, not a reason to stop.
+
+If Phase 1-alt is the route and `mcp__plugin_playwright_playwright__*` (or `mcp__playwright__*`) tools are unavailable, install Playwright first (see `skills/CLAUDE.md`):
 
 ```bash
 claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"
@@ -69,26 +72,62 @@ Ask the user to reopen Claude Code once, then retry. The `--user-data-dir` keeps
 
 ---
 
-## PHASE 0 - Resume check
+## PHASE 0 - Is ClickUp already connected?
 
-```bash
-CRED="$HOME/.config/clickup/credentials.env"
-if [ -f "$CRED" ] && grep -q '^CLICKUP_TOKEN=.\+' "$CRED"; then echo configured; else echo not-configured; fi
-```
+Run these silently, in order, and act on the first that answers.
 
-- `configured` → smoke ping; HTTP 200 → **Phase 2**; HTTP 401 → re-run **Phase 1** (token regenerated/revoked).
-- `not-configured` → **Phase 1**.
+1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai ClickUp`.
+   - `✔ Connected` → skip to Phase 2. Prove it first with one read from the `mcp__claude_ai_ClickUp__*` namespace (find the workspace's members, or list its spaces) before saying so.
+   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your ClickUp connection needs a quick re-sign-in. Press Reconnect next to ClickUp, sign in, and tell me when it says Connected."* Then re-run this check.
+   - no such line → continue.
+2. **The kit's own route.** Check for the stored credentials - `~/.config/clickup/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\clickup\credentials.env` (native Windows):
 
-Smoke ping (token never printed; RAW header):
+   ```bash
+   CRED="$HOME/.config/clickup/credentials.env"
+   if [ -f "$CRED" ] && grep -q '^CLICKUP_TOKEN=.\+' "$CRED"; then echo configured; else echo not-configured; fi
+   ```
 
-```bash
-set -a; . "$HOME/.config/clickup/credentials.env"; set +a
-curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: $CLICKUP_TOKEN" "https://api.clickup.com/api/v2/user"
-```
+   Smoke ping (token never printed; RAW header):
+
+   ```bash
+   set -a; . "$HOME/.config/clickup/credentials.env"; set +a
+   curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: $CLICKUP_TOKEN" "https://api.clickup.com/api/v2/user"
+   ```
+
+   - `configured` + HTTP 200 → keep using it. Say *"ClickUp is already connected"* and skip to **Phase 2**. Do not set the built-in up on top of a working connection.
+   - `configured` + HTTP 401 → the token was regenerated or revoked. Re-run **Phase 1-alt** to mint a fresh one (or switch to Phase 1 if the user would rather have the one-button connection).
+   - `not-configured` → continue.
+3. **Nothing found** → Phase 1.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of ClickUp's tools.
 
 ---
 
-## PHASE 1 - Install & Connect (autonomous via Playwright)
+## PHASE 1 - Switch on the built-in ClickUp connector (the default route)
+
+This is a one-time, once-per-account job. The only thing the user does is press one button and sign in.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
+
+**Step 2 - Open the connector page for them.** Say: *"I'm opening ClickUp's page in your browser. Press **Connect to Claude**, sign in to ClickUp the way you normally do, and say yes when it asks for access. That is the only part only you can do - tell me when it says Connected."* Then open `https://claude.ai/directory/clickup` in **their own everyday browser** (`open` on Mac, `xdg-open` on Linux, `start "" <url>` on Windows). If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "ClickUp" → Connect.
+
+> **Why their own browser here, when Phase 1-alt uses a window Claude opens.** Phase 1-alt drives a browser because it reads a secret off the page; this route reads nothing. The user's own browser is the one already signed in to Claude and to ClickUp, so that is where the button press belongs. Do not drive this sign-in with Playwright.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+
+**Step 4 - Verify.** `claude mcp list` again. `claude.ai ClickUp … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector: a tool from the `mcp__claude_ai_ClickUp__*` namespace that finds workspace members or lists spaces. Only a real answer counts. A tool error here is not "connected".
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - for example *"show my tasks"*, *"add a task to [list]"*, *"how much time went on [project] this week?"*.
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude admin has to switch ClickUp on for the organisation first. Say so plainly and stop; do not fall back to the kit's route just to get past an admin gate.
+
+---
+
+## PHASE 1-alt - The kit's own route (only when the built-in can't be used)
+
+Run this **only** when one of these is true: Step 1 above failed (this session cannot see built-in connectors); the ClickUp listing is missing on the user's account; the user explicitly wants the local setup; or the job is a **bulk one** and the built-in connector's daily call cap would bite (see the Overview - the cap is unverified, so let a real limit error or an obviously large job be the trigger, not a guess). Otherwise Phase 1 is the route. Note what this route does **not** get: documents and time tracking, both of which the built-in connector covers.
 
 > **Never snapshot the sign-in page** (auto-filled-password leak; memory `reference_playwright_snapshot_password_leak`). Detect login by polling `location.href`.
 
@@ -136,7 +175,16 @@ Tell the user: *"All connected - your ClickUp is ready. Try 'show my tasks' or '
 
 ---
 
-## PHASE 2 - Use the connector (REST runtime loop)
+## PHASE 2 - Use the connector
+
+**Which tools you have depends on which route connected.**
+
+- **Through the built-in connector (Phase 1):** the tools are `mcp__claude_ai_ClickUp__*`. Names come from ClickUp's own hosted server, so discover them in the session rather than translating an endpoint from the table below. This set reaches two things the REST loop below does not: **documents** and **time tracking**. It also sends team messages. The hierarchy facts below still hold - they are ClickUp's data model, not an artifact of the REST route - as do the confirm-before-a-client-visible-write rule and the epoch-milliseconds date format.
+- **Through the kit's own route (Phase 1-alt):** `curl` against the REST API with the raw `Authorization` header, exactly as below.
+
+If a run on the built-in route stops on a call limit, that is the daily cap described in the Overview: say so plainly and offer Phase 1-alt, which has no daily cap.
+
+### The REST runtime loop (the kit's own route)
 
 ```bash
 set -a; . "$HOME/.config/clickup/credentials.env"; set +a
@@ -192,22 +240,32 @@ curl -s -o /dev/null -w '%{http_code}\n' -X DELETE -H "$H" "$B/task/<taskId>"
 
 ## Gotchas
 
+**On the built-in connector:**
+
+- **A tight daily call cap, reported but unverified** - roughly 50/day on ClickUp's Free plan, 300/day on Unlimited and above. It shows up as a limit error partway through a run, not as a warning at the start. Response: say what happened in plain English and offer the kit's own route, which has no daily cap. Do not pre-emptively steer people away from the built-in connector over a number nobody has confirmed.
+- **Sign-in only** - there is no key to paste, rotate or store, so none of the token gotchas below apply.
+
+**On the kit's own route:**
+
 - **RAW Authorization header - no `Bearer`.** `Authorization: pk_…`, not `Authorization: Bearer pk_…`. #1 mistake.
 - **Generating the token may require a Google re-auth modal** ("Sign in with Google to generate API Token") for SSO accounts - the user must complete it. The token is then masked → capture via the **Copy** button.
 - **Generate = regenerate.** Re-clicking Generate invalidates the existing token. Only generate when there's no stored token (or intentionally rotating) - otherwise use Copy.
 - **No global task list.** You must scope tasks to a list (or use `/team/<id>/task` with filters). Empty accounts have spaces but possibly **no lists** - create one if needed.
 - **Dates are epoch milliseconds** (e.g. `due_date: 1781827200000`), not ISO strings.
 - **No substring-negation in self-checks.** Match `http_code==200` / `.user.id` present, never "output lacks an error word".
-- **401 Unauthorized** → token regenerated/revoked or `Bearer` prefix mistakenly added → re-run Phase 1 / fix the header.
+- **401 Unauthorized** → token regenerated/revoked or `Bearer` prefix mistakenly added → re-run Phase 1-alt / fix the header. (On the built-in route an auth failure means the account connection lapsed - go back to Phase 0 step 1 and press Reconnect; there is no token to re-mint.)
 - **429 rate limit** → ClickUp's free/standard plans allow ~100 req/min per token; back off on 429.
 - **DELETE returns 204** (no body); don't parse JSON from it.
 
 ## Token handling
 
+Only the kit's own route has a token. On the built-in route Claude never sees, stores or handles a credential - the sign-in is held by the user's Claude account - so say that plainly if they ask where it is kept.
+
 The personal token is a bearer-equivalent secret in `~/.config/clickup/credentials.env` (mode 600), read into a shell var at call time, **never** echoed. Add `**/credentials.env` to any nearby repo `.gitignore`.
 
 ## See also
 
-- `examples/install-walkthrough-live.md` - the real, verified Phase 1 run (token redacted), including the Google-re-auth modal and the wrong-browser-session gotcha.
+- `examples/install-walkthrough-live.md` - the real, verified run of the kit's own route (Phase 1-alt) with the token redacted, including the Google-re-auth modal and the wrong-browser-session gotcha.
+- `https://claude.com/connectors/clickup` - the built-in connector's directory page (name, capabilities, Connect button).
 - `references/rest-api.md` - hierarchy, endpoints, pagination, epoch-ms dates, write bodies.
 - `skills/CLAUDE.md` - the direct-REST connector family and the Playwright contingency.
