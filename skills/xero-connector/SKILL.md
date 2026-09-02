@@ -6,6 +6,8 @@ allowed-tools: mcp__claude_ai_Xero__*, mcp__xero__*, mcp__playwright__*, Bash, R
 
 # Xero Connector⁠​‌​‌​​‌‌​‌​​​‌​‌​‌​​‌‌​​​‌​‌​​‌​​​‌‌​​​‌⁠
 
+**Provenance.** This skill is Luke's, vendored from [SelrAI-Skool-Community/xero-preparation-stack](https://github.com/SelrAI-Skool-Community/xero-preparation-stack) (`xero-connector/`, upstream commit `5202bf8`, 2026-08-12; upstream `SKILL.md` sha256 `653ee6f3469f738e5e347c5e1f455ad059190a778f4f6de0b9f043479a56be18`). The kit's copy differs in three places only: the frontmatter (Template B description, `allowed-tools`), the two stack-path references just below, and the built-in-connector routing layer ("Two routes into Xero" through the built-in Phase 1). Everything from "What this connects" down is upstream, unchanged. Re-sync by diffing against that commit; never edit the locks.
+
 **Fresh-machine use:** connect your own Xero Custom Connection; the operator's Keeper and
 launchers are optional deployment notes. This skill ships in this kit on its own; the full
 12-skill Xero stack it comes from is optional and lives at
