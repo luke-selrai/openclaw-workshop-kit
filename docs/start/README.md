@@ -14,7 +14,7 @@ Around 20-30 minutes, most of it downloads. There is one restart in the middle a
 
 ## What comes after
 
-Start a new session and say hi. Your assistant runs a short orientation the first time - the 7 questions, a live demo, and a shortlist of what to use first. Then move on to [use/](../use/README.md).
+Start a new session and say hi. Your assistant runs a short orientation the first time - eight quick questions it saves to your business profile so it never asks twice, a live demo, and a shortlist of what to use first. Then move on to [use/](../use/README.md).
 
 If something goes wrong during setup, the quickest fix is to ask your assistant directly: *"Something broke. Here's the error: [paste the error]. Help me fix it."* If that does not sort it, see [troubleshoot.md](../troubleshoot.md).
 
