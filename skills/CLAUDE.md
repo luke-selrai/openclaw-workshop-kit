@@ -26,10 +26,11 @@ not one.
 If a connector does not fit one of the four patterns below
 (CLI-based: `gws`, `gh` (github-connector is CLI-first by design and deliberately
 does **not** route to a built-in connector), `qbo`, `notion` (`ntn`); direct REST: `ghl`, `myob`, `servicem8`, `cliniko`, `deputy`, `starshipit`, `pipedrive`, `asana`, `freshbooks` (OAuth2-fronted), `trello` (key+token; Power-Up form is manual), `clickup` (raw-token header), `brevo` (`api-key` header), `kit` (formerly ConvertKit; `X-Kit-Api-Key` header), `activecampaign` (`Api-Token` header + per-account base URL); first-party stdio:
-`hubspot`, `paypal`, `slack`, `square`, `stripe`, `shopify`,
-`voice-transcription`, `whatsapp`, `wordpress`; vendored: `xero` - Luke's
-read-only Custom Connection skill, pinned in `skills-lock.json`, with the
-built-in Xero connector layered in front of it; vendor-hosted custom connector:
+`hubspot`, `paypal`, `slack`, `square`, `stripe`, `shopify`, `xero` (Xero's
+official server on a Custom Connection, launched from a pinned global install
+by absolute `node` path - never `npx`, which hangs on a cold cache - with the
+built-in Xero connector layered in front for the read-only headline numbers),
+`voice-transcription`, `whatsapp`, `wordpress`; vendor-hosted custom connector:
 `meta-business-suite` - Meta's official Ads endpoint `https://mcp.facebook.com/ads`,
 added through **Add custom connector** rather than a directory listing), it has
 its own shape and is out of scope for the *install patterns* below - see the

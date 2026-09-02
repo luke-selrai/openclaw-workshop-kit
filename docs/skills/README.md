@@ -374,7 +374,7 @@ Payments, invoices, subscriptions, customers, refunds.
 Example: "List my last 10 Stripe payments and show me the total."
 
 ### Xero Connector *(ADVANCED)*
-Xero accounting, read-only by design - the built-in connector for the headline numbers, the kit's own connection for every invoice, contact, bank line and report. Changes stay in Xero.
+Xero accounting - the built-in connector for the headline numbers, the kit's own connection for the full service: every invoice, contact, bank line and report, plus draft invoices, bills and quotes raised for you to approve in Xero.
 Example: "Show me all outstanding invoices in Xero."
 
 ### QuickBooks Connector *(ADVANCED)*
