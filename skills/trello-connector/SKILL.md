@@ -1,7 +1,7 @@
 ---
 name: trello-connector
-description: "Connect Trello to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Trello, or wants Trello work (boards, lists, cards, due dates, checklists, labels, comments, workspaces) and the credentials aren't in place yet. Once connected, Trello runs directly against its API with the stored credentials."
-allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
+description: "Connect Trello to Claude by switching on its built-in connector, or by installing and authenticating its API credentials. Use when the user asks to set up or connect Trello, or wants Trello work (boards, lists, cards, due dates, checklists, labels, comments, workspaces) and Trello isn't connected yet. Once connected, Trello runs through the mcp__claude_ai_Trello__* tools, or directly against its API with the stored credentials."
+allowed-tools: Bash,Read,Write,Edit,mcp__claude_ai_Trello__*,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
   tags:
@@ -33,24 +33,57 @@ Both are sent as **query params on every call**: `?key=<KEY>&token=<TOKEN>`. Bas
 
 > **Scope note.** This connector is for users who **already have a Trello account**. Don't pitch Trello to someone who doesn't use it - if they need a work-management tool recommendation, that is a different conversation.
 
-### ⚠️ The one manual step: creating the Power-Up
+### ⚠️ The one manual step on the fallback route: creating the Power-Up
 
-To get an API key, Trello **requires you to first create a "Power-Up"** (`trello.com/power-ups/admin`). That creation form is a **React form that resists browser automation**: its "Create" button is gated on validity state that does NOT update from scripted input - verified 2026-06-22, even direct React-fiber `onChange` injection on every field failed to enable Create. **So Phase 1 hands the Power-Up form to the user**: Claude opens it and explains exactly what to type; the user fills **App name**, **Workspace**, and **Email** and clicks **Create** by hand (real keystrokes/clicks register where automation can't). Everything after that - API-key generation, the token authorize + Allow, token capture - Claude drives normally.
+To get an API key, Trello **requires you to first create a "Power-Up"** (`trello.com/power-ups/admin`). That creation form is a **React form that resists browser automation**: its "Create" button is gated on validity state that does NOT update from scripted input - verified 2026-06-22, even direct React-fiber `onChange` injection on every field failed to enable Create. **So Phase 1-alt hands the Power-Up form to the user**: Claude opens it and explains exactly what to type; the user fills **App name**, **Workspace**, and **Email** and clicks **Create** by hand (real keystrokes/clicks register where automation can't). Everything after that - API-key generation, the token authorize + Allow, token capture - Claude drives normally.
 
-The skill has two phases:
+### Trello is built into Claude - use that first
 
-- **Phase 1 - Install & Connect (Playwright + one manual form step).** Claude drives the developer console, hands the Power-Up *creation form* to the user, then auto-generates the API key, runs the token authorize flow (user clicks Allow), captures the token, stores both, and verifies.
-- **Phase 2 - Use the connector.** curl against the REST API with `?key=&token=`.
+Trello has its own listing in Claude's connector directory
+(`https://claude.ai/directory/trello` - "Trello", Verified, made by Trello,
+added July 2026, connector URL `https://mcp.trello.com/v1`, 15 tools). Switching
+it on is one button and a sign-in: no Power-Up, no keys, nothing installed, and
+nothing for this skill to store. The connection is **account-level** - made once
+on claude.ai or the desktop app, it works everywhere that account is signed in,
+Claude Code included.
 
-**Which phase to run** - Before any Trello action, check for `~/.config/trello/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\trello\credentials.env` (native Windows). If it exists with a non-empty `TRELLO_API_KEY` **and** `TRELLO_TOKEN`, run the Phase 0 smoke ping; on success go to Phase 2; on 401 re-run Phase 1's token step. Otherwise run Phase 1.
+**So the built-in connector is the default route, and everything about the
+Power-Up and the two secrets below is the fallback.** All of it is kept, in full,
+because it is still the answer when the built-in can't be used - see Phase 1-alt
+for exactly when that is.
+
+The skill has three phases:
+
+- **Phase 1 - Switch on the built-in Trello connector (the default route).** One
+  button, one sign-in, then proved with a real read.
+- **Phase 1-alt - The kit's own route (only when the built-in can't be used).**
+  Playwright + one manual form step: Claude drives the developer console, hands
+  the Power-Up *creation form* to the user, then auto-generates the API key, runs
+  the token authorize flow (user clicks Allow), captures the token, stores both,
+  and verifies.
+- **Phase 2 - Use the connector.** Either through the built-in connector's tools,
+  or curl against the REST API with `?key=&token=`.
+
+**Which phase to run** - Phase 0 decides, in order: a live built-in connection
+wins; otherwise a working set of stored credentials wins
+(`~/.config/trello/credentials.env` on Mac/Linux/WSL, `%APPDATA%\trello\credentials.env`
+on native Windows, with a non-empty `TRELLO_API_KEY` **and** `TRELLO_TOKEN`, smoke
+ping 200); otherwise Phase 1. A 401 on the smoke ping means the stored token was
+revoked - re-run Phase 1-alt's token step, or switch to the built-in.
 
 **Full account access.** A `read,write,account` token with `expiration=never` can read and modify everything the user can across their boards. Treat the token like a password (the key is public-safe).
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules for Phase 1 and Phase 1-alt
 
-The user is a non-technical business owner, but Phase 1 has an unavoidable hands-on moment (the Power-Up form). Rules:
+Phase 1 (the built-in connector) asks the user for one thing only: press
+**Connect to Claude** and sign in to Trello the way they normally do. Narrate it,
+then stay hands-off. Never ask for a password, a code, or a screenshot of the
+sign-in, and never open a page that asks for one inside an automated browser.
+
+The rules below are for **Phase 1-alt**, which has an unavoidable hands-on moment
+(the Power-Up form). The user is a non-technical business owner:
 
 - **Drive everything you can; hand off only the Power-Up form.** Be explicit and visual about the one manual step - the user fills three fields and clicks Create. Offer a screenshot if they can't find a field/button.
 - **Warn about the two "Create" buttons.** The Trello top-nav has a blue "Create" (makes boards); the form's "Create" is at the **bottom-right of the form card** and starts **greyed out**. Tell the user to use the bottom one, and that it turns blue once the fields are filled with real typing.
@@ -62,6 +95,9 @@ The user is a non-technical business owner, but Phase 1 has an unavoidable hands
 
 ## Cross-cutting: Playwright MCP install contingency
 
+Phase 1 (the built-in connector) needs no browser tool at all - skip this section
+entirely on that route. It applies only to Phase 1-alt.
+
 If `mcp__plugin_playwright_playwright__*` (or `mcp__playwright__*`) tools are unavailable, install Playwright first (see `skills/CLAUDE.md`):
 
 ```bash
@@ -72,15 +108,38 @@ Ask the user to reopen Claude Code once, then retry. The `--user-data-dir` keeps
 
 ---
 
-## PHASE 0 - Resume check
+## PHASE 0 - Is Trello already connected?
+
+Run these silently, in order, and act on the first that answers.
+
+**1. Built-in connector.**
+
+```bash
+claude mcp list 2>&1 | grep -i "^claude.ai Trello"
+```
+
+- `✔ Connected` → skip to **Phase 2**. Prove it first with one read from the
+  `mcp__claude_ai_Trello__*` tools (list the user's boards); only a real answer
+  counts.
+- `! Needs authentication` → the connection has lapsed. Open
+  `https://claude.ai/customize/connectors` in the user's own browser and say:
+  *"Your Trello connection needs a quick re-sign-in. Press Reconnect next to
+  Trello, sign in, and tell me when it says Connected."* Then re-run this check.
+- No such line → continue.
+
+**2. The kit's own route.**
 
 ```bash
 CRED="$HOME/.config/trello/credentials.env"
 if [ -f "$CRED" ] && grep -q '^TRELLO_API_KEY=.\+' "$CRED" && grep -q '^TRELLO_TOKEN=.\+' "$CRED"; then echo configured; else echo not-configured; fi
 ```
 
-- `configured` → smoke ping; HTTP 200 → **Phase 2**; HTTP 401 → re-run the token step in Phase 1 (the Power-Up + key may still exist; just re-mint the token).
-- `not-configured` → **Phase 1**.
+- `configured` → smoke ping; HTTP 200 → say *"Trello is already connected"* and
+  go to **Phase 2**. Keep using it; do not set the built-in up on top of a
+  working connection. HTTP 401 → the stored token was revoked: re-run
+  **Phase 1-alt Step 4** to re-mint it (the Power-Up and key survive), or offer
+  the built-in connector instead, which is quicker.
+- `not-configured` → continue.
 
 Smoke ping (token never printed):
 
@@ -89,9 +148,101 @@ set -a; . "$HOME/.config/trello/credentials.env"; set +a
 curl -s -o /dev/null -w '%{http_code}\n' "https://api.trello.com/1/members/me?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN"
 ```
 
+**3. Nothing found** → **Phase 1**.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app
+rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the
+result at Phase 1 Step 5 by calling one of Trello's tools.
+
 ---
 
-## PHASE 1 - Install & Connect
+## PHASE 1 - Switch on the built-in Trello connector (the default route)
+
+This is a one-time, once-per-account job. The only thing the user does is press
+one button and sign in.
+
+### Step 1 - Check this session can see built-in connectors
+
+```bash
+claude auth status
+```
+
+`"authMethod": "claude.ai"` is the pass. If it shows anything else, or
+`~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or
+`ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear
+here. Tell the user in one line that this copy of Claude is signed in a different
+way, and run **Phase 1-alt** instead.
+
+### Step 2 - Open the connector page for them
+
+Say: *"I'm opening Trello's page in your browser. Press **Connect to Claude**,
+sign in to Trello the way you normally do, and say yes when it asks for access.
+That is the only part only you can do - tell me when it says Connected."*
+
+Then open `https://claude.ai/directory/trello` in **their own** browser:
+
+```bash
+open "https://claude.ai/directory/trello"          # Mac
+# xdg-open "https://claude.ai/directory/trello"    # Linux
+# start "" "https://claude.ai/directory/trello"    # Windows
+```
+
+If that page doesn't load, open `https://claude.ai/customize/connectors` instead
+and tell them: Browse → search "Trello" → Connect.
+
+> **This is the one exception to the golden rule in Phase 1-alt** ("do not open
+> the user's own browser"). That rule exists because Phase 1-alt reads a
+> connection key off the page inside a driven browser. This page has no key on
+> it, and their own browser is the one already signed in to Claude and to Trello.
+> Do not drive this sign-in with Playwright.
+
+### Step 3 - Wait
+
+Stay hands-off while they sign in. Never ask for a password, a code, or a
+screenshot of the sign-in.
+
+### Step 4 - Verify
+
+```bash
+claude mcp list 2>&1 | grep -i "^claude.ai Trello"
+```
+
+`claude.ai Trello: https://mcp.trello.com/v1 - ✔ Connected` is the pass. Not
+there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q;
+Windows: close the window and quit from the tray), then check again. Still
+missing → `! Needs authentication` means Reconnect on the Customize page; no line
+at all means the Connect didn't complete, so send them back to Step 2.
+
+### Step 5 - Prove it
+
+Call one real read through the connector - list the user's boards via a
+`mcp__claude_ai_Trello__*` tool. Only a real answer counts. A tool error here is
+not "connected". These tools are often deferred in a session; if you can't see
+them yet, that is the restart in Step 4, not a failure.
+
+### Step 6 - Hand off
+
+Two lines: Trello is connected, and three things they can ask for now ("what's on
+my board this week", "add a card to the design list", "which cards are overdue").
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of
+**Connect**, their Claude administrator has to switch Trello on for the
+organisation first. Say so plainly and stop; do not fall back to Phase 1-alt just
+to get past an admin gate.
+
+---
+
+## PHASE 1-alt - The kit's own route (only when the built-in can't be used)
+
+Run this instead of Phase 1 in exactly three cases: this session can't see
+built-in connectors (Step 1 above failed), Trello's listing is missing on the
+user's account, or the user explicitly wants the local key-and-token setup.
+Otherwise use Phase 1 - it is one button against everything below.
+
+Nothing in this route has been removed or shortened. It is the original install
+flow, verified 2026-06-22.
+
+### The flow
 
 > **Never snapshot the sign-in page** (auto-filled-password leak; memory `reference_playwright_snapshot_password_leak`). Detect login by polling `location.href`.
 
@@ -175,7 +326,18 @@ Tell the user: *"All connected - your Trello is ready. Try 'show my boards' or '
 
 ---
 
-## PHASE 2 - Use the connector (REST runtime loop)
+## PHASE 2 - Use the connector
+
+**Which surface you are on.** Through the built-in connector (Phase 1), Trello
+work runs through the `mcp__claude_ai_Trello__*` tools - boards, lists, cards,
+comments and the rest, named by the connector itself, with nothing to read from
+disk. Through the kit's route (Phase 1-alt) it runs through the REST loop below.
+The capabilities overlap heavily; where they differ, the REST route reaches the
+full endpoint surface in `references/rest-api.md`, and the built-in reaches only
+its own published tools. Use whichever route Phase 0 landed on - never both at
+once for the same job.
+
+### The REST runtime loop (Phase 1-alt route)
 
 ```bash
 set -a; . "$HOME/.config/trello/credentials.env"; set +a
@@ -233,7 +395,7 @@ curl -s -X DELETE "$B/cards/<cardId>?$AUTH"
 - **Key is public, token is secret.** Don't treat the key as sensitive; DO protect the token.
 - **Auth is query params**, not a header. `?key=&token=` on every call.
 - **No substring-negation in self-checks.** Match `http_code==200` / `.id` present, never "output lacks an error word".
-- **401 / "invalid token"** → token revoked (user disabled it) or wrong → re-run Phase 1 Step 4 (re-mint token; key/Power-Up persist).
+- **401 / "invalid token"** → token revoked (user disabled it) or wrong → re-run Phase 1-alt Step 4 (re-mint token; key/Power-Up persist). Or switch the user to the built-in connector (Phase 1), which needs no key at all.
 - **Rate limits:** 300 req/10s per key and 100 req/10s per token; back off on 429.
 - **Deleting is permanent** for cards via DELETE; prefer `closed=true` (archive) for reversible "deletes" when the user may want it back.
 
@@ -243,6 +405,7 @@ The token is a bearer-equivalent secret in `~/.config/trello/credentials.env` (m
 
 ## See also
 
-- `examples/install-walkthrough-live.md` - the real, verified Phase 1 run (token redacted), including the automation-resistant-form hand-off.
+- `examples/install-walkthrough-live.md` - the real, verified Phase 1-alt run (token redacted), including the automation-resistant-form hand-off.
 - `references/rest-api.md` - endpoints, auth, write params, archive-vs-delete.
-- `skills/CLAUDE.md` - the direct-REST connector family and the Playwright contingency.
+- `skills/CLAUDE.md` - Pattern 0 (the built-in connector shape), the direct-REST connector family, and the Playwright contingency.
+- `https://claude.ai/directory/trello` - the built-in connector's own page.

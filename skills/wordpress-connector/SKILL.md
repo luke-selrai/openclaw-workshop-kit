@@ -1,7 +1,7 @@
 ---
 name: wordpress-connector
-description: "Connect WordPress to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect WordPress or their WP site, or wants WordPress or blog work (reading, drafting and publishing posts, pages, comments) and WordPress isn't connected yet. Once connected, WordPress runs directly through the mcp__wordpress__* tools."
-allowed-tools: Bash, Read, Write, Edit, mcp__wordpress__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*
+description: "Connect WordPress to Claude by switching on the built-in WordPress.com connector, or by installing its official MCP server for a self-hosted site. Use when the user asks to set up or connect WordPress or their WP site, or wants WordPress or blog work (reading, drafting and publishing posts, pages, comments) and WordPress isn't connected yet. WordPress.com sites then run through the `mcp__claude_ai_WordPress_com__*` tools; self-hosted sites run through `mcp__wordpress__*`."
+allowed-tools: Bash, Read, Write, Edit, mcp__wordpress__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, mcp__claude_ai_WordPress_com__*
 metadata:
   category: Productivity & Integrations
   tags:
@@ -24,12 +24,18 @@ metadata:
 
 ## Overview
 
-This skill connects a user's WordPress site to Claude Code so the assistant can read, draft, and publish posts on their behalf via the **official Automattic + WordPress.org MCP pair**:
+This skill connects a user's WordPress site to Claude so the assistant can read, draft, and publish posts on their behalf. **There are two kinds of WordPress site and they take completely different routes, so the first thing to establish is which kind this user has.**
+
+**WordPress.com-hosted sites → the built-in connector (the default route).** Automattic publishes a connector in Claude's own connector directory (`https://claude.com/connectors/wordpress-com`, display name **WordPress.com**, made by Automattic, read & write). It carries 60+ abilities - content creation and management, publishing and editing posts and pages, performance tracking, site organisation, accessibility auditing. It is one click, no plugin install, no Application Password. It works **only** for sites hosted on WordPress.com.
+
+**Self-hosted WordPress.org sites → the kit's own route.** Most business sites are this kind: WordPress running on the user's own hosting (WP Engine, Kinsta, GoDaddy, Bluehost, SiteGround, a VPS). The built-in connector does not reach them at all. For these, the kit installs the **official Automattic + WordPress.org MCP pair**:
 
 - **WordPress side:** [`WordPress/mcp-adapter`](https://github.com/WordPress/mcp-adapter) - a free plugin from WordPress.org that bridges the WordPress Abilities API to MCP. Runs inside the user's WP site.
 - **Claude side:** [`@automattic/mcp-wordpress-remote`](https://github.com/Automattic/mcp-wordpress-remote) - the npm-published bridge that loads in `~/.claude.json` and talks to the user's WP site over the REST API using their Application Password.
 
-**The user does exactly ONE thing across the entire setup. Everything else is autonomous.**
+Both routes can live on one machine at once - a user with a WordPress.com blog and a self-hosted client site can have both. Never tear one down to set the other up.
+
+**On the kit's own route, the user does exactly ONE thing across the entire setup. Everything else is autonomous.**
 
 1. Log in to their WordPress admin in the Playwright browser when it opens (Step 4). One-time, their credentials, on screen they already know.
 
@@ -37,20 +43,20 @@ That's the complete list. **The user does NOT search the plugin directory, does 
 
 If you find yourself about to ask the user to "open your WP admin and click Plugins", "copy the Application Password back to me", or "paste this into your config", stop. That's the wrong path. Drive WP admin in the Playwright window instead.
 
-**Which phase to run.** Phase 1 is first-time setup. Phase 2 is day-to-day operation - using the connector once it's wired.
+**Which phase to run.** Always start at Phase 0, then *Route by need*. Phase 1 switches on the built-in WordPress.com connector. PHASE 1 - Install & Connect is the kit's own route for self-hosted sites. PHASE 2 is day-to-day operation - using whichever connector is wired.
 
 ---
 
 ## Golden rule - Claude drives WordPress admin for EVERY WordPress action
 
-**The default path for every WP-admin-side action is the Playwright MCP browser.** Once Step 4 logs the Playwright window into the user's WP admin (the user enters their username + password), that window IS the user's WP admin client for the rest of the flow. Claude uses it for:
+**On the kit's own route, the default path for every WP-admin-side action is the Playwright MCP browser.** Once Step 4 logs the Playwright window into the user's WP admin (the user enters their username + password), that window IS the user's WP admin client for the rest of the flow. Claude uses it for:
 
 - Step 5: Plugins → Add New → search `mcp-adapter` → Install → Activate.
 - Step 6: Users → Profile → Application Passwords → name + Add New → read the spaced token from the DOM.
 
 Both happen in the same Playwright window, driven by `mcp__plugin_playwright_playwright__browser_*` tools. Same WordPress account, same admin session - the WP REST API will accept the resulting Application Password because it was issued to that user.
 
-**Do NOT, at any point in Phase 1, ask the user to:**
+**Do NOT, at any point in the kit's own route, ask the user to:**
 
 - Open their WordPress admin themselves (after the login in Step 4)
 - Search for, install, or activate any plugin manually
@@ -62,6 +68,8 @@ Both happen in the same Playwright window, driven by `mcp__plugin_playwright_pla
 If you find yourself about to type any of those, stop. The Playwright window can do all of them.
 
 The **REST-Direct Fallback** section at the bottom of this file is the contingency for when the Playwright MCP browser cannot be used at all (extension not installed, non-recoverable launch failure after two attempts). It is NOT the path to use because manual instructions feel simpler - they don't, they make the user do extra work.
+
+**The one exception to this golden rule is Phase 1, the built-in WordPress.com connector.** That sign-in happens on claude.ai, and the user's own everyday browser is the only one signed in there - so opening `https://claude.com/connectors/wordpress-com` in their own browser is correct, and Playwright must not drive it. The rule above exists because the kit's own route reads an Application Password off the page in a driven browser; the built-in route reads no credential at all.
 
 ---
 
@@ -87,9 +95,9 @@ If a step in this skill fails, follow the documented `if X fails, try Y` branch 
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules
 
-The user is a non-technical business owner. Every message during Phase 1 follows these rules:
+The user is a non-technical business owner. Every message during either connect route follows these rules:
 
 - **One step at a time.** Never stack two instructions in one message.
 - **Plain English only.** No jargon. Never say npm, npx, bash, terminal, MCP, REST API, env var, plugin slug, JSON, contenteditable, selector, OAuth, JWT. The phrase "the browser window I'm using" is preferred over "Playwright". For other technical things, name them plainly: "a small connection helper", "a one-time password just for me", "your WordPress admin", "the plugin we need".
@@ -103,7 +111,68 @@ The user is a non-technical business owner. Every message during Phase 1 follows
 
 ---
 
+## Phase 0 - Is WordPress already connected?
+
+Run these silently, in order, and act on the first that answers.
+
+1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai WordPress.com` (match on the word "WordPress", case-insensitively - the display name carries a dot, so do not require an exact string match).
+   - `✔ Connected` → skip to PHASE 2. Prove it first with one read: call any read tool in the `mcp__claude_ai_WordPress_com__*` namespace (list recent posts, or read the site's title) and check a real answer comes back. If the tool prefix on this machine differs slightly from `WordPress_com`, match on the `mcp__claude_ai_WordPress` prefix rather than hard-coding the rest.
+   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your WordPress.com connection needs a quick re-sign-in. Press Reconnect next to WordPress.com, sign in, and tell me when it says Connected."* Then re-run this check.
+   - no such line → continue.
+2. **The kit's own route.** Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.wordpress` block with non-empty `WP_API_URL`, `WP_API_USERNAME` and `WP_API_PASSWORD`. If it is present, prove it with one smoke call - `mcp__wordpress__discover_abilities` with `{}`. A non-empty ability list means it still works: say *"WordPress is already connected"* and skip to PHASE 2. Do not set the built-in up on top of a working connection. If the smoke call fails, treat it as the partial-configuration case in the resume-check note under **PHASE 1 - Install & Connect** below.
+3. **Nothing found** → Route by need, then Phase 1.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of WordPress.com's tools.
+
+---
+
+## Route by need - which kind of WordPress site is this?
+
+**Ask this before opening anything.** The two routes are not interchangeable and the answer decides everything that follows:
+
+> *"Quick question first. Is your site hosted on WordPress.com, or is it WordPress running on your own hosting somewhere else (WP Engine, Kinsta, GoDaddy, Bluehost, SiteGround, or a host your developer set up)? If you're not sure, tell me the address of the site and I'll work it out."*
+
+If they aren't sure, check the site yourself: a WordPress.com-hosted site's admin lives at `wordpress.com/home/<site>` and its login is `wordpress.com/log-in`; a self-hosted site's admin lives at `<their-domain>/wp-admin`. A `*.wordpress.com` address is always the WordPress.com kind. A custom domain can be either, so if the check is ambiguous, ask where they log in.
+
+| What the user has, or wants | Route |
+|---|---|
+| Site hosted on WordPress.com (any plan) | Built-in connector (Phase 1) - 60+ abilities, one click, no plugin |
+| WordPress.com: publish or edit a post or page, track performance, organise the site, audit accessibility | Built-in connector (Phase 1) |
+| Self-hosted WordPress.org on the user's own hosting - **most business sites** | The kit's own route (PHASE 1 - Install & Connect) |
+| Site whose admin is at `<their-domain>/wp-admin` and who installs their own plugins | The kit's own route |
+| Both - a WordPress.com blog *and* a self-hosted client site | Both, one at a time. They coexist. |
+
+Route on the site, not on the task: no amount of retrying makes the built-in connector reach a self-hosted site, and the kit's own route needs a plugin install that WordPress.com-hosted sites do not allow on every plan. If the user only has a WordPress.com site, stop after Phase 1 - do not walk them through the plugin install they don't need. Say in one line what you are not setting up and why, so they can ask for it later.
+
+---
+
+## Phase 1 - Switch on the built-in WordPress.com connector (the default route)
+
+Run this when the user's site is hosted on WordPress.com. It is a one-time, once-per-account job. The only thing the user does is press one button and sign in. This skill handles no Application Password and no plugin install on this route.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way. For a WordPress.com site there is no kit fallback - the kit's own route needs a plugin install, which WordPress.com only permits on Business and above - so say so plainly and stop.
+
+**Step 2 - Open the connector page for them.** Say: *"I'm opening the WordPress.com page in your browser. Press **Connect to Claude**, sign in to WordPress.com the way you normally do, and say yes when it asks for access. That is the only part only you can do, tell me when it says Connected."* Then open `https://claude.com/connectors/wordpress-com` (or `https://claude.ai/directory/wordpress-com`) in **the user's own everyday browser** (`open` on Mac, `xdg-open` on Linux, `start ""` on Windows) - see the exception noted under the golden rule above. If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "WordPress" → Connect.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+
+**Step 4 - Verify.** `claude mcp list` again. A `claude.ai WordPress.com … ✔ Connected` line is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector - any read tool in the `mcp__claude_ai_WordPress_com__*` namespace (list recent posts, or read the site title). Only a real answer counts. A tool error here is not "connected".
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - *"show me my recent posts"*, *"draft a post about [topic]"*, *"how is my site performing?"*.
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude admin has to switch WordPress.com on for the organisation first. Say so plainly and stop; do not fall back to the kit's route just to get past an admin gate.
+
+**Local entry precedence.** If a server registered locally with `claude mcp add` points at the same URL, it takes precedence and hides the built-in one. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK.
+
+**Multiple WordPress.com sites.** The connector follows the WordPress.com account the user signs in with, so every site on that account comes along. Confirm which site you are acting on before any publish or delete.
+
+---
+
 ## PHASE 1 - Install & Connect
+
+> **When to run this.** The kit's own route, for **self-hosted WordPress.org sites only** - the answer to *Route by need* above was "my own hosting". Do not run it for a WordPress.com-hosted site; use Phase 1 instead. Both routes can coexist on one machine; setting this one up does not switch a built-in WordPress.com connection off.
 
 **Run Steps 1 through 7 in order, all in this one Claude Code session.** Step 4 opens the user's WP admin in the Playwright MCP browser and waits for the user's login. Step 5 drives the plugin install autonomously inside that browser. Step 6 drives the Application Password generation autonomously inside that browser. Step 7 verifies. The REST-Direct Fallback section at the bottom is only for when Step 4 fails twice in a row - do not start there.
 
@@ -127,10 +196,10 @@ Before any technical step, confirm three things in plain English. Send one quest
 
 **Question 2 (host):**
 
-> *"Second, what hosts your WordPress site? Common ones are WP Engine, Kinsta, GoDaddy, Bluehost, SiteGround, or just 'I'm not sure'. WordPress.com Free plan can't install custom plugins, which would block us, so I want to check before we go further."*
+> *"Second, what hosts your WordPress site? Common ones are WP Engine, Kinsta, GoDaddy, Bluehost, SiteGround, or just 'I'm not sure'."*
 
 - Any managed/self-hosted setup → Question 3.
-- WordPress.com Free → *"WordPress.com Free doesn't allow custom plugins, so this skill can't connect to that site. If you upgrade to a Business plan or move to a self-hosted WordPress, this connector will work. I'll stop here for now."* Stop the skill.
+- WordPress.com (any plan) → this is the wrong route. Go back to **Phase 1** and switch on the built-in WordPress.com connector instead: it needs no plugin at all, which is what makes it the only route that works on a WordPress.com Free plan (Free cannot install custom plugins, so the plugin install below would fail). Say: *"Good news, yours is the easy kind. There's a ready-made WordPress.com connection I can switch on instead of installing anything."*
 - Not sure → *"No worries, we'll find out when I open your admin. If your host blocks plugin installs we'll see it then and stop cleanly."* Continue to Question 3.
 
 **Question 3 (URL):**
@@ -437,9 +506,14 @@ Call `mcp__wordpress__discover_abilities` with `{}` (no arguments). Handle the r
 
 ## PHASE 2 - Use Tools
 
-Once configured, use the `mcp__wordpress__*` MCP tools to read and modify WordPress content.
+**Which tools you have depends on which route connected, and they differ materially.**
 
-### The tool surface is two-layer (and one of them is dynamic)
+- **Built-in WordPress.com connector** → the tools are `mcp__claude_ai_WordPress_com__*` (match on the `mcp__claude_ai_WordPress` prefix if the exact suffix differs on this machine). Automattic ships 60+ named abilities as ordinary tools - content creation and management, publishing and editing posts and pages, performance tracking, site organisation, accessibility auditing. There is **no** discover-then-call step: the tools are the surface, so read the tool list rather than calling a discovery meta-tool.
+- **The kit's own route (self-hosted)** → the tools are `mcp__wordpress__*`, and there are only three of them. They are meta-tools; the real surface is discovered at runtime. That two-layer shape is described below and applies **only** to this route.
+
+Everything below this line is the kit's own route. The confirm-before-publishing, drafts-by-default, user-mutation and settings guardrails in *Behaviour Guidelines* apply to **both** routes.
+
+### The tool surface is two-layer (and one of them is dynamic) - the kit's own route
 
 **Layer 1 - fixed meta-tools.** `mcp-adapter`'s default install exposes exactly **three** MCP tools, regardless of which plugins are on the WP side. These are the entry points to everything else:
 
@@ -478,7 +552,7 @@ The user-facing intents below all route through the meta-tool / ability discover
 
 | What the user says | What Claude does |
 |---|---|
-| "Connect my WordPress" / "Install the WordPress connector" | **Run Phase 1** (starting with the prereq check at Step 1) |
+| "Connect my WordPress" / "Install the WordPress connector" | **Run Phase 0, then Route by need** - establish WordPress.com vs self-hosted before anything else |
 | "Show me my recent posts" | `discover_abilities` → find post-list → `execute_ability` |
 | "Show me my drafts" | Same path with `status: draft` argument |
 | "What's the latest published post?" | Same path with `status: publish`, sort by date desc, limit 1 |
@@ -494,7 +568,7 @@ The user-facing intents below all route through the meta-tool / ability discover
 | "What can my WordPress do?" | `discover_abilities` and present a grouped summary of available abilities |
 | "Add a new user" / "Promote [user] to admin" / "Delete [user]" | Find the user-mutation ability → `execute_ability` - **HIGH-STAKES, requires explicit unambiguous user confirmation, never inferred** |
 
-### Behaviour Guidelines (Phase 2)
+### Behaviour Guidelines (PHASE 2)
 
 - **Always confirm before publishing or deleting.** Drafts are safe; publishing makes a post live to the world. Summarise what you're about to do (title + first paragraph + status change) and wait for the user's OK before calling the tool.
 - **Drafts by default.** When asked to "write a post about X", create as `status: draft` first, surface the draft content for the user's review, and only publish on explicit second confirmation.
@@ -504,16 +578,16 @@ The user-facing intents below all route through the meta-tool / ability discover
 - **Settings guardrail.** Any ability whose discovered name contains `option_set`, `setting_set`, or `site_url` is similarly high-stakes (changing site URL or admin email mid-session can lock the user out). Confirm-first, no exceptions.
 - **Pagination defaults.** Default to 10 items per list call. Offer to fetch more if there are additional pages.
 - **Don't bulk operate without warning.** If the user says "delete all draft posts older than 6 months", count first, summarise, get confirmation, then operate one-at-a-time with a small delay so a misclick doesn't nuke everything.
-- **Single site per connector.** This skill is locked to one WP site per Application Password. To connect a second site, run Phase 1 again with that site's URL - it'll add a second `mcpServers.wordpress-<n>` block.
+- **Single site per connector.** This skill is locked to one WP site per Application Password. To connect a second self-hosted site, run **PHASE 1 - Install & Connect** again with that site's URL - it'll add a second `mcpServers.wordpress-<n>` block.
 - **Never echo or log credentials.** `WP_API_URL`, `WP_API_USERNAME`, and `WP_API_PASSWORD` must never appear in any output visible to the user.
 
 ---
 
-## Error Handling (Phase 2)
+## Error Handling (PHASE 2)
 
 | Error | What to say to the user | How to fix |
 |---|---|---|
-| `WordPress connection failed during initialization` (bridge code -32603) | "Your WordPress connection isn't working, let me check why." | Run `wp_site_info` (or any read tool) to surface the underlying cause. Common: Application Password revoked from WP admin, site moved to a new URL, user account disabled. If the password was revoked, run Phase 1 Step 6 to mint a new one. |
+| `WordPress connection failed during initialization` (bridge code -32603) | "Your WordPress connection isn't working, let me check why." | Run `wp_site_info` (or any read tool) to surface the underlying cause. Common: Application Password revoked from WP admin, site moved to a new URL, user account disabled. If the password was revoked, run **PHASE 1 - Install & Connect** Step 6 to mint a new one. |
 | `401 Unauthorized` on a specific call | "Your connection key isn't being accepted, let me sort that now." | Same as above - likely the Application Password was revoked or the user's role was downgraded. Re-run Step 6. |
 | `403 Forbidden` on a specific call | "I don't have permission for that, let me check your role." | The user's WP role doesn't include the capability that ability requires. Tell the user which capability they're missing in plain English (e.g. "publishing posts is restricted to editors and admins"). |
 | `429 Too Many Requests` | "WordPress is asking me to slow down. I'll wait a moment and try again." | Wait 10 seconds, retry once. If still 429, tell the user their host's rate limiting is tight and suggest waiting a minute. |
@@ -525,19 +599,19 @@ The user-facing intents below all route through the meta-tool / ability discover
 
 ## Security Assessment
 
-This skill grants Claude broad authority to read, draft, publish, modify, and delete content on the user's WordPress site through their Application Password. The risks below are catalogued so the prereq check, autonomy rule, and Phase 2 confirmation prompts can defend against them.
+This skill grants Claude broad authority to read, draft, publish, modify, and delete content on the user's WordPress site through their Application Password. The risks below are catalogued so the prereq check, autonomy rule, and PHASE 2 confirmation prompts can defend against them. They describe the kit's own route, which is the route that issues an Application Password; the built-in WordPress.com connector issues none, so rows 1, 2, 8 and 10 do not apply to it. The content, comment, user and settings risks (3-7, 9) apply to any route with write access.
 
 | # | Risk | Likelihood | Impact | Mitigation in this skill |
 |---|---|---|---|---|
 | 1 | **Application Password leak via leaked `~/.claude.json`.** Token grants full role-equivalent access until revoked. | Medium | High (attacker can publish, edit, delete, manage users) | File permissions guidance in Step 7 (mode `600` on Mac/Linux). Token never echoed back. Encourage user to enable filesystem encryption. Recommend rotating the password from WP admin if the file is ever shared. |
 | 2 | **WordPress admin password leak via Step 4.** Mitigated structurally - the user types directly into the WP login form in the Playwright window; Claude never sees the credentials. | Low | High | The skill explicitly does not capture the login form values. `browser_evaluate` reads only the post-login dashboard state, not the password field. |
-| 3 | **Unauthorised content publishing.** Anyone with shell access can call `wp_post_create` with `status: publish` to publish anything to the user's site. | Medium | High (brand damage, legal exposure for offensive content) | Phase 2 publishing tools all require **explicit confirmation**. Drafts are the default. Recommend pairing with `~/.claude.json` filesystem encryption. |
+| 3 | **Unauthorised content publishing.** Anyone with shell access can call `wp_post_create` with `status: publish` to publish anything to the user's site. | Medium | High (brand damage, legal exposure for offensive content) | PHASE 2 publishing tools all require **explicit confirmation**. Drafts are the default. Recommend pairing with `~/.claude.json` filesystem encryption. |
 | 4 | **Comment moderation abuse.** Token holder can spam, trash, or unapprove legitimate comments - the user may not notice. | Medium | Medium (silenced critics, hidden customer feedback) | `wp_comment_spam` and `wp_comment_trash` are confirm-first. Skill instructs Claude to summarise the comment text before destructive action. |
 | 5 | **User-management abuse.** With admin role, the connector can add/remove users, change roles, and lock the legitimate admin out. | Low | Critical (account takeover) | User-modification tools are confirm-first and require explicit, unambiguous user prompts (not inferred). The skill never auto-creates or auto-elevates users. Recommend the user keep a separate admin account that does not have an Application Password issued. |
-| 6 | **Plugin install authority.** mcp-adapter exposes whatever abilities are registered, including potentially plugin-install abilities if a plugin chooses to expose them. Future plugins could add destructive abilities. | Low | High | Phase 2 calls `tools/list` before invoking unfamiliar tools. The skill warns Claude to treat `_install`, `_activate`, `_deactivate`, `_delete` abilities as confirm-first regardless of which family they belong to. |
+| 6 | **Plugin install authority.** mcp-adapter exposes whatever abilities are registered, including potentially plugin-install abilities if a plugin chooses to expose them. Future plugins could add destructive abilities. | Low | High | PHASE 2 calls `tools/list` before invoking unfamiliar tools. The skill warns Claude to treat `_install`, `_activate`, `_deactivate`, `_delete` abilities as confirm-first regardless of which family they belong to. |
 | 7 | **Site-wide settings change.** `wp_options_set` (if registered) can change site URL, admin email, default post status - silent destabilisation. | Low | High | Settings-mutation abilities are confirm-first. The skill flags any `_options_set` or `_settings_*` call as high-risk and requires explicit user OK. |
 | 8 | **Application Password not revocable silently.** Tokens appear in WP admin → Profile → Application Passwords with name + last-used time. User can revoke any time. | Low | (positive) High visibility | The skill names the password `Claude Assistant` so it's identifiable. Recommend the user check the list quarterly and revoke any they didn't expect. |
-| 9 | **Plugin conflict silent fail.** Some security plugins (Wordfence, iThemes Security) block REST API or restrict Application Passwords by default - the connector will appear to work then 401 on every call. | Medium | Low (just confusing, not destructive) | Step 6 detects disabled Application Passwords and stops with a clear message. Phase 2 401-handling explicitly covers the "post-Phase 1 the security plugin started blocking" case. |
+| 9 | **Plugin conflict silent fail.** Some security plugins (Wordfence, iThemes Security) block REST API or restrict Application Passwords by default - the connector will appear to work then 401 on every call. | Medium | Low (just confusing, not destructive) | Step 6 detects disabled Application Passwords and stops with a clear message. PHASE 2 401-handling explicitly covers the "post-install the security plugin started blocking" case. |
 | 10 | **Fall-back path leaks credentials.** The REST-Direct Fallback at the bottom of this file involves the user copying the Application Password manually if Playwright is unavailable. That manual path puts the password in chat / clipboard. | Low | High (in fallback only) | Fallback explicitly warns the user, advises rotating the password after install regardless, and minimises the period the password is visible. |
 
 **Recommended user-side hardening (not in this skill, but worth telling the user):**
@@ -551,6 +625,10 @@ This skill grants Claude broad authority to read, draft, publish, modify, and de
 
 ## Scope Limitations
 
+**Built-in WordPress.com connector.** 60+ abilities over WordPress.com-hosted sites: content creation and management, publishing and editing posts and pages, performance tracking, site organisation, accessibility auditing. It **cannot** reach a self-hosted WordPress.org site at all - there is no setting, plan or workaround that changes this. It also does not install plugins or touch the site's files.
+
+**The kit's own route** (everything below):
+
 The WordPress connector **can** do (via `@automattic/mcp-wordpress-remote` + `WordPress/mcp-adapter`):
 
 - Read and write posts, pages, comments, terms (categories + tags), media metadata, site options
@@ -562,7 +640,7 @@ The WordPress connector **can** do (via `@automattic/mcp-wordpress-remote` + `Wo
 The WordPress connector **cannot** do:
 
 - **Modify the database directly.** mcp-adapter only exposes the Abilities API; arbitrary SQL is out of reach.
-- **Install or activate plugins from Phase 2.** Plugin install was a Phase 1 admin-UI step; runtime ability for plugin install is not exposed by default.
+- **Install or activate plugins from PHASE 2.** Plugin install was a PHASE 1 - Install & Connect admin-UI step; runtime ability for plugin install is not exposed by default.
 - **Edit `wp-config.php`, theme files, or other server files.** No file-system access on the WP host.
 - **Manage WP Multisite networks.** mcp-adapter targets a single site. Network-level admin requires separate tooling.
 - **Connect to multiple WP sites at once on a single connection.** Each site needs its own `mcpServers.wordpress-<n>` block.
@@ -606,7 +684,7 @@ When they confirm:
 
 End state: the chat-leaked password is dead within 60 seconds of being created. Any session log copy is now stale.
 
-The fallback path is a security regression vs Phase 1's autonomous flow. Use it only when there is no other option, and always with the auto-rotation tail.
+The fallback path is a security regression vs the kit's own route's autonomous flow. Use it only when there is no other option, and always with the auto-rotation tail.
 
 ---
 

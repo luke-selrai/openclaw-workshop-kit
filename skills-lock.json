@@ -306,6 +306,12 @@
       "sourceType": "github",
       "skillPath": "skills/website-to-hyperframes/SKILL.md",
       "computedHash": "4d6f7ea7c0fabd0e7572d26f85fcf83974ac75b19ec1e49529a4e01115302ab4"
+    },
+    "xero-connector": {
+      "source": "SelrAI-Skool-Community/xero-preparation-stack",
+      "sourceType": "github",
+      "skillPath": "xero-connector/SKILL.md",
+      "computedHash": "653ee6f3469f738e5e347c5e1f455ad059190a778f4f6de0b9f043479a56be18"
     }
   }
 }

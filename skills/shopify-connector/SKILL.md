@@ -1,7 +1,7 @@
 ---
 name: shopify-connector
-description: "Connect Shopify to Claude by installing and signing in to the `shopify` CLI. Use when the user asks to set up Shopify or connect their online store, or wants store work (products, orders, customers, inventory) and the `shopify` CLI isn't signed in yet. Once connected, Shopify runs directly through the `shopify` CLI."
-allowed-tools: mcp__playwright__*, Bash, Read, Write, Edit
+description: "Connect Shopify to Claude by installing the official Shopify app for Claude, or by signing in to the `shopify` CLI for work on the store's code. Use when the user asks to set up Shopify or connect their online store, or wants store work (products, orders, customers, inventory) and Shopify isn't connected yet. Once connected, running the store goes through the `mcp__claude_ai_Shopify__*` tools and theme, app and Hydrogen work goes through the `shopify` CLI."
+allowed-tools: mcp__playwright__*, Bash, Read, Write, Edit, mcp__claude_ai_Shopify__*
 metadata:
   category: Ecommerce & Integrations
   tags:
@@ -23,31 +23,98 @@ metadata:
 
 ## Overview
 
-This skill does two things:
-1. **Installs** `@shopify/cli` on the user's computer and authenticates it against their store (one-time setup, autonomous via Playwright)
-2. **Operates** the connector - querying products, orders, customers, inventory, and locations via `shopify store execute` against the Admin API GraphQL
+There are two routes to Shopify, and which one you want depends on whether the user is **running the store** or **working on its code**.
+
+**Running the store → the official Shopify app for Claude (the default route).** Shopify publishes it in Claude's own connector directory (`https://claude.com/connectors/shopify`, display name **Shopify**, made by Shopify, Interactive). It covers adding and updating products, managing inventory across multiple locations, creating discount codes and promotions, reviewing orders and customer information, and running store performance analytics - read and write. The install is approved from inside the Shopify admin, so the merchant sees and grants the store permissions themselves. **Shopify recommends it over any custom connector**, so it is the first stop for store operations.
+
+**Working on the store's code → the `shopify` CLI (the kit's own route).** Theme, app and Hydrogen development - store *code*, not store *operations*. This skill installs `@shopify/cli` on the user's computer and authenticates it against their store (one-time setup, autonomous via Playwright), which is also what gives the CLI its `shopify store execute` surface over the Admin API GraphQL. That surface stays documented in full below and is the fallback whenever the built-in app can't be used - but for everyday store operations, route to the built-in first.
+
+Both routes can live on one machine at once; never tear one down to set the other up.
 
 > **Account support:** Requires a Shopify store with staff/owner access. Development stores, Partner stores, and live stores are all supported.
 
-> **Why a CLI patch is part of Phase 1.** The Shopify CLI's `store auth` step uses a PKCE OAuth flow with a localhost callback (`http://127.0.0.1:13387/auth/callback`). It tries to auto-open the OS default browser to the OAuth URL, but **does not print the URL** when it does. If the user's default browser is signed in to a different Shopify account than the CLI (a common workshop scenario), the OAuth lands on a login page rather than the Install-app page and the CLI silently times out. To make Phase 1 fully autonomous, Claude applies a one-line patch to the CLI bundle that forces the URL to print, then drives the URL into the same Playwright MCP browser the user already signed in to in Step 4. The patch is benign - it only disables auto-open. Manual users still get the URL printed in their terminal and can copy-paste; this is more reliable than auto-open landing in the wrong browser profile.
+> **Why a CLI patch is part of the kit's own route.** The Shopify CLI's `store auth` step uses a PKCE OAuth flow with a localhost callback (`http://127.0.0.1:13387/auth/callback`). It tries to auto-open the OS default browser to the OAuth URL, but **does not print the URL** when it does. If the user's default browser is signed in to a different Shopify account than the CLI (a common workshop scenario), the OAuth lands on a login page rather than the Install-app page and the CLI silently times out. To make that route fully autonomous, Claude applies a one-line patch to the CLI bundle that forces the URL to print, then drives the URL into the same Playwright MCP browser the user already signed in to in Step 4. The patch is benign - it only disables auto-open. Manual users still get the URL printed in their terminal and can copy-paste; this is more reliable than auto-open landing in the wrong browser profile.
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules
 
-The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work, the user only signs in to Shopify once. Every message during Phase 1 must follow these rules:
+The user is a non-technical business owner. Both connect routes are autonomous - Claude does the work, the user only signs in to Shopify once. Every message during either route must follow these rules:
 
 - **You drive, not them.** Never ask the user to click menus, copy text, paste URLs, or read terminal output. The only action you ever request is: "please sign in to the browser window I just opened."
 - **Plain English only.** No jargon. Never say PKCE, OAuth, redirect URI, callback, scope, bundle, sed, patch, npm, child process, GraphQL, Admin API, or file paths to the user. If you must refer to a technical thing, name it plainly: "the Shopify connection tool", "the browser window I just opened", "a small one-time setup step on your computer".
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm setting up Shopify for you now"), once when you need them ("please sign in"), once when you're done ("your Shopify is now connected"). No commentary in between.
 - **React to success and failure warmly.** Good: "That worked - your Shopify is now connected." Bad: "Token exchange failed at /admin/oauth/access_token."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem - let me try a different way," then diagnose silently.
-- **Short responses.** Maximum 8 lines per message during Phase 1.
+- **Short responses.** Maximum 8 lines per message while connecting.
 - **Never echo the access token** back to the user. The CLI stores it locally; never include it in any output visible to the user.
 
 ---
 
+## Phase 0 - Is Shopify already connected?
+
+Run these silently, in order, and act on the first that answers.
+
+1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Shopify` (match the vendor word case-insensitively).
+   - `✔ Connected` → skip to PHASE 2. Prove it first with one read: call any read tool in the `mcp__claude_ai_Shopify__*` namespace (read the shop, or list a few products) and check a real answer comes back.
+   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your Shopify connection needs a quick re-sign-in. Press Reconnect next to Shopify, sign in, and tell me when it says Connected."* Then re-run this check.
+   - no such line → continue.
+2. **The kit's own route.** Check whether the `shopify` CLI is installed and signed in - Step 1 below does this in full (`shopify version`, then `shopify organization list` returning an org table rather than "you must log in", then a store token for the store the user means). If it is signed in and `shopify store execute --query "{ shop { name } }"` answers, say *"Shopify is already connected"* and skip to PHASE 2. Do not set the built-in up on top of a working connection.
+3. **Nothing found** → Route by need, then Phase 1.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Shopify's tools.
+
+---
+
+## Route by need - run the store, or work on its code?
+
+Ask **one** question in plain English before opening anything: *"Do you want me to help run the store day to day - products, stock, orders, discounts, how sales are going - or are you working on the store's code, like its theme or a custom app?"*
+
+Then route:
+
+| What the user wants | Route |
+|---|---|
+| Add or update products | Built-in Shopify app (Phase 1) |
+| Manage inventory across locations | Built-in Shopify app (Phase 1) |
+| Create discount codes and promotions | Built-in Shopify app (Phase 1) |
+| Review orders and customer information | Built-in Shopify app (Phase 1) |
+| Store performance analytics - how sales are going | Built-in Shopify app (Phase 1) |
+| **Theme development** - editing or building the store's theme | The kit's own route (`shopify` CLI) |
+| **App development** - building or running a Shopify app | The kit's own route |
+| **Hydrogen** - a headless storefront | The kit's own route |
+| Raw Admin GraphQL against the store, or a query the built-in app can't express | The kit's own route, via `shopify store execute` |
+
+Shopify recommends its own app for Claude over any custom connector, so store operations go to the built-in first. Run the kit's own route when the user is working on store *code*, when the built-in genuinely fails at something it covers, or when Phase 1 Step 1 shows this session cannot see built-in connectors at all. If the user only wants to run the store, stop after Phase 1 - do not put them through a command-line install they don't need. Say in one line what you are not setting up and why, so they can ask for it later.
+
+---
+
+## Phase 1 - Switch on the official Shopify app for Claude (the default route)
+
+This is a one-time, once-per-account job. The only thing the user does is press one button and approve the store permissions in their own Shopify admin. This skill handles no access token on this route.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route instead.
+
+**Step 2 - Open the connector page for them.** Say: *"I'm opening Shopify's page in your browser. Press **Connect to Claude**, then approve it inside your Shopify admin when it asks - that's Shopify checking you're happy for me to see your store. It's the only part only you can do, tell me when it says Connected."* Then open `https://claude.com/connectors/shopify` (or `https://claude.ai/directory/shopify`) in **the user's own everyday browser** (`open` on Mac, `xdg-open` on Linux, `start ""` on Windows). If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Shopify" → Connect.
+
+> **This is the one place the driven-browser rule does not apply.** The kit's own route drives a Playwright browser because it reads an access token out of a redirect. This route reads nothing, and the user's own browser is the only one signed in to both claude.ai and their Shopify admin. Do not drive this approval with Playwright.
+
+**Step 3 - Wait.** Stay hands-off while they sign in and approve. Never ask for a password, a code, or a screenshot of the sign-in. If they have more than one store, the approval happens inside the admin of the store they pick - confirm afterwards which store got connected.
+
+**Step 4 - Verify.** `claude mcp list` again. `claude.ai Shopify … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the approval didn't complete - send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector - any read tool in the `mcp__claude_ai_Shopify__*` namespace (read the shop, or list a few products). Only a real answer counts. A tool error here is not "connected".
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - *"what's low on stock?"*, *"show me this week's orders"*, *"set up a 10% discount code"*. Use the human-readable store name, never the `myshopify.com` subdomain.
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude admin has to switch Shopify on for the organisation first. Say so plainly and stop; do not fall back to the kit's route just to get past an admin gate.
+
+**Local entry precedence.** If a server registered locally with `claude mcp add` points at the same URL, it takes precedence and hides the built-in one. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK.
+
+---
+
 ## PHASE 1 - Install & Auth (autonomous via Playwright)
+
+> **When to run this.** The kit's own route. Run it when the user is working on the store's **code** - theme, app or Hydrogen - or when the built-in Shopify app genuinely fails at something it covers, or when Phase 1 Step 1 showed this session cannot see built-in connectors at all. Otherwise stop at Phase 1. Both routes can coexist; setting this one up does not switch the built-in one off.
 
 Claude installs `@shopify/cli`, applies the `openURL` patch, and drives the two CLI auth flows (`shopify auth login` for the Partner/org account, then `shopify store auth` for store-specific scopes) entirely inside a Playwright MCP browser. The user's only role is signing in to Shopify in the Playwright window when prompted in Step 4.
 
@@ -69,7 +136,7 @@ shopify auth login --help >/dev/null 2>&1 && shopify organization list 2>&1 | he
 
 If `organization list` returns an org table (not "you must log in"), the Partner-side auth from Step 4 is already done. Re-running Step 5 against a known store is still required if no token exists for that store yet - but the user's manual sign-in from Step 4 won't be needed again.
 
-If both checks pass and the user's intended store is already in the cached token list (visible via `shopify store list 2>/dev/null` if the command is available, otherwise via Playwright store discovery in Step 5a), the connector is set up. Skip to Phase 2.
+If both checks pass and the user's intended store is already in the cached token list (visible via `shopify store list 2>/dev/null` if the command is available, otherwise via Playwright store discovery in Step 5a), this route is set up. Skip to PHASE 2.
 
 If anything's missing, proceed to Step 2.
 
@@ -279,11 +346,23 @@ If the response is shaped `{ "shop": { "name": "...", "myshopifyDomain": "..." }
 
 If it errors with auth, re-run Step 5. If it errors with `ACCESS_DENIED` on a specific scope, re-run Step 5 with the missing scope added to `--scopes`.
 
+> Say only that the store is connected and what you can do with it. The built-in Shopify app, if it is also connected, is unaffected by this route - both can be live at once.
+
+---
+
+## PHASE 2 - Operate the store
+
+**Which tools you have depends on which route connected.** Through the built-in Shopify app the tools are `mcp__claude_ai_Shopify__*` - products, inventory across locations, discount codes and promotions, orders, customers, and store analytics, read and write, driven conversationally. Through the kit's own route the "tools" are the `shopify store execute` shapes in Parts 2-5 below, which run Admin API GraphQL directly.
+
+The names differ materially. The built-in app exposes named store actions and no GraphQL surface, so a raw query, a schema-level field, or anything the app can't express runs through `shopify store execute`. In the other direction, theme, app and Hydrogen development exists **only** on the `shopify` CLI - the built-in app does not touch store code. On a machine where both are connected, prefer the built-in app for store operations (Shopify's own recommendation) and the CLI for code and for queries the app can't express.
+
+Parts 2-5 below are the kit's own route.
+
 ---
 
 ## Part 2 - Products
 
-All store operations use `shopify store execute` which runs Admin API GraphQL queries against the authenticated store.
+All store operations on the kit's own route use `shopify store execute` which runs Admin API GraphQL queries against the authenticated store.
 
 ### List products
 ```bash
@@ -500,7 +579,7 @@ shopify auth logout
 
 ## Behaviour Guidelines
 
-- **Always verify auth first** at the start of a session - run `shopify version` and test with `shopify store execute --store <subdomain>.myshopify.com --query "{ shop { name } }"`. If both pass, skip Phase 1 entirely.
+- **Always verify auth first** at the start of a session - run Phase 0. For the kit's own route that means `shopify version` plus `shopify store execute --store <subdomain>.myshopify.com --query "{ shop { name } }"`; if both pass, skip both connect routes entirely.
 - **Confirm before acting** - always confirm with the user before creating products, adjusting inventory, or modifying orders.
 - **Use `--allow-mutations`** - all mutation queries require the `--allow-mutations` flag on `shopify store execute`. Without it, mutations are silently blocked.
 - **Use `--query-file` for complex queries** - long inline queries are hard to read. Save the query to a `.graphql` file and use `--query-file ./file.graphql` with `--variables '{"key": "value"}'`.
@@ -509,7 +588,7 @@ shopify auth logout
 - **Rate limits** - Shopify's Admin API has a cost-based rate limit. Avoid requesting too many nested fields in a single query. If you hit a rate limit, wait and retry.
 - **Status values** - Products: `ACTIVE`, `DRAFT`, `ARCHIVED`. Orders financial: `AUTHORIZED`, `EXPIRED`, `PAID`, `PARTIALLY_PAID`, `PARTIALLY_REFUNDED`, `PENDING`, `REFUNDED`, `VOIDED`. Orders fulfillment: `FULFILLED`, `IN_PROGRESS`, `ON_HOLD`, `OPEN`, `PARTIALLY_FULFILLED`, `PENDING_FULFILLMENT`, `REQUEST_DECLINED`, `RESTOCKED`, `SCHEDULED`, `UNFULFILLED`. Full enum lists: [OrderDisplayFinancialStatus](https://shopify.dev/docs/api/admin-graphql/2026-04/enums/OrderDisplayFinancialStatus), [OrderDisplayFulfillmentStatus](https://shopify.dev/docs/api/admin-graphql/2026-04/enums/OrderDisplayFulfillmentStatus).
 - **Currency** - always display amounts with the currency code from the response.
-- **Auth errors** - if you get a 401 or "Unauthorized", re-run the Phase 1 Step 5 flow.
+- **Auth errors** - on the kit's own route, if you get a 401 or "Unauthorized", re-run the **PHASE 1 - Install & Auth** Step 5 flow. On the built-in Shopify app, send the user to Reconnect on `https://claude.ai/customize/connectors`.
 - **Missing scopes** - if you get an `ACCESS_DENIED` scope error, re-run Step 5 with the missing scope added to the `--scopes` list. The default 9-scope set covers products, orders, customers, inventory, and locations read+write.
 - **JSON output** - add `--json` to any `shopify store execute` command for structured JSON output, useful for piping to other tools.
 - **Patch persistence** - the Step 3c patch survives normal use but is overwritten by `shopify upgrade` or `npm install -g @shopify/cli`. Re-apply after any CLI upgrade.

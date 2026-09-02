@@ -1,7 +1,7 @@
 ---
 name: klaviyo-connector
-description: "Connect Klaviyo to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Klaviyo, or wants Klaviyo work (profiles, lists, segments, email and SMS campaigns, flows, revenue reports) and the credentials aren't in place yet. Once connected, Klaviyo runs directly against its API with the stored credentials."
-allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
+description: "Connect Klaviyo to Claude by switching on its built-in connector or storing its API credentials. Use when the user asks to set up or connect Klaviyo, or wants Klaviyo work (profiles, lists, segments, campaigns, flows, revenue reports) and Klaviyo isn't connected yet. Once connected, Klaviyo runs through the `mcp__claude_ai_Klaviyo__*` tools; sending a drafted campaign runs against its API with the stored credentials."
+allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*, mcp__claude_ai_Klaviyo__*
 metadata:
   category: Marketing & Advertising
   tags:
@@ -28,39 +28,38 @@ metadata:
 
 ## Overview
 
-This skill lets you read and operate a user's Klaviyo account on their behalf using **Klaviyo's REST API** (no MCP server, no first-party CLI - Direct-REST + Playwright pattern, sibling to `mailchimp-connector` and `myob-connector`).
+This skill lets you read and operate a user's Klaviyo account on their behalf. There are two routes, and the built-in one comes first.
 
-It has two phases:
+**The built-in connector (the default route).** Klaviyo publishes a connector in Claude's own connector directory (`https://claude.com/connectors/klaviyo`, display name **Klaviyo**, made by Klaviyo, read & write). One click, no credentials handled by this skill. It covers campaign performance analysis, customer profile insights, flow analysis - and it **creates campaigns as drafts**, which is a straight gain: the kit's own route below cannot compose a campaign at all. What it cannot yet do is **send** an already-drafted campaign end to end (Klaviyo targets Q3 2026 for that), and its flow creation is capped at roughly 100 a day.
 
-- **Phase 1 - Install & Connect (autonomous via Playwright).** Claude drives `www.klaviyo.com` via Playwright MCP: signs the participant in, navigates directly to the canonical `/settings/account/api-keys` URL, clicks **Create Private API Key** (which navigates to a full-page form at `/create-private-api-key`), names it `Claude Workshop Connector` with Full Access Key, DOM-extracts the one-time-displayed key from the post-create confirmation page via clipboard transit (Klaviyo cannot show the key again after navigating away - this is the most time-sensitive moment in Phase 1), and persists to `~/.config/klaviyo/credentials.json` (mode 0600). The participant's only manual moment is signing in to Klaviyo once.
-- **Phase 2 - Use Tools (Direct-REST via curl).** Once `credentials.json` is configured, you `curl` Klaviyo REST endpoints with `Authorization: Klaviyo-API-Key <key>` + the required `revision: 2025-10-15` header (Klaviyo's API versioning is by date string). Writes (add to list, send campaign, suppress profile) are gated by per-call confirmation prose - every Phase 2 invocation hits real data (Klaviyo has no sandbox).
+**The kit's own route.** Klaviyo's **REST API** direct (no MCP server, no first-party CLI - Direct-REST + Playwright pattern, sibling to `mailchimp-connector` and `myob-connector`). This is the route that sends a campaign the user has already drafted. Both routes can live on one machine at once; never tear one down to set the other up.
 
-**Single-mode, no test/live distinction.** Klaviyo's free tier (up to 250 profiles, 500 sends/month) is real data - no sandbox API. Every Phase 2 call touches the participant's real audience. Production-mode gates are the default behaviour.
+The kit's own route has two phases:
 
-**API keys don't expire.** Klaviyo Private API Keys are revocable but not time-bounded; no refresh-token cycle. Auth failure path is "key revoked" (HTTP 401) → re-run Phase 1.
+- **PHASE 1 - Install & Connect (autonomous via Playwright).** Claude drives `www.klaviyo.com` via Playwright MCP: signs the participant in, navigates directly to the canonical `/settings/account/api-keys` URL, clicks **Create Private API Key** (which navigates to a full-page form at `/create-private-api-key`), names it `Claude Workshop Connector` with Full Access Key, DOM-extracts the one-time-displayed key from the post-create confirmation page via clipboard transit (Klaviyo cannot show the key again after navigating away - this is the most time-sensitive moment in Phase 1), and persists to `~/.config/klaviyo/credentials.json` (mode 0600). The participant's only manual moment is signing in to Klaviyo once.
+- **PHASE 2 - Use Tools (Direct-REST via curl).** Once `credentials.json` is configured, you `curl` Klaviyo REST endpoints with `Authorization: Klaviyo-API-Key <key>` + the required `revision: 2025-10-15` header (Klaviyo's API versioning is by date string). Writes (add to list, send campaign, suppress profile) are gated by per-call confirmation prose - every PHASE 2 invocation hits real data (Klaviyo has no sandbox).
+
+**Single-mode, no test/live distinction.** Klaviyo's free tier (up to 250 profiles, 500 sends/month) is real data - no sandbox API. Every PHASE 2 call touches the participant's real audience, on either route. Production-mode gates are the default behaviour.
+
+**API keys don't expire.** Klaviyo Private API Keys are revocable but not time-bounded; no refresh-token cycle. Auth failure path is "key revoked" (HTTP 401) → re-run **PHASE 1 - Install & Connect**.
 
 **Revision header is mandatory.** Every call needs `revision: <YYYY-MM-DD>`. Klaviyo rejects requests without it (HTTP 400). This SKILL pins to `2025-10-15` - the latest stable revision at SKILL author time. When Klaviyo deprecates that revision (~12-18 months out), bump the constant in the helper.
 
-**Which phase to run** - Before any tool call:
-
-```bash
-test -f "$HOME/.config/klaviyo/credentials.json" && jq -r '.api_endpoint // "missing"' "$HOME/.config/klaviyo/credentials.json" 2>/dev/null || echo missing
-```
-
-- Starts with `https://` → credentials present. Smoke (`GET /accounts/`); on 200 → Phase 2.
-- `missing` → run Phase 1.
+**Which phase to run** - always start at Phase 0.
 
 ---
 
 ## Golden rule - do not open the participant's own browser
 
-Every Phase 1 step that requires sign-in runs inside the Playwright MCP browser. Never tell the participant to "open Klaviyo in your browser." Claude navigates; the participant types their password directly into the Playwright window. Same as `mailchimp-connector`, `myob-connector`, `quickbooks-connector`.
+Every step of **the kit's own route** that requires sign-in runs inside the Playwright MCP browser. Never tell the participant to "open Klaviyo in your browser." Claude navigates; the participant types their password directly into the Playwright window. Same as `mailchimp-connector`, `myob-connector`, `quickbooks-connector`.
 
 If Playwright MCP is unavailable, halt and point the participant at install instructions; do not fall back to opening their default browser.
 
+**The one exception is Phase 1, the built-in connector.** That sign-in happens on claude.ai, and the participant's own everyday browser is the only one signed in there - so opening `https://claude.com/connectors/klaviyo` in their own browser is correct, and Playwright must not drive it. The golden rule above exists because the kit's own route reads a secret off the page in a driven browser; the built-in route reads nothing.
+
 ---
 
-## Communication rules for Phase 1
+## Communication rules for the kit's own route (PHASE 1 - Install & Connect)
 
 The participant is a non-technical business owner. Plain English only:
 
@@ -75,30 +74,86 @@ The participant is a non-technical business owner. Plain English only:
 
 ---
 
-## ⛔ Pre-flight check
+## ⛔ Pre-flight check (the kit's own route only)
 
-Verify Playwright MCP tools are available (`ToolSearch +playwright`). If absent, halt.
+Before running **the kit's own route**, verify Playwright MCP tools are available (`ToolSearch +playwright`). If absent, halt. Phase 1 (the built-in connector) needs no Playwright at all.
 
 ---
 
-## PHASE 0 - Credential check
+## Phase 0 - Is Klaviyo already connected?
 
-```bash
-CREDS="$HOME/.config/klaviyo/credentials.json"
-if [ ! -f "$CREDS" ]; then
-  STATE=missing
-else
-  STATE=$(jq -r '.api_endpoint // "missing"' "$CREDS" 2>/dev/null)
-fi
-echo "$STATE"
-```
+Run these silently, in order, and act on the first that answers.
 
-- `missing` → run Phase 1.
-- Starts with `https://` → smoke (`GET /accounts/`); on 200 → Phase 2; on 401 → re-run Phase 1.
+1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Klaviyo` (match the vendor word case-insensitively).
+   - `✔ Connected` → skip to PHASE 2. Prove it first with one read: call any read tool in the `mcp__claude_ai_Klaviyo__*` namespace (account lookup, or list campaigns) and check a real answer comes back.
+   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the participant and say: *"Your Klaviyo connection needs a quick re-sign-in. Press Reconnect next to Klaviyo, sign in, and tell me when it says Connected."* Then re-run this check.
+   - no such line → continue.
+2. **The kit's own route.** Check for stored credentials:
+
+   ```bash
+   CREDS="$HOME/.config/klaviyo/credentials.json"
+   if [ ! -f "$CREDS" ]; then
+     STATE=missing
+   else
+     STATE=$(jq -r '.api_endpoint // "missing"' "$CREDS" 2>/dev/null)
+   fi
+   echo "$STATE"
+   ```
+
+   Starts with `https://` → smoke (`GET /accounts/`). On 200, say *"Klaviyo is already connected"* and skip to PHASE 2; do not set the built-in up on top of a working connection. On 401 the key was revoked - re-run **PHASE 1 - Install & Connect**. `missing` → continue.
+3. **Nothing found** → Route by need, then Phase 1.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Klaviyo's tools.
+
+---
+
+## Route by need - which Klaviyo route does this participant actually want?
+
+Ask **one** question in plain English before opening anything: *"What do you want me to do with your Klaviyo - look at how campaigns and automations are performing and write you some drafts, or actually press send on a campaign you've already built?"*
+
+Then route each named need:
+
+| What the participant wants | Route |
+|---|---|
+| Campaign performance, opens, clicks, attributed revenue | Built-in connector (Phase 1) |
+| Flow analysis - which automations are earning | Built-in connector (Phase 1) |
+| Look up a profile; understand a customer | Built-in connector (Phase 1) |
+| **Write** a campaign - compose it as a draft | Built-in connector (Phase 1). The kit's own route cannot compose campaigns at all, so this is the built-in's territory outright. |
+| **Send** a campaign that is already drafted | The kit's own route (PHASE 1 - Install & Connect), Pattern 9 |
+| Create a lot of flows in one day (more than ~100) | The kit's own route - the built-in is capped at roughly 100 flow creations a day |
+| Add a profile to a list, suppress a profile | Built-in connector first (it is read & write); if the write is refused, the kit's own route (Patterns 5 and 10) |
+
+The built-in connector cannot send a campaign end to end yet - Klaviyo targets Q3 2026 for that. So run the kit's own route **only** when the participant named sending, bulk flow creation, or a write the built-in refused. If nothing they asked for is in the gap column, stop after Phase 1 and do not burden them with the key-minting walk. Say in one line what you are not connecting and why, so they can ask for it later.
+
+---
+
+## Phase 1 - Switch on the built-in Klaviyo connector (the default route)
+
+This is a one-time, once-per-account job. The only thing the participant does is press one button and sign in. This skill handles no key on this route.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the participant in one line that this copy of Claude is signed in a different way, and run the kit's own route instead.
+
+**Step 2 - Open the connector page for them.** Say: *"I'm opening Klaviyo's page in your browser. Press **Connect to Claude**, sign in to Klaviyo the way you normally do, and say yes when it asks for access. That is the only part only you can do, tell me when it says Connected."* Then open `https://claude.com/connectors/klaviyo` (or `https://claude.ai/directory/klaviyo`) in **the participant's own everyday browser** (`open` on Mac, `xdg-open` on Linux, `start ""` on Windows) - see the exception noted under the golden rule above. If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Klaviyo" → Connect.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+
+**Step 4 - Verify.** `claude mcp list` again. `claude.ai Klaviyo … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector - any read tool in the `mcp__claude_ai_Klaviyo__*` namespace (account lookup, or list recent campaigns). Only a real answer counts. A tool error here is not "connected".
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - *"how did my last campaign do?"*, *"which automations are earning the most?"*, *"draft me a campaign for the winter sale"*.
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude admin has to switch Klaviyo on for the organisation first. Say so plainly and stop; do not fall back to the kit's route just to get past an admin gate.
+
+**Local entry precedence.** If a server registered locally with `claude mcp add` points at the same URL, it takes precedence and hides the built-in one. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the participant's OK.
+
+**Real-data warning applies to both routes.** Klaviyo has no sandbox. Everything the built-in connector writes - including a draft campaign - lands in the participant's real account. Keep the real-data gate below.
 
 ---
 
 ## PHASE 1 - Install & Connect (autonomous via Playwright)
+
+> **When to run this.** Only when the participant named a need in the gap column of *Route by need* above - sending an already-drafted campaign, bulk flow creation, or a write the built-in refused - or when Phase 1 Step 1 showed this session cannot see built-in connectors at all. Otherwise stop at Phase 1. Both routes can coexist; setting this one up does not switch the built-in one off.
 
 ### Step 1 - Welcome
 
@@ -301,14 +356,18 @@ Returns the account's organization name. Tell the participant:
 
 If the smoke fails:
 
-- HTTP 401 → key didn't paste correctly; re-run Phase 1 from Step 4.
+- HTTP 401 → key didn't paste correctly; re-run **PHASE 1 - Install & Connect** from its Step 4.
 - HTTP 400 with `revision` in message → revision header constant is stale; bump `2025-10-15` to a newer date and retry.
 
 ---
 
 ## PHASE 2 - Use Tools
 
-### Helper - base curl shape
+**Which tools you have depends on which route connected.** Through the built-in connector the tools are `mcp__claude_ai_Klaviyo__*` - campaign and flow reporting, profile analysis, and drafting campaigns. Through the kit's own route the "tools" are the curl Patterns below. The names differ materially: there is no built-in equivalent of Pattern 9 (`/campaign-send-jobs/`), so an actual send always runs through the kit's own route even on a machine where both are connected. In the other direction, composing a campaign only exists on the built-in - Pattern 9 requires a campaign that already exists as a Draft.
+
+Both routes hit the same live account. The real-data gate below applies whichever route you are on.
+
+### Helper - base curl shape (the kit's own route)
 
 ```bash
 kl_get() {
@@ -455,7 +514,7 @@ Returns the top 10 flows by attributed revenue in the last 30 days. Critical met
 
 ### Common Pattern 9 - Send a campaign (write, gated, IRREVERSIBLE)
 
-Apply the **Send campaign** gate first. Campaign must already be drafted in Klaviyo's web UI (the SKILL doesn't compose campaigns from scratch - Klaviyo's template + Universal Content surface is too complex for v1).
+Apply the **Send campaign** gate first. The campaign must already exist as a Draft - this route doesn't compose campaigns from scratch (Klaviyo's template + Universal Content surface is too complex for v1). The draft can come from Klaviyo's web UI, or from the built-in connector, which does compose campaigns as drafts. That pairing - draft on the built-in, send here - is the intended shape of this pattern.
 
 ```bash
 CAMPAIGN_ID="<from Pattern 6 (filter status='Draft')>"
@@ -502,7 +561,8 @@ Returns 202 + job id for async processing. Most suppressions are processed withi
 | "Send [campaign]" / "Launch newsletter" | Pattern 9 (gated, irreversible) |
 | "Suppress [email]" / "Remove [email]" | Pattern 10 (gated) |
 | "How many subscribers?" | Pattern 3 (sum `profile_count` across lists) or `/accounts/` |
-| "Connect Klaviyo" / "Set up Klaviyo" | **Run Phase 1** |
+| "Write me a campaign" / "Draft a newsletter" | Built-in connector (`mcp__claude_ai_Klaviyo__*`) - the kit's own route cannot compose |
+| "Connect Klaviyo" / "Set up Klaviyo" | **Run Phase 0, then Route by need** |
 
 ---
 
@@ -510,10 +570,10 @@ Returns 202 + job id for async processing. Most suppressions are processed withi
 
 | Error | What it means | How to respond |
 |---|---|---|
-| HTTP 401 `unauthorized_request` | API key revoked / invalid | Translate: "Looks like the connection was disconnected - let me reconnect." Re-run Phase 1. |
+| HTTP 401 `unauthorized_request` | API key revoked / invalid | Translate: "Looks like the connection was disconnected - let me reconnect." Re-run **PHASE 1 - Install & Connect**. |
 | HTTP 400 with `revision` in message | Klaviyo deprecated the revision constant the SKILL pins to | Bump the revision string in credentials.json + the SKILL's helper to a newer date (Klaviyo publishes revisions roughly every 3 months). |
 | HTTP 400 `validation_error` | Filter syntax wrong (Klaviyo's JSON:API filters are strict) | Diagnose silently, retry. |
-| HTTP 403 `insufficient_scope` | Private API key was created as a `Read-Only Key` when the operation needs `Full Access Key` | Tell participant: "I need a key with full access - let me create a new one." Re-run Phase 1 Step 4 with the `Full Access Key` access level. |
+| HTTP 403 `insufficient_scope` | Private API key was created as a `Read-Only Key` when the operation needs `Full Access Key` | Tell participant: "I need a key with full access - let me create a new one." Re-run **PHASE 1 - Install & Connect** Step 4 with the `Full Access Key` access level. |
 | HTTP 404 on `/profiles/<id>` | Profile id stale (deleted or never existed) | Re-fetch via Pattern 2 (filter by email). |
 | HTTP 429 | Hit Klaviyo's burst rate cap (75 req/s burst, 700 req/min steady on most endpoints) | Wait 30s, retry once. Surface plain English if still hitting. |
 | HTTP 202 with no `data.id` on writes | Async job queued; processing takes seconds-minutes | Note: this is success, not error. Tell participant the action is processing. |
@@ -523,6 +583,10 @@ Translate every error to plain English. Never show raw HTTP bodies.
 ---
 
 ## Scope Limitations
+
+**Built-in connector.** Covers campaign performance analysis, flow analysis, profile insights, and campaign creation as drafts. It cannot send a drafted campaign end to end (Klaviyo targets Q3 2026), and flow creation is capped at roughly 100 a day.
+
+**The kit's own route** (everything below):
 
 This connector **can**:
 
@@ -534,7 +598,7 @@ This connector **can**:
 
 It **cannot**:
 
-- **Compose campaigns from scratch** - Klaviyo's drag-drop editor + Universal Content is the participant's design surface; this SKILL doesn't generate email HTML or SMS message content.
+- **Compose campaigns from scratch** - Klaviyo's drag-drop editor + Universal Content is the participant's design surface; this route doesn't generate email HTML or SMS message content. The built-in connector does create campaigns as drafts, so route "write me a campaign" there.
 - **Modify flows** - flow definition is a visual builder; v1 reads metrics, doesn't edit.
 - **Manage Klaviyo Forms** (popups, embedded signup forms) - separate API surface, not in v1.
 - **Bulk operations beyond suppression** - `/data-privacy-deletion-jobs/` exists for GDPR-style data deletion but is high-stakes; tracked as v2.
@@ -546,15 +610,15 @@ It **requires** the Private API key to be a `Full Access Key` (not `Read-Only Ke
 
 ---
 
-## Behaviour Guidelines (Phase 2)
+## Behaviour Guidelines (PHASE 2)
 
-- **Real-data awareness** - every Phase 2 call hits real Klaviyo data. Real-data gate on first call per session; per-write gate on every write.
+- **Real-data awareness** - every PHASE 2 call hits real Klaviyo data, on either route. Real-data gate on first call per session; per-write gate on every write.
 - **List vs Segment vocabulary** - Klaviyo treats Lists (static) and Segments (dynamic) as different objects. When a participant says "my audience", clarify which they mean if needed.
 - **Email vs SMS** - Klaviyo campaigns can be email OR SMS. The channel is in `attributes.messages.channel`. Patterns that filter campaigns should specify channel.
 - **Revenue formatting** - `conversion_value` is in the participant's account currency (USD/EUR/GBP/etc.) and returned as numeric. Format as currency.
 - **Date format** - Klaviyo uses ISO-8601 (`2026-06-02T05:30:00Z`).
 - **Pagination** - `page[size]=N` (max 100); `page[cursor]=...` from `links.next`. Multi-page operations should cap at 5 pages unless the participant asks for more.
-- **Auth errors** → re-run Phase 1. Do not ask the participant to "run a command" - you run it.
+- **Auth errors** → on the built-in connector, send the participant to Reconnect on `https://claude.ai/customize/connectors`; on the kit's own route, re-run **PHASE 1 - Install & Connect**. Do not ask the participant to "run a command" - you run it.
 - **Never log or echo the API key** - `api_key` is the only secret. Never appears in participant-visible output.
 - **Suppression is firm** - Pattern 10 affects deliverability across ALL of the participant's audience. Gate is strict.
 - **Sending is irreversible** - Pattern 9's gate uses "Are you sure?" (stronger than "OK?").
@@ -574,6 +638,6 @@ It **requires** the Private API key to be a `Full Access Key` (not `Read-Only Ke
 - [`skills/CLAUDE.md`](../CLAUDE.md) - three-pattern decision tree. Direct-REST connector (out-of-scope for that doc; sibling shape to `mailchimp-connector` and `myob-connector`).
 - [Klaviyo API overview](https://developers.klaviyo.com/en/reference/api_overview) - official endpoint catalogue + auth shape.
 - [Klaviyo API key management](https://help.klaviyo.com/hc/en-us/articles/115005062267) - how to manage existing keys.
-- [Klaviyo Private API Key creation](https://help.klaviyo.com/hc/en-us/articles/7423954176283) - exact UI flow Phase 1 Step 4 drives.
+- [Klaviyo Private API Key creation](https://help.klaviyo.com/hc/en-us/articles/7423954176283) - exact UI flow the kit's own route Step 4 drives.
 - Memory `reference_playwright_snapshot_password_leak` - sign-in page snapshot rule.
 - Memory `feedback_workshop_kit_update_format` - say "audience" / "profiles" to participants. Klaviyo uses both "profiles" and "subscribers" interchangeably in its UI.

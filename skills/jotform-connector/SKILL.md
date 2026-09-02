@@ -1,7 +1,7 @@
 ---
 name: jotform-connector
-description: "Connect Jotform to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect Jotform, or wants Jotform work (forms, submissions, form assignments) and Jotform isn't connected yet. Once connected, Jotform runs directly through the mcp__jotform__* tools."
-allowed-tools: mcp__jotform__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect Jotform to Claude by switching on its built-in connector, or by registering Jotform's official server locally. Use when the user asks to set up or connect Jotform, or wants Jotform work (forms, submissions, form assignments) and Jotform isn't connected yet. Once connected, Jotform runs through the mcp__claude_ai_Jotform__* or mcp__jotform__* tools."
+allowed-tools: mcp__claude_ai_Jotform__*, mcp__jotform__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Forms & Data Collection
   tags:
@@ -36,12 +36,18 @@ metadata:
 
 ## Overview
 
-This skill lets you read and update a user's Jotform account on their behalf using the **official first-party Jotform MCP server** hosted at `https://mcp.jotform.com` (see [jotform/mcp-server](https://github.com/jotform/mcp-server)). It has two phases:
+This skill lets you read and update a user's Jotform account on their behalf using the **official first-party Jotform MCP server** hosted at `https://mcp.jotform.com` (see [jotform/mcp-server](https://github.com/jotform/mcp-server)).
 
-- **Phase 1 - Install & Auth (autonomous, 6 steps).** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen, auto-detects the callback via `browser_wait_for`, then verifies with a `mcp__jotform__list_forms` smoke call. The user's only manual moments are signing in to Jotform inside the Playwright window and clicking Allow on the consent screen. Token storage is handled by Claude Code's MCP runtime - there is no manual `~/.claude.json` token write.
-- **Phase 2 - Use Tools.** Once the connector is configured, you call the `mcp__jotform__*` native tools to read and update Jotform data.
+**There are two ways in, and they reach the same server.** Claude's own connector directory ships a built-in **Jotform** connector that points at that exact hosted endpoint, so its tool surface is identical to the kit's. Switching it on is one button and a sign-in, once per Claude account, with no local registration and no connection key on the machine - so it is the default route. The kit's own route (Phase 1-alt) stays in full for the cases the built-in cannot serve. Both can coexist on one machine; never tear one down to set the other up.
 
-**Which phase to run** - Before any tool call, check whether the Jotform MCP server is already configured. Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.jotform` entry. If present, attempt a verification tool call (Phase 1 Step 6). If it succeeds, the connector is ready - skip to Phase 2. If it 401s, walk Phase 1 from Step 3 to re-trigger the OAuth flow (the registration is already in place).
+The skill has these phases:
+
+- **Phase 0 - Is Jotform already connected?** Checks the built-in connector first, then the kit's own registration, and routes.
+- **Phase 1 - Switch on the built-in Jotform connector (the default route).** Open Jotform's connector page in the user's own browser, they press **Connect to Claude** and sign in, then verify and prove with one read.
+- **Phase 1-alt - The kit's own route (only when the built-in can't be used), autonomous, 6 steps.** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen, auto-detects the callback via `browser_wait_for`, then verifies with a `mcp__jotform__list_forms` smoke call. The user's only manual moments are signing in to Jotform inside the Playwright window and clicking Allow on the consent screen. Token storage is handled by Claude Code's MCP runtime - there is no manual `~/.claude.json` token write.
+- **Phase 2 - Use Tools.** Once Jotform is connected by either route, you call its native tools to read and update Jotform data - `mcp__claude_ai_Jotform__*` on the built-in route, `mcp__jotform__*` on the kit's.
+
+**Which phase to run** - always start at Phase 0. On the kit's own route the resume signal is unchanged: read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.jotform` entry. If present, attempt a verification tool call (Phase 1-alt Step 6). If it succeeds, the connector is ready - skip to Phase 2. If it 401s, walk Phase 1-alt from Step 3 to re-trigger the OAuth flow (the registration is already in place).
 
 ### What this skill does NOT use
 
@@ -56,9 +62,9 @@ The Jotform MCP server is a hosted OAuth 2.1 server. The transport endpoint at `
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules for Phase 1 and Phase 1-alt
 
-The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work, the user only signs in to Jotform in the Playwright window and clicks Allow. Every message you send during Phase 1 must follow these rules:
+These rules apply to **both** connect routes. On Phase 1 (the built-in connector) the user presses one button in their own browser and signs in; on Phase 1-alt the browser window is one Claude drives. Either way the user is a non-technical business owner - Claude does the work, the user only signs in and clicks Allow. Every message you send while connecting must follow these rules:
 
 - **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only actions you ever request are: "please sign in to the browser window I just opened" and "please click Allow on the screen Jotform just showed you."
 - **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, PKCE, scope, token, MCP, endpoint, JSON, REST, environment variable, Playwright, browser automation, redirect URI, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page" - not "Playwright" or "Chromium". If you must name a technical concept, plainly:
@@ -68,14 +74,27 @@ The user is a non-technical business owner. Phase 1 is autonomous - Claude does 
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening Jotform for you now"), once when you need them ("please sign in", "please click Allow"), once when you're done ("your Jotform is now connected"). No commentary in between snapshots, clicks, or evaluates.
 - **React to success and failure warmly.** Good: "That worked - your Jotform is now connected." Bad: "Token exchange returned 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem - let me try a different way," then diagnose silently.
-- **Short responses.** Maximum 8 lines per message during Phase 1.
+- **Short responses.** Maximum 8 lines per message while connecting (Phase 1 or Phase 1-alt).
 - **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
 
 ---
 
-## Phase 0 - Pre-flight (silent)
+## Phase 0 - Is Jotform already connected?
 
-### 0.1 - Resume check
+Run these silently, in order, and act on the first that answers.
+
+1. **Built-in connector.** Run `claude mcp list` and look for a line starting `claude.ai Jotform` (match the vendor word case-insensitively; there is no `--json` flag).
+   - `✔ Connected` → skip to **Phase 2**. Prove it first with one read through the built-in - list the account's forms - before saying so.
+   - `! Needs authentication` → the connection is on the account but its sign-in has lapsed. Open `https://claude.ai/customize/connectors` in the user's own browser and say: *"Your Jotform connection needs a quick re-sign-in. Press **Reconnect** next to Jotform, sign in, and tell me when it says Connected."* Then re-run this check.
+   - No such line → continue to step 2.
+2. **The kit's own route.** Run the resume check below. If an `mcpServers.jotform` entry is present and a smoke call works, keep using it - say *"Jotform is already connected"* and skip to **Phase 2**. Do not set the built-in up on top of a working connection.
+3. **Nothing found** → go to **Phase 1**.
+
+**Precedence note.** A server registered locally at the same address takes precedence over the built-in one and hides it (`/mcp` shows the built-in as hidden). If a machine carries an `mcpServers.jotform` entry from an earlier run of the kit's route and it works, leave it and say so. Only remove it - and only with the user's explicit OK - if it is broken and the built-in is the better route.
+
+**No shell?** If you cannot run commands at all (this is claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2 entirely: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Jotform's tools.
+
+### 0.1 - Resume check (the kit's own route)
 
 Read `~/.claude.json` via Node (cross-platform safe - Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile):
 
@@ -91,16 +110,57 @@ console.log(jf ? 'REGISTERED' : 'NOT_CONFIGURED');
 "
 ```
 
-- `REGISTERED` → try Phase 1 Step 6 (verify) first. If it succeeds, the connector is already active - surface a friendly message and stop. If 401, walk Phase 1 from Step 3.
-- `NOT_CONFIGURED` → run full Phase 1 from Step 1.
+- `REGISTERED` → try Phase 1-alt Step 6 (verify) first. If it succeeds, the connector is already active - surface a friendly message and stop. If 401, walk Phase 1-alt from Step 3.
+- `NOT_CONFIGURED` → nothing of the kit's is in place; go to Phase 1.
 
-### 0.2 - Tooling check (silent)
+### 0.2 - Tooling check (silent, needed for Phase 1-alt)
 
 Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). If `claude` is missing, fall back to the setup prompt in `docs/start/setup.md` (its Step 6 installs the Claude CLI). If Playwright MCP is missing, install autonomously with `claude mcp add playwright --scope user -- npx @playwright/mcp@latest` (the `--` separator keeps Claude Code from consuming `npx` as an `add` flag), ask the user to close and reopen the chat, then retry.
 
 ---
 
-## PHASE 1 - Install & Auth (6 steps, autonomous via Playwright)
+## Phase 1 - Switch on the built-in Jotform connector (the default route)
+
+Claude's connector directory carries a **Jotform** connector that points at the same hosted endpoint the kit registers (`https://mcp.jotform.com`), so the tool surface is identical. This is a one-time, once-per-account job: connect it once on the user's Claude account and it is available everywhere that account is signed in, including here. The only thing the user does is press one button and sign in. Nothing on this route captures, stores, or echoes a connection key - there is no key.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set in the environment, built-in connectors will not appear in this session. Tell the user in one line that this copy of Claude is signed in a different way, then run **Phase 1-alt** instead.
+
+**Step 2 - Open the connector page for them.** Say:
+
+> "I'm opening Jotform's page in your browser. Press **Connect to Claude**, sign in to Jotform the way you normally do, and say yes when it asks for access. That's the only part only you can do - tell me when it says Connected."
+
+Then open `https://claude.ai/directory/jotform` (the public mirror of the same page is `https://claude.com/connectors/jotform`) in the user's **own** everyday browser: `open <url>` on Mac, `xdg-open <url>` on Linux, `start "" <url>` on Windows. That is where they are already signed in. If the page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: **Browse**, search "Jotform", **Connect**.
+
+> **Why the user's own browser here.** Phase 1-alt's rule - never use the user's own browser - exists because that route drives a sign-in in a browser Claude controls. This route reads nothing and handles no key, so the user's own browser is the correct place for the button press. Do not drive this sign-in with the automated browser.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a picture of the sign-in screen.
+
+**Step 4 - Verify.** Run `claude mcp list` again. A line reading `claude.ai Jotform ... ✔ Connected` is the pass.
+- Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. A session loads its connections when it starts.
+- `! Needs authentication` → send them to `https://claude.ai/customize/connectors` and have them press **Reconnect** next to Jotform.
+- Still no line at all → the Connect didn't complete; send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector - list the account's forms. Only a real answer counts (an empty list is a real answer; a tool error is not "connected"). The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_Jotform__*` tools actually available and pick a safe read rather than hard-coding a name.
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - for example *"show me my forms"*, *"how many people filled in the contact form this week?"*, *"summarise last month's submissions"*.
+
+**Team or Enterprise accounts.** If the page shows **Request** instead of **Connect**, the user's Claude administrator has to switch Jotform on for the organisation first, and connectors only work in private projects there. Say so plainly and stop. Do not fall back to the kit's route just to get past an admin gate.
+
+**Plan note.** Assume a paid Claude plan for built-in connectors. Free accounts are limited to a single custom connector, which is not this route.
+
+---
+
+## Phase 1-alt - The kit's own route (only when the built-in can't be used)
+
+Run this **instead of** Phase 1 in exactly three cases:
+
+- Phase 1 Step 1 failed - this copy of Claude is signed in a way that cannot see built-in connectors.
+- The Jotform connector is not listed on the user's Claude account (no directory listing, and nothing under **Browse**).
+- The user explicitly asks for the locally registered server.
+
+Otherwise Phase 1 is the route: it reaches the same server with none of this setup, and there is no reason to burden the user with it. Both routes can live on one machine - never tear one down to set the other up.
+
+Everything below is the kit's original install: 6 steps, autonomous via Playwright.
 
 ### Step 1 - Orient the user
 
@@ -274,7 +334,7 @@ Verify by calling `mcp__jotform__list_forms` with a small page size (e.g. 1 form
 Because `complete_authentication` unblocks the rest of the `mcp__jotform__*` surface in the same session, the smoke call should run immediately:
 
 - **Call returns a list** → capture the form count, surface a success message including the count if non-zero ("I can see N forms in your account").
-- **Call returns 401 / `invalid_token`** → walk Phase 1 from Step 3 once. If still failing, surface the user-facing error and stop.
+- **Call returns 401 / `invalid_token`** → walk Phase 1-alt from Step 3 once. If still failing, surface the user-facing error and stop.
 - **Call returns 403** → "Your connection is working, but your Jotform account doesn't have permission for that action - your plan or role may not include it." Stop here.
 - **`429 Rate limited`** → "Jotform is asking me to slow down - let me wait a moment and try again." Wait 10 seconds, retry once.
 
@@ -288,7 +348,9 @@ Tell the user, in one short message (include the live count from the smoke call 
 
 ## PHASE 2 - Use Tools
 
-Once the connector is configured, use the `mcp__jotform__*` MCP tools below to answer questions and make changes in Jotform. The hosted Jotform MCP server provides **6 first-party tools** covering forms, submissions, and assignments.
+Once the connector is configured, use Jotform's MCP tools below to answer questions and make changes in Jotform. The hosted Jotform MCP server provides **6 first-party tools** covering forms, submissions, and assignments.
+
+> **Which prefix you get.** Through the built-in connector (Phase 1) the tools are `mcp__claude_ai_Jotform__*`; through the kit's own route (Phase 1-alt) they are `mcp__jotform__*`. Both routes reach the same hosted Jotform server, so the tool names after the prefix are the same - only the prefix differs, and the tables below apply to both. List the tools present in the session and use the prefix that is actually there; never mix the two prefixes in one session.
 
 ### Tool Reference
 
@@ -318,8 +380,8 @@ The official MCP server exposes tools with the prefix `mcp__jotform__`. Verified
 
 | What the user says | Tool to use |
 |---|---|
-| "Connect my Jotform" / "Help me set up Jotform" | **Run Phase 1** |
-| "My Jotform stopped working" / "I'm getting auth errors" | Walk Phase 1 from Step 3 (Claude Code re-runs the OAuth dance) |
+| "Connect my Jotform" / "Help me set up Jotform" | **Run Phase 0, then Phase 1** (Phase 1-alt only if Phase 1 is unavailable) |
+| "My Jotform stopped working" / "I'm getting auth errors" | Re-run Phase 0. Built-in route: `! Needs authentication` means **Reconnect** at `https://claude.ai/customize/connectors`. Kit's route: walk Phase 1-alt from Step 3 (Claude Code re-runs the OAuth dance) |
 | "Show me my forms" | `list_forms` |
 | "How many submissions did the contact form get this week?" | `list_forms` (find form ID) → `get_submissions` (filter by date) |
 | "Show me the latest 10 responses on the feedback form" | `list_forms` → `get_submissions` (limit 10) |
@@ -338,13 +400,13 @@ When a Jotform tool call fails, diagnose and respond in plain English. Never sho
 
 | Error | What to say | How to fix |
 |---|---|---|
-| 401 Unauthorized / Not authenticated | "Your Jotform sign-in has expired - let me reconnect you." | Walk Phase 1 from Step 3; Claude Code re-runs OAuth |
+| 401 Unauthorized / Not authenticated | "Your Jotform sign-in has expired - let me reconnect you." | Built-in route: press **Reconnect** at `https://claude.ai/customize/connectors`. Kit's route: walk Phase 1-alt from Step 3; Claude Code re-runs OAuth |
 | 403 Forbidden | "Your Jotform user doesn't have permission for that form. The form owner may need to share it with you." | User talks to the form owner; nothing to fix in the connector |
 | 404 Not Found (form / submission) | "I couldn't find that record - let me list your forms again." | Use `list_forms` to refresh the list |
 | 429 Rate limited | "Jotform is asking me to slow down. I will wait a moment and try again." | Wait 10 seconds and retry once. Free tier is 60 requests/minute; Enterprise is 600/min. |
 | 400 Invalid request | "The details I tried to send didn't match what Jotform expected - let me try again." | Re-fetch the form ID, retry once |
 | MCP server not running | "The Jotform connection isn't active yet. Please close and reopen the chat so it picks up the new settings." | User closes and reopens Claude Code |
-| Any other API error | "Something went wrong with Jotform - let me try again." | Retry once; if still failing, walk Phase 1 from Step 3 |
+| Any other API error | "Something went wrong with Jotform - let me try again." | Retry once; if still failing, re-run Phase 0 and reconnect by whichever route is in use |
 
 ---
 
@@ -383,7 +445,7 @@ The Jotform MCP connector **cannot** do (needs the Jotform UI or other tools):
 
 ## Related Skills
 
-- **orientation**: Source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: Source pattern for conversational bootstrap; Phase 1 and Phase 1-alt above follow the same rules
 - **calendly-connector**: Sibling hosted OAuth-only MCP connector - identical 6-step Playwright-driven install pattern
 - **linear-connector**: Sibling hosted OAuth-only MCP connector with DCR - canonical autonomous-install reference
 - **monday-connector**: Sibling Playwright-driven autonomous connector - reference for snapshot-and-reason model

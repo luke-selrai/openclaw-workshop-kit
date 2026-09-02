@@ -1,5 +1,7 @@
 # ActiveCampaign connector - live Phase 1 walkthrough (verified)
 
+> **Which route this is.** This transcript is the kit's own route, now **Phase 1-alt** in `SKILL.md`. The default first stop is the built-in ActiveCampaign connector (Phase 1); this route is for deals, custom-field work and deleting a contact, or when built-in connectors can't be used. The flow below is unchanged.
+
 A real, verified run of Phase 1 on 2026-06-22 (key redacted).
 
 ## Setup

@@ -1,5 +1,7 @@
 # Pipedrive connector - live Phase 1 walkthrough (verified)
 
+> **Which route this is.** This transcript is the kit's own route, now **Phase 1-alt** in `SKILL.md`. The default first stop is the built-in Pipedrive connector (Phase 1); this route is for notes, products, organisations, leads, users and filters, or when built-in connectors can't be used. The flow below is unchanged.
+
 A real, verified run of Phase 1 on 2026-06-22. The token is redacted; everything else is the actual flow. This is the reference transcript for what a clean install looks like.
 
 ## Setup

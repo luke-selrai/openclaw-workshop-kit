@@ -2,6 +2,54 @@
 
 All notable changes to this skill, oldest at the bottom.
 
+## [0.3.0] - 2026-09-02
+
+**Native-first (CORE-395).** PandaDoc is in Claude's own connector directory, so
+the built-in connector is now the default route and the kit's Playwright install
+is the fallback. Both reach the same `https://mcp.pandadoc.com/v1/mcp` server and
+the same 22 tools; the built-in is one button press with nothing registered on
+the user's computer. The one real exception is carried through the whole file:
+**EU-hosted accounts (`app.pandadoc.eu`) are excluded from the directory** and
+must use the kit's route or a hand-added custom connection.
+
+### Added
+
+- **SKILL.md Phase 0 - "Is PandaDoc already connected?"** Replaces the old
+  pre-flight resume check and absorbs the claude.ai-layer probe that used to sit
+  under `0.1`. Checks `claude mcp list` for `claude.ai PandaDoc` first
+  (`✔ Connected` → Phase 2 after a real read; `! Needs authentication` → the
+  Reconnect path), then the `mcpServers.pandadoc` Node probe, then Phase 1. Notes
+  the local-entry-takes-precedence rule and the no-shell branch.
+- **SKILL.md Phase 1 - "Switch on the built-in PandaDoc connector".** Six steps:
+  confirm the session can see built-in connectors (`claude auth status` →
+  `"authMethod": "claude.ai"`, plus the two kill-switches), open
+  `https://claude.ai/directory/pandadoc` in the user's own browser, wait, verify,
+  prove with a one-document read, hand off. Carries the no-`user_intent` rule into
+  the smoke call, and the Team/Enterprise **Request**-instead-of-**Connect** stop.
+- **EU-account routing**, stated three times where it bites: the overview, a
+  callout at the head of Phase 1, and the Scope Limitations list.
+
+### Changed
+
+- **The old Phase 1 is now `PHASE 1-alt, Install & Auth`**, with a short
+  when-to-use paragraph headed by the EU case. All six steps, the four-hop bridge
+  capture, the auto-grant race, the two-button consent flow, the admin/SSO
+  interstitial detection and the revoke note are unchanged.
+- **Frontmatter `description`** rewritten to the Template B two-route shape;
+  `allowed-tools` gains `mcp__claude_ai_PandaDoc__*`.
+- **Phase 2** opens with a namespace line: `mcp__claude_ai_PandaDoc__*` on the
+  built-in connector, `mcp__pandadoc__*` on the kit's route, same
+  `namespace_object_verb` names on both, same `user_intent` prohibition.
+- **Prompt-to-Tool mapping and the error-handling table** route re-auth through
+  Phase 0 rather than "walk Phase 1 from Step 3", since the fix differs by route.
+- **Communication rules** retitled to cover both routes.
+
+### Not touched
+
+- The 22-tool reference, status codes, response shapes, confirmation gates and
+  Behaviour Guidelines are unchanged.
+- `examples/` and `scripts/` are unchanged.
+
 ## [0.2.0] - 2026-06-05
 
 **Phase 2 verified live (follow-up smoke from a fresh chat session).** The 0.1.0

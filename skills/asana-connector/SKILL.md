@@ -1,7 +1,7 @@
 ---
 name: asana-connector
-description: "Connect Asana to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Asana, or wants Asana work (tasks, projects, sections, comments, due dates, workload) and the credentials aren't in place yet. Once connected, Asana runs directly against its API with the stored credentials."
-allowed-tools: Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
+description: "Connect Asana to Claude by switching on its built-in connector, or by installing its API credentials for the parts the built-in doesn't reach. Use when the user asks to set up or connect Asana, or wants Asana work (tasks, projects, sections, comments, due dates, custom fields, portfolios) and Asana isn't connected yet. Once connected, Asana runs through the mcp__claude_ai_Asana__* tools, or against its API with the stored credentials."
+allowed-tools: mcp__claude_ai_Asana__*,Bash,Read,Write,Edit,mcp__plugin_playwright_playwright__*
 metadata:
   category: Productivity & Integrations
   tags:
@@ -24,20 +24,21 @@ metadata:
 
 ## Overview
 
-This skill lets Claude read and update a user's Asana data on their behalf. Asana is the work-management app (projects, tasks, assignments) popular with SMB and team workflows. It publishes **no first-party MCP server for personal use**, so this is a **standalone direct-REST connector** - the same shape as `pipedrive-connector`, `servicem8-connector`, and `cliniko-connector` in the direct-REST family noted in `skills/CLAUDE.md`. (Its sibling `monday-connector` is the same *category* - work management - but uses the MCP-based Hosted-bearer-PAT pattern, not direct REST.)
+This skill lets Claude read and update a user's Asana data on their behalf. Asana is the work-management app (projects, tasks, assignments) popular with SMB and team workflows. There are two routes onto it, and **the built-in connector is the default**:
 
-The architecture is dead simple. Claude reads one static Personal Access Token (PAT) out of `~/.config/asana/credentials.env`, then runs `curl` against Asana's REST endpoints. Three Asana specifics matter:
+- **Phase 1 - the built-in Asana connector (default).** Asana's own hosted server, listed in Claude's connector directory at `https://claude.com/connectors/asana` (slug verified live, 2 Sep 2026). The user presses one button on their Claude account and signs in. The connection is **account-level**: connect once and it is available everywhere that Claude account is signed in, including Claude Code. Tools arrive as `mcp__claude_ai_Asana__*` - 30-plus of them over Asana's Work Graph: searching, creating, updating and tracking tasks, projects and goals, with Asana's own inline cards in the answer. It handles no credentials at all. **It needs a paid Claude plan.**
+- **Phase 1-alt - the kit's own route** (for the two things the built-in can't do - **setting custom fields at the moment a task is created** (dates especially) and **portfolios** - and whenever built-in connectors can't be used in this session, including on a free Claude plan). A **standalone direct-REST connector** - the same shape as `pipedrive-connector`, `servicem8-connector`, and `cliniko-connector` in the direct-REST family noted in `skills/CLAUDE.md`. (Its sibling `monday-connector` is the same *category* - work management - but uses the MCP-based Hosted-bearer-PAT pattern, not direct REST.)
+- **Phase 2 - Use the connector.** Whichever route connected, read and update Asana through that route.
+
+The kit's own route is dead simple. Claude reads one static Personal Access Token (PAT) out of `~/.config/asana/credentials.env`, then runs `curl` against Asana's REST endpoints. Three Asana specifics matter:
 
 - **Auth is `Authorization: Bearer <PAT>`.** Every call carries the Bearer header. There is no query-param token form.
 - **The PAT has a THREE-segment format:** `<version>/<user_gid>/<token_gid>:<hex>` - e.g. `2/1215919238271902/1215924623120615:52144db…`. A naive two-segment regex captures a truncated slice and yields a silent 401. **Capture it via the dialog's "Copy" button**, not a DOM regex (and if you must regex, the pattern is `\d+/\d+/\d+:[0-9a-f]+`). The token is shown **once** at creation.
 - **Responses are minimal by default.** Asana returns only `{gid, name, resource_type}` per object unless you pass **`opt_fields`**. Always request the fields you need (e.g. `?opt_fields=name,due_on,assignee.name,completed`). This is the #1 "why is my data empty?" gotcha.
 
-The skill has two phases:
+On the kit's own route, Phase 1-alt is autonomous via Playwright with one user step: Claude drives the whole token-mint inside a Playwright MCP browser - open the developer console, let the user sign in, create a `Claude Code` token, accept the API terms, capture it via the Copy button, write `~/.config/asana/credentials.env` (mode 600), and verify with a live ping. The user's only manual moment is signing in to Asana once. After that, Claude calls the Asana REST API via `curl` to read and update data: tasks, projects, sections, subtasks, stories, tags, users, teams, custom fields, attachments.
 
-- **Phase 1 - Install & Connect (autonomous via Playwright, with one user step).** Claude drives the whole token-mint inside a Playwright MCP browser: open the developer console, let the user sign in, create a `Claude Code` token, accept the API terms, capture it via the Copy button, write `~/.config/asana/credentials.env` (mode 600), and verify with a live ping. The user's only manual moment is signing in to Asana once.
-- **Phase 2 - Use the connector.** Once the token is saved, Claude calls the Asana REST API via `curl` to read and update data: tasks, projects, sections, subtasks, stories, tags, users, teams, custom fields, attachments.
-
-**Which phase to run** - Before any Asana action, check for `~/.config/asana/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\asana\credentials.env` (native Windows). If it exists with a non-empty `ASANA_PAT`, run the Phase 0 smoke ping; on success, skip to Phase 2. Otherwise run Phase 1.
+**Which phase to run** - always start at **Phase 0** below. It checks the built-in connector first, then the kit's own credentials file (`~/.config/asana/credentials.env` on Mac/Linux/WSL, `%APPDATA%\asana\credentials.env` on native Windows, with a non-empty `ASANA_PAT`) plus a smoke ping. A working connection on either route means skip straight to Phase 2 - never set one route up on top of the other.
 
 **Existing accounts only.** This connector is for users who already have an Asana account or trial. Do not use it to recommend Asana to users who do not already use it.
 
@@ -45,23 +46,26 @@ The skill has two phases:
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules (Phase 1 and Phase 1-alt)
 
-The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work. The user only signs in to Asana once. Every message during Phase 1 follows these rules:
+The user is a non-technical business owner. Both routes are autonomous - Claude does the work. The user only signs in to Asana once. Every message during either route follows these rules:
 
+- **Which browser opens, and why.** On the built-in route you open the user's **own everyday browser** - that is where they are already signed in to Claude - and it reads nothing from that browser. On the kit's own route Claude uses a separate window it drives itself, because that route reads the connection key off the page. The two rules do not conflict; they belong to different routes.
+- **Never ask for a password, a sign-in code, or a screenshot of a sign-in screen** on either route.
+- **Restart, only on the built-in route.** If the built-in connector doesn't show up after connecting, ask the user to close and reopen Claude once. The kit's own route needs no restart (see below).
 - **You drive, not them.** Never ask the user to click menus, copy text, or paste values in the happy path. The only action you request is "please sign in to Asana in the browser window I just opened."
 - **Plain English only.** No jargon. Never say API, token, PAT, REST, curl, header, DOM, Playwright, env, JSON, endpoint, or file path. Name technical things plainly: "the connection", "your Asana account", "your browser".
 - **Tell them what is about to happen.** "I'm going to connect Asana for you - this takes about a minute."
 - **React warmly to success and failure.** Good: "That worked - your Asana is now connected." Never show a raw error message; translate to plain English and try the documented recovery.
-- **Short responses.** Maximum 8 lines per message during Phase 1.
+- **Short responses.** Maximum 8 lines per message while connecting.
 - **Never echo the token** in a narration line, a tool return, or a log. It is stored locally and referenced by name only.
-- **No restart needed.** Unlike the MCP-based connectors, this one works the instant the token is saved - do NOT ask the user to restart Claude Code.
+- **No restart needed on the kit's own route.** Unlike the MCP-based connectors, it works the instant the token is saved - do NOT ask the user to restart Claude Code for it. (The built-in route is the exception above.)
 
 ---
 
 ## Cross-cutting: Playwright MCP install contingency
 
-Phase 1 drives a browser via the Playwright MCP server. If `mcp__plugin_playwright_playwright__*` (or `mcp__playwright__*`) tools are not available, install Playwright first, per `skills/CLAUDE.md`:
+Phase 1-alt drives a browser via the Playwright MCP server. If `mcp__plugin_playwright_playwright__*` (or `mcp__playwright__*`) tools are not available, install Playwright first, per `skills/CLAUDE.md`:
 
 ```bash
 claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --user-data-dir "$HOME/.cache/playwright-mcp-profile"
@@ -71,29 +75,78 @@ Then ask the user to close and reopen Claude Code once, and retry. The `--user-d
 
 ---
 
-## PHASE 0 - Resume check
+## PHASE 0 - Is Asana already connected?
 
-Run before any Phase 1 work.
+Run these silently, in order, and act on the first that answers.
 
-```bash
-CRED_FILE="$HOME/.config/asana/credentials.env"
-if [ -f "$CRED_FILE" ] && grep -q '^ASANA_PAT=.\+' "$CRED_FILE"; then echo "configured"; else echo "not-configured"; fi
-```
+1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Asana` (match the vendor word case-insensitively).
+   - `✔ Connected` → skip to **Phase 2**. Prove it first with one read from the `mcp__claude_ai_Asana__*` namespace (list the user's tasks due this week) before saying so.
+   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` in the user's own browser (`open` on Mac, `xdg-open` on Linux, `start "" <url>` on Windows) and say: *"Your Asana connection needs a quick re-sign-in. Press Reconnect next to Asana, sign in, and tell me when it says Connected."* Then re-run this check.
+   - no such line → continue.
+2. **The kit's own route.** Check for the credentials file, then smoke-ping it:
 
-- `configured` → run the smoke ping below. On HTTP 200, tell the user warmly "You're already connected - let me check it still works," then go to **Phase 2**. On HTTP 401, the token was revoked or deleted - re-run **Phase 1**.
-- `not-configured` → run **Phase 1**.
+   ```bash
+   CRED_FILE="$HOME/.config/asana/credentials.env"
+   if [ -f "$CRED_FILE" ] && grep -q '^ASANA_PAT=.\+' "$CRED_FILE"; then echo "configured"; else echo "not-configured"; fi
+   ```
 
-Smoke ping (token read from file, never printed):
+   Smoke ping (token read from file, never printed):
 
-```bash
-set -a; . "$HOME/.config/asana/credentials.env"; set +a
-curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer $ASANA_PAT" \
-  "https://app.asana.com/api/1.0/users/me"
-```
+   ```bash
+   set -a; . "$HOME/.config/asana/credentials.env"; set +a
+   curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer $ASANA_PAT" \
+     "https://app.asana.com/api/1.0/users/me"
+   ```
+
+   - `configured` + HTTP 200 → keep using it. Tell the user warmly *"You're already connected - let me check it still works,"* then go to **Phase 2**. Do not set the built-in up on top of a working connection.
+   - `configured` + HTTP 401 → the token was revoked or deleted. If the user's need is inside the built-in's coverage (see the routing table), prefer **Phase 1**; otherwise re-run **Phase 1-alt**.
+   - `not-configured` → continue.
+3. **Nothing found** → **Phase 1**.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Asana's tools.
 
 ---
 
-## PHASE 1 - Install & Connect (autonomous via Playwright)
+## Route by need - built-in or the kit's route?
+
+Before installing anything, ask one question in plain English: **what does the user want Claude to do with Asana?** Then route what they name:
+
+| What the user wants | Route |
+|---|---|
+| See work - my tasks, a project's tasks, what's due, project status, goals | **Built-in** |
+| Create and manage tasks and projects - new task, assign it, set a due date, complete it, comment on it | **Built-in** |
+| Turn a conversation into a project - tasks, owners, milestones, a timeline | **Built-in** |
+| **Setting custom fields as part of creating a task** - especially custom *date* fields | The kit's own route (Phase 1-alt) - the built-in cannot set them at creation |
+| **Portfolios** | The kit's own route (Phase 1-alt) |
+| The user is on a free Claude plan, the session can't see built-in connectors at all (Phase 1 Step 1 fails), or they explicitly ask for the local setup | The kit's own route (Phase 1-alt) |
+
+Both routes can coexist on one machine. Never tear one down to set the other up, and never burden the user with the kit's extra setup when the built-in already covers what they asked for. Say in one line what you are *not* connecting and why, so they can ask for it later.
+
+---
+
+## PHASE 1 - Switch on the built-in Asana connector (the default route)
+
+This is a one-time, once-per-account job. The only thing the user does is press one button and sign in. **It needs a paid Claude plan** - on a free plan, say so plainly in one line and run Phase 1-alt instead.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run **Phase 1-alt** instead.
+
+**Step 2 - Open the connector page for them.** Say: *"I'm opening Asana's page in your browser. Press **Connect to Claude**, sign in to Asana the way you normally do, and say yes when it asks for access. That is the only part only you can do - tell me when it says Connected."* Then open `https://claude.ai/directory/asana` in their own browser (`open` / `xdg-open` / `start`). If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Asana" → Connect.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+
+**Step 4 - Verify.** `claude mcp list` again. `claude.ai Asana … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector - list the user's tasks due this week from the `mcp__claude_ai_Asana__*` namespace. Only a real answer counts. A tool error here is not "connected".
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now.
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude admin has to switch Asana on for the organisation first. Say so plainly and stop; do not fall back to the kit's route just to get past an admin gate.
+
+---
+
+## PHASE 1-ALT - Install & Connect (autonomous via Playwright)
+
+**Run this only when** the user's named need is in the kit's-route column above (custom fields set at task creation, portfolios), the user is on a free Claude plan, the session can't see built-in connectors (Step 1 failed), the listing is missing on the user's account, or the user explicitly wants the local setup. Otherwise stay on Phase 1.
 
 > **Reasoning model.** Each step describes a *goal*. Achieve it via `browser_snapshot` → reason → `browser_click` / `browser_type` / `browser_evaluate`. Match elements by visible labels, not brittle selector paths - Asana's UI evolves.
 
@@ -179,7 +232,11 @@ The verify in Step 4 already confirmed the token. Tell the user: *"All connected
 
 ---
 
-## PHASE 2 - Use the connector (REST runtime loop)
+## PHASE 2 - Use the connector
+
+**Which tool namespace.** Through the built-in connector the tools are `mcp__claude_ai_Asana__*` - 30-plus tools over the Work Graph, with Asana's own inline cards in the answer - and there is no credentials file, no `opt_fields` and no curl. Through the kit's own route it is the REST runtime loop below. The two are named quite differently: on the built-in route, list what is actually in the `mcp__claude_ai_Asana__*` namespace and match by what each tool does, rather than looking for the endpoints in this section. The one behaviour to remember on the built-in route: it **cannot set custom fields at the moment a task is created** (custom date fields especially) - create the task there and set the field here, or run the whole job on the kit's route. Portfolios are the kit's route only.
+
+### The kit's own route - REST runtime loop
 
 Once `~/.config/asana/credentials.env` exists, follow this loop on every Asana request.
 
@@ -262,10 +319,10 @@ Once `~/.config/asana/credentials.env` exists, follow this loop on every Asana r
 - **Body must be wrapped in `{"data": {...}}`** on writes. A bare `{"name": "..."}` returns 400. Reads also return under `data`.
 - **Can't list all tasks globally.** `GET /tasks` requires a scope: `project`, `section`, `tag`, or `workspace`+`assignee`. Asking for everything returns a 400.
 - **No substring-negation in self-checks.** Test the explicit success condition (`http_code == 200` / `.data.gid` present), never "output does NOT contain an error word" - negation checks silently pass when the shape changes.
-- **401 Unauthorized** → token revoked/deleted or truncated on capture → re-run Phase 1 (Delete any stale `Claude Code` token first).
+- **401 Unauthorized** → token revoked/deleted or truncated on capture → re-run Phase 1-alt (Delete any stale `Claude Code` token first).
 - **403 Forbidden** → the token owner lacks access to that object. User-permission limit (no read-only token type).
 - **429 / rate limits.** Free tier ~1500 req/min, 50 concurrent; respect `Retry-After`. Prefer `limit=100` + offset paging over many small calls.
-- **Never snapshot the sign-in page** - auto-filled password leak (see Phase 1 note).
+- **Never snapshot the sign-in page** on the kit's own route - auto-filled password leak (see the Phase 1-alt note).
 
 ## Token handling
 
@@ -273,6 +330,6 @@ The PAT is a bearer-equivalent secret. It is stored in `~/.config/asana/credenti
 
 ## See also
 
-- `examples/install-walkthrough-live.md` - a real, verified Phase 1 transcript (token redacted), including the three-segment-truncation gotcha.
+- `examples/install-walkthrough-live.md` - a real, verified Phase 1-alt transcript (token redacted), including the three-segment-truncation gotcha.
 - `references/rest-api.md` - endpoint catalogue, `opt_fields`, pagination, and the `{"data":...}` write envelope.
 - `skills/CLAUDE.md` - the direct-REST connector family (`pipedrive`, `servicem8`, `cliniko`, `myob`, `ghl`) and the Playwright contingency.

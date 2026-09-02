@@ -105,7 +105,34 @@ Do NOT ask more than one clarifying question. Infer what you can and move forwar
 - Don't claim you "checked availability" you didn't check - just give the recommendation. Real availability is settled in Step 5, when you actually drive the install (via the connector's dedicated skill or install pattern).
 - The missing registry tool changes how you *discover* connectors, not whether *you* do the setup work. You still do it.
 
-**Already-connected connectors to check for:**
+**Already-connected connectors to check for.** Check two places, in this order -
+most of the apps below are now switched on through Claude's own connector list,
+not installed, so the tool-name check alone will miss them.
+
+**1. Claude's own connectors (check this first).** Run `claude mcp list`. Every
+built-in connector prints one line beginning `claude.ai <Name>`, for example:
+
+```
+claude.ai Notion: https://mcp.notion.com/mcp - ✔ Connected
+claude.ai Slack: https://mcp.slack.com/mcp - ! Needs authentication
+```
+
+- `✔ Connected` → that app is **already connected**. Say so and move on.
+- `! Needs authentication` → it is on the account but the sign-in has lapsed.
+  Hand it to the dedicated `<service>-connector` skill, which owns the reconnect
+  wording.
+- No `claude.ai <Name>` line → not connected this way; fall through to check 2.
+
+Match the line by the app's name, case-insensitively - there is no machine-readable
+output flag. In the session itself the same connections show up as
+`mcp__claude_ai_<Name>__*` tools, where `<Name>` is the app's display name with
+spaces replaced by underscores (`mcp__claude_ai_Microsoft_365__*`,
+`mcp__claude_ai_Notion__*`). Seeing those tools is equally good evidence.
+
+If `claude mcp list` isn't runnable (no command line in this surface), skip
+straight to check 2 and let the dedicated skill settle it.
+
+**2. Tools registered on this machine:**
 - Gmail tools → `mcp__*__gmail_*` present = Gmail connected
 - Airtable tools → `mcp__*__airtable_*` or `mcp__*__list_bases` present = Airtable connected
 - Notion tools → `mcp__*__notion_*` present = Notion connected
@@ -116,6 +143,9 @@ Do NOT ask more than one clarifying question. Infer what you can and move forwar
 - Shopify → search registry
 - Slack → search registry
 - GitHub → search registry
+
+A connector can be connected either way, and either counts. Never re-run a setup
+for an app that already answered "connected" on either check.
 
 ### Registry-feasibility markers
 
@@ -136,6 +166,25 @@ When you reach a **(verify)** connector:
 | WhatsApp Business | Gmail (customer comms) |
 | Mailchimp | Gmail (broadcasts), or Google Sheets segment list |
 | Figma | Notion (asset library + briefs) |
+
+**A registry miss is no longer the last word.** Many of the apps this table used
+to route around now switch on through Claude's own connectors list in one click -
+Outlook and the rest of Microsoft 365, Xero, HubSpot, Pipedrive, ActiveCampaign,
+Klaviyo, Brevo, Asana, DocuSign, PayPal, Shopify, Linear, ClickUp, monday.com,
+Atlassian, Calendly, Canva, Square, Stripe, Notion, Slack, Airtable, Jotform,
+PandaDoc, Gusto and WordPress.com among them. So:
+
+- **Never substitute away from an app the user actually uses** before you have
+  checked whether it has a one-click route. If they say "we're on Outlook", the
+  answer is Outlook, not "let's use Gmail instead".
+- The check is cheap: `claude mcp list` for a `claude.ai <Name>` line, and the
+  dedicated `<service>-connector` skill if there isn't one. That skill knows
+  whether a listing exists.
+- Only fall to a substitute when the dedicated skill says there is no route, or
+  no dedicated skill exists and the registry is empty.
+- Substituting a tool the user named for one they didn't is a last resort, and it
+  is always said out loud - never silently, once the user has named the app
+  themselves.
 
 Connectors **without** a **(verify)** marker (Gmail, Google Calendar, Google
 Sheets, Airtable, Notion, Stripe, Shopify, Slack, GitHub, n8n) are assumed
@@ -347,8 +396,14 @@ If the business doesn't fit a single vertical, recommend based on their primary 
 - Rule of thumb: if they'd put it in a Google Doc → Notion; if in a spreadsheet → Airtable.
 
 **Gmail vs Outlook:**
-- Default to Gmail - it's the connector in the registry and what most small businesses run.
-- Only mention Outlook if the user explicitly says they're on Microsoft 365 / Outlook; then check the registry (Step 2) and fall back to Gmail-style guidance if Outlook isn't available.
+- **Whichever one they actually use wins.** Both have a real one-click route now -
+  Gmail through its own listing, Outlook through the Microsoft 365 connector - so
+  there is no reason left to steer a Microsoft business towards Gmail.
+- Default to Gmail only when the user hasn't said which they're on and there's no
+  other signal; it's what most small businesses run.
+- If they mention Microsoft 365, Outlook, Teams or SharePoint, recommend Outlook
+  and hand it to `outlook-connector`. Do not "check availability" first and do not
+  offer Gmail-style guidance as a consolation prize.
 
 **Stripe vs GoHighLevel payments:**
 - Stripe: dedicated payments, subscriptions, invoicing, revenue reporting - pick this for any business whose money flow is the priority.
@@ -397,9 +452,12 @@ Would you like me to set these up? I'll walk you through one at a time.
 When the user agrees to set up:
 
 ### 5a. Check current connection status
-1. Check which MCP tools are already available in the session (Gmail, Airtable, Notion, n8n, etc.)
-2. Use `mcp__mcp-registry__search_mcp_registry` to search for each recommended connector
-3. Categorize each as: already connected, available to connect, or not available
+1. Run `claude mcp list` and read off the `claude.ai <Name>` lines - those are the
+   apps already switched on through Claude's own connectors, account-wide (Step 2).
+2. Check which MCP tools are already available in the session (Gmail, Airtable,
+   Notion, n8n, `mcp__claude_ai_<Name>__*`, etc.)
+3. Use `mcp__mcp-registry__search_mcp_registry` to search for each recommended connector
+4. Categorize each as: already connected, available to connect, or not available
 
 ### 5b. Handle each connector
 
@@ -408,15 +466,41 @@ Connectors fall into four cases. Identify which one you're in, then act.
 **Case 1 - Already connected.**
 > "[Connector] is already connected and ready to go!"
 
-**Case 2 - One-click connector (hosted in Claude's connectors UI).**
-Some connectors (e.g. the Google suite and other hosted ones) really are a single
-Connect button. When `mcp__mcp-registry__suggest_connectors` is available, use it
-to present that button, then walk the user through the sign-in:
-```
-Let's connect [Connector Name]:
-[Connect button appears]
-Click "Connect", then sign in when your browser opens. Tell me when you're done.
-```
+**Case 2 - One-click connector (built into Claude). This is now the normal case.**
+Most of the apps in the maps above - Gmail, Google Calendar, Google Drive,
+Outlook and the rest of Microsoft 365, Slack, Notion, Airtable, Stripe, Square,
+Shopify, Xero, HubSpot, Pipedrive, ActiveCampaign, Klaviyo, Brevo, Asana,
+DocuSign, PayPal, Linear, ClickUp, monday.com, Atlassian, Calendly, Canva,
+Jotform, PandaDoc, Gusto, WordPress.com - are already built into Claude. Nothing
+is installed; the user switches the app on once on their account and it works
+everywhere after that.
+
+**Always hand these to the dedicated `<service>-connector` skill.** Invoke it and
+let it run. Do not present your own Connect button, and do not tell the user to
+go and find the connectors menu themselves - that is the exact punt Golden Rule 3
+rules out, and it is now avoidable.
+
+Why the dedicated skill and not you:
+
+- It knows whether this app has a built-in route at all, and what its name and
+  page are - you would be guessing.
+- It asks the one right question first for the wide apps (Google Workspace,
+  Microsoft 365, Xero), so the user connects the part of their account they
+  actually need instead of all of it.
+- It knows the fallback: if this copy of Claude can't use built-in connectors, or
+  the app turns out not to be listed on the user's account, it runs the kit's own
+  setup path instead without asking the user to work out why.
+- It owns the wording for the two states that look like failure but aren't - a
+  connection that has lapsed and needs a re-sign-in, and a work account where an
+  administrator has to approve the app first.
+
+Your job around it: say in one plain sentence what is about to happen ("I'm
+setting up your Xero now - there'll be one moment where you sign in"), invoke the
+skill, and pick the conversation back up when it reports. The only thing that
+should land in the user's lap is the sign-in itself.
+
+If no `<service>-connector` skill exists for the app, you are in **Case 3** or
+**Case 4** - not here.
 
 **Case 3 - Needs technical setup (this is common - don't pretend otherwise).**
 Many connectors are NOT a button: they need a small command-line tool installed
@@ -444,10 +528,13 @@ Not being able to programmatically present a Connect button (e.g.
 `suggest_connectors` isn't loaded) is not a reason to dump the work on the user.
 Decide which kind of connector it is:
 
-- **Hosted / one-click** (Gmail, Google Drive, other Claude-hosted connectors) -
-  there's no tool to install; the only real action is the user's OAuth click. It's
-  fine to point them to the connectors menu for that single click and walk the
-  sign-in. That's the irreducible user action (Golden Rule 2), not a punt.
+- **Built into Claude / one-click** (Gmail, Google Drive, Outlook, Slack, Notion,
+  Stripe and the rest of the list in Case 2) - there's no tool to install, and the
+  only irreducible user action is their sign-in click (Golden Rule 2). Invoke the
+  dedicated `<service>-connector` skill; it opens the right page for them and
+  walks the sign-in. Pointing the user at the connectors menu to work it out is
+  the fallback of last resort, used only if no dedicated skill exists **and** you
+  cannot open the page for them.
 - **Needs technical setup** (a CLI tool + server registration - Linear, monday,
   Airtable-via-CLI, Telegram, etc.) - you're in **Case 3**: drive the install
   yourself via the dedicated `<service>-connector` skill or its install pattern.
@@ -551,8 +638,12 @@ Check what's connected and pick up where they left off:
 > "Welcome back! Last time we connected [X] and [Y]. Ready to set up [Z] next?"
 
 **User mentions a competitor/alternative tool:**
-If they say "I use Asana" but Asana isn't available, suggest the closest match:
-> "Asana isn't available as a connector yet, but Notion/Airtable can handle similar project tracking. Want to try that?"
+Check for a dedicated `<service>-connector` skill first - "I use Asana" is now
+answered by `asana-connector`, and the same is true of Outlook, Xero, HubSpot,
+Pipedrive, ClickUp, monday.com and most other named tools. Only when there is no
+dedicated skill and no registry entry do you suggest the closest match, and you
+say plainly that you're swapping:
+> "[Tool] isn't available as a connector yet, but Notion/Airtable can handle similar project tracking. Want to try that?"
 
 **User has a multi-vertical business:**
 Pick the dominant vertical based on what they emphasize, and blend in connectors from secondary verticals:

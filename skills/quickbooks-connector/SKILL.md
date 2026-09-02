@@ -26,6 +26,15 @@ metadata:
 
 This skill lets you read and update a user's QuickBooks Online data on their behalf. It is a **thin wrapper around [`intuit/quickbooks-online-mcp-server`](https://github.com/intuit/quickbooks-online-mcp-server)** - Intuit's official Model Context Protocol server, Apache-2.0 licensed, actively maintained by Intuit's developer relations team. The server exposes 144 tools across 29 entity types (Customer, Invoice, Bill, Vendor, Estimate, Item, Account, Journal Entry, Payment, etc.) plus 11 financial reports (Balance Sheet, Profit & Loss, Cash Flow, Trial Balance, General Ledger, customer/vendor aging reports).
 
+**US books have a one-click alternative.** QuickBooks has a listing in Claude's
+own connector directory (`https://claude.ai/directory/quickbooks`, verified live)
+and it covers **US QuickBooks accounts**. If the user's books are US-based, that
+is a faster route than everything below - one button, one sign-in, nothing built
+or registered - so check before starting: `claude mcp list` for a line beginning
+`claude.ai QuickBooks`, or ask the user to look once in
+claude.ai/customize/connectors → Browse. **Australian and other non-US books use
+this skill**, which is the whole of the rest of this file.
+
 The skill has two phases:
 
 - **Phase 1 - Install & Auth (autonomous via Playwright).** Claude clones the Intuit MCP server to `~/.local/share/qbo-mcp/`, builds it (`npm install` + `npm run build`), drives the entire `developer.intuit.com` developer-app flow inside a Playwright MCP browser (find or create an app named "Claude Assistant", register the redirect URI, DOM-extract Client ID + Client Secret with Show-credentials toggle bracketing), writes the credentials to `~/.local/share/qbo-mcp/.env` (mode 600), runs `npm run auth` to drive the OAuth flow, and finally registers the MCP server with Claude Code via `claude mcp add quickbooks --env ... -- node ~/.local/share/qbo-mcp/dist/index.js`. Two details differ by mode: **sandbox (Phase 1S)** adds `http://localhost:8000/callback` to the app's **Development** redirect URIs and lets the bundled `auth-server.ts` listen on port 8000 for the callback; **live (Phase 1L - the default)** adds `${TUNNEL_URL}/callback` to the app's **Production** redirect URIs instead, because Intuit refuses `localhost` for Production. The user's manual moments are signing in to `developer.intuit.com` once and approving any 2FA prompt - plus, in live mode, signing in to or signing up for Cloudflare and confirming any verification email. After Phase 1 completes, the user closes and reopens Claude Code once so the `mcp__quickbooks__*` tools reconcile into the deferred-tool surface.

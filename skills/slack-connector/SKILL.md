@@ -1,7 +1,7 @@
 ---
 name: slack-connector
-description: "Connect Slack to Claude by installing and authenticating the community Slack MCP server. Use when the user asks to set up or connect Slack, or wants workspace work (channels, message history, posting, reactions, users, user groups) and Slack isn't connected yet. Once connected, Slack runs directly through the mcp__slack__* tools."
-allowed-tools: mcp__slack__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect Slack to Claude by switching on its built-in connector, or by installing the community Slack MCP server when that route is unavailable. Use when the user asks to set up or connect Slack, or wants workspace work (channels, message history, search, posting, canvases, reactions, users, user groups) and Slack isn't connected yet. Once connected, Slack runs through the mcp__claude_ai_Slack__* tools, or the mcp__slack__* tools on the kit's own route."
+allowed-tools: mcp__claude_ai_Slack__*, mcp__slack__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Communication & Collaboration
   tags:
@@ -33,14 +33,15 @@ metadata:
 
 ## Overview
 
-This skill lets you read from and post to a user's Slack workspace on their behalf using the **`slack-mcp-server`** npm package ([korotovsky/slack-mcp-server](https://github.com/korotovsky/slack-mcp-server)). It has two phases:
+This skill lets you read from and post to a user's Slack workspace on their behalf. There are two ways to get connected, and **the built-in connector is the default**:
 
-- **Phase 1 - Install & Auth (autonomous).** Claude drives the entire api.slack.com/apps flow inside a Playwright MCP browser. The user does exactly TWO things: (1) sign in to Slack in the Playwright window, (2) click **Allow** on the workspace consent screen when Slack asks. Everything else - clicking *Create an app* → *From scratch*, filling the app name and workspace, walking *OAuth & Permissions* and adding the seven bot scopes, clicking *Install to Workspace*, reading the Bot User OAuth Token from the DOM, writing `~/.claude.json` - is autonomous. The user never copies, never pastes, never opens a tab themselves, never reads a token aloud, never types into chat anything other than confirmations. No workspace ID is needed - the server discovers it from the token.
-- **Phase 2 - Use Tools.** Once the connector is configured, you call the `mcp__slack__*` native tools to list channels, read history, post messages, search users, manage user groups, and react.
+- **Phase 1 - the built-in Slack connector (default).** Slack's own hosted server, listed in Claude's connector directory at `https://claude.com/connectors/slack` (verified live, 2 Sep 2026). The user connects it once on their Claude account by pressing one button, and it is then available everywhere that account is signed in, including Claude Code. Tools arrive as `mcp__claude_ai_Slack__*`. **It covers more than the kit's bot-token route ever could:** searching messages, channels, threads, **files** and users; drafting and refining a message before it posts; **scheduling** a message for later; and creating **canvases**. Message search and file access are flatly impossible on the kit's route (see [Scope Limitations](#scope-limitations)).
+- **Phase 1-alt - the kit's own route** (only when the built-in can't be used). Claude drives the entire api.slack.com/apps flow inside a Playwright MCP browser and registers the **`slack-mcp-server`** npm package ([korotovsky/slack-mcp-server](https://github.com/korotovsky/slack-mcp-server)) against a Bot User OAuth Token. The user does exactly TWO things: (1) sign in to Slack in the Playwright window, (2) click **Allow** on the workspace consent screen when Slack asks. Everything else - clicking *Create an app* → *From scratch*, filling the app name and workspace, walking *OAuth & Permissions* and adding the seven bot scopes, clicking *Install to Workspace*, reading the Bot User OAuth Token from the DOM, writing `~/.claude.json` - is autonomous. The user never copies, never pastes, never opens a tab themselves, never reads a token aloud, never types into chat anything other than confirmations. No workspace ID is needed - the server discovers it from the token. Tools arrive as `mcp__slack__*`.
+- **Phase 2 - Use Tools.** Whichever route connected, list channels, read history, post messages, search users, manage user groups, and react.
 
-**Which phase to run** - Before any tool call, check whether the Slack MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.slack` entry. If it exists and has a `SLACK_MCP_XOXB_TOKEN` in its `env` block, treat the connector as authenticated and skip to Phase 2. Otherwise, run Phase 1.
+**Which phase to run** - always start at Phase 0 below. It checks the built-in connector first, then the kit's own registration (an `mcpServers.slack` entry in `~/.claude.json`, or `%USERPROFILE%\.claude.json` on Windows, with a `SLACK_MCP_XOXB_TOKEN` in its `env` block). A working connection on either route means skip straight to Phase 2 - never set one route up on top of the other.
 
-### Why this package
+### Why this package (on the kit's own route)
 
 We chose `slack-mcp-server` (korotovsky) over `@zencoderai/slack-mcp-server` (the maintained fork of Anthropic's archived reference server) because:
 - **The most widely adopted Slack MCP server** - 1,500+ GitHub stars on `korotovsky/slack-mcp-server`
@@ -57,13 +58,13 @@ We chose `slack-mcp-server` (korotovsky) over `@zencoderai/slack-mcp-server` (th
 - **`@zencoderai/slack-mcp-server`** - the maintained fork of Anthropic's reference server. Legitimate but stale (v0.0.1, last published July 2025) and significantly fewer features. Superseded by korotovsky for this kit.
 - **User tokens (`xoxp-`) or browser session tokens (`xoxc`/`xoxd`)** - we only use a Bot User OAuth Token (`xoxb-`). No stealth mode, no cookie extraction. Some tools (search, unreads) require `xoxp-` and are documented as unavailable with the default setup.
 - **Slack Incoming Webhooks or the RTM API** - the MCP server wraps the Web API directly.
-- **A hosted Slack MCP endpoint** - Slack does not publish one. We run the server locally via `npx`.
+- **A hosted Slack endpoint on the kit's own route.** Slack now publishes its own hosted server (documented at `https://docs.slack.dev/ai/mcp-server`), and that is exactly what the built-in connector in Phase 1 uses. Phase 1-alt is deliberately different: it runs the community server locally via `npx` against a bot token the workspace owns, which is why it stays available when the built-in one is not.
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules for connecting (Phase 1 and Phase 1-alt)
 
-The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work, the user only signs in to Slack and clicks **Allow** on the workspace consent screen. Every message you send during Phase 1 must follow these rules:
+The user is a non-technical business owner. Connecting is autonomous - Claude does the work, the user only signs in to Slack and presses one button (**Connect to Claude** on the built-in route, **Allow** on the kit's own route). Every message you send while connecting must follow these rules:
 
 - **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only actions you ever request are: "please sign in to the browser window I just opened" and "please click Allow on the screen Slack just showed you."
 - **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, scope, Bot Token, xoxb, MCP, endpoint, JSON, environment variable, Playwright, browser automation, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page" - not "Playwright" or "Chromium". If you must name a technical concept, plainly:
@@ -80,7 +81,48 @@ The user is a non-technical business owner. Phase 1 is autonomous - Claude does 
 
 ---
 
-## PHASE 1 - Install & Auth (autonomous via Playwright)
+## Phase 0 - Is Slack already connected?
+
+Run these silently, in order, and act on the first that answers.
+
+1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Slack`.
+   - `✔ Connected` → skip to Phase 2. Prove it first with one read from the `mcp__claude_ai_Slack__*` namespace (list the workspace's channels, or fetch recent messages from a channel the user names) before saying so.
+   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your Slack connection needs a quick re-sign-in. Press Reconnect next to Slack, sign in, and tell me when it says Connected."* Then re-run this check.
+   - no such line → continue.
+2. **The kit's own route.** Read `~/.claude.json` (Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.slack` entry with a `SLACK_MCP_XOXB_TOKEN` in its `env` block. If it is present and a smoke call works (`mcp__slack__channels_list` with `channel_types: "public_channel"`, `limit: 5`), keep using it - say *"Slack is already connected"* and skip to Phase 2. Do not set the built-in up on top of a working connection.
+3. **Nothing found** → Phase 1.
+
+> **Local entry precedence.** A machine that ran an earlier version of this skill may carry that local `slack` entry. A local server registered at the same URL takes precedence over the built-in one and hides it. If the local entry works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's explicit OK.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Slack's tools.
+
+---
+
+## Phase 1 - Switch on the built-in Slack connector (the default route)
+
+This is a one-time, once-per-account job. The only thing the user does is press one button and sign in.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
+
+**Step 2 - Open the connector page for them.** Say: *"I'm opening Slack's page in your browser. Press **Connect to Claude**, sign in to Slack the way you normally do, and say yes when it asks for access. That is the only part only you can do - tell me when it says Connected."* Then open `https://claude.ai/directory/slack` in **their own everyday browser** (`open` on Mac, `xdg-open` on Linux, `start "" <url>` on Windows). If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Slack" → Connect.
+
+> **Why their own browser here, when Phase 1-alt uses a Playwright window.** Phase 1-alt drives a browser because it reads a secret off the page; this route reads nothing. The user's own browser is the one already signed in to Claude and to Slack, so that is where the button press belongs. Do not drive this sign-in with Playwright.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+
+**Step 4 - Verify.** `claude mcp list` again. `claude.ai Slack … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector: one tool from the `mcp__claude_ai_Slack__*` namespace that lists channels or fetches recent messages. Only a real answer counts. A tool error here is not "connected".
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - for example *"what's happening in #general?"*, *"find the messages about the launch"*, *"draft a note for #announcements"*.
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude admin has to switch Slack on for the organisation first. Say so plainly and stop; do not fall back to the kit's route just to get past an admin gate.
+
+---
+
+## Phase 1-alt - The kit's own route (only when the built-in can't be used)
+
+Run this **only** when one of these is true: Step 1 above failed (this session cannot see built-in connectors); the Slack listing is missing on the user's account; or the user explicitly wants the local server. Otherwise Phase 1 is the route. The trade-off is real - this route cannot search messages, read files or make canvases (see [Scope Limitations](#scope-limitations)) - so say in one line what they are giving up before you start.
 
 Claude drives the user's browser end-to-end via Playwright MCP. The user's only roles are: (1) sign in to Slack when prompted, (2) click **Allow** on Slack's workspace-install consent dialog. Claude handles every other step - navigation, form fills, scope additions, install click, token capture, config write, verify.
 
@@ -92,7 +134,7 @@ Tell the user, in one short message:
 
 > "I'll connect your Slack now. I'm opening a browser window for you - please sign in there when it appears, and I'll handle the rest. Should take about three minutes. Which workspace do you want me to connect?"
 
-Wait for the user's answer. If they have more than one workspace, ask them to pick one to start with - they can add more later by re-running Phase 1.
+Wait for the user's answer. If they have more than one workspace, ask them to pick one to start with - they can add more later by re-running Phase 1-alt.
 
 ### Step 2 - Open api.slack.com/apps and confirm a logged-in session
 
@@ -239,9 +281,9 @@ The verification depends on whether the MCP server is already active in the curr
 > **Important - distinguish "not reloaded yet" from "token rejected at startup".** The slack-mcp-server validates the `xoxb-` token against Slack's `auth.test` endpoint **at server startup**, not at first tool call. If the token is bad (revoked, mistyped, wrong type), the server exits fatally with `invalid_auth` *before* any MCP traffic, and Claude Code reports the slack server as unavailable. So if `mcp__slack__*` tools are STILL missing after the user has fully closed and reopened Claude Code, do NOT loop them back into another restart - assume the token was rejected at startup and run the **Token rotation** flow autonomously to mint a fresh key. Track restart attempts: after one restart, if tools still don't appear, switch to rotation, not "try restarting again".
 
 If the verification tool returns an error:
-- `invalid_auth` or `not_authed` → "The connection key didn't take - let me grab a fresh one." Re-run Steps 2-7 to mint a new token via the **Reinstall to Workspace** path and overwrite the config.
+- `invalid_auth` or `not_authed` → "The connection key didn't take - let me grab a fresh one." Re-run Phase 1-alt Steps 2-7 to mint a new token via the **Reinstall to Workspace** path and overwrite the config.
 - `missing_scope` → "Your connection is working, but I need one more permission for that action." Guide via the autonomous Playwright flow back to OAuth & Permissions, add the missing scope, click **Reinstall to Workspace**, capture the new token, and rewrite the config.
-- Any other error → "Something went wrong - let me try again." Retry once; if still failing, re-run Steps 2-7.
+- Any other error → "Something went wrong - let me try again." Retry once; if still failing, re-run Phase 1-alt Steps 2-7.
 
 ### Step 9 - Success message
 
@@ -251,27 +293,34 @@ Tell the user, in one short message:
 
 ---
 
-## Token rotation (autonomous, no full re-setup)
+## Token rotation (the kit's own route only - autonomous, no full re-setup)
+
+There is no key on the built-in route, so nothing to rotate there; a built-in failure goes back to Phase 0 step 1 instead.
 
 If a user's Slack key stops working (revoked, regenerated, or they want to switch workspaces), they do NOT need to redo the entire Slack app creation. Drive the rotation autonomously:
 
-1. Open Playwright via `mcp__playwright__browser_navigate({ url: "https://api.slack.com/apps" })`. Confirm logged-in dashboard via snapshot (re-prompt sign-in if not, same as Phase 1 Step 2).
+1. Open Playwright via `mcp__playwright__browser_navigate({ url: "https://api.slack.com/apps" })`. Confirm logged-in dashboard via snapshot (re-prompt sign-in if not, same as Phase 1-alt Step 2).
 2. From the dashboard, locate and click the **Claude Assistant** app row (`browser_click`).
 3. Click **OAuth & Permissions** in the left sidebar (`browser_click`).
 4. Scroll to the top of the page. Click the **Reinstall to Workspace** button (`browser_click`). Slack will *sometimes* show the workspace consent screen again here - only when the requested scopes have changed since the last install. If a consent screen appears, tell the user, *once*: *"Slack just opened a permissions screen again - please click **Allow** so I can refresh your key."* If no consent screen appears (Slack rotated the token silently because scopes are unchanged), the page will redirect straight back to OAuth & Permissions with a fresh token - no user prompt needed. Detect via `browser_wait_for` on either the post-Allow redirect or a refreshed token field; do not assume Allow always fires.
-5. After the redirect back, capture the fresh **Bot User OAuth Token** from the DOM (same `browser_evaluate` pattern as Phase 1 Step 6).
+5. After the redirect back, capture the fresh **Bot User OAuth Token** from the DOM (same `browser_evaluate` pattern as Phase 1-alt Step 6).
 6. Silently update **only** the `SLACK_MCP_XOXB_TOKEN` value via `claude mcp add slack ... --env SLACK_MCP_XOXB_TOKEN=...` (which overwrites by name) or by editing the single env field in `~/.claude.json`. Do not touch any other field.
 7. Close the browser via `mcp__playwright__browser_close()`. Tell the user: *"Updated. Please close and reopen Claude Code once, then say 'test my Slack' and I'll verify the new key."*
 
-If they say "I have a new Slack key" or "my Slack stopped working", start this rotation flow rather than running full Phase 1.
+If they say "I have a new Slack key" or "my Slack stopped working", start this rotation flow rather than running full Phase 1-alt.
 
 ---
 
 ## PHASE 2 - Use Tools
 
-Once the connector is configured, use the `mcp__slack__*` MCP tools below to answer questions and take action in Slack. The `slack-mcp-server` provides tools covering channel listing, message history, thread replies, posting, reactions, user search, and user group management.
+**Which tools you have depends on which route connected, and the two sets are named differently.**
 
-### Tool Reference
+- **Through the built-in connector (Phase 1):** the tools are `mcp__claude_ai_Slack__*`. Names come from Slack's own hosted server, not from the table below, so discover them in the session rather than assuming a name from the `mcp__slack__*` list. This set is the larger one: alongside channels, history, threads and posting it also does **message and file search**, **draft-then-refine**, **scheduled sends** and **canvases** - the four things the kit's own route cannot do at all. The behaviour guidelines further down (confirm before posting, treat timestamps as strings, one step at a time, never dump a whole history) apply on this route exactly as they do on the other.
+- **Through the kit's own route (Phase 1-alt):** the tools are `mcp__slack__*`, from `slack-mcp-server`, and the table below is the complete reference for them.
+
+If both are somehow live, prefer `mcp__claude_ai_Slack__*` - it is the wider surface.
+
+### Tool Reference (the kit's own route, `mcp__slack__*`)
 
 The MCP server exposes tools with the prefix `mcp__slack__`. The tool names follow korotovsky's naming convention (not the zencoderai `slack_*` convention).
 
@@ -326,7 +375,7 @@ These tools exist in the server but require a User OAuth Token (`xoxp-`) instead
 | `conversations_search_messages` | Search messages across the workspace with filters (date, user, channel, thread). Rich query support. | Slack's `search.messages` API does not support bot tokens (`xoxb-`). Requires a `xoxp-` User OAuth Token. |
 | `conversations_unreads` | Get unread messages across all channels with priority sorting (DMs > partner channels > internal). | Best with browser tokens; fallback with `xoxp-`. Not available with `xoxb-`. |
 
-If a user asks to search messages, tell them: "Message search is available in this server, but it needs a different type of Slack key that requires extra setup. For now, I can read the recent history of a specific channel instead - which channel should I look in?"
+If a user asks to search messages **and they are on the kit's own route**, the better answer is now the built-in connector, not a workaround: *"Searching across your Slack needs the one-button Slack connection rather than the setup you have - want me to switch that on? It takes a minute. Otherwise I can read the recent history of a specific channel - which channel should I look in?"* If they decline, fall back to `conversations_history` on a named channel. On the built-in route this limitation does not apply at all - search is part of the surface.
 
 > **Note:** Tool names are from `slack-mcp-server` v1.2.3. If a tool name does not resolve, try listing available tools with the `mcp__slack__` prefix to discover the current naming.
 
@@ -349,8 +398,9 @@ If a user asks to search messages, tell them: "Message search is available in th
 | "Who is Jane Doe?" / "Find the user with that email" | `users_search` with `query` |
 | "What user groups do we have?" | `usergroups_list` |
 | "What groups am I in?" | `usergroups_me` with `action: "list"` |
-| "Search for messages about the marketing report" | Tell user this requires a different Slack key type. Offer `conversations_history` on a specific channel instead. |
-| "Connect my Slack" / "Help me set up Slack" | **Run Phase 1** |
+| "Search for messages about the marketing report" | Built-in route: a search tool from `mcp__claude_ai_Slack__*`. Kit's own route: not possible - offer to switch on the built-in connector (Phase 1), or fall back to `conversations_history` on a named channel. |
+| "Find that file someone shared" / "make a canvas" / "send this at 9am tomorrow" | Built-in route only - a `mcp__claude_ai_Slack__*` tool. On the kit's own route, offer Phase 1. |
+| "Connect my Slack" / "Help me set up Slack" | **Run Phase 0**, then Phase 1 (or Phase 1-alt if the built-in is unavailable) |
 | "I have a new Slack key" / "My Slack stopped working" | **Run token rotation** (see section above) |
 
 ---
@@ -359,9 +409,13 @@ If a user asks to search messages, tell them: "Message search is available in th
 
 When a Slack tool call fails, diagnose and respond in plain English. Never show raw error messages.
 
+**On the built-in connector**, an auth failure is not a token problem - there is no token here to rotate. Re-run Phase 0 step 1: if `claude mcp list` shows `! Needs authentication`, send the user to `https://claude.ai/customize/connectors` to press **Reconnect**, then retry. If the `claude.ai Slack` line has vanished entirely, the connection was removed from the account - run Phase 1 again. Never run the token-rotation flow below for a built-in-connector failure.
+
+The table below is for the kit's own route (`mcp__slack__*`):
+
 | Error | What to say | How to fix |
 |---|---|---|
-| `invalid_auth` / `not_authed` | "Your Slack connection key isn't being accepted. Let me help you reconnect." | Run token rotation flow (not full Phase 1). Guide user to reinstall the app and copy a fresh key. |
+| `invalid_auth` / `not_authed` | "Your Slack connection key isn't being accepted. Let me help you reconnect." | Run token rotation flow (not full Phase 1-alt). Guide user to reinstall the app and copy a fresh key. |
 | `missing_scope` | "I need one more permission to do that. Let me walk you through adding it." | Guide user to Slack app → OAuth & Permissions → add the missing scope → **Reinstall to Workspace** → retry. No restart needed. |
 | `channel_not_found` | "I couldn't find that channel - let me list the ones I can see." | Call `channels_list` to confirm available channels; the bot may not be invited to private channels |
 | `not_in_channel` | "I can see that channel but I haven't been invited to it yet. In Slack, type `/invite @Claude Assistant` in that channel and try again." | User runs `/invite` in the target channel |
@@ -377,7 +431,9 @@ When a Slack tool call fails, diagnose and respond in plain English. Never show 
 
 ## Scope Limitations
 
-The Slack MCP connector **can** do (via `slack-mcp-server` with `xoxb-` bot token):
+**On the built-in connector (Phase 1)** the surface is Slack's own: search across messages, channels, threads, files and users; read history; draft and refine a message before it posts; post it; schedule it for later; and create canvases. The four gaps listed below as impossible on the kit's route - message search, unreads, file access, canvases - are not gaps here. The one thing that is *unconfirmed* on the built-in route is **creating or updating user groups**; if a user-group write is what they need and the built-in has no tool for it, Phase 1-alt with the `usergroups:write` scope is the route that definitely does it.
+
+**On the kit's own route (Phase 1-alt)**, the connector **can** do (via `slack-mcp-server` with `xoxb-` bot token):
 - List channels by type (public, private the bot is invited to, DMs, group DMs)
 - Read recent messages from any channel the bot can see, with smart date/count pagination
 - Read all replies in a thread
@@ -389,16 +445,17 @@ The Slack MCP connector **can** do (via `slack-mcp-server` with `xoxb-` bot toke
 - Reference channels by `#name` - no need to look up channel IDs first
 
 The Slack MCP connector **cannot** do with the default `xoxb-` bot token setup:
-- **Search messages across the workspace** - requires a `xoxp-` User OAuth Token (Slack API limitation, not a server limitation). Read specific channel history instead.
+- **Search messages across the workspace** - requires a `xoxp-` User OAuth Token (Slack API limitation, not a server limitation). Read specific channel history instead, or switch to the built-in connector, which searches.
 - **Get unread messages** - requires `xoxp-` or browser tokens. Not available with `xoxb-`.
 - **Delete messages** - not exposed by the server. Use Slack directly.
 - **Edit messages after posting** - not exposed by the server.
 - **Archive or create channels** - not exposed by the server. Use Slack directly.
 - **Post to private channels the bot has not been invited to** - the user must type `/invite @Claude Assistant` in the target private channel first.
-- **Upload files or attachments** - not exposed by the server.
+- **Upload files or attachments, or read files** - not exposed by the server. The built-in connector reaches files; this route does not.
+- **Create canvases, or schedule a message for later** - not exposed by the server. Both are built-in-connector features.
 - **Send @mention notifications reliably** - mentions in message text work syntactically (`<@U12345>`) but the bot does not resolve display names to IDs automatically. Use `users_search` to look up the user ID first.
 
-If the user asks for any of the above, tell them plainly what is not supported and offer the closest supported action.
+If the user asks for any of the above, tell them plainly what is not supported and offer the closest supported action. Where the built-in connector *would* cover it (search, unreads, files, canvases, scheduling), offer that as the fix - one button, Phase 1 - rather than leaving them with the workaround.
 
 ---
 
@@ -414,7 +471,7 @@ If the user asks for any of the above, tell them plainly what is not supported a
 - **Present data clearly.** Format channel lists, user lists, and message history as readable summaries or small tables, not raw CSV or JSON.
 - **One step at a time.** Do not dump entire channel histories at once. Summarise first, then offer to show details or post a message.
 - **Rate limits.** Slack rate-limits aggressively per method. If you hit `ratelimited`, back off and retry once.
-- **Never log or echo credentials.** The Slack key must never appear in any output visible to the user.
+- **Never log or echo credentials.** The Slack key must never appear in any output visible to the user. On the built-in route there is no key at all - Claude never sees, stores or handles one - so say that plainly if the user asks where their sign-in is kept.
 - **Scope expansion.** If a tool call fails with `missing_scope`, guide the user to add the scope in their Slack app's OAuth & Permissions tab, then click **Reinstall to Workspace**. No restart of Claude Code is needed afterwards.
 - **User group scopes.** The default seven scopes include `usergroups:read`, so `usergroups_list` and `usergroups_me` work out of the box. The **write** tools (`usergroups_create`, `usergroups_update`, `usergroups_users_update`) require the additional `usergroups:write` scope, which is NOT added by default. If the user wants to manage user groups, drive them autonomously through Playwright back to OAuth & Permissions, add `usergroups:write` to the Bot Token Scopes list, click **Reinstall to Workspace** (and prompt for Allow if Slack shows the consent screen - it will, because scopes changed), capture the fresh token, and rewrite the config via the rotation flow above.
 
@@ -422,7 +479,7 @@ If the user asks for any of the above, tell them plainly what is not supported a
 
 ## Related Skills
 
-- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: The source pattern for conversational bootstrap; Phase 1-alt above follows the same rules
 - **telegram-connector**: Same Playwright-MCP-driven autonomous-install pattern. Reference for the rules + cleanup branches.
 - **monday-connector**: Same autonomous Playwright Phase 1 pattern, simpler PAT case. Reference for snapshot-and-reason model.
 - **meta-business-suite-connector**: Same autonomous Playwright Phase 1 pattern, more complex multi-step OAuth case. Reference for OAuth consent handling.

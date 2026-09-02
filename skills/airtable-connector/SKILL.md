@@ -1,7 +1,7 @@
 ---
 name: airtable-connector
-description: "Connect Airtable to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect Airtable, or wants Airtable work (bases, tables, records, schema fields) and Airtable isn't connected yet. Once connected, Airtable runs directly through the mcp__airtable__* tools."
-allowed-tools: mcp__airtable__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect Airtable to Claude by switching on its built-in connector, or by registering Airtable's official server locally. Use when the user asks to set up or connect Airtable, or wants Airtable work (bases, tables, records, schema fields) and Airtable isn't connected yet. Once connected, Airtable runs through the mcp__claude_ai_Airtable__* or mcp__airtable__* tools."
+allowed-tools: mcp__claude_ai_Airtable__*, mcp__airtable__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
   tags:
@@ -31,12 +31,18 @@ metadata:
 
 ## Overview
 
-This skill lets you read and update a user's Airtable account on their behalf using the **official first-party Airtable MCP server** hosted at `https://mcp.airtable.com/mcp`. It has two phases:
+This skill lets you read and update a user's Airtable account on their behalf using the **official first-party Airtable MCP server** hosted at `https://mcp.airtable.com/mcp`.
 
-- **Phase 1 - Install & Auth (autonomous).** Claude drives the entire `airtable.com/create/tokens` flow inside a Playwright MCP browser. The user does exactly one thing: sign in to Airtable in the Playwright window. Everything else - clicking *Create new token*, filling the name, walking the scope list to tick the required scope checkboxes, selecting "All current and future bases", clicking *Create token*, reading the Personal Access Token from the DOM, registering the MCP server with the token as a Bearer header - is autonomous. The user never copies, never pastes, never reads a token aloud, never opens a tab themselves. This works on Enterprise workspaces too (PAT bypasses the OAuth admin-allowlist).
-- **Phase 2 - Use Tools.** Once the connector is configured, you call the `mcp__airtable__*` native tools to read and update Airtable data.
+**There are two ways in, and they reach the same server.** Claude's own connector directory ships a built-in **Airtable** connector that points at that exact hosted endpoint, so its tool surface is identical to the kit's. Switching it on is one button and a sign-in, once per Claude account, with no local registration and no access key stored on the machine - so it is the default route. The kit's own route (Phase 1-alt) stays in full for the cases the built-in cannot serve. Both can coexist on one machine; never tear one down to set the other up.
 
-**Which phase to run** - Before any tool call, check whether the Airtable MCP server is already configured. Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.airtable` entry. If it exists, treat the connector as configured and skip to Phase 2 (verify with a tool call before assuming the session is still valid). Otherwise, run Phase 1.
+The skill has these phases:
+
+- **Phase 0 - Is Airtable already connected?** Checks the built-in connector first, then the kit's own registration, and routes.
+- **Phase 1 - Switch on the built-in Airtable connector (the default route).** Open Airtable's connector page in the user's own browser, they press **Connect to Claude** and sign in, then verify and prove with one read.
+- **Phase 1-alt - The kit's own route (only when the built-in can't be used), autonomous.** Claude drives the entire `airtable.com/create/tokens` flow inside a Playwright MCP browser. The user does exactly one thing: sign in to Airtable in the Playwright window. Everything else - clicking *Create new token*, filling the name, walking the scope list to tick the required scope checkboxes, selecting "All current and future bases", clicking *Create token*, reading the Personal Access Token from the DOM, registering the MCP server with the token as a Bearer header - is autonomous. The user never copies, never pastes, never reads a token aloud, never opens a tab themselves. This works on Enterprise workspaces too (PAT bypasses the OAuth admin-allowlist).
+- **Phase 2 - Use Tools.** Once Airtable is connected by either route, you call its native tools to read and update Airtable data - `mcp__claude_ai_Airtable__*` on the built-in route, `mcp__airtable__*` on the kit's.
+
+**Which phase to run** - always start at Phase 0. On the kit's own route the resume signal is unchanged: read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.airtable` entry. If it exists, treat the kit's connector as configured and skip to Phase 2 (verify with a tool call before assuming the session is still valid).
 
 ### What this skill does NOT use
 
@@ -50,9 +56,9 @@ The hosted Airtable MCP server accepts a Personal Access Token (PAT) passed in a
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules for Phase 1 and Phase 1-alt
 
-The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work. The user only signs in to Airtable once. Every message you send during Phase 1 must follow these rules:
+These rules apply to **both** connect routes. On Phase 1 (the built-in connector) the user presses one button in their own browser and signs in; on Phase 1-alt the browser window is one Claude drives. Either way the user is a non-technical business owner - Claude does the work, the user only signs in once. Every message you send while connecting must follow these rules:
 
 - **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only action you ever request is "please sign in to the browser window I just opened."
 - **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, PAT, Bearer, scope, token, tenant, MCP, endpoint, URL, JSON, REST, environment variable, Playwright, browser automation, or DOM. If you must name a technical concept, plainly:
@@ -63,7 +69,7 @@ The user is a non-technical business owner. Phase 1 is autonomous - Claude does 
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start, once when you need them ("please sign in" / "please click Allow"), once when you're done. No commentary in between.
 - **React to success and failure warmly.** Good: "That worked. Your Airtable is now connected." Bad: "MCP server initialized with 200 OK."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem, let me try a different way," then diagnose silently.
-- **Short responses.** Maximum 8 lines per message during Phase 1.
+- **Short responses.** Maximum 8 lines per message while connecting (Phase 1 or Phase 1-alt).
 - **Plain punctuation.** Write the way a person texts. Use full stops, commas, and parentheses. Do not use em-dashes (-) in anything the user sees, including messages you improvise (timeout check-ins, reassurances); they read as machine-generated.
 - **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
 - **No fabricated UI assertions.** Don't reference button colours or specific positioning - verify from the live snapshot. Airtable's token UI changes occasionally.
@@ -71,7 +77,67 @@ The user is a non-technical business owner. Phase 1 is autonomous - Claude does 
 
 ---
 
-## PHASE 1 - Install & Auth (autonomous via Playwright)
+## Phase 0 - Is Airtable already connected?
+
+Run these silently, in order, and act on the first that answers.
+
+1. **Built-in connector.** Run `claude mcp list` and look for a line starting `claude.ai Airtable` (match the vendor word case-insensitively; there is no `--json` flag).
+   - `✔ Connected` → skip to **Phase 2**. Prove it first with one read through the built-in - list the account's bases - before saying so.
+   - `! Needs authentication` → the connection is on the account but its sign-in has lapsed. Open `https://claude.ai/customize/connectors` in the user's own browser and say: *"Your Airtable connection needs a quick re-sign-in. Press **Reconnect** next to Airtable, sign in, and tell me when it says Connected."* Then re-run this check.
+   - No such line → continue to step 2.
+2. **The kit's own route.** Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.airtable` entry. If it is present and a smoke call (`list_bases`) works, keep using it - say *"Airtable is already connected"* and skip to **Phase 2**. Do not set the built-in up on top of a working connection.
+3. **Nothing found** → go to **Phase 1**.
+
+**Precedence note.** A server registered locally at the same address takes precedence over the built-in one and hides it (`/mcp` shows the built-in as hidden). If a machine carries an `mcpServers.airtable` entry from an earlier run of the kit's route and it works, leave it and say so. Only remove it - and only with the user's explicit OK - if it is broken and the built-in is the better route.
+
+**No shell?** If you cannot run commands at all (this is claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2 entirely: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Airtable's tools.
+
+**Tooling check (silent, needed for Phase 1-alt only).** Verify the `claude` command is on PATH (`claude --version`) and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). Phase 1 needs neither.
+
+---
+
+## Phase 1 - Switch on the built-in Airtable connector (the default route)
+
+Claude's connector directory carries an **Airtable** connector that points at the same hosted endpoint the kit registers (`https://mcp.airtable.com/mcp`), so the tool surface is identical. This is a one-time, once-per-account job: connect it once on the user's Claude account and it is available everywhere that account is signed in, including here. The only thing the user does is press one button and sign in. Nothing on this route mints, captures, stores, or echoes an access key - there is no key, so there is no scope list to walk and nothing to rotate later.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set in the environment, built-in connectors will not appear in this session. Tell the user in one line that this copy of Claude is signed in a different way, then run **Phase 1-alt** instead.
+
+**Step 2 - Open the connector page for them.** Say:
+
+> "I'm opening Airtable's page in your browser. Press **Connect to Claude**, sign in to Airtable the way you normally do, and say yes when it asks for access. That's the only part only you can do, tell me when it says Connected."
+
+Then open `https://claude.ai/directory/airtable` (the public mirror of the same page is `https://claude.com/connectors/airtable`) in the user's **own** everyday browser: `open <url>` on Mac, `xdg-open <url>` on Linux, `start "" <url>` on Windows. That is where they are already signed in. If the page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: **Browse**, search "Airtable", **Connect**.
+
+> **Why the user's own browser here.** Phase 1-alt's rule (never use the user's own browser) exists because that route reads an access key off the page in a browser Claude drives. This route reads nothing and handles no key, so the user's own browser is the correct place for the button press. Do not drive this sign-in with the automated browser.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a picture of the sign-in screen.
+
+**Step 4 - Verify.** Run `claude mcp list` again. A line reading `claude.ai Airtable ... ✔ Connected` is the pass.
+- Not there yet, ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. A session loads its connections when it starts.
+- `! Needs authentication` means the sign-in lapsed: send them to `https://claude.ai/customize/connectors` and have them press **Reconnect** next to Airtable.
+- Still no line at all means the Connect didn't complete, so send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector, listing the account's bases. Only a real answer counts (an empty list is a real answer; a tool error is not "connected"). The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_Airtable__*` tools actually available and pick a safe read rather than hard-coding a name.
+
+**Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now, for example *"show me my bases"*, *"add a row to the Leads table"*, *"what's in the Projects table this month?"*.
+
+**Team or Enterprise Claude accounts.** If the page shows **Request** instead of **Connect**, the user's Claude administrator has to switch Airtable on for the organisation first, and connectors only work in private projects there. Say so plainly and stop. Do not fall back to the kit's route just to get past an admin gate.
+
+**Plan note.** Assume a paid Claude plan for built-in connectors. Free accounts are limited to a single custom connector, which is not this route.
+
+---
+
+## Phase 1-alt - The kit's own route (only when the built-in can't be used)
+
+Run this **instead of** Phase 1 in exactly three cases:
+
+- Phase 1 Step 1 failed, meaning this copy of Claude is signed in a way that cannot see built-in connectors.
+- The Airtable connector is not listed on the user's Claude account (no directory listing, and nothing under **Browse**).
+- The user explicitly asks for the locally registered server.
+
+Otherwise Phase 1 is the route: it reaches the same server with none of this setup, and there is no reason to burden the user with it. Both routes can live on one machine, so never tear one down to set the other up.
+
+Everything below is the kit's original install, autonomous via Playwright.
 
 Claude drives the user's browser end-to-end via Playwright MCP. The user's only role is signing in to Airtable when prompted (and only the first time - the persistent Playwright profile keeps the session for future runs). Claude handles every other step - navigation, form fills, scope ticks, base-access selection, token capture from DOM, MCP registration, verify.
 
@@ -209,7 +275,9 @@ If verification returns `401`, the most likely causes are a partial token captur
 
 ## PHASE 2 - Use Tools
 
-Once the connector is configured, use the `mcp__airtable__*` MCP tools below to answer questions and make changes in Airtable. The hosted Airtable MCP server exposes a set of first-party tools covering base/workspace discovery, records, schema mutations, and connection health. The most common ones are documented below; the server also exposes additional tools (e.g. `search_records`, `create_base`, `list_workspaces`, and page tools) - if you need one that is not in the tables below, list the available tools with the `mcp__airtable__` prefix to discover the current set rather than assuming a name.
+> **Which prefix you get.** Through the built-in connector (Phase 1) the tools are `mcp__claude_ai_Airtable__*`; through the kit's own route (Phase 1-alt) they are `mcp__airtable__*`. Both routes reach the same hosted Airtable server, so the tool names after the prefix are the same and the tables below apply to both. List the tools present in the session and use the prefix that is actually there; never mix the two prefixes in one session.
+
+Once the connector is configured, use the Airtable MCP tools below to answer questions and make changes in Airtable. The hosted Airtable MCP server exposes a set of first-party tools covering base/workspace discovery, records, schema mutations, and connection health. The most common ones are documented below; the server also exposes additional tools (e.g. `search_records`, `create_base`, `list_workspaces`, and page tools) - if you need one that is not in the tables below, list the available tools with the `mcp__airtable__` prefix to discover the current set rather than assuming a name.
 
 ### Tool Reference
 
@@ -257,7 +325,7 @@ The official MCP server exposes tools with the prefix `mcp__airtable__`. If a to
 
 | What the user says | Tool to use |
 |---|---|
-| "Connect my Airtable" / "Help me set up Airtable" | **Run Phase 1** |
+| "Connect my Airtable" / "Help me set up Airtable" | **Run Phase 0, then Phase 1** (Phase 1-alt only if Phase 1 is unavailable) |
 | "Show me my bases" | `list_bases` |
 | "Find my CRM base" | `search_bases` |
 | "What tables are in my CRM base?" | `list_bases` (find base ID) → `list_tables_for_base` |
@@ -283,13 +351,13 @@ When an Airtable tool call fails, diagnose and respond in plain English. Never s
 
 | Error | What to say | How to fix |
 |---|---|---|
-| 401 Unauthorized / Not authenticated | "Your Airtable sign-in has expired. Let me reconnect you." | Re-run Phase 1 (Steps 2-9) to mint a fresh access key via the browser automation. Never ask the user to generate or paste a token by hand - the autonomy rules forbid it. |
+| 401 Unauthorized / Not authenticated | "Your Airtable sign-in has expired. Let me reconnect you." | Built-in route: press **Reconnect** next to Airtable at `https://claude.ai/customize/connectors`. Kit's route: re-run Phase 1-alt (Steps 2-9) to mint a fresh access key via the browser automation. Never ask the user to generate or paste a token by hand - the autonomy rules forbid it. |
 | 403 Forbidden | "Your Airtable user doesn't have permission for that. The base owner may need to share it with you, or an admin may need to grant access." | User talks to the base owner or workspace admin |
 | 404 Not Found (base / table / record) | "I couldn't find that record. Let me refresh the list." | Use `list_bases` / `list_tables_for_base` / `list_records_for_table` to refresh |
 | 422 Invalid request | "Airtable rejected the change. This is usually a field type mismatch. Let me check the schema and try again." | Call `get_table_schema` and re-format the write |
 | 429 Rate limited | "Airtable is asking me to slow down. I'll wait a moment and try again." | Wait 10 seconds and retry once. Airtable's standard limit is 5 requests per second per base. |
 | MCP server not running | "The Airtable connection isn't active yet. Please restart Claude Code so it picks up the new settings." | User restarts Claude Code |
-| Admin approval required (Enterprise) | "Your workspace administrator has restricted this sign-in. No problem, I can connect it a different way." | This skill already uses the access-key (PAT) path, which bypasses the OAuth admin-allowlist. Re-run Phase 1 to mint the key via the browser. |
+| Admin approval required (Enterprise) | "Your workspace administrator has restricted this sign-in. No problem, I can connect it a different way." | Phase 1-alt uses the access-key (PAT) path, which bypasses the OAuth admin-allowlist. Re-run Phase 1-alt to mint the key via the browser. |
 | Any other API error | "Something went wrong with Airtable. Let me try again." | Retry once; if still failing, re-do the sign-in |
 
 ---
@@ -346,7 +414,7 @@ This mirrors the same shape as the Jotform "workspace admin must install first" 
 
 ## Related Skills
 
-- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules
+- **orientation**: The source pattern for conversational bootstrap; Phase 1 and Phase 1-alt above follow the same rules
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Airtable auth or API errors
 - **jotform-connector**: Sibling hosted-OAuth MCP connector - same ≤4-step install pattern, URL-only config
 - **notion-connector**: Sibling workspace/data connector - similar conversational install

@@ -1,7 +1,7 @@
 ---
 name: square-connector
-description: "Connect Square to Claude by installing and authenticating its official MCP server. Use when the user asks to set up or connect Square, or wants Square work (payments, refunds, catalog, inventory, orders, customers, invoices, bookings) and Square isn't connected yet. Once connected, Square runs directly through the mcp__square__* tools."
-allowed-tools: mcp__square__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect Square to Claude by switching on its built-in connector, or by registering Square's official server locally. Use when the user asks to set up or connect Square, or wants Square work (payments, refunds, catalog, inventory, orders, customers, invoices) and Square isn't connected yet. Once connected, Square runs through the mcp__claude_ai_Square__* or mcp__square__* tools."
+allowed-tools: mcp__claude_ai_Square__*, mcp__square__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
   tags:
@@ -27,41 +27,113 @@ metadata:
 
 This skill lets you read and update a user's Square data on their behalf via the **official Square MCP server**. There is no CLI to install and no binary to download - Square ships a hosted remote MCP server (`https://mcp.squareup.com/sse`) for real accounts and a local npm package (`square-mcp-server`) for sandbox use. The connector is configured by writing a small block into the user's `~/.claude.json` and restarting Claude Code.
 
-The skill has two phases:
+**There are two ways in, and they reach the same official server.** Claude's own connector directory ships a built-in **Square** connector running Square's own hosted server (`mcp.squareup.com`) - the identical surface the kit's real-account route registers. Switching it on is one button and a sign-in, once per Claude account, with no local registration and no connection key on the machine, so it is the default route for a real Square account. The kit's own route (Phase 1-alt) stays in full for the cases the built-in cannot serve - and its **sandbox / practice-data branch is one of them**: the built-in connects the user's live Square account, so anyone who wants to experiment on Square's fake demo data needs Phase 1-alt. Both routes can coexist on one machine; never tear one down to set the other up.
 
-- **Phase 1 - Install & Auth (autonomous via Playwright).** Claude drives the entire setup inside a Playwright MCP browser. On the **sandbox path**, Claude opens `developer.squareup.com/apps`, waits for the user to sign in, toggles the dashboard to Sandbox mode, opens (or creates) an app, clicks the eye icon on **Sandbox Access Token**, reads the token directly from the DOM, registers the MCP server, and verifies - without ever asking the user to copy, paste, or navigate menus themselves. On the **real-account path**, Claude registers the hosted MCP server, drives Square's OAuth URL in the same Playwright window, waits for the user to sign in and click **Allow**, then auto-detects the callback. The user's only actions are signing in to Square (both paths) and clicking **Allow** on the consent screen (real-account path). No Client ID, no Client Secret, no redirect URI on the real-account path.
+The skill has these phases:
+
+- **Phase 0 - Is Square already connected?** Checks the built-in connector first, then the kit's own registration, and routes.
+- **Phase 1 - Switch on the built-in Square connector (the default route for a real account).** Open Square's connector page in the user's own browser, they press **Connect to Claude** and sign in, then verify and prove with one read.
+- **Phase 1-alt - The kit's own route (only when the built-in can't be used), autonomous via Playwright.** Claude drives the entire setup inside a Playwright MCP browser. On the **sandbox path**, Claude opens `developer.squareup.com/apps`, waits for the user to sign in, toggles the dashboard to Sandbox mode, opens (or creates) an app, clicks the eye icon on **Sandbox Access Token**, reads the token directly from the DOM, registers the MCP server, and verifies - without ever asking the user to copy, paste, or navigate menus themselves. On the **real-account path**, Claude registers the hosted MCP server, drives Square's OAuth URL in the same Playwright window, waits for the user to sign in and click **Allow**, then auto-detects the callback. The user's only actions are signing in to Square (both paths) and clicking **Allow** on the consent screen (real-account path). No Client ID, no Client Secret, no redirect URI on the real-account path.
 - **Phase 2 - Use Tools.** Once the MCP server is connected, you call **three meta-tools** - `get_service_info`, `get_type_info`, and `make_api_request` - to discover and execute any Square API call. The Square MCP does not expose static per-endpoint tools (unlike Xero); instead it exposes the whole Square API surface through this discovery pattern. This skill teaches you the pattern and shows example flows for the most common workshop prompts.
 
-**Beta notice.** The Square MCP server is currently in **beta**. Features and tool names may change without notice. This is worth telling the user once, warmly, during Phase 1 - not as a scary warning, but as a heads-up that if something misbehaves, it is usually Square's side and a retry fixes it.
+**Beta notice.** The Square MCP server is currently in **beta** - on both routes, since both run Square's own server. Features and tool names may change without notice. This is worth telling the user once, warmly, while connecting - not as a scary warning, but as a heads-up that if something misbehaves, it is usually Square's side and a retry fixes it.
 
-**Which phase to run** - Before any tool call, check whether the Square MCP server is configured and reachable. Try a trivial meta-tool call:
+**Which phase to run** - always start at Phase 0. On the kit's own route the resume signal is unchanged: before any tool call, check whether the Square MCP server is configured and reachable with a trivial meta-tool call:
 
 ```
 mcp__square__get_service_info(service="merchants")
 ```
 
 - Tool returns a list of methods → the MCP server is live. Go to Phase 2.
-- Tool errors with "server not found" / "mcp__square__* not available" → the user has not configured it yet OR has not restarted Claude Code after the config was written. Run Phase 1 from the appropriate step.
-- Tool errors with an auth-related message → the remote MCP server's browser sign-in lapsed (real-account path) or the sandbox token is wrong/expired (sandbox path). Re-run Phase 1 - the Playwright browser will reuse the existing session, so the user usually doesn't need to sign in again.
+- Tool errors with "server not found" / "mcp__square__* not available" → the kit's route is not configured yet, OR Claude Code was not restarted after the config was written. Check the built-in connector first (Phase 0 step 1), then run Phase 1 or Phase 1-alt from the appropriate step.
+- Tool errors with an auth-related message → the remote MCP server's browser sign-in lapsed (real-account path) or the sandbox token is wrong/expired (sandbox path). Re-run Phase 1-alt - the Playwright browser will reuse the existing session, so the user usually doesn't need to sign in again.
 
 ---
 
-## Communication rules for Phase 1
+## Communication rules for Phase 1 and Phase 1-alt
 
-The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work, the user only signs in to Square (and clicks **Allow** on the real-account consent screen). Every message you send during Phase 1 must follow these rules:
+These rules apply to **both** connect routes. On Phase 1 (the built-in connector) the user presses one button in their own browser and signs in; on Phase 1-alt the browser window is one Claude drives. Either way the user is a non-technical business owner - Claude does the work, the user only signs in to Square (and clicks **Allow** on the real-account consent screen). Every message you send while connecting must follow these rules:
 
 - **You drive, not them.** Never ask the user to click menus, copy text, scroll the developer dashboard, or paste values. The only actions you ever request are: "please sign in to the browser window I just opened" and (real-account path) "please click Allow on the screen Square just showed you."
 - **Plain English only.** No jargon. Never say MCP, server, npm, npx, bash, CLI, terminal, JSON, config file, env var, token, OAuth, scope, endpoint, SSE, remote, stdio, redirect URI, Playwright, browser automation, DOM, selector, or file paths. The browser window you open is "a browser window I just opened for you" or "the connection page" - not "Playwright" or "Chromium". If you must refer to a technical thing, name it plainly: "the Square tool I need", "your browser", "a small setting on your computer".
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start ("I'm opening Square for you now"), once when you need them ("please sign in", "please click Allow"), once when you're done ("your Square is now connected"). No commentary in between.
 - **React to success and failure warmly.** Good: "That worked - your Square is now connected." Bad: "MCP handshake failed at /sse."
 - **Never show error messages directly.** Translate into plain English. If something fails, say "No problem at all - let me try a different way," then diagnose silently.
-- **Short responses.** Maximum 8 lines per message during Phase 1.
+- **Short responses.** Maximum 8 lines per message while connecting (Phase 1 or Phase 1-alt).
 - **Never mention file paths, commands, scripts, or DOM/snapshot details** to the user. You run them; you do not describe them.
 - **Never echo the sandbox token** back to the user. Never include it in any output visible to the user.
 
 ---
 
-## PHASE 1 - Install & Auth (autonomous via Playwright)
+## Phase 0 - Is Square already connected?
+
+Run these silently, in order, and act on the first that answers.
+
+1. **Built-in connector.** Run `claude mcp list` and look for a line starting `claude.ai Square` (match the vendor word case-insensitively; there is no `--json` flag).
+   - `✔ Connected` → skip to **Phase 2**. Prove it first with one read through the built-in - list the business's locations - before saying so.
+   - `! Needs authentication` → the connection is on the account but its sign-in has lapsed. Open `https://claude.ai/customize/connectors` in the user's own browser and say: *"Your Square connection needs a quick re-sign-in. Press **Reconnect** next to Square, sign in, and tell me when it says Connected."* Then re-run this check.
+   - No such line → continue to step 2.
+2. **The kit's own route.** Read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) for an `mcpServers.square` entry, and run the meta-tool smoke call `mcp__square__get_service_info(service="merchants")`. If it answers, keep using it - say *"Square is already connected"* and skip to **Phase 2**. Do not set the built-in up on top of a working connection. (If that entry is the sandbox one, the user is on practice data - say which they are on before doing anything with money in it.)
+3. **Nothing found** → go to **Phase 1**.
+
+**Precedence note.** A server registered locally at the same address takes precedence over the built-in one and hides it (`/mcp` shows the built-in as hidden). If a machine carries an `mcpServers.square` entry from an earlier run of the kit's route and it works, leave it and say so. Only remove it - and only with the user's explicit OK - if it is broken and the built-in is the better route.
+
+**No shell?** If you cannot run commands at all (this is claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2 entirely: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Square's tools.
+
+**Tooling check (silent, needed for Phase 1-alt only).** Verify the `claude` command is on PATH (`claude --version`) and Playwright MCP is available (`mcp__playwright__browser_navigate` or `mcp__plugin_playwright_playwright__browser_navigate` in the tool surface). Phase 1 needs neither.
+
+---
+
+## Phase 1 - Switch on the built-in Square connector (the default route for a real account)
+
+Claude's connector directory carries a **Square** connector running Square's own hosted server (`mcp.squareup.com`) - the same server, and the same three meta-tools, the kit's real-account route registers. This is a one-time, once-per-account job: connect it once on the user's Claude account and it is available everywhere that account is signed in, including here. The only thing the user does is press one button and sign in. Nothing on this route captures, stores, or echoes a connection key - there is no key.
+
+**Ask which they want first** - the same question the kit's route opens with:
+
+> "Quick question before we start. Do you want to connect your **real Square account** (your live business data), or would you prefer a **practice demo** using Square's fake sandbox data? Both are safe."
+
+- **Real account** → continue with this phase.
+- **Sandbox / demo / practice** → the one-button route connects live data only, so go to **Phase 1-alt** and take its sandbox branch.
+
+**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set in the environment, built-in connectors will not appear in this session. Tell the user in one line that this copy of Claude is signed in a different way, then run **Phase 1-alt** instead.
+
+**Step 2 - Open the connector page for them.** Say:
+
+> "I'm opening Square's page in your browser. Press **Connect to Claude**, sign in to Square the way you normally do, and say yes when it asks for access. That's the only part only you can do, tell me when it says Connected."
+
+Then open `https://claude.ai/directory/square` (the public mirror of the same page is `https://claude.com/connectors/square`) in the user's **own** everyday browser: `open <url>` on Mac, `xdg-open <url>` on Linux, `start "" <url>` on Windows. That is where they are already signed in. If the page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: **Browse**, search "Square", **Connect**.
+
+> **Why the user's own browser here.** Phase 1-alt's rule (never use the user's own browser) exists because that route reads a sandbox access key off the developer dashboard in a browser Claude drives. This route reads nothing and handles no key, so the user's own browser is the correct place for the button press. Do not drive this sign-in with the automated browser.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a picture of the sign-in screen.
+
+**Step 4 - Verify.** Run `claude mcp list` again. A line reading `claude.ai Square ... ✔ Connected` is the pass.
+- Not there yet, ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. A session loads its connections when it starts.
+- `! Needs authentication` means the sign-in lapsed: send them to `https://claude.ai/customize/connectors` and have them press **Reconnect** next to Square.
+- Still no line at all means the Connect didn't complete, so send them back to Step 2.
+
+**Step 5 - Prove it.** Call one real read through the connector, listing the business's locations. Only a real answer counts (an empty list is a real answer; a tool error is not "connected"). The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_Square__*` tools actually available and pick a safe read rather than hard-coding a name.
+
+**Step 6 - Hand off.** Two lines: it's connected (name the merchant if the read returned one), and three things they can ask for now, for example *"what did I take last week?"*, *"show me my top-selling items"*, *"send an invoice to a customer"*. Say once, warmly, that Square's connector is new and a retry usually fixes a wobble.
+
+**Team or Enterprise Claude accounts.** If the page shows **Request** instead of **Connect**, the user's Claude administrator has to switch Square on for the organisation first, and connectors only work in private projects there. Say so plainly and stop. Do not fall back to the kit's route just to get past an admin gate.
+
+**Plan note.** Assume a paid Claude plan for built-in connectors. Free accounts are limited to a single custom connector, which is not this route.
+
+---
+
+## Phase 1-alt - The kit's own route (only when the built-in can't be used)
+
+Run this **instead of** Phase 1 in these cases:
+
+- The user wants Square's **sandbox / practice data** rather than their live account. The built-in connects live data only, so the sandbox branch below is the only way there.
+- Phase 1 Step 1 failed, meaning this copy of Claude is signed in a way that cannot see built-in connectors.
+- The Square connector is not listed on the user's Claude account (no directory listing, and nothing under **Browse**).
+- The user explicitly asks for the locally registered server.
+
+Otherwise Phase 1 is the route for a real account: it reaches the same Square server with none of this setup, and there is no reason to burden the user with it. Both routes can live on one machine, so never tear one down to set the other up.
+
+Everything below is the kit's original install, autonomous via Playwright.
 
 Claude drives the user's browser end-to-end via Playwright MCP. The user's only roles are: (1) sign in to Square in the Playwright window when prompted, and (2) on the real-account path, click **Allow** on Square's consent screen. Claude handles every other step - navigation, sandbox-mode toggle, app open/create, token reveal, DOM read, MCP register, verify.
 
@@ -303,6 +375,8 @@ Save to memory that the Square MCP is configured, the user chose the **real-acco
 
 ## PHASE 2 - Use Tools (the discovery pattern)
 
+> **Which prefix you get.** Through the built-in connector (Phase 1) the tools are `mcp__claude_ai_Square__*`; through the kit's own route (Phase 1-alt) they are `mcp__square__*`. Both routes run Square's own server, so the same three meta-tools and the same service list apply to both - only the prefix differs. Everything below is written with the `mcp__square__` prefix; read it as "whichever prefix is live in this session". List the tools present and use the one that is actually there; never mix the two prefixes in one session. The one real difference is the data behind them: Phase 1 is always the live account, while Phase 1-alt's sandbox branch is fake practice data.
+
 The Square MCP server does **not** expose a static per-endpoint tool set like the Xero connector does. Instead it exposes the entire Square API surface through **three meta-tools**:
 
 | Meta-tool | What it does |
@@ -508,7 +582,7 @@ User says: *"Show me my Square invoices"*
 mcp__square__make_api_request(
   service="invoices",
   method="list",
-  request={"location_id": "<location_id from Phase 1 verify-step fallback>"}
+  request={"location_id": "<location_id from the connect verify step>"}
 )
 ```
 
@@ -605,7 +679,7 @@ Fields: `id`, `status` (`SENT`, `PAID`, `FAILED`), `amount_money`, `destination.
 | "What loyalty points does [customer] have?" | `loyalty` | `search` (on loyalty accounts) |
 | "Check a gift card balance" | `giftcards` | `get` |
 | "What Square account am I connected to?" | `merchants` | `list` |
-| "Connect my Square" / "Help me set up Square" | - | **Run Phase 1** |
+| "Connect my Square" / "Help me set up Square" | - | **Run Phase 0, then Phase 1** (Phase 1-alt for sandbox data, or if Phase 1 is unavailable) |
 
 ---
 
@@ -627,15 +701,15 @@ The Square MCP beta returns errors as part of the `make_api_request` result. Eve
 
 | Error shape | What it means | How to respond |
 |---|---|---|
-| `"UNAUTHORIZED"` / `401` | Auth has lapsed. Real-account path: browser session expired. Sandbox path: token was revoked or wrong. | **Re-run Phase 1 autonomously.** Open Playwright back to `developer.squareup.com/apps` (sandbox) or re-trigger the OAuth start (real-account); the existing browser session usually carries over so the user doesn't need to sign in again. Do not ask the user to run anything; you run it. |
+| `"UNAUTHORIZED"` / `401` | Auth has lapsed. Real-account path: browser session expired. Sandbox path: token was revoked or wrong. | Built-in route: press **Reconnect** next to Square at `https://claude.ai/customize/connectors`. Kit's route: **re-run Phase 1-alt autonomously** - open Playwright back to `developer.squareup.com/apps` (sandbox) or re-trigger the OAuth start (real-account); the existing browser session usually carries over so the user doesn't need to sign in again. Do not ask the user to run anything; you run it. |
 | `"NOT_FOUND"` / `404` | Resource not found (payment ID, customer ID, etc.) | Tell the user "I couldn't find [resource]. Let me list the recent ones so you can pick." Then run a list command. |
 | `"INVALID_REQUEST_ERROR"` / `400` | The `request` payload is malformed. | Call `get_type_info(type="<RequestType>")` to verify the schema, then rebuild. |
 | `"RATE_LIMITED"` / `429` | Hit the Square API rate limit. | Wait 30 seconds, retry once. Tell the user: "Square is asking me to slow down - let me wait a moment." |
-| `"FORBIDDEN"` / `403` | Missing scope / permission. Real account may not have granted all scopes during sign-in. | Tell the user: "Your Square sign-in doesn't include permission for that. Let me reconnect you with the right permissions." Re-run Phase 1 (real-account branch) - driving the OAuth screen again surfaces a fresh consent prompt. |
+| `"FORBIDDEN"` / `403` | Missing scope / permission. Real account may not have granted all scopes during sign-in. | Tell the user: "Your Square sign-in doesn't include permission for that. Let me reconnect you with the right permissions." Built-in route: disconnect and reconnect Square at `https://claude.ai/customize/connectors` so the consent screen shows again. Kit's route: re-run Phase 1-alt (real-account branch) - driving the OAuth screen again surfaces a fresh consent prompt. |
 | `"INTERNAL_SERVER_ERROR"` / `500` | Square-side issue. Often transient, especially on the beta MCP server. | Retry once after 2 seconds. If still failing: "Square's side is having a moment. Want me to try again in a minute, or move on to something else?" |
-| `"MCP server not found"` / tool name not available | The MCP server isn't configured or Claude Code wasn't restarted after the config write. | Check `~/.claude.json` for an `mcpServers.square` entry. If present, ask the user to close and reopen Claude Code once. If absent, re-run Phase 1 from the start. |
+| `"MCP server not found"` / tool name not available | The MCP server isn't configured or Claude Code wasn't restarted after the config write. | Run `claude mcp list` and check for a `claude.ai Square` line, then check `~/.claude.json` for an `mcpServers.square` entry. If either is present, ask the user to close and reopen Claude Code once. If neither is, re-run Phase 0 from the start. |
 
-**Never show raw error codes or JSON to the user.** Translate into plain English, tell the user what you're doing next, and re-run or fall back to Phase 1 as appropriate.
+**Never show raw error codes or JSON to the user.** Translate into plain English, tell the user what you're doing next, and re-run or fall back to Phase 1 (or Phase 1-alt) as appropriate.
 
 ---
 
@@ -667,7 +741,7 @@ The real-account path permissions are whatever the user granted during browser s
 - **Sandbox awareness** - when on the sandbox path, gently remind the user every so often that they are looking at practice data. Say "practice account" or "sandbox", not "fake".
 - **Beta awareness** - if something fails inexplicably and retries don't help, tell the user: "Square's connector is still in beta, so occasionally it gets confused. Would you like me to try a different approach, or shall we come back to this later?" - do not blame the user.
 - **Never log or echo the sandbox token** - if the user is on the sandbox path, the `ACCESS_TOKEN` env var in `~/.claude.json` must never appear in any output visible to the user. Do not quote the file contents back.
-- **Auth errors (401/UNAUTHORIZED)** → re-run Phase 1 autonomously via Playwright. The existing browser session usually carries the user's Square login over; if not, prompt them to sign in once more.
+- **Auth errors (401/UNAUTHORIZED)** → on the built-in route, send the user to press **Reconnect** at `https://claude.ai/customize/connectors`. On the kit's route, re-run Phase 1-alt autonomously via Playwright. The existing browser session usually carries the user's Square login over; if not, prompt them to sign in once more.
 
 ---
 

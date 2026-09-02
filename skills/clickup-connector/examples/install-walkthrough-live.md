@@ -1,6 +1,6 @@
-# ClickUp connector - live Phase 1 walkthrough (verified)
+# ClickUp connector - live walkthrough of the kit's own route (verified)
 
-A real, verified run of Phase 1 on 2026-06-22 (token redacted).
+A real, verified run on 2026-06-22 (token redacted) of what the SKILL now calls **Phase 1-alt - the kit's own route**. It is the fallback, taken when the built-in ClickUp connector can't be used; the default route is one button on `https://claude.com/connectors/clickup` and has no walkthrough to record.
 
 ## Setup
 

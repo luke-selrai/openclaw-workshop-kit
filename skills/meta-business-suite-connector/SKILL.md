@@ -1,10 +1,12 @@
 ---
 name: meta-business-suite-connector
-description: "Connect Instagram Business and Threads to Claude by installing and authenticating the community Meta MCP server. Use when the user asks to set up or connect Instagram or Threads, or wants organic Instagram or Threads work (posting, comments, DMs, hashtags, insights) and they aren't connected yet - not paid Meta Ads. Once connected, both run directly through the mcp__meta__* tools."
-allowed-tools: mcp__meta__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect Meta Ads to Claude through Meta's official ads connector, or Instagram Business and Threads through the community Meta server. Use when the user asks to set up or connect Meta Ads, Instagram or Threads, or wants ad reporting, campaign or organic posting work and Meta isn't connected yet. Once connected, ads run through the mcp__claude_ai_Meta_Ads__* or mcp__meta-ads__* tools, organic through mcp__meta__*."
+allowed-tools: mcp__claude_ai_Meta_Ads__*, mcp__meta-ads__*, mcp__meta__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Productivity & Integrations
   tags:
+    - meta-ads
+    - advertising
     - instagram
     - threads
     - meta
@@ -17,27 +19,375 @@ metadata:
     - skill: canva-connector
       reason: Generate the image/video/Reel cover, then publish through this skill
     - skill: ad-creative
-      reason: Draft the post copy and creative concept, then publish through this skill
+      reason: Draft the ad or post copy and creative concept, then run it through this skill
     - skill: telegram-connector
       reason: Same Playwright-MCP-driven autonomous-install pattern. Reference for the rules + cleanup branches.
     - skill: playwright-skill
-      reason: The Playwright MCP browser is how this skill drives Meta's developer portal and Graph API Explorer.
+      reason: The Playwright MCP browser is how the organic route drives Meta's developer portal and Graph API Explorer.
 ---
 
 # Meta Business Suite Connector
 
 ## Overview
 
-This skill lets you read and publish a user's **Instagram Business** and **Threads** content on their behalf using the **community [`@mikusnuz/meta-mcp`](https://github.com/mikusnuz/meta-mcp)** server (npm-published, MIT-licensed, MCP SDK v1.26+, Graph API v25.0). It has two phases:
+This skill connects two different Meta surfaces. They are separate jobs, with separate
+sign-ins, and only one of them is the default.
+
+- **Meta Ads - the primary route.** Meta's own hosted ads connector at
+  `https://mcp.facebook.com/ads`, which Meta calls **Meta Ads AI Connectors** (launched
+  29 April 2026, open beta, free - you pay only for ad spend). 29 tools covering
+  reporting and insights, campaign / ad set / ad management, product catalogues, dataset
+  and signal diagnostics, and account benchmarks. It is added as a **custom connector**
+  on claude.ai - it is not in Claude's connector directory, so there is no directory page
+  for it and no `claude.ai/directory/<slug>` link to open. There is no developer app to
+  create, no app review to wait for and no keys to mint: Meta says it needs "no developer
+  credentials, API setup, or coding required". **Run this route by default.**
+- **Organic Instagram and Threads - the secondary route.** The community
+  [`@mikusnuz/meta-mcp`](https://github.com/mikusnuz/meta-mcp) server, kept in full lower
+  down this file. Meta's ads connector does **not** touch organic content: no Instagram
+  or Facebook Page posting, no Reels or Stories, no comment moderation, no direct
+  messages. Only run the secondary route when what the user actually wants is organic
+  Instagram or Threads work. It is a long browser-driven install with real security
+  trade-offs and a 60-day expiry - do not put a user through it to answer an ads question.
+
+### Which route
+
+| What the user wants | Route |
+|---|---|
+| Ad performance, spend, ROAS, CPM, frequency, reporting | Meta Ads - primary |
+| Create, edit, pause, budget or duplicate a campaign, ad set or ad | Meta Ads - primary |
+| Product catalogue, feed errors, product sets, catalogue diagnostics | Meta Ads - primary |
+| Pixel / dataset / signal health, event quality, error reporting | Meta Ads - primary |
+| Industry or auction benchmarks, opportunity score, anomaly signals | Meta Ads - primary |
+| Post to Instagram: photo, video, carousel, Reel, Story | Organic - secondary |
+| Instagram comments, mentions, tags, direct messages | Organic - secondary |
+| Post to, read or reply on Threads | Organic - secondary |
+| Post to a Facebook Page organically | Neither - not covered by either route |
+| Both ads and organic | Run the primary route first, then ask before starting the secondary one |
+
+Both routes can coexist on one machine. They are different servers with different
+sign-ins and neither knows about the other. Never tear one down to set the other up.
+
+### The address, exactly
+
+The only official Meta ads connector address is:
+
+```
+https://mcp.facebook.com/ads
+```
+
+No trailing slash, no `www.`, no other host, no path variations. Search results are
+thick with look-alikes - third-party "Facebook Ads MCP" packages, agency-hosted
+gateways, and "pre-verified app" sign-in proxies - and every one of them routes the
+user's ad account through somebody else's infrastructure. If the address is not
+character-for-character `https://mcp.facebook.com/ads`, it is not Meta's. Do not accept
+one a user pastes in from a blog post without checking it, and never substitute a
+different server when the official one is unavailable - stop instead.
+
+---
+
+## Communication rules (both routes)
+
+The user is a non-technical business owner. Everything you say to them follows the rules
+in the installed assistant persona (`~/.claude/selr-assistant.md`):
+
+- **One step at a time.** Never stack two instructions in one message.
+- **Plain English only.** No jargon in anything the user reads. Name technical things
+  plainly: "the connection", "Meta's permission screen", "your business portfolio".
+- **Tell them what is about to happen** before you do it.
+- **Never echo credentials.** The primary route handles none - there is nothing to
+  copy, paste or read aloud, and you should say so, because it is the reason it is quick.
+- **Never show raw error text.** Translate it.
+- **Short responses.** Maximum 8 lines while connecting.
+- **No em dashes in italicised user-facing strings.**
+
+---
+
+## Phase 0 - Is Meta already connected?
+
+Run these silently, in order, and act on the first that answers.
+
+1. **Meta Ads as a claude.ai custom connector.** `claude mcp list` - look for a line
+   starting `claude.ai Meta Ads`. (That is the name this skill tells the user to type. If
+   they named it something else, match any `claude.ai` line whose name contains "meta"
+   case-insensitively, and check the address on it is `https://mcp.facebook.com/ads`.)
+   - `✔ Connected` - the ads route is live. Prove it with one read
+     (`ads_get_ad_accounts`) before you say so, then skip to Phase 2.
+   - `! Needs authentication` - the connection has lapsed. Open
+     `https://claude.ai/customize/connectors` in the user's own browser and say:
+     *"Your Meta Ads connection needs a quick re-sign-in. Press Reconnect next to Meta
+     Ads, sign in, and tell me when it says Connected."* Then re-run this check.
+   - no such line - continue.
+2. **Meta Ads registered locally in Claude Code.** `claude mcp list` - look for a
+   `meta-ads` entry pointing at `https://mcp.facebook.com/ads`. Connected, and a read
+   works, means the route is live: skip to Phase 2. Present but failing means the sign-in
+   lapsed: go to Phase 1 Step 4 and re-authenticate. Do not re-register a server that is
+   already there.
+   - A locally registered server at the same address takes precedence over a claude.ai
+     custom connector at that address and hides it. If a local `meta-ads` entry works,
+     leave it and say so. Only remove it, and only with the user's explicit OK, if it is
+     broken and they would rather use the claude.ai one.
+3. **The organic route** - only worth checking when the user has asked for organic
+   Instagram or Threads work. Read `~/.claude.json` (Mac/Linux `$HOME/.claude.json`,
+   Windows `%USERPROFILE%\.claude.json`) and look for an `mcpServers.meta` entry with a
+   non-empty `INSTAGRAM_ACCESS_TOKEN` + `INSTAGRAM_USER_ID` (or `THREADS_ACCESS_TOKEN` +
+   `THREADS_USER_ID` for Threads-only). Present and a smoke call works, means the organic
+   route is live - go to the organic route's Phase 2 tables.
+4. **Nothing found** - go to Phase 1.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app rather
+than Claude Code), skip steps 1-3: go straight to Phase 1 and prove the result at Step 5
+by calling one of the connector's tools.
+
+---
+
+## Phase 1 - Connect Meta Ads (the default route)
+
+A one-time, once-per-account job. Two forms of it; pick by where the user is. The only
+thing the user does is press a button and sign in to Meta.
+
+**Step 1 - Check they can actually authorise it.** Ask one question before opening
+anything:
+
+> "Quick check. Do you have admin or advertiser access to the business portfolio that
+> owns the ad account you want me to look at? Easy test: if you can already change a
+> budget in Ads Manager yourself, you're fine."
+
+Claude-facing notes on that answer:
+
+- The connector inherits exactly the access the user's Meta login already has. **An
+  advertiser or admin role on the Business Manager (business portfolio) that owns the ad
+  account** is the requirement. Read-only access still gets the reporting tools; making
+  changes needs the ads-management permission that those roles carry.
+- Since Meta's 16 July 2026 update, anyone with full control of a business portfolio can
+  govern what AI agents may do on its ad accounts - budget changes, catalogue updates and
+  so on. If the portfolio's owner has locked writes down, reads will still work and
+  writes will fail. That is a Meta-side setting; do not try to route around it.
+- Meta is rolling this out in phases. Not every advertiser is enabled yet, and some
+  accounts have to clear Business Verification first. If Meta's authorisation screen
+  refuses the connection, that is the most likely reason and there is no manual override.
+  Say so plainly and stop rather than hunting for a workaround.
+
+**Step 2 - Add it on claude.ai (the usual path).** Say:
+
+> "I'm opening your connector settings. You'll add one custom connector, sign in to Meta,
+> and pick which business portfolio I'm allowed to see. That's the only part only you can
+> do. I'll wait, then check it worked."
+
+Then open `https://claude.ai/customize/connectors` in the **user's own browser** (`open`
+on Mac, `xdg-open` on Linux, `start "" <url>` on Windows) - that is where they are
+already signed in to claude.ai. Do not drive this with Playwright. (The organic route's
+"never open the participant's own browser" rule exists because that route reads secrets
+off a page in a driven browser. This route reads nothing, so opening their own browser is
+the correct move here.)
+
+Walk them through it one line at a time:
+
+1. Press **Add custom connector**.
+2. Name it exactly **Meta Ads**. (The name matters: it decides what the tools are called
+   in Claude Code. A different name means the `mcp__claude_ai_Meta_Ads__*` names in this
+   skill will not match.)
+3. For the address, paste:
+
+   ```
+   https://mcp.facebook.com/ads
+   ```
+
+4. Press **Continue** / **Add**.
+5. Meta's own sign-in screen opens. Sign in the way they normally do, press **Continue**,
+   then **choose the business portfolio** they want connected. That choice is what scopes
+   the connection to that portfolio's ad accounts - if they have several, they pick here.
+   Some accounts are also asked to pick the ad accounts and Pages, and a read-only versus
+   read-and-write level. Read-and-write is what this skill assumes; read-only is a
+   perfectly sensible choice for a nervous first run, and reporting still works.
+6. When Claude shows the connector's list of what it can do, tell them: set the
+   look-things-up ones to **Always allow**, and leave anything that creates or changes an
+   ad on **Needs approval**. That is what keeps every spending change in front of them.
+
+**Step 2-alt - In Claude Code, when there is no claude.ai sign-in.** If `claude auth
+status` shows anything other than `"authMethod": "claude.ai"` (an API key, Bedrock or
+Vertex), claude.ai custom connectors will not appear in this session at all. Register the
+server locally instead:
+
+```bash
+claude mcp add --transport http meta-ads https://mcp.facebook.com/ads
+```
+
+Then have the user open the **`/mcp`** panel in Claude Code, select `meta-ads`, and
+choose **Authenticate** - that is what launches Meta's sign-in in their browser. The
+authenticate step lives in that panel and in the `mcp__meta-ads__authenticate` tool the
+runtime surfaces once the server has reconciled; there is no command-line verb for it. If
+the panel does not show `meta-ads` yet, have the user fully quit and reopen Claude Code
+once, then look again.
+
+> **Known snag on this path.** There are reports of Meta's sign-in failing specifically
+> when it is started from Claude Code. It is a mismatch between Meta's and Anthropic's
+> sign-in configuration, not anything the user did, and neither side can fix it locally.
+> If the sign-in fails twice here, stop retrying and use Step 2 on claude.ai instead - a
+> claude.ai connection works everywhere on that account, Claude Code included.
+
+**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code,
+or a screenshot of the sign-in screen. Never offer to "just do the sign-in for them".
+
+**Step 4 - Verify.** Run `claude mcp list` again.
+
+- `claude.ai Meta Ads … ✔ Connected` (Step 2) or a connected `meta-ads` entry (Step 2-alt)
+  is the pass.
+- Nothing there yet - ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q;
+  Windows: close the window and quit from the tray), then check again. A session loads
+  its connections when it starts.
+- `! Needs authentication` - send them to `https://claude.ai/customize/connectors` and
+  the **Reconnect** button next to Meta Ads.
+- Still no line at all - the add did not complete. Go back to Step 2.
+
+**Step 5 - Prove it.** Call one real read: `ads_get_ad_accounts` (through the claude.ai
+connector, `mcp__claude_ai_Meta_Ads__ads_get_ad_accounts`; through the local entry,
+`mcp__meta-ads__ads_get_ad_accounts`). Only a real answer counts. A tool error here is
+not "connected". If it returns accounts, follow with `ads_get_ad_entities` on one of them
+to confirm campaigns come back too.
+
+**Step 6 - Hand off.** Two short lines: it is connected, and three things they can ask
+for now. For example: *"Done, I can see your ad account. Ask me things like 'how did last
+month's campaigns do', 'which ad sets have the best return on spend', or 'why is my
+product feed throwing errors'."*
+
+**Team or Enterprise accounts.** On Team and Enterprise plans an **Owner** has to add the
+custom connector first, at Organization settings → Connectors → **Add** → **Custom** →
+**Web**, pasting the same address. Members then switch it on from Customize → Connectors.
+If the user is not an Owner and does not see the option, say so plainly and stop; do not
+fall back to the organic route or to a third-party ads server just to get past an admin
+gate. Connectors also only work in private projects on those plans.
+
+**Free plan.** A free Claude account can hold one custom connector. If they already have
+one, adding Meta Ads means replacing it - ask before doing that.
+
+---
+
+## Phase 2 - Working with Meta Ads
+
+**Tool namespace.** Through the claude.ai custom connector the tools are
+`mcp__claude_ai_Meta_Ads__*`; through a locally registered server they are
+`mcp__meta-ads__*`. The tool names after the prefix are identical either way. Tools are
+often *deferred* in a session - if you cannot see them, list the connector's tools from
+the session surface rather than guessing at names.
+
+The connector exposes 29 tools in five groups:
+
+| Group | Tools | What it is for |
+|---|---|---|
+| Campaign management (5) | `ads_create_campaign`, `ads_create_ad_set`, `ads_create_ad`, `ads_update_entity`, `ads_activate_entity` | Build and change campaigns, ad sets and ads; edit budgets, targeting and status |
+| Accounts, Pages & assets (3) | `ads_get_ad_accounts`, `ads_get_ad_entities`, `ads_get_pages_for_business` | Find which ad accounts and Pages the connection can see, and list the campaigns / ad sets / ads inside one |
+| Product catalogue (10) | `ads_catalog_create`, `ads_catalog_get_catalogs`, `ads_catalog_get_details`, `ads_catalog_get_diagnostics`, `ads_catalog_get_feed_rules`, `ads_catalog_get_products`, `ads_catalog_get_product_details`, `ads_catalog_get_product_feed_details`, `ads_catalog_get_product_sets`, `ads_catalog_get_product_set_products` | Catalogues, feeds and product sets for dynamic and Advantage+ shopping campaigns; diagnosing why products are not showing |
+| Dataset & signal quality (4) | `ads_get_dataset_details`, `ads_get_dataset_quality`, `ads_get_dataset_stats`, `ads_get_errors` | Pixel and conversions data: is it firing, is the match quality any good, what is erroring |
+| Insights & benchmarks (7) | `ads_insights_performance_trend`, `ads_insights_anomaly_signal`, `ads_insights_advertiser_context`, `ads_insights_auction_ranking_benchmarks`, `ads_insights_industry_benchmark`, `ads_get_opportunity_score`, `ads_get_help_article` | Performance over time and by breakdown, spikes and dips, how the account compares, and Meta's own help articles |
+
+> **Claude-facing note on names.** The exact tool names above are as published for the
+> beta. Meta is still shipping changes to this connector. If a name does not resolve,
+> read the connector's live tool list from the session surface and use that - do not
+> invent a name, and do not fall back to a third-party server.
+
+### What the ads route can do
+
+- Pull performance at account, campaign, ad set and ad level - spend, impressions,
+  clicks, conversions, frequency, CPM, CTR, return on ad spend - over any period, with
+  breakdowns (placement, device, demographic).
+- Create campaigns, ad sets and ads; update budgets, targeting, names and status; pause
+  and activate.
+- Create and inspect product catalogues, read feed rules, and diagnose why individual
+  products are not eligible.
+- Check pixel and dataset health, event match quality and error reports.
+- Compare against industry and auction-ranking benchmarks, surface anomalies, and read
+  Meta's Business Help Centre articles in-line.
+
+### What the ads route cannot do
+
+- **Anything organic.** No Instagram or Facebook Page posting, no Reels or Stories, no
+  comment moderation, no direct messages. That is the secondary route below.
+- **See the actual creative.** It cannot view ad images, videos or previews - only the
+  numbers attached to them.
+- **Explain why performance moved.** It reads Meta's data; it has no view of the user's
+  margin, stock, seasonality, or their email and search activity.
+- **Show competitor auction internals** or anything outside the user's own accounts.
+- **Join Meta with another ad platform.** Google Ads data is a separate connector and a
+  separate skill.
+
+### Meta Ads write safety
+
+The primary route can spend the user's money. These rules are not optional.
+
+- **Confirm before anything that changes spend or exposure.** Creating or activating a
+  campaign, ad set or ad; changing a budget, bid or schedule; editing targeting; deleting
+  or archiving anything. Before the call, say in plain English what will change, on which
+  ad account, and what it will cost per day. Wait for a clear yes. "Go ahead" on a
+  previous change is not consent for the next one.
+- **Everything the connector creates lands paused.** Campaigns, ad sets and ads created
+  through this connector are created in a paused state and someone has to activate them.
+  Treat that as a safety net, not a substitute for asking - and tell the user the thing
+  you just made is paused so they are not waiting for results that are not coming.
+- **`ads_activate_entity` is the one that starts the spending.** Confirm it separately,
+  every time, with the daily budget stated. Never bundle a create and an activate into
+  one "shall I do that?".
+- **First write on a new connection is a reversible one.** Pause a single low-spend ad
+  set, confirm it shows paused, then re-activate it. Do that before touching a budget.
+  Writes here are live in the real account and hard to undo.
+- **Leave the write tools on Needs approval** in the connector's permission list, and say
+  why: it is the user's second chance to catch a mistake.
+- **Budget rises get a stated number, always.** "I'll raise the daily budget from $40 to
+  $120, which is about $2,400 more over a 30-day month" - not "I'll increase the budget".
+- **Never guess an ad account.** If `ads_get_ad_accounts` returns more than one, ask
+  which. Changing the wrong client's campaign is the worst failure mode this skill has.
+- **Pace bulk work.** During the beta the connector is rate-limited (reads are cheap,
+  writes cost more), and a burst of changes will start failing part-way. Batch in small
+  groups, confirm each group, and tell the user if you get throttled rather than
+  silently retrying.
+- **A write that reports success but does not stick** usually means the connection was
+  authorised read-only, or the change was made against the wrong ad account. Re-read the
+  entity to confirm, and if it did not take, say so - do not claim a change that is not
+  there.
+
+### When the ads route stops working
+
+- **Reads and writes both stop, no clear error.** The Meta sign-in behind the connection
+  has lapsed (Meta's sign-ins expire on roughly a 60-day cycle and the failure is quiet).
+  Send the user to `https://claude.ai/customize/connectors` → **Reconnect** next to Meta
+  Ads, or the `/mcp` panel for a local entry.
+- **Reads work, writes fail.** The connection was authorised read-only, or the business
+  portfolio's owner has restricted what AI agents may change. Re-run Step 2 and pick
+  read-and-write, or tell the user which permission their portfolio admin needs to open.
+- **The connector never authorises at all.** Their account is likely not enabled yet in
+  Meta's phased rollout, or needs Business Verification first. There is no override. Say
+  so and stop.
+- **Tools vanish mid-session.** Have the user fully quit and reopen Claude Code once.
+
+---
+
+# Secondary route - organic Instagram and Threads (community server)
+
+**Only run everything below this line when what the user wants is organic Instagram or
+Threads work** - publishing posts, Reels, Stories or threads, moderating comments,
+reading direct messages, or organic insights. It has nothing to do with Meta Ads: it
+wraps a different, community-maintained server, uses a completely different sign-in, and
+its connection expires after about 60 days. If the user came here for ads, they want the
+primary route above; do not start this install for them.
+
+This is a long, browser-driven install with real security trade-offs, all of which are
+documented below. Read the safety gate before you touch anything.
+
+This route has its own Phase 0 / Phase 1 / Phase 2 numbering. It is local to this section
+and has nothing to do with the phases above - the two routes never share a step.
+
+## Organic route - overview
+
+This route lets you read and publish a user's **Instagram Business** and **Threads** content on their behalf using the **community [`@mikusnuz/meta-mcp`](https://github.com/mikusnuz/meta-mcp)** server (npm-published, MIT-licensed, MCP SDK v1.26+, Graph API v25.0). It has two phases:
 
 - **Phase 1 - Install & Connect (autonomous).** Claude drives the entire Meta Developer Portal + Graph API Explorer flow inside a Playwright MCP browser. The user does exactly TWO things: (1) log in to Facebook in the Playwright window with the account that owns their Page, (2) tick the permission boxes in Meta's OAuth consent dialog. Everything else - creating the App, capturing the App ID and App secret from the DOM, generating the access token, exchanging short-lived for long-lived via curl, finding the linked IG Business Account ID, writing `~/.claude.json` - is autonomous. The user never copies, never pastes, never opens a tab themselves, never reads a token aloud, never types into chat anything other than confirmations.
 - **Phase 2 - Use Tools.** Once the connector is configured, you call the `mcp__meta__*` native tools to read and publish. The server exposes **57 tools** across Instagram (33), Threads (18), and Meta platform token management (6). All 57 are documented in the Phase 2 tables below.
 
-**Which phase to run** - Before any tool call, check whether the Meta MCP server is already configured. Read `~/.claude.json` (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.meta` entry with `INSTAGRAM_ACCESS_TOKEN` and `INSTAGRAM_USER_ID` (or, if the user only wants Threads, `THREADS_ACCESS_TOKEN` and `THREADS_USER_ID`) in its `env` block. If the relevant pair exists and is non-empty, treat the connector as configured and skip to Phase 2. Otherwise, run Phase 1.
+**Which phase of the organic route to run** - Before any organic tool call, check whether the Meta MCP server is already configured. Read `~/.claude.json` (on Mac/Linux: `$HOME/.claude.json`; on Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.meta` entry with `INSTAGRAM_ACCESS_TOKEN` and `INSTAGRAM_USER_ID` (or, if the user only wants Threads, `THREADS_ACCESS_TOKEN` and `THREADS_USER_ID`) in its `env` block. If the relevant pair exists and is non-empty, treat the connector as configured and skip to Phase 2. Otherwise, run Phase 1.
 
-### What this skill does NOT cover
+### What the organic route does NOT cover
 
-- **Meta Ads (paid campaigns, ad sets, audiences, creatives, insights for paid spend).** Use Luke's [`luke-heka/meta-ads-mcp-setup`](https://github.com/luke-heka/meta-ads-mcp-setup) for that. The two skills can coexist - they wrap different MCP servers and use different tokens.
+- **Meta Ads (paid campaigns, ad sets, audiences, creatives, insights for paid spend).** That is this skill's *primary* route at the top of this file - Meta's own ads connector at `https://mcp.facebook.com/ads`. Luke's [`luke-heka/meta-ads-mcp-setup`](https://github.com/luke-heka/meta-ads-mcp-setup) remains an alternative for anyone who needs a self-hosted ads server. All three coexist - they are different servers with different sign-ins.
 - **Facebook Page organic posting.** This skill is intentionally Instagram + Threads only. A separate `facebook-page-connector` is the right home for that surface and has not been built yet.
 - **Personal Instagram accounts.** The Graph API only supports Business and Creator accounts. The user must convert (free, takes 30 seconds in IG settings) before this skill works. Phase 0 catches this.
 - **Messenger / Facebook Page DMs.** This skill exposes Instagram DMs only.
@@ -45,7 +395,7 @@ This skill lets you read and publish a user's **Instagram Business** and **Threa
 
 ---
 
-## Phase 0 - Pre-flight check (BEFORE the safety gate)
+## Organic route, Phase 0 - Pre-flight check (BEFORE the safety gate)
 
 Before anything else, confirm the user has the right kind of account on the right platform. These three checks save 20 minutes of dead-end troubleshooting later. Ask one at a time, wait for each answer.
 
@@ -83,7 +433,7 @@ Only proceed past Phase 0 when the user has a Business or Creator IG account lin
 
 ---
 
-## ⚠️ Safety gate - run this BEFORE Phase 1 Step 1
+## ⚠️ Organic route, safety gate - run this BEFORE Phase 1 Step 1
 
 Two real constraints the user must acknowledge before you touch anything. These are non-negotiable and need to be raised in plain English, upfront, with explicit confirmation.
 
@@ -108,7 +458,7 @@ Only proceed past this gate when the user has explicitly confirmed they're okay 
 
 ---
 
-## Golden rule - Claude drives Meta's developer surfaces for EVERY action
+## Organic route, golden rule - Claude drives Meta's developer surfaces for EVERY action
 
 **The default path for every Meta-side action is the Playwright MCP browser.** Once Phase 1 Step 4 logs the Playwright window into Facebook (the user enters their FB credentials), that window IS the user's Meta-developer client for the rest of the flow. Claude uses it for:
 
@@ -133,7 +483,7 @@ The **REST-Direct Fallback** section at the bottom of this file is the contingen
 
 ---
 
-## Autonomy rule - Claude does the work, the user does not paste tokens
+## Organic route, autonomy rule - Claude does the work, the user does not paste tokens
 
 Meta's developer surfaces (Developer Portal + Graph API Explorer) are entirely web-driven - there is no slash-command surface for the user to invoke even if they wanted to. Everything happens via Claude's tools:
 
@@ -150,13 +500,13 @@ If you find yourself about to type "paste this into the chat", stop. Either run 
 
 ---
 
-## No-deviation rule
+## Organic route, no-deviation rule
 
 If a step in this skill fails, follow the documented `if X fails, try Y` branch for that step. Do not improvise with `curl https://graph.facebook.com/...` outside the documented endpoints, do not edit the user's Facebook account settings, do not invent shortcuts. If you hit an undocumented failure, tell the user exactly what failed in plain English and stop. Do not silently pivot.
 
 ---
 
-## Communication rules for Phase 1
+## Organic route, communication rules for Phase 1
 
 The user is a non-technical business owner. Every message you send during Phase 1 must follow the rules in the installed assistant persona (`~/.claude/selr-assistant.md`):
 
@@ -171,7 +521,7 @@ The user is a non-technical business owner. Every message you send during Phase 
 
 ---
 
-## PHASE 1 - Install & Connect (autonomous)
+## ORGANIC ROUTE, PHASE 1 - Install & Connect (autonomous)
 
 **Run Steps 1 through 9 in order, all in this one Claude Code session.** Step 4 opens developers.facebook.com in the Playwright MCP browser and waits for the user's Facebook login. Step 5 drives the App-creation flow autonomously inside that browser, including reading the App ID and App secret from the DOM. Step 6 drives Graph API Explorer autonomously to mint the access token (the user only ticks OAuth permissions). Step 7 (optional, conditional on Phase 0 Q3) does the same for Threads. Step 8 writes `~/.claude.json` with backup + read-back validation. Step 9 verifies. The REST-Direct Fallback section at the bottom is only for when Step 4 fails twice in a row - do not start there.
 
@@ -581,7 +931,7 @@ Handle the response (apply to whichever calls succeeded):
 
 ---
 
-## PHASE 2 - Use Tools
+## ORGANIC ROUTE, PHASE 2 - Use Tools
 
 Once the connector is configured, use the `mcp__meta__*` MCP tools below. The server exposes **57 tools total** across Instagram (33), Threads (18), and Meta platform token management (6). All 57 are catalogued in the tables that follow; resources (`instagram://profile`, `threads://profile`) and prompts (`content_publish`, `analytics_report`) are also exposed by the server but are not surfaced as tools - see [the maintainer's `llms.txt`](https://github.com/mikusnuz/meta-mcp/blob/main/llms.txt) for those.
 
@@ -691,7 +1041,7 @@ Once the connector is configured, use the `mcp__meta__*` MCP tools below. The se
 
 ---
 
-## Prompt-to-Tool Mapping
+## Organic route, prompt-to-tool mapping
 
 | What the user says | Tool to use |
 |---|---|
@@ -720,7 +1070,7 @@ Once the connector is configured, use the `mcp__meta__*` MCP tools below. The se
 
 ---
 
-## Error Handling (Phase 2)
+## Organic route, error handling (Phase 2)
 
 When a Meta tool call fails, diagnose and respond in plain English. Never show raw error messages.
 
@@ -740,7 +1090,7 @@ When a Meta tool call fails, diagnose and respond in plain English. Never show r
 
 ---
 
-## Security Assessment
+## Organic route, security assessment
 
 This skill grants broad publishing and read authority over the user's Instagram Business and Threads accounts. The risks below are catalogued so the safety gate, scope-narrowing offer, and Phase 2 confirmation prompts can defend against them.
 
@@ -765,7 +1115,7 @@ This skill grants broad publishing and read authority over the user's Instagram 
 
 ---
 
-## Scope Limitations
+## Organic route, scope limitations
 
 The Meta Business Suite connector **can** do (via `@mikusnuz/meta-mcp`):
 
@@ -782,7 +1132,7 @@ The Meta Business Suite connector **can** do (via `@mikusnuz/meta-mcp`):
 The Meta Business Suite connector **cannot** do:
 
 - **Post to a Facebook Page** organically. Use a separate `facebook-page-connector` (not yet built).
-- **Run Meta Ads** (paid campaigns, ad sets, targeting, creatives). Use Luke's `luke-heka/meta-ads-mcp-setup`.
+- **Run Meta Ads** (paid campaigns, ad sets, targeting, creatives). That is this skill's primary route at the top of this file, on Meta's own ads connector; Luke's `luke-heka/meta-ads-mcp-setup` is an alternative self-hosted server.
 - **Schedule posts for later.** Meta Graph API does not expose scheduled publishing for organic content. The user can use Meta Business Suite's UI scheduler, or pair this skill with a cron-based skill.
 - **Post to personal Instagram accounts.** Graph API only supports Business and Creator accounts.
 - **Cross-post Instagram → Facebook automatically.** This is a per-post toggle in the Instagram app and is not exposed via Graph API.
@@ -793,7 +1143,7 @@ The Meta Business Suite connector **cannot** do:
 
 ---
 
-## Behaviour Guidelines (Phase 2)
+## Organic route, behaviour guidelines (Phase 2)
 
 - **Always confirm before publishing, deleting, or sending DMs.** Summarise what you're about to post (caption + hashtags + media URL or filename) and wait for the user's OK before calling the publish tool. Same for `ig_send_message`, `ig_delete_media`, `ig_delete_comment`, `threads_delete_post`.
 - **Container processing is asynchronous.** After `ig_publish_video` or `ig_publish_reel`, call `ig_get_container_status` once before assuming the post is live. Same for Threads media containers via `threads_get_container_status`.
@@ -811,13 +1161,14 @@ The Meta Business Suite connector **cannot** do:
 
 ---
 
-## Related Skills
+## Related skills (both routes)
 
-- **orientation**: The source pattern for conversational bootstrap; Phase 1 above follows the same rules.
+- **orientation**: The source pattern for conversational bootstrap; both routes' connect flows follow the same rules.
 - **superpowers:systematic-debugging** (official Anthropic Superpowers plugin, optional but recommended): For troubleshooting Meta access tokens or Graph API errors.
 - **canva-connector**: Generate the image, video, or Reel cover, then publish through this skill.
-- **ad-creative**: Draft the post copy and creative concept, then publish through this skill.
+- **ad-creative**: Draft the ad or post copy and creative concept, then run it through this skill - the primary route for a paid ad, the secondary route for an organic post.
 - **xero-connector**: Sibling first-party-style connector - same `~/.claude.json` + restart pattern, different platform.
 - **wordpress-connector**: Same `npx + ~/.claude.json` install pattern using `@rnaga/wp-mcp`.
 - **(future) facebook-page-connector**: Will cover Facebook Page organic posting; not yet built.
-- **(external) luke-heka/meta-ads-mcp-setup**: Covers Meta Ads. Coexists with this skill - they wrap different MCP servers and use different tokens.
+- **(external) luke-heka/meta-ads-mcp-setup**: An alternative, self-hosted Meta Ads server. This skill's primary route uses Meta's own hosted ads connector instead; all three coexist, because they are different servers with different sign-ins.
+- **google-ads-connector**: The other paid-media connector. Meta's ads connector covers Meta only - it cannot join Meta and Google data in one answer.

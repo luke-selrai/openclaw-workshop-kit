@@ -1,7 +1,7 @@
 ---
 name: mailchimp-connector
-description: "Connect Mailchimp to Claude by installing and authenticating its API credentials. Use when the user asks to set up or connect Mailchimp, or wants Mailchimp work (audiences, subscribers, campaigns, reports) and the credentials aren't in place yet. Once connected, Mailchimp runs directly against its API with the stored credentials."
-allowed-tools: Bash, Read, Write, Edit, mcp__playwright__*, mcp__plugin_playwright_playwright__*
+description: "Connect Mailchimp to Claude by switching on its built-in Intuit Mailchimp connector, or by installing and authenticating its API credentials. Use when the user asks to set up or connect Mailchimp, or wants Mailchimp work (audiences, subscribers, campaigns, tags, reports) and Mailchimp isn't connected yet. Once connected, Mailchimp runs through the mcp__claude_ai_Intuit_Mailchimp__* tools, or directly against its API with the stored credentials."
+allowed-tools: Bash, Read, Write, Edit, mcp__claude_ai_Intuit_Mailchimp__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*
 metadata:
   category: Marketing & Advertising
   tags:
@@ -29,16 +29,50 @@ metadata:
 
 This skill lets you read and operate a user's Mailchimp account on their behalf using **Mailchimp Marketing API v3** (no MCP server, no first-party CLI - Direct-REST + Playwright pattern). `skills/CLAUDE.md` documents the three install patterns (Hosted-OAuth, Hosted-bearer-PAT, Plugin-marketplace) and marks direct-REST connectors as out-of-scope for that doc; this SKILL follows the `myob-connector` shape (loopback listener for OAuth - or in our case API-key clipboard transit - plus atomic `credentials.json` write).
 
-It has two phases:
+### Mailchimp is built into Claude - start there
 
-- **Phase 1 - Install & Connect (autonomous via Playwright).** Claude drives `admin.mailchimp.com` end-to-end via Playwright MCP to sign the participant in, generate a new API key from the API keys settings page, DOM-extracts the key via the clipboard-transit pattern (key never appears in tool returns), parses the data-center suffix from the key (Mailchimp API keys have the form `<32-char-token>-<dc>` e.g., `abc123def...-us21`), constructs the participant's account-specific API endpoint URL (`https://<dc>.api.mailchimp.com/3.0/`), and persists everything to `~/.config/mailchimp/credentials.json` (mode 0600). The participant's only manual moment is signing in to Mailchimp once and approving any 2FA.
+Mailchimp has its own listing in Claude's connector directory, under the display
+name **Intuit Mailchimp** (`https://claude.ai/directory/intuit-mailchimp`, made by
+Intuit Mailchimp, connector URL `https://ai-inc.mailchimp.com/claude/mcp/v2`,
+added March 2026, in-chat UI, sign-in required; docs at
+`https://mailchimp.com/help/use-mailchimp-connector-claude`). The plain
+`mailchimp` slug does **not** resolve - only `intuit-mailchimp` does, the
+`claude mcp list` line reads `claude.ai Intuit Mailchimp`, and the tools are
+`mcp__claude_ai_Intuit_Mailchimp__*`. Get all three wrong and you will conclude
+there is no listing when there is one.
+
+Switching it on is one button and a sign-in - nothing installed, no key for this
+skill to store, and the connection is account-level, so it works everywhere that
+claude.ai account is signed in.
+
+**But the built-in is narrow.** Per Mailchimp's own help page it is focused on
+*campaign planning, editing and saving*: building data-backed campaign plans
+across email, SMS and social from business goals, generating ready-to-use email
+and social layouts, editing copy, colours, tone and layout in plain language,
+recommending off past Mailchimp performance, and saving the plan back to the
+Mailchimp account as a draft. The page documents no audience or subscriber
+management, no tagging or segments, no reports surface, no automations, no
+templates, and no send or schedule - drafts only. So this skill keeps both
+routes, and Phase 0.5 routes between them by what the user actually wants.
+
+Requirements the help page names for the built-in: active Claude and Mailchimp
+accounts, and **Owner or Admin** permissions on both.
+
+It has three phases:
+
+- **Phase 1 - Switch on the built-in Intuit Mailchimp connector.** One button,
+  one sign-in, proved with a real read.
+- **Phase 1 (the kit's own route) - Install & Connect (autonomous via Playwright).** Claude drives `admin.mailchimp.com` end-to-end via Playwright MCP to sign the participant in, generate a new API key from the API keys settings page, DOM-extracts the key via the clipboard-transit pattern (key never appears in tool returns), parses the data-center suffix from the key (Mailchimp API keys have the form `<32-char-token>-<dc>` e.g., `abc123def...-us21`), constructs the participant's account-specific API endpoint URL (`https://<dc>.api.mailchimp.com/3.0/`), and persists everything to `~/.config/mailchimp/credentials.json` (mode 0600). The participant's only manual moment is signing in to Mailchimp once and approving any 2FA.
 - **Phase 2 - Use Tools (Direct-REST via curl).** Once `credentials.json` is configured, you `curl` Mailchimp REST endpoints with `Authorization: Bearer <api_key>`. Endpoints span audiences (`lists`), members, campaigns, reports, automations, and search. Writes (add subscriber, send campaign, unsubscribe member) are gated by plain-English confirmation prose - every Phase 2 operation hits real data (Mailchimp has no sandbox), so the gates apply unconditionally.
 
 **Single-mode, no test/live distinction.** Mailchimp's free tier (up to 500 contacts) IS real data - there's no separate "test mode" or sandbox API. Every Phase 2 invocation touches the participant's real audience. The production-mode gates from QBO and Google Ads are the default behaviour here, not opt-in.
 
 **API keys don't expire.** Mailchimp API keys are revocable but not time-bounded, so there's no refresh-token cycle in Phase 2. The only auth failure path is "key revoked" (HTTP 401 with `RevokedKey` in the message), which triggers re-running Phase 1 from Step 2.
 
-**Which phase to run** - Before any tool call, check whether the credentials file exists:
+**Which phase to run** - Phase 0 decides. A live built-in connection or a working
+set of stored credentials both count as "connected"; only when neither is present
+does anything get set up, and then Phase 0.5 decides which route. The credentials
+check on its own:
 
 ```bash
 test -f "$HOME/.config/mailchimp/credentials.json" && jq -r '.api_endpoint // "missing"' "$HOME/.config/mailchimp/credentials.json" 2>/dev/null || echo missing
@@ -54,6 +88,13 @@ test -f "$HOME/.config/mailchimp/credentials.json" && jq -r '.api_endpoint // "m
 Every Phase 1 step that requires sign-in runs inside the Playwright MCP browser (`mcp__plugin_playwright_playwright__browser_*`). Never tell the participant to "open a link in your browser." Claude navigates, the participant types their Mailchimp password directly into the Playwright window, Claude reads the result programmatically. Same rule as `myob-connector` and `quickbooks-connector`.
 
 If Playwright MCP is unavailable, stop and tell the participant: *"I need a small browser tool that's not installed yet - let me show you how to add it."* Then point them at the Playwright MCP install instructions and stop. Do not fall back to opening the participant's default browser.
+
+**One deliberate exception: Phase 1.** Switching on the built-in connector means
+opening `https://claude.ai/directory/intuit-mailchimp` in the participant's **own**
+browser, because that is the browser already signed in to Claude and to Mailchimp.
+The rule above exists because the route below reads a connection key off the page
+inside a driven browser; the built-in page has no key on it and this skill reads
+nothing from it. Never drive that sign-in with Playwright.
 
 ---
 
@@ -74,13 +115,40 @@ The participant is a non-technical business owner. Every message during Phase 1 
 
 ## ⛔ Pre-flight check - Playwright availability
 
-Before any Phase 0 step, verify Playwright MCP tools are available. If `mcp__playwright__*` or `mcp__plugin_playwright_playwright__*` tools are not in the deferred-tool surface (check via `ToolSearch +playwright`), halt and tell the participant to install Playwright MCP per `skills/CLAUDE.md`'s install contingency section. Do not start Phase 0 or Phase 1 without Playwright.
+**This applies to the kit's own route only.** The built-in connector needs no
+browser tool: Phase 0 and Phase 1 run without Playwright, and a missing Playwright
+is never a reason to stop before Phase 1.
+
+Before starting the kit's own route, verify Playwright MCP tools are available. If `mcp__playwright__*` or `mcp__plugin_playwright_playwright__*` tools are not in the deferred-tool surface (check via `ToolSearch +playwright`), halt and tell the participant to install Playwright MCP per `skills/CLAUDE.md`'s install contingency section. Do not start the kit's own route without Playwright.
 
 ---
 
-## PHASE 0 - Credential check
+## PHASE 0 - Is Mailchimp already connected?
 
-### Step 0.1 - Read existing credentials
+Run these silently, in order, and act on the first that answers.
+
+### Step 0.1 - Built-in connector
+
+```bash
+claude mcp list 2>&1 | grep -i "^claude.ai Intuit Mailchimp"
+```
+
+Match on **Intuit Mailchimp**, not "Mailchimp" - that is the display name the
+directory uses and the line `claude mcp list` prints.
+
+- `✔ Connected` → the built-in is live. Prove it with one read from the
+  `mcp__claude_ai_Intuit_Mailchimp__*` tools before saying so, then go to
+  **Phase 0.5** - if what the participant wants is inside the built-in's reach,
+  you are done and go straight to Phase 2; if it isn't, the kit's own route is
+  still needed on top.
+- `! Needs authentication` → the connection has lapsed. Open
+  `https://claude.ai/customize/connectors` in the participant's own browser and
+  say: *"Your Mailchimp connection needs a quick re-sign-in. Press Reconnect next
+  to Intuit Mailchimp, sign in, and tell me when it says Connected."* Then re-run
+  this check.
+- No such line → continue.
+
+### Step 0.2 - Read existing credentials (the kit's own route)
 
 ```bash
 CREDS="$HOME/.config/mailchimp/credentials.json"
@@ -94,15 +162,132 @@ echo "$STATE"
 
 Two states:
 
-- **`missing`** → run Phase 1.
+- **`missing`** → continue to Phase 0.5.
 - **Anything starting with `https://`** → smoke-test (`GET /ping`) and:
-  - 200 → Phase 2.
-  - 401 → key revoked or invalid; tell the participant *"Looks like the connection was disconnected - let me set up a new one."* and re-run Phase 1.
+  - 200 → the kit's route is live and working. Say *"Mailchimp is already
+    connected"* and go to Phase 2. Do not set the built-in up on top of it unless
+    the participant asks for something the kit's route can't do.
+  - 401 → key revoked or invalid; tell the participant *"Looks like the connection was disconnected - let me set up a new one."* and re-run the kit's own route (or offer the built-in, which is faster).
   - Other error → translate and diagnose silently.
+
+### Step 0.3 - Nothing found
+
+Go to Phase 0.5.
+
+If you cannot run commands at all (you are in claude.ai chat or the desktop app
+rather than Claude Code), skip Steps 0.1-0.2: go to Phase 0.5, then Phase 1, and
+prove the result at Phase 1 Step 5 by calling one of Mailchimp's tools.
 
 ---
 
-## PHASE 1 - Install & Connect (autonomous via Playwright)
+## PHASE 0.5 - Route by need
+
+Ask **one** plain-English question before setting anything up: *"What do you want
+Claude to do with your Mailchimp?"* Offer the two shapes as examples - *"plan and
+write campaigns, or work with your contact lists and results?"* One question, then
+act; do not turn this into a questionnaire.
+
+Then route:
+
+| What the participant wants | Route | Why |
+|---|---|---|
+| Plan a campaign across email, SMS or social from a business goal | **Built-in** (Phase 1) | this is what the built-in is built for |
+| Generate a ready-to-use email or social layout | **Built-in** | layouts come with the connector's in-chat UI |
+| Edit a campaign's copy, colours, tone or layout in plain language | **Built-in** | |
+| Recommendations based on how past Mailchimp campaigns performed | **Built-in** | |
+| Save a campaign plan back into Mailchimp as a draft | **Built-in** | drafts only - see below |
+| List, search or count audiences, subscribers or members | **The kit's own route** | not documented on the built-in |
+| Add, unsubscribe, tag or segment a contact | **The kit's own route** | |
+| Pull audience growth stats or a campaign performance report | **The kit's own route** | |
+| Automations, templates, or anything the help page doesn't name | **The kit's own route** | |
+| **Actually send or schedule a campaign** | **The kit's own route** | Mailchimp's help page describes the built-in as saving drafts; it documents no send or schedule |
+
+Rules for using this table:
+
+- Connect only what they named. If the built-in covers it, stop there - do not
+  put the participant through the key-and-Power-Up route for no reason.
+- Say in one line what you are *not* connecting and why, so they can ask later.
+- Both routes can coexist on one machine. Never tear one down to set the other up.
+- The "not documented" rows are the help page's silence, not a tested refusal. If
+  a participant is already on the built-in and asks for one of them, it costs
+  nothing to try the built-in's tools once; fall through to the kit's route on a
+  real failure, not on an assumption.
+
+---
+
+## PHASE 1 - Switch on the built-in Intuit Mailchimp connector
+
+One button and a sign-in, once per account. The participant needs **Owner or
+Admin** permissions on both Claude and Mailchimp - that is Mailchimp's own
+requirement for this connector.
+
+### Step 1 - Check this session can see built-in connectors
+
+```bash
+claude auth status
+```
+
+`"authMethod": "claude.ai"` is the pass. Anything else - or
+`disableClaudeAiConnectors: true` in `~/.claude/settings.json`, or
+`ENABLE_CLAUDEAI_MCP_SERVERS=false` - means built-in connectors will not appear in
+this session. Tell the participant in one line that this copy of Claude is signed
+in a different way, and run the kit's own route instead.
+
+### Step 2 - Open the connector page for them
+
+Say: *"I'm opening Mailchimp's page in your browser. Press **Connect to Claude**,
+sign in to Mailchimp the way you normally do, and say yes when it asks for access.
+That's the only part only you can do - tell me when it says Connected."*
+
+```bash
+open "https://claude.ai/directory/intuit-mailchimp"          # Mac
+# xdg-open "https://claude.ai/directory/intuit-mailchimp"    # Linux
+# start "" "https://claude.ai/directory/intuit-mailchimp"    # Windows
+```
+
+If that page doesn't load, open `https://claude.ai/customize/connectors` instead
+and tell them: Browse → search "Mailchimp" → Connect. It is listed as **Intuit
+Mailchimp**.
+
+### Step 3 - Wait
+
+Hands off while they sign in. Never ask for a password, a code, or a screenshot of
+the sign-in.
+
+### Step 4 - Verify
+
+```bash
+claude mcp list 2>&1 | grep -i "^claude.ai Intuit Mailchimp"
+```
+
+`claude.ai Intuit Mailchimp: https://ai-inc.mailchimp.com/claude/mcp/v2 - ✔ Connected`
+is the pass. Not there yet → ask them to fully quit and reopen Claude Code once
+(Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again.
+Still missing → `! Needs authentication` means Reconnect on the Customize page; no
+line at all means the Connect didn't complete, so send them back to Step 2.
+
+### Step 5 - Prove it
+
+Call one real read through the connector - one tool from the
+`mcp__claude_ai_Intuit_Mailchimp__*` namespace. Only a real answer counts; a tool
+error here is not "connected". These tools are often deferred in a session; if you
+can't see them yet, that is the restart in Step 4, not a failure.
+
+### Step 6 - Hand off
+
+Two lines: Mailchimp is connected, and three things they can ask for now ("plan a
+launch campaign for next month", "draft a re-engagement email", "what worked best
+in my last three campaigns"). If Phase 0.5 flagged needs the built-in doesn't
+cover, say in one line that you can set up the fuller connection too, and offer it.
+
+**Team or Enterprise accounts:** if the page shows **Request** instead of
+**Connect**, the participant's Claude administrator has to switch Mailchimp on for
+the organisation first. Say so plainly and stop; do not fall back to the kit's own
+route just to get past an admin gate.
+
+---
+
+## PHASE 1 - Install & Connect (autonomous via Playwright) - the kit's own route
 
 ### Step 1 - Welcome message
 
@@ -258,6 +443,16 @@ If the smoke fails (HTTP 401 or non-200), translate to plain English and re-chec
 ---
 
 ## PHASE 2 - Use Tools
+
+**Which surface you are on.** Through the built-in connector (Phase 1), Mailchimp
+work runs through the `mcp__claude_ai_Intuit_Mailchimp__*` tools, with the
+connector's own in-chat UI for layouts, and nothing read from disk. Through the
+kit's own route it runs through the curl loop below. They differ materially: the
+built-in plans, writes and edits campaigns and saves them as drafts but documents
+no audience, subscriber, tag, report, template or automation surface and no send;
+the curl loop below does all of that, including the irreversible send in Common
+Pattern 9. If the participant is on the built-in and asks for something in the
+second list, offer the kit's own route rather than improvising.
 
 Phase 2 runs after Phase 1 completes. Every call reads `~/.config/mailchimp/credentials.json` for `api_key` + `api_endpoint`, then `curl`s the Mailchimp REST API.
 
@@ -547,8 +742,10 @@ The OAuth2 flow is documented as a v2 enhancement; current `credentials.json` sc
 
 ## See also
 
-- [`skills/CLAUDE.md`](../CLAUDE.md) - three-pattern decision tree. This SKILL is a direct-REST connector (out-of-scope for that doc, sibling shape to `myob-connector`).
+- [`skills/CLAUDE.md`](../CLAUDE.md) - the install-pattern decision tree. This SKILL is a **both**-fate connector: Pattern 0 (built-in) first, with its direct-REST route (sibling shape to `myob-connector`) kept in full for the gap.
+- [`https://claude.ai/directory/intuit-mailchimp`](https://claude.ai/directory/intuit-mailchimp) - the built-in connector's own page.
+- [Mailchimp's connector help page](https://mailchimp.com/help/use-mailchimp-connector-claude) - what the built-in covers, and the Owner/Admin requirement.
 - [Mailchimp Marketing API v3 reference](https://mailchimp.com/developer/marketing/api/) - official endpoint catalogue + rate limits + auth shape.
-- [Mailchimp API keys docs](https://mailchimp.com/help/about-api-keys/) - where Phase 1 Step 3 generates the key.
+- [Mailchimp API keys docs](https://mailchimp.com/help/about-api-keys/) - where the kit's own route generates the key at its Step 3.
 - Memory `reference_playwright_snapshot_password_leak` - sign-in page snapshot rule.
 - Memory `feedback_workshop_kit_update_format` - say "audience" to participants, never "list" (Mailchimp's internal term is `list` but their UI says "audience" for the same concept).
