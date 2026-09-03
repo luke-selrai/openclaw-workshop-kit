@@ -495,24 +495,45 @@ run it:
 - **An empty list with no error** means either the user genuinely has no spaces,
   or they signed in with a personal account. Check the signed-in address.
 
-### Step 7 - Optional: install Google Workspace skills
+### Step 7 - Optional: install the Google Workspace tool's own skills
 
-The `gws` tool can generate dozens of specialist skills for the user's Claude Code
-install (Gmail triage, calendar management, Drive uploads, standup reports,
-meeting prep, and so on). This is **optional** - the connector works without them.
+The `gws` tool generates a skill for each Workspace product it covers (Docs,
+Sheets, Slides, Forms, Tasks, Chat, plus Gmail, Calendar and Drive) and a set of
+personas and recipes. This is **optional** - the connector works without them.
+The ones worth having on this route are the Docs, Sheets, Slides, Forms, Tasks and
+Chat set: that is exactly the ground the built-in connectors do not cover. The
+Gmail, Calendar and Drive ones only earn their place when the built-in connectors
+are **not** connected on this machine (Phase 0 said so), because the routing table
+sends that work to the built-in otherwise. Skip the personas and recipes.
 
-Ask the user: *"Want me to install the deeper Google Workspace skills? Things like
-daily standup reports from your calendar, inbox triage, or weekly digest. Totally
+Ask the user: *"Want me to install the deeper Google Docs, Sheets and Chat skills?
+They let me work inside spreadsheets and documents you already have. Totally
 optional - you can skip this and I'll still handle everything."*
 
-If yes, silently run:
+If yes, silently run the block below. Two facts, verified with `gws` 0.22.5: the
+command writes `skills/` and `docs/skills.md` **into the current folder** and takes
+no output flag, so it must run in a scratch folder, never in the user's project;
+and every generated skill reads `gws-shared` first, so that one always comes along.
 
 ```bash
-gws generate-skills
+TMP="$(mktemp -d)" && ( cd "$TMP" && gws generate-skills >/dev/null ) \
+  && mkdir -p ~/.claude/skills \
+  && for s in gws-shared gws-docs gws-docs-write gws-sheets gws-sheets-read gws-sheets-append \
+              gws-slides gws-forms gws-tasks gws-chat gws-chat-send; do
+       rm -rf ~/.claude/skills/"$s" && cp -R "$TMP/skills/$s" ~/.claude/skills/; done \
+  && rm -rf "$TMP"
 ```
 
-Tell the user: *"Done. You've got extra Gmail and Calendar shortcuts now - they
-kick in automatically when you ask for them."*
+Add `gws-gmail gws-gmail-send gws-gmail-read gws-gmail-reply gws-calendar
+gws-calendar-agenda gws-calendar-insert gws-drive gws-drive-upload` to that list
+only on a machine with no built-in Gmail, Calendar and Drive connectors.
+
+On Windows (PowerShell) the same shape: create a temp folder, `Set-Location` into
+it, run `gws generate-skills`, then `Copy-Item -Recurse` each wanted folder from
+`.\skills\` into `$HOME\.claude\skills\`, and remove the temp folder.
+
+Tell the user: *"Done. You've got the deeper Docs, Sheets and Chat skills now -
+they kick in automatically when you ask for them."*
 
 Phase 1-alt is complete.
 
@@ -634,5 +655,7 @@ summarise the outcome in plain English.
 - OAuth client config: user's own Google Cloud project (created by `gws auth setup`)
 - Access tokens: stored by `gws` under `~/.config/gws/` (path is OS-specific; the
   tool handles it)
-- Optional deeper skills: generated into `~/.claude/skills/` by `gws generate-skills`
+- Optional deeper skills: `gws generate-skills` writes them into `skills/` under the
+  **current folder** (no output flag); Step 7 runs it in a scratch folder and copies
+  the wanted ones into `~/.claude/skills/`
 - Google Chat day-to-day reference: [google-chat-connector](../google-chat-connector/SKILL.md)
