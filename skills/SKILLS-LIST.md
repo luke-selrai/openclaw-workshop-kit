@@ -1,4 +1,4 @@
-# Skills Reference - Your <!-- skills-audit:total -->206<!-- /skills-audit:total --> Installed Skills
+# Skills Reference - Your <!-- skills-audit:total -->207<!-- /skills-audit:total --> Installed Skills
 
 Each skill is a specialist capability your AI assistant can use. Just describe what you need - Claude picks the right skill automatically.
 
@@ -103,6 +103,7 @@ Each skill is a specialist capability your AI assistant can use. Just describe w
 | `fastify-best-practices` | Fastify Node.js backend - routes, plugins, schema validation, hooks | "Build a Fastify backend for my app" | ADVANCED |
 | `feature-manifest` | Manage feature manifests for code traceability | "Track this feature in my manifest" | ADVANCED |
 | `fullstack-debugger` | Next.js + Cloudflare + Supabase debugging | "Fix this error in my app" | ADVANCED |
+| `google-stack` | Google's own 131 skills for Google Ads, GA4 analytics, Gemini and Google Cloud - opened one at a time only when a job needs one | "Work out why my Google Ads conversions dropped last month" | ADVANCED |
 | `inngest-durable-functions` | Inngest durable functions - long-running, retryable workflows | "Build a durable workflow with Inngest" | ADVANCED |
 | `inngest-events` | Inngest event-driven workflows | "Trigger workflows from events with Inngest" | ADVANCED |
 | `inngest-middleware` | Inngest middleware for cross-cutting concerns | "Add middleware to my Inngest functions" | ADVANCED |
@@ -210,9 +211,9 @@ See [claude.com/plugins/superpowers](https://claude.com/plugins/superpowers) for
 
 ---
 
-**Total: <!-- skills-audit:total -->206<!-- /skills-audit:total --> skills installed**
+**Total: <!-- skills-audit:total -->207<!-- /skills-audit:total --> skills installed**
 - CORE: <!-- skills-audit:core -->24<!-- /skills-audit:core --> skills (shown by default via skills-discovery)
-- ADVANCED: <!-- skills-audit:advanced -->96<!-- /skills-audit:advanced --> skills (available on request)
+- ADVANCED: <!-- skills-audit:advanced -->97<!-- /skills-audit:advanced --> skills (available on request)
 - DEV-ONLY: <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> skills (for technical integrations - never surfaced in demos)
 
 > Ask your assistant to do anything - it will automatically use the right skill for the job.

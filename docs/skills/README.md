@@ -1,8 +1,8 @@
 # Skills - What Your Assistant Can Do
 
-Your assistant has <!-- skills-audit:total -->206<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
+Your assistant has <!-- skills-audit:total -->207<!-- /skills-audit:total --> specialist skills installed. Most work immediately with no extra setup. A few need a connector (a tool that plugs your assistant into an outside service).
 
-<!-- skills-audit:core -->24<!-- /skills-audit:core --> of them are **CORE** - the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->96<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
+<!-- skills-audit:core -->24<!-- /skills-audit:core --> of them are **CORE** - the ones most business owners reach for every week. The other <!-- skills-audit:advanced -->97<!-- /skills-audit:advanced --> are **ADVANCED** (deeper work, automation, and technical integrations) plus <!-- skills-audit:dev-only -->18<!-- /skills-audit:dev-only --> **DEV-ONLY** (for attendees building web apps or infrastructure).
 
 ---
 
@@ -358,6 +358,10 @@ Example: "Help me resolve this complicated merge conflict."
 ### Finishing a Development Branch *(ADVANCED)*
 Guides the final integration of completed work - tests, review, merge strategy.
 Example: "I've finished this feature - help me integrate it cleanly."
+
+### Google Stack *(ADVANCED)*
+Google's own skills for Google Ads, Google Analytics, Gemini (Google's AI models) and Google Cloud - 131 of them, opened one at a time only when a job needs one.
+Example: "Work out why my Google Ads conversions dropped last month."
 
 ---
 

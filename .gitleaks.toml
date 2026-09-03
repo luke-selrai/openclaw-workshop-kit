@@ -33,3 +33,15 @@ id = "generic-api-key"
 description = "Shopify @idempotent canonical example UUID (RFC-4122 placeholder, not a real secret)"
 paths = ['''skills/shopify-connector/SKILL\.md''']
 regexes = ['''123e4567-e89b-12d3-a456-426614174000''']
+
+# --- Allowlist 3: vendored Google Ads API quickstart REST example ---
+# `skills/google-stack/pack/` is Google's own skill pack, vendored verbatim (see its
+# PROVENANCE.md). Its REST reference shows the request shape with the literal
+# placeholder `Bearer INSERT_OAUTH2_ACCESS_TOKEN_HERE`. Not a secret; scoped to that
+# one file, that one placeholder, and the curl-auth-header rule only.
+[[rules]]
+id = "curl-auth-header"
+[rules.allowlist]
+description = "Google Ads API quickstart REST doc placeholder (vendored upstream text, not a real secret)"
+paths = ['''skills/google-stack/pack/ads/google-ads-api-quickstart/references/rest\.md''']
+regexes = ['''Bearer INSERT_OAUTH2_ACCESS_TOKEN_HERE''']
