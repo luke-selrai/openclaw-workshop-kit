@@ -301,6 +301,10 @@ own shape. Two caveats worth carrying:
   `mailchimp` slug returns "This connector doesn't exist" - so the
   `claude mcp list` line reads `claude.ai Intuit Mailchimp` and the tools are
   `mcp__claude_ai_Intuit_Mailchimp__*`. Match on the *directory* name, always.
+  The other renamed ones, checked on the public mirror 2026-09-04: Atlassian is
+  **Atlassian Rovo** (`claude.ai Atlassian Rovo`, `mcp__claude_ai_Atlassian_Rovo__*`),
+  WordPress is **WordPress.com** (`mcp__claude_ai_WordPress_com__*`), monday.com
+  is **Monday** (`mcp__claude_ai_Monday__*`), DocuSign is **Docusign**.
 - **`quickbooks` is region-split.** The built-in at `claude.ai/directory/quickbooks`
   is verified live but covers US books; Australian and other non-US books run the
   kit's own route, so that SKILL carries a pointer rather than a Pattern 0 phase.
@@ -328,12 +332,22 @@ Everything below was checked on a real machine. Do not soften or embellish it.
   `✔ Connected` = ready. `! Needs authentication` = the connector is on the
   account but its sign-in has lapsed; the row on claude.ai/customize/connectors
   shows **Reconnect**. No `claude.ai <Name>` line at all = not connected on this
-  account, or the auth precondition above failed. There is **no `--json` flag** -
-  match the line by the vendor word, case-insensitively.
+  account, or the auth precondition above failed. There is **no `--json` flag**.
+  The line is `claude.ai <display name>`, the display name verbatim (read from
+  the CLI's own naming code, 2.1.259: a second connector with the same display
+  name gets ` (2)` appended). Match the whole display name. The exact check is
+  `claude mcp get "claude.ai <Name>"`, which prints `Status: ✔ Connected`,
+  `Status: ! Needs authentication`, or `No MCP server named …` followed by the
+  names that do exist.
 - **Tool namespace.** `mcp__claude_ai_<Name>__<tool>`, where `<Name>` is the
-  directory display name with spaces replaced by underscores. Verified:
-  `mcp__claude_ai_Microsoft_365__get_me`, `mcp__claude_ai_Notion__notion-search`,
-  `mcp__claude_ai_Dropbox__list_folder`. These tools are frequently *deferred* in
+  directory display name with every character that is not a letter, digit,
+  underscore or hyphen turned into an underscore, runs of underscores collapsed,
+  case kept. That is the CLI's own rule (2.1.259), and it is the same rule that
+  turns the `claude.ai ` prefix into `claude_ai_`. So `Microsoft 365` →
+  `Microsoft_365`, `WordPress.com` → `WordPress_com`, `Atlassian Rovo` →
+  `Atlassian_Rovo`, `Intuit Mailchimp` → `Intuit_Mailchimp`, `Monday` → `Monday`.
+  Verified live: `mcp__claude_ai_Microsoft_365__get_me`,
+  `mcp__claude_ai_Notion__notion-search`, `mcp__claude_ai_Dropbox__list_folder`. These tools are frequently *deferred* in
   a session, so a SKILL should say "call one read tool from the
   `mcp__claude_ai_<Name>__*` namespace" rather than hard-coding a tool name it
   has not verified.
@@ -359,10 +373,15 @@ Everything below was checked on a real machine. Do not soften or embellish it.
   secrets off the page in a driven browser, and the built-in path reads nothing.
   Where the two rules meet in one file, say so in one line. Never drive this
   sign-in with Playwright.
-- **Restart semantics.** A Claude Code session loads its MCP servers at start.
-  If the connector still isn't visible after connecting, the user fully quits and
-  reopens Claude Code once - the same instruction the SKILLs already use for
-  deferred-tool reconciliation - and the check is re-run.
+- **Restart semantics.** A running session fetches its claude.ai connector list
+  once, at start, and keeps it (2.1.259 memoises the fetch for the life of the
+  process). `claude mcp list` and `claude mcp get` start a fresh process, so they
+  show a connector the moment the Connect completes - even from inside a session
+  that still has no tools for it. So the list is the *account* check and the
+  session's own tool list is the *session* check. List passes, namespace absent
+  from the session → the session started before the Connect: quit and reopen
+  Claude Code once, then re-run Phase 0. Never send the user to restart because
+  the list line is missing: a missing line means the Connect did not complete.
 - **Local-entry precedence.** A server registered locally with `claude mcp add`
   at the same URL takes precedence and *hides* the built-in one (`/mcp` shows it
   as hidden). A machine that previously ran the kit's custom path may carry such
@@ -375,10 +394,37 @@ Everything below was checked on a real machine. Do not soften or embellish it.
   without rights sees **Request** where the SKILL expects **Connect**. That is an
   admin gate, not a failure: say so and stop, rather than falling back to the
   kit's route to get past it. Free accounts get one custom connector.
-- **Surfaces without a shell.** In claude.ai chat or the desktop app there is no
-  `claude` command to run. The pattern still works: skip the command checks, hand
-  the user the deep link and the click sequence, and prove the result by calling
-  one of the connector's tools.
+- **Surfaces without a shell.** In claude.ai chat and the desktop app's Chat and
+  Cowork tabs there is no `claude` command to run. The pattern still works: skip
+  the command checks, hand the user the deep link and the click sequence, and
+  prove the result by calling one of the connector's tools.
+- **The desktop app's Code tab is a different delivery path** (read from 75
+  desktop-driven transcripts on Harvey's machine, 2026-09-04, and the docs'
+  "How connectors reach Claude Code" table). The app delivers the account's
+  connectors to the embedded CLI in-process, as `type: "sdk"` servers, and the
+  tools are named `mcp__<id>__<tool>` with an opaque id (Gmail's `search_threads`
+  was `mcp__90169e3f-…__search_threads`), never `mcp__claude_ai_<Name>__`. The
+  id is per connection and changes when a connector is reconnected, so a SKILL
+  must find a connector by its tool names, which are identical to the ones under
+  the CLI prefix, and never by id; `allowed-tools` cannot pre-approve them. The
+  id → name map is on disk if a SKILL ever needs it: the app's session record
+  (`~/Library/Application Support/Claude/claude-code-sessions/<account>/<org>/local_<session>.json`,
+  key `remoteMcpServersConfig`, one `{uuid, name, tools}` per connector).
+  `claude mcp list` from the session's Bash still prints the `claude.ai <Name>`
+  lines, because it starts the standalone CLI, so the account check in Phase 0
+  and Step 4 holds wherever the CLI is installed (the kit's setup installs it).
+  The native connect route there is the **+** button in the composer →
+  **Connectors** → Browse → Connect, the route the install day teaches; the
+  directory deep link works too, the connection being account-level. The docs
+  say connectors can be added "before or during a session"; that a mid-session
+  add shows up without a new session has not been checked live yet.
+- **VS Code is the CLI.** The VS Code extension bundles the same binary (its
+  2.1.259 copy is byte-identical to the standalone CLI) and reads the same
+  `~/.claude/settings.json`, and the docs list Terminal, VS Code and JetBrains
+  sessions together as "Claude Code fetches them from claude.ai". Everything
+  above holds there. Two differences: the extension does not put `claude` on
+  PATH, so `command not found` means treat it as the no-shell case; and "quit
+  and reopen" there is **Developer: Reload Window** from the Command Palette.
 - **Directory Read/Write badges lag reality.** Microsoft 365 and HubSpot were
   both mislabelled at the time of writing. Never route on the badge; route on the
   per-app facts, and probe live where the facts say "verify".
@@ -419,11 +465,18 @@ No shell available → skip steps 1-2 and prove the result at Phase 1 step 5.
    `https://claude.ai/customize/connectors` → Browse → search → Connect.
 3. **Wait.** Hands off while they sign in. Never ask for a password, a code, or a
    screenshot of the sign-in.
-4. **Verify** with `claude mcp list`. Not there → quit and reopen Claude Code
-   once, then re-check. Still missing → `! Needs authentication` means Reconnect;
-   no line at all means the Connect never completed, so back to step 2.
-5. **Prove it** with one real read through the connector. Only a real answer
-   counts; a tool error is not "connected".
+4. **Verify** with `claude mcp list` (or `claude mcp get "claude.ai <Name>"`).
+   This is the account check and it is always current, so no restart belongs
+   here. `! Needs authentication` means Reconnect; no line at all means the
+   Connect never completed, so back to step 2.
+5. **Prove it** with one real read through the connector. Fetch the
+   `mcp__claude_ai_<Name>__*` namespace first (it is usually deferred); in the
+   desktop app's Code tab the same tools sit under an opaque `mcp__<id>__`
+   prefix, so find them by tool name. Tools absent from this session although
+   step 4 passed → the session started before the Connect: quit and reopen
+   Claude Code once (VS Code: Developer: Reload Window), then re-run Phase 0;
+   in the desktop app start a new session. Only a real answer counts; a tool
+   error is not "connected".
 6. **Hand off** in two lines: it is connected, and three things they can ask for
    now.
 

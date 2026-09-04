@@ -233,9 +233,7 @@ or a screenshot of the sign-in screen. Never offer to "just do the sign-in for t
 
 - `claude.ai Meta Ads … ✔ Connected` (Step 2) or a connected `meta-ads` entry (Step 2-alt)
   is the pass.
-- Nothing there yet - ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q;
-  Windows: close the window and quit from the tray), then check again. A session loads
-  its connections when it starts.
+- Not there yet → no restart will change this answer: `claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes. Read on:
 - `! Needs authentication` - send them to `https://claude.ai/customize/connectors` and
   the **Reconnect** button next to Meta Ads.
 - Still no line at all - the add did not complete. Go back to Step 2.
@@ -244,7 +242,7 @@ or a screenshot of the sign-in screen. Never offer to "just do the sign-in for t
 connector, `mcp__claude_ai_Meta_Ads__ads_get_ad_accounts`; through the local entry,
 `mcp__meta-ads__ads_get_ad_accounts`). Only a real answer counts. A tool error here is
 not "connected". If it returns accounts, follow with `ads_get_ad_entities` on one of them
-to confirm campaigns come back too.
+to confirm campaigns come back too. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app, connectors added during a session are documented to appear without a restart; if one doesn't, start a new session there.
 
 **Step 6 - Hand off.** Two short lines: it is connected, and three things they can ask
 for now. For example: *"Done, I can see your ad account. Ask me things like 'how did last

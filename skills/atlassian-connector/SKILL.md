@@ -1,7 +1,7 @@
 ---
 name: atlassian-connector
-description: "Connect Atlassian to Claude by switching on its built-in connector, or by registering Atlassian's official remote server locally. Use when the user asks to set up or connect Atlassian, Jira or Confluence, or wants work on tickets, sprints, boards, pages or spaces and Atlassian isn't connected yet. Once connected, Jira and Confluence run through the mcp__claude_ai_Atlassian__* or mcp__atlassian__* tools."
-allowed-tools: mcp__claude_ai_Atlassian__*, mcp__claude_ai_Atlassian_Rovo__*, mcp__atlassian__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect Atlassian to Claude by switching on its built-in connector, or by registering Atlassian's official remote server locally. Use when the user asks to set up or connect Atlassian, Jira or Confluence, or wants work on tickets, sprints, boards, pages or spaces and Atlassian isn't connected yet. Once connected, Jira and Confluence run through the mcp__claude_ai_Atlassian_Rovo__* or mcp__atlassian__* tools."
+allowed-tools: mcp__claude_ai_Atlassian_Rovo__*, mcp__atlassian__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Project Management & Docs
   tags:
@@ -41,7 +41,7 @@ The skill has these phases:
 - **Phase 0 - Is Atlassian already connected?** Checks the built-in connector first, then the kit's own registration, and routes.
 - **Phase 1 - Switch on the built-in Atlassian connector (the default route).** Open Atlassian's connector page in the user's own browser, they press **Connect to Claude** and sign in, then verify and prove with one read.
 - **Phase 1-alt - The kit's own route (only when the built-in can't be used), autonomous, 5 numbered steps.** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen (which also surfaces the workspace picker), auto-detects the callback via `browser_wait_for`, surfaces the organization-administrator-approval-required interstitial cleanly when present. The user's only manual moment is signing in to Atlassian inside the Playwright window. Token storage is handled by Claude Code's MCP runtime - there is no manual `~/.claude.json` token write.
-- **Phase 2 - Use Tools.** Once Atlassian is connected by either route, you call its native tools to read and update Jira and Confluence data - `mcp__claude_ai_Atlassian__*` on the built-in route, `mcp__atlassian__*` on the kit's.
+- **Phase 2 - Use Tools.** Once Atlassian is connected by either route, you call its native tools to read and update Jira and Confluence data - `mcp__claude_ai_Atlassian_Rovo__*` on the built-in route, `mcp__atlassian__*` on the kit's.
 
 **Which phase to run** - always start at Phase 0. On the kit's own route the resume signal is unchanged: read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.atlassian` entry. If present, attempt a verification tool call (Phase 1-alt Step 6). If it succeeds, the connector is ready - skip to Phase 2. If it 401s, walk Phase 1-alt from Step 3 to re-trigger the OAuth flow (the registration is already in place).
 
@@ -103,7 +103,7 @@ These rules apply to **both** connect routes. On Phase 1 (the built-in connector
 
 Run these silently, in order, and act on the first that answers.
 
-1. **Built-in connector.** Run `claude mcp list` and look for a line starting `claude.ai Atlassian` (the directory lists it as "Atlassian Rovo", so match the vendor word case-insensitively rather than the whole name; there is no `--json` flag).
+1. **Built-in connector.** Run `claude mcp list` and look for the line `claude.ai Atlassian Rovo` (the directory display name is "Atlassian Rovo", so that is the whole prefix of the line and the tools are `mcp__claude_ai_Atlassian_Rovo__*`; there is no `--json` flag).
    - `✔ Connected` → skip to **Phase 2**. Prove it first with one read through the built-in - list the Jira projects the account can see, or run a small Jira search - before saying so.
    - `! Needs authentication` → the connection is on the account but its sign-in has lapsed. Open `https://claude.ai/customize/connectors` in the user's own browser and say: *"Your Atlassian connection needs a quick re-sign-in. Press **Reconnect** next to Atlassian, sign in, and tell me when it says Connected."* Then re-run this check.
    - No such line → continue to step 2.
@@ -157,12 +157,12 @@ Then open `https://claude.ai/directory/atlassian` (the public mirror of the same
 
 **Step 3 - Wait.** Stay hands-off while they sign in and pick a workspace. Never ask for a password, a code, or a picture of the sign-in screen.
 
-**Step 4 - Verify.** Run `claude mcp list` again. A line reading `claude.ai Atlassian ... ✔ Connected` is the pass.
-- Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. A session loads its connections when it starts.
+**Step 4 - Verify.** Run `claude mcp list` again. A line reading `claude.ai Atlassian Rovo … ✔ Connected` is the pass.
+- Not there yet → no restart will change this answer: `claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes. Read on:
 - `! Needs authentication` → send them to `https://claude.ai/customize/connectors` and have them press **Reconnect** next to Atlassian.
 - Still no line at all → the Connect didn't complete; send them back to Step 2.
 
-**Step 5 - Prove it.** Call one real read through the connector - list the Jira projects the account can see, or run a small Jira search. Only a real answer counts (an empty list is a real answer; a tool error is not "connected"). The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_Atlassian__*` tools actually available and pick a safe read rather than hard-coding a name.
+**Step 5 - Prove it.** Call one real read through the connector - list the Jira projects the account can see, or run a small Jira search. Only a real answer counts (an empty list is a real answer; a tool error is not "connected"). The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_Atlassian_Rovo__*` tools actually available and pick a safe read rather than hard-coding a name. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app, connectors added during a session are documented to appear without a restart; if one doesn't, start a new session there.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - for example *"what tickets are assigned to me?"*, *"what's in this sprint?"*, *"find the onboarding page in Confluence"*.
 
@@ -452,7 +452,7 @@ Tell the user, in one short message (include any obvious live count if available
 
 ## PHASE 2 - Use Tools
 
-> **Which prefix you get.** Through the built-in connector (Phase 1) the tools are `mcp__claude_ai_Atlassian__*`; through the kit's own route (Phase 1-alt) they are `mcp__atlassian__*`. Both routes reach the same Atlassian Remote MCP surface (Jira, Confluence and Compass via Rovo), so the tables below apply to both - only the prefix differs. List the tools present in the session and use the prefix that is actually there; never mix the two prefixes in one session.
+> **Which prefix you get.** Through the built-in connector (Phase 1) the tools are `mcp__claude_ai_Atlassian_Rovo__*`; through the kit's own route (Phase 1-alt) they are `mcp__atlassian__*`. Both routes reach the same Atlassian Remote MCP surface (Jira, Confluence and Compass via Rovo), so the tables below apply to both - only the prefix differs. List the tools present in the session and use the prefix that is actually there; never mix the two prefixes in one session.
 
 Once the connector is configured, use Atlassian's MCP tools below to answer questions and make changes in Jira and Confluence. The hosted Atlassian Remote MCP server provides first-party tools covering Jira issues, search, projects, comments, transitions, and Confluence pages, spaces, and search - plus a smaller set of Compass tools for teams that use it.
 

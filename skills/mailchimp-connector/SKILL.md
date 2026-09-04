@@ -261,17 +261,14 @@ claude mcp list 2>&1 | grep -i "^claude.ai Intuit Mailchimp"
 ```
 
 `claude.ai Intuit Mailchimp: https://ai-inc.mailchimp.com/claude/mcp/v2 - ✔ Connected`
-is the pass. Not there yet → ask them to fully quit and reopen Claude Code once
-(Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again.
-Still missing → `! Needs authentication` means Reconnect on the Customize page; no
+is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no
 line at all means the Connect didn't complete, so send them back to Step 2.
 
 ### Step 5 - Prove it
 
 Call one real read through the connector - one tool from the
 `mcp__claude_ai_Intuit_Mailchimp__*` namespace. Only a real answer counts; a tool
-error here is not "connected". These tools are often deferred in a session; if you
-can't see them yet, that is the restart in Step 4, not a failure.
+error here is not "connected". These tools are often deferred in a session, so fetch the namespace first. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app, connectors added during a session are documented to appear without a restart; if one doesn't, start a new session there.
 
 ### Step 6 - Hand off
 

@@ -121,8 +121,10 @@ Google Workspace is wide. Ask **one** question, in plain English:
 > send your email? Manage your calendar? Find and read files in Drive? Update a
 > spreadsheet you already have?"*
 
-If they under-specify — "connect my email" — double-check the neighbours **once,
-in the same message**, and ask about Chat at the same time:
+Ask about Chat **once**, in the same reply, whatever they named — nothing else
+surfaces it, and it decides whether the `gws` route runs at all. If they
+under-specify — "connect my email" — double-check the neighbours in that reply
+too:
 
 > *"Just email, or your calendar and files too? And does your team use Google
 > Chat?"*
@@ -263,9 +265,7 @@ this path reads nothing, so opening a link in their browser is the right move.
 
 **Step 4 — Verify.** `claude mcp list` again. A `✔ Connected` line for each
 surface they connected is the pass.
-- Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q;
-  Windows: close the window and quit from the tray), then check again. A session
-  loads its connectors when it starts.
+- Not there yet → no restart will change this answer: `claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes. Read on:
 - Still missing → `! Needs authentication` means Reconnect on the Customize page.
   No line at all means the Connect didn't finish — send them back to Step 2.
 
@@ -273,7 +273,7 @@ surface they connected is the pass.
 the `mcp__claude_ai_Gmail__*`, `mcp__claude_ai_Google_Calendar__*` or
 `mcp__claude_ai_Google_Drive__*` namespace. Only a real answer counts; a tool
 error is not "connected". Those tools are often deferred in a session, so fetch
-the namespace before calling.
+the namespace before calling. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app, connectors added during a session are documented to appear without a restart; if one doesn't, start a new session there.
 
 **Step 6 — Hand off.** Two lines: it's connected, and three things they can ask
 for now.
@@ -455,7 +455,8 @@ user: *"Open this link in your browser manually and follow the same steps."*
 
 **If the user hits 'Access blocked'** - two fixes, both covered in `gws` docs:
 1. Limit scopes: retry with `gws auth login -s drive,gmail,sheets,calendar`
-   (unverified apps are capped at around 25 scopes total).
+   (unverified apps are capped at around 25 scopes total) — keep `chat` in the
+   list if the interview said the team uses Google Chat.
 2. Add the user's email as a test user: tell them to go to the GCP Console →
    APIs & Services → OAuth consent screen → Test users → Add, paste their email,
    save, then retry.
