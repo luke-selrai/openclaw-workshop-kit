@@ -27,11 +27,11 @@ metadata:
 This skill lets you read and update a user's QuickBooks Online data on their behalf. It is a **thin wrapper around [`intuit/quickbooks-online-mcp-server`](https://github.com/intuit/quickbooks-online-mcp-server)** - Intuit's official Model Context Protocol server, Apache-2.0 licensed, actively maintained by Intuit's developer relations team. The server exposes 144 tools across 29 entity types (Customer, Invoice, Bill, Vendor, Estimate, Item, Account, Journal Entry, Payment, etc.) plus 11 financial reports (Balance Sheet, Profit & Loss, Cash Flow, Trial Balance, General Ledger, customer/vendor aging reports).
 
 **US books have a one-click alternative.** QuickBooks has a listing in Claude's
-own connector directory (`https://claude.ai/directory/quickbooks`, verified live)
+own connector directory (`https://claude.ai/directory/quickbooks`, verified live; the directory display name is **Intuit QuickBooks**)
 and it covers **US QuickBooks accounts**. If the user's books are US-based, that
 is a faster route than everything below - one button, one sign-in, nothing built
 or registered - so check before starting: `claude mcp list` for a line beginning
-`claude.ai QuickBooks`, or ask the user to look once in
+`claude.ai Intuit QuickBooks` (tools `mcp__claude_ai_Intuit_QuickBooks__*`), or ask the user to look once in
 claude.ai/customize/connectors → Browse. **Australian and other non-US books use
 this skill**, which is the whole of the rest of this file.
 
