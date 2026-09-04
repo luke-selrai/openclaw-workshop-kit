@@ -207,18 +207,14 @@ screenshot of the sign-in.
 claude mcp list 2>&1 | grep -i "^claude.ai Trello"
 ```
 
-`claude.ai Trello: https://mcp.trello.com/v1 - ✔ Connected` is the pass. Not
-there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q;
-Windows: close the window and quit from the tray), then check again. Still
-missing → `! Needs authentication` means Reconnect on the Customize page; no line
+`claude.ai Trello: https://mcp.trello.com/v1 - ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line
 at all means the Connect didn't complete, so send them back to Step 2.
 
 ### Step 5 - Prove it
 
 Call one real read through the connector - list the user's boards via a
 `mcp__claude_ai_Trello__*` tool. Only a real answer counts. A tool error here is
-not "connected". These tools are often deferred in a session; if you can't see
-them yet, that is the restart in Step 4, not a failure.
+not "connected". These tools are often deferred in a session, so fetch the namespace first. If the namespace is missing from this session entirely even though Step 4 passed, the session started before the Connect: a running session loads its claude.ai connectors once, at start. Ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again.
 
 ### Step 6 - Hand off
 

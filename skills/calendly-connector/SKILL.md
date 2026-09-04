@@ -135,9 +135,9 @@ Then open `https://claude.ai/directory/calendly` in the user's own everyday brow
 
 **Step 3, Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
 
-**Step 4, Verify.** `claude mcp list` again. `claude.ai Calendly … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete, so send them back to Step 2.
+**Step 4, Verify.** `claude mcp list` again. `claude.ai Calendly … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete, so send them back to Step 2.
 
-**Step 5, Prove it.** Call one real read through the connector: a tool from the `mcp__claude_ai_Calendly__*` namespace that returns the signed-in user's own profile. Only a real answer counts. A tool error here is not "connected". If the tools have not appeared in the session yet, ask for the quit-and-reopen from Step 4 and try once more.
+**Step 5, Prove it.** Call one real read through the connector: a tool from the `mcp__claude_ai_Calendly__*` namespace that returns the signed-in user's own profile. Only a real answer counts. A tool error here is not "connected". If the tools have not appeared in the session yet, ask for the quit-and-reopen from Step 4 and try once more. If the namespace is missing from this session entirely even though Step 4 passed, the session started before the Connect: a running session loads its claude.ai connectors once, at start. Ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again.
 
 **Step 6, Hand off.** Two lines: it's connected, and three things they can ask for now, for example *"what meetings do I have this week?"*, *"show me my booking links"*, *"create a one-time booking link for a 30-minute intro call"*.
 

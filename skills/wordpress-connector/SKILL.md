@@ -115,8 +115,8 @@ The user is a non-technical business owner. Every message during either connect 
 
 Run these silently, in order, and act on the first that answers.
 
-1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai WordPress.com` (match on the word "WordPress", case-insensitively - the display name carries a dot, so do not require an exact string match).
-   - `✔ Connected` → skip to PHASE 2. Prove it first with one read: call any read tool in the `mcp__claude_ai_WordPress_com__*` namespace (list recent posts, or read the site's title) and check a real answer comes back. If the tool prefix on this machine differs slightly from `WordPress_com`, match on the `mcp__claude_ai_WordPress` prefix rather than hard-coding the rest.
+1. **Built-in connector.** `claude mcp list` → look for the line `claude.ai WordPress.com` (that is the exact display name; in the tool namespace the dot becomes an underscore, `mcp__claude_ai_WordPress_com__*`).
+   - `✔ Connected` → skip to PHASE 2. Prove it first with one read: call any read tool in the `mcp__claude_ai_WordPress_com__*` namespace (list recent posts, or read the site's title) and check a real answer comes back.
    - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your WordPress.com connection needs a quick re-sign-in. Press Reconnect next to WordPress.com, sign in, and tell me when it says Connected."* Then re-run this check.
    - no such line → continue.
 2. **The kit's own route.** Read `~/.claude.json` (Mac/Linux: `$HOME/.claude.json`; Windows: `%USERPROFILE%\.claude.json`) and look for an `mcpServers.wordpress` block with non-empty `WP_API_URL`, `WP_API_USERNAME` and `WP_API_PASSWORD`. If it is present, prove it with one smoke call - `mcp__wordpress__discover_abilities` with `{}`. A non-empty ability list means it still works: say *"WordPress is already connected"* and skip to PHASE 2. Do not set the built-in up on top of a working connection. If the smoke call fails, treat it as the partial-configuration case in the resume-check note under **PHASE 1 - Install & Connect** below.
@@ -156,9 +156,9 @@ Run this when the user's site is hosted on WordPress.com. It is a one-time, once
 
 **Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
 
-**Step 4 - Verify.** `claude mcp list` again. A `claude.ai WordPress.com … ✔ Connected` line is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+**Step 4 - Verify.** `claude mcp list` again. A `claude.ai WordPress.com … ✔ Connected` line is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
 
-**Step 5 - Prove it.** Call one real read through the connector - any read tool in the `mcp__claude_ai_WordPress_com__*` namespace (list recent posts, or read the site title). Only a real answer counts. A tool error here is not "connected".
+**Step 5 - Prove it.** Call one real read through the connector - any read tool in the `mcp__claude_ai_WordPress_com__*` namespace (list recent posts, or read the site title). Only a real answer counts. A tool error here is not "connected". If the namespace is missing from this session entirely even though Step 4 passed, the session started before the Connect: a running session loads its claude.ai connectors once, at start. Ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - *"show me my recent posts"*, *"draft a post about [topic]"*, *"how is my site performing?"*.
 
@@ -508,7 +508,7 @@ Call `mcp__wordpress__discover_abilities` with `{}` (no arguments). Handle the r
 
 **Which tools you have depends on which route connected, and they differ materially.**
 
-- **Built-in WordPress.com connector** → the tools are `mcp__claude_ai_WordPress_com__*` (match on the `mcp__claude_ai_WordPress` prefix if the exact suffix differs on this machine). Automattic ships 60+ named abilities as ordinary tools - content creation and management, publishing and editing posts and pages, performance tracking, site organisation, accessibility auditing. There is **no** discover-then-call step: the tools are the surface, so read the tool list rather than calling a discovery meta-tool.
+- **Built-in WordPress.com connector** → the tools are `mcp__claude_ai_WordPress_com__*`. Automattic ships 60+ named abilities as ordinary tools - content creation and management, publishing and editing posts and pages, performance tracking, site organisation, accessibility auditing. There is **no** discover-then-call step: the tools are the surface, so read the tool list rather than calling a discovery meta-tool.
 - **The kit's own route (self-hosted)** → the tools are `mcp__wordpress__*`, and there are only three of them. They are meta-tools; the real surface is discovered at runtime. That two-layer shape is described below and applies **only** to this route.
 
 Everything below this line is the kit's own route. The confirm-before-publishing, drafts-by-default, user-mutation and settings guardrails in *Behaviour Guidelines* apply to **both** routes.

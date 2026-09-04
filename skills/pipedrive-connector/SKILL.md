@@ -139,9 +139,9 @@ The page is listed as a **community** connector - it carries no Verified badge a
 
 **Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
 
-**Step 4 - Verify.** `claude mcp list` again. `claude.ai Pipedrive … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the same settings page; no line at all means the Connect didn't complete - send them back to Step 2.
+**Step 4 - Verify.** `claude mcp list` again. `claude.ai Pipedrive … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the same settings page; no line at all means the Connect didn't complete - send them back to Step 2.
 
-**Step 5 - Prove it.** Call one real read through the connector - list a couple of deals from the `mcp__claude_ai_Pipedrive__*` namespace. Only a real answer counts. A tool error here is not "connected".
+**Step 5 - Prove it.** Call one real read through the connector - list a couple of deals from the `mcp__claude_ai_Pipedrive__*` namespace. Only a real answer counts. A tool error here is not "connected". If the namespace is missing from this session entirely even though Step 4 passed, the session started before the Connect: a running session loads its claude.ai connectors once, at start. Ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now.
 

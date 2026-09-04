@@ -100,9 +100,9 @@ This is a one-time, once-per-account job. The only thing the user does is press 
 
 **Step 3 - Wait.** Stay hands-off while they sign in and approve. Never ask for a password, a code, or a screenshot of the sign-in. If they have more than one store, the approval happens inside the admin of the store they pick - confirm afterwards which store got connected.
 
-**Step 4 - Verify.** `claude mcp list` again. `claude.ai Shopify … ✔ Connected` is the pass. Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. Still missing → `! Needs authentication` means Reconnect on the Customize page; no line at all means the approval didn't complete - send them back to Step 2.
+**Step 4 - Verify.** `claude mcp list` again. `claude.ai Shopify … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the approval didn't complete - send them back to Step 2.
 
-**Step 5 - Prove it.** Call one real read through the connector - any read tool in the `mcp__claude_ai_Shopify__*` namespace (read the shop, or list a few products). Only a real answer counts. A tool error here is not "connected".
+**Step 5 - Prove it.** Call one real read through the connector - any read tool in the `mcp__claude_ai_Shopify__*` namespace (read the shop, or list a few products). Only a real answer counts. A tool error here is not "connected". If the namespace is missing from this session entirely even though Step 4 passed, the session started before the Connect: a running session loads its claude.ai connectors once, at start. Ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - *"what's low on stock?"*, *"show me this week's orders"*, *"set up a 10% discount code"*. Use the human-readable store name, never the `myshopify.com` subdomain.
 

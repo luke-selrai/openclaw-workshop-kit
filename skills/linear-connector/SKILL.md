@@ -149,11 +149,11 @@ Then open `https://claude.ai/directory/linear` (the public mirror of the same pa
 **Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a picture of the sign-in screen.
 
 **Step 4 - Verify.** Run `claude mcp list` again. A line reading `claude.ai Linear ... ✔ Connected` is the pass.
-- Not there yet → ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray), then check again. A session loads its connections when it starts.
+- Not there yet → no restart will change this answer: `claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes. Read on:
 - `! Needs authentication` → send them to `https://claude.ai/customize/connectors` and have them press **Reconnect** next to Linear.
 - Still no line at all → the Connect didn't complete; send them back to Step 2.
 
-**Step 5 - Prove it.** Call one real read through the connector - list the teams with `limit: 1`. Only a real answer counts; a tool error here is not "connected". The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_Linear__*` tools actually available and pick a safe read rather than hard-coding a name.
+**Step 5 - Prove it.** Call one real read through the connector - list the teams with `limit: 1`. Only a real answer counts; a tool error here is not "connected". The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_Linear__*` tools actually available and pick a safe read rather than hard-coding a name. If the namespace is missing from this session entirely even though Step 4 passed, the session started before the Connect: a running session loads its claude.ai connectors once, at start. Ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - for example *"show me my open issues"*, *"what's in the mobile project this sprint?"*, *"create a bug report for the login page"*.
 
