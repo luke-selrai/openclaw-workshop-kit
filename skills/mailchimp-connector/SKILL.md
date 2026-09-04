@@ -268,7 +268,7 @@ line at all means the Connect didn't complete, so send them back to Step 2.
 
 Call one real read through the connector - one tool from the
 `mcp__claude_ai_Intuit_Mailchimp__*` namespace. Only a real answer counts; a tool
-error here is not "connected". These tools are often deferred in a session, so fetch the namespace first. If the namespace is missing from this session entirely even though Step 4 passed, the session started before the Connect: a running session loads its claude.ai connectors once, at start. Ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again.
+error here is not "connected". These tools are often deferred in a session, so fetch the namespace first. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app, connectors added during a session are documented to appear without a restart; if one doesn't, start a new session there.
 
 ### Step 6 - Hand off
 

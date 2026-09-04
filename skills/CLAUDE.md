@@ -394,10 +394,27 @@ Everything below was checked on a real machine. Do not soften or embellish it.
   without rights sees **Request** where the SKILL expects **Connect**. That is an
   admin gate, not a failure: say so and stop, rather than falling back to the
   kit's route to get past it. Free accounts get one custom connector.
-- **Surfaces without a shell.** In claude.ai chat or the desktop app there is no
-  `claude` command to run. The pattern still works: skip the command checks, hand
-  the user the deep link and the click sequence, and prove the result by calling
-  one of the connector's tools.
+- **Surfaces without a shell.** In claude.ai chat and the desktop app's Chat and
+  Cowork tabs there is no `claude` command to run. The pattern still works: skip
+  the command checks, hand the user the deep link and the click sequence, and
+  prove the result by calling one of the connector's tools.
+- **The desktop app's Code tab is a different delivery path** (read from 75
+  desktop-driven transcripts on Harvey's machine, 2026-09-04, and the docs'
+  "How connectors reach Claude Code" table). The app delivers the account's
+  connectors to the embedded CLI in-process, as `type: "sdk"` servers, and the
+  tools are named `mcp__<id>__<tool>` with an opaque id (Gmail's `search_threads`
+  was `mcp__90169e3f-…__search_threads`), never `mcp__claude_ai_<Name>__`. The
+  id is per connection and changes when a connector is reconnected, so a SKILL
+  must find a connector by its tool names, which are identical to the ones under
+  the CLI prefix, and never by id; `allowed-tools` cannot pre-approve them.
+  `claude mcp list` from the session's Bash still prints the `claude.ai <Name>`
+  lines, because it starts the standalone CLI, so the account check in Phase 0
+  and Step 4 holds wherever the CLI is installed (the kit's setup installs it).
+  The native connect route there is the **+** button in the composer →
+  **Connectors** → Browse → Connect, the route the install day teaches; the
+  directory deep link works too, the connection being account-level. The docs
+  say connectors can be added "before or during a session"; that a mid-session
+  add shows up without a new session has not been checked live yet.
 - **VS Code is the CLI.** The VS Code extension bundles the same binary (its
   2.1.259 copy is byte-identical to the standalone CLI) and reads the same
   `~/.claude/settings.json`, and the docs list Terminal, VS Code and JetBrains
@@ -450,11 +467,13 @@ No shell available → skip steps 1-2 and prove the result at Phase 1 step 5.
    here. `! Needs authentication` means Reconnect; no line at all means the
    Connect never completed, so back to step 2.
 5. **Prove it** with one real read through the connector. Fetch the
-   `mcp__claude_ai_<Name>__*` namespace first (it is usually deferred). Namespace
-   absent from this session although step 4 passed → the session started before
-   the Connect: quit and reopen Claude Code once (VS Code: Developer: Reload
-   Window), then re-run Phase 0. Only a real answer counts; a tool error is not
-   "connected".
+   `mcp__claude_ai_<Name>__*` namespace first (it is usually deferred); in the
+   desktop app's Code tab the same tools sit under an opaque `mcp__<id>__`
+   prefix, so find them by tool name. Tools absent from this session although
+   step 4 passed → the session started before the Connect: quit and reopen
+   Claude Code once (VS Code: Developer: Reload Window), then re-run Phase 0;
+   in the desktop app start a new session. Only a real answer counts; a tool
+   error is not "connected".
 6. **Hand off** in two lines: it is connected, and three things they can ask for
    now.
 
