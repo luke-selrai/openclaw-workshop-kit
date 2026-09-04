@@ -256,6 +256,13 @@ tell them: **Browse** → search the name → **Connect**.
   account matters: three connectors signed into three different accounts is the
   most common mess here.
 
+**Google's scope screen has "Select all" unticked.** After the account chooser,
+Google shows "Select what Claude for Gmail can access" with every box empty
+(checked live 2026-09-04). Tell them before they get there: *"Google will show
+a list of tick boxes - tick **Select all**, then Continue."* A user who presses
+Continue with nothing ticked gets a connection that reads nothing, which shows
+up at Step 6 as a permission error, not as "not connected".
+
 **Never drive this sign-in with Playwright.** Hand the link to the user's own
 browser and step back. The kit's usual caution about not touching a
 participant's browser exists because the custom path reads secrets off a page —
@@ -273,7 +280,7 @@ surface they connected is the pass.
 the `mcp__claude_ai_Gmail__*`, `mcp__claude_ai_Google_Calendar__*` or
 `mcp__claude_ai_Google_Drive__*` namespace. Only a real answer counts; a tool
 error is not "connected". Those tools are often deferred in a session, so fetch
-the namespace before calling. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app, connectors added during a session are documented to appear without a restart; if one doesn't, start a new session there.
+the namespace before calling. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 **Step 6 — Hand off.** Two lines: it's connected, and three things they can ask
 for now.

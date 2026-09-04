@@ -390,6 +390,17 @@ Everything below was checked on a real machine. Do not soften or embellish it.
   from the session → the session started before the Connect: quit and reopen
   Claude Code once, then re-run Phase 0. Never send the user to restart because
   the list line is missing: a missing line means the Connect did not complete.
+  The desktop app is different in both directions (checked live on Windows,
+  app 1.46388.1, CLI 2.1.260, 2026-09-04): a Connect made through the app's
+  own **+ → Connectors → Browse connectors** route lands in the *running*
+  session with no restart (Slack's tools appeared and answered in the session
+  that asked for the connect), while a Connect made on the directory page in a
+  browser is invisible to the app - not just to the running session but to a
+  new session and to the app's own Manage connectors page - until the app is
+  fully quit and reopened; `claude mcp list` from the app's Bash shows the
+  line either way. Disconnect from the app's Manage connectors page leaves the
+  CLI line as `! Needs authentication` rather than removing it, so Phase 0's
+  Reconnect branch is the right reading of that state.
 - **Local-entry precedence.** A server registered locally with `claude mcp add`
   at the same URL takes precedence and *hides* the built-in one (`/mcp` shows it
   as hidden). A machine that previously ran the kit's custom path may carry such
@@ -423,9 +434,10 @@ Everything below was checked on a real machine. Do not soften or embellish it.
   and Step 4 holds wherever the CLI is installed (the kit's setup installs it).
   The native connect route there is the **+** button in the composer →
   **Connectors** → Browse → Connect, the route the install day teaches; the
-  directory deep link works too, the connection being account-level. The docs
-  say connectors can be added "before or during a session"; that a mid-session
-  add shows up without a new session has not been checked live yet.
+  directory deep link works too, the connection being account-level, but with
+  the restart cost above: prefer the **+** route in the app. The in-app
+  Manage connectors page also carries a per-tool permission layer (Always
+  allow / Ask / Never per tool) that the CLI does not have.
 - **VS Code is the CLI.** The VS Code extension bundles the same binary (its
   2.1.259 copy is byte-identical to the standalone CLI) and reads the same
   `~/.claude/settings.json`, and the docs list Terminal, VS Code and JetBrains
@@ -491,8 +503,10 @@ No shell available → skip steps 1-2 and prove the result at Phase 1 step 5.
    prefix, so find them by tool name. Tools absent from this session although
    step 4 passed → the session started before the Connect: quit and reopen
    Claude Code once (VS Code: Developer: Reload Window), then re-run Phase 0;
-   in the desktop app start a new session. Only a real answer counts; a tool
-   error is not "connected".
+   in the desktop app a Connect made through **+ → Connectors** is already in
+   the running session, and one made in a browser needs the app quit and
+   reopened (a new session alone is not enough). Only a real answer counts; a
+   tool error is not "connected".
 6. **Hand off** in two lines: it is connected, and three things they can ask for
    now.
 
