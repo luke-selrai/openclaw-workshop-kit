@@ -406,7 +406,10 @@ Everything below was checked on a real machine. Do not soften or embellish it.
   was `mcp__90169e3f-…__search_threads`), never `mcp__claude_ai_<Name>__`. The
   id is per connection and changes when a connector is reconnected, so a SKILL
   must find a connector by its tool names, which are identical to the ones under
-  the CLI prefix, and never by id; `allowed-tools` cannot pre-approve them.
+  the CLI prefix, and never by id; `allowed-tools` cannot pre-approve them. The
+  id → name map is on disk if a SKILL ever needs it: the app's session record
+  (`~/Library/Application Support/Claude/claude-code-sessions/<account>/<org>/local_<session>.json`,
+  key `remoteMcpServersConfig`, one `{uuid, name, tools}` per connector).
   `claude mcp list` from the session's Bash still prints the `claude.ai <Name>`
   lines, because it starts the standalone CLI, so the account check in Phase 0
   and Step 4 holds wherever the CLI is installed (the kit's setup installs it).
