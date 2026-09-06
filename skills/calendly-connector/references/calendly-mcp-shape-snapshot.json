@@ -2,7 +2,7 @@
   "_comment": "Captured shape of mcp.calendly.com/.well-known/oauth-protected-resource as of 2026-04-30. Paired with the SKILL.md empirical-verification timestamp. If the consent screen scope-count, permission labels, or OAuth metadata fields drift, an outsider can compare a fresh fetch against this snapshot to localise the change without needing a live test harness.",
   "captured_at": "2026-04-30T10:51:42Z",
   "captured_against": "https://mcp.calendly.com/.well-known/oauth-protected-resource",
-  "captured_by": "selrai-company/claude-workshop-kit Phase 1 install audit",
+  "captured_by": "selrai-assets/claude-workshop-kit Phase 1 install audit",
   "resource_metadata": {
     "resource": "https://mcp.calendly.com",
     "authorization_servers": [

@@ -1,6 +1,6 @@
 # DocuSign Connector - Phase 0 audit
 
-**Source.** Issue [#148](https://github.com/selrai-company/claude-workshop-kit/issues/148) - connector skill for DocuSign eSign. Per the 2026-04-27 connector directive (item #15: *"DocuSign | 1.5M+ customers, eSign API"*).
+**Source.** Issue [#148](https://github.com/selrai-assets/claude-workshop-kit/issues/148) - connector skill for DocuSign eSign. Per the 2026-04-27 connector directive (item #15: *"DocuSign | 1.5M+ customers, eSign API"*).
 
 **Audit date.** 2026-05-04.
 
@@ -15,7 +15,7 @@
 The SKILL pattern is **hybrid Literal-Playwright** combining two prior workshop-kit precedents:
 
 - **Phase 1 setup**: drive `admindemo.docusign.com/api-integrator-key` (sandbox; `admin.docusign.com/api-integrator-key` for production) to create an Integration Key - same shape as `hubspot-connector` PR #175 Private App creation (admin-portal + DOM-extract for Client ID + Client Secret).
-- **Phase 1 connect**: `claude mcp add docusign https://mcp-d.docusign.com/v1/mcp --transport http --scope user` (sandbox URL) + post-[#198](https://github.com/selrai-company/claude-workshop-kit/issues/198) `mcp__docusign__authenticate()` / `complete_authentication({callback_url})` pair - Claude Code's MCP-runtime tools acquire the OAuth URL programmatically and finalise the callback, replacing the deprecated 401-challenge URL-grep pattern that older canva/atlassian SKILLs use.
+- **Phase 1 connect**: `claude mcp add docusign https://mcp-d.docusign.com/v1/mcp --transport http --scope user` (sandbox URL) + post-[#198](https://github.com/selrai-assets/claude-workshop-kit/issues/198) `mcp__docusign__authenticate()` / `complete_authentication({callback_url})` pair - Claude Code's MCP-runtime tools acquire the OAuth URL programmatically and finalise the callback, replacing the deprecated 401-challenge URL-grep pattern that older canva/atlassian SKILLs use.
 
 Rejecting all 6 community DocuSign-MCP candidates surveyed; the official hosted MCP makes them obsolete.
 
@@ -97,7 +97,7 @@ The "no DCR, must pre-create client" property means DocuSign's auth model has mo
 | 3 | Auto-click "ADD APP", fill name (`Selr AI Assistant`), accept terms, submit. Auto-extract Integration Key from the new app's page | hubspot PR #175 Step 3 (DOM-extract) |
 | 4 | Configure Authentication tab: enable `Authorization Code Grant`, add redirect URI matching Claude Code's MCP-runtime callback (`http://localhost:<port>/callback`), tick V1 scope set (default `signature` only - see scope triage below). Auto-extract Secret Key from the one-time-reveal modal (same one-shot pattern as xero `Generate a secret`) | hubspot + xero PR #191 Step 6 |
 | 5 | `claude mcp add docusign https://mcp-d.docusign.com/v1/mcp --transport http --scope user --env DOCUSIGN_INTEGRATION_KEY=<id> --env DOCUSIGN_SECRET=<key>` (sandbox URL; `mcp.docusign.com` for production) | canva PR #180 Step 2 + xero PR #191 Step 7 |
-| 6 | `mcp__docusign__authenticate()` (no args) - returns the OAuth start URL programmatically. **Replaces the deprecated 401-challenge URL-grep pattern per [#198](https://github.com/selrai-company/claude-workshop-kit/issues/198).** | post-#198 canonical (jotform/calendly/linear/atlassian/canva rewrite scope) |
+| 6 | `mcp__docusign__authenticate()` (no args) - returns the OAuth start URL programmatically. **Replaces the deprecated 401-challenge URL-grep pattern per [#198](https://github.com/selrai-assets/claude-workshop-kit/issues/198).** | post-#198 canonical (jotform/calendly/linear/atlassian/canva rewrite scope) |
 | 7 | `browser_navigate(returned_url)`; **user signs in (the only manual moment)**; Claude auto-clicks the Allow button on DocuSign's consent screen via `mcp__playwright__browser_click` after locating it from the snapshot by matching `role: button` against the consent verbs (allow / authorise / grant access) - narrate the consent line ("DocuSign wants access to envelopes, templates, account info - clicking Allow now") so the user can intervene if the scopes look wrong; `browser_wait_for` URL match `localhost:*/callback`; `browser_evaluate(() => window.location.href)` to capture the full callback URL **before** `browser_close` | post-#198 canonical + `feedback_human_touch_only_login.md` (strict: Allow is auto-clicked, not user-clicked) |
 | 8 | `mcp__docusign__complete_authentication({ callback_url })` finalises OAuth in-session (no chat restart needed); verify with `mcp__docusign__<smoke_tool>` (smoke call name TBD at SKILL build time per Phase 2 enumeration) | post-#198 canonical |
 
@@ -167,7 +167,7 @@ Per the metadata, the flow is:
 5. Bearer token used to authenticate calls to `mcp-d.docusign.com/v1/mcp`
 6. Token lifetime: 8 hours; refresh token: 30 days, single-use auto-rotated
 
-Claude Code's MCP runtime should handle steps 3-5 natively given `--transport http` registration. PKCE S256 is the only supported challenge method - same as canva + atlassian. Per the post-[#198](https://github.com/selrai-company/claude-workshop-kit/issues/198) pattern, the SKILL acquires the auth URL via `mcp__docusign__authenticate()` (returned programmatically by Claude Code's MCP runtime) instead of constructing it manually or scraping a 401-challenge response. The callback URL is submitted via `mcp__docusign__complete_authentication({ callback_url })` rather than letting the runtime swallow it silently - this finalises auth in-session, no chat restart needed.
+Claude Code's MCP runtime should handle steps 3-5 natively given `--transport http` registration. PKCE S256 is the only supported challenge method - same as canva + atlassian. Per the post-[#198](https://github.com/selrai-assets/claude-workshop-kit/issues/198) pattern, the SKILL acquires the auth URL via `mcp__docusign__authenticate()` (returned programmatically by Claude Code's MCP runtime) instead of constructing it manually or scraping a 401-challenge response. The callback URL is submitted via `mcp__docusign__complete_authentication({ callback_url })` rather than letting the runtime swallow it silently - this finalises auth in-session, no chat restart needed.
 
 ## Default scope set (workshop minimum-permission - provisional, verify at SKILL-build time)
 
@@ -191,7 +191,7 @@ Sandbox metadata exposes 54 scopes. Triaged for the workshop's "send envelope, l
 | Admin-portal + DOM-extract for Client ID + Secret | `skills/hubspot-connector/SKILL.md` (PR #175) |
 | One-time-reveal Secret modal handling | `skills/xero-connector/SKILL.md` Step 6b (PR #191) |
 | Hosted MCP + `claude mcp add http` registration | `skills/canva-connector/SKILL.md` (PR #180), `skills/atlassian-connector/SKILL.md` (PR #186) |
-| `authenticate()` / `complete_authentication()` OAuth bootstrap (post-#198 canonical) | Tracked in [#198](https://github.com/selrai-company/claude-workshop-kit/issues/198); will be reflected in jotform/calendly/linear/atlassian/canva once #198 lands. **Build docusign-connector against the post-#198 shape directly so it's forward-compatible regardless of #198 sequencing.** |
+| `authenticate()` / `complete_authentication()` OAuth bootstrap (post-#198 canonical) | Tracked in [#198](https://github.com/selrai-assets/claude-workshop-kit/issues/198); will be reflected in jotform/calendly/linear/atlassian/canva once #198 lands. **Build docusign-connector against the post-#198 shape directly so it's forward-compatible regardless of #198 sequencing.** |
 | OAuth callback URL-change auto-detect (`browser_wait_for` + `browser_evaluate`) | post-#198 canonical |
 | Phase 0 resume check + tooling auto-install | All recent connector PRs (canonical pattern) |
 

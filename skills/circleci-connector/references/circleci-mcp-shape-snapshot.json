@@ -2,7 +2,7 @@
   "_comment": "Captured surface of the CircleCI MCP server at https://mcp.circleci.com/mcp as of 2026-04-30. Hosted-bearer-PAT pattern (no OAuth, Personal API Token auth). The drift-check recipe lets an outsider validate tool naming and count without spinning up a live test harness.",
   "captured_at": "2026-04-30T11:08:54Z",
   "captured_against": "https://mcp.circleci.com/mcp",
-  "captured_by": "selrai-company/claude-workshop-kit Phase 1 install audit",
+  "captured_by": "selrai-assets/claude-workshop-kit Phase 1 install audit",
   "auth_pattern": "Hosted-bearer-PAT (Authorization: Bearer <Personal API Token>)",
   "tool_surface_observed": {
     "tool_count": 12,

@@ -42,14 +42,14 @@ show me failed builds this week
 
 > [Phase 2 first-call tool-name-drift guard] Lists available `mcp__circleci__*` tools. The canonical 12-tool surface is present (followed projects, pipelines, workflows, jobs, tests, artifacts, configs, AI prompt tools). Proceeding.
 
-> [Phase 2] Step 1: `mcp__circleci__list_followed_projects` returns the user's followed projects. The user follows 3 (selrai-company/selr-kit-index, selrai-company/claude-workshop-kit, luke-heka/selr-finance).
+> [Phase 2] Step 1: `mcp__circleci__list_followed_projects` returns the user's followed projects. The user follows 3 (selrai-company/selr-kit-index, selrai-assets/claude-workshop-kit, luke-heka/selr-finance).
 > Step 2: For each project, `mcp__circleci__get_pipelines_for_project({ slug, branch: <default>, page_token: null })` filtered to the last 7 days. Returns pipeline IDs and statuses.
 > Step 3: For each pipeline with `status: "failed"`, `mcp__circleci__get_workflows_for_pipeline({ pipeline_id })` returns workflow IDs. Then `mcp__circleci__get_jobs_for_workflow({ workflow_id })` returns the job that failed.
 
 **Claude:**
 This week (Mon 19 May to Sun 25 May):
 
-- **selrai-company/claude-workshop-kit**: 2 failed builds out of 14. Both on PR branches.
+- **selrai-assets/claude-workshop-kit**: 2 failed builds out of 14. Both on PR branches.
   - PR #243 (upgrade/copywriting-skill): the "Shellcheck" job failed on `skills/copywriting/scripts/render.sh:42` (`SC2155: declare and assign separately`). Rest of the workflow green.
   - PR #248 (fix/agent-browser-fallback): the "Lint, validate, compose-check" job failed on `docker compose config --quiet` because a sibling kit shipped a `DIGEST_PENDING` placeholder. Unrelated to your branch.
 - **selrai-company/selr-kit-index**: 0 failures. All crawler PRs (auto-merged) passed.
@@ -73,7 +73,7 @@ CircleCI is already connected. Checking for failures since the last session.
 > [Phase 2] Compares pipeline timestamps against last known session-end timestamp. Returns new failures.
 
 **Claude:**
-One new failure since you last asked. selrai-company/claude-workshop-kit, branch `upgrade/canva-connector-prod-bar`, the "Shell script lint (shellcheck)" job at 14:22 AEST. It looks like a sibling skill's `install.sh` got a `SC2086` quoting warning. Want me to open a re-run after the dependent PR merges?
+One new failure since you last asked. selrai-assets/claude-workshop-kit, branch `upgrade/canva-connector-prod-bar`, the "Shell script lint (shellcheck)" job at 14:22 AEST. It looks like a sibling skill's `install.sh` got a `SC2086` quoting warning. Want me to open a re-run after the dependent PR merges?
 
 Cold-to-warm timing: cold ~90s including token paste + chat restart, warm ~5s.
 

@@ -1275,7 +1275,7 @@ It **requires** at least one Product/Service Item to exist in the company before
 
 ## See also
 
-- [Issue #320](https://github.com/selrai-company/claude-workshop-kit/issues/320) - original live-account (production-mode) tracking issue; implemented by this Phase 1L flow
+- [Issue #320](https://github.com/selrai-assets/claude-workshop-kit/issues/320) - original live-account (production-mode) tracking issue; implemented by this Phase 1L flow
 - `assets/legal/` - the 4 HTML templates Phase 1L-A copies into the participant's Cloudflare Pages deploy (eula, privacy, launch, disconnect)
 - Cloudflare Pages - https://developers.cloudflare.com/pages/ (the hosting target for Phase 1L-A)
 - `cloudflared` - https://github.com/cloudflare/cloudflared (the OAuth-callback tunnel binary)

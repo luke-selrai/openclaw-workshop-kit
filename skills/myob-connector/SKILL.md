@@ -28,7 +28,7 @@ metadata:
 
 ## Overview
 
-This skill lets you read and update a user's MYOB accounting data on their behalf using **MYOB's direct REST API** (no MCP server, no CLI - see [issue #146](https://github.com/selrai-company/claude-workshop-kit/issues/146) for the architectural decision).
+This skill lets you read and update a user's MYOB accounting data on their behalf using **MYOB's direct REST API** (no MCP server, no CLI - see [issue #146](https://github.com/selrai-assets/claude-workshop-kit/issues/146) for the architectural decision).
 
 > **How this connector works (read this once before reading the rest):**
 > The architecture is dead simple. Claude reads the user's saved tokens out of `~/.config/myob/tokens.json`, then runs `curl` against MYOB's REST endpoints - every API call carries the user's `Authorization: Bearer ...` token plus the workshop's `x-myobapi-key`. **The user's own paid MYOB subscription is what authorises the data access** - the workshop's developer credentials only authorise the *connection point*, not the data itself.
@@ -285,7 +285,7 @@ First, check whether the user actually uses MYOB before pushing them toward any 
 **Handle the response:**
 
 - **User confirms they have a paid MYOB subscription** → tell them this:
-  > "Got it. I'd love to help you connect it - but the MYOB connection isn't switched on in this workshop kit yet. The workshop team is finalising the setup on their end (one-off; doesn't affect your subscription or cost you anything). It should be ready shortly - track progress at <https://github.com/selrai-company/claude-workshop-kit/issues/146>.
+  > "Got it. I'd love to help you connect it - but the MYOB connection isn't switched on in this workshop kit yet. The workshop team is finalising the setup on their end (one-off; doesn't affect your subscription or cost you anything). It should be ready shortly - track progress at <https://github.com/selrai-assets/claude-workshop-kit/issues/146>.
   >
   > In the meantime, if you also use Xero alongside MYOB, I can connect that instead - let me know."
 
@@ -776,7 +776,7 @@ The MYOB connector **cannot** do (in v1):
 
 ---
 
-## Open items (tracked in [issue #146](https://github.com/selrai-company/claude-workshop-kit/issues/146))
+## Open items (tracked in [issue #146](https://github.com/selrai-assets/claude-workshop-kit/issues/146))
 
 The skill itself is complete and ready to ship. The remaining items are operational (registering MYOB's developer-side credentials) and verification.
 

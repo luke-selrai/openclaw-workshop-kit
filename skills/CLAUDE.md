@@ -597,7 +597,7 @@ two tools appear in the deferred-tool surface:
 
 These are runtime artifacts produced by Claude Code from the server's
 well-known OAuth metadata - there is no `claude mcp authenticate` CLI verb
-(see [#200](https://github.com/selrai-company/claude-workshop-kit/issues/200)
+(see [#200](https://github.com/selrai-assets/claude-workshop-kit/issues/200)
 and the `audit-skills.mjs` anti-pattern guard).
 
 **Deferred-tool reconciliation timing.** The `authenticate` /
@@ -817,6 +817,6 @@ echo credentials.
 - [linear-connector/SKILL.md](linear-connector/SKILL.md) - Pattern 1 reference.
 - [monday-connector/SKILL.md](monday-connector/SKILL.md) - Pattern 2 reference.
 - [telegram-connector/SKILL.md](telegram-connector/SKILL.md) - Pattern 3 reference.
-- [#198](https://github.com/selrai-company/claude-workshop-kit/issues/198) - the Phase 1 Step 3 rewrite that grounded Pattern 1.
-- [#199](https://github.com/selrai-company/claude-workshop-kit/issues/199) - this doc's tracking issue.
-- [#200](https://github.com/selrai-company/claude-workshop-kit/issues/200) - anti-pattern audit guard for the deprecated `claude mcp authenticate` / `WWW-Authenticate: Bearer` claims.
+- [#198](https://github.com/selrai-assets/claude-workshop-kit/issues/198) - the Phase 1 Step 3 rewrite that grounded Pattern 1.
+- [#199](https://github.com/selrai-assets/claude-workshop-kit/issues/199) - this doc's tracking issue.
+- [#200](https://github.com/selrai-assets/claude-workshop-kit/issues/200) - anti-pattern audit guard for the deprecated `claude mcp authenticate` / `WWW-Authenticate: Bearer` claims.
