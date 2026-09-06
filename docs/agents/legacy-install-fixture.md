@@ -87,14 +87,15 @@ Fidelity check: at their pinned refs the shapes install 204 (`loup`) and 117
 do with an unauthenticated `git ls-remote` probe. A developer machine reads the **closed**
 repo just fine (the real global gitconfig routes github.com through `gh auth
 git-credential`), so an un-neutralised probe *succeeds* and the dry-run silently tests the
-clone branch while claiming to test a closed room — a false pass either way. An attendee has
+clone branch while claiming to test a closed room, which is a false pass either way. An
+attendee has
 no credentials, is refused, and is told the kit is not open yet. The fixture therefore
 writes a `.gitconfig` with an empty `credential.helper`.
 
 Since ADR-0003 there is only one door, so a **refused probe dry-runs to a stop**: the prompt
 says the kit is not open yet, waits for the room, and touches nothing. That is a real thing
 to verify, and it is all a closed-repo run can verify. To exercise the clone and everything
-after it, run the fixture while the repo is genuinely **public**, during a drop window —
+after it, run the fixture while the repo is genuinely **public**, during a drop window,
 which is exactly the state attendees run it in. Don't try to smuggle credentials in; a
 sandboxed `HOME` drops `gh`'s own config and keyring access, so the probe is refused
 regardless.
@@ -140,9 +141,9 @@ acceptance criteria, not a suggestion.
 - [ ] **Manifest written**, with kit-named skills adopted into the receipt
 - [ ] **`onboarded: true`** — the migrating user is not re-onboarded
 - [ ] **`.first-run-pending` inert** — cannot retrigger orientation (shapes that have one)
-- [ ] **Kit home recorded** — `~/claude-workshop-kit`, with `installPath: github`
+- [ ] **Kit home recorded**: `~/claude-workshop-kit`, with `installPath: github`
 - [ ] **Old workspace handled per spec** — check this **per shape**, not just on `loup`
-- [ ] **Old kit download folder removed** — the shape's own kit home is gone, including both
+- [ ] **Old kit download folder removed**: the shape's own kit home is gone, including both
       old Loup homes (ADR-0003 §3). `~/claude-workshop-kit` is never touched.
 - [ ] **User-made content untouched** — `my-notes.md` and `my-own-skill/` byte-identical
 - [ ] **Edited kit skill kept and reported**, not silently overwritten

@@ -51,8 +51,8 @@
 //
 // GIT CREDENTIALS ARE ALWAYS NEUTRALISED, and this matters more than it looks.
 // The prompt decides what to do with an unauthenticated `git ls-remote` probe.
-// A developer machine reads the CLOSED repo just fine — the real global
-// gitconfig routes github.com through `gh auth git-credential` — so an
+// A developer machine reads the CLOSED repo just fine, because the real global
+// gitconfig routes github.com through `gh auth git-credential`, so an
 // un-neutralised probe SUCCEEDS, and the dry-run silently tests the clone
 // branch while claiming to test a closed room: a false pass either way. An
 // attendee has no credentials, gets refused, and is told the kit is not open
@@ -62,7 +62,7 @@
 // Since ADR-0003 there is only one door, so a refused probe now DRY-RUNS TO A
 // STOP: the prompt waits for the room to open and touches nothing. To exercise
 // the clone and everything after it, run the fixture while the repo is actually
-// PUBLIC — during a drop window, which is exactly when attendees run it. Do NOT
+// PUBLIC, during a drop window, which is exactly when attendees run it. Do NOT
 // try to smuggle credentials in; a sandboxed HOME drops gh's own config and
 // keyring access, so the probe is refused regardless.
 //

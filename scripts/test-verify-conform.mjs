@@ -175,7 +175,7 @@ const DOOR_BAD_CASES = [
 ];
 
 const goodDoors = checkDoorCanon(GOOD_DOORS);
-check(goodDoors.ok, `door canon: a conformant Step 2 is accepted${goodDoors.ok ? "" : ` — ${goodDoors.detail}`}`);
+check(goodDoors.ok, `door canon: a conformant Step 2 is accepted${goodDoors.ok ? "" : `: ${goodDoors.detail}`}`);
 for (const [name, body] of DOOR_BAD_CASES) {
   check(!checkDoorCanon(body).ok, `door canon "${name}": rejected as expected`);
 }

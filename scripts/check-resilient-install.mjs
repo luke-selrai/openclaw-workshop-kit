@@ -45,7 +45,7 @@
 //   8. THREE-DOORS         success → clone; refused → wait for the room to open;
 //                          timeout/network → retry the wifi.
 //   9. NO-CREDENTIAL-ASK   a refused probe never turns into a password ask.
-//  10. NOT-OPEN-YET        a refused probe is named for what it is — the kit is
+//  10. NOT-OPEN-YET        a refused probe is named for what it is: the kit is
 //                          not open yet, it opens when the room opens, and the
 //                          host says when. Never an access fault of the
 //                          attendee's, never something they can fix by fetching
@@ -65,9 +65,10 @@
 //                          is confirmed to be a kit download — never on its name.
 //
 // Plus a FORBIDDEN set (must not appear at all): the retired Loup delivery
-// surface and any place to sign in. Those are checked over the prompt with its
-// legacy-home lines removed first — MIGRATE and retirement still have to name
-// the old Loup install folders, and naming a folder to delete is not a door.
+// surface and any place to sign in. Those are checked over the prompt with the
+// permitted legacy-home mentions blanked out first, because MIGRATE and retirement
+// still have to name the old Loup install folders they delete, and naming a
+// folder in order to remove it is not a door.
 
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -115,16 +116,22 @@ const ESCALATION_PATTERNS = [
   { id: "escalate", re: /\bescalat/i },
 ];
 
-// A line that names one of the old Loup install folders. These survive on
-// purpose (ADR-0003): MIGRATE fingerprint reconstruction and the MIGRATE
-// retirement step both have to find and remove them. They are stripped before
-// the FORBIDDEN scan so "delete this stale folder" cannot read as "here is a
-// second way to get the kit".
-const LEGACY_HOME_LINE = /\.loup[/\\]/;
+// The two mentions of the old world that survive on purpose (ADR-0003): the
+// path of an old Loup install folder, and the label that says that is what it
+// is. MIGRATE fingerprint reconstruction and the MIGRATE retirement step both
+// have to find and remove those folders, and neither can do that without
+// naming them.
+//
+// Only these two SPANS are carved out, not the whole line. Dropping the line
+// would let a real violation hide on it ("delete the old kit folder once you
+// have your token"); this way the path and its label disappear and anything
+// else on the line still faces the FORBIDDEN scan.
+const LEGACY_HOME_PATH = /(?:~|\$HOME|%USERPROFILE%)?[/\\]?\.loup[/\\][^\s`)]*/g;
+const LEGACY_HOME_LABEL = /\(an old Loup install\)/gi;
 
-/** The prompt with every legacy-home line removed. */
-function withoutLegacyHomeLines(body) {
-  return body.split(/\r?\n/).filter((line) => !LEGACY_HOME_LINE.test(line)).join("\n");
+/** The prompt with the permitted legacy-home mentions blanked out. */
+function withoutLegacyHomeMentions(body) {
+  return body.replace(LEGACY_HOME_PATH, "<legacy kit home>").replace(LEGACY_HOME_LABEL, "");
 }
 
 // Delivery surfaces and credential hunts the prompt must never contain, checked
@@ -142,7 +149,7 @@ const FORBIDDEN_PATTERNS = [
     // A URL offered on the same line as a sign-in. The prompt carries plenty of
     // URLs (github.com, nodejs.org, example.com); what it must never carry is a
     // place to log in.
-    re: /^(?=.*https?:\/\/)(?=.*\b(sign[- ]?in|sign in|log[- ]?in|logged in)\b).*$/im,
+    re: /^(?=.*https?:\/\/)(?=.*\b(sign[- ]?in|log[- ]?in|logged in)\b).*$/im,
     why: "a refused probe never sends the attendee somewhere to sign in",
   },
 ];
@@ -155,7 +162,7 @@ const NEGATED_ASK = /\b(never|not|no|don't|do not|without|rather than)\b[^\n]{0,
 
 /** Forbidden-surface hits, as [{ id, why }]. */
 function scanForbidden(body) {
-  const stripped = withoutLegacyHomeLines(body);
+  const stripped = withoutLegacyHomeMentions(body);
   const hits = FORBIDDEN_PATTERNS.filter((p) => p.re.test(stripped)).map((p) => ({ id: p.id, why: p.why }));
   for (const line of stripped.split(/\r?\n/)) {
     if (CREDENTIAL_ASK.test(line) && !NEGATED_ASK.test(line)) {
@@ -224,7 +231,7 @@ const PRESENCE_RULES = [
   },
   {
     id: "not-open-yet",
-    why: "a refused probe is named plainly — the kit is not open yet, it opens when the room opens, and the host says when",
+    why: "a refused probe is named plainly: the kit is not open yet, it opens when the room opens, and the host says when",
     test: (b) =>
       /(refused|authentication error|not found)/i.test(b) &&
       /not open yet/i.test(b) &&
@@ -243,7 +250,7 @@ const PRESENCE_RULES = [
   },
   {
     id: "network-is-wifi",
-    why: "a network failure is the wifi, not the kit — check I am online, then probe again",
+    why: "a network failure is the wifi, not the kit, so check I am online and probe again",
     test: (b) =>
       /(times? out|network problem|network error)[\s\S]{0,300}\bwifi\b/i.test(b) &&
       /(times? out|network problem|network error)[\s\S]{0,400}(online|hotspot)/i.test(b),
@@ -315,7 +322,7 @@ export {
   extractBootstrapBody,
   extractPromptBody,
   scanForbidden,
-  withoutLegacyHomeLines,
+  withoutLegacyHomeMentions,
   PRESENCE_RULES,
   ESCALATION_PATTERNS,
   FORBIDDEN_PATTERNS,

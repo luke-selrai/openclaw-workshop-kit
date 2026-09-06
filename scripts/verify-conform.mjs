@@ -14,9 +14,9 @@
 //                         check was INVERTED by CORE-116: it used to police
 //                         only the retired homes (~/workshop-kit and friends)
 //                         while treating the Loup home as the one true home.
-//                         Under ADR-0001 §2/§3 there is no one true home — the
+//                         Under ADR-0001 §2/§3 there is no one true home. The
 //                         kit home is per-install, declared in the pointer block
-//                         and the manifest — so a HARDCODED kit home is a
+//                         and the manifest, so a HARDCODED kit home is a
 //                         violation too, as is the dead workspace folder
 //                         (~/Desktop/my-assistant) and the dead
 //                         .first-run-pending marker. ADR-0003 collapsed the two
@@ -100,7 +100,7 @@ const OLD_CANON_PATTERNS = [
   {
     id: "loup-runtime-path",
     re: /\.loup[/\\]/,
-    why: "a Loup install home is a legacy install to find and remove (ADR-0003), never a live kit home — read the kit home from the pointer block / manifest",
+    why: "a Loup install home is a legacy install to find and remove (ADR-0003), never a live kit home. Read the kit home from the pointer block / manifest",
   },
   {
     id: "hardcoded-github-home",
@@ -316,7 +316,7 @@ export function checkDoorCanon(body) {
     fails.push("missing the GitHub door (`git clone --depth 1` on one line with GIT_TERMINAL_PROMPT=0)");
   }
 
-  // c) Door B — a REFUSED probe means the kit is not open yet (ADR-0003). It
+  // c) Door B. A REFUSED probe means the kit is not open yet (ADR-0003). It
   //    routes to a wait and a re-probe on the attendee's word, never to a
   //    second delivery channel and never to a credential hunt.
   const refusedNamed = /(refused|rejected|authentication error|not found)/i.test(body);
@@ -341,7 +341,7 @@ export function checkDoorCanon(body) {
   }
 
   // f) Always re-fetch, never update-in-place. The `always re-run` alternative
-  //    went with the Loup door — re-running a pasted install command was the
+  //    went with the Loup door. Re-running a pasted install command was the
   //    other door's way of saying this, and there is no other door.
   const reFetch = /(fresh copy|ALWAYS take a fresh)/i.test(body) && /never\s+update-in-place/i.test(body);
   if (!reFetch) {

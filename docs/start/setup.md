@@ -171,9 +171,9 @@ exactly matches the kit as published:
      ```
 
 **B. The probe is refused (authentication error / repository not found) → the
-kit is not open yet.** Nothing on my machine is broken, and nothing is wrong
-with me. The kit is open while the room is open, and closed the rest of the
-time. Do NOT retry the clone by yourself. Never ask me for a password, a
+kit is not open yet.** Nothing on my machine is broken, and I have not done
+anything wrong. The kit is open while the room is open, and closed the rest of
+the time. Do NOT retry the clone by yourself. Never ask me for a password, a
 sign-in, an account or a code of any kind. There is nothing for me to fetch and
 nowhere for me to log in. Instead:
 
@@ -256,10 +256,9 @@ there is no workspace folder anymore.
 
    Treat all three the same way. Delete one only when it is definitely an old kit
    and not a folder of mine that happens to share the name: it must contain a
-   `skills/` folder AND at least one
-   of the old kit's own files (`my-assistant/CLAUDE.md` or
-   `skills/SKILLS-LIST.md`). If it qualifies, delete it and tell me in one line.
-   If it does not, leave it alone and say so.
+   `skills/` folder AND at least one of the old kit's own files
+   (`my-assistant/CLAUDE.md` or `skills/SKILLS-LIST.md`). If it qualifies, delete
+   it and tell me in one line. If it does not, leave it alone and say so.
 
    Never touch `~/claude-workshop-kit`. That is the live kit home this run just
    downloaded into, so deleting it would delete the kit you have only just
