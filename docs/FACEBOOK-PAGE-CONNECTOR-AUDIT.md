@@ -1,6 +1,6 @@
 # Facebook Page Connector - Phase 0 audit
 
-**Source.** Issue [#153](https://github.com/selrai-company/claude-workshop-kit/issues/153) - split-out from [#151](https://github.com/selrai-company/claude-workshop-kit/issues/151) (Meta Business Suite). PR [#152](https://github.com/selrai-company/claude-workshop-kit/pull/152) shipped the Instagram + Threads slice via `@mikusnuz/meta-mcp`; this audit closes the **Facebook Page organic posting** gap that PR explicitly excluded.
+**Source.** Issue [#153](https://github.com/selrai-assets/claude-workshop-kit/issues/153) - split-out from [#151](https://github.com/selrai-assets/claude-workshop-kit/issues/151) (Meta Business Suite). PR [#152](https://github.com/selrai-assets/claude-workshop-kit/pull/152) shipped the Instagram + Threads slice via `@mikusnuz/meta-mcp`; this audit closes the **Facebook Page organic posting** gap that PR explicitly excluded.
 
 **Audit date:** 2026-05-01.
 
