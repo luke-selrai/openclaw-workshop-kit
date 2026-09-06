@@ -304,7 +304,7 @@ own shape. Two caveats worth carrying:
   The other renamed ones, checked on the public mirror 2026-09-04: Atlassian is
   **Atlassian Rovo** (`claude.ai Atlassian Rovo`, `mcp__claude_ai_Atlassian_Rovo__*`),
   WordPress is **WordPress.com** (`mcp__claude_ai_WordPress_com__*`), monday.com
-  is **Monday** (`mcp__claude_ai_Monday__*`), DocuSign is **Docusign**.
+  is **monday.com** (`claude.ai monday.com`, `mcp__claude_ai_monday_com__*`), DocuSign is **Docusign**, QuickBooks is **Intuit QuickBooks** (`mcp__claude_ai_Intuit_QuickBooks__*`).
 - **`quickbooks` is region-split.** The built-in at `claude.ai/directory/quickbooks`
   is verified live but covers US books; Australian and other non-US books run the
   kit's own route, so that SKILL carries a pointer rather than a Pattern 0 phase.
@@ -339,13 +339,21 @@ Everything below was checked on a real machine. Do not soften or embellish it.
   `claude mcp get "claude.ai <Name>"`, which prints `Status: ✔ Connected`,
   `Status: ! Needs authentication`, or `No MCP server named …` followed by the
   names that do exist.
+  The display name itself comes from the directory API, which is public and
+  needs no login: `curl -s "https://api.anthropic.com/api/directory/servers?limit=5000&visibility=commercial,gsuite,gsuite-google&verified_tier=anthropic,partner,community"`
+  returns every listing with `slug`, `display_name`, `permissions`, `tool_names`
+  and `works_with`; `claude.ai/directory/<slug>` renders from it. The public
+  mirror at claude.com/connectors renders its own headings and has disagreed
+  (2026-09-04: it said "Monday" where the directory says **monday.com**, and it
+  404s on `quickbooks`, which the directory lists as **Intuit QuickBooks**), so
+  settle a name from the API, never from the mirror.
 - **Tool namespace.** `mcp__claude_ai_<Name>__<tool>`, where `<Name>` is the
   directory display name with every character that is not a letter, digit,
   underscore or hyphen turned into an underscore, runs of underscores collapsed,
   case kept. That is the CLI's own rule (2.1.259), and it is the same rule that
   turns the `claude.ai ` prefix into `claude_ai_`. So `Microsoft 365` →
   `Microsoft_365`, `WordPress.com` → `WordPress_com`, `Atlassian Rovo` →
-  `Atlassian_Rovo`, `Intuit Mailchimp` → `Intuit_Mailchimp`, `Monday` → `Monday`.
+  `Atlassian_Rovo`, `Intuit Mailchimp` → `Intuit_Mailchimp`, `monday.com` → `monday_com`.
   Verified live: `mcp__claude_ai_Microsoft_365__get_me`,
   `mcp__claude_ai_Notion__notion-search`, `mcp__claude_ai_Dropbox__list_folder`. These tools are frequently *deferred* in
   a session, so a SKILL should say "call one read tool from the
@@ -382,6 +390,17 @@ Everything below was checked on a real machine. Do not soften or embellish it.
   from the session → the session started before the Connect: quit and reopen
   Claude Code once, then re-run Phase 0. Never send the user to restart because
   the list line is missing: a missing line means the Connect did not complete.
+  The desktop app is different in both directions (checked live on Windows,
+  app 1.46388.1, CLI 2.1.260, 2026-09-04): a Connect made through the app's
+  own **+ → Connectors → Browse connectors** route lands in the *running*
+  session with no restart (Slack's tools appeared and answered in the session
+  that asked for the connect), while a Connect made on the directory page in a
+  browser is invisible to the app - not just to the running session but to a
+  new session and to the app's own Manage connectors page - until the app is
+  fully quit and reopened; `claude mcp list` from the app's Bash shows the
+  line either way. Disconnect from the app's Manage connectors page leaves the
+  CLI line as `! Needs authentication` rather than removing it, so Phase 0's
+  Reconnect branch is the right reading of that state.
 - **Local-entry precedence.** A server registered locally with `claude mcp add`
   at the same URL takes precedence and *hides* the built-in one (`/mcp` shows it
   as hidden). A machine that previously ran the kit's custom path may carry such
@@ -415,9 +434,10 @@ Everything below was checked on a real machine. Do not soften or embellish it.
   and Step 4 holds wherever the CLI is installed (the kit's setup installs it).
   The native connect route there is the **+** button in the composer →
   **Connectors** → Browse → Connect, the route the install day teaches; the
-  directory deep link works too, the connection being account-level. The docs
-  say connectors can be added "before or during a session"; that a mid-session
-  add shows up without a new session has not been checked live yet.
+  directory deep link works too, the connection being account-level, but with
+  the restart cost above: prefer the **+** route in the app. The in-app
+  Manage connectors page also carries a per-tool permission layer (Always
+  allow / Ask / Never per tool) that the CLI does not have.
 - **VS Code is the CLI.** The VS Code extension bundles the same binary (its
   2.1.259 copy is byte-identical to the standalone CLI) and reads the same
   `~/.claude/settings.json`, and the docs list Terminal, VS Code and JetBrains
@@ -428,6 +448,14 @@ Everything below was checked on a real machine. Do not soften or embellish it.
 - **Directory Read/Write badges lag reality.** Microsoft 365 and HubSpot were
   both mislabelled at the time of writing. Never route on the badge; route on the
   per-app facts, and probe live where the facts say "verify".
+- **`works_with` in the directory API is a watch item, not a rule.** On
+  2026-09-04 it omitted `claude-code` for Shopify, Airtable, Calendly, Docusign
+  (listed for `claude` only), Intuit QuickBooks, Intuit Mailchimp, Gusto, Xero
+  and Brevo, while the Claude Code docs say every connector on the account is
+  "automatically available in Claude Code" and the mirror pages list Claude Code
+  for all of them. Nothing here has been proven either way on a live account, so
+  for those nine the Step 5 read is the only evidence that counts; if it fails
+  with the list line present, say so and fall back to the kit's route.
 
 ### The canonical block
 
@@ -475,8 +503,10 @@ No shell available → skip steps 1-2 and prove the result at Phase 1 step 5.
    prefix, so find them by tool name. Tools absent from this session although
    step 4 passed → the session started before the Connect: quit and reopen
    Claude Code once (VS Code: Developer: Reload Window), then re-run Phase 0;
-   in the desktop app start a new session. Only a real answer counts; a tool
-   error is not "connected".
+   in the desktop app a Connect made through **+ → Connectors** is already in
+   the running session, and one made in a browser needs the app quit and
+   reopened (a new session alone is not enough). Only a real answer counts; a
+   tool error is not "connected".
 6. **Hand off** in two lines: it is connected, and three things they can ask for
    now.
 

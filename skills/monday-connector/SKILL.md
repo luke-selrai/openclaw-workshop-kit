@@ -1,7 +1,7 @@
 ---
 name: monday-connector
-description: "Connect monday.com to Claude by switching on its built-in connector, or by registering monday.com's official server locally. Use when the user asks to set up or connect monday.com, or wants monday work (boards, items, columns, updates, users, teams, WorkForms) and monday.com isn't connected yet. Once connected, monday.com runs through the mcp__claude_ai_Monday__* or mcp__monday__* tools."
-allowed-tools: mcp__claude_ai_Monday__*, mcp__monday__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
+description: "Connect monday.com to Claude by switching on its built-in connector, or by registering monday.com's official server locally. Use when the user asks to set up or connect monday.com, or wants monday work (boards, items, columns, updates, users, teams, WorkForms) and monday.com isn't connected yet. Once connected, monday.com runs through the mcp__claude_ai_monday_com__* or mcp__monday__* tools."
+allowed-tools: mcp__claude_ai_monday_com__*, mcp__monday__*, mcp__playwright__*, mcp__plugin_playwright_playwright__*, Bash, Read, Write, Edit
 metadata:
   category: Project Management
   tags:
@@ -38,7 +38,7 @@ The skill has these phases:
 - **Phase 0 - Is monday.com already connected?** Checks the built-in connector first, then the kit's own registration, and routes.
 - **Phase 1 - Switch on the built-in monday.com connector (the default route).** Open monday.com's connector page in the user's own browser, they press **Connect to Claude** and sign in, then verify and prove with one read.
 - **Phase 1-alt - The kit's own route (only when the built-in can't be used).** An autonomous bootstrap. Claude opens monday.com in a Playwright-driven browser, waits for the user to sign in, navigates to the Personal API Token page, mints/reveals the token, reads it directly from the DOM, writes the MCP config, and verifies - without ever asking the user to copy, paste, or navigate menus themselves. The user should never see the words "npm", "npx", "bash", "terminal", "MCP", "JSON", or any file paths. They feel like they are having a conversation; their only action is logging in to monday.com once.
-- **Phase 2 - Use Tools.** Once monday.com is connected by either route, you call its native tools to read and update monday.com data - `mcp__claude_ai_Monday__*` on the built-in route, `mcp__monday__*` on the kit's.
+- **Phase 2 - Use Tools.** Once monday.com is connected by either route, you call its native tools to read and update monday.com data - `mcp__claude_ai_monday_com__*` on the built-in route, `mcp__monday__*` on the kit's.
 
 **Which phase to run** - always start at Phase 0. On the kit's own route the resume signal is unchanged: read `~/.claude.json` (or `%USERPROFILE%\.claude.json` on Windows) and look for an `mcpServers.monday` entry. If it exists and has a `MONDAY_TOKEN` in its `env` block, treat the kit's connector as authenticated and skip to Phase 2.
 
@@ -68,7 +68,7 @@ These rules apply to **both** connect routes. On Phase 1 (the built-in connector
 
 Run these silently, in order, and act on the first that answers.
 
-1. **Built-in connector.** Run `claude mcp list` and look for the line `claude.ai Monday` (the directory display name is "Monday", capital M, so the tools are `mcp__claude_ai_Monday__*`; there is no `--json` flag).
+1. **Built-in connector.** Run `claude mcp list` and look for the line `claude.ai monday.com` (the directory display name is "monday.com", all lower case, so the tools are `mcp__claude_ai_monday_com__*`; there is no `--json` flag).
    - `✔ Connected` → skip to **Phase 2**. Prove it first with one read through the built-in - retrieve the users and teams on the account - before saying so.
    - `! Needs authentication` → the connection is on the account but its sign-in has lapsed. Open `https://claude.ai/customize/connectors` in the user's own browser and say: *"Your monday.com connection needs a quick re-sign-in. Press **Reconnect** next to monday.com, sign in, and tell me when it says Connected."* Then re-run this check.
    - No such line → continue to step 2.
@@ -101,12 +101,12 @@ Then open `https://claude.ai/directory/monday` (the public mirror of the same pa
 
 **Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a picture of the sign-in screen. If the connect stalls waiting on a monday administrator's approval, say so plainly and stop.
 
-**Step 4 - Verify.** Run `claude mcp list` again. A line reading `claude.ai Monday … ✔ Connected` is the pass.
+**Step 4 - Verify.** Run `claude mcp list` again. A line reading `claude.ai monday.com … ✔ Connected` is the pass.
 - Not there yet → no restart will change this answer: `claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes. Read on:
 - `! Needs authentication` means the sign-in lapsed: send them to `https://claude.ai/customize/connectors` and have them press **Reconnect** next to monday.com.
 - Still no line at all means the Connect didn't complete, so send them back to Step 2.
 
-**Step 5 - Prove it.** Call one real read through the connector, retrieving the users and teams on the account. Only a real answer counts (an empty list is a real answer; a tool error is not "connected"). The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_Monday__*` tools actually available and pick a safe read rather than hard-coding a name. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app, connectors added during a session are documented to appear without a restart; if one doesn't, start a new session there.
+**Step 5 - Prove it.** Call one real read through the connector, retrieving the users and teams on the account. Only a real answer counts (an empty list is a real answer; a tool error is not "connected"). The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_monday_com__*` tools actually available and pick a safe read rather than hard-coding a name. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 **Step 5b - Probe the boards gap once.** Ask the built-in for a generic list of the user's boards. If it answers, nothing more is needed. If it cannot (no typed board-listing tool and no Dynamic API Tools behind it), note it silently: everyday item and column work stays on the built-in, and *"show me all my boards"* is the one request that needs **Phase 1-alt**. Do not run Phase 1-alt on the spot; offer it only if the user actually asks for that kind of listing.
 
@@ -273,7 +273,7 @@ Tell the user, in one short message:
 
 ## PHASE 2 - Use Tools
 
-> **Which prefix you get.** Through the built-in connector (Phase 1) the tools are `mcp__claude_ai_Monday__*`; through the kit's own route (Phase 1-alt) they are `mcp__monday__*`. Both routes reach monday's own official server, so the typed tools in the tables below apply to both and only the prefix differs. The one material difference is the **Dynamic API Tools** section at the end: those are the kit's opt-in flag, so generic board listing may be missing on the built-in. List the tools present in the session and use the prefix that is actually there; never mix the two prefixes in one session.
+> **Which prefix you get.** Through the built-in connector (Phase 1) the tools are `mcp__claude_ai_monday_com__*`; through the kit's own route (Phase 1-alt) they are `mcp__monday__*`. Both routes reach monday's own official server, so the typed tools in the tables below apply to both and only the prefix differs. The one material difference is the **Dynamic API Tools** section at the end: those are the kit's opt-in flag, so generic board listing may be missing on the built-in. List the tools present in the session and use the prefix that is actually there; never mix the two prefixes in one session.
 
 Once the connector is configured, use the monday.com MCP tools below to answer questions and make changes in monday.com. The `@mondaydotcomorg/monday-api-mcp` server provides **14 typed tools** covering the most common operations, plus **3 optional Dynamic API Tools** (enabled via `--enable-dynamic-api-tools true`) for arbitrary GraphQL.
 
