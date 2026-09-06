@@ -13,7 +13,7 @@
 //   2. the setup.md section-scoped exemption, in BOTH directions
 //   3. the baseline ratchet (new file fails, over-baseline fails, under-baseline
 //      warns instead of failing)
-//   4. the two-door canon (checkTwoDoorCanon) + the install-type question rule
+//   4. the door canon (checkDoorCanon) + the install-type question rule
 //   5. the rift-test kit-side install artifacts (checkInstallArtifacts)
 //   6. the Windows Node PATH branch (checkWindowsNodePath, slice #387)
 
@@ -22,7 +22,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   checkWindowsNodePath,
-  checkTwoDoorCanon,
+  checkDoorCanon,
   checkNoInstallTypeQuestion,
   checkInstallArtifacts,
   scanOldCanon,
@@ -61,8 +61,8 @@ check(
 
 // ---- 1b. The inverted (CORE-116) fixture ----------------------------------
 const INVERTED_EXPECTED = [
-  [10, "hardcoded-loup-home"],
-  [11, "hardcoded-loup-home"], // the Windows backslash form of the same home
+  [10, "loup-runtime-path"],
+  [11, "loup-runtime-path"], // the Windows backslash form of the same home
   [12, "hardcoded-github-home"],
   [13, "windows-github-home"],
   [14, "legacy-workspace-desktop"],
@@ -129,7 +129,10 @@ for (const [where, expectHit] of [["step1", false], ["step9", true], ["prose", t
   }
 }
 
-// ---- 4. The two-door canon --------------------------------------------------
+// ---- 4. The door canon ------------------------------------------------------
+// One live door since ADR-0003. The probe still splits three ways, but the two
+// non-success outcomes are both "not yet, try again" rather than a second
+// delivery channel.
 const GOOD_DOORS = [
   "### Step 2 — Get the kit",
   "",
@@ -146,17 +149,12 @@ const GOOD_DOORS = [
   "    GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/x/y.git",
   "",
   "**B. The probe is refused (authentication error / repository not found) → the",
-  "kit comes through Loup.** Do NOT ask me for a GitHub password. Open my Loup",
-  'dashboard, click "Get install command", and paste the line:',
-  "",
-  "    npx @louphq/install selrai-company/claude-workshop-kit --token loupit_...",
-  "",
-  "Even in UPDATE mode, always re-run my install command like this. If it is",
-  "refused, have me mint a fresh command and paste the new line.",
+  "kit is not open yet.** Never ask me for a password. Tell me it opens when the",
+  "room opens and my host will say when, then wait. When I say to try again, run",
+  "the same probe again and show me the real output.",
   "",
   "**C. The probe times out or fails like a network problem → it is the wifi.**",
-  "Never send me to Loup or ask for any token from this branch. Check I am",
-  "online and probe again.",
+  "Have me check I am online (hotspot as backup), then probe again.",
 ].join("\n");
 
 const DOOR_BAD_CASES = [
@@ -165,18 +163,21 @@ const DOOR_BAD_CASES = [
   ["clone without prompting disabled", GOOD_DOORS.replace("    GIT_TERMINAL_PROMPT=0 git clone", "    git clone")],
   ["no generous timeout", GOOD_DOORS.replace("with a generous timeout", "quickly")],
   ["no clone door", GOOD_DOORS.replace("git clone --depth 1", "git pull")],
-  ["no Loup door", GOOD_DOORS.replace("npx @louphq/install selrai-company/claude-workshop-kit --token loupit_...", "ask someone for the files")],
-  ["network branch sends me to Loup", GOOD_DOORS.replace("Never send me to Loup or ask for any token from this branch.", "Get a fresh token from Loup.")],
-  ["asks for a GitHub password", GOOD_DOORS.replace("Do NOT ask me for a GitHub password.", "Ask me for my GitHub password.")],
-  ["updates in place", GOOD_DOORS.replace("We ALWAYS take a fresh copy, never\nupdate-in-place", "Pull the latest changes").replace("always re-run my install command", "skip the install")],
+  // The refused door's three halves, each removed on its own.
+  ["refused door not named as not-open-yet", GOOD_DOORS.replace("kit is not open yet.**", "kit is unavailable.**")],
+  ["refused door does not say when it opens", GOOD_DOORS.replace("Tell me it opens when the\nroom opens and my host will say when, then wait.", "Tell me to come back later.")],
+  ["refused door never retries", GOOD_DOORS.replace("When I say to try again, run\nthe same probe again and show me the real output.", "Give up.")],
+  ["network branch is treated as access", GOOD_DOORS.replace("→ it is the wifi.**\nHave me check I am online (hotspot as backup), then probe again.", "→ your access is gone.**\nStop here.")],
+  ["asks for a password", GOOD_DOORS.replace("Never ask me for a password.", "Ask me for my password.")],
+  ["updates in place", GOOD_DOORS.replace("We ALWAYS take a fresh copy, never\nupdate-in-place", "Pull the latest changes")],
   ["door is a question", `${GOOD_DOORS}\n\nFirst, ask me: is this a GitHub or Loup install?`],
   ["door is not declared plumbing", GOOD_DOORS.replace("plumbing I never need to know about.", "something I should understand.")],
 ];
 
-const goodDoors = checkTwoDoorCanon(GOOD_DOORS);
-check(goodDoors.ok, `two-door canon: a conformant Step 2 is accepted${goodDoors.ok ? "" : ` — ${goodDoors.detail}`}`);
+const goodDoors = checkDoorCanon(GOOD_DOORS);
+check(goodDoors.ok, `door canon: a conformant Step 2 is accepted${goodDoors.ok ? "" : `: ${goodDoors.detail}`}`);
 for (const [name, body] of DOOR_BAD_CASES) {
-  check(!checkTwoDoorCanon(body).ok, `two-door canon "${name}": rejected as expected`);
+  check(!checkDoorCanon(body).ok, `door canon "${name}": rejected as expected`);
 }
 
 // The whole-document question rule, separately: a prompt can be clean while the

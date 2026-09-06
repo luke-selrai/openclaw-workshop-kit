@@ -21,6 +21,12 @@
 //   github-desktop   ~/workshop-kit                ~/Desktop/my-assistant  yes     yes
 //   github-home      ~/workshop-kit                ~/my-assistant          NO      NO
 //
+// `loup` is a LEGACY SHAPE, not a live one. ADR-0003 retired Loup as a delivery
+// channel; the shape stays because the before-states it reconstructs are still
+// sitting on attendee laptops, and migration has to find that kit home, rebuild
+// fingerprints from it, and then remove it exactly as it removes ~/workshop-kit.
+// Nothing here means the Loup door still exists.
+//
 // `github-home` is the ancient pre-revive shape and the awkward one: its
 // workspace is in the home folder, not the Desktop, and it predates both the
 // `.first-run-pending` marker and the plugin marketplace step. Anything that
@@ -44,20 +50,21 @@
 // environment; see docs/agents/legacy-install-fixture.md.)
 //
 // GIT CREDENTIALS ARE ALWAYS NEUTRALISED, and this matters more than it looks.
-// The new prompt decides which door to use with an unauthenticated
-// `git ls-remote` probe. A developer machine reads the PRIVATE repo just fine —
-// the real global gitconfig routes github.com through `gh auth git-credential` —
-// so an un-neutralised probe SUCCEEDS, and the dry-run silently tests the
-// GitHub-clone door: the wrong branch, and a false pass. An attendee has no
-// credentials, gets refused, and lands on the Loup door. The sandbox therefore
-// ships a `.gitconfig` with an empty `credential.helper`, clearing the inherited
-// helper list.
+// The prompt decides what to do with an unauthenticated `git ls-remote` probe.
+// A developer machine reads the CLOSED repo just fine, because the real global
+// gitconfig routes github.com through `gh auth git-credential`, so an
+// un-neutralised probe SUCCEEDS, and the dry-run silently tests the clone
+// branch while claiming to test a closed room: a false pass either way. An
+// attendee has no credentials, gets refused, and is told the kit is not open
+// yet. The sandbox therefore ships a `.gitconfig` with an empty
+// `credential.helper`, clearing the inherited helper list.
 //
-// To test the GitHub-clone door instead, do NOT try to smuggle credentials in
-// (a sandboxed HOME drops gh's own config and keyring access, so it silently
-// fails back to the Loup door anyway). Run the fixture while the repo is
-// actually PUBLIC — during a drop window. A public repo needs no credentials at
-// all, so the neutralised fixture is already the faithful test of that door.
+// Since ADR-0003 there is only one door, so a refused probe now DRY-RUNS TO A
+// STOP: the prompt waits for the room to open and touches nothing. To exercise
+// the clone and everything after it, run the fixture while the repo is actually
+// PUBLIC, during a drop window, which is exactly when attendees run it. Do NOT
+// try to smuggle credentials in; a sandboxed HOME drops gh's own config and
+// keyring access, so the probe is refused regardless.
 //
 // Usage:
 //   node scripts/make-legacy-fixture.mjs --out /tmp/legacy --shape github-home
@@ -113,7 +120,7 @@ const SHAPES = {
     workspace: ["Desktop", "my-assistant"],
     marker: true,
     plugins: true,
-    note: "Loup delivery; the most recent legacy shape.",
+    note: "Loup delivery (retired by ADR-0003); the most recent legacy shape.",
   },
   "github-desktop": {
     ref: "6265b8e",

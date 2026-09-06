@@ -99,6 +99,20 @@ function main() {
     check("legacy marker removed", !existsSync(join(workspace, ".first-run-pending")));
   }
 
+  // --- old kit download folder retired (shape-aware) ------------------------
+  // ADR-0003 made this uniform across every shape. Before it, ~/workshop-kit was
+  // the only removable old home and the Loup homes were left alone because one
+  // of them was a live door. There is one live home now (~/claude-workshop-kit),
+  // so every other old kit folder, including both Loup ones, is a stale
+  // download the MIGRATE step has to clear out. The fixture records its own kit
+  // home, so this reads it rather than hardcoding a layout.
+  const legacyKitHome = join(home, rec.layout.kitHome.replace(/^~\//, ""));
+  check(
+    "old kit download folder removed",
+    !existsSync(legacyKitHome),
+    rec.layout.kitHome,
+  );
+
   // --- user-made content ----------------------------------------------------
   const seeded = rec.state.seeded;
   if (seeded) {

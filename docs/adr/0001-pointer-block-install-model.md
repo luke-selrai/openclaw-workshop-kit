@@ -1,5 +1,7 @@
 # ADR-0001 — Kit install model: pointer block, manifest, universal one-paste setup
 
+> **Amended by [ADR-0003](0003-the-loup-door-is-retired.md) (2026-09-07):** the Loup door is retired. There is one live door and one kit home; §1's second path, §3's `installPath` values and §5's stale-home rule are superseded there. The history below is left as written.
+
 - **Status:** Accepted, 2026-07-31
 - **Deciders:** Harvey Shaw, via the wayfinder map [CORE-99](https://linear.app/selr-ai/issue/CORE-99) (decision detail lives on its child tickets, linked throughout)
 - **Scope:** how the workshop kit is installed, updated, migrated, and uninstalled — on both distribution paths

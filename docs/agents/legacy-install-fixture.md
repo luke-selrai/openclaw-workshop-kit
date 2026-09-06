@@ -24,6 +24,12 @@ kit's own record of what it did rather than from memory.
 | `github-desktop` | `~/workshop-kit` | `~/Desktop/my-assistant` | yes | yes | `6265b8e` |
 | `github-home` | `~/workshop-kit` | `~/my-assistant` | **no** | **no** | `ddb68ec` |
 
+All three are **legacy shapes**. `loup` reconstructs an **old Loup install**, not a live
+one: [ADR-0003](../adr/0003-the-loup-door-is-retired.md) retired Loup as a delivery channel,
+and the shape stays because those before-states are still on attendee laptops. Migration has
+to find that kit home, rebuild fingerprints from it, and then delete it exactly as it
+deletes `~/workshop-kit`.
+
 `github-home` is the ancient pre-revive shape and the one that bites: its workspace is in
 the **home folder, not the Desktop**, and it predates both the marker file and the plugin
 marketplace step. Anything that hardcodes `~/Desktop/my-assistant` silently skips it.
@@ -77,18 +83,22 @@ Fidelity check: at their pinned refs the shapes install 204 (`loup`) and 117
 `CLAUDE_CONFIG_DIR` unset, the config dir resolves to the fixture's own `~/.claude` anyway
 — same isolation, working auth.
 
-**2. Git credentials are neutralised, and must stay that way.** The prompt picks its
-acquisition door with an unauthenticated `git ls-remote` probe. A developer machine reads
-the **private** repo just fine (the real global gitconfig routes github.com through
-`gh auth git-credential`), so an un-neutralised probe *succeeds* and the dry-run silently
-tests the GitHub-clone door — the wrong branch, and a false pass. An attendee has no
-credentials, is refused, and lands on the Loup door. The fixture therefore writes a
-`.gitconfig` with an empty `credential.helper`.
+**2. Git credentials are neutralised, and must stay that way.** The prompt decides what to
+do with an unauthenticated `git ls-remote` probe. A developer machine reads the **closed**
+repo just fine (the real global gitconfig routes github.com through `gh auth
+git-credential`), so an un-neutralised probe *succeeds* and the dry-run silently tests the
+clone branch while claiming to test a closed room, which is a false pass either way. An
+attendee has
+no credentials, is refused, and is told the kit is not open yet. The fixture therefore
+writes a `.gitconfig` with an empty `credential.helper`.
 
-To test the **GitHub-clone door**, don't try to smuggle credentials in — a sandboxed `HOME`
-drops `gh`'s own config and keyring access, so it fails back to the Loup door regardless.
-Run the fixture while the repo is genuinely **public**, during a drop window. A public repo
-needs no credentials, so the neutralised fixture is already the faithful test of that door.
+Since ADR-0003 there is only one door, so a **refused probe dry-runs to a stop**: the prompt
+says the kit is not open yet, waits for the room, and touches nothing. That is a real thing
+to verify, and it is all a closed-repo run can verify. To exercise the clone and everything
+after it, run the fixture while the repo is genuinely **public**, during a drop window,
+which is exactly the state attendees run it in. Don't try to smuggle credentials in; a
+sandboxed `HOME` drops `gh`'s own config and keyring access, so the probe is refused
+regardless.
 
 ## Dry-run the prompt against it
 
@@ -131,8 +141,10 @@ acceptance criteria, not a suggestion.
 - [ ] **Manifest written**, with kit-named skills adopted into the receipt
 - [ ] **`onboarded: true`** — the migrating user is not re-onboarded
 - [ ] **`.first-run-pending` inert** — cannot retrigger orientation (shapes that have one)
-- [ ] **Kit home recorded per the probe outcome** — matches the door actually taken
+- [ ] **Kit home recorded**: `~/claude-workshop-kit`, with `installPath: github`
 - [ ] **Old workspace handled per spec** — check this **per shape**, not just on `loup`
+- [ ] **Old kit download folder removed**: the shape's own kit home is gone, including both
+      old Loup homes (ADR-0003 §3). `~/claude-workshop-kit` is never touched.
 - [ ] **User-made content untouched** — `my-notes.md` and `my-own-skill/` byte-identical
 - [ ] **Edited kit skill kept and reported**, not silently overwritten
 - [ ] **"Works from any folder" note fires exactly once**
@@ -165,8 +177,8 @@ end-to-end interactively, through the restart.
 
 ### Everything verified
 
-`loup` and `github-desktop` pass 14/14; `github-home` passes 13/13 (it has no marker to
-remove). In every shape: one pointer block, persona installed, pre-existing hand-written
+`loup` and `github-desktop` passed 14/14; `github-home` passed 13/13 (it has no marker to
+remove). CORE-385 added the old-kit-home check, so the totals are one higher from here on. In every shape: one pointer block, persona installed, pre-existing hand-written
 global content survived, manifest with `installMode: migrate`, `onboarded: true`, 204
 fingerprints and an absolute kit home, old workspace `CLAUDE.md` renamed to
 `.pre-migration`, and all user-made content untouched. `my-own-skill` is correctly
@@ -183,9 +195,11 @@ file-presence check cannot show.
 
 ### The prompt fails safe
 
-In an earlier run where the kit could not be obtained (repo still private, Loup door needs
-a human), it stopped cleanly, refused to fabricate a Loup install command, and left the
-machine completely untouched. No partial mutation before the kit is in hand.
+In an earlier run where the kit could not be obtained (repo closed), it stopped cleanly,
+refused to fabricate a way in, and left the machine completely untouched. No partial
+mutation before the kit is in hand. ADR-0003 made this the *designed* behaviour of a refused
+probe rather than an accident of a dead-ending walkthrough: the prompt says the kit is not
+open yet, waits, and re-probes on the attendee's word.
 
 ### MIGRATE detection leans on its second clause
 
