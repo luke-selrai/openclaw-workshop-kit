@@ -13,13 +13,17 @@
 //                         surfaces that legitimately name the old world. This
 //                         check was INVERTED by CORE-116: it used to police
 //                         only the retired homes (~/workshop-kit and friends)
-//                         while treating ~/.loup/selr-ai/workshop-kit as the
-//                         one true home. Under ADR-0001 §2/§3 there is no one
-//                         true home — the kit home is per-install, declared in
-//                         the pointer block and the manifest — so a HARDCODED
-//                         kit home of EITHER live door is now a violation too,
-//                         as is the dead workspace folder (~/Desktop/my-assistant)
-//                         and the dead .first-run-pending marker.
+//                         while treating the Loup home as the one true home.
+//                         Under ADR-0001 §2/§3 there is no one true home — the
+//                         kit home is per-install, declared in the pointer block
+//                         and the manifest — so a HARDCODED kit home is a
+//                         violation too, as is the dead workspace folder
+//                         (~/Desktop/my-assistant) and the dead
+//                         .first-run-pending marker. ADR-0003 collapsed the two
+//                         Loup path rules into ONE: a path under the user's
+//                         .loup folder is now purely a legacy install to find
+//                         and remove, so naming one anywhere except MIGRATE and
+//                         uninstall handling is the violation.
 //   2. SINGLE-SURFACE     docs/start carries exactly one install document
 //                         (setup.md). This is what RETIRED the bootstrap ≡
 //                         full-setup byte-identity checker (ADR-0001 §4): the
@@ -27,12 +31,13 @@
 //                         diff for — it is structurally impossible. What
 //                         replaces the diff is this: prove there is still only
 //                         one copy, because a second copy is how drift returns.
-//   3. INSTALL-METHOD     the two-door canon (ADR-0001 §1), replacing the old
-//                         Loup-only assertion: one silent `git ls-remote` probe
-//                         with GIT_TERMINAL_PROMPT=0, three doors behind it
-//                         (clone / Loup dashboard / wifi retry), always
-//                         re-fetch never update-in-place, and the install type
-//                         is never a question put to the user.
+//   3. INSTALL-METHOD     the door canon (ADR-0001 §1, retired to ONE live door
+//                         by ADR-0003): one silent `git ls-remote` probe with
+//                         GIT_TERMINAL_PROMPT=0, three outcomes behind it
+//                         (clone / the kit is not open yet, wait and retry /
+//                         wifi retry), always re-fetch never update-in-place,
+//                         and the install type is never a question put to the
+//                         user.
 //   4. VERIFY-GATE-PATHS  the repo-root sources the setup document copies out of
 //                         (my-assistant/CLAUDE.md + skills/) exist.
 //   5. WINDOWS-NODE-PATH  the setup prompt's Windows branch installs Node via winget,
@@ -48,8 +53,9 @@
 //                         manifest — NOT a workspace my-assistant/CLAUDE.md.
 //                         (0007 amendment §4, obligations A2/A3/A5.)
 //
-// Informational (never fails): snapshot file count + a note if Loup's caps are
-// at risk. Media trimming is a separate slice; this only reports.
+// ADR-0003 also removed the informational snapshot-shape line that used to
+// print here. It measured the tree against Loup's snapshot caps, and Loup no
+// longer ships this kit, so the number was a cap nothing enforced.
 
 import { readFileSync, readdirSync, existsSync, writeFileSync } from "node:fs";
 import { extractPromptBody, sameLine } from "./check-resilient-install.mjs";
@@ -84,15 +90,17 @@ const OLD_CANON_PATTERNS = [
   { id: "windows-users-home", re: /[A-Za-z]:\\Users\\[^\\]*\\workshop-kit/, why: "retired kit home C:\\Users\\…\\workshop-kit" },
   { id: "whatsapp-clone-fallback", re: /~\/claude-workshop-kit\/whatsapp/, why: "retired clone-fallback path" },
 
-  // --- INVERTED by CORE-116: a hardcoded LIVE kit home -------------------
-  // Both doors' homes are per-install facts. Anything that hardcodes one is a
-  // reference that breaks on the other door — exactly obligation A1 of the
-  // 0007 amendment ("no hardcoded kit home anywhere in docs, skills or
-  // persona — every reference reads the declared pointer").
+  // --- ADR-0003: any runtime reference to a Loup install home --------------
+  // Retiring the Loup door collapsed the two path rules into one. There is no
+  // Loup door to hardcode any more, so a path under the user's .loup folder is
+  // now only ever an OLD install to detect and remove. The MIGRATE and
+  // uninstall surfaces that do that removing are allowlisted (or, for
+  // setup.md, section-scoped); anywhere else, naming one is a live reference to
+  // a delivery channel that no longer exists.
   {
-    id: "hardcoded-loup-home",
-    re: /\.loup[/\\](?:selr-ai[/\\]workshop-kit|selrai-company[/\\]claude-workshop-kit)/,
-    why: "hardcoded Loup-door kit home — read it from the pointer block / manifest instead",
+    id: "loup-runtime-path",
+    re: /\.loup[/\\]/,
+    why: "a Loup install home is a legacy install to find and remove (ADR-0003), never a live kit home — read the kit home from the pointer block / manifest",
   },
   {
     id: "hardcoded-github-home",
@@ -146,6 +154,11 @@ const OLD_CANON_ALLOWLIST = new Set([
   "scripts/__fixtures__/conform-stale.md",
   "scripts/__fixtures__/old-canon-bad.md",
   "scripts/test-verify-conform.mjs", // seeds violations inline to prove the rules fire
+  // Same reason, one checker over: the resilience fixture carries the retired
+  // Loup door so the FORBIDDEN scan has something to catch, and its test seeds
+  // legacy-home lines inline to prove the ADR-0003 carve-out holds both ways.
+  "scripts/__fixtures__/resilient-install-bad.md",
+  "scripts/test-resilient-install.mjs",
   BASELINE_FILE, // a list of paths-with-debt, not a reference to any of them
   // The legacy-install fixture RECONSTRUCTS pre-canon machine states in a
   // sandbox so migration can be dry-run against them. Reproducing the old homes
@@ -155,7 +168,10 @@ const OLD_CANON_ALLOWLIST = new Set([
   "docs/agents/legacy-install-fixture.md",
   // ADR-0001 SPECIFIES the migration away from the old canon, so it names it
   // deliberately (MIGRATE fingerprint reconstruction, stale-home cleanup).
+  // ADR-0003 retires the Loup door and has to name the homes it demotes to
+  // legacy targets.
   "docs/adr/0001-pointer-block-install-model.md",
+  "docs/adr/0003-the-loup-door-is-retired.md",
   // Uninstall (CORE-115, a parallel ticket — allowlisted pre-emptively so the
   // two tickets can land in either order). ADR-0001 §9: uninstall's KEPT list
   // is "any legacy-workspace candidate-list folder", and its manifest-missing
@@ -258,17 +274,18 @@ export function evaluateOldCanonRatchet(counts, baseline) {
 }
 
 // ---------------------------------------------------------------------------
-// Check 3: the two-door canon (replaces the Loup-only install-method assertion)
+// Check 3: the door canon. One live door since ADR-0003; the probe still has
+// three outcomes, and two of them are "not yet, try again".
 // ---------------------------------------------------------------------------
 
 // Questions the setup surface must never ask. ADR-0001's rejected-alternatives
 // table is explicit: "asking the user which install type they have — they
 // cannot know, it is our plumbing; the probe knows."
 const INSTALL_TYPE_QUESTION_PATTERNS = [
-  // Naming both doors is fine and necessary — the manifest records which one
-  // ran (`"installPath": "<github or loup …>"`). What is forbidden is PUTTING
-  // the pair to the user, so the pattern needs interrogative context, not the
-  // bare phrase.
+  // These outlived the Loup door on purpose (ADR-0003). "Do you have a Loup
+  // account?" is exactly the question the retirement exists to make
+  // unaskable, and the pair is still nameable in prose (an ADR, this file), so
+  // the pattern needs interrogative context rather than the bare phrase.
   { id: "github-or-loup", re: /(?:ask|question)[^\n]{0,40}(?:github or loup|loup or github)|(?:github or loup|loup or github)[^\n]{0,80}\?/i },
   { id: "which-install", re: /which (install|download|delivery|setup) (type|path|method|door|route)/i },
   { id: "where-did-you-get", re: /(did|do) you (get|receive|have) the kit (from|through|via)/i },
@@ -277,10 +294,10 @@ const INSTALL_TYPE_QUESTION_PATTERNS = [
 ];
 
 /**
- * The two-door canon, asserted against the pasted prompt body.
+ * The door canon, asserted against the pasted prompt body.
  * Pure + exported so the regression test can drive it with crafted bodies.
  */
-export function checkTwoDoorCanon(body) {
+export function checkDoorCanon(body) {
   const fails = [];
 
   // a) One silent probe, prompting disabled, fails fast rather than hanging.
@@ -299,29 +316,34 @@ export function checkTwoDoorCanon(body) {
     fails.push("missing the GitHub door (`git clone --depth 1` on one line with GIT_TERMINAL_PROMPT=0)");
   }
 
-  // c) Door B — Loup dashboard walkthrough on a REFUSED probe.
+  // c) Door B — a REFUSED probe means the kit is not open yet (ADR-0003). It
+  //    routes to a wait and a re-probe on the attendee's word, never to a
+  //    second delivery channel and never to a credential hunt.
   const refusedNamed = /(refused|rejected|authentication error|not found)/i.test(body);
-  const loupDoor = /npx @louphq\/install/.test(body) && /dashboard/i.test(body);
-  if (!refusedNamed || !loupDoor) {
-    fails.push(`missing the Loup door on a refused probe (refusedNamed=${refusedNamed}, loupWalkthrough=${loupDoor})`);
+  const notOpenYet = /not open yet/i.test(body) && /opens?\s+when\s+the\s+room\s+opens/i.test(body);
+  const waitsAndRetries = /\bwait\b/i.test(body) && /try again/i.test(body) && /probe again/i.test(body);
+  if (!refusedNamed || !notOpenYet || !waitsAndRetries) {
+    fails.push(`missing the not-open-yet door on a refused probe (refusedNamed=${refusedNamed}, notOpenYet=${notOpenYet}, waitsAndRetries=${waitsAndRetries})`);
   }
 
   // d) Door C — a network failure is the wifi, never an access problem. This is
   //    the clause that keeps a flaky venue connection from turning into a
   //    credential hunt.
-  const networkDoor = /(times? out|network problem|network error)/i.test(body) &&
-    /never[\s\S]{0,160}(token|loup)/i.test(body);
+  const networkDoor = /(times? out|network problem|network error)[\s\S]{0,300}\bwifi\b/i.test(body) &&
+    /(times? out|network problem|network error)[\s\S]{0,400}(online|hotspot)/i.test(body);
   if (!networkDoor) {
-    fails.push("missing the network door (timeout/network failure → retry the wifi, never a token ask)");
+    fails.push("missing the network door (timeout/network failure → it is the wifi, check online and probe again)");
   }
 
-  // e) Never a GitHub credential ask on the refused door either.
+  // e) Never a credential ask on the refused door either.
   if (!/(do not|don't|never)[\s\S]{0,60}password/i.test(body)) {
-    fails.push("must state a refused probe never leads to a GitHub password ask");
+    fails.push("must state a refused probe never leads to a password ask");
   }
 
-  // f) Always re-fetch, never update-in-place — both doors.
-  const reFetch = /(fresh copy|never update-in-place|ALWAYS take a fresh|always re-run)/i.test(body);
+  // f) Always re-fetch, never update-in-place. The `always re-run` alternative
+  //    went with the Loup door — re-running a pasted install command was the
+  //    other door's way of saying this, and there is no other door.
+  const reFetch = /(fresh copy|ALWAYS take a fresh)/i.test(body) && /never\s+update-in-place/i.test(body);
   if (!reFetch) {
     fails.push("must state the kit is always re-fetched fresh, never updated in place");
   }
@@ -340,7 +362,7 @@ export function checkTwoDoorCanon(body) {
   return {
     ok: fails.length === 0,
     detail: fails.length === 0
-      ? "one silent probe → three doors (clone / Loup dashboard / wifi retry); always re-fetched; install type never asked"
+      ? "one silent probe → three outcomes (clone / not open yet, wait and retry / wifi retry); always re-fetched; install type never asked"
       : fails.join("; "),
   };
 }
@@ -625,7 +647,7 @@ function main() {
     if (error) {
       note(false, "setup-document", `${SETUP_DOC}: ${error}`);
     } else {
-      const doors = checkTwoDoorCanon(body);
+      const doors = checkDoorCanon(body);
       note(doors.ok, "install-method", `${SETUP_DOC} (pasted prompt) — ${doors.detail}`);
 
       // The question rule also runs over the WHOLE document: the prompt could
@@ -653,11 +675,6 @@ function main() {
     missingGate.length === 0
       ? `${gatePaths.join(" + ")} present at repo root`
       : `missing: ${missingGate.join(", ")}`);
-
-  // ---- Informational: snapshot file count ---------------------------------
-  const snapshotFiles = walk(ROOT).filter((f) => !relative(ROOT, f).startsWith(".git"));
-  const FILE_CAP = 2000;
-  console.log(`INFO snapshot-shape — ${snapshotFiles.length} files (Loup cap < ${FILE_CAP})${snapshotFiles.length >= FILE_CAP ? " ⚠️ AT RISK" : ""}`);
 
   if (!hardFailed) console.log("\n✅ verify-conform: all hard checks passed");
   process.exit(hardFailed ? 1 : 0);

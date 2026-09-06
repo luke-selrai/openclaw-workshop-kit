@@ -4,6 +4,9 @@
 // mirrored regexes) and asserts:
 //   1. The real setup document's PASTED PROMPT satisfies every resilience rule.
 //   2. A deliberately non-resilient fixture FAILS every rule (each detector fires).
+//   3. The ADR-0003 legacy-home carve-out holds in both directions: naming an old
+//      Loup install folder is not a delivery surface, one line away still is.
+//   4. The credential-ask rule is negation-aware.
 // Follows scripts/test-verify-conform.mjs's PASS/FAIL + fixture convention, but
 // imports the checker's evaluateResilience() instead of mirroring its regexes,
 // so the rules have one source of truth.
@@ -15,6 +18,7 @@ import {
   evaluateResilience,
   extractBootstrapBody,
   extractPromptBody,
+  scanForbidden,
   PRESENCE_RULES,
   BOOTSTRAP_COPIES,
 } from "./check-resilient-install.mjs";
@@ -23,7 +27,14 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
 const FIXTURE = join(HERE, "__fixtures__", "resilient-install-bad.md");
 
-const ALL_RULE_IDS = [...PRESENCE_RULES.map((r) => r.id), "no-escalation"];
+// The two inverted rules are appended by evaluateResilience() rather than
+// living in PRESENCE_RULES, so they are named here explicitly: a rule that
+// quietly stopped being evaluated would otherwise vanish from this list too.
+const ALL_RULE_IDS = [
+  ...PRESENCE_RULES.map((r) => r.id),
+  "no-escalation",
+  "no-retired-delivery-surface",
+];
 
 let failed = false;
 const check = (ok, label) => {
@@ -65,6 +76,33 @@ if (badErr) {
   for (const r of rules) {
     check(!r.ok, `fixture [${r.id}]: detector fires (expected fail)`);
   }
+}
+
+// 3. The legacy-home carve-out, in both directions (ADR-0003). MIGRATE and the
+//    retirement step must still be able to name the old Loup install folders,
+//    and that naming must not read as a second way to get the kit. The same
+//    word one line away, off a legacy-home path, is still a violation.
+{
+  const legacyOnly = [
+    "Delete `~/.loup/selr-ai/workshop-kit` if it is definitely an old kit.",
+    "Delete `~/.loup/selrai-company/claude-workshop-kit` on the same test.",
+  ].join("\n");
+  check(scanForbidden(legacyOnly).length === 0,
+    "carve-out: naming the old Loup install folders is not a delivery surface");
+
+  const stillBad = `${legacyOnly}\nThen open the Loup dashboard and paste your install command.`;
+  const ids = scanForbidden(stillBad).map((h) => h.id);
+  check(ids.includes("loup-delivery") && ids.includes("dashboard") && ids.includes("install-command"),
+    `carve-out: a delivery surface one line away still fires (got ${ids.join(", ") || "nothing"})`);
+}
+
+// 4. The credential-ask rule is negation-aware: the contract sentence must not
+//    read as the violation it forbids.
+{
+  check(scanForbidden("Never ask me for a password, a sign-in or a code.").length === 0,
+    "credential-ask: a negated ask is the contract, not a violation");
+  check(scanForbidden("Ask me for my password and paste it back.").some((h) => h.id === "credential-ask"),
+    "credential-ask: an unqualified ask fires");
 }
 
 process.exit(failed ? 1 : 0);

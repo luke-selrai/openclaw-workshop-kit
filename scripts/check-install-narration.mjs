@@ -77,8 +77,8 @@ const R = {
   },
   // ---- CORE-116: rules for the universal setup document -------------------
   // The two-prompt bootstrap narrated its two or three download points by hand.
-  // The universal prompt has more of them (Node, git, the probe, the clone or
-  // the Loup install, the CLI, the plugin, Playwright, the power-user skills),
+  // The universal prompt has more of them (Node, git, the probe, the clone, the
+  // CLI, the plugin, Playwright, the power-user skills),
   // and enumerating each one in the checker would rot on the first reorder. So
   // the contract moved up a level: ONE blanket rule at the top of the prompt
   // that binds every slow command in the document.

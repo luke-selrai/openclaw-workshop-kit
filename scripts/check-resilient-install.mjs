@@ -29,36 +29,45 @@
 //   2. REAL-OUTPUT         the real, unedited command output is shown, not swallowed.
 //   3. PARTIAL-REPORT      a half-finished download (folder present but a checked
 //                          path missing) is reported, not silently treated as OK.
-//   4. REJECTED-DIAGNOSIS  a refused install is named as the common cause, with
-//                          both causes — a stale command and a grant not yet active.
-//   5. REMINT-FIX          the primary fix is re-mint guidance via "Get install
-//                          command", and the attendee retries.
-//   6. NO-RETRY-CAP        the loop states there is no limit on retries.
-//   7. NO-ESCALATION       no human-escalation wording (notify / facilitator /
+//   4. ONE-FIX-PER-ROUND   the recovery loop changes one thing at a time rather
+//                          than shotgunning fixes at a failed download.
+//   5. NO-RETRY-CAP        the loop states there is no limit on retries.
+//   6. NO-ESCALATION       no human-escalation wording (notify / facilitator /
 //                          Luke / Harvey / escalate) appears anywhere in the body.
 //
-// CORE-116 added the GitHub probe/clone surface, which ADR-0001 §1 put in front
-// of the Loup door. The failure modes are the same shape as the ones above, but
-// the probe fails in THREE ways and only one of them is an access problem:
-//   8. SILENT-PROBE        a cheap `git ls-remote` with GIT_TERMINAL_PROMPT=0,
-//                          so a private repo fails fast instead of hanging on a
+// CORE-116 added the GitHub probe/clone surface. CORE-385 retired the Loup door
+// behind it (ADR-0003): there is ONE live door now, and a refused probe means
+// the kit is not open yet. The probe still fails in three ways, and none of them
+// is ever a credential problem the attendee can fix by signing in somewhere:
+//   7. SILENT-PROBE        a cheap `git ls-remote` with GIT_TERMINAL_PROMPT=0,
+//                          so a closed repo fails fast instead of hanging on a
 //                          credential prompt.
-//   9. THREE-DOORS         success → clone; refused → Loup walkthrough;
+//   8. THREE-DOORS         success → clone; refused → wait for the room to open;
 //                          timeout/network → retry the wifi.
-//  10. NO-CREDENTIAL-ASK   a refused probe never turns into a GitHub password ask.
-//  11. NETWORK-NEVER-TOKEN a network failure never routes to Loup or a token.
-//                          This is the one that matters on venue wifi: a dropped
-//                          connection reads as "your access was revoked" to a
-//                          naive installer, and the attendee ends up hunting for
-//                          credentials they already have.
-//  12. STALE-ACCESS-RECOVERY  the git-flavoured analogue of REMINT-FIX: a
-//                          REFUSED probe (not a slow one) is the case that
-//                          routes to the dashboard walkthrough and a freshly
-//                          minted command.
+//   9. NO-CREDENTIAL-ASK   a refused probe never turns into a password ask.
+//  10. NOT-OPEN-YET        a refused probe is named for what it is — the kit is
+//                          not open yet, it opens when the room opens, and the
+//                          host says when. Never an access fault of the
+//                          attendee's, never something they can fix by fetching
+//                          a credential.
+//  11. WAIT-THEN-RETRY     the refused door waits for the attendee's word and
+//                          re-runs the same probe when they give it. This is
+//                          what replaced the Loup re-mint loop (ADR-0003).
+//  12. NETWORK-IS-WIFI     a network failure is named as the wifi and routed to
+//                          an online check plus a re-probe. This is the one that
+//                          matters on venue wifi: a dropped connection reads as
+//                          "your access was revoked" to a naive installer, and
+//                          the attendee ends up hunting for credentials that
+//                          were never the problem.
 //  13. ALWAYS-REFETCH      the kit is re-acquired fresh on every run, never
-//                          updated in place, on both doors.
+//                          updated in place.
 //  14. CLONE-SAFETY        an existing kit-home folder is only deleted after it
 //                          is confirmed to be a kit download — never on its name.
+//
+// Plus a FORBIDDEN set (must not appear at all): the retired Loup delivery
+// surface and any place to sign in. Those are checked over the prompt with its
+// legacy-home lines removed first — MIGRATE and retirement still have to name
+// the old Loup install folders, and naming a folder to delete is not a door.
 
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -94,6 +103,10 @@ const BOOTSTRAP_COPIES = ["docs/start/setup.md"];
 
 // Human-escalation wording the bootstrap must never contain. Slice #388: the
 // attendee and Claude resolve any install problem between themselves.
+//
+// "wait for your host to say the room is open" is deliberately NOT escalation:
+// nobody is being asked to fix anything for the attendee, and no message is sent
+// to anyone. The room opening is a scheduled event, not a support request.
 const ESCALATION_PATTERNS = [
   { id: "notify", re: /\bnotify\b/i },
   { id: "facilitator", re: /\bfacilitator\b/i },
@@ -101,6 +114,57 @@ const ESCALATION_PATTERNS = [
   { id: "harvey", re: /\bHarvey\b/ },
   { id: "escalate", re: /\bescalat/i },
 ];
+
+// A line that names one of the old Loup install folders. These survive on
+// purpose (ADR-0003): MIGRATE fingerprint reconstruction and the MIGRATE
+// retirement step both have to find and remove them. They are stripped before
+// the FORBIDDEN scan so "delete this stale folder" cannot read as "here is a
+// second way to get the kit".
+const LEGACY_HOME_LINE = /\.loup[/\\]/;
+
+/** The prompt with every legacy-home line removed. */
+function withoutLegacyHomeLines(body) {
+  return body.split(/\r?\n/).filter((line) => !LEGACY_HOME_LINE.test(line)).join("\n");
+}
+
+// Delivery surfaces and credential hunts the prompt must never contain, checked
+// against the body with the legacy-home lines already stripped. Every one of
+// these is something an attendee cannot do and must never be sent to do: there
+// is no dashboard, no token, no install command to paste, and nowhere to sign
+// in. The kit opens with the room or it does not open.
+const FORBIDDEN_PATTERNS = [
+  { id: "loup-delivery", re: /loup/i, why: "Loup is retired as a delivery channel (ADR-0003)" },
+  { id: "dashboard", re: /\bdashboard\b/i, why: "there is no dashboard to send the attendee to" },
+  { id: "token", re: /\btokens?\b/i, why: "the attendee never has, needs or is asked for a token" },
+  { id: "install-command", re: /install command/i, why: "there is no install command to mint or paste" },
+  {
+    id: "sign-in-destination",
+    // A URL offered on the same line as a sign-in. The prompt carries plenty of
+    // URLs (github.com, nodejs.org, example.com); what it must never carry is a
+    // place to log in.
+    re: /^(?=.*https?:\/\/)(?=.*\b(sign[- ]?in|sign in|log[- ]?in|logged in)\b).*$/im,
+    why: "a refused probe never sends the attendee somewhere to sign in",
+  },
+];
+
+// An unqualified instruction to ask the attendee for a credential. Negated
+// mentions ("never ask me for a password") are the contract, not a violation,
+// so this is evaluated per line with the negation carved out.
+const CREDENTIAL_ASK = /\bask(?:ing|s)?\s+(?:me|you|them|the user)\b[^\n]{0,60}\b(password|sign[- ]?in|credentials?|username|account)\b/i;
+const NEGATED_ASK = /\b(never|not|no|don't|do not|without|rather than)\b[^\n]{0,40}\bask/i;
+
+/** Forbidden-surface hits, as [{ id, why }]. */
+function scanForbidden(body) {
+  const stripped = withoutLegacyHomeLines(body);
+  const hits = FORBIDDEN_PATTERNS.filter((p) => p.re.test(stripped)).map((p) => ({ id: p.id, why: p.why }));
+  for (const line of stripped.split(/\r?\n/)) {
+    if (CREDENTIAL_ASK.test(line) && !NEGATED_ASK.test(line)) {
+      hits.push({ id: "credential-ask", why: `asks the attendee for a credential: "${line.trim().slice(0, 80)}"` });
+      break;
+    }
+  }
+  return hits;
+}
 
 /** True when a single line of `body` matches every pattern given. */
 function sameLine(body, ...patterns) {
@@ -125,17 +189,9 @@ const PRESENCE_RULES = [
     test: (b) => /\bpartial\b/i.test(b) && /\bmissing\b/i.test(b),
   },
   {
-    id: "rejected-diagnosis",
-    why: "name a refused install, plus both its causes — a stale command and a grant not yet active",
-    test: (b) =>
-      /\b(refused|rejected|not accepted)\b/i.test(b) &&
-      /\bstale\b/i.test(b) &&
-      /switched on|not yet active|grant/i.test(b),
-  },
-  {
-    id: "remint-fix",
-    why: "primary fix is re-minting via \"Get install command\" and retrying",
-    test: (b) => /"Get install command"/.test(b) && /\bmint\b/i.test(b),
+    id: "one-fix-per-round",
+    why: "the recovery loop changes one thing at a time (one targeted fix per round)",
+    test: (b) => /one targeted fix per round/i.test(b),
   },
   {
     id: "no-retry-cap",
@@ -143,10 +199,10 @@ const PRESENCE_RULES = [
     test: (b) => /\bno limit\b/i.test(b),
   },
 
-  // ---- The GitHub probe/clone surface (CORE-116, ADR-0001 §1) -------------
+  // ---- The one live door (CORE-116, retired to one door by ADR-0003) ------
   {
     id: "silent-probe",
-    why: "probe the repo with `git ls-remote` and GIT_TERMINAL_PROMPT=0 so a private repo fails fast instead of hanging on a credential prompt",
+    why: "probe the repo with `git ls-remote` and GIT_TERMINAL_PROMPT=0 so a closed repo fails fast instead of hanging on a credential prompt",
     // Same LINE, not merely same document: the clone command a few paragraphs
     // later also disables prompting, and a document-wide test would keep
     // passing while the probe itself — the one command that runs against a
@@ -155,37 +211,49 @@ const PRESENCE_RULES = [
   },
   {
     id: "three-doors",
-    why: "the probe splits three ways: success → clone, refused → Loup walkthrough, timeout → wifi retry",
+    why: "the probe splits three ways: success → clone, refused → wait for the room to open, timeout → wifi retry",
     test: (b) =>
       /git clone --depth 1/.test(b) &&
-      /dashboard/i.test(b) &&
+      /not open yet/i.test(b) &&
       /(times? out|network problem|network error)/i.test(b),
   },
   {
     id: "no-credential-ask",
-    why: "a refused probe never turns into a GitHub password ask",
+    why: "a refused probe never turns into a password ask",
     test: (b) => /(do not|don't|never)[\s\S]{0,60}password/i.test(b),
   },
   {
-    id: "network-never-token",
-    why: "a network failure is the wifi, not access — never route it to Loup or a token ask",
-    test: (b) => /(times? out|network problem|network error)[\s\S]{0,400}never[\s\S]{0,160}(token|loup)/i.test(b),
+    id: "not-open-yet",
+    why: "a refused probe is named plainly — the kit is not open yet, it opens when the room opens, and the host says when",
+    test: (b) =>
+      /(refused|authentication error|not found)/i.test(b) &&
+      /not open yet/i.test(b) &&
+      // Whitespace-tolerant: the prompt is hard-wrapped, so the sentence
+      // straddles a line break.
+      /opens?\s+when\s+the\s+room\s+opens/i.test(b) &&
+      /\bhost\b/i.test(b),
   },
   {
-    id: "stale-access-recovery",
-    why: "a REFUSED probe is the case that routes to the dashboard walkthrough and a freshly minted install command",
+    id: "wait-then-retry",
+    why: "the refused door waits for the attendee's word, then re-runs the same probe when they say to try again",
     test: (b) =>
-      /(refused|rejected|authentication error|not found)/i.test(b) &&
-      /dashboard/i.test(b) &&
-      /"Get install command"/.test(b) &&
-      /\bmint\b/i.test(b),
+      /\bwait\b/i.test(b) &&
+      /try again/i.test(b) &&
+      /(run the same probe again|probe again)/i.test(b),
+  },
+  {
+    id: "network-is-wifi",
+    why: "a network failure is the wifi, not the kit — check I am online, then probe again",
+    test: (b) =>
+      /(times? out|network problem|network error)[\s\S]{0,300}\bwifi\b/i.test(b) &&
+      /(times? out|network problem|network error)[\s\S]{0,400}(online|hotspot)/i.test(b),
   },
   {
     id: "always-refetch",
-    why: "the kit is re-acquired fresh every run on both doors, never updated in place",
+    why: "the kit is re-acquired fresh every run, never updated in place",
     test: (b) =>
-      /(fresh copy|never update-in-place|ALWAYS take a fresh)/i.test(b) &&
-      /always re-run/i.test(b),
+      /(fresh copy|ALWAYS take a fresh)/i.test(b) &&
+      /never\s+update-in-place/i.test(b),
   },
   {
     id: "clone-safety",
@@ -218,6 +286,16 @@ function evaluateResilience(body) {
     detail: escalationHits.length === 0 ? "none present" : `found: ${escalationHits.join(", ")}`,
   });
 
+  const forbidden = scanForbidden(body);
+  rules.push({
+    id: "no-retired-delivery-surface",
+    ok: forbidden.length === 0,
+    why: "no Loup delivery surface, dashboard, token, install command or sign-in destination outside the legacy-home lines",
+    detail: forbidden.length === 0
+      ? "none present"
+      : forbidden.map((h) => `${h.id} (${h.why})`).join("; "),
+  });
+
   return { pass: rules.every((r) => r.ok), rules };
 }
 
@@ -231,7 +309,18 @@ function extractBootstrapBody(text) {
   return { body: lines.slice(start, end + 1).join("\n") };
 }
 
-export { sameLine, evaluateResilience, extractBootstrapBody, extractPromptBody, PRESENCE_RULES, ESCALATION_PATTERNS, BOOTSTRAP_COPIES };
+export {
+  sameLine,
+  evaluateResilience,
+  extractBootstrapBody,
+  extractPromptBody,
+  scanForbidden,
+  withoutLegacyHomeLines,
+  PRESENCE_RULES,
+  ESCALATION_PATTERNS,
+  FORBIDDEN_PATTERNS,
+  BOOTSTRAP_COPIES,
+};
 
 // ---- CLI ------------------------------------------------------------------
 if (resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {

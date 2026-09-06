@@ -393,8 +393,8 @@ check(
 //
 // audit-skills.mjs derives its ROOT from its own location, so a copy of it in
 // <sandbox>/scripts/ audits <sandbox>/skills/ — a whole disposable library
-// whose contents this test controls. Follows test-snapshot-shape.mjs's
-// execFileSync integration convention.
+// whose contents this test controls, exercised through a real execFileSync run
+// rather than by importing main().
 const runAudit = (cwd, args = ["--check"]) => {
   try {
     const stdout = execFileSync("node", [join(cwd, "scripts", "audit-skills.mjs"), ...args], {

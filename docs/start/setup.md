@@ -81,7 +81,7 @@ Nothing on my machine changes during this step. Read only.
 
 **1.1 Pick the mode.** Look for `~/.claude/selr-kit-manifest.json`. Tell me which
 mode you picked in one line, in plain words ("this is a fresh setup" / "I'm
-updating your existing assistant" / "I'm moving your assistant to the new
+updating your existing agent" / "I'm moving your agent to the new
 setup"):
 
 - Manifest exists → **UPDATE**. Keep its full contents in hand — the skill sync
@@ -103,12 +103,13 @@ install has no manifest, so there is no record of which skills I edited myself.
 Rebuild that record now, from the old kit still on my disk. Do it in THIS step:
 Step 2 overwrites the old kit folder, so after Step 2 the evidence is gone.
 
-Look for the old kit in all three places it may have been installed
+Look for the old kit in all four places it may have been installed
 (check every one — any of them may be the real one):
 
-- `~/.loup/selr-ai/workshop-kit/skills/`
-- `~/workshop-kit/skills/`
 - `~/claude-workshop-kit/skills/`
+- `~/workshop-kit/skills/`
+- `~/.loup/selr-ai/workshop-kit/skills/` (an old Loup install)
+- `~/.loup/selrai-company/claude-workshop-kit/skills/` (an old Loup install)
 
 Then, for every skill folder already in `~/.claude/skills/`:
 
@@ -120,7 +121,7 @@ Then, for every skill folder already in `~/.claude/skills/`:
   record NO fingerprint for it. Step 5 then treats it as customised and keeps my
   version.
 
-If none of the three old kit folders survived, nothing can match, so every kit
+If none of the four old kit folders survived, nothing can match, so every kit
 skill counts as customised and every one is kept. That is deliberate: keeping a
 file I might have edited is safe, and Step 5's report tells me how to take the
 kit's version of any of them whenever I want.
@@ -170,48 +171,45 @@ exactly matches the kit as published:
      ```
 
 **B. The probe is refused (authentication error / repository not found) → the
-kit comes through Loup. Kit home: `~/.loup/selrai-company/claude-workshop-kit`.** Do NOT
-retry the clone, do NOT ask me for a GitHub password. Instead:
+kit is not open yet.** Nothing on my machine is broken, and nothing is wrong
+with me. The kit is open while the room is open, and closed the rest of the
+time. Do NOT retry the clone by yourself. Never ask me for a password, a
+sign-in, an account or a code of any kind. There is nothing for me to fetch and
+nowhere for me to log in. Instead:
 
-1. Ask me to open my Loup dashboard at https://louphq.com/dashboard/buyer. If I
-   am already signed in it just opens. If it asks me to sign in, the way in is
-   the email Loup sent me (subject like "You've been given access to ... on
-   Loup"): the sign-in link in any ONE of those emails signs my whole account
-   in — I do not need every email. If no Loup email arrived, or my link says it
-   was already used, the fix is a fresh sign-in link from whoever gave me the
-   kit — that is not something you and I can fix from here.
-2. On the dashboard, have me click "Get install command" on the workshop kit,
-   copy the whole line — it looks like
-   `npx @louphq/install selrai-company/claude-workshop-kit --token loupit_...` — and paste it
-   to you. Run exactly what I paste (same command on Mac and Windows). Even in
-   UPDATE mode, always re-run my install command like this — it overwrites the
-   kit folder with a fresh copy, same as the clone door.
-3. If the install is refused (by far the most common cause: my command has gone
-   stale; the other: the access I was granted is not switched on yet), have me
-   mint a fresh command from the dashboard and paste the new line. Loop with no
-   limit on attempts: show me the real, unedited output every time — never hide
-   it — tell me plainly which part failed, one targeted fix per round.
+1. Tell me plainly, in one or two short lines: the kit is not open yet, it opens
+   when the room opens, and my host will say when. Then tell me you will wait
+   for my word.
+2. Wait there. Change nothing on my machine, and do not start any later step.
+3. When I say to try again, run the same probe again, exactly as before. Show me
+   the real, unedited output every time. Never hide it. If it is still refused,
+   say so in one short line and wait for me again. There is no limit on how many
+   times we try.
+4. The moment the probe succeeds, carry on at door A and clone. That is the only
+   way the kit arrives, and `~/claude-workshop-kit` is the only place it lives.
 
 **C. The probe times out or fails like a network problem → it is the wifi, not
-access.** Never send me to Loup or ask for any token from this branch. Have me
-check I am online (hotspot as backup), then probe again — no limit on retries.
+the kit.** Never read this as a closed door, and never ask me for a password or
+a sign-in here either. Have me check I am online (hotspot as backup), then probe
+again. No limit on retries.
 
-Whichever door it came through, verify before anything else:
+Once the kit is on disk, verify before anything else:
 `<kit home>/my-assistant/CLAUDE.md` and `<kit home>/skills/` must both exist.
 If only some of them arrived, that is a partial download — say so plainly rather
 than treating a missing path as success. Show me the real, unedited output and
-loop on the fix with me until both exist. STOP here if they never do:
+loop on the fix with me until both exist, one targeted fix per round. STOP here
+if they never do:
 Do not run any of steps 3 onwards against a kit that is not on disk — a failed
 download must stop the setup, not cascade through it. **From here on, "the kit
 home" means the absolute path this step decided — every later step uses it.**
 
 ### Step 3 — Point Claude at the kit (the pointer block)
 
-The assistant lives in my global Claude config, so it works from ANY folder —
+The agent lives in my global Claude config, so it works from ANY folder —
 there is no workspace folder anymore.
 
 1. **Copy the persona out of the kit** so deleting the kit folder never breaks
-   the assistant: copy `<kit home>/my-assistant/CLAUDE.md` to
+   the agent: copy `<kit home>/my-assistant/CLAUDE.md` to
    `~/.claude/selr-assistant.md`, overwriting any previous copy.
 2. **Write the managed block** into `~/.claude/CLAUDE.md` (create the file if it
    does not exist; if a previous Selr block is already there between the same
@@ -244,22 +242,28 @@ there is no workspace folder anymore.
      `.first-run-pending` if it has one. Everything else in the folder is mine
      and stays untouched.
    - It does NOT match → leave the whole folder completely alone and TELL me:
-     "There's a folder at `<path>` that isn't the assistant's, so I've left it
+     "There's a folder at `<path>` that isn't the agent's, so I've left it
      exactly as it is." Never rename or delete anything on a folder that fails
      this check, and never skip it silently.
 
-4. **In MIGRATE mode, clear out the old kit download folder.** Only
-   `~/workshop-kit`, and only when it is definitely the old kit and not a folder
-   of mine that happens to share the name: it must contain a `skills/` folder AND at least one
+4. **In MIGRATE mode, clear out the old kit download folders.** There are three,
+   and every one of them belongs to a way of delivering the kit that no longer
+   exists:
+
+   - `~/workshop-kit`
+   - `~/.loup/selr-ai/workshop-kit` (an old Loup install)
+   - `~/.loup/selrai-company/claude-workshop-kit` (an old Loup install)
+
+   Treat all three the same way. Delete one only when it is definitely an old kit
+   and not a folder of mine that happens to share the name: it must contain a
+   `skills/` folder AND at least one
    of the old kit's own files (`my-assistant/CLAUDE.md` or
    `skills/SKILLS-LIST.md`). If it qualifies, delete it and tell me in one line.
    If it does not, leave it alone and say so.
 
-   Leave the other two old locations exactly where they are, whether or not this
-   run happened to touch them. `~/workshop-kit` is the only one to remove: it
-   belongs to a distribution that no longer exists, while the other two are the
-   current kit homes for the two live doors, so deleting either could delete the
-   kit this run just installed.
+   Never touch `~/claude-workshop-kit`. That is the live kit home this run just
+   downloaded into, so deleting it would delete the kit you have only just
+   installed.
 
 ### Step 4 — Write the manifest (the install's receipt)
 
@@ -269,8 +273,8 @@ its `skills` map as it syncs):
 ```json
 {
   "kitHome": "<the absolute kit home from Step 2>",
-  "installPath": "<github or loup — whichever door Step 2 took>",
-  "kitVersion": "<github door: the clone's HEAD commit from git -C <kit home> rev-parse HEAD; loup door: the kit version the installer reported, else omit>",
+  "installPath": "github",
+  "kitVersion": "<the clone's HEAD commit, from git -C <kit home> rev-parse HEAD>",
   "installedAt": "<ISO timestamp>",
   "installMode": "fresh | update | migrate",
   "onboarded": <false on FRESH; true on MIGRATE; carry the old value on UPDATE>,
@@ -290,7 +294,7 @@ rename them:
 
 `customised` is present only on a skill whose version I edited and you kept.
 
-`onboarded` is the assistant's only first-run signal: `false` makes the next
+`onboarded` is the agent's only first-run signal: `false` makes the next
 session run orientation; orientation flips it to `true` when done. The old
 `.first-run-pending` marker file is dead — never create it.
 
@@ -346,8 +350,8 @@ At the end of this step, if any customised skills were kept, show the report:
    claude plugin install routine-installer-plugin@selrai-workshop-kit
    ```
    Remove first (ignore the error if there was nothing registered): a machine
-   that installed through one door and updated through the other would otherwise
-   keep pointing at the old kit folder and quietly serve stale content.
+   installed from an older kit folder would otherwise keep pointing at that
+   folder and quietly serve stale content.
    "Already added / already installed" is success, but an already-installed
    plugin does NOT pick up new content by itself — in UPDATE and MIGRATE mode
    follow with:
@@ -355,7 +359,7 @@ At the end of this step, if any customised skills were kept, show the report:
    claude plugin marketplace update selrai-workshop-kit
    claude plugin update routine-installer-plugin
    ```
-3. **Browser automation (Playwright — the assistant's primary browser tool,
+3. **Browser automation (Playwright — the agent's primary browser tool,
    non-negotiable).** Re-adding an existing entry errors, so remove first —
    ignore the error if there is nothing to remove — then add with the
    persistent login profile:
@@ -438,18 +442,18 @@ on attempts; never paper over a failed line.
 ### Step 10 — Done
 
 In MIGRATE mode, first tell me this (two lines, once, never again):
-> "Your assistant has moved: it now works in EVERY Claude Code session, from any
+> "Your agent has moved: it now works in EVERY Claude Code session, from any
 > folder — you no longer need the my-assistant folder to talk to it."
 
 Then print exactly this block (diagram in a fenced code block, banner below,
 nothing after it):
 
-Here's what your assistant can now do for you:
+Here's what your agent can now do for you:
 
 ```
                               ┌───────────────────────┐
                               │      CLAUDE CODE      │
-                              │   your AI assistant   │
+                              │     your AI agent     │
                               └───────────┬───────────┘
                                           │
          ┌────────────────────┬───────────┴───────────┬────────────────────┐
@@ -474,11 +478,11 @@ Here's what your assistant can now do for you:
 1. **Start a new Code session** — any folder is fine
 2. **Type "hi"** and press Enter
 
-Your assistant will introduce itself and take it from there.
+Your agent will introduce itself and take it from there.
 
 ---
 
-*Why a new session? Your assistant's instructions were installed during this
+*Why a new session? Your agent's instructions were installed during this
 session — a fresh session reads them at startup.*
 
 ---
