@@ -55,7 +55,7 @@ Full pre-workshop details: [`docs/install/`](docs/install/).
 ## At the Workshop
 
 1. Open **Claude Desktop** and start a new Code session - any folder will do, there is nothing to create first
-2. Copy the **setup prompt** from the workshop Notion page and paste it into the Code session
+2. Copy the **setup prompt** from the day page at https://loup.academy (the room's password opens it) and paste it into the Code session
 3. Claude handles everything - installs what is missing, downloads the kit, copies your skills in, and adds a short managed block to your global `~/.claude/CLAUDE.md` that gives every session your assistant
 4. It asks you to quit and reopen Claude Desktop once, part-way through, and tells you exactly when
 5. When it finishes, start a new session anywhere and say `hi` - your assistant runs a short orientation, asks about your business, and shows you what it can do
