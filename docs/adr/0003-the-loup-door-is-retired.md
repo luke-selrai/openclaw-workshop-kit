@@ -2,7 +2,7 @@
 
 - **Status:** Accepted, 2026-09-07
 - **Deciders:** Harvey Shaw, via the wayfinder map [CORE-362](https://linear.app/selr-ai/issue/CORE-362), ticket [Retire the Loup install method (CORE-385)](https://linear.app/selr-ai/issue/CORE-385)
-- **Scope:** how the kit is acquired. Everything else in ADR-0001 — the pointer block, the manifest, the one universal prompt, MIGRATE, uninstall — stands.
+- **Scope:** how the kit is acquired. Everything else in ADR-0001 stands: the pointer block, the manifest, the one universal prompt, MIGRATE, uninstall.
 
 ## Context
 
@@ -39,7 +39,7 @@ The exact door B text lives in `docs/start/setup.md`, Step 2. It is written for 
 `~/.loup/selr-ai/workshop-kit` and `~/.loup/selrai-company/claude-workshop-kit` are real installs sitting on attendee laptops. They are demoted from live doors to legacy homes, and every legacy-home behaviour still finds them, exactly as it finds `~/workshop-kit`:
 
 - **MIGRATE detection and fingerprint reconstruction** (setup prompt Step 1.2) probe all four old kit locations.
-- **MIGRATE retirement** (Step 3.4) deletes all three stale download folders on the same confirmation test — a `skills/` folder plus one of the kit's own files. `~/claude-workshop-kit` is the one it must never touch, because that is the home this run just downloaded into.
+- **MIGRATE retirement** (Step 3.4) deletes all three stale download folders on the same confirmation test: a `skills/` folder plus one of the kit's own files. `~/claude-workshop-kit` is the one it must never touch, because that is the home this run just downloaded into.
 - **Uninstall** keeps checking all three paths when there is no install record.
 
 Docs call these "old Loup installs". Never a door, never a delivery path.
@@ -54,7 +54,7 @@ The `loup` shape in `scripts/make-legacy-fixture.mjs` stays for the same reason:
 
 - `verify-conform.mjs`'s two Loup path rules collapse into one: **no runtime reference to a `~/.loup/` path** outside the MIGRATE and uninstall handling. Naming a folder in order to delete it is not a door; naming one anywhere else is a reference to a channel that does not exist.
 - The install-method check asserts the new door B (refused → not open yet → wait → re-probe) instead of the dashboard walkthrough.
-- `check-resilient-install.mjs` keeps the shape of its contract and changes its content: the re-mint loop is replaced by wait-then-retry, and a **forbidden** set is added — no Loup surface, dashboard, token, install command, sign-in destination or unqualified credential ask anywhere in the prompt, checked with the legacy-home lines stripped out first.
+- `check-resilient-install.mjs` keeps the shape of its contract and changes its content: the re-mint loop is replaced by wait-then-retry, and a **forbidden** set is added. No Loup surface, dashboard, token, install command, sign-in destination or unqualified credential ask anywhere in the prompt. It is checked with the two permitted legacy-home spans blanked out first, the path and its "(an old Loup install)" label, so that a violation cannot hide on the same line as a folder the prompt is telling Claude to delete.
 - The install-type question patterns (`do-you-have-loup`, `github-or-loup`) stay. They are exactly the questions this retirement makes unaskable.
 
 ## What this supersedes in ADR-0001
@@ -70,7 +70,7 @@ The `loup` shape in `scripts/make-legacy-fixture.mjs` stays for the same reason:
 | Accepted gap: "a Loup-entitled user installing during a public window silently takes the GitHub path" | No entitlements. |
 | Accepted gap: "`kitVersion` on the Loup door depends on what the installer reports" | No Loup door. |
 
-Everything else in ADR-0001 stands unamended, including the accepted gap that a revoked or renamed repo is indistinguishable from a closed window at the probe — which now reads correctly, as "not open yet".
+Everything else in ADR-0001 stands unamended, including the accepted gap that a revoked or renamed repo is indistinguishable from a closed window at the probe. That gap now reads correctly, as "not open yet".
 
 ## Rejected alternatives
 
