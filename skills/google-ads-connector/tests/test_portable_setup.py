@@ -11,7 +11,23 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import Mock, patch
 from urllib.request import urlopen
+
+
+def waitForPort(port_file, process, timeout=5):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            value = port_file.read_text().strip()
+        except FileNotFoundError:
+            value = ''
+        if value.isdecimal() and 0 < int(value) < 65536:
+            return int(value)
+        if process.poll() is not None:
+            break
+        time.sleep(0.02)
+    raise AssertionError('Listener did not publish a valid port before the deadline')
 
 
 SKILLS = Path(__file__).resolve().parents[2]
@@ -276,6 +292,24 @@ const page = {
                         self.assertEqual(unrelated.stat().st_mode & 0o777, 0o644)
                         self.assertEqual(reported_file.stat().st_mode & 0o777, 0o644)
 
+    def testPortReadinessWaitsThroughEmptyAndInvalidContents(self):
+        port_file = Mock()
+        port_file.read_text.side_effect = [FileNotFoundError(), '', 'invalid', '0', '65536', '45678']
+        process = Mock()
+        process.poll.return_value = None
+        with patch('time.sleep'):
+            self.assertEqual(waitForPort(port_file, process), 45678)
+        self.assertEqual(port_file.read_text.call_count, 6)
+
+    def testPortReadinessHasBoundedDeadline(self):
+        port_file = Mock()
+        port_file.read_text.return_value = ''
+        process = Mock()
+        process.poll.return_value = None
+        with patch('time.monotonic', side_effect=[0, 0, 6]), patch('time.sleep'):
+            with self.assertRaisesRegex(AssertionError, 'before the deadline'):
+                waitForPort(port_file, process)
+
     def testListenerSkipsOccupiedPortAndCapturesPrivately(self):
         for vendor in ['google', 'tiktok']:
             with self.subTest(vendor=vendor), tempfile.TemporaryDirectory() as temp_dir:
@@ -292,13 +326,7 @@ const page = {
                     )
                     try:
                         port_file = Path(temp_dir) / f'{vendor}-ads-listener.port'
-                        deadline = time.monotonic() + 5
-                        while not port_file.exists() and time.monotonic() < deadline:
-                            if process.poll() is not None:
-                                break
-                            time.sleep(0.02)
-                        self.assertTrue(port_file.exists())
-                        chosen_port = int(port_file.read_text())
+                        chosen_port = waitForPort(port_file, process)
                         self.assertGreater(chosen_port, first_port)
                         key = 'auth_code' if vendor == 'tiktok' else 'code'
                         with urlopen(f'http://127.0.0.1:{chosen_port}/callback?{key}=offline-code', timeout=2) as response:
