@@ -50,7 +50,7 @@ The directory listing is explicit about contacts, lists, tags and automations, a
 
 The user is a non-technical business owner. Both routes are autonomous - the user only signs in. Rules:
 
-- **Which browser opens, and why.** On the built-in route you open the user's **own everyday browser** - that is where they are already signed in to Claude - and it reads nothing from that browser. On the kit's own route Claude uses a separate window it drives itself, because that route reads the connection details off the page. The two rules do not conflict; they belong to different routes.
+- **Browser routing for the built-in connector.** Follow Phase 1's Desktop in-app-first route and account-matched browser handoff. Use available UI tools; ask the user only for input the harness cannot complete. The kit's separate credential-capture browser rules still apply to its own route.
 - **Never ask for a password, a sign-in code, or a screenshot of a sign-in screen** on either route.
 - **You drive; the user signs in.** The only ask is "please sign in to ActiveCampaign in the browser window I just opened" (it may ask for the account name first, then email/password).
 - **Plain English only.** No jargon (API, key, URL, REST, curl, header, DOM, Playwright, env, JSON). Call it "your connection details" / "your ActiveCampaign account".
@@ -75,12 +75,14 @@ Ask the user to reopen Claude Code once, then retry.
 
 ## PHASE 0 - Is ActiveCampaign already connected?
 
+Identify the calling surface first. Desktop's visible account, Connectors view, and actual runtime tools are its evidence. Terminal `claude auth status` and `claude mcp list` describe the CLI account, even when run from Desktop's Bash; they do not establish Desktop identity or access. ActiveCampaign credentials are independent of either Claude login. Discover existing tools and perform the read below for the intended vendor account before claiming a connection. Preserve a working route.
+
 Run these silently, in order, and act on the first that answers.
 
-1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai ActiveCampaign` (match the vendor word case-insensitively).
-   - `✔ Connected` → skip to **Phase 2**. Prove it first with one read from the `mcp__claude_ai_ActiveCampaign__*` namespace (list the mailing lists) before saying so.
-   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` in the user's own browser (`open` on Mac, `xdg-open` on Linux, `start "" <url>` on Windows) and say: *"Your ActiveCampaign connection needs a quick re-sign-in. Press Reconnect next to ActiveCampaign, sign in, and tell me when it says Connected."* Then re-run this check.
-   - no such line → continue.
+1. **Built-in connector.** In Desktop, discover this session's ActiveCampaign tools (including opaque-ID prefixes) and inspect the app's Connectors view. For a terminal/VS Code caller only: `claude mcp list` → look for a line starting `claude.ai ActiveCampaign` (match the vendor word case-insensitively).
+   - Connected in the caller or tools present → skip to **Phase 2**. Prove it first with one read from the `mcp__claude_ai_ActiveCampaign__*` namespace (list the mailing lists) before saying so.
+   - Reconnect or `! Needs authentication` → reconnect in the same caller's Connectors view. In Desktop, start inside the app; for a browser route, verify its Claude account matches the caller before opening `https://claude.ai/customize/connectors`. Complete ActiveCampaign sign-in and repeat the actual read.
+   - No usable built-in in the caller → continue to step 2; a missing CLI line alone says nothing about Desktop.
 2. **The kit's own route.** Check for the credentials file, then smoke-ping it:
 
    ```bash
@@ -100,7 +102,7 @@ Run these silently, in order, and act on the first that answers.
    - `not-configured` → continue.
 3. **Nothing found** → **Phase 1**.
 
-If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of ActiveCampaign's tools.
+**No shell?** Runtime discovery and reads still apply. Skip unavailable command/file checks; only set up a connection if no working route is found, following the existing route-by-need rules.
 
 ---
 
@@ -126,17 +128,27 @@ Both routes can coexist on one machine. Never tear one down to set the other up,
 
 ## PHASE 1 - Switch on the built-in ActiveCampaign connector (the default route)
 
-This is a one-time, once-per-account job. The only thing the user does is press one button and sign in.
+This is a one-time, once-per-account job. Claude handles the available setup steps; the user supplies any sign-in input that requires them.
 
-**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run **Phase 1-alt** instead.
+**Step 1 - Check this session can see built-in connectors.** In Desktop, use its visible signed-in account and Connectors view, then continue inside that app. The following auth/settings checks apply only to a terminal/VS Code caller, not Desktop: `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run **Phase 1-alt** instead.
 
-**Step 2 - Open the connector page for them.** Say: *"I'm opening ActiveCampaign's page in your browser. Press **Connect to Claude**, sign in to ActiveCampaign the way you normally do, and say yes when it asks for access. That is the only part only you can do - tell me when it says Connected."* Then open `https://claude.ai/directory/activecampaign` in their own browser (`open` / `xdg-open` / `start`). If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "ActiveCampaign" → Connect. In the desktop app's Code tab the better route is the composer's **+** → **Connectors** → **Browse connectors** → the **+** next to it: that one shows up in the running session without a restart, whereas the browser page needs the app quit and reopened before any session sees the tools.
+**Step 2 - Open the connector page for them.**
 
-**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in. **If ActiveCampaign refuses the connection**, an ActiveCampaign account admin has to allow it at the ActiveCampaign end as well - say so plainly: *"Whoever runs your ActiveCampaign account needs to allow this connection on their side. Once they have, press Connect again."*
+Say: *"I'll open ActiveCampaign's connection page and handle the setup. I'll let you know if it needs you to sign in."*
 
-**Step 4 - Verify.** `claude mcp list` again. `claude.ai ActiveCampaign … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+**Desktop first:** use the app's **+ → Connectors → Browse connectors → ActiveCampaign → Connect** (or the equivalent visible Customize/Connectors menu). Keep the exact app-created browser handoff URL, including its parameters. Open it in a browser profile whose Claude account you have confirmed matches Desktop, using an isolated profile when needed. If that profile is signed out or belongs to another account, complete sign-in to the matching Claude account in an isolated profile before continuing. Confirm the intended ActiveCampaign account before approval. Do not replace it with a directory link from another Claude account.
 
-**Step 5 - Prove it.** Call one real read through the connector - list the mailing lists from the `mcp__claude_ai_ActiveCampaign__*` namespace. Only a real answer counts. A tool error here is not "connected". In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
+**Terminal/VS Code or browser fallback:** open `https://claude.ai/directory/activecampaign` in a browser whose Claude account matches the caller. Use `open` (Mac), `xdg-open` (Linux), or `start` (Windows) only after confirming that browser's account. If the page fails, use `https://claude.ai/customize/connectors` → **Browse** → search "ActiveCampaign" → **Connect** in that same account.
+
+Drive navigation and approval with available UI tools. If a step requires user input or the harness has no suitable UI tool, give only the exact short next step; do not describe every click as inherently human-only.
+
+**Step 3 - Wait.** Complete the visible flow with available tools; wait for any sign-in input that requires the user. Never ask for a password, a code, or a screenshot of the sign-in. **If ActiveCampaign refuses the connection**, an ActiveCampaign account admin has to allow it at the ActiveCampaign end as well - say so plainly: *"Whoever runs your ActiveCampaign account needs to allow this connection on their side. Once they have, press Connect again."*
+
+**Step 4 - Verify.**
+
+Check ActiveCampaign in Desktop's own Connectors view, or `claude mcp list` for a terminal/VS Code caller. Connected is registration evidence only; proceed to the real read in Step 5. Reconnect uses the same account's Connectors view. A missing CLI line says nothing about Desktop. If Desktop still lacks a connection completed through the browser directory, verify **Connected** in that browser's matching Claude account. Once that account check passes, rediscover Desktop's tools and use Step 5's one-time Desktop refresh if needed; do not repeat **Connect** to repair a stale app view. Return to Step 2 only when neither the caller's view nor the account-matched browser confirms a completed connection.
+
+**Step 5 - Prove it.** Call one real read through the connector - list the mailing lists from the `mcp__claude_ai_ActiveCampaign__*` namespace. Only a real answer counts. A tool error here is not "connected". In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If tools are missing, first rediscover deferred tools and confirm the same caller account is connected; only then consider a stale session: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now.
 

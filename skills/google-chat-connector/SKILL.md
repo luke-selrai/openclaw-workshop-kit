@@ -42,14 +42,36 @@ is not in Claude's connector directory. It connects through the `gws` tool, usin
 the same Google Cloud project that ladder already creates, with `chat` added to
 the sign-in scopes. The same sign-in covers Gmail, Calendar and Drive.
 
-**One exception to look for.** A machine may already carry a custom Google Chat
-connector someone added by hand — it shows in `claude mcp list` as
-`claude.ai Google Chat`, and its tools are `mcp__claude_ai_Google_Chat__*`:
-listing and searching messages, searching conversations, and sending a message.
-If Phase 0 of `google-workspace-connector` finds one already connected, use it
-for reading, searching and sending, and `gws` for everything else. Neither skill
-sets one up: it needs the same Google Cloud work as `gws` plus a hand-pasted
-address, so it buys nothing over `gws`.
+**An existing custom Chat connector is usable only after a read succeeds.**
+Discover the actual Chat tools in the calling session. In terminal/VS Code they
+can use `mcp__claude_ai_Google_Chat__*`; Desktop can expose the same operations
+under an opaque `mcp__<id>__` prefix. Match by tool name and description, not a
+stored id. `claude mcp list` may show `claude.ai Google Chat`, but that command
+reports the standalone CLI account, which can differ from Desktop's. Use the
+app's visible account, Connectors view, and runtime tools for Desktop evidence.
+
+Call a read such as the available `search_conversations` tool before adopting
+this route. A connected badge or CLI line is registration/auth status, not
+proof the service works. If the read succeeds for the intended Google account,
+use that connector for its supported reading, searching and sending operations,
+and `gws` for the rest. Sending still requires the user's instruction.
+
+If the read fails with **Google Chat app not found**, this route has not passed:
+its Google-side app configuration is missing. Reconnecting or restarting Claude
+does not establish that configuration. Try the kit's existing `gws` route in
+the same calling session: inspect `gws auth status` for its Google account and
+Chat scopes, then run `gws chat spaces list --format table`. The `gws` account
+is independent of the Claude login; use it only for the Google account the user
+intends. A successful read proves that route, not the broken custom connector.
+Say plainly: *"Google Chat is working through your existing Google connection."*
+
+If `gws` is missing, lacks Chat access, or is signed into a different Google
+account than requested, continue through `google-workspace-connector` Phase
+1-alt with Chat selected and verify its final spaces read. Preserve unrelated
+working sign-ins. Neither skill sets up the custom Chat connector; keep the
+reported failure separate rather than adding Cloud configuration just to repair
+an optional route. An existing successful read is resume evidence, not proof of
+fresh onboarding.
 
 **Where the setup facts moved.** The install ladder that used to live in this
 file — checking Node, installing `@googleworkspace/cli`, the PATH refresh, the
@@ -179,13 +201,13 @@ Use `--format table` when showing data to the user. Use `--format json` when par
 
 ### If a custom Chat connector is already on the machine
 
-Some machines carry a hand-added Google Chat connector (`claude.ai Google Chat`
-in `claude mcp list`). Its tools sit under `mcp__claude_ai_Google_Chat__*` and
-cover listing and searching messages, searching conversations, and sending a
-message. Use it for those. Everything above that it does not cover — spaces and
-member listings, threaded replies, `cardsV2`, the output formats — is a `gws`
-job, and needs the `gws` route from `google-workspace-connector` Phase 1-alt.
-The safety rules in Part 4 apply to both routes.
+Use a custom connector only after the caller-session read check in
+**Connecting** above passes for the intended Google account. Its supported
+operations include listing and searching messages, searching conversations,
+and sending a message. Everything it does not cover — space and member
+operations, threaded replies, `cardsV2`, the output formats — is a `gws` job,
+and needs the route from `google-workspace-connector` Phase 1-alt. Keep account
+and connection provenance when choosing between them; Part 4 applies to both.
 
 ---
 
@@ -256,8 +278,11 @@ gws auth logout
 gws auth login -s chat,gmail,calendar,drive
 ```
 
+**Custom connector reports `Google Chat app not found`**
+Follow the read-and-recovery check in **Connecting**: test the intended account's existing `gws` route, then use `google-workspace-connector` Phase 1-alt if needed. A connected badge does not override this error.
+
 **No `claude.ai Google Chat` line in `claude mcp list`**
-Expected, not a fault — there is no built-in Chat connector, so most machines will not have that line. Chat comes through `gws`; check `gws auth status` and the `chat` scope instead.
+This only describes the standalone CLI account and does not rule out Desktop tools. Discover the calling session's tools first. Most accounts have no custom Chat connector; verify `gws auth status`, Chat scopes, and an actual spaces read as described in **Connecting**.
 
 ---
 

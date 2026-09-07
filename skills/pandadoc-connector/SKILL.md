@@ -78,17 +78,19 @@ The user is a non-technical business owner. Connecting is autonomous - Claude do
 
 ## Phase 0 - Is PandaDoc already connected?
 
+Identify the calling surface first. Desktop's visible account, Connectors view, and actual runtime tools are its evidence. Terminal `claude auth status` and `claude mcp list` describe the CLI account, even when run from Desktop's Bash; they do not establish Desktop identity or access. PandaDoc credentials are independent of either Claude login. Discover existing tools and perform the read below for the intended vendor account before claiming a connection. Preserve a working route.
+
 Run these silently, in order, and act on the first that answers.
 
-1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai PandaDoc` (match the vendor word case-insensitively; there is no `--json` flag). Shipped as `claude.ai PandaDoc: https://mcp.pandadoc.com/v1/mcp - ✓ Connected`. Note this layer does NOT write into `~/.claude.json` `mcpServers`, so `claude mcp list` is the only place it shows.
+1. **Built-in connector.** In Desktop, discover this session's PandaDoc tools (including opaque-ID prefixes) and inspect the app's Connectors view. For a terminal/VS Code caller only: `claude mcp list` → look for a line starting `claude.ai PandaDoc` (match the vendor word case-insensitively; there is no `--json` flag). Shipped as `claude.ai PandaDoc: https://mcp.pandadoc.com/v1/mcp - ✓ Connected`. This layer does not write into `~/.claude.json` `mcpServers`; inspect the actual caller's connectors and tools.
 
    ```bash
    claude mcp list 2>/dev/null | grep -iE 'pandadoc.*Connected' >/dev/null && echo CLAUDE_AI_LAYER_REGISTERED
    ```
 
-   - `✔ Connected` → skip to Phase 2. Prove it first with one read from the `mcp__claude_ai_PandaDoc__*` namespace - the tool that lists documents is the cheapest (it is `documents_list` on the kit's route; pass `count: 1` and no other arguments). Only a real answer counts; an empty result list is still a pass.
-   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your PandaDoc connection needs a quick re-sign-in. Press Reconnect next to PandaDoc, sign in, and tell me when it says Connected."* Then re-run this check.
-   - no such line → continue.
+   - Connected in the caller or tools present → skip to Phase 2. Prove it first with one read from the `mcp__claude_ai_PandaDoc__*` namespace - the tool that lists documents is the cheapest (it is `documents_list` on the kit's route; pass `count: 1` and no other arguments). Only a real answer counts; an empty result list is still a pass.
+   - Reconnect or `! Needs authentication` → reconnect in the same caller's Connectors view. In Desktop, start inside the app; for a browser route, verify its Claude account matches the caller before opening `https://claude.ai/customize/connectors`. Complete PandaDoc sign-in and repeat the actual read.
+   - No usable built-in in the caller → continue to step 2; a missing CLI line alone says nothing about Desktop.
 2. **The kit's own route.** Read `~/.claude.json` via Node (cross-platform safe - Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile) and look for an `mcpServers.pandadoc` entry:
 
    ```bash
@@ -107,33 +109,37 @@ Run these silently, in order, and act on the first that answers.
    - `NOT_CONFIGURED` → continue.
 3. **Nothing found** → Phase 1.
 
-A locally-registered PandaDoc entry at the same address as the built-in one takes precedence and hides the built-in. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK.
+**Terminal/VS Code precedence only.** A locally-registered PandaDoc entry at the same address as the built-in one takes precedence and hides the built-in. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK. Desktop may expose local and built-in tools simultaneously; discover the actual runtime and keep each result attached to its connection.
 
-If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of PandaDoc's tools.
+**No shell?** Runtime discovery and reads still apply. Skip unavailable command/file checks; only set up a connection if no working route is found, following the existing route-by-need rules.
 
 ---
 
 ## Phase 1 - Switch on the built-in PandaDoc connector (the default route)
 
-This is a one-time, once-per-account job. The only thing the user does is press one button and sign in.
+This is a one-time, once-per-account job. Claude handles the available setup steps; the user supplies any sign-in input that requires them.
 
 > **EU accounts are the one exception.** PandaDoc accounts hosted on `app.pandadoc.eu` are excluded from the connector directory. If the user signs in at `app.pandadoc.eu`, this route will not list PandaDoc for them: go to Phase 1-alt (or, if they would rather keep the connection on their Claude account, add it by hand from `https://claude.ai/customize/connectors` → **Add custom connector** with the PandaDoc address). Say which one you are doing, in a single plain line.
 
-**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
+**Step 1 - Check this session can see built-in connectors.** In Desktop, use its visible signed-in account and Connectors view, then continue inside that app. The following auth/settings checks apply only to a terminal/VS Code caller, not Desktop: `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
 
-**Step 2 - Open the connector page for them.** Say:
+**Step 2 - Open the connector page for them.**
 
-> "I'm opening PandaDoc's page in your browser. Press **Connect to Claude**, sign in to PandaDoc the way you normally do, and say yes when it asks for access. That's the only part only you can do - tell me when it says Connected."
+Say: *"I'll open PandaDoc's connection page and handle the setup. I'll let you know if it needs you to sign in."*
 
-Then open `https://claude.ai/directory/pandadoc` in the user's own everyday browser - `open <url>` on Mac, `xdg-open <url>` on Linux, `start "" <url>` on Windows. If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "PandaDoc" → Connect. In the desktop app's Code tab the better route is the composer's **+** → **Connectors** → **Browse connectors** → the **+** next to it: that one shows up in the running session without a restart, whereas the browser page needs the app quit and reopened before any session sees the tools.
+**Desktop first:** use the app's **+ → Connectors → Browse connectors → PandaDoc → Connect** (or the equivalent visible Customize/Connectors menu). Keep the exact app-created browser handoff URL, including its parameters. Open it in a browser profile whose Claude account you have confirmed matches Desktop, using an isolated profile when needed. If that profile is signed out or belongs to another account, complete sign-in to the matching Claude account in an isolated profile before continuing. Confirm the intended PandaDoc account before approval. Do not replace it with a directory link from another Claude account.
 
-> **Why the user's own browser here, when Phase 1-alt uses its own window.** Phase 1-alt drives a separate browser window because it has to read the redirect back out of the page. This route reads nothing - it only needs the browser where the user is already signed in to Claude. Send them to their own browser and do not automate this sign-in.
+**Terminal/VS Code or browser fallback:** open `https://claude.ai/directory/pandadoc` in a browser whose Claude account matches the caller. Use `open` (Mac), `xdg-open` (Linux), or `start` (Windows) only after confirming that browser's account. If the page fails, use `https://claude.ai/customize/connectors` → **Browse** → search "PandaDoc" → **Connect** in that same account.
 
-**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+Drive navigation and approval with available UI tools. If a step requires user input or the harness has no suitable UI tool, give only the exact short next step; do not describe every click as inherently human-only.
 
-**Step 4 - Verify.** `claude mcp list` again. `claude.ai PandaDoc … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete, so send them back to Step 2.
+**Step 3 - Wait.** Complete the visible flow with available tools; wait for any sign-in input that requires the user. Never ask for a password, a code, or a screenshot of the sign-in.
 
-**Step 5 - Prove it.** Call one real read through the connector: the document-listing tool from the `mcp__claude_ai_PandaDoc__*` namespace, asking for one document. Only a real answer counts - an empty list is a pass, a tool error is not. Pass only documented parameters: PandaDoc's tool schemas reject unknown fields, so never add a `user_intent` argument. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
+**Step 4 - Verify.**
+
+Check PandaDoc in Desktop's own Connectors view, or `claude mcp list` for a terminal/VS Code caller. Connected is registration evidence only; proceed to the real read in Step 5. Reconnect uses the same account's Connectors view. A missing CLI line says nothing about Desktop. If Desktop still lacks a connection completed through the browser directory, verify **Connected** in that browser's matching Claude account. Once that account check passes, rediscover Desktop's tools and use Step 5's one-time Desktop refresh if needed; do not repeat **Connect** to repair a stale app view. Return to Step 2 only when neither the caller's view nor the account-matched browser confirms a completed connection.
+
+**Step 5 - Prove it.** Call one real read through the connector: the document-listing tool from the `mcp__claude_ai_PandaDoc__*` namespace, asking for one document. Only a real answer counts - an empty list is a pass, a tool error is not. Pass only documented parameters: PandaDoc's tool schemas reject unknown fields, so never add a `user_intent` argument. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If tools are missing, first rediscover deferred tools and confirm the same caller account is connected; only then consider a stale session: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - for example *"create a contract from the Master Services Agreement template"*, *"show me documents waiting for signatures"*, *"how many contracts did we sign this quarter?"*.
 

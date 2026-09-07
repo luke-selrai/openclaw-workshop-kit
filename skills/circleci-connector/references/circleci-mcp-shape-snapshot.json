@@ -1,51 +1,55 @@
 {
-  "_comment": "Captured surface of the CircleCI MCP server at https://mcp.circleci.com/mcp as of 2026-04-30. Hosted-bearer-PAT pattern (no OAuth, Personal API Token auth). The drift-check recipe lets an outsider validate tool naming and count without spinning up a live test harness.",
-  "captured_at": "2026-04-30T11:08:54Z",
-  "captured_against": "https://mcp.circleci.com/mcp",
-  "captured_by": "selrai-company/claude-workshop-kit Phase 1 install audit",
-  "auth_pattern": "Hosted-bearer-PAT (Authorization: Bearer <Personal API Token>)",
+  "_comment": "Offline tools/list from the official legacy npm server. Supersedes the earlier unverified hosted 12-tool snapshot. This is schema evidence only, not authentication, onboarding, or hosted-server evidence.",
+  "captured_at": "2026-09-07",
+  "captured_against": "@circleci/mcp-server-circleci@0.20.0 (stdio)",
+  "server_info_version": "1.0.0",
+  "version_note": "The initialize response reports serverInfo.version 1.0.0; the npm package tested was explicitly pinned to 0.20.0.",
+  "auth_pattern": "Legacy local CIRCLECI_TOKEN environment variable; placeholder used for discovery, no real credential.",
   "tool_surface_observed": {
-    "tool_count": 12,
-    "categories": [
-      "followed_projects",
-      "pipelines",
-      "workflows",
-      "jobs",
-      "tests",
-      "artifacts",
-      "configs",
-      "ai_prompt_tools"
+    "tool_count": 13,
+    "names": [
+      "config_helper",
+      "download_usage_api_data",
+      "find_flaky_tests",
+      "find_underused_resource_classes",
+      "get_build_failure_logs",
+      "get_job_test_results",
+      "get_latest_pipeline_status",
+      "list_artifacts",
+      "list_component_versions",
+      "list_followed_projects",
+      "rerun_workflow",
+      "run_pipeline",
+      "run_rollback_pipeline"
     ],
-    "naming_convention": "mcp__circleci__<verb_or_resource>",
-    "examples": [
-      "mcp__circleci__list_followed_projects",
-      "mcp__circleci__get_pipelines_for_project",
-      "mcp__circleci__get_workflows_for_pipeline",
-      "mcp__circleci__get_jobs_for_workflow",
-      "mcp__circleci__get_job_test_results",
-      "mcp__circleci__list_job_artifacts",
-      "mcp__circleci__validate_config",
-      "mcp__circleci__run_pipeline",
-      "mcp__circleci__rerun_workflow",
-      "mcp__circleci__rollback_pipeline",
-      "mcp__circleci__create_prompt_template",
-      "mcp__circleci__recommend_prompt_template_tests",
-      "mcp__circleci__run_evaluation_tests"
-    ]
+    "naming_convention": "Caller prefixes vary with host and registration name. Use actual runtime discovery.",
+    "verification_read": {
+      "name": "list_followed_projects",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "params": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    }
   },
-  "token_capture_observed": {
-    "settings_page": "https://app.circleci.com/settings/user/tokens",
-    "token_pattern": "^[a-f0-9]{40}$",
-    "token_visibility": "shown once on creation, not retrievable later",
-    "scope": "user-level (token inherits user's project access)"
+  "current_hosted_route": {
+    "url": "https://mcp.circleci.com/v1/mcp",
+    "auth": "OAuth2 preferred; Personal API Token fallback when the host cannot complete OAuth2.",
+    "source": "https://circleci.com/docs/guides/toolkit/connecting-to-the-circleci-mcp-server/",
+    "live_verification": "Not tested by this offline capture. Discover its own tools and perform a real authenticated read."
   },
-  "self_hosted_branch": {
-    "circleci_server": "Set CIRCLECI_BASE_URL to your CircleCI Server host. The MCP server bundles the rest. Not currently tested by this SKILL."
-  },
-  "drift_check_recipe": {
-    "step_1": "From any shell with curl + a CircleCI PAT in $CIRCLECI_TOKEN: curl -s -H \"Circle-Token: $CIRCLECI_TOKEN\" https://circleci.com/api/v2/me | jq '.'",
-    "step_2": "Confirm the API responds 200 and your PAT is valid. If the response shape drifts (new top-level fields, removed fields), the MCP server is likely also updated.",
-    "step_3": "Compare the canonical tool list in tool_surface_observed.examples against the live MCP tool surface inside Claude Code. Any new tool needs a SKILL Prompt-to-Tool Mapping row. Any removed tool needs a SKILL update."
-  },
-  "_why_no_automated_script": "Drift checking on a third-party SaaS is rate-limit-aware work and PAT-bearing. CI cannot safely run it without exposing the token. The recipe above runs from a human-driven shell when drift is suspected."
+  "drift_check_recipe": [
+    "Start the explicitly selected package version in a temporary stdio process with a placeholder CIRCLECI_TOKEN and DISABLE_TELEMETRY=true. Do not load user credentials or register the server in a host.",
+    "Send MCP initialize, notifications/initialized, then tools/list. Capture names and input schemas; record the package version separately from serverInfo.version.",
+    "Do not call tools/call during this offline check. Stop the temporary process after discovery.",
+    "Compare the observed names and schemas with the version-scoped skill table. Hosted/CLI routes have their own tool surfaces; do not copy this count onto them.",
+    "For connection verification, use the actual intended caller and credentials to make one authenticated read. Config presence, schema discovery, and a successful transport response alone do not prove access."
+  ]
 }

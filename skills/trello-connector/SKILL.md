@@ -77,10 +77,7 @@ revoked - re-run Phase 1-alt's token step, or switch to the built-in.
 
 ## Communication rules for Phase 1 and Phase 1-alt
 
-Phase 1 (the built-in connector) asks the user for one thing only: press
-**Connect to Claude** and sign in to Trello the way they normally do. Narrate it,
-then stay hands-off. Never ask for a password, a code, or a screenshot of the
-sign-in, and never open a page that asks for one inside an automated browser.
+On Phase 1, follow the account-matched route below and drive the available UI tools. Ask only for sign-in or approval input that requires the user; never request credentials in chat.
 
 The rules below are for **Phase 1-alt**, which has an unavoidable hands-on moment
 (the Power-Up form). The user is a non-technical business owner:
@@ -110,22 +107,21 @@ Ask the user to reopen Claude Code once, then retry. The `--user-data-dir` keeps
 
 ## PHASE 0 - Is Trello already connected?
 
+Identify the calling surface first. Desktop's visible account, Connectors view, and actual runtime tools are its evidence. Terminal `claude auth status` and `claude mcp list` describe the CLI account, even when run from Desktop's Bash; they do not establish Desktop identity or access. Trello credentials are independent of either Claude login. Discover existing tools and perform the read below for the intended vendor account before claiming a connection. Preserve a working route.
+
 Run these silently, in order, and act on the first that answers.
 
-**1. Built-in connector.**
+**1. Built-in connector.** In Desktop, discover this session's Trello tools (including opaque-ID prefixes) and inspect the app's Connectors view. For a terminal/VS Code caller only, check the CLI listing below. Apply the response branches to the caller's own state; a missing CLI line does not establish Desktop state.
 
 ```bash
 claude mcp list 2>&1 | grep -i "^claude.ai Trello"
 ```
 
-- `✔ Connected` → skip to **Phase 2**. Prove it first with one read from the
+- Connected in the caller or tools present → skip to **Phase 2**. Prove it first with one read from the
   `mcp__claude_ai_Trello__*` tools (list the user's boards); only a real answer
   counts.
-- `! Needs authentication` → the connection has lapsed. Open
-  `https://claude.ai/customize/connectors` in the user's own browser and say:
-  *"Your Trello connection needs a quick re-sign-in. Press Reconnect next to
-  Trello, sign in, and tell me when it says Connected."* Then re-run this check.
-- No such line → continue.
+- Reconnect or `! Needs authentication` → reconnect in the same caller's Connectors view. In Desktop, start inside the app; for a browser route, verify its Claude account matches the caller before opening `https://claude.ai/customize/connectors`. Complete Trello sign-in and repeat the actual read.
+- No usable built-in in the caller → continue to step 2; a missing CLI line alone says nothing about Desktop.
 
 **2. The kit's own route.**
 
@@ -150,18 +146,17 @@ curl -s -o /dev/null -w '%{http_code}\n' "https://api.trello.com/1/members/me?ke
 
 **3. Nothing found** → **Phase 1**.
 
-If you cannot run commands at all (you are in claude.ai chat or the desktop app
-rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the
-result at Phase 1 Step 5 by calling one of Trello's tools.
+**No shell?** Runtime discovery and reads still apply. Skip unavailable command/file checks; only set up a connection if no working route is found, following the existing route-by-need rules.
 
 ---
 
 ## PHASE 1 - Switch on the built-in Trello connector (the default route)
 
-This is a one-time, once-per-account job. The only thing the user does is press
-one button and sign in.
+This is a one-time, once-per-account job. Claude handles the available setup steps; the user supplies any sign-in input that requires them.
 
 ### Step 1 - Check this session can see built-in connectors
+
+In Desktop, use its visible signed-in account and Connectors view, then continue inside that app. The following auth/settings checks apply only to a terminal/VS Code caller, not Desktop:
 
 ```bash
 claude auth status
@@ -175,46 +170,28 @@ way, and run **Phase 1-alt** instead.
 
 ### Step 2 - Open the connector page for them
 
-Say: *"I'm opening Trello's page in your browser. Press **Connect to Claude**,
-sign in to Trello the way you normally do, and say yes when it asks for access.
-That is the only part only you can do - tell me when it says Connected."*
+Say: *"I'll open Trello's connection page and handle the setup. I'll let you know if it needs you to sign in."*
 
-Then open `https://claude.ai/directory/trello` in **their own** browser:
+**Desktop first:** use the app's **+ → Connectors → Browse connectors → Trello → Connect** (or the equivalent visible Customize/Connectors menu). Keep the exact app-created browser handoff URL, including its parameters. Open it in a browser profile whose Claude account you have confirmed matches Desktop, using an isolated profile when needed. If that profile is signed out or belongs to another account, complete sign-in to the matching Claude account in an isolated profile before continuing. Confirm the intended Trello account before approval. Do not replace it with a directory link from another Claude account.
 
-```bash
-open "https://claude.ai/directory/trello"          # Mac
-# xdg-open "https://claude.ai/directory/trello"    # Linux
-# start "" "https://claude.ai/directory/trello"    # Windows
-```
+**Terminal/VS Code or browser fallback:** open `https://claude.ai/directory/trello` in a browser whose Claude account matches the caller. Use `open` (Mac), `xdg-open` (Linux), or `start` (Windows) only after confirming that browser's account. If the page fails, use `https://claude.ai/customize/connectors` → **Browse** → search "Trello" → **Connect** in that same account.
 
-If that page doesn't load, open `https://claude.ai/customize/connectors` instead
-and tell them: Browse → search "Trello" → Connect.
-
-> **This is the one exception to the golden rule in Phase 1-alt** ("do not open
-> the user's own browser"). That rule exists because Phase 1-alt reads a
-> connection key off the page inside a driven browser. This page has no key on
-> it, and their own browser is the one already signed in to Claude and to Trello.
-> Do not drive this sign-in with Playwright.
+Drive navigation and approval with available UI tools. If a step requires user input or the harness has no suitable UI tool, give only the exact short next step; do not describe every click as inherently human-only.
 
 ### Step 3 - Wait
 
-Stay hands-off while they sign in. Never ask for a password, a code, or a
+Complete the visible flow with available tools; wait for any sign-in input that requires the user. Never ask for a password, a code, or a
 screenshot of the sign-in.
 
 ### Step 4 - Verify
 
-```bash
-claude mcp list 2>&1 | grep -i "^claude.ai Trello"
-```
-
-`claude.ai Trello: https://mcp.trello.com/v1 - ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line
-at all means the Connect didn't complete, so send them back to Step 2.
+Check Trello in Desktop's own Connectors view, or `claude mcp list` for a terminal/VS Code caller. Connected is registration evidence only; proceed to the real read in Step 5. Reconnect uses the same account's Connectors view. A missing CLI line says nothing about Desktop. If Desktop still lacks a connection completed through the browser directory, verify **Connected** in that browser's matching Claude account. Once that account check passes, rediscover Desktop's tools and use Step 5's one-time Desktop refresh if needed; do not repeat **Connect** to repair a stale app view. Return to Step 2 only when neither the caller's view nor the account-matched browser confirms a completed connection.
 
 ### Step 5 - Prove it
 
 Call one real read through the connector - list the user's boards via a
 `mcp__claude_ai_Trello__*` tool. Only a real answer counts. A tool error here is
-not "connected". These tools are often deferred in a session, so fetch the namespace first. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
+not "connected". These tools are often deferred in a session, so fetch the namespace first. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If tools are missing, first rediscover deferred tools and confirm the same caller account is connected; only then consider a stale session: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 ### Step 6 - Hand off
 

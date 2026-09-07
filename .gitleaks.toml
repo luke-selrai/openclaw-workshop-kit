@@ -45,3 +45,11 @@ id = "curl-auth-header"
 description = "Google Ads API quickstart REST doc placeholder (vendored upstream text, not a real secret)"
 paths = ['''skills/google-stack/pack/ads/google-ads-api-quickstart/references/rest\.md''']
 regexes = ['''Bearer INSERT_OAUTH2_ACCESS_TOKEN_HERE''']
+
+[[allowlists]]
+description = "Medusa Basic auth shell variable in connector recipes"
+targetRules = ["curl-auth-user"]
+condition = "AND"
+regexTarget = "secret"
+paths = ['''^skills/medusa-connector/SKILL\.md$''']
+regexes = ['''^"\$MEDUSA_ADMIN_SECRET_KEY:"$''']

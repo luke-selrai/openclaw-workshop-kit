@@ -55,46 +55,71 @@ The user is a non-technical business owner. Connecting is autonomous - Claude do
 
 ## Phase 0 - Is Stripe already connected?
 
+Identify the calling surface first. Desktop's visible account, Connectors view, and actual runtime tools are its evidence. Terminal `claude auth status` and `claude mcp list` describe the CLI account, even when run from Desktop's Bash; they do not establish Desktop identity or access. Stripe credentials are independent of either Claude login. Discover existing tools and perform the read below for the intended vendor account before claiming a connection. Preserve a working route.
+
 Run these silently, in order, and act on the first that answers.
 
-1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Stripe` (match the vendor word case-insensitively; there is no `--json` flag).
-   - `✔ Connected` → skip to Phase 2. Prove it first with one read: `get_stripe_account_info` from the `mcp__claude_ai_Stripe__*` namespace. Only a real answer counts.
-   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your Stripe connection needs a quick re-sign-in. Press Reconnect next to Stripe, sign in, and tell me when it says Connected."* Then re-run this check.
-   - no such line → continue.
-2. **The kit's own route.** Check the Stripe CLI: `stripe --version` returns a version number, and
+1. **Built-in connector.** In Desktop, discover this session's Stripe tools (including opaque-ID prefixes) and inspect the app's Connectors view. For a terminal/VS Code caller only: `claude mcp list` → look for a line starting `claude.ai Stripe` (match the vendor word case-insensitively; there is no `--json` flag).
+   - Connected in the caller or tools present → skip to Phase 2. Prove it first with one read: `get_stripe_account_info` from the `mcp__claude_ai_Stripe__*` namespace. Only a real answer counts.
+   - Reconnect or `! Needs authentication` → reconnect in the same caller's Connectors view. In Desktop, start inside the app; for a browser route, verify its Claude account matches the caller before opening `https://claude.ai/customize/connectors`. Complete Stripe sign-in and repeat the actual read.
+   - No usable built-in in the caller → continue to step 2; a missing CLI line alone says nothing about Desktop.
+2. **The kit's own route.** Check `stripe --version`, then use this presence-only probe. It captures config output privately and prints booleans only; never run an unfiltered config listing, pipe it to `tee`, or read the config into a tool response. Stripe's [config implementation](https://github.com/stripe/stripe-cli/blob/master/pkg/config/config.go) can print the full configuration, including stored keys.
 
    ```bash
-   stripe config --list 2>/dev/null | grep -E '^test_mode_api_key|^live_mode_api_key' | head -1
+   python3 - <<'PY'
+   import json
+   import re
+   import subprocess
+
+   config_presence = {"config_readable": False, "test_key_present": False, "live_key_present": False}
+   try:
+       result = subprocess.run(["stripe", "config", "--list"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, timeout=15)
+       config_presence["config_readable"] = result.returncode == 0
+       if config_presence["config_readable"]:
+           for line in result.stdout.splitlines():
+               match = re.match(r"^\s*(test|live)_mode_api_key\s*=\s*(.*)$", line)
+               if match:
+                   value = match.group(2).split("#", 1)[0].strip().strip("\"'").strip()
+                   if value:
+                       config_presence[match.group(1) + "_key_present"] = True
+   except (OSError, subprocess.TimeoutExpired, UnicodeError):
+       pass
+   print(json.dumps(config_presence))
+   PY
    ```
 
-   prints a key line (test or live). If both hold and the smoke call `stripe customers list --limit 1` returns data (or an empty list), keep using it - say *"Stripe is already connected"* and skip to Phase 2. Do not set the built-in up on top of a working connection.
+   These booleans are configuration hints, not authentication or account proof. Keys may belong to another profile, and newer CLI versions can use a credential store that this listing does not show. With the CLI installed, run the existing read `stripe customers list --limit 1` in the intended account/profile. A successful result (including an empty list) means keep that route and proceed to Phase 2. Do not set the built-in up on top of working CLI access. If the read requires authentication, follow Phase 1-alt; do not reauthenticate solely because a presence flag is false.
 3. **Nothing found** → Phase 1.
 
-If a Stripe server was registered locally at the same address as the built-in one, the local entry wins and hides the built-in. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK.
+**Terminal/VS Code precedence only.** If a Stripe server was registered locally at the same address as the built-in one, the local entry wins and hides the built-in. Desktop may expose both routes simultaneously; discover the actual runtime and retain the working intended-account connection. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK.
 
-If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Stripe's tools.
+**No shell?** Runtime discovery and reads still apply. Skip unavailable command/file checks; only set up a connection if no working route is found, following the existing route-by-need rules.
 
 ---
 
 ## Phase 1 - Switch on the built-in Stripe connector (the default route)
 
-This is a one-time, once-per-account job. The only thing the user does is press one button and sign in.
+This is a one-time, once-per-account job. Claude handles the available setup steps; the user supplies any sign-in input that requires them.
 
-**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
+**Step 1 - Check this session can see built-in connectors.** In Desktop, use its visible signed-in account and Connectors view, then continue inside that app. The following auth/settings checks apply only to a terminal/VS Code caller, not Desktop: `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
 
-**Step 2 - Open the connector page for them.** Say:
+**Step 2 - Open the connector page for them.**
 
-> "I'm opening Stripe's page in your browser. Press **Connect to Claude**, sign in to Stripe the way you normally do, and say yes when it asks for access. That's the only part only you can do - tell me when it says Connected."
+Say: *"I'll open Stripe's connection page and handle the setup. I'll let you know if it needs you to sign in."*
 
-Then open `https://claude.ai/directory/stripe` in the user's own everyday browser - `open <url>` on Mac, `xdg-open <url>` on Linux, `start "" <url>` on Windows. If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Stripe" → Connect. In the desktop app's Code tab the better route is the composer's **+** → **Connectors** → **Browse connectors** → the **+** next to it: that one shows up in the running session without a restart, whereas the browser page needs the app quit and reopened before any session sees the tools.
+**Desktop first:** use the app's **+ → Connectors → Browse connectors → Stripe → Connect** (or the equivalent visible Customize/Connectors menu). Keep the exact app-created browser handoff URL, including its parameters. Open it in a browser profile whose Claude account you have confirmed matches Desktop, using an isolated profile when needed. If that profile is signed out or belongs to another account, complete sign-in to the matching Claude account in an isolated profile before continuing. Confirm the intended Stripe account before approval. Do not replace it with a directory link from another Claude account.
 
-> **Why the user's own browser here, when Phase 1-alt uses its own window.** Phase 1-alt drives a separate browser because it reads credentials off the page. This route reads nothing - it only needs the browser where the user is already signed in to Claude. Send them to their own browser and do not automate this sign-in.
+**Terminal/VS Code or browser fallback:** open `https://claude.ai/directory/stripe` in a browser whose Claude account matches the caller. Use `open` (Mac), `xdg-open` (Linux), or `start` (Windows) only after confirming that browser's account. If the page fails, use `https://claude.ai/customize/connectors` → **Browse** → search "Stripe" → **Connect** in that same account.
 
-**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+Drive navigation and approval with available UI tools. If a step requires user input or the harness has no suitable UI tool, give only the exact short next step; do not describe every click as inherently human-only.
 
-**Step 4 - Verify.** `claude mcp list` again. `claude.ai Stripe … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete, so send them back to Step 2.
+**Step 3 - Wait.** Complete the visible flow with available tools; wait for any sign-in input that requires the user. Never ask for a password, a code, or a screenshot of the sign-in.
 
-**Step 5 - Prove it.** Call one real read through the connector - `get_stripe_account_info` from the `mcp__claude_ai_Stripe__*` namespace. Only a real answer counts. A tool error here is not "connected". If the tool doesn't appear in the session yet, ask for the quit-and-reopen from Step 4 and try once more. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
+**Step 4 - Verify.**
+
+Check Stripe in Desktop's own Connectors view, or `claude mcp list` for a terminal/VS Code caller. Connected is registration evidence only; proceed to the real read in Step 5. Reconnect uses the same account's Connectors view. A missing CLI line says nothing about Desktop. If Desktop still lacks a connection completed through the browser directory, verify **Connected** in that browser's matching Claude account. Once that account check passes, rediscover Desktop's tools and use Step 5's one-time Desktop refresh if needed; do not repeat **Connect** to repair a stale app view. Return to Step 2 only when neither the caller's view nor the account-matched browser confirms a completed connection.
+
+**Step 5 - Prove it.** Call one real read through the connector - `get_stripe_account_info` from the `mcp__claude_ai_Stripe__*` namespace. Only a real answer counts. A tool error here is not "connected". In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If tools are missing, first rediscover deferred tools and confirm the same caller account is connected; only then consider a stale session: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - for example *"show me this month's payments"*, *"how many active subscriptions do we have?"*, *"send Acme an invoice for $2,000"*.
 
@@ -127,15 +152,7 @@ stripe --version
 
 If this returns a version number, proceed to the auth check. If `stripe` is missing, jump to Step 2.
 
-**Auth check:** probe the saved config without triggering interactive prompts:
-
-```bash
-stripe config --list 2>/dev/null | grep -E '^test_mode_api_key|^live_mode_api_key' | head -1
-```
-
-If a key line prints (test or live), the CLI is already authenticated. Skip to Phase 2. If no keys are configured, proceed to Step 3 (auth).
-
-If both checks pass and the user's account is already cached, the connector is set up. Skip to Phase 2.
+**Auth check:** run the presence-only probe from Phase 0, then `stripe customers list --limit 1` for the intended account/profile. Never display the raw config. A real successful read, including an empty result, is required before skipping to Phase 2. If the read requires authentication, proceed to Step 3; config presence alone is not enough, and a false presence flag alone does not require login.
 
 #### Step 2 - Install the Stripe CLI
 
@@ -516,9 +533,6 @@ stripe login
 # Log in with a specific account (Connect platforms)
 stripe login --project-name=my-project
 
-# View current auth config
-stripe config --list
-
 # Switch between live and test mode
 stripe --live <command>   # live mode
 stripe <command>          # test mode by default
@@ -527,13 +541,15 @@ stripe <command>          # test mode by default
 stripe logout
 ```
 
+For a non-interactive authentication check, use Phase 0's presence-only probe and actual read. Do not print the raw auth configuration.
+
 > **Test mode is the default.** The CLI operates in test mode unless `--live` is passed. Always confirm with the user which mode to use before mutations.
 
 ---
 
 ## Behaviour Guidelines
 
-- **Always verify the connection first** at the start of a session - run Phase 0. On the built-in connector that is `claude mcp list` plus a `get_stripe_account_info` read; on the kit's route it is `stripe config --list`. Either way, confirm the account looks correct before acting.
+- **Always verify the connection first** at the start of a session - run Phase 0. On the built-in connector, use the caller's own state (`claude mcp list` only for terminal/VS Code) plus a real `get_stripe_account_info` read; on the kit's route use the presence-only probe plus `stripe customers list --limit 1`. Either way, confirm the account looks correct before acting.
 - **Test mode by default** - never use `--live` unless the user explicitly asks for live mode. Remind the user if they are about to act on live data.
 - **Confirm before mutating** - always confirm with the user before creating customers, payments, subscriptions, invoices, or issuing refunds.
 - **Confirm before cancelling** - subscription cancellation is not easily reversible. Prefer `cancel_at_period_end=true` unless the user wants immediate cancellation.

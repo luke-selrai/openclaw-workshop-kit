@@ -27,7 +27,7 @@ metadata:
 
 ## Overview
 
-This skill connects and operates a user's Notion workspace. There are two routes, and **the built-in connector is the default**:
+This skill connects and operates a user's Notion workspace. There are two new-setup routes, and **the built-in connector is the default**. Phase 0 also adopts an already-working local Notion server without reinstalling or changing its credentials:
 
 - **Phase 1 - the built-in Notion connector (default).** Notion's own hosted server at `mcp.notion.com`, listed in Claude's connector directory at `https://claude.com/connectors/notion` (verified live, 2 Sep 2026). The user connects it once on their Claude account by pressing one button, and it is then available everywhere that account is signed in, including Claude Code. It reads and writes: create pages with structured content, search across the workspace, update page properties, and work with databases and wikis. Tools arrive as `mcp__claude_ai_Notion__*`. Nothing material is missing versus the `ntn` route.
 - **Phase 1-alt - the kit's own route** (only when the built-in can't be used): the **official Notion CLI**, `ntn` (https://developers.notion.com/cli). Claude installs `ntn`, runs `ntn login --no-browser`, reads the verification URL + code the CLI prints, opens that URL in a Playwright browser, the user signs in to Notion and confirms the matching code, then `ntn login poll` completes the login. The token is stored in the **OS keychain** (`notion-cli` service) - never in a file, never in `~/.claude.json`. The only manual moment for the user is signing in to Notion in the browser window.
@@ -45,9 +45,9 @@ When Phase 1 is unavailable, this connector deliberately uses the `ntn` CLI inst
 
 > If you ever find yourself adding a `mcpServers.notion` entry with a Bearer token to `~/.claude.json`, **stop** - that is the leak-prone path this skill exists to avoid. Use the built-in connector (Phase 1), or `ntn login` (Phase 1-alt). Neither of them writes a Bearer token into config: the built-in connector's sign-in is held by the user's Claude account, and `ntn`'s is held by the OS keychain.
 
-### What this skill does NOT use
+### What this skill does NOT set up
 
-- **No bearer token / integration token in any config file.** True on both routes. On the kit's own route: OAuth login → OS keychain. (`NOTION_API_TOKEN` is an *override* the CLI supports, but this skill does not use it - verified on `ntn` v0.16.0 that `ntn login` alone authorizes the full public API.)
+- **No new bearer token / integration token in any config file.** True on both new-setup routes; an existing working server is preserved by Phase 0 without reading or rewriting its credentials. On the kit's own route: OAuth login → OS keychain. (`NOTION_API_TOKEN` is an *override* the CLI supports, but this skill does not use it - verified on `ntn` v0.16.0 that `ntn login` alone authorizes the full public API.)
 - **No `claude mcp add` / hand-wired MCP server registration.** The built-in connector is not registered this way either - it is switched on once on the user's Claude account and needs no local entry.
 - **No Claude Code plugin install.**
 - **No manual integration-app creation in Notion.** Neither route asks the user to build an integration: the built-in connector is Notion's own listed app, and `ntn login` is an OAuth flow against Notion's own pre-registered CLI app.
@@ -66,7 +66,7 @@ When Phase 1 is unavailable, this connector deliberately uses the `ntn` CLI inst
 
 The user is a non-technical business owner. Connecting is autonomous - Claude does the work; the user only presses one button and signs in to Notion (**Connect to Claude** on the built-in route in Phase 1, the confirm screen in the window Claude opens on the kit's own route in Phase 1-alt). Every message follows these rules:
 
-- **You drive, not them.** The only thing you ever ask is "please press the connect button and sign in to Notion in the window that opens" (built-in route), or "please sign in to Notion in the window I just opened, and confirm the code matches" (kit's own route).
+- **You drive, not them.** Use available tools for setup. If the app is inaccessible, give the short in-app sequence from Step 2 and resume from its handoff. When sign-in needs the user, say "please press the connect button and sign in to Notion in the window that opens" (built-in route), or "please sign in to Notion in the window I just opened, and confirm the code matches" (kit's own route).
 - **Plain English only.** No jargon. Never say CLI, npm, OAuth, keychain, token, API, MCP, terminal, config, JSON, data source. The browser window is "a sign-in window I opened for you"; the connection is "your Notion connection".
 - **Narrate at action boundaries.** Once when you start, once when you need them, once when done.
 - **Short messages** (max ~8 lines). **Never show raw errors** - translate to plain English and diagnose silently.
@@ -75,13 +75,19 @@ The user is a non-technical business owner. Connecting is autonomous - Claude do
 
 ## PHASE 0 - Is Notion already connected? (silent)
 
-Run these silently, in order, and act on the first that answers.
+Identify the calling surface first. Desktop's account and connectors can differ from the standalone CLI, even when `claude auth status` and `claude mcp list` run from Desktop's Bash. Those commands describe the CLI account; use the app's visible account, Connectors view, and actual runtime tools for Desktop evidence. Local Notion credentials are independent of either Claude login.
 
-1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Notion`.
-   - `✔ Connected` → skip to Phase 2. Prove it first with one read - `mcp__claude_ai_Notion__notion-search` for a word the user is likely to have in their workspace - before saying so.
-   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your Notion connection needs a quick re-sign-in. Press Reconnect next to Notion, sign in, and tell me when it says Connected."* Then re-run this check.
-   - no such line → continue.
-2. **The kit's own route.** Check whether `ntn` is installed and logged in:
+Run these silently, in order, and act on the first that answers for the intended Notion workspace.
+
+1. **Built-in connector.** In Desktop, discover the app-supplied hosted Notion connector by tool names/descriptions and its Connectors view (the prefix can be an opaque `mcp__<id>__`). Locally registered server tools belong to step 2, even if they are the only Notion tools present. Prove access with the read below using the actual runtime tool. In terminal/VS Code only, `claude mcp list` → look for a line starting `claude.ai Notion`.
+   - Built-in connected or its tools present → prove it with the actual hosted Notion search tool in this session (`mcp__claude_ai_Notion__notion-search` in terminal/VS Code), using a word likely to be in the intended workspace. Only then proceed to Phase 2.
+   - Reconnect or `! Needs authentication` → follow Step 2 of the built-in route for the same account, choose **Reconnect**, then repeat the read check.
+   - No usable built-in found → continue. A missing CLI line alone does not rule out Desktop tools.
+2. **Existing local Notion server.** Discover actual Notion operations in this calling session, including servers registered under a different name: an official `@notionhq/notion-mcp-server` may appear as `mcp__<server-name>__API-get-self` (for example, `mcp__selr-notion__API-get-self`). Match the tool's name and description, not a required registration name. Call the available identity/read tool and check the returned bot/user and workspace against the intended workspace. A successful `API-get-self` is a real identity/read; it does not imply access to every page. If identity is insufficient to select the intended workspace, use an available read of a known shared page or clarify which workspace is intended.
+   - Read succeeds for the intended workspace → adopt this existing connection and go to Phase 2. Preserve its server name, registration, and credentials; do not require `ntn`, re-register the server, or set up another route. Report existing access, not fresh onboarding or a proven Desktop built-in connection.
+   - Tools missing or read fails → continue to the `ntn` check and existing setup routes. Inspect tool errors without printing credentials or configuration. A page-sharing restriction alone is not a reason to replace the connection.
+
+3. **The kit's own route.** Check whether `ntn` is installed and logged in:
 
    ```bash
    command -v ntn >/dev/null 2>&1 && ntn --version    # installed?
@@ -91,9 +97,9 @@ Run these silently, in order, and act on the first that answers.
    - `ntn whoami` returns a user → **already connected.** Keep using it - say *"Good news - your Notion is already connected. Want me to search something or create a page?"* and skip to Phase 2. Do not set the built-in up on top of a working connection.
    - `ntn` missing, or `whoami` errors with "No workspace selected" / "Run `ntn login`" → continue.
    - For a fuller health read use `ntn doctor` (shows CLI version, config dir, default workspace, token source, public-API access).
-3. **Nothing found** → Phase 1.
+4. **Nothing found** → Phase 1.
 
-If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Notion's tools.
+Without a shell, keep runtime discovery and read checks; skip only unavailable commands. Use Phase 1 only when no working connection is found, then prove the result with a read in the calling session.
 
 ---
 
@@ -101,17 +107,20 @@ If you cannot run commands at all (you are in claude.ai chat or the desktop app 
 
 This is a one-time, once-per-account job. The only thing the user does is press one button and sign in.
 
-**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
+**Step 1 - Check this session can see built-in connectors.** In Desktop or claude.ai chat, use that account's Connectors view and runtime tools; a terminal login does not gate the app account. For terminal/VS Code only, `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear in that CLI session: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
 
-**Step 2 - Open the connector page for them.** Say: *"I'm opening Notion's page in your browser. Press **Connect to Claude**, sign in to Notion the way you normally do, and say yes when it asks for access. That is the only part only you can do - tell me when it says Connected."* Then open `https://claude.ai/directory/notion` in **their own everyday browser** (`open` on Mac, `xdg-open` on Linux, `start "" <url>` on Windows). If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Notion" → Connect. In the desktop app's Code tab the better route is the composer's **+** → **Connectors** → **Browse connectors** → the **+** next to it: that one shows up in the running session without a restart, whereas the browser page needs the app quit and reopened before any session sees the tools.
+**Step 2 - Open the connector page for them.**
 
-> **Why their own browser here, when Phase 1-alt uses a window Claude opens.** Phase 1-alt drives a browser because it has to read a sign-in code off the page; this route reads nothing. The user's own browser is the one already signed in to Claude and to Notion, so that is where the button press belongs. Do not drive this sign-in with Playwright.
+Say: *"I'm connecting Notion to this Claude account. I'll handle the setup and let you know if you need to sign in."* Use browser or computer-use tools actually available for navigation and authorised connection approvals. If a surface is inaccessible, give only the next short click sequence, then resume the work.
+
+- **Desktop first:** **+ → Connectors → Browse connectors → Notion → Connect**. If the app is inaccessible, give this exact sequence to the user. Keep the exact handoff URL opened by **Connect** in a browser profile signed into the same Claude account as Desktop. If the everyday profile differs, use a matching or isolated profile and request sign-in there as needed. Preserve the URL and its parameters; do not invent app deep links. If **Continue connecting** loops, check account matching before retrying; start a fresh in-app Connect if the handoff expired.
+- **Browser or terminal/VS Code:** use `https://claude.ai/directory/notion` in a browser signed into the calling Claude account, then **Connect to Claude**. If it fails to load, use `https://claude.ai/customize/connectors` → **Browse** → **Notion** → **Connect**. With only a shell, use `open` on Mac, `xdg-open` on Linux, or `start ""` on Windows after checking the default browser's account. For re-authentication, choose **Reconnect** on that account's connector instead.
 
 **Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
 
-**Step 4 - Verify.** `claude mcp list` again. `claude.ai Notion … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+**Step 4 - Verify.** In Desktop, check Notion's connected state in the app; in browser chat, check that account's Connectors view. If inaccessible, request only that status check. Step 5 remains required. The following command and status branches apply only to terminal/VS Code, never as proof for a different Desktop account: `claude mcp list` again. `claude.ai Notion … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
 
-**Step 5 - Prove it.** Call one real read through the connector: `mcp__claude_ai_Notion__notion-search`. Only a real answer counts. A tool error here is not "connected". An *empty* result is not a failure either - it usually means nothing is shared with the connection yet, so give the page-sharing line from the Overview. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
+**Step 5 - Prove it.** Call the actual Notion search tool in this session (`mcp__claude_ai_Notion__notion-search` in terminal/VS Code, or its discovered Desktop equivalent) and confirm the intended workspace. Only a real answer counts. A tool error here is not "connected". An *empty* result is not a failure either - it usually means nothing is shared with the connection yet, so give the page-sharing line from the Overview. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed for the same account, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - for example *"search my Notion for the Q3 plan"*, *"create a page called R&D Log"*, *"what's in my Tasks database?"*.
 
@@ -232,6 +241,7 @@ If `whoami` still errors, re-run Step 3 once. If it persists, surface in plain E
 **Which tools you have depends on which route connected.**
 
 - **Through the built-in connector (Phase 1):** the tools are `mcp__claude_ai_Notion__*` - search, fetch, create pages, update pages and page properties, query data sources, comments. Names come from Notion's own hosted server, so discover them in the session rather than translating a `ntn` command from the tables below. Everything in [Behaviour Guidelines](#behaviour-guidelines-phase-2) still applies: confirm before create/update/trash/comment, discover IDs before acting, present results readably.
+- **Through an existing local server adopted in Phase 0:** keep using that server's actual tools. Its operation names and supported API version can differ from the hosted connector and `ntn`; discover its tool descriptions rather than translating commands or assuming the tables below fit. Page-sharing and Behaviour Guidelines still apply.
 - **Through the kit's own route (Phase 1-alt):** the tools are `ntn` commands, documented in full below.
 
 The database-vs-data-source distinction is a Notion API fact, not a CLI quirk, so it bites on both routes: a database can hold several data sources, and a row query wants the data-source id. On the built-in route, resolve it with the connector's own fetch/search tools rather than `ntn datasources resolve`.

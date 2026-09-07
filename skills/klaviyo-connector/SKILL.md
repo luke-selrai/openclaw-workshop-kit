@@ -55,7 +55,7 @@ Every step of **the kit's own route** that requires sign-in runs inside the Play
 
 If Playwright MCP is unavailable, halt and point the participant at install instructions; do not fall back to opening their default browser.
 
-**The one exception is Phase 1, the built-in connector.** That sign-in happens on claude.ai, and the participant's own everyday browser is the only one signed in there - so opening `https://claude.com/connectors/klaviyo` in their own browser is correct, and Playwright must not drive it. The golden rule above exists because the kit's own route reads a secret off the page in a driven browser; the built-in route reads nothing.
+**Browser routing for the built-in connector.** Follow Phase 1's Desktop in-app-first route and account-matched browser handoff. Use available UI tools; ask the user only for input the harness cannot complete. The kit's separate credential-capture browser rules still apply to its own route.
 
 ---
 
@@ -82,12 +82,14 @@ Before running **the kit's own route**, verify Playwright MCP tools are availabl
 
 ## Phase 0 - Is Klaviyo already connected?
 
+Identify the calling surface first. Desktop's visible account, Connectors view, and actual runtime tools are its evidence. Terminal `claude auth status` and `claude mcp list` describe the CLI account, even when run from Desktop's Bash; they do not establish Desktop identity or access. Klaviyo credentials are independent of either Claude login. Discover existing tools and perform the read below for the intended vendor account before claiming a connection. Preserve a working route.
+
 Run these silently, in order, and act on the first that answers.
 
-1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Klaviyo` (match the vendor word case-insensitively).
-   - `✔ Connected` → skip to PHASE 2. Prove it first with one read: call any read tool in the `mcp__claude_ai_Klaviyo__*` namespace (account lookup, or list campaigns) and check a real answer comes back.
-   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the participant and say: *"Your Klaviyo connection needs a quick re-sign-in. Press Reconnect next to Klaviyo, sign in, and tell me when it says Connected."* Then re-run this check.
-   - no such line → continue.
+1. **Built-in connector.** In Desktop, discover this session's Klaviyo tools (including opaque-ID prefixes) and inspect the app's Connectors view. For a terminal/VS Code caller only: `claude mcp list` → look for a line starting `claude.ai Klaviyo` (match the vendor word case-insensitively).
+   - Connected in the caller or tools present → skip to PHASE 2. Prove it first with one read: call any read tool in the `mcp__claude_ai_Klaviyo__*` namespace (account lookup, or list campaigns) and check a real answer comes back.
+   - Reconnect or `! Needs authentication` → reconnect in the same caller's Connectors view. In Desktop, start inside the app; for a browser route, verify its Claude account matches the caller before opening `https://claude.ai/customize/connectors`. Complete Klaviyo sign-in and repeat the actual read.
+   - No usable built-in in the caller → continue to step 2; a missing CLI line alone says nothing about Desktop.
 2. **The kit's own route.** Check for stored credentials:
 
    ```bash
@@ -103,7 +105,7 @@ Run these silently, in order, and act on the first that answers.
    Starts with `https://` → smoke (`GET /accounts/`). On 200, say *"Klaviyo is already connected"* and skip to PHASE 2; do not set the built-in up on top of a working connection. On 401 the key was revoked - re-run **PHASE 1 - Install & Connect**. `missing` → continue.
 3. **Nothing found** → Route by need, then Phase 1.
 
-If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Klaviyo's tools.
+**No shell?** Runtime discovery and reads still apply. Skip unavailable command/file checks; only set up a connection if no working route is found, following the existing route-by-need rules.
 
 ---
 
@@ -131,21 +133,31 @@ The built-in connector cannot send a campaign end to end yet - Klaviyo targets Q
 
 This is a one-time, once-per-account job. The only thing the participant does is press one button and sign in. This skill handles no key on this route.
 
-**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the participant in one line that this copy of Claude is signed in a different way, and run the kit's own route instead.
+**Step 1 - Check this session can see built-in connectors.** In Desktop, use its visible signed-in account and Connectors view, then continue inside that app. The following auth/settings checks apply only to a terminal/VS Code caller, not Desktop: `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the participant in one line that this copy of Claude is signed in a different way, and run the kit's own route instead.
 
-**Step 2 - Open the connector page for them.** Say: *"I'm opening Klaviyo's page in your browser. Press **Connect to Claude**, sign in to Klaviyo the way you normally do, and say yes when it asks for access. That is the only part only you can do, tell me when it says Connected."* Then open `https://claude.com/connectors/klaviyo` (or `https://claude.ai/directory/klaviyo`) in **the participant's own everyday browser** (`open` on Mac, `xdg-open` on Linux, `start ""` on Windows) - see the exception noted under the golden rule above. If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Klaviyo" → Connect. In the desktop app's Code tab the better route is the composer's **+** → **Connectors** → **Browse connectors** → the **+** next to it: that one shows up in the running session without a restart, whereas the browser page needs the app quit and reopened before any session sees the tools.
+**Step 2 - Open the connector page for them.**
 
-**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+Say: *"I'll open Klaviyo's connection page and handle the setup. I'll let you know if it needs you to sign in."*
 
-**Step 4 - Verify.** `claude mcp list` again. `claude.ai Klaviyo … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+**Desktop first:** use the app's **+ → Connectors → Browse connectors → Klaviyo → Connect** (or the equivalent visible Customize/Connectors menu). Keep the exact app-created browser handoff URL, including its parameters. Open it in a browser profile whose Claude account you have confirmed matches Desktop, using an isolated profile when needed. If that profile is signed out or belongs to another account, complete sign-in to the matching Claude account in an isolated profile before continuing. Confirm the intended Klaviyo account before approval. Do not replace it with a directory link from another Claude account.
 
-**Step 5 - Prove it.** Call one real read through the connector - any read tool in the `mcp__claude_ai_Klaviyo__*` namespace (account lookup, or list recent campaigns). Only a real answer counts. A tool error here is not "connected". In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
+**Terminal/VS Code or browser fallback:** open `https://claude.com/connectors/klaviyo` (or `https://claude.ai/directory/klaviyo`) in a browser whose Claude account matches the caller. Use `open` (Mac), `xdg-open` (Linux), or `start` (Windows) only after confirming that browser's account. If the page fails, use `https://claude.ai/customize/connectors` → **Browse** → search "Klaviyo" → **Connect** in that same account.
+
+Drive navigation and approval with available UI tools. If a step requires user input or the harness has no suitable UI tool, give only the exact short next step; do not describe every click as inherently human-only.
+
+**Step 3 - Wait.** Complete the visible flow with available tools; wait for any sign-in input that requires the user. Never ask for a password, a code, or a screenshot of the sign-in.
+
+**Step 4 - Verify.**
+
+Check Klaviyo in Desktop's own Connectors view, or `claude mcp list` for a terminal/VS Code caller. Connected is registration evidence only; proceed to the real read in Step 5. Reconnect uses the same account's Connectors view. A missing CLI line says nothing about Desktop. If Desktop still lacks a connection completed through the browser directory, verify **Connected** in that browser's matching Claude account. Once that account check passes, rediscover Desktop's tools and use Step 5's one-time Desktop refresh if needed; do not repeat **Connect** to repair a stale app view. Return to Step 2 only when neither the caller's view nor the account-matched browser confirms a completed connection.
+
+**Step 5 - Prove it.** Call one real read through the connector - any read tool in the `mcp__claude_ai_Klaviyo__*` namespace (account lookup, or list recent campaigns). Only a real answer counts. A tool error here is not "connected". In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If tools are missing, first rediscover deferred tools and confirm the same caller account is connected; only then consider a stale session: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - *"how did my last campaign do?"*, *"which automations are earning the most?"*, *"draft me a campaign for the winter sale"*.
 
 **Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude admin has to switch Klaviyo on for the organisation first. Say so plainly and stop; do not fall back to the kit's route just to get past an admin gate.
 
-**Local entry precedence.** If a server registered locally with `claude mcp add` points at the same URL, it takes precedence and hides the built-in one. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the participant's OK.
+**Local entry precedence (terminal/VS Code only).** If a server registered locally with `claude mcp add` points at the same URL, it takes precedence and hides the built-in one. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the participant's OK. Desktop may expose local and built-in tools simultaneously; discover the actual runtime and keep each result attached to its connection.
 
 **Real-data warning applies to both routes.** Klaviyo has no sandbox. Everything the built-in connector writes - including a draft campaign - lands in the participant's real account. Keep the real-data gate below.
 

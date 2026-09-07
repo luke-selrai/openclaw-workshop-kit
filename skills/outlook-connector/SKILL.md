@@ -81,32 +81,42 @@ The directory page badges Microsoft 365 as read-only. **That badge is wrong** - 
 
 ## Phase 0 - Is Microsoft 365 already connected?
 
+Identify the calling surface first. Desktop's visible account, Connectors view, and actual runtime tools are its evidence. Terminal `claude auth status` and `claude mcp list` describe the CLI account, even when run from Desktop's Bash; they do not establish Desktop identity or access. Microsoft 365 credentials are independent of either Claude login. Discover existing tools and perform the read below for the intended vendor account before claiming a connection. Preserve a working route.
+
 Run these silently, in order, and act on the first that answers.
 
-1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Microsoft 365`.
-   - `✔ Connected` → skip to the operating parts (Part 2 onward). Prove it first with one read: `mcp__claude_ai_Microsoft_365__get_me`.
-   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your Microsoft 365 connection needs a quick re-sign-in. Press Reconnect next to Microsoft 365, sign in, and tell me when it says Connected."* Then re-run this check.
-   - no such line → continue.
+1. **Built-in connector.** In Desktop, discover this session's Microsoft 365 tools (including opaque-ID prefixes) and inspect the app's Connectors view. For a terminal/VS Code caller only: `claude mcp list` → look for a line starting `claude.ai Microsoft 365`.
+   - Connected in the caller or tools present → skip to the operating parts (Part 2 onward). Prove it first with one read: `mcp__claude_ai_Microsoft_365__get_me`.
+   - Reconnect or `! Needs authentication` → reconnect in the same caller's Connectors view. In Desktop, start inside the app; for a browser route, verify its Claude account matches the caller before opening `https://claude.ai/customize/connectors`. Complete Microsoft 365 sign-in and repeat the actual read.
+   - No usable built-in in the caller → continue to step 2; a missing CLI line alone says nothing about Desktop.
 2. **The kit's own route.** `m365 status --output json` - a JSON blob with `connectedAs` set to the user's email means the CLI is signed in. If it is present and a smoke call works (`m365 outlook message list --folderName "inbox" --pageSize 3`), keep using it - say *"Microsoft 365 is already connected"* and skip to the operating parts. Do not set the built-in connector up on top of a working connection.
 3. **Nothing found** → route with the table above, then Phase 1 (built-in) and/or Part 1 (the `m365` route).
 
-If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Step 5 by calling `mcp__claude_ai_Microsoft_365__get_me`.
+**No shell?** Runtime discovery and reads still apply. Skip unavailable command/file checks; only set up a connection if no working route is found, following the existing route-by-need rules.
 
 ---
 
 ## Phase 1 - Switch on the built-in Microsoft 365 connector (the default route)
 
-This is a one-time, once-per-account job. The only thing the user does is press one button and sign in.
+This is a one-time, once-per-account job. Claude handles the available setup steps; the user supplies any sign-in input that requires them.
 
-**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Part 1) instead.
+**Step 1 - Check this session can see built-in connectors.** In Desktop, use its visible signed-in account and Connectors view, then continue inside that app. The following auth/settings checks apply only to a terminal/VS Code caller, not Desktop: `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Part 1) instead.
 
 **Step 2 - Check the one-time company approval.** Before *anyone* on a Microsoft Entra tenant can connect, a Microsoft Entra **Global Administrator** has to approve Claude once for the whole tenant. On Claude **Team or Enterprise** plans there is a second gate: the Claude organisation owner must switch Microsoft 365 on under Organization Settings → Connectors first. On Free / Pro / Max plans only the Global Administrator consent applies. Ask: *"Has whoever looks after your company's Microsoft accounts already approved Claude? If not, they'll need to do that once before this works for anyone."* If they haven't, hand the user that sentence to forward and pause - do not fall back to the `m365` route just to get past an approval gate.
 
-**Step 3 - Open the connector page for them.** Say: *"I'm opening the Microsoft 365 page in your browser. Press **Connect to Claude**, sign in to Microsoft the way you normally do, and say yes when it asks for access. That's the only part only you can do - tell me when it says Connected."* Then open `https://claude.ai/directory/microsoft-365` in **their own browser** (`open` on Mac, `xdg-open` on Linux, `start "" <url>` on Windows). If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Microsoft 365" → Connect. In the desktop app's Code tab the better route is the composer's **+** → **Connectors** → **Browse connectors** → the **+** next to it: that one shows up in the running session without a restart, whereas the browser page needs the app quit and reopened before any session sees the tools.
+**Step 3 - Open the connector page for them.**
 
-**Step 4 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
+Say: *"I'll open Microsoft 365's connection page and handle the setup. I'll let you know if it needs you to sign in."*
 
-**Step 5 - Verify, then prove it.** `claude mcp list` again; `claude.ai Microsoft 365 … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete, so send them back to Step 3. Then call `mcp__claude_ai_Microsoft_365__get_me`. Only a real answer counts; a tool error here is not "connected". In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
+**Desktop first:** use the app's **+ → Connectors → Browse connectors → Microsoft 365 → Connect** (or the equivalent visible Customize/Connectors menu). Keep the exact app-created browser handoff URL, including its parameters. Open it in a browser profile whose Claude account you have confirmed matches Desktop, using an isolated profile when needed. If that profile is signed out or belongs to another account, complete sign-in to the matching Claude account in an isolated profile before continuing. Confirm the intended Microsoft 365 account before approval. Do not replace it with a directory link from another Claude account.
+
+**Terminal/VS Code or browser fallback:** open `https://claude.ai/directory/microsoft-365` in a browser whose Claude account matches the caller. Use `open` (Mac), `xdg-open` (Linux), or `start` (Windows) only after confirming that browser's account. If the page fails, use `https://claude.ai/customize/connectors` → **Browse** → search "Microsoft 365" → **Connect** in that same account.
+
+Drive navigation and approval with available UI tools. If a step requires user input or the harness has no suitable UI tool, give only the exact short next step; do not describe every click as inherently human-only.
+
+**Step 4 - Wait.** Complete the visible flow with available tools; wait for any sign-in input that requires the user. Never ask for a password, a code, or a screenshot of the sign-in.
+
+**Step 5 - Verify, then prove it.** Check Microsoft 365 in Desktop's own Connectors view, or `claude mcp list` for a terminal/VS Code caller. Connected is registration evidence only; Reconnect uses the same account's view. A missing CLI line says nothing about Desktop. If a completed browser-directory connection is still absent from Desktop, **Connected** in the browser's matching Claude account establishes the account check: rediscover tools and use the one-time Desktop refresh below if needed, without repeating **Connect**. Then call `mcp__claude_ai_Microsoft_365__get_me`. Only a real answer counts; a tool error here is not "connected". In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If tools are missing, first rediscover deferred tools and confirm the same caller account is connected; only then consider a stale session: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 **Step 6 - If they named a writing job, check the write tools are on.** The write half (sending mail, drafts, calendar changes, file changes, mailbox settings) sits behind a **separate, expanded approval** that a Microsoft Entra administrator has to grant on top of the first one. Organisations that connected before the write tools existed have them blocked by default until an admin enables them. Test it rather than assuming: attempt the smallest real write the user asked for (e.g. `mcp__claude_ai_Microsoft_365__outlook_create_draft`) and read the result.
 - Works → you are done; writing goes through the built-in connector.
@@ -128,7 +138,7 @@ Every sign-in step on **the kit's `m365` route** runs inside the **Playwright MC
 
 If a CLI command is about to open the user's own browser, stop and switch to the device-code path.
 
-**Carve-out for Phase 1.** This rule exists because the `m365` route reads secrets off the page in a driven browser. The built-in connector reads nothing, so Phase 1 Step 3 deliberately opens the link in the user's *own* browser - that is where they are already signed in to Claude and to Microsoft. Do not drive the built-in connector's sign-in with Playwright.
+**Browser routing for the built-in connector.** Follow Phase 1's Desktop in-app-first route and account-matched browser handoff. Use available UI tools; ask the user only for input the harness cannot complete. The kit's separate credential-capture browser rules still apply to its own route.
 
 ---
 
@@ -602,10 +612,10 @@ Always try the built-in connector, then the CLI command, before switching to Pla
 ## Behaviour Guidelines
 
 - **Ask what they want before you set anything up.** One question, one double-check of the neighbouring surfaces, then connect only what they named.
-- **Check what's already connected first** - Phase 0. `claude mcp list` for the built-in connector, `m365 status` for the kit's route. Do NOT parse login command output to infer success; `m365 status` is the source of truth for the CLI, and a real read is the source of truth for the built-in connector.
+- **Check what's already connected first** - Phase 0. The caller's own connector state and tools for the built-in (`claude mcp list` only for terminal/VS Code), `m365 status` for the kit's route. Do NOT parse login command output to infer success; `m365 status` is the source of truth for the CLI, and a real read is the source of truth for the built-in connector.
 - **The built-in connector is the default.** Only run Part 1 when a named need requires it.
 - **Both routes can coexist.** Never disconnect one to set up the other.
-- **Never open the user's own browser** for the `m365` sign-in - use Playwright MCP. This is a hard rule. The one exception is the built-in connector's Connect page (Phase 1, Step 3), which must be opened in their own browser.
+- **Never open the user's own browser** for the `m365` sign-in - use Playwright MCP. This is a hard rule. For the built-in connector, use Phase 1 Step 3's account-matched in-app/browser route.
 - **Confirm before acting** - always confirm recipient/subject/time with the user before sending emails, creating meetings, or deleting anything, on either route.
 - **Never echo credentials** in narration, output or logs. The built-in route handles none at all.
 - **Use ISO 8601 dates** - format: `2026-04-08T10:00:00`. Confirm timezone if ambiguous.

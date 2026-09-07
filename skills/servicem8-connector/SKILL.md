@@ -34,7 +34,7 @@ The skill has two phases:
 - **Phase 1 - Install & Connect (autonomous via Playwright).** The user has never done this before. Claude drives the entire key-mint flow inside a Playwright MCP browser: open `go.servicem8.com`, let the user sign in, walk Settings → API Keys → Add API Key, name it `Claude Code`, select **Full Access** (default), and capture the one-time key from the page. Claude writes it to `~/.config/servicem8/credentials.env` (mode 600) and verifies with a live API ping. The user's only manual moment is signing in to ServiceM8 once.
 - **Phase 2 - Use the connector.** Once the key is saved, Claude calls the ServiceM8 REST API via `curl` (the runtime loop in §Phase 2) to read and update data: jobs, clients, job activities, materials, staff, notes, attachments, queues.
 
-**Which phase to run** - Before any ServiceM8 action, check whether the key already exists. Look for `~/.config/servicem8/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\servicem8\credentials.env` (native Windows). If the file exists and contains a non-empty `SERVICEM8_API_KEY`, run a single smoke ping (Phase 0); on success, skip to Phase 2. Otherwise run Phase 1.
+**Which phase to run** - Before any ServiceM8 action, check whether the key already exists. Look for `~/.config/servicem8/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\servicem8\credentials.env` (native Windows). If the file exists and contains a non-empty `SERVICEM8_API_KEY`, run the smoke ping (Phase 0) and follow its result; only a successful read goes to Phase 2. If credentials are missing, run Phase 1.
 
 **Existing accounts only.** This connector is for users who **already have a ServiceM8 account or trial**. Do NOT use it to recommend or pitch ServiceM8 to someone who does not already use it - if the user has no ServiceM8 account, say so plainly and stop rather than walking them through a signup.
 
@@ -77,16 +77,10 @@ CRED_FILE="$HOME/.config/servicem8/credentials.env"
 if [ -f "$CRED_FILE" ] && grep -q '^SERVICEM8_API_KEY=.\+' "$CRED_FILE"; then echo "configured"; else echo "not-configured"; fi
 ```
 
-- `configured` → run the smoke ping below. On HTTP 200, tell the user warmly "You're already connected - let me check it still works," then go to **Phase 2**. On HTTP 401/403, the key was removed or downgraded - re-run **Phase 1**.
+- `configured` → run **Phase 1 Step 7**'s read and follow its result table. Only HTTP 200 proves access. HTTP 402, or an explicit trial/account-lapsed message even with HTTP 401, is an account-plan gate: preserve the stored key and do not start key creation.
 - `not-configured` → run **Phase 1**.
 
-Smoke ping (key read from file, never printed):
-
-```bash
-set -a; . "$HOME/.config/servicem8/credentials.env"; set +a
-curl -s -o /dev/null -w '%{http_code}\n' -H "X-API-Key: $SERVICEM8_API_KEY" \
-  "$SERVICEM8_API_BASE/company.json"
-```
+Step 7 is the shared smoke and recovery decision for resume, new setup, and later failures; it never prints the key or returned company records.
 
 ---
 
@@ -177,19 +171,45 @@ rm -rf .playwright-mcp 2>/dev/null   # snapshots are written relative to the ses
 
 ### Step 7 - Smoke test and report
 
+Read once, classify the response, and keep the response body out of the transcript:
+
 ```bash
-set -a; . "$HOME/.config/servicem8/credentials.env"; set +a
-curl -s -o /dev/null -w '%{http_code}\n' -H "X-API-Key: $SERVICEM8_API_KEY" \
-  "$SERVICEM8_API_BASE/company.json"
+set +x
+. "$HOME/.config/servicem8/credentials.env"
+SERVICEM8_RESPONSE=$(mktemp)
+SERVICEM8_HTTP=$(curl -sS -m 15 -o "$SERVICEM8_RESPONSE" -w '%{http_code}' \
+  -H "X-API-Key: $SERVICEM8_API_KEY" \
+  "$SERVICEM8_API_BASE/company.json")
+SERVICEM8_ERROR_MESSAGE=$(jq -r 'if type == "object" then .message // empty else empty end' "$SERVICEM8_RESPONSE" 2>/dev/null || true)
+rm -f "$SERVICEM8_RESPONSE"
+
+if [ "$SERVICEM8_HTTP" = "200" ]; then
+  echo connected
+elif [ "$SERVICEM8_HTTP" = "402" ] || printf '%s' "$SERVICEM8_ERROR_MESSAGE" | grep -Eiq '(account( trial)?|trial)( period)? (has |is |was )?(expired|lapsed)|(expired|lapsed) (account|trial)|select an account plan'; then
+  echo account-plan-required
+elif [ "$SERVICEM8_HTTP" = "401" ]; then
+  echo reconnect
+elif [ "$SERVICEM8_HTTP" = "403" ]; then
+  echo permission-denied
+else
+  echo request-failed
+fi
+unset SERVICEM8_API_KEY SERVICEM8_ERROR_MESSAGE SERVICEM8_RESPONSE
 ```
 
-Expect `200`. Tell the user: *"All connected - your ServiceM8 is ready. You can ask me things like 'show my jobs this week' or 'create a job for a client'."* **No restart needed.**
+| Result | Next action |
+|---|---|
+| `connected` | HTTP 200: access is proven. Say *"Your ServiceM8 is connected and ready."* Continue to Phase 2; no restart needed. |
+| `account-plan-required` | HTTP 402 or an explicit trial/account-expiry message: preserve the stored key and any existing `Claude Code` key row. Say *"ServiceM8 is asking for an active account plan before it will let me read your data. Your saved connection is still in place. The account owner needs to choose or restore a plan in ServiceM8."* Stop ServiceM8 setup and reads until the account owner resolves the gate; then retry this same smoke read with the saved key. Do not automatically select or purchase a paid plan, reauthenticate, remove the key, or mint a replacement to address this response. This is not a successful connection. |
+| `reconnect` | HTTP 401 without an account-plan/expiry message: re-run Phase 1's invalid-key recovery, removing the invalid `Claude Code` row before recreating it so Step 3 does not loop back to the same failed key. |
+| `permission-denied` | HTTP 403: inspect the required access and follow the permission guidance in Gotchas. An account-plan message takes precedence over key replacement. |
+| `request-failed` | Another status or transport failure: diagnose the observed failure; neither claim success nor replace credentials without evidence of an authentication problem. |
 
 ---
 
 ## PHASE 2 - Use the connector (REST runtime loop)
 
-Once `~/.config/servicem8/credentials.env` exists, follow this loop on every ServiceM8 request.
+Once the stored credentials pass the smoke read, follow this loop on every ServiceM8 request. If a later call reports HTTP 402 or explicit account/trial expiry, apply Step 7's account-plan gate and preserve the credentials.
 
 1. Load the key (never print it):
 
@@ -240,11 +260,12 @@ Once `~/.config/servicem8/credentials.env` exists, follow this loop on every Ser
 - **Key shown once.** ServiceM8 reveals a new key a single time. Capture-then-store in the same step; never rely on re-reading it. If lost, Remove + recreate.
 - **Never snapshot the sign-in page** - auto-filled password leak (see Phase 1 note).
 - **No substring-negation in self-checks.** When testing whether the key works, match the explicit success condition (`http_code == 200`), never "does the output NOT contain an error word" - negation-based success checks silently pass when the output shape changes, a known false-pass audit footgun.
-- **401 Unauthorized** → key invalid, removed, or the trial/account lapsed → re-run Phase 1 (Remove any stale `Claude Code` row first).
+- **402 Payment Required / account or trial lapsed** → follow Step 7's `account-plan-required` branch. Preserve the key; a plan gate is not repaired by signing in again or minting a key.
+- **401 Unauthorized** → inspect the error message before changing credentials. If it explicitly reports account/trial expiry, use the same plan-gate branch. Otherwise treat the key as invalid or removed and follow Phase 1.
 - **403 Forbidden on a write** → the key is **Read Only**. Mint a Full Access key (Phase 1 Step 4) to enable writes.
 - **Bounced owner email blocks sends.** ServiceM8 will not send email/SMS (quotes, "on my way" texts) until the account-owner email is verified. This does NOT affect the REST API, but any send-driven automation will silently no-op. If the user reports messages not arriving, point them to Settings → ServiceM8 Account to fix and re-verify the owner email.
 - **Rotation.** The key is long-lived and Full Access. To rotate: Settings → API Keys → Remove the `Claude Code` key → re-run Phase 1. Treat the key as a password; it lives only in `~/.config/servicem8/credentials.env` (mode 600), never in git.
-- **Trial expiry.** A 14-day trial still serves the REST API while active; once expired, calls return auth errors until the user picks a plan.
+- **Trial expiry.** An expired trial can return HTTP 402 with an account-plan message. Follow Step 7; keep credentials intact and retry the same read only after the account owner resolves the plan requirement.
 
 ## Token handling
 

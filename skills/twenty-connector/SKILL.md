@@ -39,16 +39,16 @@ Twenty is the AGPL-3.0 open-source CRM commonly adopted as a self-hostable alter
 
 One credential is captured:
 
-- **API key** - `Authorization: Bearer <jwt>` on `/rest/*` and `/graphql` endpoints. Permission-inherits from the role of the user who created it (no per-object scopes - see Troubleshooting). This is what every Phase 3 build-your-own-CRM team will use to create custom objects, log activities, and read pipeline data.
+- **API key** - `Authorization: Bearer <jwt>` on `/rest/*` and `/graphql` endpoints. Current Twenty versions assign the key its own role; that role controls record and settings permissions (see Troubleshooting). This is what every Phase 3 build-your-own-CRM team will use to create custom objects, log activities, and read pipeline data.
 
 > **Account support:** Twenty self-hosted (any version from v0.50+, recommended v1.0+) OR Twenty Cloud at `app.twenty.com`. The user must have a Twenty workspace with admin permissions on it. For self-host, the workspace lives at whatever URL the user provides (e.g. `https://crm.example.com` or `http://localhost:3000`).
 
 > **No upstream MCP for Twenty** as of January 2026. Twenty's "Skills & Agents" feature is an *internal* AI surface running Claude *inside* Twenty's own product - not a public MCP server external Claude Code sessions can register. This SKILL captures credentials and documents the curl-based / GraphQL operation pattern; for deep introspection of the workspace schema, agents call Twenty's metadata API at runtime.
 
-**The user does exactly TWO things across the entire setup. Everything else is autonomous.**
+**Use the account and deployment choices already established in the conversation. Drive the rest of setup with the available tools.**
 
 1. Tell me whether they want to **build their own CRM (self-host)**, **try Twenty Cloud (managed)**, or **already have a workspace** (point me at it).
-2. Log in to their Twenty workspace in the Playwright browser when it opens (Step 3). One-time, their credentials, on screen they already know.
+2. Complete any sign-in or verification the harness cannot perform with its available tools. A fresh authorized local instance can use the private generated-owner route in Step A.2.
 
 That's the complete list. The user does NOT click menus, do NOT generate the API key, do NOT copy or paste it. Claude drives every step from Step 3 onward.
 
@@ -63,7 +63,7 @@ Identical contract to `medusa-connector` and `shopify-connector`. Summary:
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start, once when you need them ("please sign in"), once when you're done. No commentary in between.
 - **Short responses.** Max 8 lines per message during install phase.
 - **React warmly.** Good: "That worked - your Twenty CRM is now connected." Bad: "POST /rest/apiKeys 201 Created."
-- **Never echo the API key.** Once written to disk, the key's job is done. Do not re-read the env file, do not include the key in any later tool-call return value the user can see. Same rule for the user's Twenty login password - Claude never sees it (it goes to the Twenty login form), and Claude must never ask for it.
+- **Never echo the API key.** Once written to disk, the key's job is done. Do not re-read the env file, do not include the key in any later tool-call return value the user can see. Keep existing login passwords out of conversation. The optional fresh-local helper generates and stores its owner's password privately; never print that file or ask the user to paste a password into chat.
 
 ---
 
@@ -94,11 +94,12 @@ Capture the workspace URL from the address bar. Set `TWENTY_BACKEND_URL` to that
 > **30-day trial reminder.** The Pro tier auto-renews to $9/seat/mo after the trial. If the user just wants to evaluate, write a reminder to `~/.claude/state/twenty-connector-trial.json` so future sessions can warn about the renewal date:
 > ```bash
 > mkdir -p "$HOME/.claude/state"
+> TWENTY_TRIAL_RENEWS_AT=$(date -u -v+30d +%Y-%m-%d 2>/dev/null || date -u -d '+30 days' +%Y-%m-%d) || exit 1
 > cat > "$HOME/.claude/state/twenty-connector-trial.json" <<EOF
 > {
 >   "workspace_url": "$TWENTY_BACKEND_URL",
 >   "trial_started_at": "$(date -u +%Y-%m-%d)",
->   "trial_renews_at": "$(date -u -d '+30 days' +%Y-%m-%d)",
+>   "trial_renews_at": "$TWENTY_TRIAL_RENEWS_AT",
 >   "tier": "Pro",
 >   "cancel_path": "Settings → Billing → Cancel Plan"
 > }
@@ -124,15 +125,43 @@ cd twenty/packages/twenty-docker
 cp .env.example .env
 
 # Twenty requires APP_SECRET and PG_DATABASE_PASSWORD set; generate them
+set +x
 APP_SECRET=$(openssl rand -base64 32 | tr -d '/+=' | head -c 40)
 PG_PASS=$(openssl rand -base64 24 | tr -d '/+=' | head -c 20)
 
-# Write into .env (replace placeholder lines)
-sed -i "s|APP_SECRET=.*|APP_SECRET=${APP_SECRET}|" .env
-sed -i "s|PG_DATABASE_PASSWORD=.*|PG_DATABASE_PASSWORD=${PG_PASS}|" .env
+chmod 600 .env
+sed -i.bak -E \
+  -e "s|^[[:space:]#]*APP_SECRET=.*|APP_SECRET=${APP_SECRET}|" \
+  -e "s|^[[:space:]#]*PG_DATABASE_PASSWORD=.*|PG_DATABASE_PASSWORD=${PG_PASS}|" .env || exit 1
+if [ -n "$APP_SECRET" ] && [ -n "$PG_PASS" ] \
+  && [ "$(grep -c '^APP_SECRET=' .env)" = "1" ] \
+  && [ "$(grep -c '^PG_DATABASE_PASSWORD=' .env)" = "1" ] \
+  && grep -Fxq "APP_SECRET=$APP_SECRET" .env \
+  && grep -Fxq "PG_DATABASE_PASSWORD=$PG_PASS" .env; then
+  rm -f .env.bak
+  echo LOCAL_SECRETS_SAVED
+else
+  echo LOCAL_SECRETS_NOT_VERIFIED
+  exit 1
+fi
 
+```
+
+The `-i.bak` form works with both macOS/BSD and GNU sed; the replacements also activate commented placeholders in the upstream example. Continue only after `LOCAL_SECRETS_SAVED`. If a required assignment is absent or duplicated, inspect the example's key names and repair this new local file before retrying; keep values out of output.
+
+**Before starting this newly created local instance**, edit its Compose file's `server.ports` entry: replace `3000:3000` (or the equivalent variable-based mapping) with `127.0.0.1:3000:3000`. Replace the existing mapping rather than appending a second one. [Docker publishes an unspecified host address on every interface](https://docs.docker.com/engine/network/port-publishing/); the explicit loopback address keeps this workshop instance local. This applies only to the new laptop setup, not an existing workspace, production deployment, or global Docker settings.
+
+Then start and verify the published address before opening onboarding:
+
+```bash
 # Start the stack (server, worker, postgres, redis)
 docker compose up -d 2>&1 | tail -10
+
+TWENTY_BINDING=$(docker compose port server 3000)
+if [ "$TWENTY_BINDING" != "127.0.0.1:3000" ]; then
+  echo "LOCAL_BINDING_NOT_VERIFIED"
+  exit 1
+fi
 
 # Poll for the server to be ready (first start does migrations; takes 1-3 min)
 for i in {1..120}; do
@@ -143,17 +172,16 @@ for i in {1..120}; do
 done
 ```
 
-The first start runs database migrations + seeds the demo workspace. Once the healthcheck passes:
+If the binding check fails, correct the new local server's mapping and recreate that service before continuing. A mapping containing `0.0.0.0`, `[::]`, or an additional non-loopback address is not local-only. Verify again with `docker compose port server 3000`; this reports published addresses without printing container environment variables. The standard image's first start runs migrations; it does not seed a demo workspace or owner. Once binding and health checks pass, set the workspace URL to `http://localhost:3000`.
 
-- Workspace URL: `http://localhost:3000`
-- Sign up at `http://localhost:3000/sign-up` to create the workspace admin
-- Tell the user *"Twenty is running locally. Open the browser I just launched and create your admin account - that's the only thing I can't automate (Twenty requires the password to be set by you, not generated by us)."*
+For this newly created empty local instance, read [references/local-bootstrap.md](references/local-bootstrap.md) and run the bundled helper when account creation is authorized. It creates the owner, workspace, and a restricted connection key through Twenty's normal signup interfaces, retaining verification guards. This avoids an unnecessary attendee password-entry step.
 
-Drive the signup form in Playwright. Capture the workspace URL after the admin is created.
+If the helper's version or configuration checks do not match, use the normal signup at `http://localhost:3000/sign-up` with the available browser tools. Drive the form where tools and authorization permit; involve the attendee only for a verification or sign-in step the harness cannot complete. Preserve any account already created by a partial helper run. Capture the workspace URL after onboarding.
 
 Persist:
 
 ```bash
+mkdir -p "$HOME/.claude/state"
 cat > "$HOME/.claude/state/twenty-connector-bootstrap.json" <<EOF
 {
   "project_path": "$HOME/projects/twenty",
@@ -174,10 +202,22 @@ Continue to Phase 0 with `TWENTY_DEPLOY_TARGET="self-host"` and `TWENTY_DEPLOY_B
 
 ## PHASE 0 - Resume check
 
-Read `~/.claude/twenty-connector.env` if it exists:
+Check credential presence locally without returning the file contents:
 
 ```bash
-test -f "$HOME/.claude/twenty-connector.env" && grep -E '^TWENTY_(BACKEND_URL|API_KEY)=' "$HOME/.claude/twenty-connector.env"
+(
+  set +x
+  if [ ! -f "$HOME/.claude/twenty-connector.env" ]; then
+    echo missing
+  else
+    source "$HOME/.claude/twenty-connector.env"
+    if [ -n "${TWENTY_BACKEND_URL:-}" ] && [ -n "${TWENTY_API_KEY:-}" ]; then
+      echo configured
+    else
+      echo partial
+    fi
+  fi
+)
 ```
 
 - Both vars present and non-empty → run smoke test (Step 7's `/rest/companies?limit=1`). Report result, stop.
@@ -287,7 +327,7 @@ Then merge into `mcpServers`:
 
 Preserve every other `mcpServers` entry. Use `Write` (not `Edit`) so the merge happens via parsed-JSON → re-serialize.
 
-Verify both files: re-read each, parse, confirm all vars are present and non-empty. If either fails, do not proceed to Step 6 - tell the user something went wrong with saving and offer to retry.
+Verify both files locally with shell tracing disabled: parse the config and check that the required vars are present and non-empty in both stores. Return only pass/fail booleans, never file contents or credential assignments. If either fails, do not proceed to Step 6 - tell the user something went wrong with saving and offer to retry.
 
 ### Step 6 - Wipe local variables
 
@@ -315,9 +355,10 @@ META_HTTP=$(curl -sS -m 10 -o /tmp/twenty-meta-smoke.json -w "%{http_code}" \
 echo "rest=$COMPANIES_HTTP metadata=$META_HTTP"
 ```
 
-- `rest=200 metadata=200` → fully connected. Tell the user: *"All set - your Twenty CRM is now connected. I can read and create Companies, People, Opportunities, and custom objects, and I can see your workspace's full schema."*
+- `rest=200 metadata=403` with the dedicated local read-only role → record reads are connected; schema-management permission is absent as intended. Report read-only access and preserve the role. Do not recreate or broaden the key to make this check pass.
+- `rest=200 metadata=200` → reads and schema access are connected. Only claim writes if the assigned key role permits them. For a role with the needed write permissions, tell the user: *"All set - your Twenty CRM is now connected. I can read and create Companies, People, Opportunities, and custom objects, and I can see your workspace's full schema."*
 - `rest=401` → the API key didn't authenticate. Most common cause: the user revoked the key between Step 4 and Step 7. Re-run Phase 1 from Step 4.
-- `rest=403` → permission issue. The API key inherits from the creator's role; if the user's role doesn't have CRUD on Companies, the key won't either. Tell them.
+- `rest=403` → permission issue. Check the role assigned to this API key and its Companies permissions; current versions do not simply inherit the creator's role. Keep the requested scope.
 - Connection error → backend stopped responding. Suggest checking the server.
 
 Wipe the smoke-test files:
@@ -473,11 +514,11 @@ The API key didn't authenticate. Three causes in likelihood order:
 
 1. **The user revoked the key in Settings → API & Webhooks between Step 4 and Step 7.** Re-run Phase 1 from Step 4.
 2. **The token captured from the DOM was truncated.** JWTs are long (~300+ chars); if `browser_evaluate` read from `innerHTML` instead of the input's `.value`, the field may have been truncated by CSS overflow. Re-capture from `.value` directly.
-3. **The user is on a Twenty version that scopes API keys per role.** Check the role of the user who created the key in Settings → Members. If the role doesn't include CRUD on Companies, the smoke test fails with 401 even though the key is valid.
+3. **Authentication or role behavior differs by version.** Inspect the actual error and the role assigned to the key; do not assume a valid key inherits the creator's permissions or recreate it for an authorization failure.
 
 ### `rest=403` on a specific endpoint
 
-Twenty's API keys inherit from the creator's role (no per-key scope tickbox). If the smoke test passes on `/companies` but later fails on `/opportunities`, the creator's role lacks Opportunities permissions. Fix in Settings → Members → Roles, or have the workspace admin create a new key.
+Current Twenty versions assign a role to each API key. Inspect that role's object and settings permissions. A read-only role can read CRM records while `/rest/metadata/*` returns 403 because those routes require Data Model settings permission, which also allows schema management. Preserve this intended restriction; change permissions only for a user-requested operation that needs them.
 
 ### "Create key" button is missing from Settings → API & Webhooks
 
