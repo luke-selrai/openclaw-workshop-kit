@@ -166,35 +166,46 @@ Fill the new-app form:
 | Redirect URI | `http://localhost:8765/callback` |
 | Scopes | Read-only basic: `Ad Account Management`, `Campaign Management`, `Reporting`. Avoid restricted scopes (Audience, Pixel/Event API write) in v1 - those need TikTok review. |
 
-Submit. TikTok issues `app_id` and `secret` immediately.
+Complete the Step 4 capture preflight before submitting: TikTok issues `app_id` and `secret` immediately. Submit only after the output directory is protected and the public probe passes.
 
 ### Step 4 - Capture app_id and secret in the isolated browser
 
-Prepare a private transfer directory (macOS and Linux):
+Prepare this route before opening the app details that show the secret. Keep the system clipboard untouched. Prepare a private transfer directory (macOS and Linux):
 
 ```bash
 umask 077
 ADS_CAPTURE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ads-capture.XXXXXX")"
 ADS_CAPTURE_NAME="$(python3 -c 'import secrets; print("ads-capture-" + secrets.token_hex(12))')"
+ADS_CAPTURE_METHOD=evaluate
 printf '%s\n' "$ADS_CAPTURE_DIR" "$ADS_CAPTURE_NAME"
 ```
 
-Before any real credential capture, run the download sequence below on a disposable blank tab with a public synthetic marker and the filename `$ADS_CAPTURE_NAME-probe.txt`. The random name uses only lowercase letters, digits and hyphens: MCP filename sanitization changes interior dots, so do not derive download names from the dotted `mktemp` directory name. Read the MCP's **Downloaded file … to …** event and locate that exact file from Bash. Use the event's actual path even if its basename differs from `link.download`; the requested name is not proof of the saved name. Its parent is the actual MCP output directory; retain its absolute path as `ADS_OUTPUT_DIR`. The MCP saves an additional copy there even when `download.saveAs` points elsewhere and `download.delete()` succeeds. Protect that known directory before continuing:
+**Choose and probe the capture route before displaying credentials.** When `browser_evaluate` supports `filename`, prefer `ADS_CAPTURE_METHOD=evaluate`. On a disposable blank tab, locate the actual MCP output directory from an emitted snapshot/artifact path or the server's configured output path; resolve it from Bash and retain its absolute path as `ADS_OUTPUT_DIR`. Do not assume the shell's working directory is the MCP root. Protect that known directory:
 
 ```bash
 test -d "$ADS_OUTPUT_DIR" && test -O "$ADS_OUTPUT_DIR" || exit 1
 chmod 700 "$ADS_OUTPUT_DIR"
 ```
 
-Remove only the synthetic probe files you just created. Preserve other downloads, snapshots and server settings. If the output path cannot be identified or protected, stop before handling a real credential. An absolute `browser_evaluate` filename outside the MCP output directory is rejected; its automatic snapshot also makes it unsuitable for capturing a secret-bearing page.
+For the evaluate route, pre-create `$ADS_OUTPUT_DIR/$ADS_CAPTURE_NAME-probe.json` with `umask 077` and shell noclobber, then call `browser_evaluate` with `function: () => ({probe: true})` and `filename` set to that **absolute path**. Verify the returned artifact link resolves to that exact regular file, its mode remains 0600 and only the artifact link appears in the tool result. This tests the tool's allowed roots without a credential. Absolute paths outside allowed roots are rejected. Remove only that tracked public probe file after checking it; preserve other artifacts and server settings.
 
-Use the browser's Playwright run-code tool for the capture below. Substitute the printed directory path in `saveAs` and the unique `ADS_CAPTURE_NAME` in `link.download`; retain both for subsequent shell calls. No Node `require`, `process` or imports are needed in the run-code VM. Only lengths return to the conversation. Do not take a page snapshot while secrets are visible; leave the participant's clipboard untouched. Pre-create the exact two destination files without replacing an existing file:
+The random capture name uses lowercase letters, digits and hyphens, avoiding the MCP's normalization of interior dots. If the private directory, allowed destination or result withholding cannot be verified, stop before handling a real credential.
+
+**Snapshot privacy:** navigation and evaluation may create snapshots containing visible credentials. Protect the actual MCP output directory before opening the secret-bearing UI; keep snapshots private and track the exact files emitted by this task. Inspect only structural results. Clean up only snapshots positively attributed to this capture, preserving unrelated files. A file-output result does not imply that snapshots contain no secrets.
+
+**Blob fallback:** use `ADS_CAPTURE_METHOD=blob` only when this runtime already has a successful synthetic download/saveAs test. The affected Chrome 152.0.7977.82 runtime crashed twice during blob downloads; that route remains unproven there, and further blob retries are not the recovery path. The evaluate route does not use downloads or Node filesystem globals.
+
+Pre-create the two capture destinations without replacing an existing file:
 
 ```bash
 umask 077
 (set -C; : > "$ADS_CAPTURE_DIR/client.json") || exit 1
 (set -C; : > "$ADS_OUTPUT_DIR/$ADS_CAPTURE_NAME-client.json") || exit 1
 ```
+
+**Evaluate route:** call `browser_evaluate` with the DOM extraction function passed to the **first** `page.evaluate` in the example below, returning the credential object directly (not `JSON.stringify(out)`). Set `filename` to the absolute `$ADS_OUTPUT_DIR/$ADS_CAPTURE_NAME-client.json` path. Omit the download portion entirely. The tool must return only an artifact link; resolve that observed path as `ADS_CLIENT_OUTPUT`, then run the shared verification block below with the same `ADS_CAPTURE_METHOD` value. An unset method is rejected without changing files. Keep credentials out of tool arguments, printed output and chat.
+
+**Blob route only:** run the complete example below, substituting the printed directory path in `saveAs` and the unique capture name in `link.download`.
 
 ```js
 async (page) => {
@@ -243,20 +254,23 @@ async (page) => {
 }
 ```
 
-Read this capture's **Downloaded file … to …** event and retain the resolved absolute path as `ADS_CLIENT_OUTPUT`. Verify it belongs to the protected output directory and matches the expected unique name. If the tool changes the name or directory, the guard below rejects it and preserves every file; resolve the mismatch before continuing. Never infer the cleanup path solely from `link.download`.
+For evaluate, read this capture's **Evaluation result** link; for blob, read its **Downloaded file … to …** event. Retain the resolved absolute path as `ADS_CLIENT_OUTPUT`. Verify it belongs to the protected output directory and matches the expected unique name. If the tool changes the name or directory, the guard below rejects it and preserves every file; resolve the mismatch before continuing. Never infer the cleanup path solely from `link.download`.
 
 ```bash
-python3 - "$ADS_CAPTURE_DIR/client.json" "$ADS_OUTPUT_DIR" "$ADS_CAPTURE_NAME" "$ADS_CLIENT_OUTPUT" <<'PY'
+python3 - "$ADS_CAPTURE_DIR/client.json" "$ADS_OUTPUT_DIR" "$ADS_CAPTURE_NAME" "$ADS_CLIENT_OUTPUT" "${ADS_CAPTURE_METHOD:-}" <<'PY'
+import json
 import os
 from pathlib import Path
 import re
 import stat
 import sys
 
-private_file, output_dir, capture_name, reported_file = sys.argv[1:]
+private_file, output_dir, capture_name, reported_file, capture_method = sys.argv[1:]
 private_file = Path(private_file)
 output_dir = Path(output_dir).resolve(strict=True)
 reported_file = Path(reported_file)
+if capture_method not in ('evaluate', 'blob'):
+    raise SystemExit('Unknown capture method; files preserved')
 if not re.fullmatch(r'ads-capture-[a-f0-9]{24}', capture_name):
     raise SystemExit('Invalid capture name; files preserved')
 if not reported_file.is_absolute() or reported_file.name != capture_name + '-' + private_file.name:
@@ -271,6 +285,19 @@ for file in (private_file, reported_file):
     info = file.lstat()
     if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_nlink != 1:
         raise SystemExit('Unexpected capture file; files preserved')
+if capture_method == 'evaluate':
+    if private_file.stat().st_size or reported_file.stat().st_mode & 0o077:
+        raise SystemExit('Capture destination changed; files preserved')
+    try:
+        payload = json.loads(reported_file.read_text())
+    except (ValueError, UnicodeError):
+        raise SystemExit('Invalid captured data; files preserved')
+    valid = isinstance(payload, dict) and isinstance(payload.get('app_id'), str) and isinstance(payload.get('secret'), str)
+    if valid:
+        valid = re.fullmatch(r'\d{7,19}', payload['app_id']) and re.fullmatch(r'[A-Za-z0-9_-]{40,64}', payload['secret'])
+    if not valid:
+        raise SystemExit('Missing or invalid credential fields; files preserved')
+    private_file.write_text(json.dumps(payload))
 private_file.chmod(0o600)
 reported_file.chmod(0o600)
 reported_file.unlink()

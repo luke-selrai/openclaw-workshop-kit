@@ -127,7 +127,7 @@ const page = {
                         output_dir.mkdir(mode=0o755)
                         unrelated = output_dir / 'existing-user-file.txt'
                         unrelated.write_text('preserve')
-                        env = dict(os.environ, ADS_CAPTURE_DIR=str(capture_dir), ADS_OUTPUT_DIR=str(output_dir), ADS_CAPTURE_NAME='ads-capture-aaaaaaaaaaaaaaaaaaaaaaaa')
+                        env = dict(os.environ, ADS_CAPTURE_DIR=str(capture_dir), ADS_OUTPUT_DIR=str(output_dir), ADS_CAPTURE_NAME='ads-capture-aaaaaaaaaaaaaaaaaaaaaaaa', ADS_CAPTURE_METHOD='blob')
                         protect = next(part for part in codeBlocks(vendor, 'bash') if 'test -O' in part)
                         subprocess.run(['/bin/bash', '-c', protect], env=env, check=True, capture_output=True)
                         self.assertEqual(output_dir.stat().st_mode & 0o777, 0o700)
@@ -153,6 +153,64 @@ const page = {
                         self.assertFalse((output_dir / f'ads-capture-aaaaaaaaaaaaaaaaaaaaaaaa-{filename}').exists())
                         self.assertEqual((capture_dir / filename).stat().st_mode & 0o777, 0o600)
                         self.assertEqual(json.loads((capture_dir / filename).read_text()), credentials)
+
+    def testEvaluateCaptureValidationAndModePreservation(self):
+        fixtures = [
+            ('google', 'client.json', {'client_id': 'id-' + 'a' * 30, 'client_secret': 'secret-' + 'b' * 30}),
+            ('google', 'developer.json', {'dev_token': 'd' * 22}),
+            ('tiktok', 'client.json', {'app_id': '1234567890123456', 'secret': 's' * 48}),
+        ]
+        for vendor, filename, credentials in fixtures:
+            for case in ['valid', 'malformed', 'missing-fields', 'encoded-string', 'public-file', 'populated-destination', 'unset-method']:
+                with self.subTest(vendor=vendor, filename=filename, case=case), tempfile.TemporaryDirectory() as temp_dir:
+                    capture_dir = Path(temp_dir) / 'capture'
+                    output_dir = Path(temp_dir) / 'output'
+                    capture_dir.mkdir(mode=0o700)
+                    output_dir.mkdir(mode=0o700)
+                    capture_name = 'ads-capture-aaaaaaaaaaaaaaaaaaaaaaaa'
+                    private_file = capture_dir / filename
+                    reported_file = output_dir / f'{capture_name}-{filename}'
+                    unrelated_file = output_dir / 'unrelated-snapshot.yml'
+                    unrelated_file.write_text('preserve')
+                    env = dict(os.environ, ADS_CAPTURE_DIR=str(capture_dir), ADS_OUTPUT_DIR=str(output_dir), ADS_CAPTURE_NAME=capture_name, ADS_CAPTURE_METHOD='evaluate')
+                    output_key = 'ADS_DEVELOPER_OUTPUT' if filename == 'developer.json' else 'ADS_CLIENT_OUTPUT'
+                    env[output_key] = str(reported_file)
+                    prepare = next(part for part in codeBlocks(vendor, 'bash') if 'set -C' in part and f'/{filename}' in part)
+                    subprocess.run(['/bin/bash', '-c', prepare], env=env, check=True, capture_output=True)
+                    self.assertEqual(private_file.stat().st_mode & 0o777, 0o600)
+                    self.assertEqual(reported_file.stat().st_mode & 0o777, 0o600)
+                    payload = json.dumps(credentials)
+                    if case == 'malformed':
+                        payload = 'SYNTHETIC-NOT-JSON'
+                    elif case == 'missing-fields':
+                        payload = '{}'
+                    elif case == 'encoded-string':
+                        payload = json.dumps(payload)
+                    elif case == 'public-file':
+                        reported_file.chmod(0o644)
+                    elif case == 'populated-destination':
+                        private_file.write_text('preserve-existing-value')
+                    elif case == 'unset-method':
+                        env.pop('ADS_CAPTURE_METHOD')
+                    reported_file.write_text(payload)
+                    before_private = private_file.read_text()
+                    before_mode = reported_file.stat().st_mode & 0o777
+                    cleanup = next(part for part in codeBlocks(vendor, 'bash') if part.startswith(f'python3 - "$ADS_CAPTURE_DIR/{filename}"'))
+                    result = subprocess.run(['/bin/bash', '-c', cleanup], env=env, capture_output=True, text=True)
+                    self.assertEqual(result.stdout, '')
+                    for value in credentials.values():
+                        self.assertNotIn(value, result.stderr)
+                    self.assertEqual(unrelated_file.read_text(), 'preserve')
+                    if case == 'valid':
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                        self.assertEqual(json.loads(private_file.read_text()), credentials)
+                        self.assertEqual(private_file.stat().st_mode & 0o777, 0o600)
+                        self.assertFalse(reported_file.exists())
+                    else:
+                        self.assertNotEqual(result.returncode, 0)
+                        self.assertEqual(private_file.read_text(), before_private)
+                        self.assertEqual(reported_file.read_text(), payload)
+                        self.assertEqual(reported_file.stat().st_mode & 0o777, before_mode)
 
     def testCleanupRejectsUnrelatedPathsAndSymlinks(self):
         cases = ['other-directory', 'other-name', 'normalized-old-name', 'symlink-file', 'symlink-parent', 'hardlink-file', 'invalid-nonce']
@@ -205,9 +263,11 @@ const page = {
                         env = dict(os.environ, ADS_CAPTURE_DIR=str(capture_dir), ADS_OUTPUT_DIR=str(output_dir), ADS_CAPTURE_NAME=capture_name)
                         env[output_key] = str(reported_file)
                         cleanup = next(part for part in codeBlocks(vendor, 'bash') if part.startswith(f'python3 - "$ADS_CAPTURE_DIR/{filename}"'))
-                        result = subprocess.run(['/bin/bash', '-c', cleanup], env=env, capture_output=True, text=True)
-                        self.assertNotEqual(result.returncode, 0)
-                        self.assertEqual(result.stdout, '')
+                        for method in ['blob', 'evaluate']:
+                            env['ADS_CAPTURE_METHOD'] = method
+                            result = subprocess.run(['/bin/bash', '-c', cleanup], env=env, capture_output=True, text=True)
+                            self.assertNotEqual(result.returncode, 0)
+                            self.assertEqual(result.stdout, '')
                         self.assertTrue(reported_file.exists())
                         self.assertTrue(expected_file.exists())
                         self.assertEqual(private_file.read_text(), 'private-value')
