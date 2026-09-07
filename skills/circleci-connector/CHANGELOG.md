@@ -1,5 +1,11 @@
 # circleci-connector changelog
 
+## [Unreleased] - 2026-09-07
+
+- Prefer the calling account's official connector, with documented hosted sign-in and PAT fallback; preserve working legacy local access.
+- Verify actual caller reads and tool schemas, separating Desktop identity from terminal configuration.
+- Replace inconsistent counts and absent-tool recipes with offline discovery from legacy npm 0.20.0. The bundled example is illustrative, not live-access evidence.
+
 ## [Unreleased] - 2026-05-23
 
 Pass 1 Promising to Production upgrade pass. Vetter scored 5/4/5/5/3 with evidence as the blocker.

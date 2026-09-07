@@ -36,8 +36,10 @@ This skill captures the credentials Claude needs to talk to the user's **self-ho
 
 Two credentials are captured in one Playwright pass:
 
-- **Secret Admin API Key** - `Authorization: Bearer sk_...` on `/admin/*` endpoints. Full CRUD on products, orders, customers, discounts, inventory, regions, fulfillment. This is what agents (Phase 3 Medusa team, support persona, ops persona) call.
+- **Secret Admin API Key** - HTTP Basic authentication, with the secret key as username and an empty password (`curl --user "$MEDUSA_ADMIN_SECRET_KEY:"`) on `/admin/*` endpoints. Full CRUD on products, orders, customers, discounts, inventory, regions, fulfillment. This is what agents (Phase 3 Medusa team, support persona, ops persona) call.
 - **Publishable Store Key** - `x-publishable-api-key: pk_...` on `/store/*` endpoints. Read-only-ish public surface for the customer-facing storefront. This is what the Next.js front-end uses at runtime.
+
+Secret API keys and login JWTs use different authentication schemes: Medusa's [Admin API authentication reference](https://docs.medusajs.com/api/admin#authentication) specifies **Basic** for secret keys and **Bearer** for JWTs. These recipes use curl's Basic encoding of `key:`; current Medusa also accepts the raw key after `Authorization: Basic`. Keep the captured secret key rather than replacing it with a temporary login token.
 
 > **Account support:** Requires a Medusa v2 self-hosted instance (Medusa v1 admin UI is different - out of scope for this SKILL). The user must have a Medusa admin account on that instance with API Key Management permissions. Local dev instances (`http://localhost:9000`) work the same as production URLs.
 
@@ -57,7 +59,7 @@ That's the complete list. The user does NOT click menus, do NOT generate the Sec
 Identical contract to `shopify-connector` and `wordpress-connector`. Summary:
 
 - **You drive, not them.** Never ask the user to click menus, copy tokens, or paste anything.
-- **Plain English only.** No jargon. Never say Bearer, Authorization header, REST, GraphQL, JWT, secret key, publishable key, env var, claude.json, mcpServers, jq. Say "the Medusa key" or "your store connection".
+- **Plain English only.** No jargon. Never say Basic, Bearer, Authorization header, REST, GraphQL, JWT, secret key, publishable key, env var, claude.json, mcpServers, jq. Say "the Medusa key" or "your store connection".
 - **Narrate at action boundaries, not inside tool sequences.** Tell the user once when you start, once when you need them ("please sign in"), once when you're done. No commentary in between.
 - **Short responses.** Max 8 lines per message during the install phase.
 - **React warmly.** Good: "That worked - your Medusa store is now connected." Bad: "POST /admin/api-keys 201 Created."
@@ -91,10 +93,10 @@ Ask where to create it (default: `~/projects/`). Then run:
 ```bash
 mkdir -p "$HOME/projects"
 cd "$HOME/projects"
-npx create-medusa-app@latest "$MEDUSA_PROJECT_NAME" 2>&1 | tail -30
+npx --yes create-medusa-app@latest "$MEDUSA_PROJECT_NAME" --no-browser --with-nextjs-starter --use-npm
 ```
 
-The scaffolder runs interactively by default - it asks about a starter storefront (default Next.js) and database (default Postgres or SQLite for first-run). Drive the prompts in Bash via `--yes` flags where supported, OR (more reliably for v2's evolving CLI) just stream the output and pass through the user's preferences if they speak up. Default to: **yes** to the Next.js storefront, **yes** to Postgres if available locally, **no** to SQLite (Medusa v2 ships Postgres as the production target).
+Use the [create-medusa-app options](https://docs.medusajs.com/resources/create-medusa-app) and check the installed version's `--help` before scaffolding. The example selects the Next.js starter and suppresses automatic browser opening; omit `--with-nextjs-starter` if the user only needs the backend. `--yes` above belongs to `npx` (package-install confirmation), not the scaffolder. Use PostgreSQL; this is not a SQLite setup. If an existing database is available, add `--db-url "$MEDUSA_DATABASE_URL"` using its privately held URL; that skips database creation but still runs migrations. Use the requested parent directory (or the default above); `--directory-path` can select it explicitly. Keep live output in a persistent terminal session rather than piping to `tail`, and answer only the prompt currently visible. Do not pipe a prewritten sequence of answers: prompt order can vary by version and supplied flags.
 
 After scaffolding completes, the project lives at `$HOME/projects/$MEDUSA_PROJECT_NAME/`. Inside:
 
@@ -103,15 +105,18 @@ After scaffolding completes, the project lives at `$HOME/projects/$MEDUSA_PROJEC
 
 ### Step A.2 - Start the dev server + create the admin user
 
-Tell the user *"Starting Medusa locally - this takes about 30 seconds."* Then:
+Tell the user *"Starting Medusa locally - this takes about 30 seconds."* Use the [develop command's `--host` option](https://docs.medusajs.com/resources/medusa-cli/commands/develop) to bind this new local instance to `127.0.0.1`. If scaffolding left a server running, inspect its listener before starting a duplicate; a local-only run must not listen on every interface. This local bootstrap choice does not change production hosting. Then:
 
 ```bash
-cd "$HOME/projects/$MEDUSA_PROJECT_NAME/apps/backend"
+set +x
+umask 077
+mkdir -p "$HOME/.claude/state" || exit 1
+cd "$HOME/projects/$MEDUSA_PROJECT_NAME/apps/backend" || exit 1
 
 # Start the dev server in the background so we can hit the admin from this same session
-nohup npm run dev > /tmp/medusa-dev.log 2>&1 &
+nohup npx medusa develop --host 127.0.0.1 > /tmp/medusa-dev.log 2>&1 &
 MEDUSA_PID=$!
-echo "medusa-pid=$MEDUSA_PID" > "$HOME/.claude/state/medusa-connector-dev.json"
+printf '{"dev_pid":%s}\n' "$MEDUSA_PID" > "$HOME/.claude/state/medusa-connector-dev.json"
 
 # Poll for the backend to be ready (Medusa announces "Server is ready on port: 9000")
 for i in {1..60}; do
@@ -133,7 +138,6 @@ cat > "$HOME/.claude/state/medusa-connector-bootstrap.json" <<EOF
   "project_path": "$HOME/projects/$MEDUSA_PROJECT_NAME",
   "backend_path": "$HOME/projects/$MEDUSA_PROJECT_NAME/apps/backend",
   "storefront_path": "$HOME/projects/$MEDUSA_PROJECT_NAME/apps/storefront",
-  "dev_pid": $MEDUSA_PID,
   "admin_email": "$ADMIN_EMAIL",
   "admin_password": "$ADMIN_PASSWORD",
   "admin_url": "http://localhost:9000/app",
@@ -193,18 +197,27 @@ Set `MEDUSA_BACKEND_URL="http://localhost:9000"` and continue with Phase 0 (resu
 
 ### Stopping the local dev server later
 
-`npm run dev` is running in the background as PID stored in `~/.claude/state/medusa-connector-dev.json`. The dev server dies when the laptop sleeps or reboots - to restart it later:
+`medusa develop --host 127.0.0.1` runs in the background. `~/.claude/state/medusa-connector-dev.json` is the current PID record; the bootstrap file keeps the project paths and admin credentials. Check whether the recorded process and local listener still belong to this backend before starting another copy. To restart after the process has stopped:
 
 ```bash
-cd $(jq -r .backend_path "$HOME/.claude/state/medusa-connector-bootstrap.json")
-nohup npm run dev > /tmp/medusa-dev.log 2>&1 &
+set +x
+umask 077
+mkdir -p "$HOME/.claude/state" || exit 1
+MEDUSA_BACKEND_PATH=$(jq -er '.backend_path | select(type == "string" and length > 0)' "$HOME/.claude/state/medusa-connector-bootstrap.json") || exit 1
+cd "$MEDUSA_BACKEND_PATH" || exit 1
+nohup npx medusa develop --host 127.0.0.1 > /tmp/medusa-dev.log 2>&1 &
+MEDUSA_PID=$!
+printf '{"dev_pid":%s}\n' "$MEDUSA_PID" > "$HOME/.claude/state/medusa-connector-dev.json"
 ```
 
-To stop it explicitly:
+To stop it explicitly, load only a positive process ID and inspect it:
 
 ```bash
-kill $(jq -r .dev_pid "$HOME/.claude/state/medusa-connector-dev.json") 2>/dev/null
+MEDUSA_PID=$(jq -er '.dev_pid | select(type == "number" and . > 1 and . == floor)' "$HOME/.claude/state/medusa-connector-dev.json") || exit 1
+ps -p "$MEDUSA_PID" -o pid=,command=
 ```
+
+Verify that this is the Medusa process for the recorded backend directory before running `kill "$MEDUSA_PID"`. If the record is malformed, the process is gone, or the PID belongs to something else, leave that process alone and inspect this backend's listener. Do not use a process-name-wide kill. Confirm the local listener has stopped; a launcher PID can exit before its child does.
 
 Workshop participants don't need to do either - the connector skill leaves the server running so Phase 1 can hit it. They can let it die naturally on reboot.
 
@@ -224,10 +237,22 @@ In both cases, **the local project IS the source of truth** for the backend code
 If a previous run got partway through, do not start from scratch. Check `~/.claude/medusa-connector.env`:
 
 ```bash
-test -f "$HOME/.claude/medusa-connector.env" && grep -E '^MEDUSA_(BACKEND_URL|ADMIN_SECRET_KEY|PUBLISHABLE_KEY)=' "$HOME/.claude/medusa-connector.env"
+(
+  set +x
+  if [ ! -f "$HOME/.claude/medusa-connector.env" ]; then
+    echo missing
+  else
+    source "$HOME/.claude/medusa-connector.env"
+    if [ -n "${MEDUSA_BACKEND_URL:-}" ] && [ -n "${MEDUSA_ADMIN_SECRET_KEY:-}" ] && [ -n "${MEDUSA_PUBLISHABLE_KEY:-}" ]; then
+      echo configured
+    else
+      echo partial
+    fi
+  fi
+)
 ```
 
-- All three vars present and non-empty → connector is configured. Run the smoke test in Step 7 (1 curl call) to verify the URL is reachable and the Secret Key still authenticates. Report result, stop.
+- All three vars present and non-empty → connector is configured. Run both read-only smoke calls in Step 7 to verify the URL is reachable and the Secret Key still authenticates. Report result, stop.
 - Some vars present but not all → tell the user *"Looks like you started this earlier. Want me to pick up where you left off, or start completely fresh?"* On **resume**, continue from the first step whose output is missing. On **fresh**, wipe `~/.claude/medusa-connector.env` (and the `mcpServers.medusa` block from `~/.claude.json` if present), then start at Step 1.
 - File missing entirely → run Phase 1.
 
@@ -353,7 +378,7 @@ Read the file, parse JSON, merge into `mcpServers`:
 
 Preserve every other `mcpServers` entry. Use `Write` (not `Edit`) so the merge happens via parsed-JSON → re-serialize, not regex on the raw file.
 
-After write, re-read both files with `Read`, parse, confirm all three vars are present and non-empty in `mcpServers.medusa.env` AND in `~/.claude/medusa-connector.env`. If either fails, do not proceed to Step 7 - tell the user something went wrong with saving and offer to retry.
+After writing, verify locally with shell tracing disabled: parse the config and check that all three vars are present and non-empty in `mcpServers.medusa.env` and the env file. Output only pass/fail booleans; never return either file through `Read` or print its credential assignments. If either fails, do not proceed to Step 7 - tell the user something went wrong with saving and offer to retry.
 
 ### Step 7 - Smoke-test the connection
 
@@ -364,7 +389,7 @@ source "$HOME/.claude/medusa-connector.env"
 
 # Admin smoke - list 1 product (proves Secret Key auth works)
 ADMIN_HTTP=$(curl -sS -m 10 -o /tmp/medusa-admin-smoke.json -w "%{http_code}" \
-  -H "Authorization: Bearer $MEDUSA_ADMIN_SECRET_KEY" \
+  --user "$MEDUSA_ADMIN_SECRET_KEY:" \
   "$MEDUSA_BACKEND_URL/admin/products?limit=1")
 
 # Store smoke - list regions (proves Publishable Key works against /store/*)
@@ -376,7 +401,7 @@ echo "admin=$ADMIN_HTTP store=$STORE_HTTP"
 ```
 
 - `admin=200 store=200` → fully connected. Tell the user: *"All set - your Medusa store is now connected. I can read products, orders, customers, and discounts, and your future Next.js storefront can talk to the store too."*
-- `admin=401` → the Secret Key didn't authenticate. Most common cause: Medusa version mismatch (this SKILL targets v2). Stop, tell the user.
+- `admin=401` → first check the request uses Basic with the secret key, not Bearer. Retry the same key with the corrected Step 7 recipe before replacing credentials; if it still fails, follow the troubleshooting checks below.
 - `admin=200 store=401` → Publishable Key is invalid. Re-run Step 5 only; agents will still work, only the storefront path is broken.
 - Connection error → the URL stopped responding between Step 2 and now. Suggest the user check the server is still up.
 
@@ -401,21 +426,21 @@ source "$HOME/.claude/medusa-connector.env"
 
 ```bash
 # List the 10 most recent orders
-curl -sS -H "Authorization: Bearer $MEDUSA_ADMIN_SECRET_KEY" \
+curl -sS --user "$MEDUSA_ADMIN_SECRET_KEY:" \
   "$MEDUSA_BACKEND_URL/admin/orders?limit=10&order=-created_at" | jq
 
 # Get a specific order
-curl -sS -H "Authorization: Bearer $MEDUSA_ADMIN_SECRET_KEY" \
+curl -sS --user "$MEDUSA_ADMIN_SECRET_KEY:" \
   "$MEDUSA_BACKEND_URL/admin/orders/$ORDER_ID" | jq
 
 # Create a product (minimal shape; for full schema query medusa-dev:MedusaDocs)
-curl -sS -X POST -H "Authorization: Bearer $MEDUSA_ADMIN_SECRET_KEY" \
+curl -sS -X POST --user "$MEDUSA_ADMIN_SECRET_KEY:" \
   -H "Content-Type: application/json" \
   -d '{"title":"Demo Tee","status":"draft","options":[{"title":"Size","values":["S","M","L"]}]}' \
   "$MEDUSA_BACKEND_URL/admin/products" | jq
 
 # List active discount codes
-curl -sS -H "Authorization: Bearer $MEDUSA_ADMIN_SECRET_KEY" \
+curl -sS --user "$MEDUSA_ADMIN_SECRET_KEY:" \
   "$MEDUSA_BACKEND_URL/admin/promotions?limit=20" | jq
 ```
 
@@ -631,7 +656,7 @@ The frontend-builder agent in that team will inject `MEDUSA_BACKEND_URL` and `ME
 
 ### `admin=401` on the smoke test
 
-The Secret Key didn't authenticate. Three possible causes, in order of likelihood:
+First verify the authentication scheme. A secret key sent as Bearer can return 401 even when valid; retry the same key with Step 7's Basic recipe. Bearer is for login JWTs. If Basic still fails, check these causes:
 
 1. **Medusa version is v1.** This SKILL is v2-only. v1's admin auth uses session cookies + JWT, not Secret Keys. Tell the user and stop.
 2. **The user revoked the key in the admin between Step 4 and Step 7.** Re-run Phase 1 from Step 4.

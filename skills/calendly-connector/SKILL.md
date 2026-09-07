@@ -74,7 +74,7 @@ From the SKILL's perspective this is a standard OAuth 2.1 + PKCE flow at `calend
 
 The user is a non-technical business owner. Connecting is autonomous, Claude does the work; the user presses one button and signs in to Calendly once. Every message you send while connecting must follow these rules:
 
-- **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values. The only actions you ever request are: "please press Connect to Claude on the page I just opened", "please sign in to the browser window I just opened" and "please click Allow on the screen Calendly just showed you."
+- **You drive, not them.** Use available tools for setup; when the app is inaccessible, give the short in-app sequence from Step 2 and then resume. Never hand over terminal commands or credential copying. When sign-in needs the user, say: "please press Connect to Claude on the page I just opened", "please sign in to the browser window I just opened" and "please click Allow on the screen Calendly just showed you."
 - **Plain English only.** No jargon. Never say npm, npx, bash, CLI, API, terminal, config file, OAuth, DCR, PKCE, scope, token, MCP, endpoint, JSON, REST, environment variable, Playwright, browser automation, redirect URI, or DOM. The browser window you open is "a browser window I just opened for you" or "the connection page", not "Playwright" or "Chromium". If you must name a technical concept, plainly:
   - access token / bearer → **"your connection key"**
   - Allow / consent → **"the Allow button"**
@@ -89,12 +89,14 @@ The user is a non-technical business owner. Connecting is autonomous, Claude doe
 
 ## Phase 0, Is Calendly already connected?
 
+Identify the calling surface first. Desktop's account and connectors can differ from the standalone CLI, even when `claude auth status` and `claude mcp list` run from Desktop's Bash. Use the app's visible account, Connectors view, and actual runtime tools for Desktop evidence; those commands describe the CLI account only. Local vendor credentials are independent of the Claude login. A working local route proves its own access, not the Desktop account's built-in connection.
+
 Run these silently, in order, and act on the first that answers.
 
-1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Calendly` (match the vendor word case-insensitively; there is no `--json` flag).
-   - `✔ Connected` → skip to Phase 2. Prove it first with one read from the `mcp__claude_ai_Calendly__*` namespace - the tool that returns the signed-in user's own profile is the cheapest (it is `users-get_current_user` on the kit's route; list the namespace and match by description rather than guessing). Only a real answer counts.
-   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your Calendly connection needs a quick re-sign-in. Press Reconnect next to Calendly, sign in, and tell me when it says Connected."* Then re-run this check.
-   - no such line → continue.
+1. **Built-in connector.** In Desktop, discover Calendly tools by name and description (the prefix can be an opaque `mcp__<id>__`) and inspect its in-app connected state where accessible. Prove it with the read below. In terminal/VS Code only, `claude mcp list` → look for a line starting `claude.ai Calendly` (match the vendor word case-insensitively; there is no `--json` flag).
+   - Connected or tools present → skip to Phase 2. Prove it first with one read from the `mcp__claude_ai_Calendly__*` namespace - the tool that returns the signed-in user's own profile is the cheapest (it is `users-get_current_user` on the kit's route; list the namespace and match by description rather than guessing). Only a real answer counts.
+   - Reconnect or `! Needs authentication` → follow Step 2 of the built-in route for the same account, choose **Reconnect**, then repeat the read check.
+   - No usable built-in found → continue. A missing CLI line alone does not rule out Desktop tools.
 2. **The kit's own route.** Read `~/.claude.json` via Node (cross-platform safe, Bash variable expansion of `%USERPROFILE%` on Git Bash for Windows is fragile) and look for an `mcpServers.calendly` entry:
 
    ```bash
@@ -113,9 +115,9 @@ Run these silently, in order, and act on the first that answers.
    - `NOT_CONFIGURED` → continue.
 3. **Nothing found** → Phase 1.
 
-A locally-registered Calendly entry at the same address as the built-in one takes precedence and hides the built-in. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK.
+In terminal/VS Code, a locally registered Calendly entry at the same address takes precedence and hides the built-in. Desktop can expose both routes together; discover the actual tools and retain each connection's identity when using results. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK.
 
-If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Calendly's tools.
+Without a shell, keep runtime tool discovery and the read check; skip only unavailable command/file checks. If nothing works, follow the existing route-by-need decision and prove the result with a read in the calling session.
 
 ---
 
@@ -123,21 +125,20 @@ If you cannot run commands at all (you are in claude.ai chat or the desktop app 
 
 This is a one-time, once-per-account job. The only thing the user does is press one button and sign in. It works on any Calendly plan, free included.
 
-**Step 1, Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
+**Step 1, Check this session can see built-in connectors.** In Desktop or claude.ai chat, use that account's Connectors view and runtime tools; a terminal login does not gate the app account. For terminal/VS Code only, `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear in that CLI session: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route (Phase 1-alt) instead.
 
-**Step 2, Open the connector page for them.** Say:
+**Step 2, Open the connector page for them.**
 
-> "I'm opening Calendly's page in your browser. Press **Connect to Claude**, sign in to Calendly the way you normally do, and say yes when it asks for access. That's the only part only you can do, tell me when it says Connected."
+Say: *"I'm connecting Calendly to this Claude account. I'll handle the setup and let you know if you need to sign in."* Use the browser or computer-use tools actually available for navigation and authorised connection approvals. If a surface is inaccessible, give only the next short click sequence, then resume the work.
 
-Then open `https://claude.ai/directory/calendly` in the user's own everyday browser, `open <url>` on Mac, `xdg-open <url>` on Linux, `start "" <url>` on Windows. If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Calendly" → Connect. In the desktop app's Code tab the better route is the composer's **+** → **Connectors** → **Browse connectors** → the **+** next to it: that one shows up in the running session without a restart, whereas the browser page needs the app quit and reopened before any session sees the tools.
-
-> **Why the user's own browser here, when Phase 1-alt uses its own window.** Phase 1-alt drives a separate browser window because it has to read the redirect back out of the page. This route reads nothing, it only needs the browser where the user is already signed in to Claude. Send them to their own browser and do not automate this sign-in.
+- **Desktop first:** **+ → Connectors → Browse connectors → Calendly → Connect**. If the app is inaccessible, give this exact sequence to the user. Keep the exact handoff URL opened by **Connect** in a browser profile signed into the same Claude account as Desktop. If the everyday profile differs, use a matching or isolated profile and request sign-in there as needed. Preserve the URL and its parameters; do not invent app deep links. If **Continue connecting** loops, check account matching before retrying; start a fresh in-app Connect if the handoff expired.
+- **Browser or terminal/VS Code:** use `https://claude.ai/directory/calendly` (public listing: `https://claude.com/connectors/calendly`) in a browser signed into the calling Claude account, then **Connect to Claude**. If it fails to load, use `https://claude.ai/customize/connectors` → **Browse** → search **Calendly** → **Connect**. With only a shell, use `open` on Mac, `xdg-open` on Linux, or `start ""` on Windows after checking the default browser's account. For re-authentication, choose **Reconnect** on that account's connector instead.
 
 **Step 3, Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
 
-**Step 4, Verify.** `claude mcp list` again. `claude.ai Calendly … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete, so send them back to Step 2.
+**Step 4, Verify.** In Desktop, check Calendly's connected state in the app; in browser chat, check that account's Connectors view. If inaccessible, request only that status check. Step 5 remains required. The following command and status branches apply only to terminal/VS Code, never as proof for a different Desktop account: `claude mcp list` again. `claude.ai Calendly … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete, so send them back to Step 2.
 
-**Step 5, Prove it.** Call one real read through the connector: a tool from the `mcp__claude_ai_Calendly__*` namespace that returns the signed-in user's own profile. Only a real answer counts. A tool error here is not "connected". If the tools have not appeared in the session yet, ask for the quit-and-reopen from Step 4 and try once more. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
+**Step 5, Prove it.** Use the actual tools in this calling session and confirm the response belongs to the intended vendor account. Call one real read through the connector: a tool from the `mcp__claude_ai_Calendly__*` namespace that returns the signed-in user's own profile. Only a real answer counts. A tool error here is not "connected". In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed for the same account, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 **Step 6, Hand off.** Two lines: it's connected, and three things they can ask for now, for example *"what meetings do I have this week?"*, *"show me my booking links"*, *"create a one-time booking link for a 30-minute intro call"*.
 

@@ -111,25 +111,30 @@ Silently detect the user's OS and run the install command:
 
 ```bash
 brew install --cask google-cloud-sdk
-source "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc"
-source "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
+GCLOUD_SDK_ROOT="$(brew --prefix)/share/google-cloud-sdk"
+export PATH="$GCLOUD_SDK_ROOT/bin:$PATH"
+hash -r
 ```
 
 If Homebrew is not installed, fall back to the Google-published curl installer:
 
 ```bash
 curl https://sdk.cloud.google.com | bash
-exec -l $SHELL
+GCLOUD_SDK_ROOT="$HOME/google-cloud-sdk"
+export PATH="$GCLOUD_SDK_ROOT/bin:$PATH"
+hash -r
 ```
 
 **Linux (any distro):**
 
 ```bash
 curl https://sdk.cloud.google.com | bash
-exec -l $SHELL
+GCLOUD_SDK_ROOT="$HOME/google-cloud-sdk"
+export PATH="$GCLOUD_SDK_ROOT/bin:$PATH"
+hash -r
 ```
 
-The installer creates `~/google-cloud-sdk/` and adds its `bin/` directory to `~/.bashrc` / `~/.zshrc`. The `exec -l $SHELL` re-execs the shell so `gcloud` is on PATH for the rest of the session.
+The curl installer defaults to `~/google-cloud-sdk/`; if another install directory is selected, use that observed directory as `GCLOUD_SDK_ROOT`. These recipes update the current command shell without replacing it or sourcing interactive completion files. For a later Bash tool call, prepend the same SDK `bin/` directory again or invoke its `gcloud` binary by absolute path. During installation, defer `gcloud init` and sign-in to the connection steps below; PATH repair itself must preserve the active account and configuration. Continue only when the version check below succeeds.
 
 **Windows (Git Bash / PowerShell):**
 
@@ -624,7 +629,7 @@ gcloud auth revoke "claude-assistant@${PROJECT_ID}.iam.gserviceaccount.com"
 
 | Problem | Fix |
 |---|---|
-| `gcloud: command not found` | Shell needs restart - `exec -l $SHELL` or open a new terminal, or use the Step 3 PATH alias |
+| `gcloud: command not found` | Apply Step 3's SDK bin path in the current command shell or use the installed binary's absolute path; on Windows use its Step 3 path handling. Verify the version, then resume without changing the active account. |
 | `ERROR: Reauthentication failed` | Long-lived SA key invalidated or the underlying key was deleted in Console - re-run Phase 1 from Step 8 to mint a fresh key |
 | `ERROR: PERMISSION_DENIED` | The SA doesn't have the role for that operation. If user picked Read-only and now wants to write, run Phase 1 from Step 7 to swap to `roles/editor`. |
 | `ERROR: The project property is set to the empty string` | `gcloud config set project <project-id>` |

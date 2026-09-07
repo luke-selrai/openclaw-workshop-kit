@@ -233,32 +233,105 @@ mcp__playwright__browser_navigate({
 
 Click `+ CREATE CREDENTIALS` → `OAuth client ID`. Application type = `Desktop app`. Name = `Claude Google Ads Connector`. Click Create.
 
-A modal pops up showing **Your Client ID** and **Your Client Secret**. Capture both via clipboard-transit (same pattern as QBO Phase 1S Step 7 - clipboard.writeText with values, returns only length integers):
+A modal pops up showing **Your Client ID** and **Your Client Secret**. Capture them in the isolated browser, without using the system clipboard. Prepare a private transfer directory (macOS and Linux):
+
+```bash
+umask 077
+ADS_CAPTURE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ads-capture.XXXXXX")"
+ADS_CAPTURE_NAME="$(python3 -c 'import secrets; print("ads-capture-" + secrets.token_hex(12))')"
+printf '%s\n' "$ADS_CAPTURE_DIR" "$ADS_CAPTURE_NAME"
+```
+
+Before any real credential capture, run the download sequence below on a disposable blank tab with a public synthetic marker and the filename `$ADS_CAPTURE_NAME-probe.txt`. The random name uses only lowercase letters, digits and hyphens: MCP filename sanitization changes interior dots, so do not derive download names from the dotted `mktemp` directory name. Read the MCP's **Downloaded file … to …** event and locate that exact file from Bash. Use the event's actual path even if its basename differs from `link.download`; the requested name is not proof of the saved name. Its parent is the actual MCP output directory; retain its absolute path as `ADS_OUTPUT_DIR`. The MCP saves an additional copy there even when `download.saveAs` points elsewhere and `download.delete()` succeeds. Protect that known directory before continuing:
+
+```bash
+test -d "$ADS_OUTPUT_DIR" && test -O "$ADS_OUTPUT_DIR" || exit 1
+chmod 700 "$ADS_OUTPUT_DIR"
+```
+
+Remove only the synthetic probe files you just created. Preserve other downloads, snapshots and server settings. If the output path cannot be identified or protected, stop before handling a real credential. An absolute `browser_evaluate` filename outside the MCP output directory is rejected; its automatic snapshot also makes it unsuitable for capturing a secret-bearing page.
+
+Use the browser's Playwright run-code tool for the capture below. Substitute the printed directory path in `saveAs` and the unique `ADS_CAPTURE_NAME` in `link.download`; retain both for subsequent shell calls. No Node `require`, `process` or imports are needed in the run-code VM. Only lengths return to the conversation. Do not take a page snapshot while secrets are visible; leave the participant's clipboard untouched. Pre-create the exact two destination files without replacing an existing file:
+
+```bash
+umask 077
+(set -C; : > "$ADS_CAPTURE_DIR/client.json") || exit 1
+(set -C; : > "$ADS_OUTPUT_DIR/$ADS_CAPTURE_NAME-client.json") || exit 1
+```
 
 ```js
-async () => {
-  // Find the modal panel with Client ID + Client Secret
-  const labels = Array.from(document.querySelectorAll('*'))
-    .filter(el => /^(your )?client (id|secret)\s*:?$/i.test((el.innerText||'').trim()));
-  const out = {};
-  for (const label of labels) {
-    const which = /id/i.test(label.innerText) ? 'client_id' : 'client_secret';
-    if (out[which]) continue;
-    let scope = label.parentElement;
-    for (let depth = 0; depth < 6 && scope; depth++) {
-      const codes = Array.from(scope.querySelectorAll('code, input[type=text], input:not([type])'));
-      const v = codes.map(c => (c.value || c.innerText || '').trim()).find(v => v.length > 20);
-      if (v) { out[which] = v; break; }
-      scope = scope.parentElement;
+async (page) => {
+  const out = await page.evaluate(() => {
+    // Find the modal panel with Client ID + Client Secret
+    const labels = Array.from(document.querySelectorAll('*'))
+      .filter(el => el.children.length === 0 && /^(your )?client (id|secret)\s*:?$/i.test((el.innerText||'').trim()));
+    const out = {};
+    for (const label of labels) {
+      const which = /id/i.test(label.innerText) ? 'client_id' : 'client_secret';
+      if (out[which]) continue;
+      let scope = label.parentElement;
+      for (let depth = 0; depth < 6 && scope; depth++) {
+        const codes = Array.from(scope.querySelectorAll('code, input[type=text], input:not([type])'));
+        const v = codes.map(c => (c.value || c.innerText || '').trim()).find(v => v.length > 20);
+        if (v) { out[which] = v; break; }
+        scope = scope.parentElement;
+      }
     }
-  }
-  if (!out.client_id || !out.client_secret) return { ok: false, found: Object.keys(out) };
-  await navigator.clipboard.writeText(JSON.stringify(out));
+    if (!out.client_id || !out.client_secret) return null;
+    return out;
+  });
+  if (!out) return { ok: false };
+  const download_promise = page.waitForEvent('download');
+  await page.evaluate((values) => {
+    const link = document.createElement('a');
+    const blob_url = URL.createObjectURL(new Blob([JSON.stringify(values)], { type: 'application/json' }));
+    link.href = blob_url;
+    link.download = "<ADS_CAPTURE_NAME>-client.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(blob_url), 1000);
+  }, out);
+  const download = await download_promise;
+  await download.saveAs("<absolute ADS_CAPTURE_DIR>/client.json");
+  await download.delete();
   return { ok: true, client_id_len: out.client_id.length, client_secret_len: out.client_secret.length };
 }
 ```
 
-Save the participant's prior clipboard FIRST (same `wl-paste | base64 > /tmp/google-ads-prev-clipboard.b64` pattern). Restore after Step 9.
+Read this capture's **Downloaded file … to …** event and retain the resolved absolute path as `ADS_CLIENT_OUTPUT`. Verify it belongs to the protected output directory and matches the expected unique name. If the tool changes the name or directory, the guard below rejects it and preserves every file; resolve the mismatch before continuing. Never infer the cleanup path solely from `link.download`.
+
+```bash
+python3 - "$ADS_CAPTURE_DIR/client.json" "$ADS_OUTPUT_DIR" "$ADS_CAPTURE_NAME" "$ADS_CLIENT_OUTPUT" <<'PY'
+import os
+from pathlib import Path
+import re
+import stat
+import sys
+
+private_file, output_dir, capture_name, reported_file = sys.argv[1:]
+private_file = Path(private_file)
+output_dir = Path(output_dir).resolve(strict=True)
+reported_file = Path(reported_file)
+if not re.fullmatch(r'ads-capture-[a-f0-9]{24}', capture_name):
+    raise SystemExit('Invalid capture name; files preserved')
+if not reported_file.is_absolute() or reported_file.name != capture_name + '-' + private_file.name:
+    raise SystemExit('Unexpected download name; files preserved')
+if reported_file.parent.resolve(strict=True) != output_dir:
+    raise SystemExit('Unexpected download directory; files preserved')
+for directory in (output_dir, private_file.parent):
+    info = directory.stat()
+    if info.st_uid != os.getuid() or info.st_mode & 0o077:
+        raise SystemExit('Capture directory is not private; files preserved')
+for file in (private_file, reported_file):
+    info = file.lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_nlink != 1:
+        raise SystemExit('Unexpected capture file; files preserved')
+private_file.chmod(0o600)
+reported_file.chmod(0o600)
+reported_file.unlink()
+PY
+```
 
 Client ID is typically ~70 chars (`<numeric>-<random>.apps.googleusercontent.com`); secret is ~35 chars. Validate shapes silently.
 
@@ -288,11 +361,11 @@ Two states:
 Start a tiny Python listener on `localhost:8765` to catch the redirect with the authorization code:
 
 ```bash
-PORT=8765
-while ss -tlnp 2>/dev/null | grep -q ":$PORT "; do PORT=$((PORT+1)); done
+umask 077
+rm -f /tmp/google-ads-listener.port /tmp/google-ads-auth-code
 
 nohup python3 -c "
-import http.server, urllib.parse, sys
+import errno, http.server, urllib.parse, sys
 class H(http.server.BaseHTTPRequestHandler):
   def log_message(self, *a, **k): pass
   def do_GET(self):
@@ -305,22 +378,39 @@ class H(http.server.BaseHTTPRequestHandler):
     with open('/tmp/google-ads-auth-code', 'w') as f:
       f.write(code)
     sys.exit(0)
-http.server.HTTPServer(('127.0.0.1', $PORT), H).serve_forever()
+for port in range(8765, 8865):
+  try:
+    server = http.server.HTTPServer(('127.0.0.1', port), H)
+    break
+  except OSError as error:
+    if error.errno != errno.EADDRINUSE:
+      raise
+else:
+  raise SystemExit('No available loopback port')
+with open('/tmp/google-ads-listener.port', 'w') as port_file:
+  port_file.write(str(server.server_port))
+server.serve_forever()
 " > /tmp/google-ads-listener.log 2>&1 &
 echo $! > /tmp/google-ads-listener.pid
-echo "$PORT" > /tmp/google-ads-listener.port
+for i in $(seq 1 50); do
+  [ -s /tmp/google-ads-listener.port ] && break
+  kill -0 "$(cat /tmp/google-ads-listener.pid)" 2>/dev/null || break
+  sleep 0.1
+done
+[ -s /tmp/google-ads-listener.port ] || { echo 'Connection listener could not start'; exit 1; }
+PORT="$(cat /tmp/google-ads-listener.port)"
 ```
 
-If port 8765 is in use, the loop steps up. The chosen port is stored in `/tmp/google-ads-listener.port` for Step 8 and the redirect URI Step 5 added to the OAuth client.
+If port 8765 is in use, the loop steps up. The chosen port is stored in `/tmp/google-ads-listener.port` for Step 8. Binding the listener itself reserves the port; no platform-specific port-listing command is needed.
 
 > **OAuth client redirect URI**: Google's Desktop App OAuth flow accepts loopback redirect URIs `http://127.0.0.1:<port>` without pre-registering each port (per RFC 8252 Section 7.3 - Google supports this). Some Desktop clients may default to `http://localhost`. If the OAuth request fails with `redirect_uri_mismatch`, fall back to using `http://localhost:$PORT` (instead of `127.0.0.1`) and edit the OAuth client's authorized redirect URI list to include it.
 
 ### Step 8 - Drive the OAuth consent flow
 
-Read the values back from clipboard for the OAuth URL construction (still never echoing them):
+Read the captured file for the OAuth URL construction (still never echoing values):
 
 ```bash
-CLIENT_ID="$(wl-paste | jq -r '.client_id')"
+CLIENT_ID="$(jq -r '.client_id' "$ADS_CAPTURE_DIR/client.json")"
 PORT="$(cat /tmp/google-ads-listener.port)"
 SCOPE="https://www.googleapis.com/auth/adwords"
 AUTH_URL="https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=http%3A%2F%2F127.0.0.1%3A${PORT}&response_type=code&scope=${SCOPE}&access_type=offline&prompt=consent"
@@ -355,8 +445,8 @@ AUTH_CODE="$(cat /tmp/google-ads-auth-code)"
 ### Step 9 - Exchange the code for access + refresh tokens
 
 ```bash
-CLIENT_ID="$(wl-paste | jq -r '.client_id')"
-CLIENT_SECRET="$(wl-paste | jq -r '.client_secret')"
+CLIENT_ID="$(jq -r '.client_id' "$ADS_CAPTURE_DIR/client.json")"
+CLIENT_SECRET="$(jq -r '.client_secret' "$ADS_CAPTURE_DIR/client.json")"
 
 RESP="$(curl -sf https://oauth2.googleapis.com/token \
   -H 'Content-Type: application/x-www-form-urlencoded' \
@@ -429,25 +519,83 @@ Wait for the page to render. The page shows the developer token (auto-assigned) 
 
 **1T.2 - DOM-extract the dev token**
 
+Use the same protected output directory and unique capture name as Step 5b; save the developer details separately so they cannot overwrite the OAuth client details. Pre-create both destinations before capture:
+
+```bash
+umask 077
+(set -C; : > "$ADS_CAPTURE_DIR/developer.json") || exit 1
+(set -C; : > "$ADS_OUTPUT_DIR/$ADS_CAPTURE_NAME-developer.json") || exit 1
+```
+
 ```js
-() => {
-  const labels = Array.from(document.querySelectorAll('*'))
-    .filter(el => /^developer token$/i.test((el.innerText||'').trim()));
-  for (const label of labels) {
-    let scope = label.parentElement;
-    for (let depth = 0; depth < 6 && scope; depth++) {
-      const lines = (scope.innerText || '').split('\n').map(s => s.trim()).filter(Boolean);
-      // Token shape: 22 alphanumeric chars
-      const tokenLine = lines.find(l => /^[A-Za-z0-9_-]{20,28}$/.test(l) && l !== label.innerText.trim());
-      if (tokenLine) return { ok: true, token_len: tokenLine.length };
-      scope = scope.parentElement;
+async (page) => {
+  const out = await page.evaluate(() => {
+    const labels = Array.from(document.querySelectorAll('*'))
+      .filter(el => el.children.length === 0 && /^developer token$/i.test((el.innerText||'').trim()));
+    for (const label of labels) {
+      let scope = label.parentElement;
+      for (let depth = 0; depth < 6 && scope; depth++) {
+        const lines = (scope.innerText || '').split('\n').map(s => s.trim()).filter(Boolean);
+        // Token shape: 22 alphanumeric chars
+        const tokenLine = lines.find(l => /^[A-Za-z0-9_-]{20,28}$/.test(l) && l !== label.innerText.trim());
+        if (tokenLine) return { dev_token: tokenLine };
+        scope = scope.parentElement;
+      }
     }
-  }
-  return { ok: false };
+    return null;
+  });
+  if (!out) return { ok: false };
+  const download_promise = page.waitForEvent('download');
+  await page.evaluate((values) => {
+    const link = document.createElement('a');
+    const blob_url = URL.createObjectURL(new Blob([JSON.stringify(values)], { type: 'application/json' }));
+    link.href = blob_url;
+    link.download = "<ADS_CAPTURE_NAME>-developer.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(blob_url), 1000);
+  }, out);
+  const download = await download_promise;
+  await download.saveAs("<absolute ADS_CAPTURE_DIR>/developer.json");
+  await download.delete();
+  return { ok: true, token_len: out.dev_token.length };
 }
 ```
 
-Use the same clipboard-transit pattern as Step 5b to capture the token without it appearing in tool returns: write to clipboard, return only length.
+Resolve this capture's reported download path as `ADS_DEVELOPER_OUTPUT`, applying the same parent-directory and filename checks as Step 5b.
+
+```bash
+python3 - "$ADS_CAPTURE_DIR/developer.json" "$ADS_OUTPUT_DIR" "$ADS_CAPTURE_NAME" "$ADS_DEVELOPER_OUTPUT" <<'PY'
+import os
+from pathlib import Path
+import re
+import stat
+import sys
+
+private_file, output_dir, capture_name, reported_file = sys.argv[1:]
+private_file = Path(private_file)
+output_dir = Path(output_dir).resolve(strict=True)
+reported_file = Path(reported_file)
+if not re.fullmatch(r'ads-capture-[a-f0-9]{24}', capture_name):
+    raise SystemExit('Invalid capture name; files preserved')
+if not reported_file.is_absolute() or reported_file.name != capture_name + '-' + private_file.name:
+    raise SystemExit('Unexpected download name; files preserved')
+if reported_file.parent.resolve(strict=True) != output_dir:
+    raise SystemExit('Unexpected download directory; files preserved')
+for directory in (output_dir, private_file.parent):
+    info = directory.stat()
+    if info.st_uid != os.getuid() or info.st_mode & 0o077:
+        raise SystemExit('Capture directory is not private; files preserved')
+for file in (private_file, reported_file):
+    info = file.lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_nlink != 1:
+        raise SystemExit('Unexpected capture file; files preserved')
+private_file.chmod(0o600)
+reported_file.chmod(0o600)
+reported_file.unlink()
+PY
+```
 
 **1T.3 - Save credentials.json with mode=test**
 
@@ -455,9 +603,9 @@ Use the same clipboard-transit pattern as Step 5b to capture the token without i
 mkdir -p ~/.config/google-ads
 chmod 700 ~/.config/google-ads
 
-CLIENT_ID="$(wl-paste | jq -r '.client_id // empty')"
-CLIENT_SECRET="$(wl-paste | jq -r '.client_secret // empty')"
-DEV_TOKEN="$(wl-paste | jq -r '.dev_token // empty')"   # set by Step 1T.2
+CLIENT_ID="$(jq -r '.client_id // empty' "$ADS_CAPTURE_DIR/client.json")"
+CLIENT_SECRET="$(jq -r '.client_secret // empty' "$ADS_CAPTURE_DIR/client.json")"
+DEV_TOKEN="$(jq -r '.dev_token // empty' "$ADS_CAPTURE_DIR/developer.json")"   # set by Step 1T.2
 ACCESS_TOKEN="$(echo "$RESP" | jq -r .access_token)"
 REFRESH_TOKEN="$(echo "$RESP" | jq -r .refresh_token)"
 EXPIRES_AT="$(python3 -c 'import datetime,sys; print((datetime.datetime.utcnow()+datetime.timedelta(seconds=int(sys.argv[1]))).strftime("%Y-%m-%dT%H:%M:%SZ"))' "$(echo "$RESP" | jq -r .expires_in)")"
@@ -478,7 +626,12 @@ chmod 600 ~/.config/google-ads/credentials.json.tmp
 mv ~/.config/google-ads/credentials.json.tmp ~/.config/google-ads/credentials.json
 ```
 
-Restore the prior clipboard. Verify the file has all 9 expected keys.
+Verify all required credential fields are populated without printing values. After the final Test file is saved, remove only the two capture files and their private directory. For the pending-Basic branch, defer this cleanup until Step 1L.4 has saved its file. When abandoning setup, first run the guarded download cleanup above for any remaining MCP copy; retain the files while resuming an unfinished step.
+
+```bash
+rm -f "$ADS_CAPTURE_DIR/client.json" "$ADS_CAPTURE_DIR/developer.json"
+rmdir "$ADS_CAPTURE_DIR"
+```
 
 **1T.4 - Smoke-test with a GAQL query**
 
@@ -594,8 +747,8 @@ The participant can't wait 1-3 days for a Phase 2 tool call. Save partial creden
 ```bash
 APPLIED_AT="$(python3 -c 'import datetime; print(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"))')"
 
-# (Step 1T.1-1T.2 also ran above to capture TEST dev token into clipboard slot 'dev_token')
-TEST_DEV_TOKEN="$(wl-paste | jq -r '.dev_token // empty')"
+# Step 1T.1-1T.2 captured the Test developer details in the private directory.
+TEST_DEV_TOKEN="$(jq -r '.dev_token // empty' "$ADS_CAPTURE_DIR/developer.json")"
 
 jq -n \
   --arg cid "$CLIENT_ID" \

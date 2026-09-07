@@ -20,28 +20,28 @@ metadata:
     - skill: hyperframes-cli
       reason: Sibling media-generation CLI - Higgsfield for cinematic AI gen, HyperFrames for programmatic/templated React video
     - skill: playwright-skill
-      reason: The Playwright MCP browser drives the Higgsfield device-login approval screen
+      reason: The Playwright MCP browser drives the Higgsfield browser sign-in and approval screens
 ---
 
 # Higgsfield Connector
 
-> **Install pattern:** CLI-based (first-party CLI + device-login OAuth), like `google-chat-connector` (`gws`), `quickbooks-connector` (`qbo`), and `notion-connector` (`ntn`). Not a hosted-MCP or plugin connector.
+> **Install pattern:** CLI-based (first-party CLI + browser OAuth), like `google-chat-connector` (`gws`), `quickbooks-connector` (`qbo`), and `notion-connector` (`ntn`). Not a hosted-MCP or plugin connector.
 
 ## Overview
 
 This skill connects and operates **Higgsfield** - a cinematic AI image + video generation platform - through its official CLI, `higgsfield` (npm package `@higgsfield/cli`, https://higgsfield.ai/cli; binary aliases `higgsfield`, `higgs`, `hf`). Two phases:
 
-- **Phase 1 - Install & Log in (autonomous via Playwright).** Claude installs the CLI and runs `higgsfield auth login` - a browser **device login**. The CLI prints a `https://higgsfield.ai/device?code=…` URL and waits; Claude drives a Playwright browser to that URL, the user approves, and the token is saved to a local credentials file (`~/.config/higgsfield/credentials.json`, mode `0600`). **No token in `~/.claude.json`, no API key to paste.**
+- **Phase 1 - Install & Log in (autonomous via Playwright).** Claude installs the CLI and runs `higgsfield auth login`. Keep that process running while Claude opens its exact printed sign-in URL in a browser for the intended Higgsfield account and completes the sign-in and approval steps. The CLI manages the local credentials; the browser flow depends on the installed version. **No token in `~/.claude.json`, no API key to paste.**
 - **Phase 2 - Operate.** Claude runs `higgsfield` commands to generate images/videos, estimate credit cost, poll async jobs, browse models, upload inputs, train Soul character references, and run Marketing Studio flows.
 
-The only manual moment for the user is approving the login in the browser.
+Claude handles the browser steps its available tools support; ask the user only for sign-in or approval steps that require their input.
 
 **Generation is credit-based and asynchronous.** Every generation spends credits (check `higgsfield account status` for balance; `higgsfield generate cost …` to estimate before spending). Jobs run async - submit and poll, or use `--wait` to block.
 
 ### Why the CLI
 
 - **No secret pasted into shared config.** The token lives in a local `0600` credentials file the CLI manages, not as a Bearer line in `~/.claude.json`.
-- **First-party + grounded.** Everything below was verified live against `@higgsfield/cli` v0.1.40 (real `--help` + a live image generation smoke).
+- **First-party + grounded.** Phase 2 commands were verified against v0.1.40 (real `--help` + a live image generation smoke). Login was also observed on v1.1.24: it opens a Clerk OAuth URL with a local callback, rather than the older device-code page. Check the installed version's help when behaviour differs. The [official CLI guide](https://higgsfield.ai/cli) documents browser sign-in; the [official CLI repository](https://github.com/higgsfield-ai/cli) documents account and workspace commands.
 
 ### What this skill does NOT use
 
@@ -55,9 +55,9 @@ The only manual moment for the user is approving the login in the browser.
 
 ## Communication rules (non-technical user)
 
-The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work; the user only approves the login in the browser. Every message:
+The user is a non-technical business owner. Claude does the installation, navigation, and verification; the user supplies any sign-in or approval input the available tools cannot complete. Every message:
 
-- **You drive, not them.** The only thing you ask is "please approve the sign-in in the window I opened."
+- **You drive, not them.** When user input is needed, name the exact short step, such as "please sign in in the window I opened."
 - **Plain English only.** No jargon - never say CLI, npm, OAuth, device code, token, API, terminal, JSON, credits-API. The browser window is "a sign-in window I opened"; the connection is "your Higgsfield connection". (You *may* say "credits" - users understand that.)
 - **Narrate at action boundaries** (start / need-you / done). **Short messages** (≤8 lines). **Never show raw errors** - translate to plain English.
 - **Always state credit cost before generating** (see Behaviour Guidelines).
@@ -66,11 +66,13 @@ The user is a non-technical business owner. Phase 1 is autonomous - Claude does 
 
 ```bash
 command -v higgsfield >/dev/null 2>&1 && higgsfield --version   # installed?
-higgsfield account status                                       # logged in? → "email - plan, N credits"
+higgsfield account status                                       # verify the actual account and credits
 ```
 
-- `account status` prints `email - plan, N credits` → **already connected.** Skip to Phase 2. (Optionally greet with the credit balance.)
-- `higgsfield` missing, or `account status` returns `Error: Not authenticated. Hint: Run: hf auth login` → run Phase 1.
+- `account status` succeeds with the intended account/workspace and credit balance → **already connected.** Skip to Phase 2. Output wording can vary by version; do not require one exact sentence.
+- `higgsfield` missing → install in Phase 1. `Not authenticated` or `Session expired` → run Step 3 without reinstalling.
+- `No workspace selected` → run `higgsfield workspace list`. If that read requires authentication, run Step 3; otherwise select the intended workspace as described below, then retry `account status`. This error alone proves neither a connected account nor invalid credentials.
+- Other errors → investigate the actual failure; do not restart authentication indiscriminately. These checks must run in the skill caller's environment. Its Higgsfield account is independent of the Claude login and another terminal's configuration.
 
 ## PHASE 1 - Install & Log in (autonomous via Playwright)
 
@@ -87,38 +89,18 @@ higgsfield --version                 # confirm, e.g. "higgsfield 0.1.40 …"
 
 - **`EACCES` / `EPERM`** on global install → translate ("your computer needs a small permission fix"), install via a Node version manager rather than a global sudo install (see `docs/start/setup.md` Step 0), retry once.
 
-### Step 3 - Log in (browser device flow, Playwright-driven)
+### Step 3 - Log in (browser sign-in, Playwright-driven)
 
-`higgsfield auth login` is a **blocking** device login. **Captured output shape (v0.1.40):**
+1. **Start and retain the login process.** Check `higgsfield auth login --help`. When the user needs their everyday browser left untouched, use a documented browser-suppression option if available; otherwise, on macOS, follow [the verified process-local opener capture](references/background-login.md) before starting login. It automatically captures the opener for the verified 1.1.24 binary without changing browser defaults. For unverified binaries or other platforms, verify a supported isolation method before starting an auto-opening login under that constraint. Run the chosen login command in the harness's persistent terminal/background-task facility. Retain its task/session ID and read its output while it waits; do not impose a short timeout or launch a bare shell `&` job that may die when the tool returns. If capturing output to a file is necessary, use a unique temporary file with owner-only permissions, not a shared fixed `/tmp/hf_login.out` path. Do not expose the full sign-in URL in user-facing messages.
+2. **Open the exact URL emitted by this running process.** Use its private opener capture when following the background route, otherwise its printed URL. Preserve every query parameter; do not construct a device URL or reuse a URL from a previous attempt. Use an isolated browser session on the same computer as the CLI, or a session already signed in to the intended Higgsfield account. On the normal auto-opening route, do not approve a different account in the everyday browser.
+   - **Current browser callback flow (observed v1.1.24):** the printed URL starts `https://clerk.higgsfield.ai/oauth/authorize?...` and redirects to Higgsfield sign-in/consent. The observed callback was `http://localhost:8765/callback`, with a listener at `127.0.0.1:8765`; use the callback issued by the running CLI, not a hardcoded port. Keep the process alive through sign-in, consent, and the browser's callback. Do not substitute a callback URL or manually submit an authorization code.
+   - **Older device flow (observed v0.1.40):** only if the CLI actually prints `https://higgsfield.ai/device?code=…`, open that URL and approve the displayed device code after checking it matches. Do not wait for a device-code screen during the current callback flow.
+   - Drive the available browser tools through the visible sign-in and consent screens, checking the intended Higgsfield account before approval. Ask once for any input only the user can provide, then continue from the resulting screen. If no browser tool is available, open the emitted URL with an available browser-opening tool and give the user the exact short sign-in step.
+3. **Confirm completion in the same caller environment.** Wait for the retained login task to finish successfully, then run `higgsfield account status`. A signed-in website or successful login exit alone is not a working connection. If the read reports `No workspace selected`, run `higgsfield workspace list`, select the intended workspace with `higgsfield workspace set <id>`, and retry `account status`. Preserve a working selection; if several workspaces remain plausible, ask which to use rather than choosing a billing account arbitrarily. If the account identity is not included in the status output, use the confirmed browser identity and selected workspace alongside the successful credit-balance read. Do not generate anything as a connection test.
 
-```
-Opening browser for authentication...
-If browser does not open, visit: https://higgsfield.ai/device?code=<CODE>
-Waiting for approval...
-```
+If login expires or the process exits before its callback, end only that attempt if still running, restart once, and open its newly printed URL. If the read specifically reports `Not authenticated` or `Session expired`, retry login once. For workspace-selection or other errors, resolve that reported condition instead of repeating sign-in. If the retry still fails, explain the specific blocker in plain English; do not claim success.
 
-Drive it:
-
-1. **Start login in the background** (it blocks, polling, until approval) and capture the `https://higgsfield.ai/device?code=…` URL it prints:
-   ```bash
-   higgsfield auth login > /tmp/hf_login.out 2>&1 &     # backgrounded; it polls for approval
-   ```
-   Read `/tmp/hf_login.out`, extract the `higgsfield.ai/device?code=…` URL.
-2. **Open the URL in Playwright:**
-   ```
-   mcp__playwright__browser_navigate({ url: <device_url> })
-   mcp__playwright__browser_snapshot()
-   ```
-   - **Not signed in** (redirects to `higgsfield.ai/auth/sign-in?...`) → tell the user *once*: *"Please sign in to your Higgsfield account in the window I opened - I'll wait."* Then `browser_wait_for` the device-approval screen.
-   - **Signed in** → an approval screen for the device code. Click the **Approve / Confirm** button (re-snapshot to get the ref; verify the on-screen code matches the one in the printed URL).
-3. **Confirm completion.** On approval the backgrounded `auth login` prints `Successfully authenticated.` and exits 0. Verify:
-   ```bash
-   higgsfield account status      # → "email - plan, N credits"
-   ```
-
-If `account status` still errors, re-run Step 3 once. If it persists, surface in plain English and stop.
-
-> **Team billing (optional).** If the user works under a team workspace, `higgsfield workspace list` / `workspace set <id>` selects it; `workspace status` shows the current one; `workspace unset` returns to the personal account.
+> **Team billing (optional).** `higgsfield workspace list` / `workspace set <id>` selects a team workspace; `workspace status` shows the current one. Older versions support `workspace unset` to return to the personal account; check installed help and verify `account status` afterwards rather than assuming an unset workspace works on every version.
 
 ### Success message
 
@@ -258,5 +240,5 @@ Diagnose and respond in plain English; never show raw errors.
 - **ad-creative** - write the ad copy/concept, then render it here as Higgsfield video/image creative
 - **social-content** - turn social posts into Higgsfield mobile-first video/image ads
 - **hyperframes-cli** - sibling media CLI; Higgsfield for cinematic AI gen, HyperFrames for programmatic/templated video
-- **playwright-skill** - drives the Higgsfield device-login approval screen
+- **playwright-skill** - drives the Higgsfield browser sign-in and approval screens
 - **orientation** - conversational-bootstrap pattern Phase 1 follows

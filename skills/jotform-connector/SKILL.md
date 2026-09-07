@@ -43,7 +43,7 @@ This skill lets you read and update a user's Jotform account on their behalf usi
 The skill has these phases:
 
 - **Phase 0 - Is Jotform already connected?** Checks the built-in connector first, then the kit's own registration, and routes.
-- **Phase 1 - Switch on the built-in Jotform connector (the default route).** Open Jotform's connector page in the user's own browser, they press **Connect to Claude** and sign in, then verify and prove with one read.
+- **Phase 1 - Switch on the built-in Jotform connector (the default route).** Open Jotform's connector page through the calling account's Phase 1 route, then complete **Connect to Claude** and sign in, then verify and prove with one read.
 - **Phase 1-alt - The kit's own route (only when the built-in can't be used), autonomous, 6 steps.** Claude registers the hosted MCP server with `claude mcp add`, opens Claude Code's OAuth start URL inside a Playwright MCP browser, detects login state, auto-clicks Allow on the consent screen, auto-detects the callback via `browser_wait_for`, then verifies with a `mcp__jotform__list_forms` smoke call. The user's only manual moments are signing in to Jotform inside the Playwright window and clicking Allow on the consent screen. Token storage is handled by Claude Code's MCP runtime - there is no manual `~/.claude.json` token write.
 - **Phase 2 - Use Tools.** Once Jotform is connected by either route, you call its native tools to read and update Jotform data - `mcp__claude_ai_Jotform__*` on the built-in route, `mcp__jotform__*` on the kit's.
 
@@ -81,18 +81,20 @@ These rules apply to **both** connect routes. On Phase 1 (the built-in connector
 
 ## Phase 0 - Is Jotform already connected?
 
+Identify the calling surface first. Desktop's visible account, Connectors view, and actual runtime tools are its evidence. Terminal `claude auth status` and `claude mcp list` describe the CLI account, even when run from Desktop's Bash; they do not establish Desktop identity or access. Jotform credentials are independent of either Claude login. Discover existing tools and perform the read below for the intended vendor account before claiming a connection. Preserve a working route.
+
 Run these silently, in order, and act on the first that answers.
 
-1. **Built-in connector.** Run `claude mcp list` and look for a line starting `claude.ai Jotform` (match the vendor word case-insensitively; there is no `--json` flag).
-   - `✔ Connected` → skip to **Phase 2**. Prove it first with one read through the built-in - list the account's forms - before saying so.
-   - `! Needs authentication` → the connection is on the account but its sign-in has lapsed. Open `https://claude.ai/customize/connectors` in the user's own browser and say: *"Your Jotform connection needs a quick re-sign-in. Press **Reconnect** next to Jotform, sign in, and tell me when it says Connected."* Then re-run this check.
-   - No such line → continue to step 2.
+1. **Built-in connector.** In Desktop, discover this session's Jotform tools (including opaque-ID prefixes) and inspect the app's Connectors view. For a terminal/VS Code caller only: Run `claude mcp list` and look for a line starting `claude.ai Jotform` (match the vendor word case-insensitively; there is no `--json` flag).
+   - Connected in the caller or tools present → skip to **Phase 2**. Prove it first with one read through the built-in - list the account's forms - before saying so.
+   - Reconnect or `! Needs authentication` → reconnect in the same caller's Connectors view. In Desktop, start inside the app; for a browser route, verify its Claude account matches the caller before opening `https://claude.ai/customize/connectors`. Complete Jotform sign-in and repeat the actual read.
+   - No usable built-in in the caller → continue to step 2; a missing CLI line alone says nothing about Desktop.
 2. **The kit's own route.** Run the resume check below. If an `mcpServers.jotform` entry is present and a smoke call works, keep using it - say *"Jotform is already connected"* and skip to **Phase 2**. Do not set the built-in up on top of a working connection.
 3. **Nothing found** → go to **Phase 1**.
 
-**Precedence note.** A server registered locally at the same address takes precedence over the built-in one and hides it (`/mcp` shows the built-in as hidden). If a machine carries an `mcpServers.jotform` entry from an earlier run of the kit's route and it works, leave it and say so. Only remove it - and only with the user's explicit OK - if it is broken and the built-in is the better route.
+**Precedence note (terminal/VS Code only).** A server registered locally at the same address takes precedence over the built-in one and hides it (`/mcp` shows the built-in as hidden). If a machine carries an `mcpServers.jotform` entry from an earlier run of the kit's route and it works, leave it and say so. Only remove it - and only with the user's explicit OK - if it is broken and the built-in is the better route. Desktop may expose local and built-in tools simultaneously; discover the actual runtime and keep each result attached to its connection.
 
-**No shell?** If you cannot run commands at all (this is claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2 entirely: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Jotform's tools.
+**No shell?** Runtime discovery and reads still apply. Skip unavailable command/file checks; only set up a connection if no working route is found, following the existing route-by-need rules.
 
 ### 0.1 - Resume check (the kit's own route)
 
@@ -121,26 +123,27 @@ Verify Node 18+, the `claude` CLI is on PATH (`claude --version`), and Playwrigh
 
 ## Phase 1 - Switch on the built-in Jotform connector (the default route)
 
-Claude's connector directory carries a **Jotform** connector that points at the same hosted endpoint the kit registers (`https://mcp.jotform.com`), so the tool surface is identical. This is a one-time, once-per-account job: connect it once on the user's Claude account and it is available everywhere that account is signed in, including here. The only thing the user does is press one button and sign in. Nothing on this route captures, stores, or echoes a connection key - there is no key.
+Claude's connector directory carries a **Jotform** connector that points at the same hosted endpoint the kit registers (`https://mcp.jotform.com`), so the tool surface is identical. This is a one-time, once-per-account job: connect it once on the user's Claude account and it is available everywhere that account is signed in, including here. Claude handles the available setup steps; the user supplies any sign-in input that requires them. Nothing on this route captures, stores, or echoes a connection key - there is no key.
 
-**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set in the environment, built-in connectors will not appear in this session. Tell the user in one line that this copy of Claude is signed in a different way, then run **Phase 1-alt** instead.
+**Step 1 - Check this session can see built-in connectors.** In Desktop, use its visible signed-in account and Connectors view, then continue inside that app. The following auth/settings checks apply only to a terminal/VS Code caller, not Desktop: `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set in the environment, built-in connectors will not appear in this session. Tell the user in one line that this copy of Claude is signed in a different way, then run **Phase 1-alt** instead.
 
-**Step 2 - Open the connector page for them.** Say:
+**Step 2 - Open the connector page for them.**
 
-> "I'm opening Jotform's page in your browser. Press **Connect to Claude**, sign in to Jotform the way you normally do, and say yes when it asks for access. That's the only part only you can do - tell me when it says Connected."
+Say: *"I'll open Jotform's connection page and handle the setup. I'll let you know if it needs you to sign in."*
 
-Then open `https://claude.ai/directory/jotform` (the public mirror of the same page is `https://claude.com/connectors/jotform`) in the user's **own** everyday browser: `open <url>` on Mac, `xdg-open <url>` on Linux, `start "" <url>` on Windows. That is where they are already signed in. If the page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: **Browse**, search "Jotform", **Connect**.
+**Desktop first:** use the app's **+ → Connectors → Browse connectors → Jotform → Connect** (or the equivalent visible Customize/Connectors menu). Keep the exact app-created browser handoff URL, including its parameters. Open it in a browser profile whose Claude account you have confirmed matches Desktop, using an isolated profile when needed. If that profile is signed out or belongs to another account, complete sign-in to the matching Claude account in an isolated profile before continuing. Confirm the intended Jotform account before approval. Do not replace it with a directory link from another Claude account.
 
-> **Why the user's own browser here.** Phase 1-alt's rule - never use the user's own browser - exists because that route drives a sign-in in a browser Claude controls. This route reads nothing and handles no key, so the user's own browser is the correct place for the button press. Do not drive this sign-in with the automated browser.
+**Terminal/VS Code or browser fallback:** open `https://claude.ai/directory/jotform` (or `https://claude.com/connectors/jotform`) in a browser whose Claude account matches the caller. Use `open` (Mac), `xdg-open` (Linux), or `start` (Windows) only after confirming that browser's account. If the page fails, use `https://claude.ai/customize/connectors` → **Browse** → search "Jotform" → **Connect** in that same account.
 
-**Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a picture of the sign-in screen.
+Drive navigation and approval with available UI tools. If a step requires user input or the harness has no suitable UI tool, give only the exact short next step; do not describe every click as inherently human-only.
 
-**Step 4 - Verify.** Run `claude mcp list` again. A line reading `claude.ai Jotform ... ✔ Connected` is the pass.
-- Not there yet → no restart will change this answer: `claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes. Read on:
-- `! Needs authentication` → send them to `https://claude.ai/customize/connectors` and have them press **Reconnect** next to Jotform.
-- Still no line at all → the Connect didn't complete; send them back to Step 2.
+**Step 3 - Wait.** Complete the visible flow with available tools; wait for any sign-in input that requires the user. Never ask for a password, a code, or a picture of the sign-in screen.
 
-**Step 5 - Prove it.** Call one real read through the connector - list the account's forms. Only a real answer counts (an empty list is a real answer; a tool error is not "connected"). The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_Jotform__*` tools actually available and pick a safe read rather than hard-coding a name. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
+**Step 4 - Verify.**
+
+Check Jotform in Desktop's own Connectors view, or `claude mcp list` for a terminal/VS Code caller. Connected is registration evidence only; proceed to the real read in Step 5. Reconnect uses the same account's Connectors view. A missing CLI line says nothing about Desktop. If Desktop still lacks a connection completed through the browser directory, verify **Connected** in that browser's matching Claude account. Once that account check passes, rediscover Desktop's tools and use Step 5's one-time Desktop refresh if needed; do not repeat **Connect** to repair a stale app view. Return to Step 2 only when neither the caller's view nor the account-matched browser confirms a completed connection.
+
+**Step 5 - Prove it.** Call one real read through the connector - list the account's forms. Only a real answer counts (an empty list is a real answer; a tool error is not "connected"). The built-in's tools are often deferred in a session, so list the `mcp__claude_ai_Jotform__*` tools actually available and pick a safe read rather than hard-coding a name. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If tools are missing, first rediscover deferred tools and confirm the same caller account is connected; only then consider a stale session: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - for example *"show me my forms"*, *"how many people filled in the contact form this week?"*, *"summarise last month's submissions"*.
 

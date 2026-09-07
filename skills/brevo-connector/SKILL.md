@@ -77,12 +77,14 @@ Ask the user to reopen Claude Code once, then retry.
 
 ## Phase 0 - Is Brevo already connected?
 
+Identify the calling surface first. Desktop's account and connectors can differ from the standalone CLI, even when `claude auth status` and `claude mcp list` run from Desktop's Bash. Use the app's visible account, Connectors view, and actual runtime tools for Desktop evidence; those commands describe the CLI account only. Local vendor credentials are independent of the Claude login. A working local route proves its own access, not the Desktop account's built-in connection.
+
 Run these silently, in order, and act on the first that answers.
 
-1. **Built-in connector.** `claude mcp list` → look for a line starting `claude.ai Brevo` (match the vendor word case-insensitively).
-   - `✔ Connected` → skip to PHASE 2. Prove it first with one read: call any read tool in the `mcp__claude_ai_Brevo__*` namespace (look up the account, or list contact lists) and check a real answer comes back.
-   - `! Needs authentication` → the connection has lapsed. Open `https://claude.ai/customize/connectors` for the user and say: *"Your Brevo connection needs a quick re-sign-in. Press Reconnect next to Brevo, sign in, and tell me when it says Connected."* Then re-run this check.
-   - no such line → continue.
+1. **Built-in connector.** In Desktop, discover Brevo tools by name and description (the prefix can be an opaque `mcp__<id>__`) and inspect its in-app connected state where accessible. Prove it with the read below. In terminal/VS Code only, `claude mcp list` → look for a line starting `claude.ai Brevo` (match the vendor word case-insensitively).
+   - Connected or tools present → skip to PHASE 2. Prove it first with one read: call any read tool in the `mcp__claude_ai_Brevo__*` namespace (look up the account, or list contact lists) and check a real answer comes back.
+   - Reconnect or `! Needs authentication` → follow Step 2 of the built-in route for the same account, choose **Reconnect**, then repeat the read check.
+   - No usable built-in found → continue. A missing CLI line alone does not rule out Desktop tools.
 2. **The kit's own route.** Check for stored credentials at `~/.config/brevo/credentials.env` (Mac/Linux/WSL) or `%APPDATA%\brevo\credentials.env` (native Windows):
 
    ```bash
@@ -101,7 +103,7 @@ Run these silently, in order, and act on the first that answers.
 
 3. **Nothing found** → Route by need, then Phase 1.
 
-If you cannot run commands at all (you are in claude.ai chat or the desktop app rather than Claude Code), skip steps 1-2: go straight to Phase 1 and prove the result at Phase 1 Step 5 by calling one of Brevo's tools.
+Without a shell, keep runtime tool discovery and the read check; skip only unavailable command/file checks. If nothing works, follow the existing route-by-need decision and prove the result with a read in the calling session.
 
 ---
 
@@ -129,23 +131,26 @@ The built-in connector never sends, schedules or deletes - that is Brevo's own d
 
 This is a one-time, once-per-account job. The only thing the user does is press one button and sign in. This skill handles no credentials on this route.
 
-**Step 1 - Check this session can see built-in connectors.** `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear here: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route instead.
+**Step 1 - Check this session can see built-in connectors.** In Desktop or claude.ai chat, use that account's Connectors view and runtime tools; a terminal login does not gate the app account. For terminal/VS Code only, `claude auth status` must show `"authMethod": "claude.ai"`. If it shows anything else, or `~/.claude/settings.json` has `disableClaudeAiConnectors: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` is set, built-in connectors will not appear in that CLI session: tell the user in one line that this copy of Claude is signed in a different way, and run the kit's own route instead.
 
-**Step 2 - Open the connector page for them.** Say: *"I'm opening Brevo's page in your browser. Press **Connect to Claude**, sign in to Brevo the way you normally do, and say yes when it asks for access. That is the only part only you can do - tell me when it says Connected."* Then open `https://claude.com/connectors/brevo` (or `https://claude.ai/directory/brevo`) in **the user's own everyday browser** (`open` on Mac, `xdg-open` on Linux, `start ""` on Windows). If that page doesn't load, open `https://claude.ai/customize/connectors` instead and tell them: Browse → search "Brevo" → Connect. In the desktop app's Code tab the better route is the composer's **+** → **Connectors** → **Browse connectors** → the **+** next to it: that one shows up in the running session without a restart, whereas the browser page needs the app quit and reopened before any session sees the tools.
+**Step 2 - Open the connector page for them.**
 
-> **This is the one place the "never open the participant's own browser" rule does not apply.** That rule exists because the kit's own route reads a secret off the page in a driven browser. This route reads nothing - the user's own browser is the only one signed in to claude.ai, so it is the correct one. Do not drive this sign-in with Playwright.
+Say: *"I'm connecting Brevo to this Claude account. I'll handle the setup and let you know if you need to sign in."* Use the browser or computer-use tools actually available for navigation and authorised connection approvals. If a surface is inaccessible, give only the next short click sequence, then resume the work.
+
+- **Desktop first:** **+ → Connectors → Browse connectors → Brevo → Connect**. If the app is inaccessible, give this exact sequence to the user. Keep the exact handoff URL opened by **Connect** in a browser profile signed into the same Claude account as Desktop. If the everyday profile differs, use a matching or isolated profile and request sign-in there as needed. Preserve the URL and its parameters; do not invent app deep links. If **Continue connecting** loops, check account matching before retrying; start a fresh in-app Connect if the handoff expired.
+- **Browser or terminal/VS Code:** use `https://claude.ai/directory/brevo` (public listing: `https://claude.com/connectors/brevo`) in a browser signed into the calling Claude account, then **Connect to Claude**. If it fails to load, use `https://claude.ai/customize/connectors` → **Browse** → search **Brevo** → **Connect**. With only a shell, use `open` on Mac, `xdg-open` on Linux, or `start ""` on Windows after checking the default browser's account. For re-authentication, choose **Reconnect** on that account's connector instead.
 
 **Step 3 - Wait.** Stay hands-off while they sign in. Never ask for a password, a code, or a screenshot of the sign-in.
 
-**Step 4 - Verify.** `claude mcp list` again. `claude.ai Brevo … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
+**Step 4 - Verify.** In Desktop, check Brevo's connected state in the app; in browser chat, check that account's Connectors view. If inaccessible, request only that status check. Step 5 remains required. The following command and status branches apply only to terminal/VS Code, never as proof for a different Desktop account: `claude mcp list` again. `claude.ai Brevo … ✔ Connected` is the pass. Not there yet → no restart will change this answer (`claude mcp list` runs fresh each time, so it shows a connector the moment the Connect finishes): `! Needs authentication` means Reconnect on the Customize page; no line at all means the Connect didn't complete - send them back to Step 2.
 
-**Step 5 - Prove it.** Call one real read through the connector - any read tool in the `mcp__claude_ai_Brevo__*` namespace (account lookup, or list contact lists). Only a real answer counts. A tool error here is not "connected". In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
+**Step 5 - Prove it.** Use the actual tools in this calling session and confirm the response belongs to the intended vendor account. Call one real read through the connector - any read tool in the `mcp__claude_ai_Brevo__*` namespace (account lookup, or list contact lists). Only a real answer counts. A tool error here is not "connected". In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed for the same account, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 **Step 6 - Hand off.** Two lines: it's connected, and three things they can ask for now - *"how did my last campaign do?"*, *"look up jane@example.com"*, *"draft me a campaign about the winter sale"*.
 
 **Team or Enterprise accounts:** if the page shows **Request** instead of **Connect**, their Claude admin has to switch Brevo on for the organisation first. Say so plainly and stop; do not fall back to the kit's route just to get past an admin gate.
 
-**Local entry precedence.** If a server registered locally with `claude mcp add` points at the same URL, it takes precedence and hides the built-in one. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK.
+**Local entry precedence.** In terminal/VS Code, a server registered locally at the same URL takes precedence and hides the built-in one. Desktop can expose local and opaque-id built-in tools together; discover the actual runtime and keep each connection tied to its results. If it works, leave it and say so. If it is broken, prefer the built-in and remove the local entry only with the user's OK.
 
 ---
 

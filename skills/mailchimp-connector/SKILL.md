@@ -85,16 +85,11 @@ test -f "$HOME/.config/mailchimp/credentials.json" && jq -r '.api_endpoint // "m
 
 ## Golden rule - do not open the participant's own browser
 
-Every Phase 1 step that requires sign-in runs inside the Playwright MCP browser (`mcp__plugin_playwright_playwright__browser_*`). Never tell the participant to "open a link in your browser." Claude navigates, the participant types their Mailchimp password directly into the Playwright window, Claude reads the result programmatically. Same rule as `myob-connector` and `quickbooks-connector`.
+Every step of the kit's own route that requires sign-in runs inside the Playwright MCP browser (`mcp__plugin_playwright_playwright__browser_*`). Never tell the participant to "open a link in your browser." Claude navigates, the participant types their Mailchimp password directly into the Playwright window, Claude reads the result programmatically. Same rule as `myob-connector` and `quickbooks-connector`.
 
-If Playwright MCP is unavailable, stop and tell the participant: *"I need a small browser tool that's not installed yet - let me show you how to add it."* Then point them at the Playwright MCP install instructions and stop. Do not fall back to opening the participant's default browser.
+If Playwright MCP is unavailable for the kit's own route, stop and tell the participant: *"I need a small browser tool that's not installed yet - let me show you how to add it."* Then point them at the Playwright MCP install instructions and stop. Do not fall back to opening the participant's default browser.
 
-**One deliberate exception: Phase 1.** Switching on the built-in connector means
-opening `https://claude.ai/directory/intuit-mailchimp` in the participant's **own**
-browser, because that is the browser already signed in to Claude and to Mailchimp.
-The rule above exists because the route below reads a connection key off the page
-inside a driven browser; the built-in page has no key on it and this skill reads
-nothing from it. Never drive that sign-in with Playwright.
+**The built-in route is separate.** Phase 1 starts from the calling Claude account and its account-matched browser handoff; it handles no connection key. The driven-browser requirement above governs the kit's own credential route only.
 
 ---
 
@@ -125,9 +120,13 @@ Before starting the kit's own route, verify Playwright MCP tools are available. 
 
 ## PHASE 0 - Is Mailchimp already connected?
 
+Identify the calling surface first. Desktop's account and connectors can differ from the standalone CLI, even when `claude auth status` and `claude mcp list` run from Desktop's Bash. Use the app's visible account, Connectors view, and actual runtime tools for Desktop evidence; those commands describe the CLI account only. Local vendor credentials are independent of the Claude login. A working local route proves its own access, not the Desktop account's built-in connection.
+
 Run these silently, in order, and act on the first that answers.
 
 ### Step 0.1 - Built-in connector
+
+In Desktop, discover Intuit Mailchimp tools by name and description (the prefix can be an opaque `mcp__<id>__`) and inspect its in-app connected state where accessible. Prove it with the read below. In terminal/VS Code only, run:
 
 ```bash
 claude mcp list 2>&1 | grep -i "^claude.ai Intuit Mailchimp"
@@ -136,17 +135,13 @@ claude mcp list 2>&1 | grep -i "^claude.ai Intuit Mailchimp"
 Match on **Intuit Mailchimp**, not "Mailchimp" - that is the display name the
 directory uses and the line `claude mcp list` prints.
 
-- `✔ Connected` → the built-in is live. Prove it with one read from the
+- Connected or tools present → verify the built-in in this calling session. Prove it with one read from the
   `mcp__claude_ai_Intuit_Mailchimp__*` tools before saying so, then go to
   **Phase 0.5** - if what the participant wants is inside the built-in's reach,
   you are done and go straight to Phase 2; if it isn't, the kit's own route is
   still needed on top.
-- `! Needs authentication` → the connection has lapsed. Open
-  `https://claude.ai/customize/connectors` in the participant's own browser and
-  say: *"Your Mailchimp connection needs a quick re-sign-in. Press Reconnect next
-  to Intuit Mailchimp, sign in, and tell me when it says Connected."* Then re-run
-  this check.
-- No such line → continue.
+- Reconnect or `! Needs authentication` → follow Step 2 of the built-in route for the same account, choose **Reconnect**, then repeat the read check.
+- No usable built-in found → continue. A missing CLI line alone does not rule out Desktop tools.
 
 ### Step 0.2 - Read existing credentials (the kit's own route)
 
@@ -174,9 +169,7 @@ Two states:
 
 Go to Phase 0.5.
 
-If you cannot run commands at all (you are in claude.ai chat or the desktop app
-rather than Claude Code), skip Steps 0.1-0.2: go to Phase 0.5, then Phase 1, and
-prove the result at Phase 1 Step 5 by calling one of Mailchimp's tools.
+Without a shell, keep runtime tool discovery and the read check; skip only unavailable command/file checks. If nothing works, follow the existing route-by-need decision and prove the result with a read in the calling session.
 
 ---
 
@@ -223,6 +216,8 @@ requirement for this connector.
 
 ### Step 1 - Check this session can see built-in connectors
 
+In Desktop or claude.ai chat, use that account's Connectors view and runtime tools. A terminal login does not gate the app account. The following authentication checks apply only to terminal/VS Code:
+
 ```bash
 claude auth status
 ```
@@ -230,24 +225,15 @@ claude auth status
 `"authMethod": "claude.ai"` is the pass. Anything else - or
 `disableClaudeAiConnectors: true` in `~/.claude/settings.json`, or
 `ENABLE_CLAUDEAI_MCP_SERVERS=false` - means built-in connectors will not appear in
-this session. Tell the participant in one line that this copy of Claude is signed
+that CLI session. Tell the participant in one line that this copy of Claude is signed
 in a different way, and run the kit's own route instead.
 
 ### Step 2 - Open the connector page for them
 
-Say: *"I'm opening Mailchimp's page in your browser. Press **Connect to Claude**,
-sign in to Mailchimp the way you normally do, and say yes when it asks for access.
-That's the only part only you can do - tell me when it says Connected."*
+Say: *"I'm connecting Intuit Mailchimp to this Claude account. I'll handle the setup and let you know if you need to sign in."* Use the browser or computer-use tools actually available for navigation and authorised connection approvals. If a surface is inaccessible, give only the next short click sequence, then resume the work.
 
-```bash
-open "https://claude.ai/directory/intuit-mailchimp"          # Mac
-# xdg-open "https://claude.ai/directory/intuit-mailchimp"    # Linux
-# start "" "https://claude.ai/directory/intuit-mailchimp"    # Windows
-```
-
-If that page doesn't load, open `https://claude.ai/customize/connectors` instead
-and tell them: Browse → search "Mailchimp" → Connect. It is listed as **Intuit
-Mailchimp**.
+- **Desktop first:** **+ → Connectors → Browse connectors → Intuit Mailchimp → Connect**. If the app is inaccessible, give this exact sequence to the user. Keep the exact handoff URL opened by **Connect** in a browser profile signed into the same Claude account as Desktop. If the everyday profile differs, use a matching or isolated profile and request sign-in there as needed. Preserve the URL and its parameters; do not invent app deep links. If **Continue connecting** loops, check account matching before retrying; start a fresh in-app Connect if the handoff expired.
+- **Browser or terminal/VS Code:** use `https://claude.ai/directory/intuit-mailchimp` (public listing: `https://claude.com/connectors/intuit-mailchimp`) in a browser signed into the calling Claude account, then **Connect to Claude**. If it fails to load, use `https://claude.ai/customize/connectors` → **Browse** → search **Intuit Mailchimp** → **Connect**. With only a shell, use `open` on Mac, `xdg-open` on Linux, or `start ""` on Windows after checking the default browser's account. For re-authentication, choose **Reconnect** on that account's connector instead.
 
 ### Step 3 - Wait
 
@@ -255,6 +241,8 @@ Hands off while they sign in. Never ask for a password, a code, or a screenshot 
 the sign-in.
 
 ### Step 4 - Verify
+
+In Desktop, check Intuit Mailchimp's connected state in the app; in browser chat, check that account's Connectors view. An inaccessible view needs only a short status check from the user. The command and status branches below apply only to terminal/VS Code; another account's line cannot verify Desktop. Step 5 remains required on every surface.
 
 ```bash
 claude mcp list 2>&1 | grep -i "^claude.ai Intuit Mailchimp"
@@ -266,9 +254,11 @@ line at all means the Connect didn't complete, so send them back to Step 2.
 
 ### Step 5 - Prove it
 
+Use the actual tools in this calling session and confirm the response belongs to the intended vendor account. A listing or connected badge alone proves no read capability.
+
 Call one real read through the connector - one tool from the
 `mcp__claude_ai_Intuit_Mailchimp__*` namespace. Only a real answer counts; a tool
-error here is not "connected". These tools are often deferred in a session, so fetch the namespace first. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
+error here is not "connected". These tools are often deferred in a session, so fetch the namespace first. In the desktop app's Code tab the same tools arrive as `mcp__<id>__<tool>` under an opaque id instead of `mcp__claude_ai_<Name>__`, so look for the tool names, never the prefix, and never hard-code the id (it changes on reconnect). If the tools are missing from this session entirely even though Step 4 passed for the same account, the session started before the Connect: a terminal or VS Code session loads its claude.ai connectors once, at start, so ask them to fully quit and reopen Claude Code once (Mac: Cmd+Q; Windows: close the window and quit from the tray; VS Code: **Developer: Reload Window**), then run Phase 0 again. In the desktop app it depends on how the Connect was made (checked live 2026-09-04): through the app's own **+ → Connectors → Browse connectors** route the tools appear in the running session with no restart; through the directory page in a browser the app does not notice at all and a new session does not help, so ask them to fully quit and reopen the desktop app, then start a new session.
 
 ### Step 6 - Hand off
 

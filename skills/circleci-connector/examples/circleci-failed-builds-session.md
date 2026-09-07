@@ -1,89 +1,33 @@
-# Worked example: connect CircleCI and diagnose this week's failed builds
+# Worked example: connect CircleCI and inspect failed builds
 
-A reference end-to-end session for a non-technical owner running CircleCI for the first time inside Claude Code. **You:** is the user, **Claude:** is the Claude response. Internal tool calls collapsed between narration lines.
+This is an illustrative workflow, not a captured live connection or timing claim. Use SKILL.md for setup. Tool names and schemas come from the actual calling session; the legacy npm snapshot does not establish the hosted server's surface.
 
-Cold-start timing: about 90 seconds wall-clock including the user's token-paste moment. Warm starts: 4-6 seconds.
+## Cold start
 
----
+**User:** Connect CircleCI and tell me which builds failed this week.
 
-## Cold start (CircleCI never connected before)
+**Claude:** I'll connect CircleCI, then check the builds I can access. I'll open a sign-in window if needed.
 
-**You:**
-connect my CircleCI and tell me which builds failed this week
+1. Discover CircleCI tools in the caller. If an authenticated read already succeeds for the intended account, preserve that connection and continue.
+2. In Desktop, open the official CircleCI listing from the app's own connector browser. Complete its prompts using the same Desktop account and intended CircleCI account. Use the documented hosted custom-connector route if the directory route is unavailable. Use a PAT fallback only when needed; capture it through protected input, not chat.
+3. Rediscover tools and make an authenticated project/account read. On the legacy 0.20.0 server, `list_followed_projects` accepts an empty object. A config entry, Connected badge, or offline tool list alone does not pass this check.
+4. If the read succeeds with no projects, report the empty result and inspect project visibility; do not create a project or trigger a pipeline simply to make the test pass.
 
-**Claude:**
-Connecting CircleCI takes about a minute. You will sign in to CircleCI in a browser window, copy your Personal API Token from the settings page, and paste it back here. That is the only manual step.
+**Claude, after a successful read with projects:** CircleCI is connected. I can see your projects. I'll check which build history is available.
 
-> [Phase 0 resume check] Reads `~/.claude.json`. No `mcpServers.circleci` entry. Routes to Phase 1.
+## Inspect failures using the exposed tools
 
-> [Phase 1, Step 1] `mcp__plugin_playwright_playwright__browser_navigate({ url: "https://app.circleci.com/settings/user/tokens" })` opens the CircleCI personal API tokens page.
+- Discover each tool's schema before choosing arguments. Legacy 0.20.0 offers `get_latest_pipeline_status` and `get_build_failure_logs`; use them for the selected project and branch as their schemas permit.
+- A latest-pipeline read is not a complete week's history. If the current connection exposes history tools, use their actual names, pagination, and date filters. Otherwise explain the coverage limit and offer the latest available failures; never invent `get_pipelines_for_project`, `get_workflows_for_pipeline`, or `get_jobs_for_workflow` to fill the gap.
+- Summarise only returned failures: project, branch, job, timestamp, and the relevant log evidence. Do not fabricate counts, source-file failures, or a root cause beyond the logs.
+- A request to inspect failures does not authorize a rerun. Offer a rerun separately and follow the skill's action confirmation rules.
 
-**Claude:**
-The CircleCI tokens page just opened. Sign in if you are not already. Click "Create New Token", give it a name like "Claude Code", and click Create. CircleCI will show the token once. Copy it now. I will wait.
+## Warm start
 
-> User pastes the token into the chat.
+**User:** Any new failures since I last asked?
 
-**Claude:**
-Got it. Wiring CircleCI into Claude Code now.
+Discover the selected connection's tools and repeat its authenticated read. If usable, preserve the existing route and credentials. Compare timestamps with the prior session only when the available history covers that interval; state any coverage limit. If authentication fails, repair that route. If tools are missing, inspect the actual caller's connector state before requesting a restart.
 
-> [Phase 1, Step 2] `claude mcp add circleci --transport http --header "Authorization: Bearer <token>" --scope user https://mcp.circleci.com/mcp` succeeds.
+## What is verified separately
 
-**Claude:**
-CircleCI is registered with Claude Code. Close and reopen this chat once so its tools become visible, then say "show me failed builds this week" and I will finish from there.
-
-> [Pattern 1 deferred-tool reconciliation, see ../CLAUDE.md] User restarts. Phase 0's resume check finds the `mcpServers.circleci` entry. `mcp__circleci__list_followed_projects` is now in the tool surface. Resume Phase 2.
-
----
-
-## Phase 2 begins (after the restart)
-
-**You:**
-show me failed builds this week
-
-> [Phase 2 first-call tool-name-drift guard] Lists available `mcp__circleci__*` tools. The canonical 12-tool surface is present (followed projects, pipelines, workflows, jobs, tests, artifacts, configs, AI prompt tools). Proceeding.
-
-> [Phase 2] Step 1: `mcp__circleci__list_followed_projects` returns the user's followed projects. The user follows 3 (selrai-company/selr-kit-index, selrai-company/claude-workshop-kit, luke-heka/selr-finance).
-> Step 2: For each project, `mcp__circleci__get_pipelines_for_project({ slug, branch: <default>, page_token: null })` filtered to the last 7 days. Returns pipeline IDs and statuses.
-> Step 3: For each pipeline with `status: "failed"`, `mcp__circleci__get_workflows_for_pipeline({ pipeline_id })` returns workflow IDs. Then `mcp__circleci__get_jobs_for_workflow({ workflow_id })` returns the job that failed.
-
-**Claude:**
-This week (Mon 19 May to Sun 25 May):
-
-- **selrai-company/claude-workshop-kit**: 2 failed builds out of 14. Both on PR branches.
-  - PR #243 (upgrade/copywriting-skill): the "Shellcheck" job failed on `skills/copywriting/scripts/render.sh:42` (`SC2155: declare and assign separately`). Rest of the workflow green.
-  - PR #248 (fix/agent-browser-fallback): the "Lint, validate, compose-check" job failed on `docker compose config --quiet` because a sibling kit shipped a `DIGEST_PENDING` placeholder. Unrelated to your branch.
-- **selrai-company/selr-kit-index**: 0 failures. All crawler PRs (auto-merged) passed.
-- **luke-heka/selr-finance**: 1 failure. The nightly `revolut-reconcile` cron job's CI tests broke because the test fixture expected a 200 response from `/v2/accounts` but Revolut returned 503 during the test window.
-
-Want me to pull the full log for any of those, or open a re-run on PR #248 since the cause is unrelated?
-
----
-
-## Warm start (same flow with CircleCI already connected)
-
-**You:**
-any new failures since I last asked?
-
-> [Phase 0 resume check] Finds `mcpServers.circleci` entry.
-> [Phase 0 smoke] `mcp__circleci__list_followed_projects` returns 200 OK.
-
-**Claude:**
-CircleCI is already connected. Checking for failures since the last session.
-
-> [Phase 2] Compares pipeline timestamps against last known session-end timestamp. Returns new failures.
-
-**Claude:**
-One new failure since you last asked. selrai-company/claude-workshop-kit, branch `upgrade/canva-connector-prod-bar`, the "Shell script lint (shellcheck)" job at 14:22 AEST. It looks like a sibling skill's `install.sh` got a `SC2086` quoting warning. Want me to open a re-run after the dependent PR merges?
-
-Cold-to-warm timing: cold ~90s including token paste + chat restart, warm ~5s.
-
----
-
-## What this transcript proves
-
-- The Hosted-bearer-PAT pattern works end-to-end. The user's only manual moment is the token paste (the Pass 1 vetter flagged this as a yellow flag, max install_story 4).
-- The deferred-tool-reconciliation chat-restart is named as the supported recovery, not a workaround.
-- The multi-project failure summary is genuinely useful: 3 followed projects, failure narration in plain English with cause attribution.
-- AI-assisted CircleCI tools (`create_prompt_template`, `recommend_prompt_template_tests`, `run_evaluation_tests`) exist but are out of scope for this transcript. They get their own example session.
-
-The session above was captured against a real CircleCI account in May 2026, anonymised, and trimmed for length.
+The bundled snapshot records offline discovery of the 13 tools in `@circleci/mcp-server-circleci@0.20.0`, with a placeholder credential and no CircleCI API call. Hosted setup and real account access require their own live test. The former example's fixed 12-tool count, absent prompt tools, old `/mcp` URL, and claimed captured failure history are not used as evidence.

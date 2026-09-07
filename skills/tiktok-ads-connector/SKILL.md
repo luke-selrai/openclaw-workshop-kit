@@ -168,44 +168,113 @@ Fill the new-app form:
 
 Submit. TikTok issues `app_id` and `secret` immediately.
 
-### Step 4 - DOM-extract app_id and secret via clipboard transit
+### Step 4 - Capture app_id and secret in the isolated browser
 
-Save prior clipboard:
+Prepare a private transfer directory (macOS and Linux):
 
 ```bash
-SAVED=$(wl-paste 2>/dev/null | base64 -w0)
-echo "$SAVED" > /tmp/tiktok-ads-prev-clipboard.b64
+umask 077
+ADS_CAPTURE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ads-capture.XXXXXX")"
+ADS_CAPTURE_NAME="$(python3 -c 'import secrets; print("ads-capture-" + secrets.token_hex(12))')"
+printf '%s\n' "$ADS_CAPTURE_DIR" "$ADS_CAPTURE_NAME"
 ```
 
-Extract:
+Before any real credential capture, run the download sequence below on a disposable blank tab with a public synthetic marker and the filename `$ADS_CAPTURE_NAME-probe.txt`. The random name uses only lowercase letters, digits and hyphens: MCP filename sanitization changes interior dots, so do not derive download names from the dotted `mktemp` directory name. Read the MCP's **Downloaded file … to …** event and locate that exact file from Bash. Use the event's actual path even if its basename differs from `link.download`; the requested name is not proof of the saved name. Its parent is the actual MCP output directory; retain its absolute path as `ADS_OUTPUT_DIR`. The MCP saves an additional copy there even when `download.saveAs` points elsewhere and `download.delete()` succeeds. Protect that known directory before continuing:
+
+```bash
+test -d "$ADS_OUTPUT_DIR" && test -O "$ADS_OUTPUT_DIR" || exit 1
+chmod 700 "$ADS_OUTPUT_DIR"
+```
+
+Remove only the synthetic probe files you just created. Preserve other downloads, snapshots and server settings. If the output path cannot be identified or protected, stop before handling a real credential. An absolute `browser_evaluate` filename outside the MCP output directory is rejected; its automatic snapshot also makes it unsuitable for capturing a secret-bearing page.
+
+Use the browser's Playwright run-code tool for the capture below. Substitute the printed directory path in `saveAs` and the unique `ADS_CAPTURE_NAME` in `link.download`; retain both for subsequent shell calls. No Node `require`, `process` or imports are needed in the run-code VM. Only lengths return to the conversation. Do not take a page snapshot while secrets are visible; leave the participant's clipboard untouched. Pre-create the exact two destination files without replacing an existing file:
+
+```bash
+umask 077
+(set -C; : > "$ADS_CAPTURE_DIR/client.json") || exit 1
+(set -C; : > "$ADS_OUTPUT_DIR/$ADS_CAPTURE_NAME-client.json") || exit 1
+```
 
 ```js
-async () => {
-  // TikTok app_id is typically 7-19 numeric digits; secret is 40-64 alphanumeric.
-  const labels = Array.from(document.querySelectorAll('*'))
-    .filter(el => /^(app\s*id|client\s*key|secret)\s*:?$/i.test((el.innerText||'').trim()));
-  const out = {};
-  for (const label of labels) {
-    const which = /secret/i.test(label.innerText) ? 'secret' : 'app_id';
-    if (out[which]) continue;
-    let scope = label.parentElement;
-    for (let d = 0; d < 8 && scope; d++) {
-      const fields = Array.from(scope.querySelectorAll('input, code, span'));
-      for (const f of fields) {
-        const v = (f.value || f.innerText || '').trim();
-        if (v && v.length > 5 && /^[A-Za-z0-9_-]+$/.test(v)) {
-          out[which] = v;
-          break;
+async (page) => {
+  const out = await page.evaluate(() => {
+    // TikTok app_id is typically 7-19 numeric digits; secret is 40-64 alphanumeric.
+    const labels = Array.from(document.querySelectorAll('*'))
+      .filter(el => el.children.length === 0 && /^(app\s*id|client\s*key|secret)\s*:?$/i.test((el.innerText||'').trim()));
+    const out = {};
+    for (const label of labels) {
+      const which = /secret/i.test(label.innerText) ? 'secret' : 'app_id';
+      if (out[which]) continue;
+      let scope = label.parentElement;
+      for (let d = 0; d < 8 && scope; d++) {
+        const fields = Array.from(scope.querySelectorAll('input, code, span'));
+        for (const f of fields) {
+          const v = (f.value || f.innerText || '').trim();
+          const valid = which === 'app_id' ? /^\d{7,19}$/.test(v) : /^[A-Za-z0-9_-]{40,64}$/.test(v);
+          if (valid) {
+            out[which] = v;
+            break;
+          }
         }
+        if (out[which]) break;
+        scope = scope.parentElement;
       }
-      if (out[which]) break;
-      scope = scope.parentElement;
     }
-  }
-  if (!out.app_id || !out.secret) return { ok: false, found: Object.keys(out) };
-  await navigator.clipboard.writeText(JSON.stringify(out));
+    if (!out.app_id || !out.secret) return null;
+    return out;
+  });
+  if (!out) return { ok: false };
+  const download_promise = page.waitForEvent('download');
+  await page.evaluate((values) => {
+    const link = document.createElement('a');
+    const blob_url = URL.createObjectURL(new Blob([JSON.stringify(values)], { type: 'application/json' }));
+    link.href = blob_url;
+    link.download = "<ADS_CAPTURE_NAME>-client.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(blob_url), 1000);
+  }, out);
+  const download = await download_promise;
+  await download.saveAs("<absolute ADS_CAPTURE_DIR>/client.json");
+  await download.delete();
   return { ok: true, app_id_len: out.app_id.length, secret_len: out.secret.length };
 }
+```
+
+Read this capture's **Downloaded file … to …** event and retain the resolved absolute path as `ADS_CLIENT_OUTPUT`. Verify it belongs to the protected output directory and matches the expected unique name. If the tool changes the name or directory, the guard below rejects it and preserves every file; resolve the mismatch before continuing. Never infer the cleanup path solely from `link.download`.
+
+```bash
+python3 - "$ADS_CAPTURE_DIR/client.json" "$ADS_OUTPUT_DIR" "$ADS_CAPTURE_NAME" "$ADS_CLIENT_OUTPUT" <<'PY'
+import os
+from pathlib import Path
+import re
+import stat
+import sys
+
+private_file, output_dir, capture_name, reported_file = sys.argv[1:]
+private_file = Path(private_file)
+output_dir = Path(output_dir).resolve(strict=True)
+reported_file = Path(reported_file)
+if not re.fullmatch(r'ads-capture-[a-f0-9]{24}', capture_name):
+    raise SystemExit('Invalid capture name; files preserved')
+if not reported_file.is_absolute() or reported_file.name != capture_name + '-' + private_file.name:
+    raise SystemExit('Unexpected download name; files preserved')
+if reported_file.parent.resolve(strict=True) != output_dir:
+    raise SystemExit('Unexpected download directory; files preserved')
+for directory in (output_dir, private_file.parent):
+    info = directory.stat()
+    if info.st_uid != os.getuid() or info.st_mode & 0o077:
+        raise SystemExit('Capture directory is not private; files preserved')
+for file in (private_file, reported_file):
+    info = file.lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_nlink != 1:
+        raise SystemExit('Unexpected capture file; files preserved')
+private_file.chmod(0o600)
+reported_file.chmod(0o600)
+reported_file.unlink()
+PY
 ```
 
 Validation: `app_id` typically 7-19 numeric chars; `secret` 40-64 alphanumeric.
@@ -213,11 +282,11 @@ Validation: `app_id` typically 7-19 numeric chars; `secret` 40-64 alphanumeric.
 ### Step 5 - Start loopback listener
 
 ```bash
-PORT=8765
-while ss -tlnp 2>/dev/null | grep -q ":$PORT "; do PORT=$((PORT+1)); done
+umask 077
+rm -f /tmp/tiktok-ads-listener.port /tmp/tiktok-ads-auth-code
 
 nohup python3 -c "
-import http.server, urllib.parse, sys
+import errno, http.server, urllib.parse, sys
 class H(http.server.BaseHTTPRequestHandler):
   def log_message(self, *a, **k): pass
   def do_GET(self):
@@ -229,18 +298,37 @@ class H(http.server.BaseHTTPRequestHandler):
     self.wfile.write(b'<h1>TikTok Ads connected. You can close this tab.</h1>')
     with open('/tmp/tiktok-ads-auth-code', 'w') as f: f.write(code)
     sys.exit(0)
-http.server.HTTPServer(('127.0.0.1', $PORT), H).serve_forever()
+for port in range(8765, 8865):
+  try:
+    server = http.server.HTTPServer(('127.0.0.1', port), H)
+    break
+  except OSError as error:
+    if error.errno != errno.EADDRINUSE:
+      raise
+else:
+  raise SystemExit('No available loopback port')
+with open('/tmp/tiktok-ads-listener.port', 'w') as port_file:
+  port_file.write(str(server.server_port))
+server.serve_forever()
 " > /tmp/tiktok-ads-listener.log 2>&1 &
 echo $! > /tmp/tiktok-ads-listener.pid
-echo "$PORT" > /tmp/tiktok-ads-listener.port
+for i in $(seq 1 50); do
+  [ -s /tmp/tiktok-ads-listener.port ] && break
+  kill -0 "$(cat /tmp/tiktok-ads-listener.pid)" 2>/dev/null || break
+  sleep 0.1
+done
+[ -s /tmp/tiktok-ads-listener.port ] || { echo 'Connection listener could not start'; exit 1; }
+PORT="$(cat /tmp/tiktok-ads-listener.port)"
 ```
+
+Before Step 6, confirm the app's registered redirect URI matches `http://localhost:$PORT/callback`; update that app setting if the chosen port changed from 8765. Keep the listener running while consent completes.
 
 > TikTok uses `auth_code` as the query parameter name (not `code`) in some flows; the listener accepts either.
 
 ### Step 6 - Drive OAuth consent
 
 ```bash
-APP_ID="$(wl-paste | jq -r '.app_id')"
+APP_ID="$(jq -r '.app_id' "$ADS_CAPTURE_DIR/client.json")"
 PORT="$(cat /tmp/tiktok-ads-listener.port)"
 STATE="$(python3 -c 'import secrets; print(secrets.token_urlsafe(16))')"
 AUTH_URL="https://business-api.tiktok.com/portal/auth?app_id=${APP_ID}&state=${STATE}&redirect_uri=http%3A%2F%2Flocalhost%3A${PORT}%2Fcallback"
@@ -269,8 +357,8 @@ AUTH_CODE="$(cat /tmp/tiktok-ads-auth-code)"
 ### Step 7 - Exchange auth code for access token
 
 ```bash
-APP_ID="$(wl-paste | jq -r '.app_id')"
-SECRET="$(wl-paste | jq -r '.secret')"
+APP_ID="$(jq -r '.app_id' "$ADS_CAPTURE_DIR/client.json")"
+SECRET="$(jq -r '.secret' "$ADS_CAPTURE_DIR/client.json")"
 
 RESP="$(curl -sf "https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/" \
   -H 'Content-Type: application/json' \
@@ -322,8 +410,8 @@ umask 077
 mkdir -p "$HOME/.config/tiktok-ads"
 chmod 700 "$HOME/.config/tiktok-ads"
 
-APP_ID="$(wl-paste | jq -r '.app_id')"
-SECRET="$(wl-paste | jq -r '.secret')"
+APP_ID="$(jq -r '.app_id' "$ADS_CAPTURE_DIR/client.json")"
+SECRET="$(jq -r '.secret' "$ADS_CAPTURE_DIR/client.json")"
 
 jq -n \
   --arg mode "$MODE" \
@@ -339,12 +427,13 @@ jq -n \
 chmod 600 "$HOME/.config/tiktok-ads/credentials.json.tmp"
 mv "$HOME/.config/tiktok-ads/credentials.json.tmp" "$HOME/.config/tiktok-ads/credentials.json"
 
-# Restore prior clipboard
-[ -s /tmp/tiktok-ads-prev-clipboard.b64 ] && base64 -d /tmp/tiktok-ads-prev-clipboard.b64 | wl-copy
-rm -f /tmp/tiktok-ads-prev-clipboard.b64
+rm -f "$ADS_CAPTURE_DIR/client.json"
+rmdir "$ADS_CAPTURE_DIR"
 
 unset APP_ID SECRET ACCESS_TOKEN
 ```
+
+If setup is abandoned before saving, first run the guarded download cleanup in Step 4 for any remaining MCP copy, then remove the private capture file and its directory. Retain it while resuming an unfinished step.
 
 ### Step 10 - Smoke test
 
@@ -415,7 +504,7 @@ Returns total spend this month for the connected advertiser. Format as currency.
 ### Common Pattern 2 - Top campaigns by conversions
 
 ```bash
-tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_level=AUCTION_CAMPAIGN&dimensions=[\"campaign_id\"]&metrics=[\"campaign_name\",\"spend\",\"conversions\",\"cost_per_conversion\"]&start_date=$(date -d '30 days ago' +%Y-%m-%d)&end_date=$(date +%Y-%m-%d)&page_size=10&page=1" | jq '.data.list | sort_by(-.metrics.conversions | tonumber) | .[:10]'
+tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_level=AUCTION_CAMPAIGN&dimensions=[\"campaign_id\"]&metrics=[\"campaign_name\",\"spend\",\"conversions\",\"cost_per_conversion\"]&start_date=$(python3 -c 'from datetime import date, timedelta; print(date.today() - timedelta(days=30))')&end_date=$(date +%Y-%m-%d)&page_size=10&page=1" | jq '.data.list | sort_by(-.metrics.conversions | tonumber) | .[:10]'
 ```
 
 Last 30 days top 10 by conversions. Present as table.
@@ -456,7 +545,7 @@ Two queries, compute deltas client-side:
 
 ```bash
 tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_level=AUCTION_ADVERTISER&dimensions=[\"advertiser_id\"]&metrics=[\"spend\",\"clicks\",\"conversions\"]&start_date=$(date +%Y-%m-01)&end_date=$(date +%Y-%m-%d)"
-tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_level=AUCTION_ADVERTISER&dimensions=[\"advertiser_id\"]&metrics=[\"spend\",\"clicks\",\"conversions\"]&start_date=$(date -d 'last month' +%Y-%m-01)&end_date=$(date -d 'last month' +%Y-%m-%t)"
+tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_level=AUCTION_ADVERTISER&dimensions=[\"advertiser_id\"]&metrics=[\"spend\",\"clicks\",\"conversions\"]&start_date=$(python3 -c 'from datetime import date, timedelta; print((date.today().replace(day=1) - timedelta(days=1)).replace(day=1))')&end_date=$(python3 -c 'from datetime import date, timedelta; print(date.today().replace(day=1) - timedelta(days=1))')"
 ```
 
 **Use when:** "compare to last month", "TikTok month over month"
@@ -464,7 +553,7 @@ tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_leve
 ### Common Pattern 7 - Audience performance
 
 ```bash
-tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=AUDIENCE&data_level=AUCTION_ADGROUP&dimensions=[\"adgroup_id\",\"age\",\"gender\"]&metrics=[\"spend\",\"clicks\",\"conversions\"]&start_date=$(date -d '30 days ago' +%Y-%m-%d)&end_date=$(date +%Y-%m-%d)" | jq '.data.list'
+tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=AUDIENCE&data_level=AUCTION_ADGROUP&dimensions=[\"adgroup_id\",\"age\",\"gender\"]&metrics=[\"spend\",\"clicks\",\"conversions\"]&start_date=$(python3 -c 'from datetime import date, timedelta; print(date.today() - timedelta(days=30))')&end_date=$(date +%Y-%m-%d)" | jq '.data.list'
 ```
 
 Breaks down spend + conversions by age + gender. Useful for "who's converting?"
@@ -474,7 +563,7 @@ Breaks down spend + conversions by age + gender. Useful for "who's converting?"
 ### Common Pattern 8 - Reach + engagement (creator-economy metric)
 
 ```bash
-tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_level=AUCTION_AD&dimensions=[\"ad_id\"]&metrics=[\"ad_name\",\"reach\",\"impressions\",\"video_play_actions\",\"video_watched_2s\",\"video_watched_6s\",\"engaged_view\"]&start_date=$(date -d '30 days ago' +%Y-%m-%d)&end_date=$(date +%Y-%m-%d)" | jq '.data.list'
+tk_get "/report/integrated/get/" "advertiser_id=$ADV&report_type=BASIC&data_level=AUCTION_AD&dimensions=[\"ad_id\"]&metrics=[\"ad_name\",\"reach\",\"impressions\",\"video_play_actions\",\"video_watched_2s\",\"video_watched_6s\",\"engaged_view\"]&start_date=$(python3 -c 'from datetime import date, timedelta; print(date.today() - timedelta(days=30))')&end_date=$(date +%Y-%m-%d)" | jq '.data.list'
 ```
 
 TikTok-specific metrics: video watch time at 2s / 6s, engaged views. Critical for ad creative iteration.
@@ -577,7 +666,7 @@ It **requires** the participant to be an advertiser admin on at least one TikTok
 - **Mode awareness** - `MODE=sandbox` is freely callable; `MODE=production` applies Gate 1 (once per session) and Gate 2 (every write).
 - **TikTok response shape** - every TikTok API response has `code`, `message`, `data` at top level. Success = `code: 0`. Check `code` before treating a response as success.
 - **Currency** - TikTok returns spend / budget values in the advertiser's account currency (no micros). Format as `$X.XX <currency>`.
-- **Dates** - TikTok uses `YYYY-MM-DD` for report date ranges. The `+date` math in the examples works on Linux; macOS uses BSD `date` syntax (`date -v -30d +%Y-%m-%d` instead of `date -d '30 days ago'`).
+- **Dates** - TikTok uses `YYYY-MM-DD` for report date ranges. The examples use Python calendar arithmetic on macOS and Linux; previous-month boundaries also handle January and leap years.
 - **Pagination** - most list endpoints support `page` + `page_size`. Reports cap at `page_size=1000`. Multi-page operations should cap at 5 pages unless participant asks for more.
 - **Filtering** - TikTok filters are JSON-stringified objects, URL-encoded: `filtering={"campaign_ids":["123"]}`.
 - **Auth errors** → re-run Phase 1.

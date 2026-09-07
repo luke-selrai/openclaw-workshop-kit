@@ -94,11 +94,12 @@ Capture the workspace URL from the address bar. Set `TWENTY_BACKEND_URL` to that
 > **30-day trial reminder.** The Pro tier auto-renews to $9/seat/mo after the trial. If the user just wants to evaluate, write a reminder to `~/.claude/state/twenty-connector-trial.json` so future sessions can warn about the renewal date:
 > ```bash
 > mkdir -p "$HOME/.claude/state"
+> TWENTY_TRIAL_RENEWS_AT=$(date -u -v+30d +%Y-%m-%d 2>/dev/null || date -u -d '+30 days' +%Y-%m-%d) || exit 1
 > cat > "$HOME/.claude/state/twenty-connector-trial.json" <<EOF
 > {
 >   "workspace_url": "$TWENTY_BACKEND_URL",
 >   "trial_started_at": "$(date -u +%Y-%m-%d)",
->   "trial_renews_at": "$(date -u -d '+30 days' +%Y-%m-%d)",
+>   "trial_renews_at": "$TWENTY_TRIAL_RENEWS_AT",
 >   "tier": "Pro",
 >   "cancel_path": "Settings → Billing → Cancel Plan"
 > }
@@ -124,15 +125,43 @@ cd twenty/packages/twenty-docker
 cp .env.example .env
 
 # Twenty requires APP_SECRET and PG_DATABASE_PASSWORD set; generate them
+set +x
 APP_SECRET=$(openssl rand -base64 32 | tr -d '/+=' | head -c 40)
 PG_PASS=$(openssl rand -base64 24 | tr -d '/+=' | head -c 20)
 
-# Write into .env (replace placeholder lines)
-sed -i "s|APP_SECRET=.*|APP_SECRET=${APP_SECRET}|" .env
-sed -i "s|PG_DATABASE_PASSWORD=.*|PG_DATABASE_PASSWORD=${PG_PASS}|" .env
+chmod 600 .env
+sed -i.bak -E \
+  -e "s|^[[:space:]#]*APP_SECRET=.*|APP_SECRET=${APP_SECRET}|" \
+  -e "s|^[[:space:]#]*PG_DATABASE_PASSWORD=.*|PG_DATABASE_PASSWORD=${PG_PASS}|" .env || exit 1
+if [ -n "$APP_SECRET" ] && [ -n "$PG_PASS" ] \
+  && [ "$(grep -c '^APP_SECRET=' .env)" = "1" ] \
+  && [ "$(grep -c '^PG_DATABASE_PASSWORD=' .env)" = "1" ] \
+  && grep -Fxq "APP_SECRET=$APP_SECRET" .env \
+  && grep -Fxq "PG_DATABASE_PASSWORD=$PG_PASS" .env; then
+  rm -f .env.bak
+  echo LOCAL_SECRETS_SAVED
+else
+  echo LOCAL_SECRETS_NOT_VERIFIED
+  exit 1
+fi
 
+```
+
+The `-i.bak` form works with both macOS/BSD and GNU sed; the replacements also activate commented placeholders in the upstream example. Continue only after `LOCAL_SECRETS_SAVED`. If a required assignment is absent or duplicated, inspect the example's key names and repair this new local file before retrying; keep values out of output.
+
+**Before starting this newly created local instance**, edit its Compose file's `server.ports` entry: replace `3000:3000` (or the equivalent variable-based mapping) with `127.0.0.1:3000:3000`. Replace the existing mapping rather than appending a second one. [Docker publishes an unspecified host address on every interface](https://docs.docker.com/engine/network/port-publishing/); the explicit loopback address keeps this workshop instance local. This applies only to the new laptop setup, not an existing workspace, production deployment, or global Docker settings.
+
+Then start and verify the published address before opening onboarding:
+
+```bash
 # Start the stack (server, worker, postgres, redis)
 docker compose up -d 2>&1 | tail -10
+
+TWENTY_BINDING=$(docker compose port server 3000)
+if [ "$TWENTY_BINDING" != "127.0.0.1:3000" ]; then
+  echo "LOCAL_BINDING_NOT_VERIFIED"
+  exit 1
+fi
 
 # Poll for the server to be ready (first start does migrations; takes 1-3 min)
 for i in {1..120}; do
@@ -143,7 +172,7 @@ for i in {1..120}; do
 done
 ```
 
-The first start runs database migrations + seeds the demo workspace. Once the healthcheck passes:
+If the binding check fails, correct the new local server's mapping and recreate that service before continuing. A mapping containing `0.0.0.0`, `[::]`, or an additional non-loopback address is not local-only. Verify again with `docker compose port server 3000`; this reports published addresses without printing container environment variables. The first start runs database migrations + seeds the demo workspace. Once both the binding and health checks pass:
 
 - Workspace URL: `http://localhost:3000`
 - Sign up at `http://localhost:3000/sign-up` to create the workspace admin
@@ -174,10 +203,22 @@ Continue to Phase 0 with `TWENTY_DEPLOY_TARGET="self-host"` and `TWENTY_DEPLOY_B
 
 ## PHASE 0 - Resume check
 
-Read `~/.claude/twenty-connector.env` if it exists:
+Check credential presence locally without returning the file contents:
 
 ```bash
-test -f "$HOME/.claude/twenty-connector.env" && grep -E '^TWENTY_(BACKEND_URL|API_KEY)=' "$HOME/.claude/twenty-connector.env"
+(
+  set +x
+  if [ ! -f "$HOME/.claude/twenty-connector.env" ]; then
+    echo missing
+  else
+    source "$HOME/.claude/twenty-connector.env"
+    if [ -n "${TWENTY_BACKEND_URL:-}" ] && [ -n "${TWENTY_API_KEY:-}" ]; then
+      echo configured
+    else
+      echo partial
+    fi
+  fi
+)
 ```
 
 - Both vars present and non-empty → run smoke test (Step 7's `/rest/companies?limit=1`). Report result, stop.
@@ -287,7 +328,7 @@ Then merge into `mcpServers`:
 
 Preserve every other `mcpServers` entry. Use `Write` (not `Edit`) so the merge happens via parsed-JSON → re-serialize.
 
-Verify both files: re-read each, parse, confirm all vars are present and non-empty. If either fails, do not proceed to Step 6 - tell the user something went wrong with saving and offer to retry.
+Verify both files locally with shell tracing disabled: parse the config and check that the required vars are present and non-empty in both stores. Return only pass/fail booleans, never file contents or credential assignments. If either fails, do not proceed to Step 6 - tell the user something went wrong with saving and offer to retry.
 
 ### Step 6 - Wipe local variables
 
