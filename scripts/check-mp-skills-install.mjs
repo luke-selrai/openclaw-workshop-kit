@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// Verifies the Matt Pocock power-user-skills install contract in the setup
-// prompt (docs/start/setup.md, Step 6's "Power-user skills" item). LOUP-19.
+// Verifies the Matt Pocock skills install contract in the setup prompt
+// (docs/start/setup.md, Step 6's "Matt Pocock's skills" item). LOUP-19,
+// widened by CORE-430 from four copied skills to the whole core set, installed
+// as links (see docs/adr/0004-matt-pocock-core-set-installs-as-links.md).
 //
 // The contract used to live in the onboarding skill's install phase.
 // ADR-0001 §1/§7 moved every install into the one setup prompt and rewrote
@@ -62,46 +64,57 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const TARGET = "docs/start/setup.md";
 const UPSTREAM_REPO = "mattpocock/skills";
 
-// The four skills the workshop installs, under their CURRENT upstream names.
-// When upstream renames one, update it here AND in the prompt step body — the
-// --live check is what tells you a rename happened.
-export const EXPECTED_SKILLS = ["grill-me", "handoff", "diagnosing-bugs", "teach"];
+// The skills the workshop installs, under their CURRENT upstream names: the
+// whole core set, i.e. every skill under upstream's engineering/ and
+// productivity/ buckets (CORE_BUCKETS below). in-progress/, misc/ and
+// deprecated/ are deliberately NOT installed. When upstream renames, adds or
+// removes a core skill, update it here AND in the prompt step body — the --live
+// check is what tells you it happened (it asserts set equality both ways).
+export const CORE_BUCKETS = ["engineering", "productivity"];
+export const EXPECTED_SKILLS = [
+  // productivity/
+  "grill-me", "grilling", "handoff", "teach", "to-questionnaire", "wait-what", "writing-for-agents",
+  // engineering/
+  "ask-matt", "code-review", "codebase-design", "diagnosing-bugs", "domain-modeling", "grill-with-docs",
+  "implement", "improve-codebase-architecture", "prototype", "research", "resolving-merge-conflicts",
+  "setup-matt-pocock-skills", "tdd", "to-spec", "to-tickets", "triage", "wayfinder", "wizard",
+];
 
 // Names that no longer exist upstream and must never reappear in the step.
 export const STALE_NAMES = ["diagnose"];
 
-// Anchors around the setup prompt's power-user-skills item. Slicing matters:
+// Anchors around the setup prompt's Matt Pocock skills item. Slicing matters:
 // the rest of the prompt installs other things, and must not be able to
 // satisfy a rule this step dropped.
 //
 // The end anchor was `### Step 7` — the end of the whole of Step 6, not the end
-// of this item. That was only correct by accident: the power-user-skills item
+// of this item. That was only correct by accident: the Matt Pocock skills item
 // happens to be the last one in Step 6 today. Add a fifth item and the slice
 // silently widens, and unrelated prompt text can satisfy self-heal-listing,
 // rename-resolution, recheck-after-heal and verify-paths — which is precisely
 // the invariant this comment claims. So the slice now ends at whichever comes
 // FIRST: the next numbered item in the step, or the next heading (`### Step 7`
 // being the one that closes it today).
-const STEP_START = "4. **Power-user skills**";
+const STEP_START = "4. **Matt Pocock's skills**";
 const NEXT_ITEM = /\n\d+\.\s+\*\*/;
 const NEXT_HEADING = /\n#{2,4}\s/;
 
 export function extractStepBody(text) {
   const start = text.indexOf(STEP_START);
   if (start === -1) {
-    return { error: `power-user-skills start anchor not found (${STEP_START})` };
+    return { error: `Matt Pocock skills start anchor not found (${STEP_START})` };
   }
   const after = text.slice(start + STEP_START.length);
   const ends = [NEXT_ITEM, NEXT_HEADING]
     .map((re) => after.search(re))
     .filter((i) => i !== -1);
   if (ends.length === 0) {
-    return { error: "power-user-skills end anchor not found (no following numbered item or heading)" };
+    return { error: "Matt Pocock skills end anchor not found (no following numbered item or heading)" };
   }
   return { body: text.slice(start, start + STEP_START.length + Math.min(...ends)) };
 }
 
-// Each rule must hold in the sliced power-user-skills body.
+// Each rule must hold in the sliced Matt Pocock skills body.
 export const RULES = [
   {
     id: "current-selectors",
@@ -109,16 +122,62 @@ export const RULES = [
     test: (b) => EXPECTED_SKILLS.every((s) => new RegExp(`-s ${s}(?![\\w-])`).test(b)),
   },
   {
-    // Accepts either one path per skill, or the brace-expanded single-line
-    // form the setup prompt uses (~/.claude/skills/{a,b,c,d}/SKILL.md).
+    // Accepts one path per skill, the brace-expanded single-line form
+    // (~/.claude/skills/{a,b,c}/SKILL.md), or — now that the set is too long to
+    // spell out twice — the placeholder form the prompt uses: the literal
+    // `~/.claude/skills/<name>/SKILL.md` bound to "every skill named in the
+    // command". The placeholder only counts when every expected name is also
+    // present in the body (current-selectors guarantees that for a good step,
+    // and a stale fixture fails it).
     id: "verify-paths",
     why: "every expected skill's ~/.claude/skills/<name>/SKILL.md path is checked on disk",
-    test: (b) =>
-      EXPECTED_SKILLS.every(
-        (s) =>
-          b.includes(`~/.claude/skills/${s}/SKILL.md`) ||
-          new RegExp(`~/\\.claude/skills/\\{[^}]*\\b${s}\\b[^}]*\\}/SKILL\\.md`).test(b),
-      ),
+    test: (b) => {
+      const placeholder =
+        b.includes("~/.claude/skills/<name>/SKILL.md") &&
+        /(every|each) skill named/i.test(b) &&
+        EXPECTED_SKILLS.every((s) => new RegExp(`(^|[^\\w-])${s}(?![\\w-])`).test(b));
+      return (
+        placeholder ||
+        EXPECTED_SKILLS.every(
+          (s) =>
+            b.includes(`~/.claude/skills/${s}/SKILL.md`) ||
+            new RegExp(`~/\\.claude/skills/\\{[^}]*\\b${s}\\b[^}]*\\}/SKILL\\.md`).test(b),
+        )
+      );
+    },
+  },
+  {
+    // CORE-430: the set installs as links out of the skills CLI's shared store,
+    // never as loose copies. --copy anywhere in the install command breaks that
+    // silently (the install still "succeeds").
+    id: "no-copy-flag",
+    why: "the install command does not carry --copy (links, not loose copies)",
+    // Tested on the command line itself: the prose around it is allowed (and
+    // expected) to say "do NOT add --copy".
+    test: (b) => {
+      const cmd = b.match(/npx -y skills@latest add mattpocock\/skills[^\n]*-s [^\n]*/);
+      return !!cmd && !/--copy/.test(cmd[0]);
+    },
+  },
+  {
+    // The CLI only uses the shared store + links when more than one agent is
+    // named; a single `-a claude-code` install copies. Verified empirically
+    // against skills@1.5.24 (CORE-430) — see ADR-0004.
+    id: "two-agent-link-form",
+    why: "the install command names both agents (-a claude-code -a codex), which is what makes the CLI link rather than copy",
+    test: (b) => {
+      const cmd = b.match(/npx -y skills@latest add mattpocock\/skills[^\n]*-s [^\n]*/);
+      return !!cmd && /-a claude-code(?![\w-])/.test(cmd[0]) && /-a codex(?![\w-])/.test(cmd[0]);
+    },
+  },
+  {
+    // A link that leads nowhere passes a naive "folder exists" check. The
+    // verify step has to open the SKILL.md through the link, and the report has
+    // to say when the CLI fell back to copying.
+    id: "link-verified",
+    why: "verification treats a dangling link as missing and reports any skill that landed as a copy",
+    // Whitespace-tolerant: the prompt is hard-wrapped.
+    test: (b) => /link\s+that\s+(leads|goes|points)\s+nowhere|dangling|broken\s+link/i.test(b) && /plain\s+copy|as\s+a\s+copy/i.test(b),
   },
   {
     id: "no-stale-names",
@@ -171,11 +230,12 @@ export function evaluateInstallContract(body) {
 }
 
 /**
- * List the live upstream repo's skill names via the GitHub API (the git tree,
- * one request, no cloning) and return the set of directory names that contain
- * a SKILL.md anywhere under skills/.
+ * List the live upstream repo's skills via the GitHub API (the git tree, one
+ * request, no cloning). Returns the set of directory names that contain a
+ * SKILL.md anywhere under skills/, and a per-bucket map (the first path segment
+ * under skills/, e.g. "engineering") so callers can reason about the core set.
  */
-export async function fetchLiveSkillNames(fetchImpl = fetch) {
+export async function fetchLiveSkillTree(fetchImpl = fetch) {
   const res = await fetchImpl(
     `https://api.github.com/repos/${UPSTREAM_REPO}/git/trees/main?recursive=1`,
     { headers: { accept: "application/vnd.github+json", "user-agent": "claude-workshop-kit-ci" } },
@@ -183,11 +243,40 @@ export async function fetchLiveSkillNames(fetchImpl = fetch) {
   if (!res.ok) throw new Error(`GitHub API ${res.status} listing ${UPSTREAM_REPO}`);
   const { tree } = await res.json();
   const names = new Set();
+  const buckets = new Map();
   for (const entry of tree) {
-    const m = /^skills\/(?:[^/]+\/)*([^/]+)\/SKILL\.md$/.exec(entry.path);
-    if (m) names.add(m[1]);
+    const parts = entry.path.split("/");
+    if (parts[0] !== "skills" || parts.at(-1) !== "SKILL.md" || parts.length < 3) continue;
+    const inner = parts.slice(1, -1); // the directories between skills/ and SKILL.md
+    names.add(inner.at(-1));
+    // Bucket membership is decided at exactly skills/<bucket>/<name>/SKILL.md.
+    // A flat skills/<name>/SKILL.md files under "". A SKILL.md nested deeper
+    // inside a skill folder (references/, templates/) is that skill's own
+    // business and never creates a core entry.
+    const key = inner.length === 1 ? "" : inner.length === 2 ? inner[0] : null;
+    if (key === null) continue;
+    if (!buckets.has(key)) buckets.set(key, new Set());
+    buckets.get(key).add(inner.at(-1));
   }
-  return names;
+  return { names, buckets };
+}
+
+/** Back-compat: the flat set of every skill name under skills/. */
+export async function fetchLiveSkillNames(fetchImpl = fetch) {
+  return (await fetchLiveSkillTree(fetchImpl)).names;
+}
+
+/**
+ * The live core set: every skill under CORE_BUCKETS. This is what
+ * EXPECTED_SKILLS must equal exactly — a name missing here was renamed or
+ * removed upstream; a name here but not in EXPECTED_SKILLS was added upstream
+ * and the prompt is silently under-installing.
+ */
+export async function fetchLiveCoreSkillNames(fetchImpl = fetch) {
+  const { buckets } = await fetchLiveSkillTree(fetchImpl);
+  const core = new Set();
+  for (const b of CORE_BUCKETS) for (const n of buckets.get(b) ?? []) core.add(n);
+  return core;
 }
 
 // ---- CLI ------------------------------------------------------------------
@@ -213,16 +302,25 @@ if (resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
 
   if (LIVE) {
     try {
-      const live = await fetchLiveSkillNames();
+      const live = await fetchLiveCoreSkillNames();
       for (const s of EXPECTED_SKILLS) {
         note(
           live.has(s),
           `live upstream [${s}]`,
           live.has(s)
-            ? "exists"
-            : `not found in ${UPSTREAM_REPO} — upstream renamed/removed it; re-resolve and update EXPECTED_SKILLS + Step 3`,
+            ? "exists in a core bucket"
+            : `not found under ${CORE_BUCKETS.join("/")} in ${UPSTREAM_REPO} — upstream renamed, removed or demoted it; re-resolve and update EXPECTED_SKILLS + the prompt step`,
         );
       }
+      const expected = new Set(EXPECTED_SKILLS);
+      const added = [...live].filter((s) => !expected.has(s)).sort();
+      note(
+        added.length === 0,
+        "live upstream [core set complete]",
+        added.length === 0
+          ? "EXPECTED_SKILLS covers every core skill"
+          : `upstream added to the core set: ${added.join(", ")} — add each to EXPECTED_SKILLS and the prompt's install command`,
+      );
     } catch (e) {
       note(false, "live upstream listing", String(e));
     }

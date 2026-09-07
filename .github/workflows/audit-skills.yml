@@ -124,12 +124,14 @@ jobs:
       - name: Test install-narration checker (regression)
         run: node scripts/test-install-narration.mjs
 
-      # Matt Pocock skills-install contract (LOUP-19): assert the setup
-      # prompt's power-user-skills step keeps current upstream skill names,
-      # on-disk verification, the self-heal (list → resolve renames → retry)
-      # pass, and the per-skill report. --live also lists the live mattpocock/skills repo,
-      # so CI goes red at the next upstream rename instead of attendees
-      # silently losing skills. Read-only; runs on every event.
+      # Matt Pocock skills-install contract (LOUP-19, CORE-430): assert the
+      # setup prompt's Matt Pocock skills step keeps current upstream skill
+      # names, the link (no --copy, two-agent) install form, on-disk
+      # verification through the link, the self-heal (list → resolve renames →
+      # retry) pass, and the per-skill report. --live also lists the live
+      # mattpocock/skills repo and asserts the core set matches both ways, so
+      # CI goes red at the next upstream rename OR addition instead of
+      # attendees silently losing or missing skills. Read-only; runs on every event.
       - name: Verify MP skills-install contract (incl. live upstream)
         run: node scripts/check-mp-skills-install.mjs --live
 

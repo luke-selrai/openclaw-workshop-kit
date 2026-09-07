@@ -207,7 +207,9 @@ node scripts/check-install-narration.mjs --verbose  # also print every passing c
 
 ## check-mp-skills-install.mjs
 
-Asserts the **Matt Pocock power-user-skills install contract** in `docs/start/setup.md`, Step 6's "Power-user skills" item ([LOUP-19](https://linear.app/selr-ai/issue/LOUP-19)). The slice ends at whichever comes first - the next numbered item in the step, or the next heading. The old `### Step 7` end anchor sliced to the end of *Step 6*, which was correct only by accident (item 4 happens to be last today); a fifth item would have silently widened the slice and let unrelated prompt text satisfy this step's rules. It lived in the onboarding skill's install phase until ADR-0001 moved every install into the one setup prompt; the checker followed it, dropping the four rules the prompt does not state (listed in the script header - re-deciding them is [CORE-116](https://linear.app/selr-ai/issue/CORE-116)). Upstream renamed `diagnose` → `diagnosing-bugs` and the hardcoded selector silently stripped skills from attendees, with a "probably a network hiccup" hand-wave hiding it; this checker keeps the fixed contract intact.
+Asserts the **Matt Pocock skills install contract** in `docs/start/setup.md`, Step 6's "Matt Pocock's skills" item ([LOUP-19](https://linear.app/selr-ai/issue/LOUP-19), widened by [CORE-430](https://linear.app/selr-ai/issue/CORE-430)). The slice ends at whichever comes first - the next numbered item in the step, or the next heading. The old `### Step 7` end anchor sliced to the end of *Step 6*, which was correct only by accident (item 4 happens to be last today); a fifth item would have silently widened the slice and let unrelated prompt text satisfy this step's rules. It lived in the onboarding skill's install phase until ADR-0001 moved every install into the one setup prompt; the checker followed it, dropping the four rules the prompt does not state (listed in the script header - re-deciding them is [CORE-116](https://linear.app/selr-ai/issue/CORE-116)). Upstream renamed `diagnose` → `diagnosing-bugs` and the hardcoded selector silently stripped skills from attendees, with a "probably a network hiccup" hand-wave hiding it; this checker keeps the fixed contract intact.
+
+CORE-430 changed what the step installs and how ([ADR-0004](../docs/adr/0004-matt-pocock-core-set-installs-as-links.md)): the whole **core set** (every skill under upstream's `engineering/` and `productivity/` buckets, `CORE_BUCKETS` in the script) rather than four hand-picked skills, and as **links** out of the `skills` CLI's shared store (`~/.agents/skills/`) rather than loose copies. `EXPECTED_SKILLS` is the hardcoded list the prompt must select; `--live` now asserts it equals the live core set **in both directions**, so an upstream addition to a core bucket also goes red rather than being silently under-installed.
 
 **Usage:**
 
@@ -220,13 +222,15 @@ node scripts/check-mp-skills-install.mjs --live     # + list the live mattpocock
 
 **Failures (exit 1)** - checked against the sliced power-user-skills body:
 
-- **current-selectors / verify-paths** - the install command selects, and the verify list checks, every skill in `EXPECTED_SKILLS` (`grill-me`, `handoff`, `diagnosing-bugs`, `teach`) under its current upstream name.
+- **current-selectors / verify-paths** - the install command selects, and the verify step checks, every skill in `EXPECTED_SKILLS` under its current upstream name (verify-paths accepts one path per skill, the brace form, or the placeholder `~/.claude/skills/<name>/SKILL.md` bound to "every skill named in the command").
+- **no-copy-flag / two-agent-link-form** - the install command carries no `--copy` and names both `-a claude-code` and `-a codex`. Verified against `skills@1.5.24`: a single-agent global install copies; naming two agents is what switches the CLI to the shared store + links (a symlink on Mac, a junction on Windows, no admin rights).
+- **link-verified** - the verify step treats a link that leads nowhere as missing, and the report names any skill that landed as a plain copy (the CLI's fallback when it cannot link).
 - **no-stale-names** - no retired name (`diagnose`) survives as a selector, path, or bold mention.
 - **self-heal-listing / rename-resolution / recheck-after-heal** - a miss triggers listing the repo's live skills (`skills add … -l`), resolving renames dynamically, retrying, and re-checking the disk rather than assuming the heal worked.
 - **per-skill-report** - the step ends by reporting status per skill, not one blanket outcome.
 - **no-handwave** - no "network hiccup" hand-wave or facilitator escalation.
 
-`--live` makes CI go red at the **next** upstream rename (an expected name vanishing from the live repo) instead of attendees silently losing skills. On a rename: re-resolve the new name, update `EXPECTED_SKILLS` and the setup prompt's power-user-skills step together.
+`--live` makes CI go red at the **next** upstream rename (an expected name vanishing from a core bucket) or addition (a core-bucket name missing from `EXPECTED_SKILLS`) instead of attendees silently losing or missing skills. Either way: re-resolve, then update `EXPECTED_SKILLS` and the setup prompt's install command together.
 
 **Harness wiring:** runs in CI (with `--live`) on every event via `.github/workflows/audit-skills.yml`.
 
@@ -254,4 +258,4 @@ Its last section tests the thing CI actually consumes - **exit codes**. `audit-s
 
 `test-resilient-install.mjs` imports `evaluateResilience()` from the checker, confirms the real setup document's sliced prompt passes every rule, and asserts a deliberately non-resilient fixture (`scripts/__fixtures__/resilient-install-bad.md`) fails every one - so each detector is proven to fire. Since CORE-385 that fixture carries the retired Loup walkthrough, which gives the forbidden-surface rule something real to catch, and the test drives the legacy-home carve-out in both directions: naming an old Loup install folder is not a delivery surface, the same words one line off such a path still are.
 
-`test-mp-skills-install.mjs` does the same for `check-mp-skills-install.mjs`: the real power-user-skills step passes every rule, the pre-fix fixture (`scripts/__fixtures__/mp-skills-install-bad.md`) fails every one, and the live-listing parser is exercised against fake GitHub tree responses (flat + category-nested layouts, rename detection, API-failure throw) with no network.
+`test-mp-skills-install.mjs` does the same for `check-mp-skills-install.mjs`: the real Matt Pocock skills step passes every rule, the pre-fix fixture (`scripts/__fixtures__/mp-skills-install-bad.md`) fails every one, and the live-listing parser is exercised against fake GitHub tree responses (flat + category-nested layouts, core-set equality with no `in-progress/`/`misc/` leakage, upstream-addition detection, rename detection, API-failure throw) with no network.
