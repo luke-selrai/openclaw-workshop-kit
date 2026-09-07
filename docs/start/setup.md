@@ -143,8 +143,8 @@ plumbing I never need to know about.
 First, silently probe the kit repository — a cheap check that fails fast
 instead of hanging on a password prompt:
 
-- Mac/Linux: `GIT_TERMINAL_PROMPT=0 git ls-remote https://github.com/selrai-company/claude-workshop-kit.git HEAD`
-- Windows PowerShell: `$env:GIT_TERMINAL_PROMPT = "0"; git ls-remote https://github.com/selrai-company/claude-workshop-kit.git HEAD`
+- Mac/Linux: `GIT_TERMINAL_PROMPT=0 git ls-remote https://github.com/selrai-assets/claude-workshop-kit.git HEAD`
+- Windows PowerShell: `$env:GIT_TERMINAL_PROMPT = "0"; git ls-remote https://github.com/selrai-assets/claude-workshop-kit.git HEAD`
 
 Give it a generous timeout. Three outcomes, three doors:
 
@@ -163,11 +163,11 @@ exactly matches the kit as published:
 2. Clone, still with prompting disabled:
    - Mac/Linux:
      ```
-     GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/selrai-company/claude-workshop-kit.git ~/claude-workshop-kit
+     GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/selrai-assets/claude-workshop-kit.git ~/claude-workshop-kit
      ```
    - Windows PowerShell:
      ```
-     $env:GIT_TERMINAL_PROMPT = "0"; git clone --depth 1 https://github.com/selrai-company/claude-workshop-kit.git "$HOME\claude-workshop-kit"
+     $env:GIT_TERMINAL_PROMPT = "0"; git clone --depth 1 https://github.com/selrai-assets/claude-workshop-kit.git "$HOME\claude-workshop-kit"
      ```
 
 **B. The probe is refused (authentication error / repository not found) → the
