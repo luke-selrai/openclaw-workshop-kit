@@ -123,7 +123,6 @@ const page = {
 '''
         fixtures = {
             'google': [
-                {'client_id': '1' * 30 + '.apps.googleusercontent.com', 'client_secret': 's' * 35},
                 {'dev_token': 'd' * 22},
             ],
             'tiktok': [{'app_id': '1234567890123456789', 'secret': 's' * 48}],

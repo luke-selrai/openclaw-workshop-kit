@@ -27,7 +27,7 @@ metadata:
 
 Connect through AWS CLI v2. Preserve the user's existing profiles, credentials, and default configuration. A fresh read-only setup can reuse an explicitly selected existing human credential context to create one uniquely named connector-owned IAM user and one key; the connector then uses its own private credentials/config files. It creates no billable resources or billing configuration.
 
-**Phase 0:** if `~/.config/aws-connector/connection.json` exists, run `python3 scripts/connect.py check` from this skill's directory. Success requires the exact saved IAM user/account, a real `iam get-user` read, the expected ReadOnlyAccess attachment with no groups/inline policies, exactly the saved active key, and unchanged original configuration. A saved file or any arbitrary IAM-user ARN alone is insufficient.
+**Phase 0:** if `~/.config/aws-connector/connection.json` exists, run `python3 scripts/connect.py check` from this skill's directory. Success requires the exact saved IAM user/account, a real `iam get-user` read, the expected ReadOnlyAccess attachment with no groups/inline policies, exactly the saved active key, and preservation of the current personal configuration during the check. Ordinary changes to unrelated profiles or human credentials since setup do not invalidate this isolated connection. A saved file or any arbitrary IAM-user ARN alone is insufficient.
 
 If `~/.config/aws-connector/console-connection.json` exists instead, follow the Console reference's verification using its dedicated files; do not run the CLI provisioning helper against Console-created state. If no connector-owned state exists, an already-working explicitly intended AWS profile may still provide existing-access reads. Record that as existing access, preserve it, and do not claim fresh onboarding. When the user requests a new limited identity, continue with the isolated setup below. Partial connector state uses its recovery reference, not another user/key creation. Root credentials are never imported into the connector, replaced, or deleted.
 
@@ -144,7 +144,7 @@ IAM permission, organization policy, session/MFA and quota errors are real prere
 
 ### Step 6 - Verify and report the actual scope
 
-For the scoped CLI route, run `python3 scripts/connect.py check` from the actual caller. The helper verifies exact identity and a real IAM read, scope and original configuration. For the Console route, perform its reference's equivalent verification with the dedicated credential/config paths. Report: “Your AWS read-only connection is ready, and your existing setup is unchanged.” Record fresh identity creation separately from adoption of existing access. Keep account/key ownership and teardown status without exposing credentials.
+For the scoped CLI route, run `python3 scripts/connect.py check` from the actual caller. The helper verifies exact identity and a real IAM read, scope, and preservation of the current personal configuration during that operation. For the Console route, perform its reference's equivalent verification with the dedicated credential/config paths. Report: “Your AWS read-only connection is ready, and your existing setup is unchanged.” Record fresh identity creation separately from adoption of existing access. Keep account/key ownership and teardown status without exposing credentials.
 
 ---
 
@@ -301,7 +301,7 @@ New Identity Center configuration is separately authorized profile maintenance: 
 
 ## Auth & Session
 
-For scoped CLI state, use `python3 scripts/connect.py check` to verify the saved identity, scope, key and unchanged original configuration. For partial state, use the scoped recovery reference. Do not use `configure`, credential exports or global profile changes through the wrapper; it refuses those operations.
+For scoped CLI state, use `python3 scripts/connect.py check` to verify the saved identity, scope and key while preserving the current personal configuration. Completed connections remain usable after unrelated profile changes or human credential rotation; provisioning and partial recovery retain their stricter original-snapshot check. For partial state, use the scoped recovery reference. Do not use `configure`, credential exports or global profile changes through the wrapper; it refuses those operations.
 
 For the Console route, repeat its saved identity/read proof in its dedicated child environment. For an explicitly retained existing-profile route, use `aws sts get-caller-identity --profile <intended-profile>` privately; every subsequent operation keeps that same explicit profile. An expired session uses only its normal scoped login flow. Credential replacement and profile maintenance require their own reviewed authorization and never overwrite the user's defaults as troubleshooting.
 

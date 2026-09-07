@@ -193,20 +193,13 @@ def verifyRemote(attempt, environment, profile, key_id):
         raise ConnectionError("EXACT_SINGLE_ACTIVE_KEY_NOT_VERIFIED")
 
 
-def finish(directory, environment, allow_missing):
+def verifyConnection(directory, environment, allow_missing):
     attempt = savedState(directory)
-    original = json.loads(privateRead(directory / "original.json"))
-    if originalFiles(environment) != original:
-        raise ConnectionError("ORIGINAL_CONFIGURATION_CHANGED_PRESERVE_STATE")
     for stage in ("user", "policy", "key"):
         if privateRead(directory / (stage + ".started")) != "started" or privateRead(directory / (stage + ".complete")) != "complete":
             raise ConnectionError("PROVISIONING_INCOMPLETE_PRESERVE_STATE")
     runtimeFiles(directory, attempt, allow_missing)
-    try:
-        verifyRemote(attempt, runtimeEnvironment(environment, directory), "default", keyValues(directory, attempt)["AccessKeyId"])
-    finally:
-        if originalFiles(environment) != original:
-            raise ConnectionError("ORIGINAL_CONFIGURATION_CHANGED_PRESERVE_STATE")
+    verifyRemote(attempt, runtimeEnvironment(environment, directory), "default", keyValues(directory, attempt)["AccessKeyId"])
     expected = json.dumps({"arn": attempt["arn"], "policy": POLICY})
     manifest = directory / "connection.json"
     if os.path.lexists(manifest):
@@ -217,6 +210,28 @@ def finish(directory, environment, allow_missing):
     else:
         raise ConnectionError("PARTIAL_SETUP_USE_FINISH")
     return attempt
+
+
+def finish(directory, environment, allow_missing):
+    original = json.loads(privateRead(directory / "original.json"))
+    if originalFiles(environment) != original:
+        raise ConnectionError("ORIGINAL_CONFIGURATION_CHANGED_PRESERVE_STATE")
+    try:
+        return verifyConnection(directory, environment, allow_missing)
+    finally:
+        if originalFiles(environment) != original:
+            raise ConnectionError("ORIGINAL_CONFIGURATION_CHANGED_PRESERVE_STATE")
+
+
+def runtime(directory, environment, arguments=None):
+    current = originalFiles(environment)
+    try:
+        attempt = verifyConnection(directory, environment, False)
+        if arguments is not None:
+            return cloud(arguments, runtimeEnvironment(environment, directory), "default", attempt["region"], False)
+    finally:
+        if originalFiles(environment) != current:
+            raise ConnectionError("CURRENT_CONFIGURATION_CHANGED_PRESERVE_STATE")
 
 
 def setup(args, environment):
@@ -309,11 +324,14 @@ def main():
             directory = Path(args.directory).expanduser().absolute()
             if args.command == "run":
                 arguments = operationArguments(args.arguments)
-            attempt = finish(directory, environment, args.command == "finish")
-            if args.command == "run":
-                print(cloud(arguments, runtimeEnvironment(environment, directory), "default", attempt["region"], False), end="")
-            else:
+            if args.command == "finish":
+                finish(directory, environment, True)
                 print("CONNECTED_READ_ONLY; real IAM user read verified; original configuration unchanged")
+            elif args.command == "run":
+                print(runtime(directory, environment, arguments), end="")
+            else:
+                runtime(directory, environment)
+                print("CONNECTED_READ_ONLY; real IAM user read verified; current configuration preserved")
     except ConnectionError as error:
         print(str(error))
         return 1

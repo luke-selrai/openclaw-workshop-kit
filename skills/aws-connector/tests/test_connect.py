@@ -304,6 +304,77 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(self.aws.calls, [])
         self.assertIn("changed-by-user", self.config.read_text())
 
+    def callRuntime(self, command, environment=None):
+        if environment is None:
+            environment = self.environment
+        arguments = ["connect.py", "--directory", str(self.directory), command]
+        if command == "run":
+            arguments.extend(["--", "ec2", "describe-instances"])
+        with patch.object(connector.os, "environ", environment), patch("sys.argv", arguments):
+            return connector.main()
+
+    def testRuntimeAllowsUnrelatedProfileAddition(self):
+        self.setupConnector()
+        original = (self.directory / "original.json").read_bytes()
+        self.config.write_text(self.config.read_text() + "[profile unrelated]\nregion = eu-west-1\n")
+        current = connector.originalFiles(self.environment)
+        self.aws.calls.clear()
+        for command in ("check", "run"):
+            with self.subTest(command=command):
+                self.assertEqual(self.callRuntime(command), 0)
+        self.assertEqual(connector.originalFiles(self.environment), current)
+        self.assertEqual((self.directory / "original.json").read_bytes(), original)
+        self.assertEqual(self.aws.mutations(), [])
+        for _, environment, _ in self.aws.calls:
+            self.assertEqual(environment["AWS_CONFIG_FILE"], str(self.directory / "config"))
+
+    def testRuntimeAllowsHumanCredentialRotation(self):
+        self.setupConnector()
+        self.credentials.write_text("[human]\naws_access_key_id = rotated-human\naws_secret_access_key = rotated-private-human\n")
+        current = connector.originalFiles(self.environment)
+        for command in ("check", "run"):
+            with self.subTest(command=command):
+                self.assertEqual(self.callRuntime(command), 0)
+        self.assertEqual(connector.originalFiles(self.environment), current)
+        self.assertNotIn("rotated-private-human", self.output.getvalue())
+
+    def testRuntimeAllowsChangedPersonalProfileSelectors(self):
+        self.setupConnector()
+        for name in ("AWS_PROFILE", "AWS_DEFAULT_PROFILE"):
+            environment = dict(self.environment, **{name: "unrelated-profile"})
+            current = connector.originalFiles(environment)
+            for command in ("check", "run"):
+                with self.subTest(selector=name, command=command):
+                    self.assertEqual(self.callRuntime(command, environment), 0)
+            self.assertEqual(connector.originalFiles(environment), current)
+            self.assertEqual(environment[name], "unrelated-profile")
+
+    def testRuntimeDetectsPersonalConfigChangeDuringOperationWithoutReverting(self):
+        self.setupConnector()
+        invoke = self.aws.invoke
+        def changedDuringRead(command, **options):
+            result = invoke(command, **options)
+            if command[1:3] == ["ec2", "describe-instances"]:
+                self.config.write_text("[profile concurrent-change]\nregion = eu-west-1\n")
+            return result
+        with patch.object(connector.subprocess, "run", side_effect=changedDuringRead):
+            self.assertEqual(self.callRuntime("run"), 1)
+        self.assertIn("CURRENT_CONFIGURATION_CHANGED_PRESERVE_STATE", self.output.getvalue())
+        self.assertIn("concurrent-change", self.config.read_text())
+
+    def testRuntimeRejectsTamperedConnectorEvenAfterPersonalProfileChange(self):
+        self.setupConnector()
+        self.config.write_text("[profile unrelated]\nregion = eu-west-1\n")
+        runtime_config = self.directory / "config"
+        runtime_config.write_text(runtime_config.read_text() + "endpoint_url = https://example.invalid\n")
+        self.aws.calls.clear()
+        for command in ("check", "run"):
+            with self.subTest(command=command):
+                self.assertEqual(self.callRuntime(command), 1)
+        self.assertIn("SAVED_RUNTIME_FILES_DIFFER_PRESERVE_STATE", self.output.getvalue())
+        self.assertEqual(self.aws.calls, [])
+        self.assertIn("example.invalid", runtime_config.read_text())
+
     def testRuntimeClearsInheritedOverridesAndUsesOwnedFiles(self):
         self.setupConnector()
         environment = dict(self.environment, AWS_ACCESS_KEY_ID="other", AWS_SECRET_ACCESS_KEY="other", AWS_ENDPOINT_URL="https://example.invalid", AWS_ROLE_ARN=HUMAN)

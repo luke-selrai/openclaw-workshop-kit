@@ -258,9 +258,9 @@ The random capture name uses lowercase letters, digits and hyphens, avoiding the
 
 **Snapshot privacy:** navigation and evaluation may create snapshots containing visible credentials. Protect the actual MCP output directory before opening the secret-bearing UI; keep snapshots private and track the exact files emitted by this task. Inspect only structural results. Clean up only snapshots positively attributed to this capture, preserving unrelated files. A file-output result does not imply that snapshots contain no secrets.
 
-**Blob fallback:** use `ADS_CAPTURE_METHOD=blob` only when this runtime already has a successful synthetic download/saveAs test. The affected Chrome 152.0.7977.82 runtime crashed twice during blob downloads; that route remains unproven there, and further blob retries are not the recovery path. The evaluate route does not use downloads or Node filesystem globals.
+**Creation requires the verified evaluate route.** The affected Chrome 152.0.7977.82 runtime crashed twice during blob downloads. Do not replace this creation boundary with a separate click followed by download/extraction. The developer-token capture below retains its separately tested blob branch; it does not create an OAuth client.
 
-After the public probe passes, click Create and pre-create the two capture destinations without replacing an existing file:
+After the public probe passes, pre-create **both** capture destinations before creating the client. Do not replace an existing file:
 
 ```bash
 umask 077
@@ -268,51 +268,17 @@ umask 077
 (set -C; : > "$ADS_OUTPUT_DIR/$ADS_CAPTURE_NAME-client.json") || exit 1
 ```
 
-**Evaluate route:** call `browser_evaluate` with the DOM extraction function passed to the **first** `page.evaluate` in the example below, returning the credential object directly (not `JSON.stringify(out)`). Set `filename` to the absolute `$ADS_OUTPUT_DIR/$ADS_CAPTURE_NAME-client.json` path. Omit the download portion entirely. The tool must return only an artifact link; resolve that observed path as `ADS_CLIENT_OUTPUT`, then run the shared verification block below with the same `ADS_CAPTURE_METHOD` value. An unset method is rejected without changing files. Keep credentials out of tool arguments, printed output and chat.
+From the still-public creation form, record its exact current URL and a unique CSS selector for the observed, enabled **Create** button. Derive this selector from the actual DOM; do not guess a selector or click while inspecting it. Prepare [scripts/capture_oauth_client.js](scripts/capture_oauth_client.js) by replacing its single `__ADS_CAPTURE_CONTEXT__` placeholder with JSON containing `capture_name` (the existing random capture name), `create_url` (the exact observed URL), and `create_selector` (that verified selector). These are public setup values; no credentials go in the function arguments.
 
-**Blob route only:** run the complete example below, substituting the printed directory path in `saveAs` and the unique capture name in `link.download`.
+**One protected operation:** call `browser_evaluate` with the entire prepared async function and `filename` set to the absolute pre-created `$ADS_OUTPUT_DIR/$ADS_CAPTURE_NAME-client.json`. Do not call `browser_click` for Create. The function sets `display: none` on this isolated document's root before clicking; descendants cannot override that with `visibility: visible`. It marks the attempt before the one creation click, waits for the client ID/secret fields, validates distinct field shapes, and returns the credential object only to the file-output mechanism. Concealment remains active on success, timeout and output failure, so automatic post-operation snapshots cannot expose the modal, including a delayed response. Initial creation requires the exact observed page. A same-document, same-origin URL change may resume the same retained attempt; a new document or origin is incomplete state, not permission to click again.
 
-```js
-async (page) => {
-  const out = await page.evaluate(() => {
-    // Find the modal panel with Client ID + Client Secret
-    const labels = Array.from(document.querySelectorAll('*'))
-      .filter(el => el.children.length === 0 && /^(your )?client (id|secret)\s*:?$/i.test((el.innerText||'').trim()));
-    const out = {};
-    for (const label of labels) {
-      const which = /id/i.test(label.innerText) ? 'client_id' : 'client_secret';
-      if (out[which]) continue;
-      let scope = label.parentElement;
-      for (let depth = 0; depth < 6 && scope; depth++) {
-        const codes = Array.from(scope.querySelectorAll('code, input[type=text], input:not([type])'));
-        const v = codes.map(c => (c.value || c.innerText || '').trim()).find(v => v.length > 20);
-        if (v) { out[which] = v; break; }
-        scope = scope.parentElement;
-      }
-    }
-    if (!out.client_id || !out.client_secret) return null;
-    return out;
-  });
-  if (!out) return { ok: false };
-  const download_promise = page.waitForEvent('download');
-  await page.evaluate((values) => {
-    const link = document.createElement('a');
-    const blob_url = URL.createObjectURL(new Blob([JSON.stringify(values)], { type: 'application/json' }));
-    link.href = blob_url;
-    link.download = "<ADS_CAPTURE_NAME>-client.json";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(blob_url), 1000);
-  }, out);
-  const download = await download_promise;
-  await download.saveAs("<absolute ADS_CAPTURE_DIR>/client.json");
-  await download.delete();
-  return { ok: true, client_id_len: out.client_id.length, client_secret_len: out.client_secret.length };
-}
-```
+The tool result must contain only the artifact link, never the object. Resolve the **observed Evaluation result** path as `ADS_CLIENT_OUTPUT`, retain `ADS_CAPTURE_METHOD=evaluate`, and run the exact-path verification block below. Do not unhide the secret-bearing page or request a screenshot, DOM dump, response body or console log.
 
-For evaluate, read this capture's **Evaluation result** link; for blob, read its **Downloaded file … to …** event. Retain the resolved absolute path as `ADS_CLIENT_OUTPUT`. Verify it belongs to the protected output directory and matches the expected unique name. If the tool changes the name or directory, the guard below rejects it and preserves every file; resolve the mismatch before continuing. Never infer the cleanup path solely from `link.download`.
+**Retry and uncertain state:** if output delivery fails, keep this tab and the same capture name. Re-running the same prepared function returns its in-memory result or resumes waiting without another click. A session-storage marker prevents another click if the tab reloads and loses that result. A changed origin, lost attempt state after reload, or unresolved timeout stays incomplete: preserve the client and files and inspect only structural state; do not reset the attempt, open another tab to create again, or mint another client. After private-file acceptance, clear only `window.__claudeGoogleAdsClientCapture` with a boolean-returning evaluation, then navigate away to a known non-secret view. Never restore the document's display while the secret modal is present. Keep the attempt marker so a stale replay cannot create a duplicate.
+
+Offline creation-boundary regressions: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/google-ads-connector/tests -v` from the repository root. The synthetic fixture covers delayed modal rendering, private output delivery failure/retry, same-document URL changes, reload refusal, explicitly visible child elements and hidden snapshots; it never contacts Google.
+
+Retain the exact resolved **Evaluation result** path as `ADS_CLIENT_OUTPUT`. Verify it belongs to the protected output directory and matches the expected unique name. If the tool changes the name or directory, the guard below rejects it and preserves every file; resolve the mismatch before continuing. Never infer the cleanup path solely from `link.download`.
 
 ```bash
 python3 - "$ADS_CAPTURE_DIR/client.json" "$ADS_OUTPUT_DIR" "$ADS_CAPTURE_NAME" "$ADS_CLIENT_OUTPUT" "${ADS_CAPTURE_METHOD:-}" <<'PY'
