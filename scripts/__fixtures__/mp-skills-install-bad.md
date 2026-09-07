@@ -1,10 +1,11 @@
-<!-- Deliberately BROKEN power-user-skills step for test-mp-skills-install.mjs.
+<!-- Deliberately BROKEN Matt Pocock skills step for test-mp-skills-install.mjs.
      This is (approximately) the pre-LOUP-19 body: stale `diagnose` selector,
+     four skills only, `--copy` single-agent install (loose copies, CORE-430),
      no self-heal, no per-skill report, "network hiccup" hand-wave. Every rule
      in check-mp-skills-install.mjs must FAIL against it. It carries the setup
      prompt's anchors so the extraction path is exercised too. -->
 
-4. **Power-user skills** — same command on Mac and Windows:
+4. **Matt Pocock's skills** — same command on Mac and Windows:
 
    ```
    npx -y skills@latest add mattpocock/skills -g -a claude-code -s grill-me -s handoff -s diagnose -s teach -y --copy

@@ -376,16 +376,33 @@ At the end of this step, if any customised skills were kept, show the report:
    Verify `playwright` appears in `claude mcp list`. If not, fallback:
    `npm install -g @playwright/mcp` then re-run the add. If it still will not
    register, stop and tell me honestly — every connector in this kit needs it.
-4. **Power-user skills** — same command on Mac and Windows, safe to re-run
-   (it overwrites cleanly):
+4. **Matt Pocock's skills** — the engineering and productivity set from his
+   skills library, installed the way this kit's author runs them: one shared
+   skills folder (`~/.agents/skills/`) that Claude's own skills folder links
+   into, so there is one copy of each skill and updates are clean. Same
+   command on Mac and Windows, safe to re-run — every run refreshes the whole
+   set to the latest version, and an older plain copy of any of these skills
+   already sitting in `~/.claude/skills/` (an earlier setup installed four of
+   them that way) is replaced by a link to the current version:
    ```
-   npx -y skills@latest add mattpocock/skills -g -a claude-code -s grill-me -s handoff -s diagnosing-bugs -s teach -y --copy
+   npx -y skills@latest add mattpocock/skills -g -a claude-code -a codex -y -s grill-me -s grilling -s handoff -s teach -s to-questionnaire -s wait-what -s writing-for-agents -s ask-matt -s code-review -s codebase-design -s diagnosing-bugs -s domain-modeling -s grill-with-docs -s implement -s improve-codebase-architecture -s prototype -s research -s resolving-merge-conflicts -s setup-matt-pocock-skills -s tdd -s to-spec -s to-tickets -s triage -s wayfinder -s wizard
    ```
-   Then check the disk: `~/.claude/skills/{grill-me,handoff,diagnosing-bugs,teach}/SKILL.md`
-   must all exist. If any are missing, list what the repo offers now
-   (`npx -y skills@latest add mattpocock/skills -l`), match the missing skill by
-   name/description (repos rename things), re-run with the resolved names, and
-   re-check. One healing pass, then report per-skill status.
+   Do NOT add `--copy`, and keep both `-a` flags exactly as written: naming
+   both tools is what makes the installer use the shared folder plus links
+   rather than loose copies (a single-tool install copies). Nothing else is
+   installed for the second tool. On Mac the link is a symlink; on Windows the
+   installer makes a folder junction instead, which needs no admin rights and
+   no developer mode — never ask me to switch either on.
+
+   Then check the disk: for every skill named in the command,
+   `~/.claude/skills/<name>/SKILL.md` must exist and open (a link that leads
+   nowhere counts as missing). If any are missing, list what the repo offers
+   now (`npx -y skills@latest add mattpocock/skills -l`), match the missing
+   skill by name/description (repos rename things), re-run with the resolved
+   names, and re-check. One healing pass, then report per-skill status — and
+   say plainly if any skill landed as a plain copy rather than a link (the
+   installer falls back to copying when it cannot link), because that copy will
+   not refresh itself on the next run.
 
 ### Step 7 — The one restart
 
@@ -431,7 +448,8 @@ Do not declare success until every line passes. Check and show me a tick list:
 - `~/.claude/selr-kit-manifest.json` exists, parses, and its `skills` map is
   populated
 - `~/.claude/skills/` contains the kit skills (spot-check 3 named folders) and
-  the 4 power-user skills
+  every Matt Pocock skill named in Step 6, each one opening to a real `SKILL.md`
+  through its link
 - `claude mcp list` shows `playwright`, and the smoke test passed
 - `claude plugin list` shows `routine-installer-plugin`
 

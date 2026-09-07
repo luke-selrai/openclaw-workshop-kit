@@ -71,8 +71,10 @@ their work now, not the kit's. Keep the folder exactly as it is and list it in t
   out; check both, report any that exists, leave it untouched, and do not go hunting
   anywhere else.
 - The browser tool (Playwright), its saved sign-in profile, and the browser it downloaded.
-- The four power-user skills: `grill-me`, `handoff`, `diagnosing-bugs`, `teach`. They came
-  from a different library and are useful without this kit.
+- The Matt Pocock skills (`grill-me`, `handoff`, `diagnosing-bugs`, `teach`, `tdd` and the
+  rest of the set the setup document's Step 6 installs). They came from a different library,
+  live in their own shared folder (`~/.agents/skills/`) with links into `~/.claude/skills/`,
+  and are useful without this kit. The links are not kit skills either: leave every one.
 - Every connection the user set up to an outside tool, and the saved sign-in details that go
   with them.
 - Node.js, Claude Code, and Claude Desktop.

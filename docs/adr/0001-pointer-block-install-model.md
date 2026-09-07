@@ -1,6 +1,8 @@
 # ADR-0001 — Kit install model: pointer block, manifest, universal one-paste setup
 
 > **Amended by [ADR-0003](0003-the-loup-door-is-retired.md) (2026-09-07):** the Loup door is retired. There is one live door and one kit home; §1's second path, §3's `installPath` values and §5's stale-home rule are superseded there. The history below is left as written.
+>
+> **Amended by [ADR-0004](0004-matt-pocock-core-set-installs-as-links.md) (2026-09-08):** the "four power-user skills" are now the whole Matt Pocock core set, installed as links out of the `skills` CLI's shared store rather than as copies. The "symlinks instead of copies" rejection below still stands for the kit's own skills; ADR-0004 scopes the exception.
 
 - **Status:** Accepted, 2026-07-31
 - **Deciders:** Harvey Shaw, via the wayfinder map [CORE-99](https://linear.app/selr-ai/issue/CORE-99) (decision detail lives on its child tickets, linked throughout)
@@ -111,7 +113,7 @@ The persona survives per-rule existence justification at 241 → 108 lines (PR #
 - **One-line kit skill → one canonical doc**: the skill resolves the kit home from the manifest, reads `docs/uninstall.md` there, and follows it. The skill carries no logic, so skill and doc cannot drift; the setup document carries no uninstall steps.
 - **Removes (manifest-exact, in order):** pointer block; persona copy; kit home (from the manifest, never guessed); kit-named unmodified skills (including `orientation` and the uninstall skill itself); plugin + marketplace registration; the manifest **last**.
 - **Keeps and reports:** customised skills (hash mismatch), memory, any legacy-workspace candidate-list folder. Purging these takes a separate explicit request.
-- **Never touches, no opt-in offered:** Playwright MCP + profile + browsers; the four power-user skills; connector MCP entries and credentials; Node/nvm; the Claude Code CLI; Claude Desktop. The report ends: "Claude Code itself is untouched — you can keep using it."
+- **Never touches, no opt-in offered:** Playwright MCP + profile + browsers; the Matt Pocock skills (ADR-0004); connector MCP entries and credentials; Node/nvm; the Claude Code CLI; Claude Desktop. The report ends: "Claude Code itself is untouched — you can keep using it."
 - **One confirmation gate**: the full manifest-derived inventory grouped *delete / kept-because-customised / left-in-place*, one "proceed?", then no further prompts.
 - **Partial uninstall**: skill granularity only, low priority, **no tombstones** — a later update reinstalls removed skills and the report says so plainly.
 - **Manifest-missing fallback**: a best-effort checklist (markers, persona path, plugin names, kit-named skills, both kit homes) that reports anything unverifiable. The escape hatch does not depend on the thing it escapes from.
@@ -125,7 +127,7 @@ The flip-public → announce → flip-private cycle becomes its **own Harvey-int
 
 | Rejected | Why |
 | --- | --- |
-| Symlinks instead of copies | Windows privilege friction; the clone becomes load-bearing; silent loss of user edits |
+| Symlinks instead of copies (for the kit's own skills) | Windows privilege friction; the clone becomes load-bearing; silent loss of user edits. The Matt Pocock set is the scoped exception: [ADR-0004](0004-matt-pocock-core-set-installs-as-links.md) |
 | `git fetch`/`pull` update-in-place | Remote-state reasoning for a prompt-executing installer to fumble; re-clone is truth |
 | Power-user (non-global) install branch | One install model; the global block is small, marked, removable |
 | Asking the user which install type they have | They cannot know — it is our plumbing; the probe knows |

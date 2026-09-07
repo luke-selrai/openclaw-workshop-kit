@@ -491,6 +491,10 @@ Example: "Install the claude-yolo shortcut on my machine."
 
 ---
 
+## Installed alongside the kit - Matt Pocock's skills
+
+Setup also installs the core set of [Matt Pocock's skills](https://github.com/mattpocock/skills) - his engineering and productivity skills, such as `grill-me` (a relentless interview that sharpens a plan before anything gets built), `handoff` (compacts the current conversation into a document another session can pick up), `teach`, `diagnosing-bugs`, `tdd` and `code-review`. They are not kit skills: they live in their own shared folder and are linked into your skills folder, so re-running setup refreshes them to the latest version without touching anything of yours. Type `/grill-me` or `/handoff` in any session to use the two the workshop leans on.
+
 ## Recommended optional plugin - Superpowers
 
 Four skills that used to ship with this kit - `writing-plans`, `systematic-debugging`, `test-driven-development`, and `verification-before-completion` - now live in Anthropic's official **Superpowers** plugin. They stay out of this kit so we never ship a stale copy. Installing Superpowers is optional but strongly recommended for anyone doing more technical work.
