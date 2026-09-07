@@ -25,32 +25,19 @@ metadata:
 
 ## Overview
 
-This skill lets you read and operate a user's AWS account on their behalf via the **`aws` CLI v2**. It has two phases:
+Connect through AWS CLI v2. Preserve the user's existing profiles, credentials, and default configuration. A fresh read-only setup can reuse an explicitly selected existing human credential context to create one uniquely named connector-owned IAM user and one key; the connector then uses its own private credentials/config files. It creates no billable resources or billing configuration.
 
-- **Phase 1 - Install & Auth (autonomous via Playwright).** Claude installs the `aws` CLI, drives the entire AWS Console flow inside a Playwright MCP browser (find or create an IAM user named "claude-assistant" with the right managed policy attached, create an access key for that user, DOM-extract the credentials from the post-create modal), writes `~/.aws/credentials` and `~/.aws/config`, and verifies via `sts:GetCallerIdentity`. The user's only manual moments are signing in to the AWS Console once and approving any MFA prompt. Everything else - IAM user discovery / creation, policy attachment, access key creation, credential extraction - is autonomous.
-- **Phase 2 - Use Tools.** Once the connector is configured, you shell out to `aws` via Bash to answer questions and make changes. Common operations covered: S3, EC2, Lambda, DynamoDB, IAM read-side, Cost Explorer.
+**Phase 0:** if `~/.config/aws-connector/connection.json` exists, run `python3 scripts/connect.py check` from this skill's directory. Success requires the exact saved IAM user/account, a real `iam get-user` read, the expected ReadOnlyAccess attachment with no groups/inline policies, exactly the saved active key, and unchanged original configuration. A saved file or any arbitrary IAM-user ARN alone is insufficient.
 
-> **Never mints root access keys.** AWS strongly recommends against root user access keys - they have unrestricted permission and cannot be permission-restricted. This SKILL refuses to ship root credentials. Step 10's identity check verifies the access key belongs to an IAM user, not the root user, and aborts cleanly if the ARN is `arn:aws:iam::*:root`. The user signs in with root only because they may not yet have an IAM admin user; once an IAM user is minted, all programmatic access flows through it.
+If `~/.config/aws-connector/console-connection.json` exists instead, follow the Console reference's verification using its dedicated files; do not run the CLI provisioning helper against Console-created state. If no connector-owned state exists, an already-working explicitly intended AWS profile may still provide existing-access reads. Record that as existing access, preserve it, and do not claim fresh onboarding. When the user requests a new limited identity, continue with the isolated setup below. Partial connector state uses its recovery reference, not another user/key creation. Root credentials are never imported into the connector, replaced, or deleted.
 
-> **This is for local laptop setup only.** Server provisioning (EC2/Lightsail) lives in [claude-cloud-kit](https://github.com/selrai-company/claude-cloud-kit).
-
-**Which phase to run** - Before any tool call, check whether the AWS CLI is installed and authenticated. Run:
-
-```bash
-aws sts get-caller-identity --output json 2>&1
-```
-
-- Exit code 0 with a JSON `Arn` field → authenticated. **Verify the Arn is an IAM user**, not root:
-  - `arn:aws:iam::*:user/*` → IAM user (good). Go to Phase 2.
-  - `arn:aws:iam::*:root` → Root credentials (bad). Run Phase 1 from Step 5 to mint an IAM user and replace the credentials.
-- Exit code 253 (`Unable to locate credentials`) or 127 (`command not found`) → run Phase 1 from the appropriate step.
-- Other errors → translate, diagnose, run Phase 1 if needed.
+This skill is for a local laptop. Server provisioning belongs to claude-cloud-kit.
 
 ---
 
 ## Communication rules for Phase 1
 
-The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work, the user only signs in to the AWS Console once. Every message during Phase 1 must follow these rules:
+The user is a non-technical business owner. Phase 1 is autonomous - Claude does the work; the user handles a sign-in or security challenge only when the existing authorized session cannot complete it. Every message during Phase 1 must follow these rules:
 
 - **You drive, not them.** Never ask the user to click menus, copy text, scroll, or paste values in the happy path. The only actions you ever request are "please sign in to the AWS Console in the browser window I just opened" and (if challenged) "please approve the security check on your phone."
 - **Plain English only.** No jargon. Never say CLI, binary, PATH, env var, IAM, root, ARN, access key, secret access key, region, MFA, OAuth, sts, JSON, MCP, DOM, Playwright, terminal, or policy name. If you must refer to a technical thing, name it plainly: "the AWS tool I need", "your browser", "a special AWS user account I'll set up for you", "your Amazon sign-in", "a security check".
@@ -63,43 +50,19 @@ The user is a non-technical business owner. Phase 1 is autonomous - Claude does 
 
 ---
 
-## PHASE 1 - Install & Auth (autonomous via Playwright)
+## PHASE 1 - Install and connect
 
-Claude installs the `aws` CLI, drives the AWS Console end-to-end via Playwright MCP to mint a least-privilege IAM user with appropriately-scoped permissions and create an access key, writes the credentials autonomously, and verifies via `sts:GetCallerIdentity` that the keys belong to that IAM user (not root). The user's only role is signing in to the AWS Console when prompted (and only the first time - the persistent Playwright profile keeps the session for future runs) and approving any MFA challenge.
+### Step 1 - Confirm the intended account and scope
 
-> **Reasoning model.** Each step describes a *goal* (e.g., "find the Create user button on the IAM Users page and click it"). Achieve it via `mcp__playwright__browser_snapshot` → reason → `browser_click` / `browser_evaluate` / `browser_fill_form`. Match elements by visible labels and `aria-label` attributes - AWS Console UI evolves frequently and selector paths drift between region-specific deployments.
+Use account and scope already established in the conversation. For a fresh workshop connection, default to read-only. Ask about additional scope only when a requested operation needs writes and the conversation has not established its authorization. Do not repeat an answered question.
 
-> **Why we mint a fresh IAM user instead of reusing root.** AWS publishes [explicit guidance](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#lock-away-credentials) that root user access keys should be locked away and not used for everyday tasks. Root identity has unrestricted permission over the entire account (including billing and account closure) and cannot be permission-restricted by any IAM policy. Programmatic access for an automated agent like Claude must flow through a permission-scoped IAM user that the user can revoke with one click in the IAM Console. The post-mint identity check in Step 10 enforces this - if the keys we just minted belong to root for any reason (e.g., the user accidentally created the key on the root user's Security credentials page mid-flow), the SKILL refuses to write them and re-runs Step 5.
+The scoped helper attaches AWS-managed `ReadOnlyAccess`. This is broad read access across the chosen account, not a custom policy limited to the smoke-test user. It does not grant writes. If the user later requests writes, select appropriate permissions for that operation separately; do not automatically attach PowerUserAccess, AdministratorAccess, or modify unrelated identities to complete setup.
 
-### Step 1 - Orient the user and ask read-only vs read-and-write
+### Step 2 - Check the CLI and existing sign-in
 
-Tell the user, in one short message:
+Run `aws --version`. If missing, use Step 3. Otherwise identify the intended existing profile and confirm its `aws sts get-caller-identity --profile <intended-profile> --output json --no-cli-pager` result privately, returning only account/ARN classification, never access keys. An IAM user or authorized assumed-role session can provision the new identity if it has the required IAM permissions. Root is not accepted by the helper.
 
-> "I'll connect your AWS now. First - do you want me to just **read** your AWS (list servers, view costs, browse buckets), or do you want me to also be able to **make changes** for you (start servers, deploy code, modify resources)? Read-only is safer to start."
-
-Wait for their answer. Remember it - this controls Step 6's policy attach. Default for the workshop demo flow is read-and-write (so they can ask Claude to actually do things), but read-only is the safer first step.
-
-- **Read-only** → attach the AWS-managed policy `arn:aws:iam::aws:policy/ReadOnlyAccess`. Covers list/describe/get for all services including Cost Explorer.
-- **Read + write** → attach the AWS-managed policy `arn:aws:iam::aws:policy/PowerUserAccess`. Covers everything except IAM/Organizations/Account management - the IAM exclusion is the safety net so the minted user cannot create new IAM users, attach broader policies to itself, or escalate privilege.
-
-> **Why not AdministratorAccess.** `AdministratorAccess` includes `iam:*`, which would let the minted user grant itself any policy or create new IAM users. That defeats the purpose of running as a non-root identity - if `claude-assistant` ever leaks its key, it could re-grant itself everything. `PowerUserAccess` blocks that escalation path while still allowing all service-side operations.
-
-### Step 2 - Check if `aws` is already installed and authenticated
-
-Silently run:
-
-```bash
-aws --version 2>&1
-```
-
-If it errors with "command not found" (exit 127), continue to Step 3 to install. If it prints a version string, probe authentication state:
-
-```bash
-aws sts get-caller-identity --output json 2>&1
-```
-
-- Exit 0 with valid JSON → parse `.Arn`. If it matches `arn:aws:iam::*:user/*`, the connector is already configured with an IAM user - skip to Phase 2. If it matches `arn:aws:iam::*:root`, run Phase 1 from Step 5 to mint a non-root user (the existing root creds get replaced in Step 9).
-- Exit 253 (`Unable to locate credentials`) → continue to Step 4 to set up credentials.
+On macOS/Linux, for an already authorized existing profile, proceed directly to Step 5 without opening a browser. The scoped helper relies on POSIX private-file permissions; on Windows use the Console route with verified owner-only file access. An expired SSO/session login can use its ordinary login flow under the user's authorization; preserve all profiles and defer any unavoidable security challenge to the user. If no usable provisioning context exists, use Step 4's Console route.
 
 ### Step 3 - Install AWS CLI v2 cross-platform
 
@@ -165,199 +128,31 @@ Verify:
 aws --version 2>&1
 ```
 
-If the verify command still errors after install (`command not found` even with brew/winget on PATH), tell the user plainly: *"The terminal needs a refresh - please close this window, open a new one, then say 'ready'."* Wait, then retry.
+If the current tool process cannot find AWS after installation, resolve the installed executable and prepend its directory to PATH only for the commands the harness runs. Verify that exact executable. Do not ask the attendee to restart a terminal or edit their shell configuration.
 
-### Step 4 - Open the AWS Console and confirm a logged-in session
+### Step 4 - Console fallback when no CLI provisioning login exists
 
-Tell the user, in one short message:
+Use an isolated browser in the intended AWS account. When the user is doing other work, preserve their everyday browser, native keyboard input and clipboard. Navigate to the IAM console and complete normal sign-in; the user handles any security challenge the harness cannot complete. Existing account access is sufficient; this route does not require creating a new AWS billing account.
 
-> "Opening a browser window for you - please sign in to AWS when it appears (and approve any security check). I'll do the rest. About two minutes."
+For the normal Console workflow and private capture requirements, read [references/console-setup.md](references/console-setup.md). Create a new uniquely named identity, never adopt a namesake or change its permissions. If the available browser cannot save the one-time secret privately without returning it into chat or unprotected artifacts, report that precise capture gate before creating a key. Do not ask the user to paste a key into chat. This reference completes and verifies the Console route; do not then run Step 5 and create a second identity.
 
-Call:
+### Step 5 - Create the isolated read-only connector
 
-```
-mcp__playwright__browser_navigate({ url: "https://console.aws.amazon.com/iam/home" })
-```
+Read [references/scoped-setup.md](references/scoped-setup.md). From this skill's directory, run `python3 scripts/connect.py setup --profile <intended-profile> --expected-arn <verified-human-ARN> --region <chosen-region>`. The existing intended login authorizes provisioning; all resulting operations use the dedicated connector files. The helper creates a unique tagged IAM user, attaches ReadOnlyAccess, creates one key with automatic CLI retries disabled, saves it privately and verifies the connection. No default credential/config file is overwritten or profile activated.
 
-If the user is signed out, AWS redirects to `signin.aws.amazon.com/signin?...`. Take a `mcp__playwright__browser_snapshot()`. Reason from it:
+IAM permission, organization policy, session/MFA and quota errors are real prerequisites, not reasons to use another account, broaden permissions, delete keys, or repeat creation. Preserve partial resources and files. If key creation succeeded but verification failed, the reference's `finish` command can retry reads and complete only missing local runtime files; it never creates another user/key or changes policy.
 
-- **Logged in** (you see the IAM dashboard with a "Users" link in the left navigation) → continue to Step 5.
-- **Sign-in form** (root user email input, or "Sign in as" page with IAM/root toggle) → poll silently with `browser_wait_for({ text: "IAM dashboard" })` (or "Identity and Access Management"). Do not ask the user to confirm; detect login completion yourself.
-- **MFA challenge** (text like "Authentication code", "MFA device", "Verify your identity") → poll silently. The MFA action happens on the user's phone or hardware key; the SKILL just waits for the post-MFA IAM dashboard to load. AWS root accounts are required to have MFA since 2024-09 - this is now the default flow, not an edge case.
+### Step 6 - Verify and report the actual scope
 
-If `browser_wait_for` times out (5+ minutes), check in: *"Still on the sign-in page? Anything I can help with?"*
-
-> **Sign in as IAM user vs root.** AWS's sign-in form has two modes - root user (default, email + password) and IAM user (account ID/alias + IAM username + password). For first-time installs the user signs in as root because they don't yet have an IAM admin user. The persistent Playwright profile remembers their choice for next time. Either path works for this SKILL - what matters is that the resulting IAM Console session has permission to create an IAM user and attach managed policies (root has this; an IAM user with `IAMFullAccess` or `AdministratorAccess` also has this).
-
-### Step 5 - Find or create the "claude-assistant" IAM user
-
-The IAM dashboard has a **Users** link in the left navigation panel. Click it via `browser_click` matching the visible label, OR navigate directly:
-
-```
-mcp__playwright__browser_navigate({ url: "https://us-east-1.console.aws.amazon.com/iam/home#/users" })
-```
-
-`browser_wait_for({ text: "Create user" })`. Take a snapshot.
-
-The Users page shows a search box and a list of existing IAM users. Search for `claude-assistant`:
-
-- **User exists** → click into the user's detail page. Skip to Step 7.
-- **User does not exist** → click the **Create user** button. AWS opens a 3-step wizard.
-
-**Wizard step 1 of 3 - Specify user details.** Locate the "User name" input and type `claude-assistant` via `browser_type` or `browser_fill_form`. **Leave the "Provide user access to the AWS Management Console" checkbox UNCHECKED** - this user is for programmatic access only; granting it Console password access is unnecessary attack surface. Click **Next**.
-
-**Wizard step 2 of 3 - Set permissions.** Three radio options:
-
-- "Add user to group"
-- "Copy permissions"
-- **"Attach policies directly"** - pick this one via `browser_click`.
-
-A list of AWS managed policies appears with a search/filter input. Type the policy name (`ReadOnlyAccess` or `PowerUserAccess` from Step 1's choice) into the filter. The matching row appears with a checkbox on the left. Check the box via `browser_click`. Click **Next**.
-
-**Wizard step 3 of 3 - Review and create.** AWS shows a summary: user name `claude-assistant`, no Console access, the policy from the previous step. Click **Create user**.
-
-Post-create, AWS redirects to the user's detail page at `https://us-east-1.console.aws.amazon.com/iam/home#/users/claude-assistant`. Continue to Step 6.
-
-> **Robustness note.** This wizard layout reflects the AWS Console's IAM UI as of 2025-2026. AWS has reshaped the Create user flow at least twice in the last two years. If the wizard step names or button labels differ, snapshot, reason about the current layout, and adapt - the goal is "create a user named claude-assistant with [policy] attached and no Console password". The find-existing-user path is more stable; the create-new-user wizard is the path most likely to need maintenance.
-
-### Step 6 - Verify the policy attachment (idempotent re-runs)
-
-If `claude-assistant` already existed (Step 5's find-existing branch), the user's existing managed policies may differ from what the user wants this run. Open the **Permissions** tab on the user's detail page. List the attached managed policies via `browser_evaluate`:
-
-```js
-() => {
-  const rows = Array.from(document.querySelectorAll('tr, [role="row"]'));
-  return rows
-    .map(r => (r.innerText || '').trim())
-    .filter(t => /AWS managed/i.test(t) && /(ReadOnlyAccess|PowerUserAccess|AdministratorAccess)/i.test(t))
-    .slice(0, 10);
-}
-```
-
-- **The desired policy from Step 1 is already attached** → skip to Step 7.
-- **A different policy from Step 1's choice is attached** → click **Add permissions → Attach policies directly**, attach the desired policy, then **separately** detach the prior policy (e.g., if the user is switching from read-only to read-and-write, attach `PowerUserAccess` and detach `ReadOnlyAccess`). Don't leave both attached - AWS evaluates the union, but having two managed policies on the user makes the intent ambiguous.
-- **`AdministratorAccess` is attached** → narrate once: *"I noticed your AWS user has admin access. Want me to scope it down to a safer level?"* If yes, attach the policy from Step 1 and detach `AdministratorAccess`. If no, continue with the current setup (the user has a reason).
-
-### Step 7 - Create an access key for the IAM user
-
-On the user's detail page, click the **Security credentials** tab. Scroll to the **Access keys** section.
-
-> **Two-key limit.** AWS allows a maximum of 2 active access keys per IAM user. If 2 keys already exist, the user is mid-rotation or has an old key lying around. Identify any key with a "Last used: Never" status or a creation date older than 90 days, and delete it via `browser_click` on its row's Actions menu → **Delete** before creating a new one.
-
-Click **Create access key**. AWS opens a 2-step modal:
-
-**Modal step 1 of 2 - Access key best practices & alternatives.** AWS shows several use-case radio options (e.g., "Application running on AWS compute service", "Application running outside AWS", "Local code", "Third-party service", "Command Line Interface (CLI)"). Pick **"Command Line Interface (CLI)"**. Below the options is a confirmation checkbox: *"I understand the above recommendation and want to proceed to create an access key."* Check it. Click **Next**.
-
-**Modal step 2 of 2 - Set description tag (optional).** Leave the tag blank (or set it to `claude-assistant-cli` for traceability). Click **Create access key**.
-
-### Step 8 - DOM-extract the access key ID and secret access key
-
-The post-create modal displays both values. **AWS shows the secret exactly once** - if you navigate away or close the modal without capturing it, the user has to delete the key and create another one.
-
-The secret may be masked behind a **Show** toggle. If so, click it first.
-
-Read both values via `browser_evaluate`:
-
-```js
-() => {
-  const out = { access_key_id: null, secret_access_key: null };
-  const allText = Array.from(document.querySelectorAll('input, code, span, pre, td')).map(e => ({ el: e, text: (e.value || e.innerText || '').trim() }));
-  for (const { text } of allText) {
-    // Access key ID: starts with AKIA, 20 chars total, alphanumeric uppercase
-    if (/^AKIA[A-Z0-9]{16}$/.test(text) && !out.access_key_id) {
-      out.access_key_id = text;
-    }
-    // Secret access key: 40 chars, base64-ish (alphanumeric + / + +)
-    if (/^[A-Za-z0-9/+]{40}$/.test(text) && !out.secret_access_key) {
-      out.secret_access_key = text;
-    }
-  }
-  return out;
-}
-```
-
-**Validation (silent).** Access key ID must match `^AKIA[A-Z0-9]{16}$` (20 chars, starts with `AKIA`). Secret access key must be exactly 40 characters of base64-ish content. If either fails the shape check, click the **Show** toggle on the secret and re-extract; if it still fails, fall back to the **Download .csv file** button which AWS provides for exactly this case - read the CSV via `browser_evaluate` parsing the download response, OR ask the user to paste both values once.
-
-After successful extraction, click **Done** to dismiss the modal so the secret is no longer visible on screen.
-
-### Step 9 - Write `~/.aws/credentials` and `~/.aws/config`
-
-Silently create the AWS credentials directory and write both files. Use `chmod 600` on the credentials file so other users on the system can't read it.
-
-```bash
-mkdir -p ~/.aws
-
-cat > ~/.aws/credentials <<EOF
-[default]
-aws_access_key_id = <access_key_id from Step 8>
-aws_secret_access_key = <secret_access_key from Step 8>
-EOF
-chmod 600 ~/.aws/credentials
-
-cat > ~/.aws/config <<EOF
-[default]
-region = us-east-1
-output = json
-EOF
-chmod 600 ~/.aws/config
-```
-
-> **Why `us-east-1` as default.** It's the historical default region (where IAM, Organizations, and other global services have their primary endpoints), it's where most AWS Console URLs default to, and it's never wrong for read operations on global services. Users in other regions (Sydney, Singapore, London, Frankfurt, Tokyo, etc.) can override per-command with `--region <region>` or globally with `aws configure set region <region>`. The Common Operations section below documents the regional reference table.
-
-> **Why a credentials file (not env vars).** `~/.aws/credentials` is the canonical AWS CLI auth source - it persists across shells without needing `~/.zshrc` plumbing, and the AWS SDK in any language picks it up by default. Setting `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` env vars works too but is more brittle (each shell needs the export, subprocesses inherit only if explicitly passed). The credentials file is the single source of truth for both the CLI and the SDKs.
-
-> **Existing credentials.** If `~/.aws/credentials` already has a `[default]` profile from a prior install or a different IAM identity, **back it up** to `~/.aws/credentials.backup` before overwriting. Never silently destroy existing creds.
-
-### Step 10 - Verify the connection (REFUSE if root)
-
-Tell the user: *"Let me just double-check everything is talking to AWS correctly."*
-
-Silently run:
-
-```bash
-aws sts get-caller-identity --output json
-```
-
-- Exit 0 with valid JSON → parse the `Arn` field.
-- Any other exit → diagnose and retry from Step 7 (regenerate access key) or Step 9 (rewrite credentials file).
-
-**Critical: verify the ARN is an IAM user, not root.**
-
-```bash
-ARN="$(aws sts get-caller-identity --query Arn --output text)"
-case "$ARN" in
-  arn:aws:iam::*:user/claude-assistant) echo "OK: IAM user claude-assistant" ;;
-  arn:aws:iam::*:user/*)                echo "OK: IAM user (different name)" ;;
-  arn:aws:iam::*:root)                  echo "REFUSE: root credentials" ; exit 1 ;;
-  *)                                    echo "UNKNOWN ARN: $ARN" ; exit 1 ;;
-esac
-```
-
-- **`arn:aws:iam::*:user/claude-assistant`** → success. The keys we just minted belong to the IAM user we created. Continue.
-- **`arn:aws:iam::*:user/<other-name>`** → an IAM user, just not the one we created. Acceptable (e.g., the user already had a named IAM user from before). Continue.
-- **`arn:aws:iam::*:root`** → REFUSE. Delete `~/.aws/credentials` immediately:
-
-  ```bash
-  rm ~/.aws/credentials
-  ```
-
-  Tell the user: *"I noticed I accidentally got admin-level access. Let me set up a safer account for you instead - one moment."* Re-navigate Playwright back to the IAM Users page and walk Step 5 again, this time explicitly creating the user (not extracting keys from a root session that happened to be on the Security credentials page).
-
-- **Unknown ARN shape** → log silently for diagnostics, retry from Step 5.
-
-### Step 11 - Success message
-
-Tell the user, in one short message:
-
-> "All done - your AWS is now connected. I can help with things like *'show me my S3 buckets'*, *'what's running in my AWS account?'*, or *'what's my AWS bill this month?'*. Give it a try!"
-
-Save to memory that the aws CLI is installed and authenticated, so on the next use you go straight to Phase 2.
+For the scoped CLI route, run `python3 scripts/connect.py check` from the actual caller. The helper verifies exact identity and a real IAM read, scope and original configuration. For the Console route, perform its reference's equivalent verification with the dedicated credential/config paths. Report: “Your AWS read-only connection is ready, and your existing setup is unchanged.” Record fresh identity creation separately from adoption of existing access. Keep account/key ownership and teardown status without exposing credentials.
 
 ---
 
 ## PHASE 2 - Use Tools
 
-Once the connector is configured, shell out to `aws` via Bash to answer questions and make changes.
+For the scoped CLI connector, run `python3 scripts/connect.py run -- <service> <operation> <arguments>` from this skill's directory. It verifies the saved identity/scope, clears inherited AWS overrides only in the child process, and selects the connector's private credentials/config files and region. This wrapper avoids changing the user's shell or default AWS files. For each recipe below, replace the leading `aws` with `python3 scripts/connect.py run --`. Console-created connections use the same service commands within their reference's isolated child environment instead.
+
+The initial connection is read-only. Write recipes require the user's requested operation and suitable separately reviewed permissions; do not attempt them as onboarding tests. Existing-access sessions that explicitly retained a prior profile must continue using that exact profile and distinguish that route from the isolated connector.
 
 ### What to Try First
 
@@ -437,11 +232,11 @@ aws iam list-users --query 'Users[].UserName'
 # Get current user info
 aws sts get-caller-identity
 
-# List the policies attached to claude-assistant (the user this SKILL minted)
-aws iam list-attached-user-policies --user-name claude-assistant
+# List policies for the exact saved connector-owned username
+aws iam list-attached-user-policies --user-name <saved-connector-user>
 ```
 
-> **The `claude-assistant` user cannot manage IAM** because Step 1's `PowerUserAccess` (or `ReadOnlyAccess`) policy excludes `iam:*` write operations. To rotate keys, change policies, or delete the user, sign in to the AWS Console as root or as a user with `IAMFullAccess` and do it there. This is the safety net - the minted user cannot escalate or modify its own permissions.
+The dedicated user has ReadOnlyAccess. Key rotation, policy changes or teardown are separately authorized administration using the intended provisioning context and exact owned user/key identifiers. They are never authentication-error recovery or a reason to switch to root.
 
 #### Cost Explorer
 
@@ -484,99 +279,43 @@ aws cloudwatch describe-alarms --state-value ALARM --query 'MetricAlarms[].Alarm
 | Frankfurt | `eu-central-1` |
 | Tokyo | `ap-northeast-1` |
 
-To set the default region permanently:
+Use the saved region unless the requested operation needs another. For one operation, pass exactly one full `--region <region-code>` or `--region=<region-code>` option. The wrapper validates and normalizes it to a single effective region; it does not rewrite either AWS config file. Identity/scope checks still use the saved connector context.
 
 ```bash
-aws configure set region <region-code>
+python3 scripts/connect.py run -- ec2 describe-instances --region us-east-1
 ```
 
-To use a different region for one command:
-
-```bash
-aws s3 ls --region ap-southeast-2
-```
+Do not use `aws configure set region` or export profile/region variables in the user's shell. A Console-created connection passes the same per-operation region flag in its isolated child environment.
 
 ---
 
-## SSO Login (Alternative - for Organizations with IAM Identity Center)
+## Existing SSO session
 
-If the user's organisation uses AWS IAM Identity Center (formerly AWS SSO) instead of long-lived access keys, skip Phase 1 and use SSO:
+When the intended existing profile uses IAM Identity Center, preserve that profile and its account/role selection. If its session expired, renew only that named profile with `aws sso login --profile <intended-profile> --no-browser`, then drive the emitted verification URL in the isolated browser. AWS documents that `--no-browser` prevents launching the default browser. The user handles an unavoidable security challenge. Confirm the exact account/ARN again before provisioning.
 
-> "Your company uses a different sign-in method. I'll set that up instead."
+An authorized SSO role may provision the dedicated read-only identity through Step 5. If the user requests existing SSO access instead, retain that exact named profile for each operation and record existing access rather than fresh limited-identity setup. Do not silently choose this alternative after a denied provisioning operation.
 
-```bash
-aws configure sso
-```
-
-This prompts for:
-
-- **SSO start URL** - usually `https://<company>.awsapps.com/start`
-- **SSO region** - the region the company's Identity Center is in
-- **Account and role** - a browser opens; user signs in, picks an account and role from the list
-
-After setup, log in (and re-login when the session expires, typically every 8 hours):
-
-```bash
-aws sso login --profile <profile-name>
-```
-
-> **When to use SSO vs IAM user.** SSO is preferred when the organisation has IAM Identity Center configured (typical for mid-size companies). The session is short-lived (no long-lived access key on disk), tied to the user's corporate identity, and auto-revokes on offboarding. The Phase 1 IAM-user-mint flow is for individual / small-team accounts that don't have Identity Center set up. Both can coexist in `~/.aws/config` as separate profiles.
+New Identity Center configuration is separately authorized profile maintenance: use a new named profile in a dedicated configuration file and preserve existing configuration/default selectors. Do not run an unscoped interactive `aws configure sso` or ask a nontechnical attendee to fill terminal prompts as connector onboarding.
 
 ---
 
 ## Auth & Session
 
-```bash
-# Check who is signed in
-aws sts get-caller-identity
+For scoped CLI state, use `python3 scripts/connect.py check` to verify the saved identity, scope, key and unchanged original configuration. For partial state, use the scoped recovery reference. Do not use `configure`, credential exports or global profile changes through the wrapper; it refuses those operations.
 
-# Check current config
-aws configure list
-
-# Switch profiles
-export AWS_PROFILE=other-profile
-
-# List configured profiles
-aws configure list-profiles
-
-# Reconfigure credentials interactively
-aws configure
-```
+For the Console route, repeat its saved identity/read proof in its dedicated child environment. For an explicitly retained existing-profile route, use `aws sts get-caller-identity --profile <intended-profile>` privately; every subsequent operation keeps that same explicit profile. An expired session uses only its normal scoped login flow. Credential replacement and profile maintenance require their own reviewed authorization and never overwrite the user's defaults as troubleshooting.
 
 ---
 
-## Troubleshooting
+## Troubleshooting and behavior
 
-| Problem | Fix |
-|---|---|
-| `aws: command not found` | Shell needs restart - open a new terminal, or use the Step 3 PATH alias |
-| `Unable to locate credentials` | Run Phase 1 from Step 9 (rewrite `~/.aws/credentials`) |
-| `An error occurred (InvalidClientTokenId)` | Access key was deleted in IAM Console - run Phase 1 from Step 7 to mint a fresh one |
-| `An error occurred (SignatureDoesNotMatch)` | Secret key is wrong (probably a copy-paste error from a fallback path) - re-run Step 7-9 |
-| `An error occurred (AccessDenied)` | The minted IAM user does not have permission for that operation. If the user originally picked Read-only and now wants to make changes, run Phase 1 from Step 6 to swap the policy to PowerUserAccess. |
-| `Could not connect to the endpoint URL` | Wrong region - set with `aws configure set region <region-code>` |
-| `An error occurred (ExpiredToken)` | SSO session expired - run `aws sso login` |
-| `The security token included in the request is invalid` | Long-lived credentials - re-run Phase 1 from Step 7. Short-lived (SSO) - run `aws sso login`. |
-
-When an error occurs, say:
-
-> "No problem - let me try a different way."
-
-Then diagnose and fix. Never show raw error messages to the user - translate them into plain English.
-
----
-
-## Behaviour Guidelines (Phase 2)
-
-- **Always run `aws sts get-caller-identity` first** at the start of a session to confirm the user is signed in and the ARN is an IAM user (not root).
-- **Confirm before destructive actions** - deleting buckets, terminating instances, removing IAM users, rolling back deployments. Summarise what you are about to do and wait for the user's OK.
-- **Region context matters** - always check `aws configure get region` before running commands that vary by region (S3 buckets, EC2 instances, Lambda functions). Pass `--region` explicitly if the operation needs to target a different region from the default.
-- **Auth errors** → for long-lived creds, run Phase 1 from Step 7. For SSO, run `aws sso login`.
-- **`aws not found`** → restart shell or reinstall via Phase 1 Step 3.
-- **Never echo or log secret keys** - they should only ever exist in `~/.aws/credentials` (or in SSO temporary credentials, which the CLI manages).
-- **Cost-explorer awareness** - `ce get-cost-and-usage` returns blended numbers by default. When the user asks about their bill, prefer `--metrics UnblendedCost` (what they actually pay) and present in their currency. AWS bills in USD by default.
-- **One step at a time** - do not dump all instructions at once. Say what to do, wait, then give the next step. (For Phase 2 this is less strict than Phase 1; users running list/describe queries don't need step-by-step narration.)
-- **IAM user limit** - `claude-assistant` cannot manage IAM. If the user asks Claude to "give me admin access" or "create a new user", explain plainly: "Your AWS user is set up to be safer - it can read and operate AWS but can't change account-level settings. To do that, please sign in to AWS Console directly." Do not attempt to escalate.
+- Start with `scripts/connect.py check` for connector-owned state. For partial setup, read the saved stage names privately and follow [scoped recovery](references/scoped-setup.md). Never print the key file, credentials file or command stderr containing credentials.
+- Authentication failures preserve the current key and context. Retry only permitted reads or normal session login; never regenerate keys automatically. A timed-out create request may have succeeded remotely.
+- Permission or quota failures require the exact missing permission or limit to be understood. Preserve all existing policies and keys; neither “oldest” nor “never used” proves a key is safe to delete.
+- Root/unexpected identity is a verification failure. Preserve the user's original files and inspect the selected context; do not delete credentials or silently accept another IAM user.
+- Use the chosen region and isolated wrapper for each operation. Existing profiles are never globally switched.
+- Destructive work, paid resources and billing changes require the user's actual authorization and are outside the read-only setup. Cost Explorer or other potentially chargeable APIs are not smoke tests.
+- If a requested IAM operation exceeds the connection's scope, explain the precise limitation and use separately authorized administration only when requested. Do not escalate the connector's own role as recovery.
 
 ---
 
