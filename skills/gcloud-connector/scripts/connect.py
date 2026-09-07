@@ -25,7 +25,7 @@ def requestStage(arguments):
         ("projects", "describe"): "PROJECT_READ",
         ("projects", "get-iam-policy"): "ROLE_READ",
         ("projects", "add-iam-policy-binding"): "VIEWER_BINDING",
-        ("services", "enable"): "IAM_API_ENABLE",
+        ("services", "enable"): "CONNECTION_APIS_ENABLE",
         ("iam", "service-accounts", "create"): "SERVICE_ACCOUNT_CREATE",
         ("iam", "service-accounts", "describe"): "SERVICE_ACCOUNT_READ",
         ("iam", "service-accounts", "keys", "create"): "KEY_CREATE",
@@ -54,9 +54,12 @@ def failureReason(output):
 
 def runCloud(arguments, environment, decode=True):
     stage = requestStage(arguments)
+    command = ["gcloud", *arguments]
+    if "--quiet" not in command:
+        command.append("--quiet")
     try:
         result = subprocess.run(
-            ["gcloud", *arguments], env=environment, capture_output=True,
+            command, env=environment, capture_output=True,
             text=True, timeout=180, umask=0o077,
         )
     except subprocess.TimeoutExpired:
@@ -149,11 +152,18 @@ def verify(directory, environment):
     manifest = json.loads(manifest_path.read_text())
     account = manifest["account"]
     project = manifest["project"]
+    verifyIdentity(directory, environment, account, project)
+    return manifest
+
+
+def verifyIdentity(directory, environment, account, project):
     if not account.endswith("@" + project + ".iam.gserviceaccount.com"):
         raise ConnectionError("EXACT_CONNECTOR_ACCOUNT_NOT_VERIFIED")
     keyIdentity(directory / "key.json", account, project)
     env_file = directory / "credentials.env"
     if env_file.exists():
+        if env_file.is_symlink() or env_file.stat().st_mode & 0o077:
+            raise ConnectionError("SAVED_ENVIRONMENT_NOT_VERIFIED")
         values = {}
         for line in env_file.read_text().splitlines():
             parts = shlex.split(line)
@@ -178,7 +188,89 @@ def verify(directory, environment):
     result = runCloud(["projects", "describe", project, "--account=" + account, "--project=" + project, "--format=json"], child)
     if result.get("projectId") != project:
         raise ConnectionError("PROJECT_READ_NOT_VERIFIED")
-    return manifest
+
+
+def activateKey(directory, environment, account, project):
+    key_path = directory / "key.json"
+    key_hash = hashlib.sha256(key_path.read_bytes()).digest()
+    child = isolatedEnvironment(environment, directory / "cli")
+    command = ["auth", "activate-service-account", account, "--key-file=" + str(key_path), "--project=" + project, "--quiet"]
+    for attempt in range(3):
+        keyIdentity(key_path, account, project)
+        if hashlib.sha256(key_path.read_bytes()).digest() != key_hash:
+            raise ConnectionError("KEY_CHANGED_PRESERVE_AND_REVIEW")
+        try:
+            runCloud(command, child, False)
+            return
+        except ConnectionError as error:
+            if str(error) != "GCLOUD_KEY_ACTIVATION_AUTHENTICATION_PRESERVE_AND_REVIEW" or attempt == 2:
+                raise
+            time.sleep(5)
+
+
+def writeEnvironment(directory, account, project):
+    lines = []
+    for name, value in credentialValues(directory, account, project).items():
+        lines.append("export " + name + "=" + shlex.quote(value))
+    privateWrite(directory / "credentials.env", "\n".join(lines) + "\n")
+
+
+def privateRecord(path):
+    if path.is_symlink() or not path.is_file() or path.stat().st_mode & 0o077:
+        raise ConnectionError("PARTIAL_STATE_NOT_VERIFIED_PRESERVE_AND_REVIEW")
+    return path.read_text()
+
+
+def finish(args, environment):
+    directory = Path(args.directory).expanduser().absolute()
+    if directory.is_symlink() or not directory.is_dir() or directory.stat().st_mode & 0o077:
+        raise ConnectionError("PARTIAL_STATE_NOT_VERIFIED_PRESERVE_AND_REVIEW")
+    attempt = json.loads(privateRecord(directory / "attempt.json"))
+    original = json.loads(privateRecord(directory / "original.json"))
+    for stage in ("project", "iam-api", "service-account", "viewer", "key"):
+        for suffix in ("started", "complete"):
+            if privateRecord(directory / (stage + "." + suffix)) != suffix:
+                raise ConnectionError("PROVISIONING_INCOMPLETE_PRESERVE_AND_REVIEW")
+    project = attempt["project"]
+    account = attempt["account"]
+    human_account = attempt["human_account"]
+    if (not re.fullmatch(r"[a-z][a-z0-9-]{4,28}[a-z0-9]", project)
+            or account != "claude-assistant@" + project + ".iam.gserviceaccount.com"
+            or "@" not in human_account or human_account.endswith(".gserviceaccount.com")):
+        raise ConnectionError("PARTIAL_IDENTITY_NOT_VERIFIED_PRESERVE_AND_REVIEW")
+    current = originalContext(environment)
+    if current != original or current["override_present"]:
+        raise ConnectionError("ORIGINAL_CONFIGURATION_CHANGED_PRESERVE_AND_REVIEW")
+    keyIdentity(directory / "key.json", account, project)
+    expected = {"account": account, "project": project, "role": "roles/viewer"}
+    manifest_path = directory / "connection.json"
+    if os.path.lexists(manifest_path) and json.loads(privateRecord(manifest_path)) != expected:
+        raise ConnectionError("PARTIAL_IDENTITY_NOT_VERIFIED_PRESERVE_AND_REVIEW")
+    env_path = directory / "credentials.env"
+    if os.path.lexists(env_path):
+        privateRecord(env_path)
+    human_env = dict(environment)
+    human_env["CLOUDSDK_CONFIG"] = original["path"]
+    scope = ["--account=" + human_account, "--project=" + project, "--configuration=" + original["configuration"], "--quiet"]
+    try:
+        policy = runCloud(["projects", "get-iam-policy", project, "--format=json", *scope], human_env)
+        roles = []
+        for binding in policy.get("bindings", []):
+            if "serviceAccount:" + account in binding.get("members", []):
+                roles.append(binding.get("role"))
+                if binding.get("condition"):
+                    raise ConnectionError("UNEXPECTED_ROLE_BINDING_PRESERVE_AND_REVIEW")
+        if roles != ["roles/viewer"]:
+            raise ConnectionError("UNEXPECTED_ROLE_BINDING_PRESERVE_AND_REVIEW")
+        verifyIdentity(directory, environment, account, project)
+    finally:
+        if originalContext(environment) != original:
+            raise ConnectionError("ORIGINAL_CONFIGURATION_CHANGED_PRESERVE_AND_REVIEW")
+    if not manifest_path.exists():
+        privateWrite(manifest_path, json.dumps(expected))
+    if not env_path.exists():
+        writeEnvironment(directory, account, project)
+    print("CONNECTED_VIEWER; existing key retained; original configuration unchanged")
 
 
 def setup(args, environment):
@@ -212,7 +304,7 @@ def setup(args, environment):
 
     try:
         provision("project", ["projects", "create", args.project, "--name=" + args.name, "--no-enable-cloud-apis"], False)
-        provision("iam-api", ["services", "enable", "iam.googleapis.com"], False)
+        provision("iam-api", ["services", "enable", "iam.googleapis.com", "cloudresourcemanager.googleapis.com"], False)
         provision("service-account", ["iam", "service-accounts", "create", "claude-assistant", "--display-name=Claude Assistant", "--description=Dedicated workshop connector"], False)
         for attempt in range(7):
             try:
@@ -244,8 +336,7 @@ def setup(args, environment):
         keyIdentity(key_path, account, args.project)
         cli_directory = directory / "cli"
         cli_directory.mkdir(mode=0o700)
-        child = isolatedEnvironment(environment, cli_directory)
-        runCloud(["auth", "activate-service-account", account, "--key-file=" + str(key_path), "--project=" + args.project, "--quiet"], child, False)
+        activateKey(directory, environment, account, args.project)
         privateWrite(directory / "connection.json", json.dumps({"account": account, "project": args.project, "role": "roles/viewer"}))
         for attempt in range(7):
             try:
@@ -255,11 +346,7 @@ def setup(args, environment):
                 if attempt == 6:
                     raise
                 time.sleep(5)
-        values = credentialValues(directory, account, args.project)
-        lines = []
-        for name, value in values.items():
-            lines.append("export " + name + "=" + shlex.quote(value))
-        privateWrite(directory / "credentials.env", "\n".join(lines) + "\n")
+        writeEnvironment(directory, account, args.project)
     finally:
         if originalContext(environment) != original:
             raise ConnectionError("ORIGINAL_CONFIGURATION_CHANGED_PRESERVE_AND_REVIEW")
@@ -275,10 +362,13 @@ def main():
     new_project.add_argument("--project", required=True)
     new_project.add_argument("--name", default="Claude workshop test")
     commands.add_parser("check")
+    commands.add_parser("finish")
     args = parser.parse_args()
     try:
         if args.command == "new-project":
             setup(args, dict(os.environ))
+        elif args.command == "finish":
+            finish(args, dict(os.environ))
         else:
             original = originalContext(dict(os.environ))
             if original["override_present"]:

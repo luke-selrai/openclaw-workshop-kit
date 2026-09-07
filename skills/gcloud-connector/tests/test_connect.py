@@ -47,6 +47,7 @@ elif args[:2] == ['projects','create']:
         raise SystemExit(1)
     if os.environ.get('FIXTURE_CHANGE_ORIGINAL'):
         (root / 'original' / 'active_config').write_text('unexpected-change')
+    (root / 'viewer-bound').unlink(missing_ok=True)
     print('created')
 elif args[:2] == ['services','enable']:
     print('enabled')
@@ -56,10 +57,13 @@ elif args[:3] == ['iam','service-accounts','describe']:
     emit({'email':account})
 elif args[:2] == ['projects','get-iam-policy']:
     bindings = []
+    if (root / 'viewer-bound').exists():
+        bindings = [{'role':'roles/viewer','members':['serviceAccount:' + account]}]
     if os.environ.get('FIXTURE_ROLES'):
         bindings = [{'role':'roles/owner','members':['serviceAccount:' + account]}]
     emit({'bindings':bindings})
 elif args[:2] == ['projects','add-iam-policy-binding']:
+    (root / 'viewer-bound').write_text('bound')
     emit({'bindings':[{'role':'roles/viewer','members':['serviceAccount:' + account]}]})
 elif args[:4] == ['iam','service-accounts','keys','create']:
     key = Path(args[4])
@@ -74,6 +78,15 @@ elif args[:4] == ['iam','service-accounts','keys','create']:
     key.write_text(json.dumps({'type':'service_account','client_email':key_account,'project_id':project,'private_key':'fixture-private-key','private_key_id':'fixture-key-id'}))
     print('fixture-private-key',file=sys.stderr)
 elif args[:2] == ['auth','activate-service-account']:
+    counter = root / 'activation-attempts'
+    count = 0
+    if counter.exists():
+        count = int(counter.read_text())
+    count += 1
+    counter.write_text(str(count))
+    if count <= int(os.environ.get('FIXTURE_ACTIVATION_FAILURES','0')):
+        print(os.environ.get('FIXTURE_ACTIVATION_REASON','UNAUTHENTICATED invalid_grant') + ' fixture-private-error',file=sys.stderr)
+        raise SystemExit(1)
     (config / 'configurations').mkdir()
     (config / 'configurations' / 'config_default').write_text(json.dumps({'account':args[2],'project':flag('--project')}))
     (config / 'credentials.db').write_text('fixture-private-credential')
@@ -82,6 +95,12 @@ elif args[:2] == ['config','get-value']:
     values = json.loads((config / 'configurations' / 'config_default').read_text())
     print(values[args[2]])
 elif args[:2] == ['projects','describe']:
+    if os.environ.get('FIXTURE_API_DISABLED'):
+        if '--quiet' in args:
+            print('SERVICE_DISABLED fixture-private-details',file=sys.stderr)
+        else:
+            print('Would you like to enable this API? (y/N)',file=sys.stderr)
+        raise SystemExit(1)
     emit({'projectId':project,'name':'Fixture'})
 else:
     raise SystemExit(9)
@@ -144,6 +163,7 @@ class ConnectTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("CONNECTED_VIEWER", result.stdout)
         self.assertOriginalUnchanged()
+
         self.assertEqual(stat.S_IMODE(self.directory.stat().st_mode), 0o700)
         for name in ("key.json", "credentials.env", "connection.json", "original.json"):
             self.assertEqual(stat.S_IMODE((self.directory / name).stat().st_mode), 0o600)
@@ -152,6 +172,7 @@ class ConnectTests(unittest.TestCase):
         self.assertIn("GCLOUD_CONNECTOR_ACCOUNT=claude-assistant@workshop-fixture-123.iam.gserviceaccount.com", env)
         for call in self.calls():
             args = call["args"]
+            self.assertIn("--quiet", args)
             self.assertNotIn("--set-as-default", args)
             self.assertNotIn("billing", args)
             self.assertNotIn("delete", args)
@@ -163,11 +184,115 @@ class ConnectTests(unittest.TestCase):
                 self.assertIn("--configuration=default", args)
             if args[:2] == ["auth", "activate-service-account"]:
                 self.assertEqual(call["config"], str(self.directory / "cli"))
+            if args[:2] == ["services", "enable"]:
+                self.assertEqual(args[2:4], ["iam.googleapis.com", "cloudresourcemanager.googleapis.com"])
             if args[:2] == ["config", "get-value"]:
                 self.assertIsNone(call["account_override"])
                 self.assertIsNone(call["project_override"])
         checked = self.invoke("check")
         self.assertEqual(checked.returncode, 0, checked.stdout)
+        self.assertOriginalUnchanged()
+
+    def testTransientActivationRetriesSameKeyWithoutProvisioningAgain(self):
+        self.environment["FIXTURE_ACTIVATION_FAILURES"] = "1"
+        result = self.invoke()
+        self.assertEqual(result.returncode, 0, result.stdout)
+        activations = []
+        keys = []
+        for call in self.calls():
+            if call["args"][:2] == ["auth", "activate-service-account"]:
+                activations.append(call)
+            if call["args"][:4] == ["iam", "service-accounts", "keys", "create"]:
+                keys.append(call)
+        self.assertEqual(len(keys), 1)
+        self.assertEqual(len(activations), 2)
+        self.assertEqual(activations[0], activations[1])
+        self.assertEqual(activations[0]["config"], str(self.directory / "cli"))
+        self.assertOriginalUnchanged()
+
+    def testActivationRetriesAreBoundedAndPreserveProvisionedKey(self):
+        self.environment["FIXTURE_ACTIVATION_FAILURES"] = "99"
+        result = self.invoke()
+        self.assertIn("GCLOUD_KEY_ACTIVATION_AUTHENTICATION", result.stdout)
+        activations = []
+        keys = []
+        for call in self.calls():
+            if "activate-service-account" in call["args"]:
+                activations.append(call)
+            if call["args"][:4] == ["iam", "service-accounts", "keys", "create"]:
+                keys.append(call)
+        self.assertEqual(len(activations), 3)
+        self.assertEqual(len(keys), 1)
+        self.assertTrue((self.directory / "key.complete").exists())
+        self.assertFalse((self.directory / "credentials.env").exists())
+        self.assertOriginalUnchanged()
+
+    def testActivationPermissionFailureDoesNotRetry(self):
+        self.environment["FIXTURE_ACTIVATION_FAILURES"] = "99"
+        self.environment["FIXTURE_ACTIVATION_REASON"] = "PERMISSION_DENIED"
+        result = self.invoke()
+        self.assertIn("GCLOUD_KEY_ACTIVATION_PERMISSION", result.stdout)
+        self.assertEqual((self.root / "activation-attempts").read_text(), "1")
+        self.assertOriginalUnchanged()
+
+    def testFinishCompletesOnlyLocalFilesForActivatedPartialState(self):
+        self.assertEqual(self.invoke().returncode, 0)
+        key = (self.directory / "key.json").read_bytes()
+        (self.directory / "connection.json").unlink()
+        (self.directory / "credentials.env").unlink()
+        count = len(self.calls())
+        result = self.invoke("finish")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("existing key retained", result.stdout)
+        self.assertEqual((self.directory / "key.json").read_bytes(), key)
+        self.assertTrue((self.directory / "connection.json").exists())
+        self.assertTrue((self.directory / "credentials.env").exists())
+        for call in self.calls()[count:]:
+            args = call["args"]
+            if args[0] == "projects":
+                self.assertIn(args[1], ("get-iam-policy", "describe"))
+            else:
+                self.assertIn(args[0], ("config", "info"))
+        self.assertOriginalUnchanged()
+
+    def testFinishPreservesAlreadyCompleteFiles(self):
+        self.assertEqual(self.invoke().returncode, 0)
+        saved = {}
+        for path in self.directory.rglob("*"):
+            if path.is_file():
+                saved[path] = path.read_bytes()
+        count = len(self.calls())
+        result = self.invoke("finish")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        for path, value in saved.items():
+            self.assertEqual(path.read_bytes(), value)
+        for call in self.calls()[count:]:
+            self.assertNotIn("create", call["args"])
+            self.assertNotIn("activate-service-account", call["args"])
+        self.assertOriginalUnchanged()
+
+    def testFinishReportsDisabledApiWithoutPromptOrCloudMutation(self):
+        self.assertEqual(self.invoke().returncode, 0)
+        self.environment["FIXTURE_API_DISABLED"] = "1"
+        count = len(self.calls())
+        result = self.invoke("finish")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("GCLOUD_PROJECT_READ_SERVICE_DISABLED", result.stdout)
+        self.assertNotIn("y/N", result.stdout + result.stderr)
+        for call in self.calls()[count:]:
+            self.assertIn("--quiet", call["args"])
+            self.assertNotIn("enable", call["args"])
+            self.assertNotIn("create", call["args"])
+        self.assertOriginalUnchanged()
+
+    def testFinishRefusesMissingCompletedStage(self):
+        self.assertEqual(self.invoke().returncode, 0)
+        (self.directory / "key.complete").unlink()
+        count = len(self.calls())
+        result = self.invoke("finish")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("PARTIAL_STATE_NOT_VERIFIED", result.stdout)
+        self.assertEqual(len(self.calls()), count)
         self.assertOriginalUnchanged()
 
     def testUnrelatedSavedKeyNeverPasses(self):

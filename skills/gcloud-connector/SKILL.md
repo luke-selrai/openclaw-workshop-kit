@@ -141,11 +141,13 @@ Follow the current CLI prompt rather than assuming a fixed code-page layout. If 
 
 ### Step 5 - Provision the chosen connection
 
-**New authorized test project:** read [references/new-project.md](references/new-project.md), then run the bundled helper with the intended existing human account and a fresh project ID. It preserves the original CLI configuration, creates a new project without setting it as default, enables IAM, creates a new dedicated service account with Viewer, saves a private key without replacing files, and activates it in a separate CLI directory. It does not link billing or create paid resources.
+**New authorized test project:** read [references/new-project.md](references/new-project.md), then run the bundled helper with the intended existing human account and a fresh project ID. It preserves the original CLI configuration, creates a new project without setting it as default, enables IAM and Cloud Resource Manager, creates a new dedicated service account with Viewer, saves a private key without replacing files, and activates it in a separate CLI directory. It does not link billing or create paid resources.
 
 **Existing chosen project:** preserve this route using [references/existing-project.md](references/existing-project.md). Scope every provisioning command to the explicit human account and project, create a new connector-owned identity rather than adopting a namesake, and use the same isolated runtime and private persistence contract. If ownership of prior connector files is uncertain, inspect and review it before continuing.
 
 ### Step 6 - Verify and report the actual scope
+
+For a fully provisioned partial setup whose saved key is already activated in the isolated configuration, use the guarded `finish` command in [references/new-project.md](references/new-project.md). It verifies existing resources and completes only missing local files; preserve valid files already present. Never rerun `new-project` to finish.
 
 The helper's success requires the exact saved service-account email and project in its dedicated configuration, a successful `projects describe`, and unchanged original configuration. Run `python3 scripts/connect.py check` from the actual caller runtime before saying the connector is ready.
 
@@ -158,7 +160,7 @@ For the new Viewer connection, say: “Your Google Cloud test space is connected
 Once the connector is configured, shell out to `gcloud` (and `bq`, `gsutil`) via Bash. **Every Phase 2 command must be prefixed with the credentials source line** so `GOOGLE_APPLICATION_CREDENTIALS` is set for SDK-based tools:
 
 ```bash
-( set +x; source "$HOME/.config/gcloud-connector/credentials.env"; gcloud <command> --account="$GCLOUD_CONNECTOR_ACCOUNT" --project="$GCLOUD_PROJECT" )
+( set +x; source "$HOME/.config/gcloud-connector/credentials.env"; gcloud <command> --account="$GCLOUD_CONNECTOR_ACCOUNT" --project="$GCLOUD_PROJECT" --quiet )
 ```
 
 For brevity, the recipes below omit this wrapper. Include it in every actual invocation, including region/configuration changes, key lifecycle work, and SDK commands. `CLOUDSDK_CONFIG` selects only the connector directory in that subshell. Use explicit account/project flags for gcloud and the saved project for bq; never export this state into the user’s global shell. The new test key is Viewer-only: write recipes are available only after a separately authorized operation has the required permissions and billing, if needed.
@@ -344,7 +346,7 @@ Start with `python3 scripts/connect.py check`. A saved service-account email alo
 | `quota exceeded`, `limit reached` | Hit a project quota. Wait or request quota increase in Console. |
 | `Could not automatically determine credentials` | Source the credentials env file: `( set +x; source "$HOME/.config/gcloud-connector/credentials.env"; <SDK command> )` |
 | `RESOURCE_EXHAUSTED: Maximum number of keys` | List key metadata privately and preserve all keys; review ownership and any separately authorized retirement before retrying |
-| Auth works but a specific API fails | Check the exact project and API. Setup enables IAM only; enabling another API must belong to the separately authorized operation and use the intended provisioning identity |
+| Auth works but a specific API fails | Check the exact project and API. Setup enables IAM and Cloud Resource Manager only; enabling another API must belong to the separately authorized operation and use the intended provisioning identity |
 
 When an error occurs, say:
 
@@ -361,7 +363,7 @@ Then diagnose and fix. Never show raw error messages to the user - translate the
 - **Project context** — use the saved project explicitly. Preserve the user's original account, project, configuration files, and ADC.
 - **Auth errors** — preserve partial state and existing keys. Diagnose the exact identity, key, and policy before an authorized repair; do not rerun key creation automatically.
 - **`gcloud not found`** — apply Step 3's current-process SDK path repair before reinstalling.
-- **Region/zone and API enablement** — choose these for the user's actual requested operation. New connection setup creates no compute resources and enables IAM only.
+- **Region/zone and API enablement** — choose these for the user's actual requested operation. New connection setup creates no compute resources and enables IAM and Cloud Resource Manager only.
 - **Never echo or log credentials** - the JSON key file's contents must never appear in any output visible to the user.
 - **One step at a time** - for Phase 2, less strict than Phase 1; users running `gcloud … list` queries don't need step-by-step narration.
 - **Role boundary awareness** - if the user asks Claude to manage IAM (grant roles, create users, change project ownership), explain plainly: "Your Google Cloud connection is set up to be safer - it can read and operate resources but can't change permission settings. To do that, please sign in to console.cloud.google.com directly." Do not attempt to escalate.
